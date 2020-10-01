@@ -30,51 +30,87 @@ layout = html.Div([
         html.Div([
         dbc.Row(dbc.Col(html.Img(src="/assets/Fink_PrimaryLogo_WEB.png", height='100%', width='40%')), style={'textAlign': 'center'}),
         dbc.Row([
-            dbc.CardDeck([dbc.Card(children=[
-                html.H3(children="Explore historical data", className="text-center"),
-                #dbc.Col(html.Img(src="/assets/lc.png", height='175px', width='100%')),
-                dbc.CardImg(src="/assets/lc.png"),
-                dbc.Button(
-                    "Explorer",
-                    href="/explorer",
-                    color="secondary",
-                    className="mt-3"),
-                ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
-            dbc.Card(children=[
-                html.H3(children='Explore the Graph database', className="text-center"),
-                #dbc.Col(html.Img(src="/assets/graph2.png", height='175px', width='100%')),
-                dbc.CardImg(src="/assets/graph2.png"),
-                dbc.Button(
-                    "Grafink",
-                    href="/grafink",
-                    color="secondary",
-                    className="mt-3"),
-                ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}
-                )]),
-        ], className="mb-2"),
-        ], style={'background-image': 'url(/assets/toto5.png)'}),
+            dbc.Col(
+                dbc.CardDeck([
+                    dbc.Card(children=[
+                        html.H3(children="Explore historical data", className="text-center"),
+                        #dbc.Col(html.Img(src="/assets/lc.png", height='175px', width='100%')),
+                        #dbc.CardImg(src="/assets/lc.png"),
+                        dbc.Button(
+                            "Explorer",
+                            href="/explorer",
+                            color="secondary",
+                            className="mt-3"),
+                        ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
+                    dbc.Card(children=[
+                        html.H3(children='Explore the Graph database', className="text-center"),
+                        #dbc.Col(html.Img(src="/assets/graph2.png", height='175px', width='100%')),
+                        #dbc.CardImg(src="/assets/graph2.png"),
+                        dbc.Button(
+                            "Grafink (Not available)",
+                            href="/grafink",
+                            color="secondary",
+                            className="mt-3"),
+                        ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'})
+                        ]
+                    ),
+                )]
+            ),
+        html.Br(),
         dbc.Row([
-             dbc.Col(html.H2("Fink infrastructure")
-                     , className="mb-5 mt-5")
-         ]),
-        dbc.Row(dbc.Col(html.Img(src="/assets/infrastructure.png", height='300px', width='75%')), style={'textAlign': 'center'}),
-        dbc.Row(html.H5(children=msg_infra, className='text-align')),
-        dbc.Row([
-              dbc.Col(html.H2("Fink results")
-                      , className="mb-5 mt-5")
-          ]),
-        dbc.Row([
-         dbc.Col(html.H5(children=msg_results, className='text-align')),
-         dbc.Col(html.Img(src="/assets/footprint_nside128.png", height='500px', width='100%')),
-         ]),
-        dbc.Row([
-              dbc.Col(html.H2("LSST alert ecosystem")
-                      , className="mb-5 mt-5")
-          ]),
-         dbc.Row([
-             dbc.Col(html.H5(children=msg_alert, className='text-align')),
-             ])
-
+            dbc.Col(
+                dbc.CardDeck([
+                    dbc.Card(children=[
+                        html.H3(children="Supernovae", className="text-center"),
+                        #dbc.Col(html.Img(src="/assets/lc.png", height='175px', width='100%')),
+                        #dbc.CardImg(src="/assets/lc.png"),
+                        dbc.Button(
+                            "Learn More",
+                            href="/about",
+                            color="secondary",
+                            className="mt-3"),
+                        ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
+                    dbc.Card(children=[
+                        html.H3(children='Microlensing', className="text-center"),
+                        #dbc.Col(html.Img(src="/assets/graph2.png", height='175px', width='100%')),
+                        #dbc.CardImg(src="/assets/graph2.png"),
+                        dbc.Button(
+                            "Learn More",
+                            href="/about",
+                            color="secondary",
+                            className="mt-3"),
+                        ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
+                        dbc.Card(children=[
+                            html.H3(children="Solar System", className="text-center"),
+                            #dbc.Col(html.Img(src="/assets/lc.png", height='175px', width='100%')),
+                            #dbc.CardImg(src="/assets/lc.png"),
+                            dbc.Button(
+                                "Learn More",
+                                href="/about",
+                                color="secondary",
+                                className="mt-3"),
+                            ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
+                        dbc.Card(children=[
+                            html.H3(children='Variable Stars', className="text-center"),
+                            #dbc.Col(html.Img(src="/assets/graph2.png", height='175px', width='100%')),
+                            #dbc.CardImg(src="/assets/graph2.png"),
+                            dbc.Button(
+                                "Learn More",
+                                href="/about",
+                                color="secondary",
+                                className="mt-3"),
+                            ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'})
+                        ]
+                    ),
+                )]
+            ),
+        ], style={
+            'background-image': 'url(/assets/background.png)',
+            'width':'100%',
+            'height':'100%',
+            'top':'0px',
+            'left':'0px',
+            })
         #html.A("Special thanks to Flaticon for the icon in COVID-19 Dash's logo.",
         #       href="https://www.flaticon.com/free-icon/coronavirus_2913604")
 
