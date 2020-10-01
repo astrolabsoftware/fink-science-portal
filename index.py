@@ -8,12 +8,13 @@ from app import server
 from app import app
 # import all pages in the app
 #from apps import global_situation, singapore, home
-from apps import home, explorer, grafink, alert
+from apps import home, explorer, grafink, alert, about
 
 # building the navigation bar
 # https://github.com/facultyai/dash-bootstrap-components/blob/master/examples/advanced-component-usage/Navbars.py
 dropdown = dbc.DropdownMenu(
     children=[
+        dbc.DropdownMenuItem("About", href="/about"),
         dbc.DropdownMenuItem("Fink Website", href="https://fink-broker.org/"),
         dbc.DropdownMenuItem("GitHub", href="https://github.com/astrolabsoftware/fink-broker"),
         dbc.DropdownMenuItem("Fink documentation", href="https://fink-broker.readthedocs.io/en/latest/"),
@@ -31,7 +32,7 @@ navbar = dbc.Navbar(
                 dbc.Row(
                     [
                         #dbc.Col(html.Img(src="/assets/Fink_PrimaryLogo_WEB.png", height="50px")),
-                        dbc.Col(dbc.NavbarBrand("Sience portal", className="ml-2")),
+                        dbc.Col(dbc.NavbarBrand("Fink Sience portal", className="ml-2")),
                     ],
                     align="center",
                     no_gutters=True,
@@ -79,6 +80,8 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname == '/explorer':
         return explorer.layout
+    elif pathname == '/about':
+        return about.layout
     elif pathname == '/grafink':
         return grafink.layout
     elif 'ZTF' in pathname:
