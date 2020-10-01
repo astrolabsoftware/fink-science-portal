@@ -1,4 +1,17 @@
-import dash
+# Copyright 2020 AstroLab Software
+# Author: Julien Peloton
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
@@ -13,9 +26,10 @@ from app import app
 from app import client
 from apps.decoder import convert_hbase_string
 
-msg="""
-_Enter a valid object ID (e.g. ZTF18acvqrrf) or a prefix (e.g. ZTF20) on the left panel, and press enter.
-Then click on an objectId to get more details. The table shows:_
+msg = """
+_Enter a valid object ID (e.g. ZTF18acvqrrf) or a prefix (e.g. ZTF20) on
+the left panel, and press enter. Then click on an objectId to get more details.
+The table shows:_
 
 - _objectId: Unique identifier for this object_
 - _RA: Right Ascension of candidate; J2000 (deg)_
@@ -31,7 +45,12 @@ Then click on an objectId to get more details. The table shows:_
 object_id = dbc.FormGroup(
     [
         dbc.Label("Search by Object ID"),
-        dbc.Input(placeholder="e.g. ZTF20 or ZTF18acvqrrf", type="text", id='objectid', debounce=True),
+        dbc.Input(
+            placeholder="e.g. ZTF20 or ZTF18acvqrrf",
+            type="text",
+            id='objectid',
+            debounce=True
+        ),
         dbc.FormText("Enter an objectId beginning with 'ZTF'"),
     ]
 )
@@ -56,7 +75,12 @@ layout = html.Div(
                 dbc.Row([
                     dbc.Col(
                         [
-                            dbc.Row(html.Img(src="/assets/Fink_PrimaryLogo_WEB.png", height="50px")),
+                            dbc.Row(
+                                html.Img(
+                                    src="/assets/Fink_PrimaryLogo_WEB.png",
+                                    height="50px"
+                                )
+                            ),
                             html.Br(),
                             html.P("Search Options"),
                             dbc.Row(object_id),
@@ -66,7 +90,13 @@ layout = html.Div(
                     ),
                     dbc.Col([
                         html.H6(id="table"),
-                        dbc.Card(dbc.CardBody(dcc.Markdown(msg)), style={'backgroundColor': 'rgb(248, 248, 248, .7)'})
+                        dbc.Card(
+                            dbc.CardBody(
+                                dcc.Markdown(msg)
+                            ), style={
+                                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                            }
+                        )
                     ], width=8)
                 ]),
             ], className="mb-4"
@@ -81,13 +111,23 @@ layout = html.Div(
 )
 
 def convert_jd(jd):
-    """
+    """ Convert Julian Date into ISO date (UTC).
     """
     return Time(jd, format='jd').to_value('iso')
 
 @app.callback(Output("table", "children"), [Input("objectid", "value")])
 def construct_table(value):
-    """
+    """ Query the HBase database and format results into a DataFrame.
+
+    Parameters
+    ----------
+    value: str
+        Object ID (or prefix) from user input
+
+    Returns
+    ----------
+    dash_table
+        Dash table containing aggregated data by object ID.
     """
     if value is None or value == '':
         return html.Table()
