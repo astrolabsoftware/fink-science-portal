@@ -21,7 +21,7 @@ from app import server
 from app import app
 
 # import all pages in the app
-from apps import home, explorer, grafink, alert, about
+from apps import home, explorer, grafink, summary, about
 
 # building the navigation bar
 dropdown = dbc.DropdownMenu(
@@ -109,7 +109,7 @@ def display_page(pathname):
     elif pathname == '/grafink':
         return grafink.layout
     elif 'ZTF' in pathname:
-        return alert.layout(pathname)
+        return summary.layout(pathname)
     else:
         return home.layout
 

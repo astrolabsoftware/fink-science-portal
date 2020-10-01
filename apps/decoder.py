@@ -5,8 +5,6 @@ def convert_hbase_string(s: str) -> (str, dict):
     """
     if s == '':
         return None, None
-    # split each line
-    #b = s.split('\n')[0]
 
     # keep only the
     rowkey = s.split(' = ')[0]

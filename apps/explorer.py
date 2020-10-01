@@ -25,6 +25,7 @@ from astropy.time import Time
 from app import app
 from app import client
 from apps.decoder import convert_hbase_string
+from apps.utils import convert_jd
 
 msg = """
 _Enter a valid object ID (e.g. ZTF18acvqrrf) or a prefix (e.g. ZTF20) on
@@ -109,11 +110,6 @@ layout = html.Div(
         'left': '0px',
     }
 )
-
-def convert_jd(jd):
-    """ Convert Julian Date into ISO date (UTC).
-    """
-    return Time(jd, format='jd').to_value('iso')
 
 @app.callback(Output("table", "children"), [Input("objectid", "value")])
 def construct_table(value):
