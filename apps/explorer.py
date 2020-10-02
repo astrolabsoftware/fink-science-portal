@@ -65,7 +65,7 @@ filter_property = dbc.FormGroup(
             id='filter_property',
             debounce=True
         ),
-        dcc.Markdown("It must correspond to a known [alert field](https://zwickytransientfacility.github.io/ztf-avro-alert/schema.html), \n or a Fink added value field.", style={'font-size': '9pt'}),
+        dcc.Markdown("Known [alert field](https://zwickytransientfacility.github.io/ztf-avro-alert/schema.html), \n or a Fink added value field.", style={'font-size': '9pt'}),
     ]
 )
 
@@ -151,8 +151,11 @@ def construct_table(n_clicks, objectid, filter_property):
         return html.Table()
     if filter_property is not None and filter_property != '':
         client.setEvaluation(filter_property)
+    data = client.scan("", "key:key:{}".format(objectid), "", "1000")
     # print(filter_property, objectid)
-    data = client.scan("", "key:key:{}".format(objectid), "", "0")
+    # if filter_property is None:
+    #     filter_property = ""
+    # data = client.scan("", "key:key:{}".format(objectid), filter_property, "0")
     if data == '':
         return html.Table()
 
