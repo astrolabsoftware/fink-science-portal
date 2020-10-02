@@ -47,7 +47,7 @@ object_id = dbc.FormGroup(
     [
         dbc.Label("Search by Object ID"),
         dbc.Input(
-            placeholder="e.g. ZTF20 or ZTF18acvqrrf",
+            placeholder="e.g. ZTF18 or ZTF19aaaaoor",
             type="text",
             id='objectid',
             debounce=True
@@ -64,8 +64,7 @@ latest_alerts = dbc.FormGroup(
             placeholder="Select a category",
             clearable=True,
             style={'width': '100%', 'display': 'inline-block'}
-        ),
-        dbc.FormText("Enter valid category"),
+        )
     ]
 )
 
