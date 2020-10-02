@@ -287,7 +287,10 @@ def tabs(data):
     tabs_ = dbc.Tabs(
         [
             dbc.Tab(tab1_content(data), label="Summary", tab_style={"margin-left": "auto"}),
-            dbc.Tab(tab2_content, label="Supernova"),
+            dbc.Tab(tab2_content, label="Supernova", disabled=True),
+            dbc.Tab(label="Microlensing", disabled=True),
+            dbc.Tab(label="Variable stars", disabled=True),
+            dbc.Tab(label="Solar System", disabled=True),
         ]
     )
     return tabs_

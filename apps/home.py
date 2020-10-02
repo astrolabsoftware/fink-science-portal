@@ -50,6 +50,7 @@ layout = html.Div([
                             "Grafink (Not available)",
                             href="/grafink",
                             color="secondary",
+                            disabled=True,
                             className="mt-3"),
                         ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'})
                         ]
