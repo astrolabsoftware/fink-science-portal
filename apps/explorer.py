@@ -28,7 +28,7 @@ from apps.decoder import convert_hbase_string
 from apps.utils import convert_jd
 
 msg = """
-_Enter a valid object ID (e.g. ZTF18acvqrrf) or a prefix (e.g. ZTF20) on
+_Enter a valid object ID (e.g. ZTF19acmdpyr) or a prefix (e.g. ZTF19) on
 the left panel, and press enter. Then click on an objectId to get more details.
 The table shows:_
 
@@ -47,7 +47,7 @@ object_id = dbc.FormGroup(
     [
         dbc.Label("Search by Object ID"),
         dbc.Input(
-            placeholder="e.g. ZTF18 or ZTF19aaaaoor",
+            placeholder="e.g. ZTF19acmdpyr, or ZTF18",
             type="text",
             id='objectid',
             debounce=True
