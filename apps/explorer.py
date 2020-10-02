@@ -56,6 +56,19 @@ object_id = dbc.FormGroup(
     ]
 )
 
+filter_property = dbc.FormGroup(
+    [
+        dbc.Label("Filter by property"),
+        dbc.Input(
+            placeholder="ra < 10",
+            type="text",
+            id='filter_property',
+            debounce=True
+        ),
+        dcc.Markdown("It must correspond to a known [alert field](https://zwickytransientfacility.github.io/ztf-avro-alert/schema.html), \n or a Fink added value field.", style={'font-size': '9pt'}),
+    ]
+)
+
 latest_alerts = dbc.FormGroup(
     [
         dbc.Label("Latest alerts by category"),
@@ -65,6 +78,12 @@ latest_alerts = dbc.FormGroup(
             clearable=True,
             style={'width': '100%', 'display': 'inline-block'}
         )
+    ]
+)
+
+submit_button = dbc.FormGroup(
+    [
+        dbc.Button('Submit Query', id='submit_query', style={'width': '100%', 'display': 'inline-block'})
     ]
 )
 
@@ -84,9 +103,11 @@ layout = html.Div(
                             html.Br(),
                             html.P("Search Options"),
                             dbc.Row(object_id),
-                            html.Br(),
-                            dbc.Row(latest_alerts),
-                        ], width=4
+                            dbc.Row(filter_property),
+                            dbc.Row(submit_button),
+                            # html.Br(),
+                            # dbc.Row(latest_alerts),
+                        ], width=3
                     ),
                     dbc.Col([
                         html.H6(id="table"),
@@ -97,7 +118,7 @@ layout = html.Div(
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
                         )
-                    ], width=8)
+                    ], width=9)
                 ]),
             ], className="mb-4"
         )
@@ -110,8 +131,8 @@ layout = html.Div(
     }
 )
 
-@app.callback(Output("table", "children"), [Input("objectid", "value")])
-def construct_table(value):
+@app.callback(Output("table", "children"), [Input("submit_query", "n_clicks"), Input("objectid", "value"), Input("filter_property", "value")])
+def construct_table(n_clicks, objectid, filter_property):
     """ Query the HBase database and format results into a DataFrame.
 
     Parameters
@@ -124,9 +145,14 @@ def construct_table(value):
     dash_table
         Dash table containing aggregated data by object ID.
     """
-    if value is None or value == '':
+    if n_clicks is None:
         return html.Table()
-    data = client.scan("", "key:key:{}".format(value), "", "10")
+    if objectid is None or objectid == '':
+        return html.Table()
+    if filter_property is not None and filter_property != '':
+        client.setEvaluation(filter_property)
+    # print(filter_property, objectid)
+    data = client.scan("", "key:key:{}".format(objectid), "", "0")
     if data == '':
         return html.Table()
 
