@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import gzip
+import io
+from astropy.io import fits
 
 from astropy.convolution import convolve as astropy_convolve
 from astropy.convolution import Gaussian2DKernel
@@ -20,6 +23,51 @@ from astropy.convolution import Box2DKernel
 
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
+
+import java
+
+def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
+    """ Extract one row from the client result, and return result as dict
+    """
+    data = clientresult[key]
+    return dict(data)
+
+def readstamp(stamp: str) -> np.array:
+    """ Read the stamp data inside an alert.
+
+    Parameters
+    ----------
+    alert: dictionary
+        dictionary containing alert data
+    field: string
+        Name of the stamps: cutoutScience, cutoutTemplate, cutoutDifference
+
+    Returns
+    ----------
+    data: np.array
+        2D array containing image data
+    """
+    with gzip.open(io.BytesIO(stamp), 'rb') as f:
+        with fits.open(io.BytesIO(f.read())) as hdul:
+            data = hdul[0].data
+    return data
+
+def extract_properties(data: str, fieldnames: list):
+    """
+    """
+    pdfs = pd.DataFrame()
+    for rowkey in data:
+        if rowkey == '':
+            continue
+        properties = extract_row(rowkey, data)
+        if fieldnames is not None:
+            pdf = pd.DataFrame.from_dict(
+                properties, orient='index', columns=[rowkey]).T[fieldnames]
+        else:
+            pdf = pd.DataFrame.from_dict(
+                properties, orient='index', columns=[rowkey]).T
+        pdfs = pd.concat((pdfs, pdf))
+    return pdfs
 
 def convert_jd(jd, to='iso'):
     """ Convert Julian Date into ISO date (UTC).

@@ -12,10 +12,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import java
-
-def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
-    """ Extract one row from the client result, and return result as dict
-    """
-    data = clientresult[key]
-    return dict(data)

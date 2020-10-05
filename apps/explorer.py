@@ -24,7 +24,7 @@ from astropy.time import Time
 
 from app import app
 from app import client
-from apps.decoder import extract_row
+from apps.utils import extract_row
 from apps.utils import convert_jd
 
 msg = """
