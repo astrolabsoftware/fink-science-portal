@@ -49,7 +49,7 @@ layout_scores = dict(
         'title': 'Observation date'
     },
     yaxis={
-        'title': 'Score'
+        'title': 'Score',
         'range': [0, 1]
     }
 )
