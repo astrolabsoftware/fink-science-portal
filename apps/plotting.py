@@ -172,6 +172,17 @@ def draw_scores(data: java.util.TreeMap) -> dict:
         'data': [
             {
                 'x': jd,
+                'y': [0.5] * len(jd),
+                'mode': 'lines',
+                'showlegend': False,
+                'line': {
+                    'color': 'black',
+                    'width': 2.5,
+                    'dash': 'dash'
+                    }
+            },
+            {
+                'x': jd,
                 'y': pdf['d:snn_snia_vs_nonia'],
                 'mode': 'markers',
                 'name': 'SN Ia score',
@@ -191,17 +202,6 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                     'size': 12,
                     'color': '#d62728',
                     'symbol': 'circle-open-dot'}
-            },
-            {
-                'x': jd,
-                'y': [0.5] * len(jd),
-                'mode': 'lines',
-                'showlegend': False,
-                'line': {
-                    'color': 'black',
-                    'width': 2.5,
-                    'dash': 'dash'
-                }
             }
         ],
         "layout": layout_scores
