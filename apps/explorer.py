@@ -24,7 +24,7 @@ from astropy.time import Time
 
 from app import app
 from app import client
-from apps.decoder import convert_hbase_string
+from apps.decoder import extract_row
 from apps.utils import convert_jd
 
 msg = """
@@ -151,12 +151,9 @@ def construct_table(n_clicks, objectid, filter_property):
         return html.Table()
     if filter_property is not None and filter_property != '':
         client.setEvaluation(filter_property)
-    data = client.scan("", "key:key:{}".format(objectid), "", "1000")
-    # print(filter_property, objectid)
-    # if filter_property is None:
-    #     filter_property = ""
-    # data = client.scan("", "key:key:{}".format(objectid), filter_property, "0")
-    if data == '':
+    result = client.scan("", "key:key:{}".format(objectid), None, 0, True, True)
+
+    if result.isEmpty():
         return html.Table()
 
     # initialise the dataframe
@@ -182,10 +179,10 @@ def construct_table(n_clicks, objectid, filter_property):
     dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     # Loop over results and construct the dataframe
-    for datum in data.split('\n'):
-        if datum == '':
+    for rowkey in result:
+        if rowkey == '':
             continue
-        name, properties = convert_hbase_string(datum)
+        properties = extract_row(rowkey)
         properties['i:objectId'] = '[{}](/{})'.format(
             properties['i:objectId'],
             properties['i:objectId']
@@ -194,7 +191,7 @@ def construct_table(n_clicks, objectid, filter_property):
         pdf = pd.DataFrame.from_dict(
             properties,
             orient='index',
-            columns=[name]
+            columns=[rowkey]
         ).T[colnames]
 
         pdfs = pd.concat((pdfs, pdf))

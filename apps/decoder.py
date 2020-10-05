@@ -1,23 +1,21 @@
-import yaml
+# Copyright 2020 AstroLab Software
+# Author: Julien Peloton
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import java
 
-def convert_hbase_string(s: str) -> (str, dict):
+def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
+    """ Extract one row from the client result, and return result as dict
     """
-    """
-    if s == '':
-        return None, None
-
-    # keep only the
-    rowkey = s.split(' = ')[0]
-
-    properties_string = s.split(' = ')[1]
-
-    # this dictionary has formating issues
-    fake_dic = yaml.load(
-        properties_string.replace("'", "\""),
-        Loader=yaml.FullLoader
-    )
-
-    # Proper dictionary. Beware, all values are string...
-    dic = {i.split('=')[0]: i.split('=')[1] for i in fake_dic.keys()}
-
-    return rowkey, dic
+    data = clientresult[key]
+    return dict(data)

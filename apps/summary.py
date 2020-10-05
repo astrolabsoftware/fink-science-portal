@@ -18,7 +18,7 @@ import urllib
 
 from apps.explorer import object_id, latest_alerts
 from apps.utils import convolve, _data_stretch, convert_jd
-from apps.decoder import convert_hbase_string
+from apps.decoder import extract_row
 
 dcc.Location(id='url', refresh=False)
 
@@ -42,8 +42,8 @@ layout_lightcurve = dict(
 def card_properties(name):
     if name is None or name == '':
         return html.Table()
-    data = client.scan("", "key:key:{}".format(name[1:]), "", "10")
-    if data == '':
+    results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
+    if results.isEmpty():
         return html.Table()
 
     pdf = extract_properties(data, None)
@@ -311,7 +311,7 @@ def title(name):
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
-    data = client.scan("", "key:key:{}".format(name[1:]), "", "10")
+    results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
 
     layout_ = html.Div(
         [
@@ -330,7 +330,7 @@ def layout(name):
                             )
                         ], width={"size": 3},
                     ),
-                    dbc.Col(tabs(data), width=8)
+                    dbc.Col(tabs(results), width=8)
                 ],
                 justify="around", no_gutters=True
             )
@@ -415,14 +415,14 @@ def extract_properties(data: str, fieldnames: list):
     """
     pdfs = pd.DataFrame()
     out = []
-    for datum in data.split('\n'):
-        if datum == '':
+    for rowkey in data:
+        if rowkey == '':
             continue
-        name, properties = convert_hbase_string(datum)
+        properties = extract_row(rowkey)
         if fieldnames is not None:
-            pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[name]).T[fieldnames]
+            pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[rowkey]).T[fieldnames]
         else:
-            pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[name]).T
+            pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[rowkey]).T
         pdfs = pd.concat((pdfs, pdf))
     return pdfs
 
@@ -431,11 +431,11 @@ def extract_lightcurve(data):
     """
     pdfs = pd.DataFrame()
     values = ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid']
-    for datum in data.split('\n'):
-        if datum == '':
+    for rowkey in data:
+        if rowkey == '':
             continue
-        name, properties = convert_hbase_string(datum)
-        pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[name]).T[values]
+        properties = extract_row(rowkey)
+        pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[rowkey]).T[values]
         pdfs = pd.concat((pdfs, pdf))
     return pdfs
 
@@ -444,11 +444,11 @@ def extract_latest_cutouts(data):
     """
     pdfs = pd.DataFrame()
     values = ['i:jd', 'b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
-    for datum in data.split('\n'):
-        if datum == '':
+    for rowkey in data:
+        if rowkey == '':
             continue
-        name, properties = convert_hbase_string(datum)
-        pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[name]).T[values]
+        properties = extract_row(rowkey)
+        pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[rowkey]).T[values]
         pdfs = pd.concat((pdfs, pdf))
     pdfs.sort_values('i:jd', ascending=False)
     diff = readstamp(client.repository().get(pdfs['b:cutoutDifference_stampData'].values[0]))
@@ -480,8 +480,8 @@ def integrate_aladin_lite(name):
     """
     default_img = ""
     if name:
-        data = client.scan("", "key:key:{}".format(name[1:]), "", "10")
-        pdf = extract_properties(data, ['i:jd', 'i:ra', 'i:dec'])
+        results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
+        pdf = extract_properties(results, ['i:jd', 'i:ra', 'i:dec'])
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         # Coordinate of the current alert
