@@ -209,7 +209,10 @@ def card_sn_properties(data):
                 [SNN] SNe score: {:.2f}
                 RF score: {:.2f}
                 ```
-                """.format(snn_snia_vs_nonia, snn_sn_vs_all, rfscore)
+                """.format(
+                    float(snn_snia_vs_nonia),
+                    float(snn_sn_vs_all),
+                    float(rfscore))
             )
         ],
         className="mt-3", body=True
