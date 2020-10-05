@@ -220,6 +220,7 @@ def card_sn_properties(data):
             'i:ra',
             'i:dec',
             'i:jd',
+            'd:cdsxmatch',
             'd:rfscore',
             'd:snn_snia_vs_nonia',
             'd:snn_sn_vs_all',
@@ -303,3 +304,8 @@ def card_fink_added_values(data):
         className="mt-3", body=True
     )
     return card
+
+def card_download():
+    """
+    """
+    pass
