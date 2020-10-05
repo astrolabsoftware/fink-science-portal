@@ -14,6 +14,8 @@
 # limitations under the License.
 import pandas as pd
 
+import java
+
 import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch
@@ -36,7 +38,7 @@ layout_lightcurve = dict(
     }
 )
 
-def extract_lightcurve(data):
+def extract_lightcurve(data: java.util.TreeMap) -> pd.DataFrame:
     """
     """
     pdfs = pd.DataFrame()
@@ -50,7 +52,7 @@ def extract_lightcurve(data):
         pdfs = pd.concat((pdfs, pdf))
     return pdfs
 
-def draw_lightcurve(data) -> dict:
+def draw_lightcurve(data: java.util.TreeMap) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
@@ -107,8 +109,22 @@ def draw_lightcurve(data) -> dict:
     }
     return figure
 
-def extract_latest_cutouts(data):
-    """
+def extract_latest_cutouts(data: java.util.TreeMap):
+    """ Extract cutout data from the alert
+
+    Parameters
+    ----------
+    data: java.util.TreeMap
+        Results from a HBase client query
+
+    Returns
+    ----------
+    science: np.array
+        2D array containing science data
+    template: np.array
+        2D array containing template data
+    difference: np.array
+        2D array containing difference data
     """
     pdfs = pd.DataFrame()
     values = [

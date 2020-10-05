@@ -17,7 +17,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from apps.utils import convert_jd, extract_properties
-from apps.plotting import draw_cutout
+from apps.plotting import draw_cutout, extract_latest_cutouts
 
 import numpy as np
 
@@ -53,7 +53,7 @@ def card_lightcurve(data) -> dbc.Card:
     )
     return card
 
-def card_cutouts(science, template, difference):
+def card_cutouts(data):
     """ Add a card containing cutouts
 
     Parameters
@@ -70,6 +70,7 @@ def card_cutouts(science, template, difference):
     card: dbc.Card
         Card with the cutouts drawn inside
     """
+    science, template, difference = extract_latest_cutouts(data)
     card = dbc.Card(
         dbc.CardBody(
             [

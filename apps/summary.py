@@ -26,10 +26,9 @@ from apps.cards import card_id, card_fink_added_values
 dcc.Location(id='url', refresh=False)
 
 def tab1_content(data):
-    science, template, difference = extract_latest_cutouts(data)
     tab1_content_ = html.Div([
         dbc.Row([
-            dbc.Col(card_cutouts(science, template, difference), width=8),
+            dbc.Col(card_cutouts(data), width=8),
             dbc.Col([card_id(data)], width=4, align='center')
         ]),
         dbc.Row([
