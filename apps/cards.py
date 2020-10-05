@@ -338,7 +338,7 @@ def generate_download_link(data):
         pdf = extract_properties(data, None)
         # drop cutouts from download for the moment
         pdf = pdf.drop(
-            [
+            columns=[
                 'b:cutoutDifference_stampData',
                 'b:cutoutScience_stampData',
                 'b:cutoutTemplate_stampData'
