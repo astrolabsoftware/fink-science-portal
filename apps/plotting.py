@@ -165,19 +165,19 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'text': jd,
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
-                    'symbol': 'o'}
+                    'color': '#2ca02c',
+                    'symbol': 'circle-open-dot'}
             },
             {
                 'x': jd,
                 'y': pdf['d:snn_sn_vs_all'],
                 'mode': 'markers',
-                'name': 'r band',
+                'name': 'SNe score',
                 'text': jd,
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
-                    'symbol': 'v'}
+                    'color': '#d62728',
+                    'symbol': 'circle-open-dot'}
             }
         ],
         "layout": layout_scores
