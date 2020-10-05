@@ -21,6 +21,7 @@ from apps.plotting import draw_cutout, extract_latest_cutouts
 from apps.plotting import draw_lightcurve, draw_scores
 
 import numpy as np
+import urllib
 
 def card_lightcurve(data) -> dbc.Card:
     """ Card containing the lightcurve object
@@ -304,7 +305,37 @@ def card_fink_added_values(data):
     )
     return card
 
-def card_download():
+def card_download(data):
     """
     """
-    pass
+    card = dbc.Card(
+        [
+            html.H5("Download data", className="card-subtitle"),
+            dcc.Markdown("```"),
+            dbc.ButtonGroup([
+                dbc.Button(
+                    html.A(
+                        'Download',
+                        id="download-link",
+                        download="rawdata.csv",
+                        href=generate_download_link(data),
+                        target="_blank"),
+                    id='download',
+                    target="_blank",
+                    href=""
+                )
+            ])
+        ],
+        className="mt-3", body=True
+    )
+    return card
+
+
+def generate_download_link(data):
+    if data is None:
+        return ""
+    else:
+        pdf = extract_properties(data)
+        csv_string = pdf.to_csv(index=False, encoding='utf-8')
+        csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+        return csv_string
