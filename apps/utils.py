@@ -1,7 +1,22 @@
+# Copyright 2020 AstroLab Software
+# Author: Julien Peloton
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import numpy as np
 
-from astropy.convolution import (convolve as astropy_convolve,
-                                 Gaussian2DKernel, Box2DKernel)
+from astropy.convolution import convolve as astropy_convolve
+from astropy.convolution import Gaussian2DKernel
+from astropy.convolution import Box2DKernel
 
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
@@ -12,7 +27,8 @@ def convert_jd(jd, to='iso'):
     return Time(jd, format='jd').to_value(to)
 
 def convolve(image, smooth=3, kernel='gauss'):
-
+    """ Convolve 2D image. Hacked from aplpy
+    """
     if smooth is None and isinstance(kernel, str) and kernel in ['box', 'gauss']:
         return image
 
@@ -23,25 +39,25 @@ def convolve(image, smooth=3, kernel='gauss'):
 
     # The Astropy convolution doesn't treat +/-Inf values correctly yet, so we
     # convert to NaN here.
-
     image_fixed = np.array(image, dtype=float, copy=True)
     image_fixed[np.isinf(image)] = np.nan
 
     if isinstance(kernel, str):
         if kernel == 'gauss':
-            kernel = Gaussian2DKernel(smooth, x_size=smooth * 5, y_size=smooth * 5)
+            kernel = Gaussian2DKernel(
+                smooth, x_size=smooth * 5, y_size=smooth * 5)
         elif kernel == 'box':
             kernel = Box2DKernel(smooth, x_size=smooth * 5, y_size=smooth * 5)
         else:
             raise ValueError("Unknown kernel: {0}".format(kernel))
-    else:
-        kernel = kernel
 
     return astropy_convolve(image, kernel, boundary='extend')
 
-def _data_stretch(image, vmin=None, vmax=None, pmin=0.25, pmax=99.75,
-                  stretch='linear', vmid: float = 10, exponent=2):
-
+def _data_stretch(
+        image, vmin=None, vmax=None, pmin=0.25, pmax=99.75,
+        stretch='linear', vmid: float = 10, exponent=2):
+    """ Hacked from aplpy
+    """
     if vmin is None or vmax is None:
         interval = AsymmetricPercentileInterval(pmin, pmax, n_samples=10000)
         try:
@@ -66,8 +82,9 @@ def _data_stretch(image, vmin=None, vmax=None, pmin=0.25, pmax=99.75,
     if stretch == 'arcsinh':
         stretch = 'asinh'
 
-    normalizer = simple_norm(image, stretch=stretch, power=exponent,
-                             asinh_a=vmid, min_cut=vmin, max_cut=vmax, clip=False)
+    normalizer = simple_norm(
+        image, stretch=stretch, power=exponent,
+        asinh_a=vmid, min_cut=vmin, max_cut=vmax, clip=False)
 
     data = normalizer(image, clip=True).filled(0)
     data = np.nan_to_num(data)
