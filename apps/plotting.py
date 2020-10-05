@@ -39,11 +39,40 @@ layout_lightcurve = dict(
     }
 )
 
+layout_scores = dict(
+    autosize=True,
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    legend=dict(font=dict(size=10), orientation="h"),
+    xaxis={
+        'title': 'Observation date'
+    },
+    yaxis={
+        'title': 'Score'
+        'range': [0, 1]
+    }
+)
+
 def extract_lightcurve(data: java.util.TreeMap) -> pd.DataFrame:
     """
     """
     pdfs = pd.DataFrame()
     values = ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid']
+    for rowkey in data:
+        if rowkey == '':
+            continue
+        properties = extract_row(rowkey, data)
+        pdf = pd.DataFrame.from_dict(
+            properties, orient='index', columns=[rowkey]).T[values]
+        pdfs = pd.concat((pdfs, pdf))
+    return pdfs
+
+def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
+    """
+    """
+    pdfs = pd.DataFrame()
+    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all']
     for rowkey in data:
         if rowkey == '':
             continue
@@ -107,6 +136,51 @@ def draw_lightcurve(data: java.util.TreeMap) -> dict:
             }
         ],
         "layout": layout_lightcurve
+    }
+    return figure
+
+def draw_scores(data: java.util.TreeMap) -> dict:
+    """ Draw scores from SNN module
+
+    Parameters
+    ----------
+    data: java.util.TreeMap
+        Results from a HBase client query
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = extract_scores(data)
+
+    jd = pdf['i:jd']
+    jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+    figure = {
+        'data': [
+            {
+                'x': jd,
+                'y': pdf['d:snn_snia_vs_nonia'],
+                'mode': 'markers',
+                'name': 'SN Ia score',
+                'text': jd,
+                'marker': {
+                    'size': 12,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            },
+            {
+                'x': jd,
+                'y': pdf['d:snn_sn_vs_all'],
+                'mode': 'markers',
+                'name': 'r band',
+                'text': jd,
+                'marker': {
+                    'size': 12,
+                    'color': '#ff7f0e',
+                    'symbol': 'v'}
+            }
+        ],
+        "layout": layout_scores
     }
     return figure
 

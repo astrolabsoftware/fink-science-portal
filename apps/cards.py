@@ -17,7 +17,8 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from apps.utils import convert_jd, extract_properties
-from apps.plotting import draw_cutout, extract_latest_cutouts, draw_lightcurve
+from apps.plotting import draw_cutout, extract_latest_cutouts
+from apps.plotting import draw_lightcurve, draw_scores
 
 import numpy as np
 
@@ -37,6 +38,38 @@ def card_lightcurve(data) -> dbc.Card:
     graph = dcc.Graph(
         id='lightcurve',
         figure=draw_lightcurve(data),
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(
+            [
+                graph
+            ]
+        ),
+        className="mt-3"
+    )
+    return card
+
+def card_sn_scores(data) -> dbc.Card:
+    """ Card containing the score evolution
+
+    Parameters
+    ----------
+    data: java.util.TreeMap
+        Results from a HBase client query
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the scores drawn inside
+    """
+    graph = dcc.Graph(
+        id='scores',
+        figure=draw_scores(data),
         style={
             'width': '100%',
             'height': '15pc'

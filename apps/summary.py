@@ -25,6 +25,13 @@ from apps.cards import card_id, card_fink_added_values
 dcc.Location(id='url', refresh=False)
 
 def tab1_content(data):
+    """ Summary tab
+
+    Parameters
+    ----------
+    data: java.util.TreeMap
+        Results from a HBase client query
+    """
     tab1_content_ = html.Div([
         dbc.Row([
             dbc.Col(card_cutouts(data), width=8),
@@ -37,21 +44,26 @@ def tab1_content(data):
     ])
     return tab1_content_
 
-tab2_content = dbc.Card(
-    dbc.CardBody(
-        [
-            html.P("This is tab 2!", className="card-text"),
-            dbc.Button("Don't click here", color="danger"),
-        ]
-    ),
-    className="mt-3",
-)
+def tab2_content(data):
+    """ Supernova tab
+    """
+    tab2_content_ = html.Div([
+        dbc.Row([
+            dbc.Col(card_lightcurve(data), width=8),
+            dbc.Col([card_id(data)], width=4, align='center')
+        ]),
+        dbc.Row([
+            dbc.Col(card_sn_scores(data), width=8),
+            dbc.Col([card_fink_added_values(data)], width=4, align='center')
+        ]),
+    ])
+    return tab2_content_
 
 def tabs(data):
     tabs_ = dbc.Tabs(
         [
             dbc.Tab(tab1_content(data), label="Summary", tab_style={"margin-left": "auto"}),
-            dbc.Tab(tab2_content, label="Supernova", disabled=True),
+            dbc.Tab(tab2_content(data), label="Supernovae"),
             dbc.Tab(label="Microlensing", disabled=True),
             dbc.Tab(label="Variable stars", disabled=True),
             dbc.Tab(label="Solar System", disabled=True),
