@@ -194,7 +194,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
             },
             {
                 'x': jd,
-                'y': 0.5,
+                'y': [0.5] * len(jd),
                 'mode': 'lines',
                 'name': '',
                 'line': {
