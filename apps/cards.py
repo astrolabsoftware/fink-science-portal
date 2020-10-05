@@ -148,7 +148,17 @@ def card_cutouts(data):
                         },
                         config={'displayModeBar': False}
                     ),
-                ], justify='around', no_gutters=True)
+                ], justify='around', no_gutters=True),
+                html.Br(),
+                dcc.Graph(
+                    id='lightcurve_cutouts',
+                    figure=draw_lightcurve(data),
+                    style={
+                        'width': '100%',
+                        'height': '15pc'
+                    },
+                    config={'displayModeBar': False}
+                )
             ]
         ),
         className="mt-3"
@@ -279,24 +289,3 @@ def card_fink_added_values(data):
         className="mt-3", body=True
     )
     return card
-
-# def card_external_sn_data(data):
-#     pdf = extract_properties(
-#         data, ['i:objectId', 'i:jd', 'i:ra', 'i:dec'])
-#     pdf = pdf.sort_values('i:jd', ascending=False)
-#
-#     ra0 = pdf['i:ra'].values[0]
-#     dec0 = pdf['i:dec'].values[0]
-#     card = dbc.Card(
-#         [
-#
-#             html.H5("External data", className="card-subtitle"),
-#             dcc.Markdown("---"),
-#             dbc.ButtonGroup([
-#                 dbc.Button('TNS', id='TNS', target="_blank", href='https://wis-tns.weizmann.ac.il/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)),
-#                 dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)),
-#             ])
-#         ],
-#         className="mt-3", body=True
-#     )
-#     return card
