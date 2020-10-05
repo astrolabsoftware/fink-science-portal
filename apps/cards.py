@@ -176,6 +176,45 @@ def card_id(data):
     )
     return card
 
+def card_sn_properties(data):
+    """ Add a card containing SN alert data
+    """
+    pdf = extract_properties(
+        data, [
+            'i:objectId',
+            'i:candid',
+            'd:snn_snia_vs_nonia',
+            'd:snn_sn_vs_all',
+            'd:rfscore'
+        ]
+    )
+    pdf = pdf.sort_values('i:jd', ascending=False)
+
+    id0 = pdf['i:objectId'].values[0]
+    candid0 = pdf['i:candid'].values[0]
+    snn_snia_vs_nonia = pdf['d:snn_snia_vs_nonia'].values[0]
+    snn_sn_vs_all = pdf['d:snn_sn_vs_all'].values[0]
+    rfscore = pdf['d:rfscore'].values[0]
+
+    card = dbc.Card(
+        [
+            html.H5("ObjectID: {}".format(id0), className="card-title"),
+            html.H6("Candid: {}".format(candid0), className="card-subtitle"),
+            dcc.Markdown(
+                """
+                ---
+                ```
+                SN Ia score: {}
+                SNe score: {} deg
+                RF score: {} deg
+                ```
+                """.format(snn_snia_vs_nonia, snn_sn_vs_all, rfscore)
+            )
+        ],
+        className="mt-3", body=True
+    )
+    return card
+
 def card_fink_added_values(data):
     pdf = extract_properties(
         data,
