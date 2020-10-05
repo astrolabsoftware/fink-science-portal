@@ -193,6 +193,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                     'symbol': 'circle-open-dot'}
             },
             {
+                'x': jd,
                 'y': 0.5,
                 'mode': 'lines',
                 'name': '',
