@@ -20,7 +20,7 @@ import visdcc
 from app import app, client
 
 from apps.cards import card_lightcurve, card_cutouts, card_sn_scores
-from apps.cards import card_id, card_fink_added_values, card_sn_properties
+from apps.cards import card_id, card_fink_added_values, card_sn_properties, card_external_sn_data
 
 dcc.Location(id='url', refresh=False)
 
@@ -54,7 +54,7 @@ def tab2_content(data):
         ]),
         dbc.Row([
             dbc.Col(card_sn_scores(data), width=8),
-            dbc.Col([card_fink_added_values(data)], width=4, align='center')
+            dbc.Col([card_external_sn_data(data)], width=4, align='center')
         ]),
     ])
     return tab2_content_
