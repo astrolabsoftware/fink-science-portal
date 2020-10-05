@@ -319,7 +319,7 @@ def card_download(data):
                         id="download-link",
                         download="rawdata.csv",
                         href=generate_download_link(data),
-                        target="_blank"),
+                        target="_blank", style={"color": "white"}),
                     id='download',
                     target="_blank",
                     href=""
@@ -335,7 +335,15 @@ def generate_download_link(data):
     if data is None:
         return ""
     else:
-        pdf = extract_properties(data)
+        # drop cutouts from download for the moment
+        pdf = pdf.drop(
+            [
+                'b:cutoutDifference_stampData',
+                'b:cutoutScience_stampData',
+                'b:cutoutTemplate_stampData'
+            ]
+        )
+        pdf = extract_properties(data, None)
         csv_string = pdf.to_csv(index=False, encoding='utf-8')
         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
         return csv_string
