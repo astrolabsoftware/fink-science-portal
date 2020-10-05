@@ -183,6 +183,7 @@ def card_sn_properties(data):
         data, [
             'i:objectId',
             'i:candid',
+            'i:jd',
             'd:snn_snia_vs_nonia',
             'd:snn_sn_vs_all',
             'd:rfscore'
