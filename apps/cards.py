@@ -271,8 +271,8 @@ def card_external_sn_data(data):
         [
 
             html.H5("External data", className="card-subtitle"),
-            dcc.Button(id='TNS', href='https://wis-tns.weizmann.ac.il/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)),
-            dcc.Button(id='SIMBAD', href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)),
+            dbc.Button(id='TNS', href='https://wis-tns.weizmann.ac.il/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)),
+            dbc.Button(id='SIMBAD', href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)),
         ],
         className="mt-3", body=True
     )
