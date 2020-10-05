@@ -16,12 +16,13 @@ import pandas as pd
 
 import java
 
+from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch
-from apps.utils import extract_row
+from apps.utils import extract_row, extract_properties
 
-from app import client
+from app import client, app
 
 layout_lightcurve = dict(
     autosize=True,
@@ -199,3 +200,56 @@ def draw_cutout(data, title):
         autosize=False)
 
     return fig
+
+@app.callback(
+    Output('aladin-lite-div', 'run'), Input('url', 'pathname'))
+def integrate_aladin_lite(name):
+    """ Integrate aladin light in the 2nd Tab of the dashboard.
+
+    the default parameters are:
+        * PanSTARRS colors
+        * FoV = 0.02 deg
+        * SIMBAD catalig overlayed.
+
+    Callbacks
+    ----------
+    Input: takes the alert ID
+    Output: Display a sky image around the alert position from aladin.
+
+    Parameters
+    ----------
+    alert_id: str
+        ID of the alert
+    """
+    default_img = ""
+    if name:
+        results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
+        pdf = extract_properties(results, ['i:jd', 'i:ra', 'i:dec'])
+        pdf = pdf.sort_values('i:jd', ascending=False)
+
+        # Coordinate of the current alert
+        ra0 = pdf['i:ra'].values[0]
+        dec0 = pdf['i:dec'].values[0]
+
+        # Javascript. Note the use {{}} for dictionary
+        img = """
+        var aladin = A.aladin('#aladin-lite-div',
+                  {{
+                    survey: 'P/PanSTARRS/DR1/color/z/zg/g',
+                    fov: 0.025,
+                    target: '{} {}',
+                    reticleColor: '#ff89ff',
+                    reticleSize: 32
+        }});
+        var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
+        var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
+        aladin.addCatalog(hips);
+        """.format(ra0, dec0)
+
+        # img cannot be executed directly because of formatting
+        # We split line-by-line and remove comments
+        img_to_show = [i for i in img.split('\n') if '// ' not in i]
+
+        return " ".join(img_to_show)
+
+    return default_img
