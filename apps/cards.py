@@ -17,7 +17,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from apps.utils import convert_jd, extract_properties
-from apps.plotting import draw_cutout, extract_latest_cutouts
+from apps.plotting import draw_cutout, extract_latest_cutouts, draw_lightcurve
 
 import numpy as np
 
