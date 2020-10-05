@@ -205,9 +205,9 @@ def card_sn_properties(data):
                 """
                 ---
                 ```
-                SN Ia score: {}
-                SNe score: {} deg
-                RF score: {} deg
+                [SNN] SN Ia score: {:.2f}
+                [SNN] SNe score: {:.2f}
+                RF score: {:.2f}
                 ```
                 """.format(snn_snia_vs_nonia, snn_sn_vs_all, rfscore)
             )
