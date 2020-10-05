@@ -418,7 +418,7 @@ def extract_properties(data: str, fieldnames: list):
     for rowkey in data:
         if rowkey == '':
             continue
-        properties = extract_row(rowkey)
+        properties = extract_row(rowkey, data)
         if fieldnames is not None:
             pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[rowkey]).T[fieldnames]
         else:
@@ -434,7 +434,7 @@ def extract_lightcurve(data):
     for rowkey in data:
         if rowkey == '':
             continue
-        properties = extract_row(rowkey)
+        properties = extract_row(rowkey, data)
         pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[rowkey]).T[values]
         pdfs = pd.concat((pdfs, pdf))
     return pdfs
@@ -447,7 +447,7 @@ def extract_latest_cutouts(data):
     for rowkey in data:
         if rowkey == '':
             continue
-        properties = extract_row(rowkey)
+        properties = extract_row(rowkey, data)
         pdf = pd.DataFrame.from_dict(properties, orient='index', columns=[rowkey]).T[values]
         pdfs = pd.concat((pdfs, pdf))
     pdfs.sort_values('i:jd', ascending=False)

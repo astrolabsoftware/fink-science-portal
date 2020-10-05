@@ -151,9 +151,9 @@ def construct_table(n_clicks, objectid, filter_property):
         return html.Table()
     if filter_property is not None and filter_property != '':
         client.setEvaluation(filter_property)
-    result = client.scan("", "key:key:{}".format(objectid), None, 0, True, True)
+    results = client.scan("", "key:key:{}".format(objectid), None, 0, True, True)
 
-    if result.isEmpty():
+    if results.isEmpty():
         return html.Table()
 
     # initialise the dataframe
@@ -179,10 +179,10 @@ def construct_table(n_clicks, objectid, filter_property):
     dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     # Loop over results and construct the dataframe
-    for rowkey in result:
+    for rowkey in results:
         if rowkey == '':
             continue
-        properties = extract_row(rowkey)
+        properties = extract_row(rowkey, results)
         properties['i:objectId'] = '[{}](/{})'.format(
             properties['i:objectId'],
             properties['i:objectId']
