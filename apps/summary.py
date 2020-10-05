@@ -49,12 +49,8 @@ def tab2_content(data):
     """
     tab2_content_ = html.Div([
         dbc.Row([
-            dbc.Col(card_lightcurve(data), width=8),
-            dbc.Col([card_sn_properties(data)], width=4, align='center')
-        ]),
-        dbc.Row([
             dbc.Col(card_sn_scores(data), width=8),
-            dbc.Col([card_external_sn_data(data)], width=4, align='center')
+            dbc.Col([card_sn_properties(data)], width=4, align='center')
         ]),
     ])
     return tab2_content_
