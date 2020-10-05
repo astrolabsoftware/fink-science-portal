@@ -149,7 +149,7 @@ def construct_table(n_clicks, objectid, filter_property):
         return html.Table()
     if objectid is None or objectid == '':
         return html.Table()
-    if filter_property is not None and filter_property != '':
+    if filter_property is not None:
         client.setEvaluation(filter_property)
     results = client.scan("", "key:key:{}".format(objectid), None, 0, True, True)
 
