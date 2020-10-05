@@ -35,7 +35,7 @@ def tab1_content(data):
     tab1_content_ = html.Div([
         dbc.Row([
             dbc.Col(card_cutouts(data), width=8),
-            dbc.Col([card_id(data), card_fink_added_values(data)], width=4, align='center')
+            dbc.Col([card_id(data), card_fink_added_values(data)], width=4)
         ]),
     ])
     return tab1_content_
@@ -46,7 +46,7 @@ def tab2_content(data):
     tab2_content_ = html.Div([
         dbc.Row([
             dbc.Col(card_sn_scores(data), width=8),
-            dbc.Col([card_sn_properties(data)], width=4, align='center')
+            dbc.Col([card_sn_properties(data)], width=4)
         ]),
     ])
     return tab2_content_
