@@ -336,7 +336,7 @@ def generate_download_link(data):
         return ""
     else:
         # drop cutouts from download for the moment
-        pdf = pdf.drop(
+        pdf.drop(
             [
                 'b:cutoutDifference_stampData',
                 'b:cutoutScience_stampData',
