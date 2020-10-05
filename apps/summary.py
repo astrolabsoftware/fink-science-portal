@@ -19,7 +19,7 @@ import visdcc
 
 from app import app, client
 
-from apps.cards import card_lightcurve, card_cutouts
+from apps.cards import card_lightcurve, card_cutouts, card_sn_scores
 from apps.cards import card_id, card_fink_added_values
 
 dcc.Location(id='url', refresh=False)
