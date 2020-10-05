@@ -221,7 +221,6 @@ def card_sn_properties(data):
             'i:dec',
             'i:jd',
             'd:cdsxmatch',
-            'd:rfscore',
             'd:snn_snia_vs_nonia',
             'd:snn_sn_vs_all',
             'd:rfscore'
