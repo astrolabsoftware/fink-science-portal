@@ -326,8 +326,8 @@ def card_classification(data):
 
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
     roid = int(pdf['d:roid'].values[0])
-    mulens_class_1 = float(pdf['d:mulens_class_1'].values[0])
-    mulens_class_2 = float(pdf['d:mulens_class_1'].values[0])
+    mulens_class_1 = pdf['d:mulens_class_1'].values[0]
+    mulens_class_2 = pdf['d:mulens_class_1'].values[0]
     rfscore = float(pdf['d:rfscore'].values[0])
     snn_sn_vs_all = float(pdf['d:snn_sn_vs_all'].values[0])
     snn_snia_vs_nonia = float(pdf['d:snn_snia_vs_nonia'].values[0])
