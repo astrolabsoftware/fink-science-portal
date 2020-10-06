@@ -179,6 +179,7 @@ def construct_table(n_clicks, objectid, filter_property):
 
     # Loop over results and construct the dataframe
     classifications = []
+    nalerts = []
     for rowkey in results:
         if rowkey == '':
             continue
@@ -195,6 +196,7 @@ def construct_table(n_clicks, objectid, filter_property):
         ).T
 
         classifications.append(extract_fink_classification(pdf=pdf))
+        nalerts.append(len(pdf))
 
         pdfs = pd.concat((pdfs, pdf[colnames]))
 
@@ -208,6 +210,10 @@ def construct_table(n_clicks, objectid, filter_property):
 
     # replace cross-match by full classification
     pdfs['classification'] = classifications
+
+    # mismatch between nalerthist and number of real alerts
+    # TODO: solve this mismatch!
+    pdfs['#alerts'] = nalerts
 
     # Display only the last alert
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
