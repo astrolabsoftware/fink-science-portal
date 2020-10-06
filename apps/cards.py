@@ -340,6 +340,8 @@ def card_classification(data):
         classification = 'SN candidate'
     elif mulens_class_1 == 'ML' and mulens_class_2 == 'ML':
         classification = 'Microlensing candidate'
+    else:
+        classification = 'Unknown'
 
     msg = """
     ---
@@ -349,7 +351,7 @@ def card_classification(data):
     """.format(classification)
     card = dbc.Card(
         [
-            html.H5("Fink classification: {}".format(classification), className="card-subtitle")
+            html.H5("class: {}".format(classification), className="card-subtitle")
         ],
         className="mt-3", body=True
     )
