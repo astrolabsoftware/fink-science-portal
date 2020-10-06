@@ -38,8 +38,8 @@ def tab1_content(data):
             dbc.Col(card_cutouts(data), width=8),
             dbc.Col([
                 card_id(data),
-                card_download(data),
-                card_classification(data)
+                card_classification(data),
+                card_download(data)
             ], width=4)
         ]),
     ])

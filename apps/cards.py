@@ -349,8 +349,7 @@ def card_classification(data):
     """.format(classification)
     card = dbc.Card(
         [
-            html.H5("Fink classification", className="card-subtitle"),
-            dcc.Markdown(msg)
+            html.H5("Fink classification: {}".format(classification), className="card-subtitle")
         ],
         className="mt-3", body=True
     )
