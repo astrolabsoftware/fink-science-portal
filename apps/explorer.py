@@ -161,14 +161,12 @@ def construct_table(n_clicks, objectid, filter_property):
 
     # Columns of interest
     colnames = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch',
-        'd:snn_snia_vs_nonia', 'd:roid', 'd:nalerthist'
+        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'd:nalerthist'
     ]
 
     # Column name to display
     colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'cross-match',
-        'SNN score', 'SSO object', '#alerts'
+        'objectId', 'RA', 'Dec', 'last seen', 'cross-match', '#alerts'
     ]
 
     # Types of columns
@@ -179,6 +177,7 @@ def construct_table(n_clicks, objectid, filter_property):
     dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     # Loop over results and construct the dataframe
+    classifications = []
     for rowkey in results:
         if rowkey == '':
             continue
@@ -192,9 +191,11 @@ def construct_table(n_clicks, objectid, filter_property):
             properties,
             orient='index',
             columns=[rowkey]
-        ).T[colnames]
+        ).T
 
-        pdfs = pd.concat((pdfs, pdf))
+        classifications.append(extract_fink_classification(pdf=pdf))
+
+        pdfs = pd.concat((pdfs, pdf[colnames]))
 
     # Column values are string by default - convert them
     pdfs = pdfs.astype(dtype=dtypes)
@@ -203,6 +204,9 @@ def construct_table(n_clicks, objectid, filter_property):
     pdfs = pdfs.rename(
         columns={i: j for i, j in zip(colnames, colnames_to_display)}
     )
+
+    colnames_to_display += ['Class']
+    pdfs['Class'] = classifications
 
     # Display only the last alert
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]

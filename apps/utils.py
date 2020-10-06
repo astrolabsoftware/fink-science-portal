@@ -70,24 +70,28 @@ def extract_properties(data: str, fieldnames: list):
         pdfs = pd.concat((pdfs, pdf))
     return pdfs
 
-def extract_fink_classification(data):
+def extract_fink_classification(data=None, pdf=None):
     """
     """
-    pdf = extract_properties(
-        data,
-        [
-            'i:jd',
-            'd:cdsxmatch',
-            'd:mulens_class_1',
-            'd:mulens_class_2',
-            'd:nalerthist',
-            'd:rfscore',
-            'd:roid',
-            'd:snn_sn_vs_all',
-            'd:snn_snia_vs_nonia'
-        ]
-    )
-    pdf = pdf.sort_values('i:jd', ascending=False)
+    if data is None and pdf is None:
+        return 'Error'
+
+    if pdf is None:
+        pdf = extract_properties(
+            data,
+            [
+                'i:jd',
+                'd:cdsxmatch',
+                'd:mulens_class_1',
+                'd:mulens_class_2',
+                'd:nalerthist',
+                'd:rfscore',
+                'd:roid',
+                'd:snn_sn_vs_all',
+                'd:snn_snia_vs_nonia'
+            ]
+        )
+        pdf = pdf.sort_values('i:jd', ascending=False)
 
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
     roid = int(pdf['d:roid'].values[0])
