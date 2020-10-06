@@ -213,10 +213,12 @@ def construct_table(n_clicks, objectid, filter_property):
 
     # mismatch between nalerthist and number of real alerts
     # TODO: solve this mismatch!
-    pdfs['#alerts'] = nalerts
+    nalerts = pdfs.groupby('objectId').count()['#alerts'].values
 
     # Display only the last alert
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
+
+    pdfs['#alerts'] = nalerts
 
     pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 
