@@ -17,6 +17,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from apps.utils import convert_jd, extract_properties
+from apps.utils import extract_fink_classification
 from apps.plotting import draw_cutout, extract_latest_cutouts
 from apps.plotting import draw_lightcurve, draw_scores
 
@@ -308,40 +309,7 @@ def card_fink_added_values(data):
 def card_classification(data):
     """
     """
-    pdf = extract_properties(
-        data,
-        [
-            'i:jd',
-            'd:cdsxmatch',
-            'd:mulens_class_1',
-            'd:mulens_class_2',
-            'd:nalerthist',
-            'd:rfscore',
-            'd:roid',
-            'd:snn_sn_vs_all',
-            'd:snn_snia_vs_nonia'
-        ]
-    )
-    pdf = pdf.sort_values('i:jd', ascending=False)
-
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
-    roid = int(pdf['d:roid'].values[0])
-    mulens_class_1 = pdf['d:mulens_class_1'].values[0]
-    mulens_class_2 = pdf['d:mulens_class_1'].values[0]
-    rfscore = float(pdf['d:rfscore'].values[0])
-    snn_sn_vs_all = float(pdf['d:snn_sn_vs_all'].values[0])
-    snn_snia_vs_nonia = float(pdf['d:snn_snia_vs_nonia'].values[0])
-
-    if cdsxmatch != 'Unknown':
-        classification = cdsxmatch
-    elif roid in [2, 3]:
-        classification = 'Solar System'
-    elif snn_snia_vs_nonia > 0.5 and snn_sn_vs_all > 0.5:
-        classification = 'SN candidate'
-    elif mulens_class_1 == 'ML' and mulens_class_2 == 'ML':
-        classification = 'Microlensing candidate'
-    else:
-        classification = 'Unknown'
+    classification = extract_fink_classification(data)
 
     msg = """
     ---
@@ -351,7 +319,7 @@ def card_classification(data):
     """.format(classification)
     card = dbc.Card(
         [
-            html.H5("class: {}".format(classification), className="card-subtitle")
+            html.H5("Class: {}".format(classification), className="card-subtitle")
         ],
         className="mt-3", body=True
     )

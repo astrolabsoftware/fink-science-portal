@@ -70,6 +70,46 @@ def extract_properties(data: str, fieldnames: list):
         pdfs = pd.concat((pdfs, pdf))
     return pdfs
 
+def extract_fink_classification(data):
+    """
+    """
+    pdf = extract_properties(
+        data,
+        [
+            'i:jd',
+            'd:cdsxmatch',
+            'd:mulens_class_1',
+            'd:mulens_class_2',
+            'd:nalerthist',
+            'd:rfscore',
+            'd:roid',
+            'd:snn_sn_vs_all',
+            'd:snn_snia_vs_nonia'
+        ]
+    )
+    pdf = pdf.sort_values('i:jd', ascending=False)
+
+    cdsxmatch = pdf['d:cdsxmatch'].values[0]
+    roid = int(pdf['d:roid'].values[0])
+    mulens_class_1 = pdf['d:mulens_class_1'].values[0]
+    mulens_class_2 = pdf['d:mulens_class_1'].values[0]
+    rfscore = float(pdf['d:rfscore'].values[0])
+    snn_sn_vs_all = float(pdf['d:snn_sn_vs_all'].values[0])
+    snn_snia_vs_nonia = float(pdf['d:snn_snia_vs_nonia'].values[0])
+
+    if cdsxmatch != 'Unknown':
+        classification = cdsxmatch
+    elif roid in [2, 3]:
+        classification = 'Solar System'
+    elif snn_snia_vs_nonia > 0.5 and snn_sn_vs_all > 0.5:
+        classification = 'SN candidate'
+    elif mulens_class_1 == 'ML' and mulens_class_2 == 'ML':
+        classification = 'Microlensing candidate'
+    else:
+        classification = 'Unknown'
+
+    return classification
+
 def convert_jd(jd, to='iso'):
     """ Convert Julian Date into ISO date (UTC).
     """
