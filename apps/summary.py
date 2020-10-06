@@ -21,7 +21,7 @@ from app import app, client
 
 from apps.cards import card_lightcurve, card_cutouts, card_sn_scores
 from apps.cards import card_id, card_fink_added_values, card_sn_properties
-from apps.cards import card_download
+from apps.cards import card_download, card_classification
 
 dcc.Location(id='url', refresh=False)
 
@@ -36,7 +36,11 @@ def tab1_content(data):
     tab1_content_ = html.Div([
         dbc.Row([
             dbc.Col(card_cutouts(data), width=8),
-            dbc.Col([card_id(data), card_download(data)], width=4)
+            dbc.Col([
+                card_id(data),
+                card_download(data),
+                card_classification(data)
+            ], width=4)
         ]),
     ])
     return tab1_content_
