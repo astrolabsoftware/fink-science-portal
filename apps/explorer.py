@@ -26,6 +26,7 @@ from app import app
 from app import client
 from apps.utils import extract_row
 from apps.utils import convert_jd
+from apps.utils import extract_fink_classification
 
 msg = """
 _Enter a valid object ID (e.g. ZTF19acmdpyr) or a prefix (e.g. ZTF19) on
@@ -166,7 +167,7 @@ def construct_table(n_clicks, objectid, filter_property):
 
     # Column name to display
     colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'cross-match', '#alerts'
+        'objectId', 'RA', 'Dec', 'last seen', 'classification', '#alerts'
     ]
 
     # Types of columns
@@ -205,8 +206,8 @@ def construct_table(n_clicks, objectid, filter_property):
         columns={i: j for i, j in zip(colnames, colnames_to_display)}
     )
 
-    colnames_to_display += ['Class']
-    pdfs['Class'] = classifications
+    # replace cross-match by full classification
+    pdfs['classification'] = classifications
 
     # Display only the last alert
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
