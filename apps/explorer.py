@@ -70,13 +70,21 @@ filter_property = dbc.FormGroup(
     ]
 )
 
-latest_alerts = dbc.FormGroup(
+alert_category = dbc.FormGroup(
     [
-        dbc.Label("Latest alerts by category"),
+        dbc.Label("Select a category"),
         dcc.Dropdown(
             id="alerts-dropdown",
-            placeholder="Select a category",
-            clearable=True,
+            options=[
+                {'label': 'All', 'value': 'All'},
+                {'label': 'SN candidate', 'value': 'SN candidate'},
+                {'label': 'Microlensing candidate', 'value': 'Microlensing candidate'},
+                {'label': 'SIMBAD', 'value': 'SIMBAD'},
+                {'label': 'Solar System', 'value': 'Solar System'},
+                {'label': 'Unknown', 'value': 'Unknown'},
+            ],
+            clearable=False,
+            value='All',
             style={'width': '100%', 'display': 'inline-block'}
         )
     ]
@@ -105,6 +113,7 @@ layout = html.Div(
                             html.P("Search Options"),
                             dbc.Row(object_id),
                             dbc.Row(filter_property),
+                            dbc.Row(alert_category),
                             dbc.Row(submit_button),
                             # html.Br(),
                             # dbc.Row(latest_alerts),
@@ -132,8 +141,16 @@ layout = html.Div(
     }
 )
 
-@app.callback(Output("table", "children"), [Input("submit_query", "n_clicks"), Input("objectid", "value"), Input("filter_property", "value")])
-def construct_table(n_clicks, objectid, filter_property):
+@app.callback(
+    Output("table", "children"),
+    [
+        Input("submit_query", "n_clicks"),
+        Input("objectid", "value"),
+        Input("filter_property", "value"),
+        Input("alerts-dropdown", "value")
+    ]
+)
+def construct_table(n_clicks, objectid, filter_property, category):
     """ Query the HBase database and format results into a DataFrame.
 
     Parameters
@@ -224,6 +241,12 @@ def construct_table(n_clicks, objectid, filter_property):
 
     # round numeric values for better display
     pdfs = pdfs.round(2)
+
+    valid_categories = ['SN candidate', 'Microlensing candidate', 'Solar System', 'Unknown']
+    if category in valid_categories:
+        pdfs = pdfs[pdfs['classification'] == category]
+    elif category == 'SIMBAD':
+        pdfs = pdfs[~pdfs['classification'].isin(category)]
 
     table = dash_table.DataTable(
         data=pdfs.sort_values('last seen', ascending=False).to_dict('records'),
