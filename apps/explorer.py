@@ -242,11 +242,14 @@ def construct_table(n_clicks, objectid, filter_property, category):
     # round numeric values for better display
     pdfs = pdfs.round(2)
 
-    valid_categories = ['SN candidate', 'Microlensing candidate', 'Solar System', 'Unknown']
+    valid_categories = ['Microlensing candidate', 'Solar System', 'Unknown']
     if category in valid_categories:
         pdfs = pdfs[pdfs['classification'] == category]
+    elif category == 'SN candidate':
+        # simbad has also SN
+        pdfs = pdfs[pdfs['classification'].isin('SN candidate', 'SN')]
     elif category == 'SIMBAD':
-        pdfs = pdfs[~pdfs['classification'].isin(category)]
+        pdfs = pdfs[~pdfs['classification'].isin(valid_categories)]
 
     table = dash_table.DataTable(
         data=pdfs.sort_values('last seen', ascending=False).to_dict('records'),
