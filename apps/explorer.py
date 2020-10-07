@@ -251,7 +251,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
         # simbad has also SN
         pdfs = pdfs[pdfs['classification'].isin(['SN candidate', 'SN'])]
     elif category == 'SIMBAD':
-        pdfs = pdfs[~pdfs['classification'].isin(valid_categories)]
+        pdfs = pdfs[~pdfs['classification'].isin(valid_categories + ['SN candidate'])]
 
     table = dash_table.DataTable(
         data=pdfs.sort_values('last seen', ascending=False).to_dict('records'),
