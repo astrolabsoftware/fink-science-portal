@@ -72,7 +72,7 @@ filter_property = dbc.FormGroup(
 
 alert_category = dbc.FormGroup(
     [
-        dbc.Label("Select a category"),
+        dbc.Label("Select a class"),
         dcc.Dropdown(
             id="alerts-dropdown",
             options=[
@@ -243,11 +243,13 @@ def construct_table(n_clicks, objectid, filter_property, category):
     pdfs = pdfs.round(2)
 
     valid_categories = ['Microlensing candidate', 'Solar System', 'Unknown']
+    if category == 'All':
+        pass
     if category in valid_categories:
         pdfs = pdfs[pdfs['classification'] == category]
     elif category == 'SN candidate':
         # simbad has also SN
-        pdfs = pdfs[pdfs['classification'].isin('SN candidate', 'SN')]
+        pdfs = pdfs[pdfs['classification'].isin(['SN candidate', 'SN'])]
     elif category == 'SIMBAD':
         pdfs = pdfs[~pdfs['classification'].isin(valid_categories)]
 
