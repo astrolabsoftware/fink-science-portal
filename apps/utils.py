@@ -108,10 +108,10 @@ def extract_fink_classification_single(data):
         pdf['d:snn_sn_vs_all']
     )
 
-    return classification.values[0]
+    return classification[0]
 
 def extract_fink_classification(cdsxmatch, roid, mulens_class_1, mulens_class_2, snn_snia_vs_nonia, snn_sn_vs_all):
-    """
+    """ return np.array
     """
     classification = pd.Series(['Unknown'] * len(cdsxmatch))
     ambiguity = pd.Series([0] * len(cdsxmatch))

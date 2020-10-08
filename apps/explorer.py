@@ -219,7 +219,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
         pdfs['d:snn_sn_vs_all']
     )
 
-    pdfs['d:cdsxmatch'] = classifications.values
+    pdfs['d:cdsxmatch'] = classifications
 
     pdfs = pdfs[colnames]
 
