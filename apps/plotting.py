@@ -14,6 +14,7 @@
 # limitations under the License.
 import pandas as pd
 import numpy as np
+from gatspy import periodic
 
 import java
 
@@ -387,7 +388,7 @@ def plot_variable_star(nterms_base, name, n_clicks):
                         'size': 12,
                         'color': '#ff7f0e',
                         'symbol': 'o'}
-                }
+                },
                 {
                     'x': tfit,
                     'y': fit_variable_star(model, tfit, period, '2'),
