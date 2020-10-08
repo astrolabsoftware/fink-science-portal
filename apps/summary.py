@@ -62,7 +62,7 @@ def tab3_content(data):
     """
     tab3_content_ = html.Div([
         dbc.Row([
-            dbc.Col(card_variable_plot(data), width=8),
+            dbc.Col([card_variable_plot(data), card_explanation_variable(data)], width=8),
             dbc.Col([card_variable_button(data)], width=4)
         ]),
     ])

@@ -267,6 +267,33 @@ def card_variable_button(data):
     )
     return card
 
+def card_explanation_variable():
+    """
+    """
+    msg = """
+    _Enter a valid object ID (e.g. ZTF19acmdpyr) or a prefix (e.g. ZTF19) on
+    the left panel, and press enter. Then click on an objectId to get more details.
+    The table shows:_
+
+    - _objectId: Unique identifier for this object_
+    - _RA: Right Ascension of candidate; J2000 (deg)_
+    - _Dec: Declination of candidate; J2000 (deg)_
+    - _last seen: last date the object has been seen_
+    - _cross-match: CDS crossmatch. Unknown if there is no match_
+    - _SNN score: SN Ia score from SuperNNova (1 is SN Ia)_
+    - _SSO object: Solar System Object label_
+      - _0: probably not a SSO, 1: first time ZTF sees this object, 2: flagged by Fink as new SSO, 3: flagged by ZTF as known SSO_
+    - _#alerts: number of alerts corresponding to this object._
+    """
+    card = dbc.Card(
+        dbc.CardBody(
+            dcc.Markdown(msg)
+        ), style={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        }
+    )
+    return card
+
 def card_id(data):
     """ Add a card containing basic alert data
     """
