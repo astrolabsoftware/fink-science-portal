@@ -339,7 +339,7 @@ def plot_variable_star(nterms_base, name, n_clicks):
             jd,
             pdf['i:magpsf'].astype(float),
             pdf['i:sigmapsf'].astype(float),
-            pdf['i:fid']
+            pdf['i:fid'].astype(int)
         )
         phase = jd % period
         tfit = np.linspace(0, period, 100)
@@ -365,7 +365,7 @@ def plot_variable_star(nterms_base, name, n_clicks):
                 },
                 {
                     'x': tfit,
-                    'y': fit_variable_star(model, tfit, period, '1'),
+                    'y': fit_variable_star(model, tfit, period, 1),
                     'mode': 'lines',
                     'showlegend': False,
                     'line': {
@@ -391,7 +391,7 @@ def plot_variable_star(nterms_base, name, n_clicks):
                 },
                 {
                     'x': tfit,
-                    'y': fit_variable_star(model, tfit, period, '2'),
+                    'y': fit_variable_star(model, tfit, period, 1),
                     'mode': 'lines',
                     'showlegend': False,
                     'line': {
