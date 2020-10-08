@@ -255,14 +255,18 @@ def card_sn_properties(data):
                 ```
                 [SNN] SN Ia score: {:.2f}
                 [SNN] SNe score: {:.2f}
+                ```
+                ---
+                ```
                 RF score: {:.2f}
                 ```
                 ---
                 ```
                 Classtar: {:.2f}
                 Detection in the survey: {}
-                Deep-Learning Real bogus: {:.2f}
+                DL Real bogus: {:.2f}
                 ```
+                ---
                 """.format(
                     float(snn_snia_vs_nonia),
                     float(snn_sn_vs_all),
