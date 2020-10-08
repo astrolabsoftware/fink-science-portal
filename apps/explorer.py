@@ -223,7 +223,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     pdfs = pdfs[colnames]
 
-    pdfs['objectId'] = pdfs['objectId'].apply(markdownify_objectid)
+    pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
 
     # Column values are string by default - convert them
     pdfs = pdfs.astype(dtype=dtypes)
