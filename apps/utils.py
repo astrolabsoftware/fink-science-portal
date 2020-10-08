@@ -27,6 +27,15 @@ from astropy.time import Time
 
 import java
 
+def markdownify_objectid(objectid):
+    """
+    """
+    objectid_markdown = '[{}](/{})'.format(
+        objectid,
+        objectid
+    )
+    return objectid_markdown
+
 def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
     """ Extract one row from the client result, and return result as dict
     """

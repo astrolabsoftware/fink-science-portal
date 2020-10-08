@@ -27,6 +27,7 @@ from app import client
 from apps.utils import extract_row
 from apps.utils import convert_jd
 from apps.utils import extract_fink_classification
+from apps.utils import markdownify_objectid
 
 msg = """
 _Enter a valid object ID (e.g. ZTF19acmdpyr) or a prefix (e.g. ZTF19) on
@@ -191,15 +192,14 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # Types of columns
     dtypes_ = [
-        np.str, np.float, np.float, np.float, np.str,
-        np.float, np.int, np.int
+        np.str, np.float, np.float, np.float, np.str, np.int
     ]
     dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     results = client.scan(
         "",
         "key:key:{}".format(objectid),
-        ",".join(colnames+colnames_added_values), 0, True, True)
+        ",".join(colnames + colnames_added_values), 0, True, True)
 
     if results.isEmpty():
         return html.Table()
@@ -219,28 +219,11 @@ def construct_table(n_clicks, objectid, filter_property, category):
         pdfs['d:snn_sn_vs_all']
     )
 
-    pdfs['d:cdsxmatch'] = classifications
+    pdfs['d:cdsxmatch'] = classifications.values
 
-    pdfs = pdfs.T[colnames]
-    # classifications = []
-    # for rowkey in results:
-    #     if rowkey == '':
-    #         continue
-    #     properties = extract_row(rowkey, results)
-    #     properties['i:objectId'] = '[{}](/{})'.format(
-    #         properties['i:objectId'],
-    #         properties['i:objectId']
-    #     )
-    #
-    #     pdf = pd.DataFrame.from_dict(
-    #         properties,
-    #         orient='index',
-    #         columns=[rowkey]
-    #     ).T
-    #
-    #     classifications.append(extract_fink_classification(pdf=pdf))
-    #
-    #     pdfs = pd.concat((pdfs, pdf[colnames]))
+    pdfs = pdfs[colnames]
+
+    pdfs['objectId'] = pdfs['objectId'].apply(markdownify_objectid)
 
     # Column values are string by default - convert them
     pdfs = pdfs.astype(dtype=dtypes)
