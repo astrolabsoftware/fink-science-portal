@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pandas as pd
+import numpy as np
 
 import java
 
@@ -21,6 +22,7 @@ import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch
 from apps.utils import extract_row, extract_properties
+from apps.variable_stars import fit_variable_star, compute_period
 
 from app import client, app
 
@@ -45,6 +47,21 @@ layout_lightcurve = dict(
     legend=dict(font=dict(size=10), orientation="h"),
     xaxis={
         'title': 'Observation date'
+    },
+    yaxis={
+        'autorange': 'reversed',
+        'title': 'Magnitude'
+    }
+)
+
+layout_phase = dict(
+    autosize=True,
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    legend=dict(font=dict(size=10), orientation="h"),
+    xaxis={
+        'title': 'Phase'
     },
     yaxis={
         'autorange': 'reversed',
@@ -179,7 +196,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                     'color': 'black',
                     'width': 2.5,
                     'dash': 'dash'
-                    }
+                }
             },
             {
                 'x': jd,
@@ -315,11 +332,21 @@ def plot_variable_star(nterms_base, name, n_clicks):
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         jd = pdf['i:jd']
-        jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+        model = periodic.LombScargleMultiband(Nterms_base=2, Nterms_band=0, fit_period=True)
+        period = compute_period(
+            model,
+            jd,
+            pdf['i:magpsf'].astype(float),
+            pdf['i:sigmapsf'].astype(float),
+            pdf['i:fid']
+        )
+        phase = jd % period
+        tfit = np.linspace(0, period, 100)
+
         figure = {
             'data': [
                 {
-                    'x': jd[pdf['i:fid'] == '1'],
+                    'x': phase[pdf['i:fid'] == '1'],
                     'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
                     'error_y': {
                         'type': 'data',
@@ -329,14 +356,23 @@ def plot_variable_star(nterms_base, name, n_clicks):
                     },
                     'mode': 'markers',
                     'name': 'g band',
-                    'text': jd[pdf['i:fid'] == '1'],
+                    'text': phase[pdf['i:fid'] == '1'],
                     'marker': {
                         'size': 12,
                         'color': '#1f77b4',
                         'symbol': 'o'}
                 },
                 {
-                    'x': jd[pdf['i:fid'] == '2'],
+                    'x': tfit,
+                    'y': fit_variable_star(model, tfit, period, '1'),
+                    'mode': 'lines',
+                    'showlegend': False,
+                    'line': {
+                        'color': '#1f77b4',
+                    }
+                },
+                {
+                    'x': phase[pdf['i:fid'] == '2'],
                     'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
                     'error_y': {
                         'type': 'data',
@@ -346,14 +382,23 @@ def plot_variable_star(nterms_base, name, n_clicks):
                     },
                     'mode': 'markers',
                     'name': 'r band',
-                    'text': jd[pdf['i:fid'] == '2'],
+                    'text': phase[pdf['i:fid'] == '2'],
                     'marker': {
                         'size': 12,
                         'color': '#ff7f0e',
                         'symbol': 'o'}
                 }
+                {
+                    'x': tfit,
+                    'y': fit_variable_star(model, tfit, period, '2'),
+                    'mode': 'lines',
+                    'showlegend': False,
+                    'line': {
+                        'color': '#1f77b4',
+                    }
+                },
             ],
-            "layout": layout_lightcurve
+            "layout": layout_phase
         }
         return figure
     return {'data': []}
