@@ -199,16 +199,20 @@ nterms_base = dbc.FormGroup(
         dbc.Label("Number of base terms"),
         dbc.Input(
             placeholder="1",
-            type="text",
+            value=1,
+            type="number",
             id='nterms_base',
-            debounce=True
+            debounce=True,
+            min=0, max=4, step=1
         ),
         dbc.Label("Number of band terms"),
         dbc.Input(
             placeholder="1",
-            type="text",
+            value=1,
+            type="number",
             id='nterms_band',
-            debounce=True
+            debounce=True,
+            min=0, max=4, step=1
         )
     ], style={'width': '100%', 'display': 'inline-block'}
 )
