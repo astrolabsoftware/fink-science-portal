@@ -125,13 +125,14 @@ def extract_fink_classification(cdsxmatch, roid, mulens_class_1, mulens_class_2,
     classification.mask(f_sn.values, 'SN candidate', inplace=True)
     classification.mask(f_roid.values, 'Solar System', inplace=True)
 
-    classification = np.where(f_simbad, cdsxmatch, classification)
-
     # If several flags are up, we cannot rely on the classification
     ambiguity[f_mulens.values] += 1
     ambiguity[f_sn.values] += 1
     ambiguity[f_roid.values] += 1
-    classification[ambiguity > 1] = 'Ambiguous'
+    f_ambiguity = ambiguity > 1
+    classification.mask(f_ambiguity.values, 'Ambiguous', inplace=True)
+
+    classification = np.where(f_simbad, cdsxmatch, classification)
 
     return classification
 
