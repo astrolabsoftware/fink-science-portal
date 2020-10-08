@@ -225,7 +225,10 @@ def card_sn_properties(data):
             'd:cdsxmatch',
             'd:snn_snia_vs_nonia',
             'd:snn_sn_vs_all',
-            'd:rfscore'
+            'd:rfscore',
+            'i:classtar',
+            'i:ndethist',
+            'i:drb'
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
@@ -235,6 +238,9 @@ def card_sn_properties(data):
     snn_snia_vs_nonia = pdf['d:snn_snia_vs_nonia'].values[0]
     snn_sn_vs_all = pdf['d:snn_sn_vs_all'].values[0]
     rfscore = pdf['d:rfscore'].values[0]
+    classtar = pdf['i:classtar'].values[0]
+    ndethist = pdf['i:ndethist'].values[0]
+    drb = pdf['i:drb'].values[0]
 
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
@@ -251,10 +257,20 @@ def card_sn_properties(data):
                 [SNN] SNe score: {:.2f}
                 RF score: {:.2f}
                 ```
+                ---
+                ```
+                Classtar: {:.2f}
+                Detection in the survey: {}
+                Deep-Learning Real bogus: {:.2f}
+                ```
                 """.format(
                     float(snn_snia_vs_nonia),
                     float(snn_sn_vs_all),
-                    float(rfscore))
+                    float(rfscore),
+                    float(classtar),
+                    ndethist,
+                    float(drb)
+                )
             ),
             html.Br(),
             dbc.ButtonGroup([
