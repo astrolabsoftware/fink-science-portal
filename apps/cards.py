@@ -202,6 +202,13 @@ nterms_base = dbc.FormGroup(
             type="text",
             id='nterms_base',
             debounce=True
+        ),
+        dbc.Label("Number of band terms"),
+        dbc.Input(
+            placeholder="1",
+            type="text",
+            id='nterms_band',
+            debounce=True
         )
     ], style={'width': '100%', 'display': 'inline-block'}
 )

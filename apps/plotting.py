@@ -321,10 +321,11 @@ def draw_cutout(data, title):
     Output('variable_plot', 'figure'),
     [
         Input('nterms_base', 'value'),
+        Input('nterms_band', 'value'),
         Input('url', 'pathname'),
         Input('submit_variable', 'n_clicks')
     ])
-def plot_variable_star(nterms_base, name, n_clicks):
+def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
     """
     """
     if n_clicks is not None:
@@ -333,15 +334,19 @@ def plot_variable_star(nterms_base, name, n_clicks):
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         jd = pdf['i:jd']
-        model = periodic.LombScargleMultiband(Nterms_base=2, Nterms_band=0, fit_period=True)
+        model = periodic.LombScargleMultiband(
+            Nterms_base=nterms_base,
+            Nterms_band=nterms_band,
+            fit_period=True
+        )
         period = compute_period(
             model,
-            jd,
+            jd.astype(float),
             pdf['i:magpsf'].astype(float),
             pdf['i:sigmapsf'].astype(float),
             pdf['i:fid'].astype(int)
         )
-        phase = jd % period
+        phase = jd.astype(float).values % period
         tfit = np.linspace(0, period, 100)
 
         figure = {
