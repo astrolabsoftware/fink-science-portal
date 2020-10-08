@@ -271,19 +271,15 @@ def card_explanation_variable():
     """
     """
     msg = """
-    _Enter a valid object ID (e.g. ZTF19acmdpyr) or a prefix (e.g. ZTF19) on
-    the left panel, and press enter. Then click on an objectId to get more details.
-    The table shows:_
+    _Fill the fields on the right, and press `fit data` to
+    perform a time series analysis of the data.
 
-    - _objectId: Unique identifier for this object_
-    - _RA: Right Ascension of candidate; J2000 (deg)_
-    - _Dec: Declination of candidate; J2000 (deg)_
-    - _last seen: last date the object has been seen_
-    - _cross-match: CDS crossmatch. Unknown if there is no match_
-    - _SNN score: SN Ia score from SuperNNova (1 is SN Ia)_
-    - _SSO object: Solar System Object label_
-      - _0: probably not a SSO, 1: first time ZTF sees this object, 2: flagged by Fink as new SSO, 3: flagged by ZTF as known SSO_
-    - _#alerts: number of alerts corresponding to this object._
+    - _Number of base terms: number of frequency terms to use for the base model common to all bands (default=1)_
+    - _Number of band terms: number of frequency terms to use for the residuals between the base model and each individual band (default=1)_
+
+    The fit is done using [gatspy](https://zenodo.org/record/47887)
+    described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
+    More specifically, we use a multiband periodogram (LombScargleMultiband) to find the best period._
     """
     card = dbc.Card(
         dbc.CardBody(
