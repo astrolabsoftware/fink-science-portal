@@ -339,6 +339,7 @@ def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
             Nterms_band=int(nterms_band),
             fit_period=True
         )
+        model.optimizer.quiet = True
         period = compute_period(
             model,
             jd.astype(float),
