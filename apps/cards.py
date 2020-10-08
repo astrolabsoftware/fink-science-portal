@@ -17,7 +17,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from apps.utils import convert_jd, extract_properties
-from apps.utils import extract_fink_classification
+from apps.utils import extract_fink_classification_single
 from apps.plotting import draw_cutout, extract_latest_cutouts
 from apps.plotting import draw_lightcurve, draw_scores
 
@@ -309,7 +309,7 @@ def card_fink_added_values(data):
 def card_classification(data):
     """
     """
-    classification = extract_fink_classification(data)
+    classification = extract_fink_classification_single(data)
 
     msg = """
     ---

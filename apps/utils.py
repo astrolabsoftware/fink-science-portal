@@ -70,47 +70,66 @@ def extract_properties(data: str, fieldnames: list):
         pdfs = pd.concat((pdfs, pdf))
     return pdfs
 
-def extract_fink_classification(data=None, pdf=None):
+def extract_fink_classification_single(data):
     """
     """
-    if data is None and pdf is None:
+    if data is None:
         return 'Error'
 
-    if pdf is None:
-        pdf = extract_properties(
-            data,
-            [
-                'i:jd',
-                'd:cdsxmatch',
-                'd:mulens_class_1',
-                'd:mulens_class_2',
-                'd:nalerthist',
-                'd:rfscore',
-                'd:roid',
-                'd:snn_sn_vs_all',
-                'd:snn_snia_vs_nonia'
-            ]
-        )
-        pdf = pdf.sort_values('i:jd', ascending=False)
+    pdf = extract_properties(
+        data,
+        [
+            'i:jd',
+            'd:cdsxmatch',
+            'd:mulens_class_1',
+            'd:mulens_class_2',
+            'd:roid',
+            'd:snn_sn_vs_all',
+            'd:snn_snia_vs_nonia'
+        ]
+    )
+    pdf = pdf.sort_values('i:jd', ascending=False)
 
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
-    roid = int(pdf['d:roid'].values[0])
-    mulens_class_1 = pdf['d:mulens_class_1'].values[0]
-    mulens_class_2 = pdf['d:mulens_class_2'].values[0]
-    rfscore = float(pdf['d:rfscore'].values[0])
-    snn_sn_vs_all = float(pdf['d:snn_sn_vs_all'].values[0])
-    snn_snia_vs_nonia = float(pdf['d:snn_snia_vs_nonia'].values[0])
+    classification = extract_fink_classification(
+        pdf['d:cdsxmatch'],
+        pdf['d:roid'],
+        pdf['d:mulens_class_1'],
+        pdf['d:mulens_class_1'],
+        pdf['d:snn_snia_vs_nonia'],
+        pdf['d:snn_sn_vs_all']
+    )
+    # cdsxmatch = pdf['d:cdsxmatch'].values[0]
+    # roid = int(pdf['d:roid'].values[0])
+    # mulens_class_1 = pdf['d:mulens_class_1'].values[0]
+    # mulens_class_2 = pdf['d:mulens_class_2'].values[0]
+    # rfscore = float(pdf['d:rfscore'].values[0])
+    # snn_sn_vs_all = float(pdf['d:snn_sn_vs_all'].values[0])
+    # snn_snia_vs_nonia = float(pdf['d:snn_snia_vs_nonia'].values[0])
+    #
+    # if cdsxmatch != 'Unknown':
+    #     classification = cdsxmatch
+    # elif roid in [2, 3]:
+    #     classification = 'Solar System'
+    # elif snn_snia_vs_nonia > 0.5 and snn_sn_vs_all > 0.5:
+    #     classification = 'SN candidate'
+    # elif mulens_class_1 == 'ML' and mulens_class_2 == 'ML':
+    #     classification = 'Microlensing candidate'
+    # else:
+    #     classification = 'Unknown'
 
-    if cdsxmatch != 'Unknown':
-        classification = cdsxmatch
-    elif roid in [2, 3]:
-        classification = 'Solar System'
-    elif snn_snia_vs_nonia > 0.5 and snn_sn_vs_all > 0.5:
-        classification = 'SN candidate'
-    elif mulens_class_1 == 'ML' and mulens_class_2 == 'ML':
-        classification = 'Microlensing candidate'
-    else:
-        classification = 'Unknown'
+    return classification.values[0]
+
+def extract_fink_classification(cdsxmatch, roid, mulens_class_1, mulens_class_2, snn_snia_vs_nonia, snn_sn_vs_all):
+    """
+    """
+    classification = pd.Series(['Unknown'] * len(cdsxmatch))
+
+    classification[(cdsxmatch != 'Unknown').values] = cdsxmatch[cdsxmatch != 'Unknown']
+    classification[(roid.astype(int).isin([2, 3])).values] = 'Solar System'
+    classification[((snn_snia_vs_nonia.astype(float) > 0.5)).values * ((snn_sn_vs_all.astype(float) > 0.5)).values] = 'SN candidate'
+    classification[((mulens_class_1 == 'ML')).values * ((mulens_class_2 == 'ML')).values] = 'SN candidate'
+
+    classification[classification.isna()] = 'Unknown'
 
     return classification
 

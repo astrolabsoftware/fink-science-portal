@@ -169,17 +169,19 @@ def construct_table(n_clicks, objectid, filter_property, category):
         return html.Table()
     if filter_property is not None:
         client.setEvaluation(filter_property)
-    results = client.scan("", "key:key:{}".format(objectid), None, 0, True, True)
-
-    if results.isEmpty():
-        return html.Table()
-
-    # initialise the dataframe
-    pdfs = pd.DataFrame()
 
     # Columns of interest
     colnames = [
         'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'd:nalerthist'
+    ]
+
+    colnames_added_values = [
+        'd:cdsxmatch',
+        'd:roid',
+        'd:mulens_class_1',
+        'd:mulens_class_1',
+        'd:snn_snia_vs_nonia',
+        'd:snn_sn_vs_all'
     ]
 
     # Column name to display
@@ -194,28 +196,51 @@ def construct_table(n_clicks, objectid, filter_property, category):
     ]
     dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
+    results = client.scan(
+        "",
+        "key:key:{}".format(objectid),
+        ",".join(colnames+colnames_added_values), 0, True, True)
+
+    if results.isEmpty():
+        return html.Table()
+
+    # initialise the dataframe
+    # pdfs = pd.DataFrame()
+
     # Loop over results and construct the dataframe
-    classifications = []
-    nalerts = []
-    for rowkey in results:
-        if rowkey == '':
-            continue
-        properties = extract_row(rowkey, results)
-        properties['i:objectId'] = '[{}](/{})'.format(
-            properties['i:objectId'],
-            properties['i:objectId']
-        )
+    pdfs = pd.DataFrame.from_dict(results, orient='index')
 
-        pdf = pd.DataFrame.from_dict(
-            properties,
-            orient='index',
-            columns=[rowkey]
-        ).T
+    classification = extract_fink_classification(
+        pdfs['d:cdsxmatch'],
+        pdfs['d:roid'],
+        pdfs['d:mulens_class_1'],
+        pdfs['d:mulens_class_1'],
+        pdfs['d:snn_snia_vs_nonia'],
+        pdfs['d:snn_sn_vs_all']
+    )
 
-        classifications.append(extract_fink_classification(pdf=pdf))
-        nalerts.append(len(pdf))
+    pdfs['d:cdsxmatch'] = classifications
 
-        pdfs = pd.concat((pdfs, pdf[colnames]))
+    pdfs = pdfs.T[colnames]
+    # classifications = []
+    # for rowkey in results:
+    #     if rowkey == '':
+    #         continue
+    #     properties = extract_row(rowkey, results)
+    #     properties['i:objectId'] = '[{}](/{})'.format(
+    #         properties['i:objectId'],
+    #         properties['i:objectId']
+    #     )
+    #
+    #     pdf = pd.DataFrame.from_dict(
+    #         properties,
+    #         orient='index',
+    #         columns=[rowkey]
+    #     ).T
+    #
+    #     classifications.append(extract_fink_classification(pdf=pdf))
+    #
+    #     pdfs = pd.concat((pdfs, pdf[colnames]))
 
     # Column values are string by default - convert them
     pdfs = pdfs.astype(dtype=dtypes)
@@ -226,7 +251,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
     )
 
     # replace cross-match by full classification
-    pdfs['classification'] = classifications
+    # pdfs['classification'] = classifications
 
     # mismatch between nalerthist and number of real alerts
     # TODO: solve this mismatch!
