@@ -107,24 +107,6 @@ def extract_fink_classification_single(data):
         pdf['d:snn_snia_vs_nonia'],
         pdf['d:snn_sn_vs_all']
     )
-    # cdsxmatch = pdf['d:cdsxmatch'].values[0]
-    # roid = int(pdf['d:roid'].values[0])
-    # mulens_class_1 = pdf['d:mulens_class_1'].values[0]
-    # mulens_class_2 = pdf['d:mulens_class_2'].values[0]
-    # rfscore = float(pdf['d:rfscore'].values[0])
-    # snn_sn_vs_all = float(pdf['d:snn_sn_vs_all'].values[0])
-    # snn_snia_vs_nonia = float(pdf['d:snn_snia_vs_nonia'].values[0])
-    #
-    # if cdsxmatch != 'Unknown':
-    #     classification = cdsxmatch
-    # elif roid in [2, 3]:
-    #     classification = 'Solar System'
-    # elif snn_snia_vs_nonia > 0.5 and snn_sn_vs_all > 0.5:
-    #     classification = 'SN candidate'
-    # elif mulens_class_1 == 'ML' and mulens_class_2 == 'ML':
-    #     classification = 'Microlensing candidate'
-    # else:
-    #     classification = 'Unknown'
 
     return classification.values[0]
 
@@ -132,16 +114,24 @@ def extract_fink_classification(cdsxmatch, roid, mulens_class_1, mulens_class_2,
     """
     """
     classification = pd.Series(['Unknown'] * len(cdsxmatch))
+    ambiguity = pd.Series([0] * len(cdsxmatch))
 
-    classification[((mulens_class_1 == 'ML')).values * ((mulens_class_2 == 'ML')).values] = 'Microlensing candidate'
+    f_mulens = (mulens_class_1 == 'ML') & (mulens_class_2 == 'ML')
+    f_sn = (snn_snia_vs_nonia.astype(float) > 0.5) & (snn_sn_vs_all.astype(float) > 0.5)
+    f_roid = roid.astype(int).isin([2, 3])
+    f_simbad = cdsxmatch != 'Unknown'
 
-    classification[((snn_snia_vs_nonia.astype(float) > 0.5)).values * ((snn_sn_vs_all.astype(float) > 0.5)).values] = 'SN candidate'
+    classification.mask(f_mulens.values, 'Microlensing candidate', inplace=True)
+    classification.mask(f_sn.values, 'SN candidate', inplace=True)
+    classification.mask(f_roid.values, 'Solar System', inplace=True)
 
-    classification[(roid.astype(int).isin([2, 3])).values] = 'Solar System'
+    classification = np.where(f_simbad, cdsxmatch, classification)
 
-    classification[(cdsxmatch != 'Unknown').values] = cdsxmatch[cdsxmatch != 'Unknown']
-
-    classification[classification.isna()] = 'Unknown'
+    # If several flags are up, we cannot rely on the classification
+    ambiguity[f_mulens.values] += 1
+    ambiguity[f_sn.values] += 1
+    ambiguity[f_roid.values] += 1
+    classification[ambiguity > 1] = 'Ambiguous'
 
     return classification
 
