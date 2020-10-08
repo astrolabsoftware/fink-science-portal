@@ -133,10 +133,13 @@ def extract_fink_classification(cdsxmatch, roid, mulens_class_1, mulens_class_2,
     """
     classification = pd.Series(['Unknown'] * len(cdsxmatch))
 
-    classification[(cdsxmatch != 'Unknown').values] = cdsxmatch[cdsxmatch != 'Unknown']
-    classification[(roid.astype(int).isin([2, 3])).values] = 'Solar System'
+    classification[((mulens_class_1 == 'ML')).values * ((mulens_class_2 == 'ML')).values] = 'Microlensing candidate'
+
     classification[((snn_snia_vs_nonia.astype(float) > 0.5)).values * ((snn_sn_vs_all.astype(float) > 0.5)).values] = 'SN candidate'
-    classification[((mulens_class_1 == 'ML')).values * ((mulens_class_2 == 'ML')).values] = 'SN candidate'
+
+    classification[(roid.astype(int).isin([2, 3])).values] = 'Solar System'
+
+    classification[(cdsxmatch != 'Unknown').values] = cdsxmatch[cdsxmatch != 'Unknown']
 
     classification[classification.isna()] = 'Unknown'
 
