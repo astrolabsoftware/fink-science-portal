@@ -210,7 +210,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
 
-    classification = extract_fink_classification(
+    classifications = extract_fink_classification(
         pdfs['d:cdsxmatch'],
         pdfs['d:roid'],
         pdfs['d:mulens_class_1'],
