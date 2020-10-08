@@ -373,6 +373,7 @@ def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
                     'x': tfit,
                     'y': fit_variable_star(model, tfit, period, 1),
                     'mode': 'lines',
+                    'name': 'fit g band',
                     'showlegend': False,
                     'line': {
                         'color': '#1f77b4',
@@ -399,6 +400,7 @@ def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
                     'x': tfit,
                     'y': fit_variable_star(model, tfit, period, 2),
                     'mode': 'lines',
+                    'name': 'fit r band',
                     'showlegend': False,
                     'line': {
                         'color': '#ff7f0e',
@@ -408,7 +410,7 @@ def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
             "layout": layout_phase
         }
         return figure
-    return {'data': []}
+    return {'data': [], "layout": layout_phase}
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('url', 'pathname'))

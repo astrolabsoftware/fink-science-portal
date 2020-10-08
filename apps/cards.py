@@ -184,7 +184,7 @@ def card_variable_plot(data):
                     id='variable_plot',
                     style={
                         'width': '100%',
-                        'height': '15pc'
+                        'height': '25pc'
                     },
                     config={'displayModeBar': False}
                 )
