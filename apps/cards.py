@@ -253,15 +253,18 @@ def card_sn_properties(data):
                 """
                 ---
                 ```
+                SuperNNova classification
                 [SNN] SN Ia score: {:.2f}
                 [SNN] SNe score: {:.2f}
                 ```
                 ---
                 ```
+                Random Forest classification
                 RF score: {:.2f}
                 ```
                 ---
                 ```
+                Extra properties
                 Classtar: {:.2f}
                 Detection in the survey: {}
                 DL Real bogus: {:.2f}
