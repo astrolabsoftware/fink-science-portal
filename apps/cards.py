@@ -271,13 +271,13 @@ def card_explanation_variable():
     """
     """
     msg = """
-    _Fill the fields on the right, and press `fit data` to
-    perform a time series analysis of the data.
+    _Fill the fields on the right, and press `Fit data` to
+    perform a time series analysis of the data:_
 
     - _Number of base terms: number of frequency terms to use for the base model common to all bands (default=1)_
     - _Number of band terms: number of frequency terms to use for the residuals between the base model and each individual band (default=1)_
 
-    The fit is done using [gatspy](https://zenodo.org/record/47887)
+    _The fit is done using [gatspy](https://zenodo.org/record/47887)
     described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
     More specifically, we use a multiband periodogram (LombScargleMultiband) to find the best period._
     """
