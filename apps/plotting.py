@@ -350,62 +350,76 @@ def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
         phase = jd.astype(float).values % period
         tfit = np.linspace(0, period, 100)
 
+        if '1' in np.unique(pdf['i:fid'].values):
+            plot_filt1 = {
+                'x': phase[pdf['i:fid'] == '1'],
+                'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '1'],
+                    'visible': True,
+                    'color': '#1f77b4'
+                },
+                'mode': 'markers',
+                'name': 'g band',
+                'text': phase[pdf['i:fid'] == '1'],
+                'marker': {
+                    'size': 12,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            }
+            fit_filt1 = {
+                'x': tfit,
+                'y': fit_variable_star(model, tfit, period, 1),
+                'mode': 'lines',
+                'name': 'fit g band',
+                'showlegend': False,
+                'line': {
+                    'color': '#1f77b4',
+                }
+            }
+        else:
+            plot_filt1 = {}
+            fit_filt1 = {}
+
+        if '2' in np.unique(pdf['i:fid'].values):
+            plot_filt2 = {
+                'x': phase[pdf['i:fid'] == '2'],
+                'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '2'],
+                    'visible': True,
+                    'color': '#ff7f0e'
+                },
+                'mode': 'markers',
+                'name': 'r band',
+                'text': phase[pdf['i:fid'] == '2'],
+                'marker': {
+                    'size': 12,
+                    'color': '#ff7f0e',
+                    'symbol': 'o'}
+            }
+            fit_filt2 = {
+                'x': tfit,
+                'y': fit_variable_star(model, tfit, period, 2),
+                'mode': 'lines',
+                'name': 'fit r band',
+                'showlegend': False,
+                'line': {
+                    'color': '#ff7f0e',
+                }
+            }
+        else:
+            plot_filt2 = {}
+            fit_filt2 = {}
+
         figure = {
             'data': [
-                {
-                    'x': phase[pdf['i:fid'] == '1'],
-                    'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
-                    'error_y': {
-                        'type': 'data',
-                        'array': pdf['i:sigmapsf'][pdf['i:fid'] == '1'],
-                        'visible': True,
-                        'color': '#1f77b4'
-                    },
-                    'mode': 'markers',
-                    'name': 'g band',
-                    'text': phase[pdf['i:fid'] == '1'],
-                    'marker': {
-                        'size': 12,
-                        'color': '#1f77b4',
-                        'symbol': 'o'}
-                },
-                {
-                    'x': tfit,
-                    'y': fit_variable_star(model, tfit, period, 1),
-                    'mode': 'lines',
-                    'name': 'fit g band',
-                    'showlegend': False,
-                    'line': {
-                        'color': '#1f77b4',
-                    }
-                },
-                {
-                    'x': phase[pdf['i:fid'] == '2'],
-                    'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
-                    'error_y': {
-                        'type': 'data',
-                        'array': pdf['i:sigmapsf'][pdf['i:fid'] == '2'],
-                        'visible': True,
-                        'color': '#ff7f0e'
-                    },
-                    'mode': 'markers',
-                    'name': 'r band',
-                    'text': phase[pdf['i:fid'] == '2'],
-                    'marker': {
-                        'size': 12,
-                        'color': '#ff7f0e',
-                        'symbol': 'o'}
-                },
-                {
-                    'x': tfit,
-                    'y': fit_variable_star(model, tfit, period, 2),
-                    'mode': 'lines',
-                    'name': 'fit r band',
-                    'showlegend': False,
-                    'line': {
-                        'color': '#ff7f0e',
-                    }
-                },
+                plot_filt1,
+                fit_filt1,
+                plot_filt2,
+                fit_filt2
             ],
             "layout": layout_phase
         }
