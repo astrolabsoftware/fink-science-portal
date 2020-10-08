@@ -300,6 +300,65 @@ def draw_cutout(data, title):
     return fig
 
 @app.callback(
+    Output('variable_plot', 'figure'),
+    [
+        Input('nterms_base', 'value'),
+        Input('url', 'pathname'),
+        Input('submit_variable', 'n_clicks')
+    ])
+def plot_variable_star(nterms_base, name, n_clicks):
+    """
+    """
+    if n_clicks is not None:
+        results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
+        pdf = extract_properties(results, ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid'])
+        pdf = pdf.sort_values('i:jd', ascending=False)
+
+        jd = pdf['i:jd']
+        jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+        figure = {
+            'data': [
+                {
+                    'x': jd[pdf['i:fid'] == '1'],
+                    'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf['i:sigmapsf'][pdf['i:fid'] == '1'],
+                        'visible': True,
+                        'color': '#1f77b4'
+                    },
+                    'mode': 'markers',
+                    'name': 'g band',
+                    'text': jd[pdf['i:fid'] == '1'],
+                    'marker': {
+                        'size': 12,
+                        'color': '#1f77b4',
+                        'symbol': 'o'}
+                },
+                {
+                    'x': jd[pdf['i:fid'] == '2'],
+                    'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf['i:sigmapsf'][pdf['i:fid'] == '2'],
+                        'visible': True,
+                        'color': '#ff7f0e'
+                    },
+                    'mode': 'markers',
+                    'name': 'r band',
+                    'text': jd[pdf['i:fid'] == '2'],
+                    'marker': {
+                        'size': 12,
+                        'color': '#ff7f0e',
+                        'symbol': 'o'}
+                }
+            ],
+            "layout": layout_lightcurve
+        }
+        return figure
+    return {'data': {}}
+
+@app.callback(
     Output('aladin-lite-div', 'run'), Input('url', 'pathname'))
 def integrate_aladin_lite(name):
     """ Integrate aladin light in the 2nd Tab of the dashboard.

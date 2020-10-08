@@ -104,12 +104,8 @@ def card_cutouts(data):
 
     Parameters
     ----------
-    science: np.array
-        2D array containing science data
-    template: np.array
-        2D array containing template data
-    difference: np.array
-        2D array containing difference data
+    data: java.util.TreeMap
+        Results from a HBase client query
 
     Returns
     ----------
@@ -165,6 +161,98 @@ def card_cutouts(data):
             ]
         ),
         className="mt-3"
+    )
+    return card
+
+def card_variable_plot(data):
+    """ Add a card to fit for variable stars
+
+    Parameters
+    ----------
+    data: java.util.TreeMap
+        Results from a HBase client query
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the variable drawn inside
+    """
+    card = dbc.Card(
+        dbc.CardBody(
+            [
+                dcc.Graph(
+                    id='variable_plot',
+                    style={
+                        'width': '100%',
+                        'height': '15pc'
+                    },
+                    config={'displayModeBar': False}
+                )
+            ]
+        ),
+        className="mt-3"
+    )
+    return card
+
+nterms_base = dbc.FormGroup(
+    [
+        dbc.Label("Number of base terms"),
+        dbc.Input(
+            placeholder="1",
+            type="text",
+            id='nterms_base',
+            debounce=True
+        )
+    ], style={'width': '100%', 'display': 'inline-block'}
+)
+
+submit_button = dbc.Button(
+    'Fit data',
+    id='submit_variable',
+    style={'width': '100%', 'display': 'inline-block'},
+    block=True
+)
+
+def card_variable_button(data):
+    """ Add a card containing button to fit for variable stars
+    """
+    pdf = extract_properties(
+        data, [
+            'i:objectId',
+            'i:candid',
+            'i:jd',
+            'i:ra',
+            'i:dec',
+            'd:cdsxmatch'
+        ]
+    )
+    pdf = pdf.sort_values('i:jd', ascending=False)
+
+    id0 = pdf['i:objectId'].values[0]
+    candid0 = pdf['i:candid'].values[0]
+    ra0 = pdf['i:ra'].values[0]
+    dec0 = pdf['i:dec'].values[0]
+    date0 = convert_jd(float(pdf['i:jd'].values[0]))
+    cdsxmatch = pdf['d:cdsxmatch'].values[0]
+
+    card = dbc.Card(
+        [
+            html.H5("ObjectID: {}".format(id0), className="card-title"),
+            html.H6("SIMBAD: {}".format(cdsxmatch), className="card-subtitle"),
+            dcc.Markdown(
+                """
+                ---
+                ```
+                Date: {}
+                RA: {} deg
+                Dec: {} deg
+                ```
+                """.format(date0, ra0, dec0)
+            ),
+            dbc.Row(nterms_base),
+            dbc.Row(submit_button)
+        ],
+        className="mt-3", body=True
     )
     return card
 

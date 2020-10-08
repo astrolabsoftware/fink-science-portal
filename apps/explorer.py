@@ -55,7 +55,7 @@ object_id = dbc.FormGroup(
             debounce=True
         ),
         dbc.FormText("Enter an objectId beginning with 'ZTF'"),
-    ]
+    ], style={'width': '100%', 'display': 'inline-block'}
 )
 
 filter_property = dbc.FormGroup(
@@ -68,7 +68,7 @@ filter_property = dbc.FormGroup(
             debounce=True
         ),
         dcc.Markdown("Known [alert field](https://zwickytransientfacility.github.io/ztf-avro-alert/schema.html), \n or a Fink added value field.", style={'font-size': '9pt'}),
-    ]
+    ], style={'width': '100%', 'display': 'inline-block'}
 )
 
 alert_category = dbc.FormGroup(
@@ -88,13 +88,14 @@ alert_category = dbc.FormGroup(
             value='All',
             style={'width': '100%', 'display': 'inline-block'}
         )
-    ]
+    ], style={'width': '100%', 'display': 'inline-block'}
 )
 
-submit_button = dbc.FormGroup(
-    [
-        dbc.Button('Submit Query', id='submit_query', style={'width': '100%', 'display': 'inline-block'})
-    ]
+submit_button = dbc.Button(
+    'Submit Query',
+    id='submit_query',
+    style={'width': '100%', 'display': 'inline-block'},
+    block=True
 )
 
 layout = html.Div(

@@ -22,6 +22,7 @@ from app import app, client
 from apps.cards import card_lightcurve, card_cutouts, card_sn_scores
 from apps.cards import card_id, card_fink_added_values, card_sn_properties
 from apps.cards import card_download, card_classification
+from apps.cards import card_variable_plot, card_variable_button
 
 dcc.Location(id='url', refresh=False)
 
@@ -56,13 +57,24 @@ def tab2_content(data):
     ])
     return tab2_content_
 
+def tab3_content(data):
+    """ Variable stars tab
+    """
+    tab3_content_ = html.Div([
+        dbc.Row([
+            dbc.Col(card_variable_plot(data), width=8),
+            dbc.Col([card_variable_button(data)], width=4)
+        ]),
+    ])
+    return tab3_content_
+
 def tabs(data):
     tabs_ = dbc.Tabs(
         [
             dbc.Tab(tab1_content(data), label="Summary", tab_style={"margin-left": "auto"}),
             dbc.Tab(tab2_content(data), label="Supernovae"),
+            dbc.Tab(tab3_content(data), label="Variable stars"),
             dbc.Tab(label="Microlensing", disabled=True),
-            dbc.Tab(label="Variable stars", disabled=True),
             dbc.Tab(label="Solar System", disabled=True),
         ]
     )
