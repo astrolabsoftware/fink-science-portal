@@ -38,11 +38,12 @@ The table shows:_
 - _RA: Right Ascension of candidate; J2000 (deg)_
 - _Dec: Declination of candidate; J2000 (deg)_
 - _last seen: last date the object has been seen_
-- _cross-match: CDS crossmatch. Unknown if there is no match_
-- _SNN score: SN Ia score from SuperNNova (1 is SN Ia)_
-- _SSO object: Solar System Object label_
-  - _0: probably not a SSO, 1: first time ZTF sees this object, 2: flagged by Fink as new SSO, 3: flagged by ZTF as known SSO_
-- _#alerts: number of alerts corresponding to this object._
+- _classification: Classification inferred by Fink:_
+  - _Supernova candidate_
+  - _Microlensing candidate_
+  - _Solar System Object_
+  - _SIMBAD class_
+- _#alerts: number of Fink alerts corresponding to this object._
 """
 
 object_id = dbc.FormGroup(
