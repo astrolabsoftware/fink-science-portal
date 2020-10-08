@@ -356,7 +356,7 @@ def plot_variable_star(nterms_base, name, n_clicks):
             "layout": layout_lightcurve
         }
         return figure
-    return {'data': {}}
+    return {'data': []}
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('url', 'pathname'))
