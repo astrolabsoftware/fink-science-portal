@@ -279,7 +279,7 @@ def card_explanation_variable():
 
     _The fit is done using [gatspy](https://zenodo.org/record/47887)
     described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
-    More specifically, we use a multiband periodogram (LombScargleMultiband) to find the best period._
+    We use a multiband periodogram (LombScargleMultiband) to find the best period._
     """
     card = dbc.Card(
         dbc.CardBody(
