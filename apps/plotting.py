@@ -335,8 +335,8 @@ def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
 
         jd = pdf['i:jd']
         model = periodic.LombScargleMultiband(
-            Nterms_base=nterms_base,
-            Nterms_band=nterms_band,
+            Nterms_base=int(nterms_base),
+            Nterms_band=int(nterms_band),
             fit_period=True
         )
         period = compute_period(
@@ -396,11 +396,11 @@ def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
                 },
                 {
                     'x': tfit,
-                    'y': fit_variable_star(model, tfit, period, 1),
+                    'y': fit_variable_star(model, tfit, period, 2),
                     'mode': 'lines',
                     'showlegend': False,
                     'line': {
-                        'color': '#1f77b4',
+                        'color': '#ff7f0e',
                     }
                 },
             ],
