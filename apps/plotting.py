@@ -103,6 +103,8 @@ def extract_lightcurve(data: java.util.TreeMap) -> pd.DataFrame:
     """
     values = ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid']
     pdfs = pd.DataFrame.from_dict(data, orient='index')
+    if pdfs.empty:
+        return pdfs
     return pdfs[values]
 
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
@@ -110,6 +112,8 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """
     values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all']
     pdfs = pd.DataFrame.from_dict(data, orient='index')
+    if pdfs.empty:
+        return pdfs
     return pdfs[values]
 
 def draw_lightcurve(data: java.util.TreeMap) -> dict:

@@ -65,20 +65,11 @@ def readstamp(stamp: str) -> np.array:
 def extract_properties(data: str, fieldnames: list):
     """
     """
-    # pdfs = pd.DataFrame()
     pdfs = pd.DataFrame.from_dict(data, orient='index')
-    # for rowkey in data:
-    #     if rowkey == '':
-    #         continue
-    #     properties = extract_row(rowkey, data)
-    #     if fieldnames is not None:
-    #         pdf = pd.DataFrame.from_dict(
-    #             properties, orient='index', columns=[rowkey]).T[fieldnames]
-    #     else:
-    #         pdf = pd.DataFrame.from_dict(
-    #             properties, orient='index', columns=[rowkey]).T
-    #     pdfs = pd.concat((pdfs, pdf))
-    return pdfs[fieldnames]
+    if fieldname is not None:
+        return pdfs[fieldnames]
+    else:
+        return pdfs
 
 def extract_fink_classification_single(data):
     """
