@@ -385,7 +385,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
             }
             fit_filt1 = {
                 'x': tfit,
-                'y': model.predict(tfit, period=period, filts=1)
+                'y': model.predict(tfit, period=period, filts=1),
                 'mode': 'lines',
                 'name': 'fit g band',
                 'showlegend': False,
