@@ -23,7 +23,6 @@ import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch
 from apps.utils import extract_row, extract_properties
-from apps.variable_stars import fit_variable_star, compute_period
 
 from app import client, app
 
@@ -348,17 +347,21 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
             Nterms_band=int(nterms_band),
             fit_period=fit_period
         )
+        model.optimizer.period_range = (0.2, 1.2)
         model.optimizer.quiet = True
+
+        model.fit(
+            jd.astype(float),
+            pdf['i:magpsf'].astype(float),
+            pdf['i:sigmapsf'].astype(float),
+            pdf['i:fid'].astype(int)
+        )
+
         if fit_period:
-            period = compute_period(
-                model,
-                jd.astype(float),
-                pdf['i:magpsf'].astype(float),
-                pdf['i:sigmapsf'].astype(float),
-                pdf['i:fid'].astype(int)
-            )
+            period = model.best_period
         else:
             period = manual_period
+
         phase = jd.astype(float).values % period
         tfit = np.linspace(0, period, 100)
 
@@ -382,7 +385,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
             }
             fit_filt1 = {
                 'x': tfit,
-                'y': fit_variable_star(model, tfit, period, 1),
+                'y': model.predict(tfit, period=period, filts=1)
                 'mode': 'lines',
                 'name': 'fit g band',
                 'showlegend': False,
@@ -414,7 +417,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
             }
             fit_filt2 = {
                 'x': tfit,
-                'y': fit_variable_star(model, tfit, period, 2),
+                'y': model.predict(tfit, period=period, filts=2),
                 'mode': 'lines',
                 'name': 'fit r band',
                 'showlegend': False,
