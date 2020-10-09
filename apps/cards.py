@@ -475,7 +475,7 @@ def card_classification(data):
     """.format(classification)
     card = dbc.Card(
         [
-            html.H5("Class: {}".format(classification), className="card-subtitle")
+            html.H5("Classification: {}".format(classification), className="card-subtitle")
         ],
         className="mt-3", body=True
     )
@@ -484,6 +484,8 @@ def card_classification(data):
 def card_download(data):
     """
     """
+    pdf = extract_properties(data, ['i:objectId'])
+    objectid = pdf['i:objectId'].values[0]
     card = dbc.Card(
         [
             html.H5("Download data", className="card-subtitle"),
@@ -491,9 +493,9 @@ def card_download(data):
             dbc.ButtonGroup([
                 dbc.Button(
                     html.A(
-                        'Download',
+                        'Download Object Data',
                         id="download-link",
-                        download="rawdata.csv",
+                        download="{}.csv".format(objectid),
                         href=generate_download_link(data),
                         target="_blank", style={"color": "white"}),
                     id='download',
