@@ -386,8 +386,8 @@ def card_sn_properties(data):
                 ---
                 ```
                 SuperNNova classification
-                [SNN] SN Ia score: {:.2f}
-                [SNN] SNe score: {:.2f}
+                SN Ia score: {:.2f}
+                SNe score: {:.2f}
                 ```
                 ---
                 ```
