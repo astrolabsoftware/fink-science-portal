@@ -66,7 +66,7 @@ def extract_properties(data: str, fieldnames: list):
     """
     """
     pdfs = pd.DataFrame.from_dict(data, orient='index')
-    if fieldname is not None:
+    if fieldnames is not None:
         return pdfs[fieldnames]
     else:
         return pdfs
