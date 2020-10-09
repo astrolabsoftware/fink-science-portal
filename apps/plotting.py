@@ -333,7 +333,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
         return {'data': [], "layout": layout_phase}
     if type(nterms_band) not in [int]:
         return {'data': [], "layout": layout_phase}
-    if type(manual_period) not in [int, float]:
+    if manual_period and type(manual_period) not in [int, float]:
         return {'data': [], "layout": layout_phase}
 
     if n_clicks is not None:
