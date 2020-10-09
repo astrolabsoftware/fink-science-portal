@@ -214,7 +214,7 @@ nterms_base = dbc.FormGroup(
             debounce=True,
             min=0, max=4
         ),
-        dbc.Label("Optional: set manually the period"),
+        dbc.Label("Set manually the period (days)"),
         dbc.Input(
             placeholder="Optional",
             value=None,
@@ -287,7 +287,8 @@ def card_explanation_variable():
 
     _The fit is done using [gatspy](https://zenodo.org/record/47887)
     described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
-    We use a multiband periodogram (LombScargleMultiband) to find the best period._
+    We use a multiband periodogram (LombScargleMultiband) to find the best period.
+    Alternatively, you can manually set the period in days._
     """
     card = dbc.Card(
         dbc.CardBody(
