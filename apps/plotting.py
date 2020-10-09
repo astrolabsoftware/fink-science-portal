@@ -333,7 +333,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
         return {'data': [], "layout": layout_phase}
     if type(nterms_band) not in [int]:
         return {'data': [], "layout": layout_phase}
-    if manual_period and type(manual_period) not in [int, float]:
+    if manual_period is not None and type(manual_period) not in [int, float]:
         return {'data': [], "layout": layout_phase}
 
     if n_clicks is not None:
@@ -342,11 +342,11 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         jd = pdf['i:jd']
-        fit_period = True if manual_period else False
+        fit_period = True if manual_period is not None else False
         model = periodic.LombScargleMultiband(
             Nterms_base=int(nterms_base),
             Nterms_band=int(nterms_band),
-            fit_period=True
+            fit_period=fit_period
         )
         model.optimizer.quiet = True
         if fit_period:
