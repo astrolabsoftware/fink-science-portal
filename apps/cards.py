@@ -213,6 +213,14 @@ nterms_base = dbc.FormGroup(
             id='nterms_band',
             debounce=True,
             min=0, max=4
+        ),
+        dbc.Label("Optional: set manually the period"),
+        dbc.Input(
+            placeholder="Optional",
+            value=None,
+            type="number",
+            id='manual_period',
+            debounce=True
         )
     ], style={'width': '100%', 'display': 'inline-block'}
 )

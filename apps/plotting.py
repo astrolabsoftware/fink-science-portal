@@ -322,31 +322,43 @@ def draw_cutout(data, title):
     [
         Input('nterms_base', 'value'),
         Input('nterms_band', 'value'),
+        Input('manual_period', 'value'),
         Input('url', 'pathname'),
         Input('submit_variable', 'n_clicks')
     ])
-def plot_variable_star(nterms_base, nterms_band, name, n_clicks):
+def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
     """
     """
+    if type(nterms_base) not in [int]:
+        return {'data': [], "layout": layout_phase}
+    if type(nterms_band) not in [int]:
+        return {'data': [], "layout": layout_phase}
+    if type(manual_period) not in [int, float]:
+        return {'data': [], "layout": layout_phase}
+
     if n_clicks is not None:
         results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
         pdf = extract_properties(results, ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid'])
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         jd = pdf['i:jd']
+        fit_period = True if manual_period else False
         model = periodic.LombScargleMultiband(
             Nterms_base=int(nterms_base),
             Nterms_band=int(nterms_band),
             fit_period=True
         )
         model.optimizer.quiet = True
-        period = compute_period(
-            model,
-            jd.astype(float),
-            pdf['i:magpsf'].astype(float),
-            pdf['i:sigmapsf'].astype(float),
-            pdf['i:fid'].astype(int)
-        )
+        if fit_period:
+            period = compute_period(
+                model,
+                jd.astype(float),
+                pdf['i:magpsf'].astype(float),
+                pdf['i:sigmapsf'].astype(float),
+                pdf['i:fid'].astype(int)
+            )
+        else:
+            period = manual_period
         phase = jd.astype(float).values % period
         tfit = np.linspace(0, period, 100)
 
