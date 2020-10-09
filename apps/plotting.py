@@ -17,6 +17,7 @@ import numpy as np
 from gatspy import periodic
 
 import java
+import copy
 
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
@@ -57,15 +58,28 @@ layout_lightcurve = dict(
 layout_phase = dict(
     autosize=True,
     automargin=True,
-    margin=dict(l=50, r=30, b=0, t=0),
+    margin=dict(l=50, r=30, b=40, t=25),
     hovermode="closest",
-    legend=dict(font=dict(size=10), orientation="h"),
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        yanchor="bottom",
+        y=0.02,
+        xanchor="right",
+        x=1,
+        bgcolor='rgba(0,0,0,0)'
+    ),
     xaxis={
         'title': 'Phase'
     },
     yaxis={
         'autorange': 'reversed',
         'title': 'Magnitude'
+    },
+    title={
+        "text": "Phased data",
+        "y" : 1.01,
+        "yanchor" : "bottom"
     }
 )
 
@@ -365,6 +379,9 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
         phase = jd.astype(float).values % period
         tfit = np.linspace(0, period, 100)
 
+        layout_phase_ = copy.deepcopy(layout_phase)
+        layout_phase_['title']['text'] = 'Period: {} days'.format(period)
+
         if '1' in np.unique(pdf['i:fid'].values):
             plot_filt1 = {
                 'x': phase[pdf['i:fid'] == '1'],
@@ -436,7 +453,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
                 plot_filt2,
                 fit_filt2
             ],
-            "layout": layout_phase
+            "layout": layout_phase_
         }
         return figure
     return {'data': [], "layout": layout_phase}
