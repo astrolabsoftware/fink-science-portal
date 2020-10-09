@@ -101,30 +101,16 @@ layout_scores = dict(
 def extract_lightcurve(data: java.util.TreeMap) -> pd.DataFrame:
     """
     """
-    pdfs = pd.DataFrame()
     values = ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid']
-    for rowkey in data:
-        if rowkey == '':
-            continue
-        properties = extract_row(rowkey, data)
-        pdf = pd.DataFrame.from_dict(
-            properties, orient='index', columns=[rowkey]).T[values]
-        pdfs = pd.concat((pdfs, pdf))
-    return pdfs
+    pdfs = pd.DataFrame.from_dict(data, orient='index')
+    return pdfs[values]
 
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """
     """
-    pdfs = pd.DataFrame()
     values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all']
-    for rowkey in data:
-        if rowkey == '':
-            continue
-        properties = extract_row(rowkey, data)
-        pdf = pd.DataFrame.from_dict(
-            properties, orient='index', columns=[rowkey]).T[values]
-        pdfs = pd.concat((pdfs, pdf))
-    return pdfs
+    pdfs = pd.DataFrame.from_dict(data, orient='index')
+    return pdfs[values]
 
 def draw_lightcurve(data: java.util.TreeMap) -> dict:
     """ Draw object lightcurve with errorbars
@@ -256,20 +242,13 @@ def extract_latest_cutouts(data: java.util.TreeMap):
     difference: np.array
         2D array containing difference data
     """
-    pdfs = pd.DataFrame()
     values = [
         'i:jd',
         'b:cutoutScience_stampData',
         'b:cutoutTemplate_stampData',
         'b:cutoutDifference_stampData'
     ]
-    for rowkey in data:
-        if rowkey == '':
-            continue
-        properties = extract_row(rowkey, data)
-        pdf = pd.DataFrame.from_dict(
-            properties, orient='index', columns=[rowkey]).T[values]
-        pdfs = pd.concat((pdfs, pdf))
+    pdfs = pd.DataFrame.from_dict(data, orient='index')[values]
     pdfs.sort_values('i:jd', ascending=False)
     diff = readstamp(
         client.repository().get(pdfs['b:cutoutDifference_stampData'].values[0]))
@@ -361,7 +340,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
             Nterms_band=int(nterms_band),
             fit_period=fit_period
         )
-        model.optimizer.period_range = (0.2, 1.2)
+        model.optimizer.period_range = (0.1, 1.2)
         model.optimizer.quiet = True
 
         model.fit(
