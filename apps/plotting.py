@@ -342,7 +342,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         jd = pdf['i:jd']
-        fit_period = True if manual_period is not None else False
+        fit_period = False if manual_period is not None else True
         model = periodic.LombScargleMultiband(
             Nterms_base=int(nterms_base),
             Nterms_band=int(nterms_band),
