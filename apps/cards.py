@@ -445,6 +445,8 @@ def card_sn_properties(data):
     else:
         deltamagref = None
 
+    classification = extract_fink_classification_single(data)
+
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
