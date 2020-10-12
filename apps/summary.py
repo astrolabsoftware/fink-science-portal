@@ -39,8 +39,7 @@ def tab1_content(data):
         dbc.Row([
             dbc.Col(card_cutouts(data), width=8),
             dbc.Col([
-                card_id(data),
-                card_classification(data)
+                card_id(data)
             ], width=4)
         ]),
     ])
