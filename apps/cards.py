@@ -353,6 +353,7 @@ def card_id(data):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
+            html.H6("Fink class: {}".format(classification), className="card-title"),
             dcc.Markdown(
                 """
                 ```python
@@ -360,7 +361,6 @@ def card_id(data):
                 Date: {}
                 RA: {} deg
                 Dec: {} deg
-                Fink Class: {}
                 ```
                 ---
                 ```python
@@ -378,7 +378,7 @@ def card_id(data):
                 Distance (ZTF): {:.2f} arcsec
                 ```
                 """.format(
-                    date0, ra0, dec0, classification,
+                    date0, ra0, dec0,
                     deltamaglatest, deltamagref,
                     cdsxmatch, objectidps1, float(distpsnr1),
                     float(neargaia), float(distnr))
@@ -448,6 +448,7 @@ def card_sn_properties(data):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
+            html.H5("Fink class: {}".format(classification), className="card-title"),
             dcc.Markdown(
                 """
                 ```python
