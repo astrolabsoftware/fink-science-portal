@@ -365,8 +365,8 @@ def card_id(data):
                 ---
                 ```python
                 # Variability
-                deltamaglatest: {}
-                deltamagref: {}
+                Dmag (latest): {}
+                Dmag (reference): {}
                 ```
                 ---
                 ```python
@@ -460,8 +460,8 @@ def card_sn_properties(data):
                 ---
                 ```python
                 # Variability
-                deltamaglatest: {}
-                deltamagref: {}
+                Dmag (latest): {}
+                Dmag (reference): {}
                 ```
                 ---
                 ```python
