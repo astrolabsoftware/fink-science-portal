@@ -321,6 +321,8 @@ def card_id(data):
     date0 = convert_jd(float(pdf['i:jd'].values[0]))
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
+    classification = extract_fink_classification_single(data)s
+
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
@@ -332,8 +334,9 @@ def card_id(data):
                 Date: {}
                 RA: {} deg
                 Dec: {} deg
+                Classification: {}
                 ```
-                """.format(date0, ra0, dec0)
+                """.format(date0, ra0, dec0, classification)
             ),
             dbc.ButtonGroup([
                 dbc.Button('TNS', id='TNS', target="_blank", href='https://wis-tns.weizmann.ac.il/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)),
@@ -465,17 +468,29 @@ def card_fink_added_values(data):
 def card_classification(data):
     """
     """
-    classification = extract_fink_classification_single(data)
+    pdf = extract_properties(
+        data, [
+            'i:objectidps1',
+            'i:distpsnr1',
+            'i:jd'
+        ]
+    )
+    pdf = pdf.sort_values('i:jd', ascending=False)
+
+    objectidps1 = pdf['i:objectId'].values[0]
+    distpsnr1 = pdf['i:candid'].values[0]
 
     msg = """
     ---
     ```
-    {}
+    Closest source from PS1 catalog: {}
+    Distance to that source (arcsec): {}
     ```
-    """.format(classification)
+    """.format(objectidps1, distpsnr1)
     card = dbc.Card(
         [
-            html.H5("Classification: {}".format(classification), className="card-subtitle")
+            html.H5("External surveys", className="card-subtitle"),
+            dcc.Markdown(msg)
         ],
         className="mt-3", body=True
     )
