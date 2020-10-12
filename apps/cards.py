@@ -262,12 +262,13 @@ def card_variable_button(data):
             html.H6("Fink Class: {}".format(classification), className="card-subtitle"),
             dcc.Markdown(
                 """
-                ```
+                ```python
                 # General properties
                 Date: {}
                 RA: {} deg
                 Dec: {} deg
                 ```
+                ---
                 """.format(date0, ra0, dec0)
             ),
             dbc.Row(nterms_base),
@@ -378,6 +379,7 @@ def card_id(data):
                 Distance (PS1): {:.2f} arcsec
                 Distance (Gaia): {:.2f} arcsec
                 Distance (ZTF): {:.2f} arcsec
+                ---
                 ```
                 """.format(
                     date0, ra0, dec0,
