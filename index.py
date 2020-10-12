@@ -51,7 +51,7 @@ navbar = dbc.Navbar(
                     [
                         dbc.Col(
                             dbc.NavbarBrand(
-                                "Fink Sience portal",
+                                "Fink Science portal",
                                 className="ml-2"
                             )
                         ),

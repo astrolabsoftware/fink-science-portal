@@ -510,8 +510,6 @@ def card_download(data):
     objectid = pdf['i:objectId'].values[0]
     card = dbc.Card(
         [
-            html.H5("Download data", className="card-subtitle"),
-            dcc.Markdown("---"),
             dbc.ButtonGroup([
                 dbc.Button(
                     html.A(
