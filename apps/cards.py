@@ -343,43 +343,44 @@ def card_id(data):
         deltamagref = None
 
     mask = fids == fids[0]
-    if np.sum(mask)>1:
+    if np.sum(mask) > 1:
         deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
+    else:
+        deltamagref = None
 
     classification = extract_fink_classification_single(data)
 
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("SIMBAD: {}".format(cdsxmatch), className="card-subtitle"),
             dcc.Markdown(
                 """
-                ---
-                ```
-                General properties
+                ```python
+                # General properties
                 Date: {}
                 RA: {} deg
                 Dec: {} deg
-                Classification: {}
+                Fink Class: {}
                 ```
                 ---
-                ```
-                Variability
+                ```python
+                # Variability
                 deltamaglatest: {}
                 deltamagref: {}
                 ```
                 ---
-                ```
-                Neighbourhood
-                Closest source (PS1): {}
+                ```python
+                # Neighbourhood
+                SIMBAD: {}
+                PS1: {}
                 Distance (PS1): {:.2f} arcsec
                 Distance (Gaia): {:.2f} arcsec
-                Distance (ref image): {:.2f} arcsec
+                Distance (ZTF): {:.2f} arcsec
                 ```
                 """.format(
                     date0, ra0, dec0, classification,
                     deltamaglatest, deltamagref,
-                    objectidps1, float(distpsnr1),
+                    cdsxmatch, objectidps1, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
             dbc.ButtonGroup([
@@ -407,7 +408,11 @@ def card_sn_properties(data):
             'd:rfscore',
             'i:classtar',
             'i:ndethist',
-            'i:drb'
+            'i:drb',
+            'i:distnr',
+            'i:magpsf',
+            'i:magnr',
+            'i:fid'
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
@@ -424,26 +429,44 @@ def card_sn_properties(data):
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
 
+    distnr = pdf['i:distnr'].values[0]
+    magpsfs = pdf['i:magpsf'].astype(float).values
+    magnrs = pdf['i:magnr'].astype(float).values
+    fids = pdf['i:fid'].values
+
+    if float(distnr) < 2:
+        deltamagref = np.round(magnrs[0] - magpsfs[0], 3)
+    else:
+        deltamagref = None
+
+    mask = fids == fids[0]
+    if np.sum(mask) > 1:
+        deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
+    else:
+        deltamagref = None
+
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("SIMBAD: {}".format(cdsxmatch), className="card-subtitle"),
             dcc.Markdown(
                 """
                 ---
-                ```
-                SuperNNova classification
+                ```python
+                # SuperNNova classification
                 SN Ia score: {:.2f}
                 SNe score: {:.2f}
-                ```
-                ---
-                ```
-                Random Forest classification
+                # Random Forest classification
                 RF score: {:.2f}
                 ```
                 ---
+                ```python
+                # Variability
+                deltamaglatest: {}
+                deltamagref: {}
                 ```
-                Extra properties
+                ---
+                ```python
+                # Extra properties
                 Classtar: {:.2f}
                 Detection in the survey: {}
                 DL Real bogus: {:.2f}
@@ -453,6 +476,8 @@ def card_sn_properties(data):
                     float(snn_snia_vs_nonia),
                     float(snn_sn_vs_all),
                     float(rfscore),
+                    deltamaglatest,
+                    deltamagref,
                     float(classtar),
                     ndethist,
                     float(drb)
