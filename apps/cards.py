@@ -450,7 +450,6 @@ def card_sn_properties(data):
             html.H5("ObjectID: {}".format(id0), className="card-title"),
             dcc.Markdown(
                 """
-                ---
                 ```python
                 # SuperNNova classification
                 SN Ia score: {:.2f}
