@@ -321,7 +321,7 @@ def card_id(data):
     date0 = convert_jd(float(pdf['i:jd'].values[0]))
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
-    classification = extract_fink_classification_single(data)s
+    classification = extract_fink_classification_single(data)
 
     card = dbc.Card(
         [
