@@ -262,6 +262,7 @@ def card_variable_button(data):
             html.H6("Fink Class: {}".format(classification), className="card-subtitle"),
             dcc.Markdown(
                 """
+                ---
                 ```python
                 # General properties
                 Date: {}
@@ -271,6 +272,7 @@ def card_variable_button(data):
                 ---
                 """.format(date0, ra0, dec0)
             ),
+            html.H5("Fitting data", className="card-title"),
             dbc.Row(nterms_base),
             dbc.Row(submit_button)
         ],
@@ -457,6 +459,7 @@ def card_sn_properties(data):
             html.H6("Fink class: {}".format(classification), className="card-subtitle"),
             dcc.Markdown(
                 """
+                ---
                 ```python
                 # SuperNNova classification
                 SN Ia score: {:.2f}
