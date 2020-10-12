@@ -109,7 +109,7 @@ def layout(name):
                                 [visdcc.Run_js(id='aladin-lite-div')],
                                 style={
                                     'width': '100%',
-                                    'height': '30pc'
+                                    'height': '25pc'
                                 }
                             ),
                             card_download(results)
