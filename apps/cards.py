@@ -313,7 +313,10 @@ def card_id(data):
             'i:objectidps1',
             'i:distpsnr1',
             'i:neargaia',
-            'i:distnr'
+            'i:distnr',
+            'i:magpsf',
+            'i:magnr',
+            'i:fid'
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
@@ -329,6 +332,19 @@ def card_id(data):
     objectidps1 = pdf['i:objectidps1'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
+
+    magpsfs = pdf['i:magpsf'].astype(float).values
+    magnrs = pdf['i:magnr'].astype(float).values
+    fids = pdf['i:fid'].values
+
+    if float(distnr) < 2:
+        deltamagref = np.round(magnrs[0] - magpsfs[0], 3)
+    else:
+        deltamagref = None
+
+    mask = fids == fids[0]
+    if np.sum(mask)>1:
+        deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
 
     classification = extract_fink_classification_single(data)
 
@@ -349,8 +365,8 @@ def card_id(data):
                 ---
                 ```
                 Variability
-                deltamaglatest:
-                deltamagref:
+                deltamaglatest: {}
+                deltamagref: {}
                 ```
                 ---
                 ```
@@ -362,6 +378,7 @@ def card_id(data):
                 ```
                 """.format(
                     date0, ra0, dec0, classification,
+                    deltamaglatest, deltamagref,
                     objectidps1, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
