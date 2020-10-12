@@ -477,8 +477,8 @@ def card_classification(data):
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
 
-    objectidps1 = pdf['i:objectId'].values[0]
-    distpsnr1 = pdf['i:candid'].values[0]
+    objectidps1 = pdf['i:objectidps1'].values[0]
+    distpsnr1 = pdf['i:distpsnr1'].values[0]
 
     msg = """
     ---
