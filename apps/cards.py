@@ -379,8 +379,8 @@ def card_id(data):
                 Distance (PS1): {:.2f} arcsec
                 Distance (Gaia): {:.2f} arcsec
                 Distance (ZTF): {:.2f} arcsec
-                ---
                 ```
+                ---
                 """.format(
                     date0, ra0, dec0,
                     deltamaglatest, deltamagref,
