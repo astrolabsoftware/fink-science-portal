@@ -254,14 +254,16 @@ def card_variable_button(data):
     date0 = convert_jd(float(pdf['i:jd'].values[0]))
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
+    classification = extract_fink_classification_single(data)
+
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("SIMBAD: {}".format(cdsxmatch), className="card-subtitle"),
+            html.H6("Fink Class: {}".format(classification), className="card-subtitle"),
             dcc.Markdown(
                 """
-                ---
                 ```
+                # General properties
                 Date: {}
                 RA: {} deg
                 Dec: {} deg
@@ -353,7 +355,7 @@ def card_id(data):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Fink class: {}".format(classification), className="card-title"),
+            html.H6("Fink class: {}".format(classification), className="card-subtitle"),
             dcc.Markdown(
                 """
                 ```python
@@ -450,7 +452,7 @@ def card_sn_properties(data):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Fink class: {}".format(classification), className="card-title"),
+            html.H6("Fink class: {}".format(classification), className="card-subtitle"),
             dcc.Markdown(
                 """
                 ```python
