@@ -309,7 +309,7 @@ def card_id(data):
             'i:jd',
             'i:ra',
             'i:dec',
-            'd:cdsxmatch'
+            'd:cdsxmatch',
             'i:objectidps1',
             'i:distpsnr1',
             'i:neargaia',
