@@ -313,6 +313,7 @@ def card_id(data):
             'i:objectidps1',
             'i:distpsnr1',
             'i:neargaia',
+            'i:distnr'
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
@@ -324,6 +325,7 @@ def card_id(data):
     date0 = convert_jd(float(pdf['i:jd'].values[0]))
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
+    distnr = pdf['i:distnr'].values[0]
     objectidps1 = pdf['i:objectidps1'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
@@ -338,6 +340,7 @@ def card_id(data):
                 """
                 ---
                 ```
+                General properties
                 Date: {}
                 RA: {} deg
                 Dec: {} deg
@@ -345,13 +348,22 @@ def card_id(data):
                 ```
                 ---
                 ```
-                Closest PS1 id: {}
+                Variability
+                deltamaglatest:
+                deltamagref:
+                ```
+                ---
+                ```
+                Neighbourhood
+                Closest source (PS1): {}
                 Distance (PS1): {:.2f} arcsec
                 Distance (Gaia): {:.2f} arcsec
+                Distance (ref image): {:.2f} arcsec
                 ```
                 """.format(
                     date0, ra0, dec0, classification,
-                    objectidps1, float(distpsnr1), float(neargaia))
+                    objectidps1, float(distpsnr1),
+                    float(neargaia), float(distnr))
             ),
             dbc.ButtonGroup([
                 dbc.Button('TNS', id='TNS', target="_blank", href='https://wis-tns.weizmann.ac.il/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)),
