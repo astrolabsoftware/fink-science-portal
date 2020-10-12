@@ -450,7 +450,7 @@ def card_sn_properties(data):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H5("Fink class: {}".format(classification), className="card-title"),
+            html.H6("Fink class: {}".format(classification), className="card-title"),
             dcc.Markdown(
                 """
                 ```python
