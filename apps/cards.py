@@ -337,12 +337,7 @@ def card_id(data):
                 Classification: {}
                 ```
                 """.format(date0, ra0, dec0, classification)
-            ),
-            dbc.ButtonGroup([
-                dbc.Button('TNS', id='TNS', target="_blank", href='https://wis-tns.weizmann.ac.il/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)),
-                dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)),
-                dbc.Button('NED', id='NED', target="_blank", href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)),
-            ])
+            )
         ],
         className="mt-3", body=True
     )
@@ -472,25 +467,37 @@ def card_classification(data):
         data, [
             'i:objectidps1',
             'i:distpsnr1',
-            'i:jd'
+            'i:neargaia',
+            'i:jd',
+            'i:ra',
+            'i:dec'
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
 
     objectidps1 = pdf['i:objectidps1'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
+    neargaia = pdf['i:neargaia'].values[0]
+    ra0 = pdf['i:ra'].values[0]
+    dec0 = pdf['i:dec'].values[0]
 
     msg = """
     ---
     ```
-    Closest source from PS1 catalog: {}
-    Distance to that source (arcsec): {}
+    [PS1 ] Closest id: {}
+    [PS1 ] Distance (arcsec): {}
+    [Gaia] Distance (arcsec): {}
     ```
-    """.format(objectidps1, distpsnr1)
+    """.format(objectidps1, distpsnr1, neargaia)
     card = dbc.Card(
         [
-            html.H5("External surveys", className="card-subtitle"),
-            dcc.Markdown(msg)
+            html.H5("External resources", className="card-subtitle"),
+            dcc.Markdown(msg),
+            dbc.ButtonGroup([
+                dbc.Button('TNS', id='TNS', target="_blank", href='https://wis-tns.weizmann.ac.il/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)),
+                dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)),
+                dbc.Button('NED', id='NED', target="_blank", href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)),
+            ])
         ],
         className="mt-3", body=True
     )
