@@ -172,7 +172,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # Columns of interest
     colnames = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'd:nalerthist'
+        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
     ]
 
     colnames_added_values = [
@@ -186,7 +186,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # Column name to display
     colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'classification', '#detections'
+        'objectId', 'RA', 'Dec', 'last seen', 'classification', '# ZTF trigger'
     ]
 
     # Types of columns
@@ -197,7 +197,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # default table
     if n_clicks is None:
-        client.setLimit(20)
+        client.setLimit(100)
 
         # TODO: change that to last JD
         objectid = "2458998:substring"
@@ -247,12 +247,12 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # mismatch between nalerthist and number of real alerts
     # TODO: solve this mismatch!
-    nalerts = pdfs.groupby('objectId').count()['#detections'].values
+    #nalerts = pdfs.groupby('objectId').count()['#detections'].values
 
     # Display only the last alert
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
 
-    pdfs['#detections'] = nalerts
+    #pdfs['#detections'] = nalerts
 
     pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 

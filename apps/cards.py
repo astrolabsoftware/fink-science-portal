@@ -355,7 +355,7 @@ def card_id(data):
     if np.sum(mask) > 1:
         deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
     else:
-        deltamagref = None
+        deltamaglatest = None
 
     classification = extract_fink_classification_single(data)
 
