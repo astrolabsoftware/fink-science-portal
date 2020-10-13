@@ -273,7 +273,6 @@ def card_variable_button(data):
                 Distance (Gaia): {:.2f} arcsec
                 Distance (ZTF): {:.2f} arcsec
                 ```
-                ---
                 """.format(
                     cdsxmatch, objectidps1, float(distpsnr1),
                     float(neargaia), float(distnr))
