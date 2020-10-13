@@ -238,41 +238,46 @@ def card_variable_button(data):
     pdf = extract_properties(
         data, [
             'i:objectId',
-            'i:candid',
             'i:jd',
-            'i:ra',
-            'i:dec',
-            'd:cdsxmatch'
+            'd:cdsxmatch',
+            'i:objectidps1',
+            'i:distpsnr1',
+            'i:neargaia',
+            'i:distnr',
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
 
     id0 = pdf['i:objectId'].values[0]
-    candid0 = pdf['i:candid'].values[0]
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
-    date0 = convert_jd(float(pdf['i:jd'].values[0]))
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
+
+    distnr = pdf['i:distnr'].values[0]
+    objectidps1 = pdf['i:objectidps1'].values[0]
+    distpsnr1 = pdf['i:distpsnr1'].values[0]
+    neargaia = pdf['i:neargaia'].values[0]
 
     classification = extract_fink_classification_single(data)
 
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Fink Class: {}".format(classification), className="card-subtitle"),
+            html.H6("Fink class: {}".format(classification), className="card-subtitle"),
             dcc.Markdown(
                 """
                 ---
                 ```python
-                # General properties
-                Date: {}
-                RA: {} deg
-                Dec: {} deg
+                # Neighbourhood
+                SIMBAD: {}
+                PS1: {}
+                Distance (PS1): {:.2f} arcsec
+                Distance (Gaia): {:.2f} arcsec
+                Distance (ZTF): {:.2f} arcsec
                 ```
                 ---
-                """.format(date0, ra0, dec0)
+                """.format(
+                    cdsxmatch, objectidps1, float(distpsnr1),
+                    float(neargaia), float(distnr))
             ),
-            html.H5("Fitting data", className="card-title"),
             dbc.Row(nterms_base),
             dbc.Row(submit_button)
         ],

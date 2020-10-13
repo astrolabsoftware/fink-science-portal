@@ -189,7 +189,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # Column name to display
     colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'classification', '#alerts'
+        'objectId', 'RA', 'Dec', 'last seen', 'classification', '#detections'
     ]
 
     # Types of columns
@@ -240,12 +240,12 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # mismatch between nalerthist and number of real alerts
     # TODO: solve this mismatch!
-    nalerts = pdfs.groupby('objectId').count()['#alerts'].values
+    nalerts = pdfs.groupby('objectId').count()['#detections'].values
 
     # Display only the last alert
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
 
-    pdfs['#alerts'] = nalerts
+    pdfs['#detections'] = nalerts
 
     pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 
