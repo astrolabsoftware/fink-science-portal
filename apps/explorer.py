@@ -206,7 +206,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
             "",
             None, 0, True, True
         )
-        client.setLimit(100)
+        client.setLimit(nlimit)
     else:
         if filter_property is not None:
             client.setEvaluation(filter_property)
