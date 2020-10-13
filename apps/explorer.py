@@ -197,25 +197,21 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # default table
     if n_clicks is None:
-        client.setLimit(100)
-        client.setEvaluation("jd > 2458995")
-        latest = client.latests("i:objectId", None, 0, False)
-        to_search_key = ",".join(['{}'.format(i) for i in latest])
-        results = client.scan(
-            to_search_key,
-            "",
-            None, 0, True, True
-        )
-        client.setLimit(nlimit)
-    else:
-        if filter_property is not None:
-            client.setEvaluation(filter_property)
+        client.setLimit(20)
 
-        results = client.scan(
-            "",
-            "key:key:{}".format(objectid),
-            ",".join(colnames + colnames_added_values), 0, True, True
-        )
+        # TODO: change that to last JD
+        objectid = "2458998:substring"
+
+    if filter_property is not None:
+        client.setEvaluation(filter_property)
+
+    results = client.scan(
+        "",
+        "key:key:{}".format(objectid),
+        ",".join(colnames + colnames_added_values), 0, True, True
+    )
+    # reset the limit in case it has been changed above
+    client.setLimit(nlimit)
 
     if results.isEmpty():
         return html.Table()
