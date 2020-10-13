@@ -23,7 +23,7 @@ import numpy as np
 from astropy.time import Time
 
 from app import app
-from app import client
+from app import client, nlimit
 from apps.utils import extract_row
 from apps.utils import convert_jd
 from apps.utils import extract_fink_classification
@@ -166,12 +166,9 @@ def construct_table(n_clicks, objectid, filter_property, category):
     dash_table
         Dash table containing aggregated data by object ID.
     """
-    if n_clicks is None:
+    # wrong query
+    if n_clicks is not None and (objectid is None or objectid == ''):
         return html.Table()
-    if objectid is None or objectid == '':
-        return html.Table()
-    if filter_property is not None:
-        client.setEvaluation(filter_property)
 
     # Columns of interest
     colnames = [
@@ -198,16 +195,30 @@ def construct_table(n_clicks, objectid, filter_property, category):
     ]
     dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
-    results = client.scan(
-        "",
-        "key:key:{}".format(objectid),
-        ",".join(colnames + colnames_added_values), 0, True, True)
+    # default table
+    if n_clicks is None:
+        client.setLimit(100)
+        client.setEvaluation("jd > 2458995")
+        latest = client.latests("i:objectId", None, 0, False)
+        to_search_key = ",".join(['{}'.format(i) for i in latest])
+        results = client.scan(
+            to_search_key,
+            "",
+            None, 0, True, True
+        )
+        client.setLimit(100)
+    else:
+        if filter_property is not None:
+            client.setEvaluation(filter_property)
+
+        results = client.scan(
+            "",
+            "key:key:{}".format(objectid),
+            ",".join(colnames + colnames_added_values), 0, True, True
+        )
 
     if results.isEmpty():
         return html.Table()
-
-    # initialise the dataframe
-    # pdfs = pd.DataFrame()
 
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')

@@ -29,6 +29,7 @@ app = dash.Dash(
 )
 
 app.title = 'Fink Science Portal'
+nlimit = 10000
 server = app.server
 app.config.suppress_callback_exceptions = True
 
@@ -45,4 +46,4 @@ import com.Lomikel.HBaser
 
 client = com.Lomikel.HBaser.HBaseClient("localhost", 2181);
 client.connect("test_sp", "schema_0.7.0_0.3.7");
-client.setLimit(100);
+client.setLimit(nlimit);
