@@ -179,7 +179,7 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
                 )
             ]
         )
-        layout_lightcurve['yaxis']['title'] = 'DC magnitude'
+        layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
     elif switch == 2:
         # inplace replacement
@@ -196,7 +196,7 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
                 )
             ]
         )
-        layout_lightcurve['yaxis']['title'] = 'DC apparent flux'
+        layout_lightcurve['yaxis']['title'] = 'Apparent DC flux'
         layout_lightcurve['yaxis']['autorange'] = True
 
     figure = {
