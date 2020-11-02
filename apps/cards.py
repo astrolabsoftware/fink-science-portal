@@ -713,6 +713,15 @@ def card_download(data):
     )
     return card
 
+def card_mulens_param():
+    """ Add a card containing mulens fitted parameters
+    """
+    card = dbc.Card(
+        [
+            dcc.Markdown(id='mulens_params'),
+        ], className="mt-3", body=True
+    )
+    return card
 
 def generate_download_link(data):
     if data is None:

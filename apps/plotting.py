@@ -549,7 +549,10 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
     return {'data': [], "layout": layout_phase}
 
 @app.callback(
-    Output('mulens_plot', 'figure'),
+    [
+        Output('mulens_plot', 'figure'),
+        Output('mulens_params', 'value'),
+    ],
     [
         Input('url', 'pathname'),
         Input('submit_mulens', 'n_clicks')
@@ -582,31 +585,6 @@ def plot_mulens(name, n_clicks):
             ]
         )
 
-        # jd = pdf['i:jd']
-        # fit_period = False if manual_period is not None else True
-        # model = periodic.LombScargleMultiband(
-        #     Nterms_base=int(nterms_base),
-        #     Nterms_band=int(nterms_band),
-        #     fit_period=fit_period
-        # )
-        # model.optimizer.period_range = (0.1, 1.2)
-        # model.optimizer.quiet = True
-        #
-        # model.fit(
-        #     jd.astype(float),
-        #     pdf['i:magpsf'].astype(float),
-        #     pdf['i:sigmapsf'].astype(float),
-        #     pdf['i:fid'].astype(int)
-        # )
-        #
-        # if fit_period:
-        #     period = model.best_period
-        # else:
-        #     period = manual_period
-        #
-        # phase = jd.astype(float).values % period
-        # tfit = np.linspace(0, period, 100)
-
         # Container for measurements
         subpdf = pd.DataFrame({
             'filtercode': [],
@@ -621,7 +599,8 @@ def plot_mulens(name, n_clicks):
         # Loop over filters
         conversiondict = {1.0: 'g', 2.0: 'r'}
         fids = pdf['i:fid'].astype(int).values
-        jds_ = pdf['i:jd'].astype(float)
+        jds = pdf['i:jd'].astype(float)
+        jds_ = jds.values
         magpsf = pdf['i:magpsf'].astype(float).values
         sigmapsf = pdf['i:sigmapsf'].astype(float).values
 
@@ -642,13 +621,6 @@ def plot_mulens(name, n_clicks):
 
             # Total mask
             mask = mask_fid * maskNone * maskOutlier
-
-            # # plot data
-            # plt.errorbar(
-            #     jds_[mask],
-            #     mag_dc[mask],
-            #     err_dc[mask],
-            #     ls='', marker='o', label='{}'.format(conversiondict[fid]), color='C{}'.format(int(fid)-1))
 
             # Gather data for the fitter
             subpdf['filtercode'] = pd.Series(fids).replace(to_replace=conversiondict)
@@ -672,11 +644,11 @@ def plot_mulens(name, n_clicks):
 
         if '1' in np.unique(pdf['i:fid'].values):
             plot_filt1 = {
-                'x': jds_[pdf['i:fid'] == '1'].apply(lambda x: convert_jd(float(x), to='iso')),
-                'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
+                'x': jds[pdf['i:fid'] == '1'].apply(lambda x: convert_jd(float(x), to='iso')),
+                'y': mag_dc[pdf['i:fid'] == '1'],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '1'],
+                    'array': err_dc[pdf['i:fid'] == '1'],
                     'visible': True,
                     'color': '#1f77b4'
                 },
@@ -689,7 +661,7 @@ def plot_mulens(name, n_clicks):
                     'symbol': 'o'}
             }
             fit_filt1 = {
-                'x': time,
+                'x': [convert_jd(float(t), to='iso') for t in time],
                 'y': mulens_simple(time, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g),
                 'mode': 'lines',
                 'name': 'fit g band',
@@ -704,11 +676,11 @@ def plot_mulens(name, n_clicks):
 
         if '2' in np.unique(pdf['i:fid'].values):
             plot_filt2 = {
-                'x': jds_[pdf['i:fid'] == '2'].apply(lambda x: convert_jd(float(x), to='iso')),
-                'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
+                'x': jds[pdf['i:fid'] == '2'].apply(lambda x: convert_jd(float(x), to='iso')),
+                'y': mag_dc[pdf['i:fid'] == '2'],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '2'],
+                    'array': err_dc[pdf['i:fid'] == '2'],
                     'visible': True,
                     'color': '#ff7f0e'
                 },
@@ -721,7 +693,7 @@ def plot_mulens(name, n_clicks):
                     'symbol': 'o'}
             }
             fit_filt2 = {
-                'x': time,
+                'x': [convert_jd(float(t), to='iso') for t in time],
                 'y': mulens_simple(time, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r),
                 'mode': 'lines',
                 'name': 'fit r band',
@@ -743,8 +715,28 @@ def plot_mulens(name, n_clicks):
             ],
             "layout": layout_mulens_
         }
-        return figure
-    return {'data': [], "layout": layout_mulens}
+
+        mulens_params = """
+        ```python
+        # Fitted parameters
+        t0: {} (jd)
+        tE: {} (days)
+        u0: {}
+        ```
+        ---
+        """.format(results_ml.t0, results_ml.tE, results_ml.u0)
+        return figure, mulens_params
+
+    mulens_params = """
+    ```python
+    # Fitted parameters
+    t0:
+    tE:
+    u0:
+    ```
+    ---
+    """
+    return {'data': [], "layout": layout_mulens}, mulens_params
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('url', 'pathname'))
