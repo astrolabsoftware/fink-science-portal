@@ -621,7 +621,7 @@ def plot_mulens(name, n_clicks):
         # Loop over filters
         conversiondict = {1.0: 'g', 2.0: 'r'}
         fids = pdf['i:fid'].astype(int).values
-        jds_ = pdf['i:jd'].astype(float).values
+        jds_ = pdf['i:jd'].astype(float)
         magpsf = pdf['i:magpsf'].astype(float).values
         sigmapsf = pdf['i:sigmapsf'].astype(float).values
 
