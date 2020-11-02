@@ -153,7 +153,10 @@ def draw_lightcurve(switch: list, pathname: str) -> dict:
     err = pdf['i:sigmapsf']
     if len(switch) > 0:
         # inplace replacement
-        mag, err = mag2fluxcal_snana(mag.values, err.values)
+        mag, err = mag2fluxcal_snana(
+            mag.astype(float).values,
+            err.astype(float).values
+        )
         layout_lightcurve['yaxis']['title'] = 'Flux'
         layout_lightcurve['yaxis']['autorange'] = True
     else:
