@@ -23,7 +23,7 @@ from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch
-from apps.utils import extract_row, extract_properties,
+from apps.utils import extract_row, extract_properties
 from apps.utils import apparent_flux, dc_mag
 
 from app import client, app
