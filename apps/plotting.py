@@ -111,7 +111,7 @@ def extract_lightcurve(data: java.util.TreeMap) -> pd.DataFrame:
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """
     """
-    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all']
+    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all', 'd:rfscore']
     pdfs = pd.DataFrame.from_dict(data, orient='index')
     if pdfs.empty:
         return pdfs
@@ -276,9 +276,9 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'name': 'SN Ia score',
                 'text': jd,
                 'marker': {
-                    'size': 12,
+                    'size': 10,
                     'color': '#2ca02c',
-                    'symbol': 'circle-open-dot'}
+                    'symbol': 'circle'}
             },
             {
                 'x': jd,
@@ -287,9 +287,20 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'name': 'SNe score',
                 'text': jd,
                 'marker': {
-                    'size': 12,
+                    'size': 10,
                     'color': '#d62728',
-                    'symbol': 'circle-open-dot'}
+                    'symbol': 'square'}
+            },
+            {
+                'x': jd,
+                'y': pdf['d:rfscore'],
+                'mode': 'markers',
+                'name': 'Random Forest',
+                'text': jd,
+                'marker': {
+                    'size': 10,
+                    'color': '#9467bd',
+                    'symbol': 'diamond'}
             }
         ],
         "layout": layout_scores
