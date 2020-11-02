@@ -104,7 +104,7 @@ layout_mulens = dict(
     },
     yaxis={
         'autorange': 'reversed',
-        'title': 'Magnitude'
+        'title': 'DC magnitude'
     },
     title={
         "text": "Fit",
@@ -661,17 +661,18 @@ def plot_mulens(name, n_clicks):
 
         results_ml = fit_ml_de_simple(subpdf)
 
-        time = np.arange(jds_[0], jds_[-1], 1)
-        # plt.plot(time, mulens_simple(time, results.u0, results.t0, results.tE, results.magStar_g), color='C0')
-        # plt.plot(time, mulens_simple(time, results.u0, results.t0, results.tE, results.magStar_r), color='C1')
-
+        time = np.arange(np.min(jds_), np.max(jds_), 1)
 
         layout_mulens_ = copy.deepcopy(layout_mulens)
-        layout_mulens_['title']['text'] = 't0 = {}'.format(results_ml.t0)
+        layout_mulens_['title']['text'] = 't0 = {}, tE = {}, u0 = {}'.format(
+            results_ml.t0,
+            results_ml.tE,
+            results_ml.u0
+        )
 
         if '1' in np.unique(pdf['i:fid'].values):
             plot_filt1 = {
-                'x': jds_[pdf['i:fid'] == '1'],
+                'x': jds_[pdf['i:fid'] == '1'].apply(lambda x: convert_jd(float(x), to='iso')),
                 'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
                 'error_y': {
                     'type': 'data',
@@ -703,7 +704,7 @@ def plot_mulens(name, n_clicks):
 
         if '2' in np.unique(pdf['i:fid'].values):
             plot_filt2 = {
-                'x': jds_[pdf['i:fid'] == '2'],
+                'x': jds_[pdf['i:fid'] == '2'].apply(lambda x: convert_jd(float(x), to='iso')),
                 'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
                 'error_y': {
                     'type': 'data',
