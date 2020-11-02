@@ -552,7 +552,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
     Output('mulens_plot', 'figure'),
     [
         Input('url', 'pathname'),
-        Input('submit_variable', 'n_clicks')
+        Input('submit_mulens', 'n_clicks')
     ])
 def plot_mulens(name, n_clicks):
     """
