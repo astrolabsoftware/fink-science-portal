@@ -152,7 +152,7 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
         data,
         [
             'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-            'i:magnr', 'i:sigmanr', 'i:magzpsci', 'i:isdiffpos'
+            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos'
         ]
     )
 
@@ -171,7 +171,7 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
             mag.astype(float).values,
             err.astype(float).values,
             pdf['i:magnr'].astype(float).values,
-            pdf['i:sigmanr'].astype(float).values,
+            pdf['i:sigmagnr'].astype(float).values,
             pdf['i:magzpsci'].astype(float).values,
             pdf['i:isdiffpos'].values
         )
@@ -184,7 +184,7 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
             mag.astype(float).values,
             err.astype(float).values,
             pdf['i:magnr'].astype(float).values,
-            pdf['i:sigmanr'].astype(float).values,
+            pdf['i:sigmagnr'].astype(float).values,
             pdf['i:magzpsci'].astype(float).values,
             pdf['i:isdiffpos'].values
         )
