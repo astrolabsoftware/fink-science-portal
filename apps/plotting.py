@@ -23,7 +23,7 @@ from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch
-from apps.utils import extract_row, extract_properties
+from apps.utils import extract_row, extract_properties, mag2fluxcal_snana
 
 from app import client, app
 
@@ -116,30 +116,57 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
         return pdfs
     return pdfs[values]
 
-def draw_lightcurve(data: java.util.TreeMap) -> dict:
+@app.callback(
+    [
+        Output('lightcurve_cutouts', 'figure'),
+        Output('lightcurve_scores', 'figure')
+    ],
+    [
+        Input('switch-mag-flux', 'value'),
+        Input('url', 'pathname'),
+    ])
+def draw_lightcurve(switch: list, pathname: str) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
     ----------
-    data: java.util.TreeMap
-        Results from a HBase client query
+    switch: list
+        Choose to display magnitude (empty list), or flux ([1])
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
 
     Returns
     ----------
     figure: dict
     """
+    data = client.scan(
+        "",
+        "key:key:{}".format(pathname[1:]),
+        None, 0, True, True
+    )
     pdf = extract_lightcurve(data)
 
     jd = pdf['i:jd']
     jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+    if len(switch) > 0:
+        # inplace replacement
+        mag, err = mag2fluxcal_snana(mag.values, err.values)
+        layout_lightcurve['yaxis']['title'] = 'Flux'
+        layout_lightcurve['yaxis']['autorange'] = True
+    else:
+        layout_lightcurve['yaxis']['title'] = 'Magnitude'
+        layout_lightcurve['yaxis']['autorange'] = 'reversed'
     figure = {
         'data': [
             {
                 'x': jd[pdf['i:fid'] == '1'],
-                'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
+                'y': mag[pdf['i:fid'] == '1'],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '1'],
+                    'array': err[pdf['i:fid'] == '1'],
                     'visible': True,
                     'color': '#1f77b4'
                 },
@@ -153,10 +180,10 @@ def draw_lightcurve(data: java.util.TreeMap) -> dict:
             },
             {
                 'x': jd[pdf['i:fid'] == '2'],
-                'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
+                'y': mag[pdf['i:fid'] == '2'],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '2'],
+                    'array': err[pdf['i:fid'] == '2'],
                     'visible': True,
                     'color': '#ff7f0e'
                 },
@@ -171,7 +198,7 @@ def draw_lightcurve(data: java.util.TreeMap) -> dict:
         ],
         "layout": layout_lightcurve
     }
-    return figure
+    return figure, figure
 
 def draw_scores(data: java.util.TreeMap) -> dict:
     """ Draw scores from SNN module

@@ -70,8 +70,7 @@ def card_sn_scores(data) -> dbc.Card:
         Card with the scores drawn inside
     """
     graph_lc = dcc.Graph(
-        id='lightcurve_',
-        figure=draw_lightcurve(data),
+        id='lightcurve_scores',
         style={
             'width': '100%',
             'height': '15pc'
@@ -151,12 +150,21 @@ def card_cutouts(data):
                 html.Br(),
                 dcc.Graph(
                     id='lightcurve_cutouts',
-                    figure=draw_lightcurve(data),
                     style={
                         'width': '100%',
                         'height': '15pc'
                     },
                     config={'displayModeBar': False}
+                ),
+                dbc.Row(
+                    dbc.Checklist(
+                        options=[
+                            {"label": "Flux", "value": 1}
+                        ],
+                        value=[],
+                        id="switch-mag-flux",
+                        switch=True
+                    )
                 )
             ]
         ),
