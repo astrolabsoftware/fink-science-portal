@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import dash
+from dash.exceptions import PreventUpdate
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
@@ -20,10 +22,11 @@ import dash_table
 
 import pandas as pd
 import numpy as np
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
+import healpy as hp
 
 from app import app
-from app import client, nlimit
+from app import client, clientT, clientP, nlimit
 from apps.utils import extract_row
 from apps.utils import convert_jd
 from apps.utils import extract_fink_classification
@@ -50,7 +53,7 @@ object_id = dbc.FormGroup(
     [
         dbc.Label("Search by Object ID"),
         dbc.Input(
-            placeholder="e.g. ZTF19acmdpyr, or ZTF18",
+            placeholder="e.g. ZTF19acmdpyr",
             type="text",
             id='objectid',
             debounce=True
@@ -59,22 +62,42 @@ object_id = dbc.FormGroup(
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
-filter_property = dbc.FormGroup(
+conesearch = dbc.FormGroup(
     [
-        dbc.Label("Filter by property"),
+        dbc.Label("Conesearch"),
         dbc.Input(
-            placeholder="ra < 10",
+            placeholder="ra, dec, radius",
             type="text",
-            id='filter_property',
+            id='conesearch',
             debounce=True
         ),
-        dcc.Markdown("Known [alert field](https://zwickytransientfacility.github.io/ztf-avro-alert/schema.html), \n or a Fink added value field.", style={'font-size': '9pt'}),
+        dbc.FormText("RA/Dec in degrees, radius in arcsecond")
+    ], style={'width': '100%', 'display': 'inline-block'}
+)
+
+date_range = dbc.FormGroup(
+    [
+        dbc.Label("Search by Date"),
+        html.Br(),
+        dbc.Input(
+            placeholder="YYYY-MM-DD HH:mm:ss",
+            type="text",
+            id='startdate',
+            debounce=True,
+        ),
+        dbc.Input(
+            placeholder="window [min]",
+            type="number",
+            id='window',
+            max=180,
+            debounce=True,
+        ),
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
 alert_category = dbc.FormGroup(
     [
-        dbc.Label("Select a class"),
+        dbc.Label("Filter by class"),
         dcc.Dropdown(
             id="alerts-dropdown",
             options=[
@@ -115,8 +138,8 @@ layout = html.Div(
                             html.Br(),
                             html.P("Search Options"),
                             dbc.Row(object_id),
-                            dbc.Row(filter_property),
-                            dbc.Row(alert_category),
+                            dbc.Row(conesearch),
+                            dbc.Row(date_range),
                             dbc.Row(submit_button),
                             # html.Br(),
                             # dbc.Row(latest_alerts),
@@ -149,11 +172,12 @@ layout = html.Div(
     [
         Input("submit_query", "n_clicks"),
         Input("objectid", "value"),
-        Input("filter_property", "value"),
-        Input("alerts-dropdown", "value")
+        Input("conesearch", "value"),
+        Input('startdate', 'value'),
+        Input('window', 'value')
     ]
 )
-def construct_table(n_clicks, objectid, filter_property, category):
+def construct_table(n_clicks, objectid, radecradius, startdate, window):
     """ Query the HBase database and format results into a DataFrame.
 
     Parameters
@@ -166,8 +190,15 @@ def construct_table(n_clicks, objectid, filter_property, category):
     dash_table
         Dash table containing aggregated data by object ID.
     """
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'submit_query' not in changed_id:
+        raise PreventUpdate
     # wrong query
-    if n_clicks is not None and (objectid is None or objectid == ''):
+    wrong_id = (objectid is None) or (objectid == '')
+    wrong_conesearch = (radecradius is None) or (radecradius == '')
+    wrong_date = (startdate is None) or (startdate == '')
+
+    if n_clicks is not None and wrong_id and wrong_conesearch and wrong_date:
         return html.Table()
 
     # Columns of interest
@@ -179,7 +210,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
         'd:cdsxmatch',
         'd:roid',
         'd:mulens_class_1',
-        'd:mulens_class_1',
+        'd:mulens_class_2',
         'd:snn_snia_vs_nonia',
         'd:snn_sn_vs_all'
     ]
@@ -197,19 +228,57 @@ def construct_table(n_clicks, objectid, filter_property, category):
 
     # default table
     if n_clicks is None:
-        client.setLimit(100)
+        # # TODO: change that to date search
+        return html.Table()
 
-        # TODO: change that to last JD
-        objectid = "2458998:substring"
+    if radecradius is not None and radecradius != '':
+        clientP.setLimit(1000)
 
-    if filter_property is not None:
-        client.setEvaluation(filter_property)
+        # Interpret user input.
+        # TODO: unsafe method...
+        ra, dec, radius = radecradius.split(',')
+        ra, dec, radius = float(ra), float(dec), float(radius) / 3600.
 
-    results = client.scan(
-        "",
-        "key:key:{}".format(objectid),
-        ",".join(colnames + colnames_added_values), 0, True, True
-    )
+        # angle to vec conversion
+        vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
+
+        # list of neighbour pixels
+        pixs = hp.query_disc(131072, vec, np.pi / 180 * radius, inclusive=True)
+
+        # Send request
+        to_evaluate = ",".join(['key:key:{}'.format(i) for i in pixs])
+        results = clientP.scan(
+            "",
+            to_evaluate,
+            ",".join(colnames + colnames_added_values),
+            0, True, True
+        )
+    elif startdate is not None and window is not None and startdate != '':
+        # Time to jd
+        jd_start = Time(startdate).jd
+        jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
+
+        # Send the request. RangeScan.
+        clientT.setRangeScan(True)
+        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_end)
+        results = clientT.scan(
+            "",
+            to_evaluate,
+            ",".join(colnames + colnames_added_values),
+            0, True, True
+        )
+    else:
+        # objectId search
+        # TODO: check input with a regex
+        to_evaluate = "key:key:{}".format(objectid)
+
+        results = client.scan(
+            "",
+            to_evaluate,
+            ",".join(colnames + colnames_added_values),
+            0, True, True
+        )
+
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
 
@@ -223,7 +292,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
         pdfs['d:cdsxmatch'],
         pdfs['d:roid'],
         pdfs['d:mulens_class_1'],
-        pdfs['d:mulens_class_1'],
+        pdfs['d:mulens_class_2'],
         pdfs['d:snn_snia_vs_nonia'],
         pdfs['d:snn_sn_vs_all']
     )
@@ -259,17 +328,6 @@ def construct_table(n_clicks, objectid, filter_property, category):
     # round numeric values for better display
     pdfs = pdfs.round(2)
 
-    valid_categories = ['Microlensing candidate', 'Solar System', 'Unknown']
-    if category == 'All':
-        pass
-    if category in valid_categories:
-        pdfs = pdfs[pdfs['classification'] == category]
-    elif category == 'SN candidate':
-        # simbad has also SN
-        pdfs = pdfs[pdfs['classification'].isin(['SN candidate', 'SN'])]
-    elif category == 'SIMBAD':
-        pdfs = pdfs[~pdfs['classification'].isin(valid_categories + ['SN candidate'])]
-
     table = dash_table.DataTable(
         data=pdfs.sort_values('last seen', ascending=False).to_dict('records'),
         columns=[
@@ -283,6 +341,7 @@ def construct_table(n_clicks, objectid, filter_property, category):
         page_size=10,
         style_as_list_view=True,
         sort_action="native",
+        filter_action="native",
         markdown_options={'link_target': '_blank'},
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
