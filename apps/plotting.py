@@ -169,7 +169,7 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
         mag, err = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'],
+                    pdf['i:fid'].astype(int).values,
                     mag.astype(float).values,
                     err.astype(float).values,
                     pdf['i:magnr'].astype(float).values,
@@ -186,7 +186,7 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
         mag, err = np.transpose(
             [
                 apparent_flux(*args) for args in zip(
-                    pdf['i:fid'],
+                    pdf['i:fid'].astype(int).values,
                     mag.astype(float).values,
                     err.astype(float).values,
                     pdf['i:magnr'].astype(float).values,
