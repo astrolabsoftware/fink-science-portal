@@ -24,6 +24,7 @@ from apps.cards import card_id, card_fink_added_values, card_sn_properties
 from apps.cards import card_download, card_classification
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable
+from apps.cards import card_mulens_plot, card_mulens_button
 
 dcc.Location(id='url', refresh=False)
 
