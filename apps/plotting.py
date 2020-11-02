@@ -25,6 +25,7 @@ import plotly.graph_objects as go
 from apps.utils import convert_jd, readstamp, _data_stretch
 from apps.utils import extract_row, extract_properties
 from apps.utils import apparent_flux, dc_mag
+from apps.mulens_helper import fit_ml_de_simple, mulens_simple
 
 from app import client, app
 
@@ -79,6 +80,34 @@ layout_phase = dict(
     },
     title={
         "text": "Phased data",
+        "y" : 1.01,
+        "yanchor" : "bottom"
+    }
+)
+
+layout_mulens = dict(
+    autosize=True,
+    automargin=True,
+    margin=dict(l=50, r=30, b=40, t=25),
+    hovermode="closest",
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        yanchor="bottom",
+        y=0.02,
+        xanchor="right",
+        x=1,
+        bgcolor='rgba(0,0,0,0)'
+    ),
+    xaxis={
+        'title': 'Observation date'
+    },
+    yaxis={
+        'autorange': 'reversed',
+        'title': 'Magnitude'
+    },
+    title={
+        "text": "Fit",
         "y" : 1.01,
         "yanchor" : "bottom"
     }
@@ -518,6 +547,203 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
         }
         return figure
     return {'data': [], "layout": layout_phase}
+
+@app.callback(
+    Output('mulens_plot', 'figure'),
+    [
+        Input('url', 'pathname'),
+        Input('submit_variable', 'n_clicks')
+    ])
+def plot_mulens(name, n_clicks):
+    """
+    """
+    if n_clicks is not None:
+        results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
+        pdf = extract_properties(
+            results,
+            [
+                'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+                'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
+            ]
+        )
+        pdf = pdf.sort_values('i:jd', ascending=False)
+
+        mag_dc, err_dc = np.transpose(
+            [
+                dc_mag(*args) for args in zip(
+                    pdf['i:fid'].astype(int).values,
+                    pdf['i:magpsf'].astype(float).values,
+                    pdf['i:sigmapsf'].astype(float).values,
+                    pdf['i:magnr'].astype(float).values,
+                    pdf['i:sigmagnr'].astype(float).values,
+                    pdf['i:magzpsci'].astype(float).values,
+                    pdf['i:isdiffpos'].values
+                )
+            ]
+        )
+
+        # jd = pdf['i:jd']
+        # fit_period = False if manual_period is not None else True
+        # model = periodic.LombScargleMultiband(
+        #     Nterms_base=int(nterms_base),
+        #     Nterms_band=int(nterms_band),
+        #     fit_period=fit_period
+        # )
+        # model.optimizer.period_range = (0.1, 1.2)
+        # model.optimizer.quiet = True
+        #
+        # model.fit(
+        #     jd.astype(float),
+        #     pdf['i:magpsf'].astype(float),
+        #     pdf['i:sigmapsf'].astype(float),
+        #     pdf['i:fid'].astype(int)
+        # )
+        #
+        # if fit_period:
+        #     period = model.best_period
+        # else:
+        #     period = manual_period
+        #
+        # phase = jd.astype(float).values % period
+        # tfit = np.linspace(0, period, 100)
+
+        # Container for measurements
+        subpdf = pd.DataFrame({
+            'filtercode': [],
+            'mag_g': [],
+            'magerr_g': [],
+            'mag_r': [],
+            'magerr_r': [],
+            'time': [],
+            'name': []
+        })
+
+        # Loop over filters
+        conversiondict = {1.0: 'g', 2.0: 'r'}
+        fids = pdf['i:fid'].astype(int).values
+        jds_ = pdf['i:jd'].astype(float).values
+        magpsf = pdf['i:magpsf'].astype(float).values
+        sigmapsf = pdf['i:sigmapsf'].astype(float).values
+
+        # extract historical and current measurements
+        subpdf['time'] = jds_
+        subpdf['name'] = pdf['i:objectId']
+
+        to_plot = []
+        for fid in np.unique(fids):
+            # Select filter
+            mask_fid = fids == fid
+
+            # Remove upper limits
+            maskNone = np.array(magpsf) == np.array(magpsf)
+
+            # Remove outliers
+            maskOutlier = np.array(mag_dc) < 22
+
+            # Total mask
+            mask = mask_fid * maskNone * maskOutlier
+
+            # # plot data
+            # plt.errorbar(
+            #     jds_[mask],
+            #     mag_dc[mask],
+            #     err_dc[mask],
+            #     ls='', marker='o', label='{}'.format(conversiondict[fid]), color='C{}'.format(int(fid)-1))
+
+            # Gather data for the fitter
+            subpdf['filtercode'] = pd.Series(fids).replace(to_replace=conversiondict)
+            subpdf[f'mag_{conversiondict[fid]}'] = mag_dc
+            subpdf[f'magerr_{conversiondict[fid]}'] = err_dc
+
+            # Nullify data which is not this filter
+            subpdf[f'magerr_{conversiondict[fid]}'][~mask] = None
+            subpdf[f'mag_{conversiondict[fid]}'][~mask] = None
+
+        results_ml = fit_ml_de_simple(subpdf)
+
+        time = np.arange(jds_[0], jds_[-1], 1)
+        # plt.plot(time, mulens_simple(time, results.u0, results.t0, results.tE, results.magStar_g), color='C0')
+        # plt.plot(time, mulens_simple(time, results.u0, results.t0, results.tE, results.magStar_r), color='C1')
+
+
+        layout_mulens_ = copy.deepcopy(layout_mulens)
+        layout_mulens_['title']['text'] = 't0 = {}'.format(results_ml.t0)
+
+        if '1' in np.unique(pdf['i:fid'].values):
+            plot_filt1 = {
+                'x': jds_[pdf['i:fid'] == '1'],
+                'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '1'],
+                    'visible': True,
+                    'color': '#1f77b4'
+                },
+                'mode': 'markers',
+                'name': 'g band',
+                'text': jds_[pdf['i:fid'] == '1'],
+                'marker': {
+                    'size': 12,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            }
+            fit_filt1 = {
+                'x': time,
+                'y': mulens_simple(time, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g),
+                'mode': 'lines',
+                'name': 'fit g band',
+                'showlegend': False,
+                'line': {
+                    'color': '#1f77b4',
+                }
+            }
+        else:
+            plot_filt1 = {}
+            fit_filt1 = {}
+
+        if '2' in np.unique(pdf['i:fid'].values):
+            plot_filt2 = {
+                'x': jds_[pdf['i:fid'] == '2'],
+                'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '2'],
+                    'visible': True,
+                    'color': '#ff7f0e'
+                },
+                'mode': 'markers',
+                'name': 'r band',
+                'text': jds_[pdf['i:fid'] == '2'],
+                'marker': {
+                    'size': 12,
+                    'color': '#ff7f0e',
+                    'symbol': 'o'}
+            }
+            fit_filt2 = {
+                'x': time,
+                'y': mulens_simple(time, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r),
+                'mode': 'lines',
+                'name': 'fit r band',
+                'showlegend': False,
+                'line': {
+                    'color': '#ff7f0e',
+                }
+            }
+        else:
+            plot_filt2 = {}
+            fit_filt2 = {}
+
+        figure = {
+            'data': [
+                plot_filt1,
+                fit_filt1,
+                plot_filt2,
+                fit_filt2
+            ],
+            "layout": layout_mulens_
+        }
+        return figure
+    return {'data': [], "layout": layout_mulens}
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('url', 'pathname'))

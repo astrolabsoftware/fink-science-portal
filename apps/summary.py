@@ -67,13 +67,24 @@ def tab3_content(data):
     ])
     return tab3_content_
 
+def tab4_content(data):
+    """ Microlensing tab
+    """
+    tab4_content_ = html.Div([
+        dbc.Row([
+            dbc.Col([card_mulens_plot(data), html.Br(), card_explanation_variable()], width=8),
+            dbc.Col([card_mulens_button(data)], width=4)
+        ]),
+    ])
+    return tab4_content_
+
 def tabs(data):
     tabs_ = dbc.Tabs(
         [
             dbc.Tab(tab1_content(data), label="Summary", tab_style={"margin-left": "auto"}),
             dbc.Tab(tab2_content(data), label="Supernovae"),
             dbc.Tab(tab3_content(data), label="Variable stars"),
-            dbc.Tab(label="Microlensing", disabled=True),
+            dbc.Tab(tab4_content(data), label="Microlensing"),
             dbc.Tab(label="Solar System", disabled=True),
         ]
     )

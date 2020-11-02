@@ -235,7 +235,7 @@ nterms_base = dbc.FormGroup(
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
-submit_button = dbc.Button(
+submit_varstar_button = dbc.Button(
     'Fit data',
     id='submit_variable',
     style={'width': '100%', 'display': 'inline-block'},
@@ -288,9 +288,97 @@ def card_variable_button(data):
                     float(neargaia), float(distnr))
             ),
             dbc.Row(nterms_base),
-            dbc.Row(submit_button)
+            dbc.Row(submit_varstar_button)
         ],
         className="mt-3", body=True
+    )
+    return card
+
+submit_mulens_button = dbc.Button(
+    'Fit data',
+    id='submit_mulens',
+    style={'width': '100%', 'display': 'inline-block'},
+    block=True
+)
+
+def card_mulens_button(data):
+    """ Add a card containing button to fit for variable stars
+    """
+    pdf = extract_properties(
+        data, [
+            'i:objectId',
+            'i:jd',
+            'd:cdsxmatch',
+            'i:objectidps1',
+            'i:distpsnr1',
+            'i:neargaia',
+            'i:distnr',
+        ]
+    )
+    pdf = pdf.sort_values('i:jd', ascending=False)
+
+    id0 = pdf['i:objectId'].values[0]
+    cdsxmatch = pdf['d:cdsxmatch'].values[0]
+
+    distnr = pdf['i:distnr'].values[0]
+    objectidps1 = pdf['i:objectidps1'].values[0]
+    distpsnr1 = pdf['i:distpsnr1'].values[0]
+    neargaia = pdf['i:neargaia'].values[0]
+
+    classification = extract_fink_classification_single(data)
+
+    card = dbc.Card(
+        [
+            html.H5("ObjectID: {}".format(id0), className="card-title"),
+            html.H6("Fink class: {}".format(classification), className="card-subtitle"),
+            dcc.Markdown(
+                """
+                ---
+                ```python
+                # Neighbourhood
+                SIMBAD: {}
+                PS1: {}
+                Distance (PS1): {:.2f} arcsec
+                Distance (Gaia): {:.2f} arcsec
+                Distance (ZTF): {:.2f} arcsec
+                ```
+                """.format(
+                    cdsxmatch, objectidps1, float(distpsnr1),
+                    float(neargaia), float(distnr))
+            ),
+            dbc.Row(submit_mulens_button)
+        ],
+        className="mt-3", body=True
+    )
+    return card
+
+def card_mulens_plot(data):
+    """ Add a card to fit for variable stars
+
+    Parameters
+    ----------
+    data: java.util.TreeMap
+        Results from a HBase client query
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the variable drawn inside
+    """
+    card = dbc.Card(
+        dbc.CardBody(
+            [
+                dcc.Graph(
+                    id='mulens_plot',
+                    style={
+                        'width': '100%',
+                        'height': '25pc'
+                    },
+                    config={'displayModeBar': False}
+                )
+            ]
+        ),
+        className="mt-3"
     )
     return card
 
