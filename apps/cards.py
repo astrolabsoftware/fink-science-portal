@@ -157,13 +157,15 @@ def card_cutouts(data):
                     config={'displayModeBar': False}
                 ),
                 dbc.Row(
-                    dbc.Checklist(
+                    dbc.RadioItems(
                         options=[
-                            {"label": "Flux", "value": 1}
+                            {"label": "Difference magnitude", "value": 0},
+                            {"label": "DC magnitude", "value": 1},
+                            {"label": "DC apparent flux", "value": 2}
                         ],
-                        value=[],
+                        value=0,
                         id="switch-mag-flux",
-                        switch=True
+                        inline=True
                     )
                 )
             ]

@@ -23,7 +23,8 @@ from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch
-from apps.utils import extract_row, extract_properties, mag2fluxcal_snana
+from apps.utils import extract_row, extract_properties,
+from apps.utils import apparent_flux, dc_mag
 
 from app import client, app
 
@@ -125,13 +126,16 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
         Input('switch-mag-flux', 'value'),
         Input('url', 'pathname'),
     ])
-def draw_lightcurve(switch: list, pathname: str) -> dict:
+def draw_lightcurve(switch: int, pathname: str) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
     ----------
-    switch: list
-        Choose to display magnitude (empty list), or flux ([1])
+    switch: int
+        Choose:
+          - 0 to display difference magnitude
+          - 1 to display dc magnitude
+          - 2 to display flux
     pathname: str
         Pathname of the current webpage (should be /ZTF19...).
 
@@ -144,24 +148,49 @@ def draw_lightcurve(switch: list, pathname: str) -> dict:
         "key:key:{}".format(pathname[1:]),
         None, 0, True, True
     )
-    pdf = extract_lightcurve(data)
+    pdf = extract_properties(
+        data,
+        [
+            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+            'magnr', 'sigmanr', 'magzpsci', 'isdiffpos'
+        ]
+    )
 
     jd = pdf['i:jd']
     jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
 
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
-    if len(switch) > 0:
-        # inplace replacement
-        mag, err = mag2fluxcal_snana(
-            mag.astype(float).values,
-            err.astype(float).values
-        )
-        layout_lightcurve['yaxis']['title'] = 'Flux'
-        layout_lightcurve['yaxis']['autorange'] = True
-    else:
-        layout_lightcurve['yaxis']['title'] = 'Magnitude'
+    if switch == 0:
+        layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
+    elif switch == 1:
+        # inplace replacement
+        mag, err = dc_mag(
+            pdf['i:fid'],
+            mag.astype(float).values,
+            err.astype(float).values,
+            pdf['i:magnr'].astype(float).values,
+            pdf['i:sigmanr'].astype(float).values,
+            pdf['i:magzpsci'].astype(float).values,
+            pdf['i:isdiffpos'].values
+        )
+        layout_lightcurve['yaxis']['title'] = 'DC magnitude'
+        layout_lightcurve['yaxis']['autorange'] = 'reversed'
+    elif switch == 2:
+        # inplace replacement
+        mag, err = apparent_flux(
+            pdf['i:fid'],
+            mag.astype(float).values,
+            err.astype(float).values,
+            pdf['i:magnr'].astype(float).values,
+            pdf['i:sigmanr'].astype(float).values,
+            pdf['i:magzpsci'].astype(float).values,
+            pdf['i:isdiffpos'].values
+        )
+        layout_lightcurve['yaxis']['title'] = 'DC apparent flux'
+        layout_lightcurve['yaxis']['autorange'] = True
+
     figure = {
         'data': [
             {
