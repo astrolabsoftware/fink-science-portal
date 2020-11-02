@@ -24,7 +24,7 @@ from apps.cards import card_id, card_fink_added_values, card_sn_properties
 from apps.cards import card_download, card_classification
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable
-from apps.cards import card_mulens_plot, card_mulens_button
+from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 
 dcc.Location(id='url', refresh=False)
 
@@ -74,7 +74,7 @@ def tab4_content(data):
     tab4_content_ = html.Div([
         dbc.Row([
             dbc.Col([card_mulens_plot(data), html.Br(), card_explanation_variable()], width=8),
-            dbc.Col([card_mulens_button(data)], width=4)
+            dbc.Col([card_mulens_button(data), card_mulens_param()], width=4)
         ]),
     ])
     return tab4_content_
