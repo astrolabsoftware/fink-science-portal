@@ -166,27 +166,35 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
     elif switch == 1:
         # inplace replacement
-        mag, err = dc_mag(
-            pdf['i:fid'],
-            mag.astype(float).values,
-            err.astype(float).values,
-            pdf['i:magnr'].astype(float).values,
-            pdf['i:sigmagnr'].astype(float).values,
-            pdf['i:magzpsci'].astype(float).values,
-            pdf['i:isdiffpos'].values
+        mag, err = np.transpose(
+            [
+                dc_mag(*args) for args in zip(
+                    pdf['i:fid'],
+                    mag.astype(float).values,
+                    err.astype(float).values,
+                    pdf['i:magnr'].astype(float).values,
+                    pdf['i:sigmagnr'].astype(float).values,
+                    pdf['i:magzpsci'].astype(float).values,
+                    pdf['i:isdiffpos'].values
+                )
+            ]
         )
         layout_lightcurve['yaxis']['title'] = 'DC magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
     elif switch == 2:
         # inplace replacement
-        mag, err = apparent_flux(
-            pdf['i:fid'],
-            mag.astype(float).values,
-            err.astype(float).values,
-            pdf['i:magnr'].astype(float).values,
-            pdf['i:sigmagnr'].astype(float).values,
-            pdf['i:magzpsci'].astype(float).values,
-            pdf['i:isdiffpos'].values
+        mag, err = np.transpose(
+            [
+                apparent_flux(*args) for args in zip(
+                    pdf['i:fid'],
+                    mag.astype(float).values,
+                    err.astype(float).values,
+                    pdf['i:magnr'].astype(float).values,
+                    pdf['i:sigmagnr'].astype(float).values,
+                    pdf['i:magzpsci'].astype(float).values,
+                    pdf['i:isdiffpos'].values
+                )
+            ]
         )
         layout_lightcurve['yaxis']['title'] = 'DC apparent flux'
         layout_lightcurve['yaxis']['autorange'] = True
