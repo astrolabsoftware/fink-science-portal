@@ -635,13 +635,6 @@ def plot_mulens(name, n_clicks):
 
         time = np.arange(np.min(jds_), np.max(jds_), 1)
 
-        layout_mulens_ = copy.deepcopy(layout_mulens)
-        layout_mulens_['title']['text'] = 't0 = {}, tE = {}, u0 = {}'.format(
-            results_ml.t0,
-            results_ml.tE,
-            results_ml.u0
-        )
-
         if '1' in np.unique(pdf['i:fid'].values):
             plot_filt1 = {
                 'x': jds[pdf['i:fid'] == '1'].apply(lambda x: convert_jd(float(x), to='iso')),
@@ -713,7 +706,7 @@ def plot_mulens(name, n_clicks):
                 plot_filt2,
                 fit_filt2
             ],
-            "layout": layout_mulens_
+            "layout": layout_mulens
         }
 
         mulens_params = """
