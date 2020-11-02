@@ -551,7 +551,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
 @app.callback(
     [
         Output('mulens_plot', 'figure'),
-        Output('mulens_params', 'value'),
+        Output('mulens_params', 'children'),
     ],
     [
         Input('url', 'pathname'),
