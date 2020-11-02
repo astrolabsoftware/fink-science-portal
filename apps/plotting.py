@@ -152,7 +152,7 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
         data,
         [
             'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-            'magnr', 'sigmanr', 'magzpsci', 'isdiffpos'
+            'i:magnr', 'i:sigmanr', 'i:magzpsci', 'i:isdiffpos'
         ]
     )
 
