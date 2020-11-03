@@ -621,7 +621,7 @@ def plot_mulens(name, n_clicks):
 
             # Total mask
             mask = mask_fid * maskNone * maskOutlier
-            masks[fid] = mask
+            masks[str(fid)] = mask
 
             # Gather data for the fitter
             subpdf['filtercode'] = pd.Series(fids).replace(to_replace=conversiondict)
@@ -635,7 +635,7 @@ def plot_mulens(name, n_clicks):
         results_ml = fit_ml_de_simple(subpdf)
 
         # Compute chi2
-        nfitted_param = 4 # u0, t0, tE, magstar
+        nfitted_param = 4. # u0, t0, tE, magstar
         time = np.arange(np.min(jds_), np.max(jds_), 1)
 
         if '1' in np.unique(pdf['i:fid'].values):
