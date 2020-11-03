@@ -109,9 +109,7 @@ def title(name):
 
 
 @app.callback(
-    [
-        Output('object-data', 'children'),
-    ],
+    Output('object-data', 'children'),
     [
         Input('url', 'pathname'),
     ])
