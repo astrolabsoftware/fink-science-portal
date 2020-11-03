@@ -104,6 +104,18 @@ def title(name):
     )
     return title_
 
+
+@app.callback(
+    [
+        Output('object-data', 'children'),
+    ],
+    [
+        Input('url', 'pathname'),
+    ])
+def store_query(name):
+    results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
+    return results
+
 def layout(name):
     # even if there is one object ID, this returns  several alerts
     results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
@@ -129,7 +141,8 @@ def layout(name):
                     dbc.Col(tabs(results), width=8)
                 ],
                 justify="around", no_gutters=True
-            )
+            ),
+            html.Div(id='object-data', style={'display': 'none'})
         ]
     )
 
