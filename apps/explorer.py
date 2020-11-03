@@ -23,6 +23,8 @@ import dash_table
 import pandas as pd
 import numpy as np
 from astropy.time import Time, TimeDelta
+import astropy.units as u
+from astropy.coordinates import SkyCoord
 import healpy as hp
 
 from app import app
