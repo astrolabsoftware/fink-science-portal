@@ -608,7 +608,7 @@ def plot_mulens(name, n_clicks):
         subpdf['time'] = jds_
         subpdf['name'] = pdf['i:objectId']
 
-        masks = []
+        masks = {'1': [], '2': []}
         for fid in np.unique(fids):
             # Select filter
             mask_fid = fids == fid
@@ -621,7 +621,7 @@ def plot_mulens(name, n_clicks):
 
             # Total mask
             mask = mask_fid * maskNone * maskOutlier
-            masks.append(mask)
+            masks[fid] = mask
 
             # Gather data for the fitter
             subpdf['filtercode'] = pd.Series(fids).replace(to_replace=conversiondict)
@@ -636,17 +636,6 @@ def plot_mulens(name, n_clicks):
 
         # Compute chi2
         nfitted_param = 4 # u0, t0, tE, magstar
-
-        observed = mag_dc[masks[0]]
-        expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g)[masks[0]]
-        err = err_dc[masks[0]]
-        chi2_g = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
-
-        observed = mag_dc[masks[1]]
-        expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r)[masks[1]]
-        err = err_dc[masks[1]]
-        chi2_r = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
-
         time = np.arange(np.min(jds_), np.max(jds_), 1)
 
         if '1' in np.unique(pdf['i:fid'].values):
@@ -677,9 +666,16 @@ def plot_mulens(name, n_clicks):
                     'color': '#1f77b4',
                 }
             }
+
+            # chi2
+            observed = mag_dc[masks['1']]
+            expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g)[masks['1']]
+            err = err_dc[masks['1']]
+            chi2_g = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
         else:
             plot_filt1 = {}
             fit_filt1 = {}
+            chi2_g = None
 
         if '2' in np.unique(pdf['i:fid'].values):
             plot_filt2 = {
@@ -709,9 +705,15 @@ def plot_mulens(name, n_clicks):
                     'color': '#ff7f0e',
                 }
             }
+
+            observed = mag_dc[masks['2']]
+            expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r)[masks['2']]
+            err = err_dc[masks['2']]
+            chi2_r = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
         else:
             plot_filt2 = {}
             fit_filt2 = {}
+            chi2_r = None
 
         figure = {
             'data': [
