@@ -608,7 +608,7 @@ def plot_mulens(name, n_clicks):
         subpdf['time'] = jds_
         subpdf['name'] = pdf['i:objectId']
 
-        to_plot = []
+        masks = []
         for fid in np.unique(fids):
             # Select filter
             mask_fid = fids == fid
@@ -621,6 +621,7 @@ def plot_mulens(name, n_clicks):
 
             # Total mask
             mask = mask_fid * maskNone * maskOutlier
+            masks.append(mask)
 
             # Gather data for the fitter
             subpdf['filtercode'] = pd.Series(fids).replace(to_replace=conversiondict)
@@ -632,6 +633,17 @@ def plot_mulens(name, n_clicks):
             subpdf[f'mag_{conversiondict[fid]}'][~mask] = None
 
         results_ml = fit_ml_de_simple(subpdf)
+
+        # Compute chi2
+        observed = mag_dc[masks[0]]
+        expected = mulens_simple(jds_, results.u0, results.t0, results.tE, results.magStar_g)[masks[0]]
+        err = err_dc[masks[0]]
+        chi2_g = 1. / (len(observed) - 1) * np.sum((observed - expected)**2/err)
+
+        observed = mag_dc[masks[1]]
+        expected = mulens_simple(jds_, results.u0, results.t0, results.tE, results.magStar_r)[masks[1]]
+        err = err_dc[masks[1]]
+        chi2_r = 1. / (len(observed) - 1) * np.sum((observed - expected)**2/err)
 
         time = np.arange(np.min(jds_), np.max(jds_), 1)
 
@@ -715,9 +727,11 @@ def plot_mulens(name, n_clicks):
         t0: {} (jd)
         tE: {} (days)
         u0: {}
+        chi2_g: {}
+        chi2_r: {}
         ```
         ---
-        """.format(results_ml.t0, results_ml.tE, results_ml.u0)
+        """.format(results_ml.t0, results_ml.tE, results_ml.u0, chi2_g, chi2_r)
         return figure, mulens_params
 
     mulens_params = """
@@ -726,6 +740,8 @@ def plot_mulens(name, n_clicks):
     t0:
     tE:
     u0:
+    chi2_g:
+    chi2_r:
     ```
     ---
     """
