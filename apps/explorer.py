@@ -242,8 +242,8 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window):
         ra, dec, radius = radecradius.split(',')
         if ':' in ra:
             coord = SkyCoord(ra, dec, unit=(u.hourangle, u.deg))
-            ra = coord.deg
-            dec = coord.deg
+            ra = coord.ra.deg
+            dec = coord.dec.deg
             radius = float(radius) / 3600.
         else:
             ra, dec, radius = float(ra), float(dec), float(radius) / 3600.
