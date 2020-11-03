@@ -154,8 +154,9 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     [
         Input('switch-mag-flux', 'value'),
         Input('url', 'pathname'),
+        Input('object-data', 'children')
     ])
-def draw_lightcurve(switch: int, pathname: str) -> dict:
+def draw_lightcurve(switch: int, pathname: str, object_data) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
@@ -172,18 +173,23 @@ def draw_lightcurve(switch: int, pathname: str) -> dict:
     ----------
     figure: dict
     """
-    data = client.scan(
-        "",
-        "key:key:{}".format(pathname[1:]),
-        None, 0, True, True
-    )
-    pdf = extract_properties(
-        data,
-        [
-            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos'
-        ]
-    )
+    # data = client.scan(
+    #     "",
+    #     "key:key:{}".format(pathname[1:]),
+    #     None, 0, True, True
+    # )
+    pdf = pd.read_json(object_data)
+    pdf = pdf[
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos'
+    ]
+    # pdf = extract_properties(
+    #     data,
+    #     [
+    #         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+    #         'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos'
+    #     ]
+    # )
 
     jd = pdf['i:jd']
     jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
