@@ -636,12 +636,12 @@ def plot_mulens(name, n_clicks):
 
         # Compute chi2
         observed = mag_dc[masks[0]]
-        expected = mulens_simple(jds_, results.u0, results.t0, results.tE, results.magStar_g)[masks[0]]
+        expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g)[masks[0]]
         err = err_dc[masks[0]]
         chi2_g = 1. / (len(observed) - 1) * np.sum((observed - expected)**2/err)
 
         observed = mag_dc[masks[1]]
-        expected = mulens_simple(jds_, results.u0, results.t0, results.tE, results.magStar_r)[masks[1]]
+        expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r)[masks[1]]
         err = err_dc[masks[1]]
         chi2_r = 1. / (len(observed) - 1) * np.sum((observed - expected)**2/err)
 
@@ -727,8 +727,8 @@ def plot_mulens(name, n_clicks):
         t0: {} (jd)
         tE: {} (days)
         u0: {}
-        chi2_g: {}
-        chi2_r: {}
+        red chi2_g: {}
+        red chi2_r: {}
         ```
         ---
         """.format(results_ml.t0, results_ml.tE, results_ml.u0, chi2_g, chi2_r)
@@ -740,8 +740,8 @@ def plot_mulens(name, n_clicks):
     t0:
     tE:
     u0:
-    chi2_g:
-    chi2_r:
+    red chi2_g:
+    red chi2_r:
     ```
     ---
     """
