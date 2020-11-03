@@ -115,7 +115,8 @@ def title(name):
     ])
 def store_query(name):
     results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
-    return results
+    pdfs = pd.DataFrame.from_dict(results, orient='index')
+    return pdfs.to_json()
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
