@@ -636,7 +636,7 @@ def plot_mulens(name, n_clicks):
             subpdf[f'magerr_{conversiondict[fid]}'][~mask] = None
             subpdf[f'mag_{conversiondict[fid]}'][~mask] = None
 
-            filts.append(fid)
+            filts.append(str(fid))
 
         results_ml = fit_ml_de_simple(subpdf)
 
