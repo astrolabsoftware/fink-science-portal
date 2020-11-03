@@ -18,6 +18,8 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 import visdcc
 
+import pandas as pd
+
 from app import app, client
 
 from apps.cards import card_lightcurve, card_cutouts, card_sn_scores
@@ -114,6 +116,9 @@ def title(name):
         Input('url', 'pathname'),
     ])
 def store_query(name):
+    """
+    https://dash.plotly.com/sharing-data-between-callbacks
+    """
     results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
     pdfs = pd.DataFrame.from_dict(results, orient='index')
     return pdfs.to_json()
