@@ -602,13 +602,13 @@ def plot_mulens(name, n_clicks):
         jds = pdf['i:jd'].astype(float)
         jds_ = jds.values
         magpsf = pdf['i:magpsf'].astype(float).values
-        sigmapsf = pdf['i:sigmapsf'].astype(float).values
 
         # extract historical and current measurements
         subpdf['time'] = jds_
         subpdf['name'] = pdf['i:objectId']
 
         masks = {'1': [], '2': []}
+        filts = []
         for fid in np.unique(fids):
             # Select filter
             mask_fid = fids == fid
@@ -636,13 +636,15 @@ def plot_mulens(name, n_clicks):
             subpdf[f'magerr_{conversiondict[fid]}'][~mask] = None
             subpdf[f'mag_{conversiondict[fid]}'][~mask] = None
 
+            filts.append(fid)
+
         results_ml = fit_ml_de_simple(subpdf)
 
         # Compute chi2
         nfitted_param = 4. # u0, t0, tE, magstar
         time = np.arange(np.min(jds_), np.max(jds_), 1)
 
-        if '1' in np.unique(pdf['i:fid'].values):
+        if '1' in filts:
             plot_filt1 = {
                 'x': jds[pdf['i:fid'] == '1'].apply(lambda x: convert_jd(float(x), to='iso')),
                 'y': mag_dc[pdf['i:fid'] == '1'],
@@ -681,7 +683,7 @@ def plot_mulens(name, n_clicks):
             fit_filt1 = {}
             chi2_g = None
 
-        if '2' in np.unique(pdf['i:fid'].values):
+        if '2' in filts:
             plot_filt2 = {
                 'x': jds[pdf['i:fid'] == '2'].apply(lambda x: convert_jd(float(x), to='iso')),
                 'y': mag_dc[pdf['i:fid'] == '2'],
