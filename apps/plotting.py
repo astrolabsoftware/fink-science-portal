@@ -635,15 +635,17 @@ def plot_mulens(name, n_clicks):
         results_ml = fit_ml_de_simple(subpdf)
 
         # Compute chi2
+        nfitted_param = 4 # u0, t0, tE, magstar
+
         observed = mag_dc[masks[0]]
         expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g)[masks[0]]
         err = err_dc[masks[0]]
-        chi2_g = 1. / (len(observed) - 1) * np.sum((observed - expected)**2/err)
+        chi2_g = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
 
         observed = mag_dc[masks[1]]
         expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r)[masks[1]]
         err = err_dc[masks[1]]
-        chi2_r = 1. / (len(observed) - 1) * np.sum((observed - expected)**2/err)
+        chi2_r = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
 
         time = np.arange(np.min(jds_), np.max(jds_), 1)
 
