@@ -178,22 +178,20 @@ def draw_lightcurve(switch: int, pathname: str, object_data) -> dict:
     #     "key:key:{}".format(pathname[1:]),
     #     None, 0, True, True
     # )
-    pdf = pd.read_json(object_data)
-    pdf = pdf[
+    pdf_ = pd.read_json(object_data)
+    cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
         'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos'
     ]
-    # pdf = extract_properties(
-    #     data,
-    #     [
-    #         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-    #         'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos'
-    #     ]
-    # )
+    pdf = pdf_.loc[:, cols]
 
+    # type conversion
     jd = pdf['i:jd']
     jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
 
+    pdf['i:fid'] = pdf['i:fid'].astype(str)
+
+    # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
     if switch == 0:
