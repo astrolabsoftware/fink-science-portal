@@ -623,6 +623,10 @@ def plot_mulens(name, n_clicks):
             mask = mask_fid * maskNone * maskOutlier
             masks[str(fid)] = mask
 
+            # mot enough points for the fit
+            if np.sum(mask) < 4:
+                continue
+
             # Gather data for the fitter
             subpdf['filtercode'] = pd.Series(fids).replace(to_replace=conversiondict)
             subpdf[f'mag_{conversiondict[fid]}'] = mag_dc
