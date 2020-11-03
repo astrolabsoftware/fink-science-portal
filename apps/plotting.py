@@ -173,11 +173,6 @@ def draw_lightcurve(switch: int, pathname: str, object_data) -> dict:
     ----------
     figure: dict
     """
-    # data = client.scan(
-    #     "",
-    #     "key:key:{}".format(pathname[1:]),
-    #     None, 0, True, True
-    # )
     pdf_ = pd.read_json(object_data)
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
@@ -434,10 +429,10 @@ def draw_cutout(data, title):
         Input('nterms_base', 'value'),
         Input('nterms_band', 'value'),
         Input('manual_period', 'value'),
-        Input('url', 'pathname'),
-        Input('submit_variable', 'n_clicks')
+        Input('submit_variable', 'n_clicks'),
+        Input('object-data', 'children')
     ])
-def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
+def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object_data):
     """
     """
     if type(nterms_base) not in [int]:
@@ -448,8 +443,10 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
         return {'data': [], "layout": layout_phase}
 
     if n_clicks is not None:
-        results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
-        pdf = extract_properties(results, ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid'])
+        pdf_ = pd.read_json(object_data)
+        cols = ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid']
+        pdf = pdf_.loc[:, cols]
+        pdf['i:fid'] = pdf['i:fid'].astype(str)
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         jd = pdf['i:jd']
@@ -562,21 +559,20 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, name, n_clicks):
         Output('mulens_params', 'children'),
     ],
     [
-        Input('url', 'pathname'),
-        Input('submit_mulens', 'n_clicks')
+        Input('submit_mulens', 'n_clicks'),
+        Input('object-data', 'children')
     ])
-def plot_mulens(name, n_clicks):
+def plot_mulens(n_clicks, object_data):
     """
     """
     if n_clicks is not None:
-        results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
-        pdf = extract_properties(
-            results,
-            [
-                'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-                'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
-            ]
-        )
+        pdf_ = pd.read_json(object_data)
+        cols = [
+            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
+        ]
+        pdf = pdf_.loc[:, cols]
+        pdf['i:fid'] = pdf['i:fid'].astype(str)
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         mag_dc, err_dc = np.transpose(
@@ -766,8 +762,8 @@ def plot_mulens(name, n_clicks):
     return {'data': [], "layout": layout_mulens}, mulens_params
 
 @app.callback(
-    Output('aladin-lite-div', 'run'), Input('url', 'pathname'))
-def integrate_aladin_lite(name):
+    Output('aladin-lite-div', 'run'), Input('object-data', 'children'))
+def integrate_aladin_lite(object_data):
     """ Integrate aladin light in the 2nd Tab of the dashboard.
 
     the default parameters are:
@@ -787,8 +783,9 @@ def integrate_aladin_lite(name):
     """
     default_img = ""
     if name:
-        results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
-        pdf = extract_properties(results, ['i:jd', 'i:ra', 'i:dec'])
+        pdf_ = pd.read_json(object_data)
+        cols = ['i:jd', 'i:ra', 'i:dec']
+        pdf = pdf_.loc[:, cols]
         pdf = pdf.sort_values('i:jd', ascending=False)
 
         # Coordinate of the current alert
