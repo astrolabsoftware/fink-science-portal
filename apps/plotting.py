@@ -22,7 +22,7 @@ import copy
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
-from apps.utils import convert_jd, readstamp, _data_stretch
+from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import extract_row, extract_properties
 from apps.utils import apparent_flux, dc_mag
 from apps.mulens_helper import fit_ml_de_simple, mulens_simple
@@ -393,15 +393,19 @@ def draw_cutout(data, title):
     html.div: Graph data and layout based on incoming alert data.
     """
     # Update graph data for stamps
-    data = _data_stretch(data, stretch='linear')
+    size = len(data)
+    vmax = data[int(size/2), int(size/2)]
+    vmin = np.min(data) + 0.2*np.median(np.abs(data - np.median(data)))
+    data = _data_stretch(data, vmin=vmin, vmax=vmax, stretch='asinh')
     data = data[::-1]
-    # data = convolve(data)
+    data = convolve(data, smooth=1, kernel='gauss')
 
     fig = go.Figure(
         data=go.Heatmap(
             z=data, showscale=False, colorscale='greys'
         )
     )
+    # Greys_r
 
     axis_template = dict(
         autorange=True,
