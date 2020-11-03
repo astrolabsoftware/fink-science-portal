@@ -94,7 +94,7 @@ layout_mulens = dict(
         font=dict(size=10),
         orientation="h",
         yanchor="bottom",
-        y=0.02,
+        y=1.02,
         xanchor="right",
         x=1,
         bgcolor='rgba(0,0,0,0)'
@@ -727,8 +727,8 @@ def plot_mulens(name, n_clicks):
         t0: {} (jd)
         tE: {} (days)
         u0: {}
-        red chi2_g: {}
-        red chi2_r: {}
+        chi2_g/dof: {}
+        chi2_r/dof: {}
         ```
         ---
         """.format(results_ml.t0, results_ml.tE, results_ml.u0, chi2_g, chi2_r)
@@ -740,8 +740,8 @@ def plot_mulens(name, n_clicks):
     t0:
     tE:
     u0:
-    red chi2_g:
-    red chi2_r:
+    chi2_g/dof:
+    chi2_r/dof:
     ```
     ---
     """
