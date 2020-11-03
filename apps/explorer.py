@@ -33,7 +33,8 @@ from apps.utils import extract_fink_classification
 from apps.utils import markdownify_objectid
 
 msg = """
-_Enter a valid object ID (e.g. ZTF19acmdpyr) or a prefix (e.g. ZTF19) on
+_Enter a valid object ID (e.g. ZTF19acmdpyr), or a coordinates triplet (e.g. ),
+or a start dates with a time window  on
 the left panel, and press enter. Then click on an objectId to get more details.
 The table shows:_
 
@@ -46,7 +47,7 @@ The table shows:_
   - _Microlensing candidate_
   - _Solar System Object_
   - _SIMBAD class_
-- _#alerts: number of Fink alerts corresponding to this object._
+- _#ZTF triggers: number of times ZTF triggered an alert._
 """
 
 object_id = dbc.FormGroup(
@@ -237,7 +238,13 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window):
         # Interpret user input.
         # TODO: unsafe method...
         ra, dec, radius = radecradius.split(',')
-        ra, dec, radius = float(ra), float(dec), float(radius) / 3600.
+        if ':' in ra:
+            coord = SkyCoord(ra, dec, unit=(u.hourangle, u.deg))
+            ra = coord.deg
+            dec = coord.deg
+            radius = float(radius) / 3600.
+        else:
+            ra, dec, radius = float(ra), float(dec), float(radius) / 3600.
 
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
