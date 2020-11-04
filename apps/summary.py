@@ -148,7 +148,7 @@ def layout(name):
                 justify="around", no_gutters=True
             ),
             html.Div(id='object-data', style={'display': 'none'})
-        ]
+        ], style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)'}
     )
 
     return layout_

@@ -38,8 +38,8 @@ msg = """
 Fill one of the field on the left, and click on the _Submit Query_ button.
 
 * _**Search by Object ID:** Enter a valid object ID to access its data, e.g._:
-  * ZTF19acmdpyr, ZTF17aaaabte, ZTF20aavmhsg
-* _**Consearch:** Peform a conesearch around a position on the sky given by (RA, Dec, radius). RA/Dec can be in decimal degrees, or sexagesimal in the form hh:mm:ss and dd:mm:ss. Radius is in arcsecond. Examples of valid searches:_
+  * ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf
+* _**Conesearch:** Peform a conesearch around a position on the sky given by (RA, Dec, radius). RA/Dec can be in decimal degrees, or sexagesimal in the form hh:mm:ss and dd:mm:ss. Radius is in arcsecond. Examples of valid searches:_
   * 271.3914265, 45.2545134, 5 or 18:05:33.94, 45:15:16.25, 5
 * _**Search by Date:** Choose a starting date and a time window to see all alerts in this period. Dates are in UTC, and the time window in minutes. Example of valid search:_
   * 2019-11-03 02:40:00
@@ -63,7 +63,7 @@ object_id = dbc.FormGroup(
             id='objectid',
             debounce=True
         ),
-        dbc.FormText("Enter a ZTF objectId, e.g. ZTF19acmdpyr"),
+        dbc.FormText("Enter a ZTF objectId, e.g. ZTF19acnjwgm"),
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
@@ -76,7 +76,8 @@ conesearch = dbc.FormGroup(
             id='conesearch',
             debounce=True
         ),
-        dbc.FormText("e.g. 271.3914265, 45.2545134, 5 or 18:05:33.94, 45:15:16.25, 5"),
+        dbc.FormText("e.g. 271.3914265, 45.2545134, 5"),
+        dbc.FormText("or 18:05:33.94, 45:15:16.25, 5")
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
@@ -129,20 +130,41 @@ submit_button = dbc.Button(
     block=True
 )
 
-advanced_search = html.Div(
+dropdown = dbc.FormGroup(
     [
-        dbc.Button(
+        dbc.Label("Get latest 100 alerts by class"),
+        dcc.Dropdown(
+            id='class-dropdown',
+            options=[
+                {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
+                {'label': 'Supernova candidate', 'value': 'SN candidate'},
+                {'label': 'Microlensing candidate', 'value': 'Microlensing candidate'},
+                {'label': 'Solar System Object candidates', 'value': 'Solar System'},
+                {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
+                {'label': 'toto', 'value': 'toto'},
+                *[{'label': 'i-{}'.format(i), 'value': 'i-{}'.format(i)} for i in range(100)]
+            ],
+            searchable=True,
+            clearable=True,
+            placeholder="Start typing or choose a class",
+        )
+    ]
+)
+
+advanced_search_button = dbc.Button(
             "Advanced Search",
             id="collapse-button",
             className="mb-3",
             color="primary",
-        ),
+        )
+advanced_search = html.Div(
+    [
         dbc.Collapse(
-            dbc.Card(dbc.CardBody("This content is hidden in the collapse")),
-            id="collapse",
+            dbc.Card(dbc.CardBody([dropdown])),
+            id="collapse"
         ),
         html.Br()
-    ]
+    ], style={'width': '100%', 'display': 'inline-block'}
 )
 
 @app.callback(
@@ -172,6 +194,7 @@ layout = html.Div(
                             dbc.Row(object_id),
                             dbc.Row(conesearch),
                             dbc.Row(date_range),
+                            dbc.Row(advanced_search_button),
                             dbc.Row(advanced_search),
                             dbc.Row(submit_button),
                         ], width=3
@@ -190,7 +213,7 @@ layout = html.Div(
             ], className="mb-8", fluid=True, style={'width': '95%'}
         )
     ], style={
-        'background-image': 'url(/assets/background.png)',
+        'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
         'width': '100%',
         'height': '100%',
         'top': '0px',

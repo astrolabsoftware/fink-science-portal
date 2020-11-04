@@ -111,7 +111,7 @@ def extract_fink_classification(cdsxmatch, roid, mulens_class_1, mulens_class_2,
     f_mulens = (mulens_class_1 == 'ML') & (mulens_class_2 == 'ML')
     f_sn = (snn_snia_vs_nonia.astype(float) > 0.5) & (snn_sn_vs_all.astype(float) > 0.5)
     f_roid = roid.astype(int).isin([2, 3])
-    f_simbad = cdsxmatch != 'Unknown'
+    f_simbad = ~cdsxmatch.isin(['Unknown', 'Transient'])
 
     classification.mask(f_mulens.values, 'Microlensing candidate', inplace=True)
     classification.mask(f_sn.values, 'SN candidate', inplace=True)
