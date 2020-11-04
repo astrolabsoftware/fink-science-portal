@@ -54,6 +54,9 @@ _The table shows:_
 - _ndethist: Number of spatially-coincident detections falling within 1.5 arcsec going back to beginning of survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included._
 """
 
+simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
+simbad_types = np.sort(simbad_types)
+
 object_id = dbc.FormGroup(
     [
         dbc.Label("Search by Object ID"),
@@ -142,7 +145,7 @@ dropdown = dbc.FormGroup(
                 {'label': 'Solar System Object candidates', 'value': 'Solar System'},
                 {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
                 {'label': 'toto', 'value': 'toto'},
-                *[{'label': 'i-{}'.format(i), 'value': 'i-{}'.format(i)} for i in range(100)]
+                *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
             ],
             searchable=True,
             clearable=True,
