@@ -16,7 +16,7 @@ import dash
 from dash.exceptions import PreventUpdate
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_table
 
@@ -35,21 +35,23 @@ from apps.utils import extract_fink_classification
 from apps.utils import markdownify_objectid
 
 msg = """
-_Enter a valid object ID (e.g. ZTF19acmdpyr), or a coordinates triplet (e.g. ),
-or a start dates with a time window  on
-the left panel, and press enter. Then click on an objectId to get more details.
-The table shows:_
+Fill one of the field on the left, and click on the _Submit Query_ button.
+
+* _**Search by Object ID:** Enter a valid object ID to access its data, e.g._:
+  * ZTF19acmdpyr, ZTF17aaaabte, ZTF20aavmhsg
+* _**Consearch:** Peform a conesearch around a position on the sky given by (RA, Dec, radius). RA/Dec can be in decimal degrees, or sexagesimal in the form hh:mm:ss and dd:mm:ss. Radius is in arcsecond. Examples of valid searches:_
+  * 271.3914265, 45.2545134, 5 or 18:05:33.94, 45:15:16.25, 5
+* _**Search by Date:** Choose a starting date and a time window to see all alerts in this period. Dates are in UTC, and the time window in minutes. Example of valid search:_
+  * 2019-11-03 02:40:00
+
+_The table shows:_
 
 - _objectId: Unique identifier for this object_
 - _RA: Right Ascension of candidate; J2000 (deg)_
 - _Dec: Declination of candidate; J2000 (deg)_
-- _last seen: last date the object has been seen_
-- _classification: Classification inferred by Fink:_
-  - _Supernova candidate_
-  - _Microlensing candidate_
-  - _Solar System Object_
-  - _SIMBAD class_
-- _#ZTF triggers: number of times ZTF triggered an alert._
+- _last seen: last date the object has been seen by Fink_
+- _classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)_
+- _ndethist: Number of spatially-coincident detections falling within 1.5 arcsec going back to beginning of survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included._
 """
 
 object_id = dbc.FormGroup(
@@ -61,7 +63,7 @@ object_id = dbc.FormGroup(
             id='objectid',
             debounce=True
         ),
-        dbc.FormText("Enter an objectId beginning with 'ZTF'"),
+        dbc.FormText("Enter a ZTF objectId, e.g. ZTF19acmdpyr"),
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
@@ -74,7 +76,7 @@ conesearch = dbc.FormGroup(
             id='conesearch',
             debounce=True
         ),
-        dbc.FormText("RA/Dec in degrees, radius in arcsecond")
+        dbc.FormText("e.g. 271.3914265, 45.2545134, 5 or 18:05:33.94, 45:15:16.25, 5"),
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
@@ -88,6 +90,7 @@ date_range = dbc.FormGroup(
             id='startdate',
             debounce=True,
         ),
+        dbc.FormText("Start date in UTC, e.g. 2019-11-03 02:40:00"),
         dbc.Input(
             placeholder="window [min]",
             type="number",
@@ -95,6 +98,7 @@ date_range = dbc.FormGroup(
             max=180,
             debounce=True,
         ),
+        dbc.FormText("Time window in minutes"),
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
@@ -125,6 +129,32 @@ submit_button = dbc.Button(
     block=True
 )
 
+advanced_search = html.Div(
+    [
+        dbc.Button(
+            "Advanced Search",
+            id="collapse-button",
+            className="mb-3",
+            color="primary",
+        ),
+        dbc.Collapse(
+            dbc.Card(dbc.CardBody("This content is hidden in the collapse")),
+            id="collapse",
+        ),
+        html.Br()
+    ]
+)
+
+@app.callback(
+    Output("collapse", "is_open"),
+    [Input("collapse-button", "n_clicks")],
+    [State("collapse", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
 layout = html.Div(
     [
         dbc.Container(
@@ -139,13 +169,11 @@ layout = html.Div(
                                 )
                             ),
                             html.Br(),
-                            html.P("Search Options"),
                             dbc.Row(object_id),
                             dbc.Row(conesearch),
                             dbc.Row(date_range),
+                            dbc.Row(advanced_search),
                             dbc.Row(submit_button),
-                            # html.Br(),
-                            # dbc.Row(latest_alerts),
                         ], width=3
                     ),
                     dbc.Col([
@@ -157,9 +185,9 @@ layout = html.Div(
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
                         )
-                    ], width=9)
+                    ], width=9),
                 ]),
-            ], className="mb-4"
+            ], className="mb-8", fluid=True, style={'width': '95%'}
         )
     ], style={
         'background-image': 'url(/assets/background.png)',
@@ -220,7 +248,7 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window):
 
     # Column name to display
     colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'classification', '# ZTF trigger'
+        'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
     ]
 
     # Types of columns
