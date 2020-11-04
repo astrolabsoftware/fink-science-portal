@@ -401,7 +401,7 @@ def draw_cutout(data, title):
 
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, colorscale='greys'
+            z=data, showscale=False, colorscale='Greys_r'
         )
     )
     # Greys_r

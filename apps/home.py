@@ -32,16 +32,6 @@ Fink comes to join a few other brokers currently operating on other experiments,
 
 layout = html.Div([
     dbc.Container([
-        #dbc.Row([
-        #    dbc.Col(
-        #        html.H1("Fink Science Portal", className="text-center"),
-        #        className="mb-5 mt-5"),
-        #]),
-        #dbc.Row([
-        #    dbc.Col(html.H5(children=msg, className='text-align')
-        #            , className="mb-4")
-        #    ], style={'textAlign': 'center'}),
-        html.Div([
         dbc.Row(dbc.Col(html.Img(src="/assets/Fink_PrimaryLogo_WEB.png", height='100%', width='40%')), style={'textAlign': 'center'}),
         dbc.Row([
             dbc.Col(
@@ -119,20 +109,8 @@ layout = html.Div([
                     ),
                 )]
             ),
-        ], style={
-            'background-image': 'url(/assets/background.png)',
-            'width':'100%',
-            'height':'100%',
-            'top':'0px',
-            'left':'0px',
-            })
-        #html.A("Special thanks to Flaticon for the icon in COVID-19 Dash's logo.",
-        #       href="https://www.flaticon.com/free-icon/coronavirus_2913604")
+        ])
 
-    ])
+    ], className='home', style={
+            'background-image': 'url(/assets/background.png)'})
 
-])
-
-# needed only if running this as a single page app
-# if __name__ == '__main__':
-#     app.run_server(host='127.0.0.1', debug=True)
