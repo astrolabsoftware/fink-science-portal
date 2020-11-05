@@ -28,7 +28,7 @@ from astropy.coordinates import SkyCoord
 import healpy as hp
 
 from app import app
-from app import client, clientT, clientP, nlimit
+from app import client, clientT, clientP, clientS, nlimit
 from apps.utils import extract_row
 from apps.utils import convert_jd
 from apps.utils import extract_fink_classification
@@ -37,12 +37,13 @@ from apps.utils import markdownify_objectid
 msg = """
 Fill one of the field on the left, and click on the _Submit Query_ button.
 
-* _**Search by Object ID:** Enter a valid object ID to access its data, e.g._:
-  * ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf
+* _**Search by Object ID:** Enter a valid object ID to access its data, e.g. try_:
+  * ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf, ZTF18acuajcr
 * _**Conesearch:** Peform a conesearch around a position on the sky given by (RA, Dec, radius). RA/Dec can be in decimal degrees, or sexagesimal in the form hh:mm:ss and dd:mm:ss. Radius is in arcsecond. Examples of valid searches:_
   * 271.3914265, 45.2545134, 5 or 18:05:33.94, 45:15:16.25, 5
 * _**Search by Date:** Choose a starting date and a time window to see all alerts in this period. Dates are in UTC, and the time window in minutes. Example of valid search:_
   * 2019-11-03 02:40:00
+* _**Get latest 100 alerts by class:** Choose a class of interest using the dropdown menu to see the 100 latest alerts._
 
 _The table shows:_
 
@@ -80,7 +81,6 @@ conesearch = dbc.FormGroup(
             debounce=True
         ),
         dbc.FormText("e.g. 271.3914265, 45.2545134, 5"),
-        dbc.FormText("or 18:05:33.94, 45:15:16.25, 5")
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
@@ -139,19 +139,19 @@ dropdown = dbc.FormGroup(
         dcc.Dropdown(
             id='class-dropdown',
             options=[
+                {'label': 'All classes', 'value': 'allclasses'},
                 {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
                 {'label': 'Supernova candidate', 'value': 'SN candidate'},
                 {'label': 'Microlensing candidate', 'value': 'Microlensing candidate'},
                 {'label': 'Solar System Object candidates', 'value': 'Solar System'},
                 {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
-                {'label': 'toto', 'value': 'toto'},
                 *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
             ],
             searchable=True,
             clearable=True,
             placeholder="Start typing or choose a class",
         )
-    ]
+    ], style={'width': '100%', 'display': 'inline-block'}
 )
 
 advanced_search_button = dbc.Button(
@@ -197,8 +197,9 @@ layout = html.Div(
                             dbc.Row(object_id),
                             dbc.Row(conesearch),
                             dbc.Row(date_range),
-                            dbc.Row(advanced_search_button),
-                            dbc.Row(advanced_search),
+                            #dbc.Row(advanced_search_button),
+                            #dbc.Row(advanced_search),
+                            dbc.Row(dropdown),
                             dbc.Row(submit_button),
                         ], width=3
                     ),
@@ -231,10 +232,11 @@ layout = html.Div(
         Input("objectid", "value"),
         Input("conesearch", "value"),
         Input('startdate', 'value'),
-        Input('window', 'value')
+        Input('window', 'value'),
+        Input('class-dropdown', 'value')
     ]
 )
-def construct_table(n_clicks, objectid, radecradius, startdate, window):
+def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_class):
     """ Query the HBase database and format results into a DataFrame.
 
     Parameters
@@ -254,8 +256,9 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window):
     wrong_id = (objectid is None) or (objectid == '')
     wrong_conesearch = (radecradius is None) or (radecradius == '')
     wrong_date = (startdate is None) or (startdate == '')
+    wrong_class = (alert_class is None) or (alert_class == '')
 
-    if n_clicks is not None and wrong_id and wrong_conesearch and wrong_date:
+    if n_clicks is not None and wrong_id and wrong_conesearch and wrong_date and wrong_class:
         return html.Table()
 
     # Columns of interest
@@ -288,7 +291,31 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window):
         # # TODO: change that to date search
         return html.Table()
 
-    if radecradius is not None and radecradius != '':
+    if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
+       clientS.setLimit(100)
+       clientS.setRangeScan(True)
+       clientS.setReversed(True)
+       jd_start = Time('2019-11-01 00:00:00').jd
+       jd_stop = Time.now().jd
+       results = clientS.scan(
+           "",
+           "key:key:{}_{},key:key:{}_{}".format(alert_class, jd_start, alert_class, jd_stop),
+           ",".join(colnames + colnames_added_values), 0, False, False
+    )
+    elif alert_class == 'allclasses':
+        clientT.setLimit(100)
+        clientT.setRangeScan(True)
+        clientT.setReversed(True)
+        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_stop = Time.now().jd
+        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
+        results = clientT.scan(
+            "",
+            to_evaluate,
+            ",".join(colnames + colnames_added_values),
+            0, True, True
+        )
+    elif radecradius is not None and radecradius != '':
         clientP.setLimit(1000)
 
         # Interpret user input.

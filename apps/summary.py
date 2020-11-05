@@ -117,13 +117,13 @@ def store_query(name):
     """
     https://dash.plotly.com/sharing-data-between-callbacks
     """
-    results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
+    results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     pdfs = pd.DataFrame.from_dict(results, orient='index')
     return pdfs.to_json()
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
-    results = client.scan("", "key:key:{}".format(name[1:]), None, 0, True, True)
+    results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
 
     layout_ = html.Div(
         [
