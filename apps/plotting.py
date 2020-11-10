@@ -25,7 +25,12 @@ import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-from apps.mulens_helper import fit_ml_de_simple, mulens_simple
+# from apps.mulens_helper import fit_ml_de_simple, mulens_simple
+
+from pyLIMA import event
+from pyLIMA import telescopes
+from pyLIMA import microlmodels, microltoolbox
+from pyLIMA.microloutputs import create_the_fake_telescopes
 
 from app import client, app
 
@@ -635,7 +640,7 @@ def plot_mulens(n_clicks, object_data):
     if n_clicks is not None:
         pdf_ = pd.read_json(object_data)
         cols = [
-            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:ra', 'i:dec',
             'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
         ]
         pdf = pdf_.loc[:, cols]
@@ -656,72 +661,64 @@ def plot_mulens(n_clicks, object_data):
             ]
         )
 
-        # Container for measurements
-        subpdf = pd.DataFrame({
-            'filtercode': [],
-            'mag_g': [],
-            'magerr_g': [],
-            'mag_r': [],
-            'magerr_r': [],
-            'time': [],
-            'name': []
-        })
+        current_event = event.Event()
+        current_event.name = pdf['i:objectId'].values[0]
 
-        # Loop over filters
-        conversiondict = {1.0: 'g', 2.0: 'r'}
-        fids = pdf['i:fid'].astype(int).values
-        jds = pdf['i:jd'].astype(float)
-        jds_ = jds.values
-        magpsf = pdf['i:magpsf'].astype(float).values
+        ## Si t'as besoin tu peux ajouter les RA, DEC
+        current_event.ra = pdf['i:ra'].values[0]
+        current_event.dec = pdf['i:dec'].values[0]
 
-        # extract historical and current measurements
-        subpdf['time'] = jds_
-        subpdf['name'] = pdf['i:objectId']
+        filts = {1: 'g', 2: 'r'}
+        for fid in np.unique(pdf['i:fid'].values):
+            mask = pdf['i:fid'].values == fid
+            telescope = telescopes.Telescope(
+                name='ztf_{}'.format(filts[fid]),
+                camera_filter=format(filts[fid]),
+                light_curve_magnitude=np.transpose(
+                    [
+                        pdf['i:jd'].values[mask],
+                        pdf['i:magpsf'].values[mask],
+                        pdf['i:sigmapsf'].values[mask]
+                    ]
+                ),
+                light_curve_magnitude_dictionnary={
+                    'time': 0,
+                    'mag': 1,
+                    'err_mag': 2
+                }
+            )
 
-        masks = {'1': [], '2': []}
-        filts = []
-        for fid in np.unique(fids):
-            # Select filter
-            mask_fid = fids == fid
+            current_event.telescopes.append(telescope)
 
-            # Remove upper limits
-            maskNone = np.array(magpsf) == np.array(magpsf)
+        # Le modele le plus simple
+        mulens_model = microlmodels.create_model('PSPL', current_event)
 
-            # Remove outliers
-            maskOutlier = np.array(mag_dc) < 22
+        current_event.fit(mulens_model, 'DE')
 
-            # Total mask
-            mask = mask_fid * maskNone * maskOutlier
-            masks[str(fid)] = mask
+        normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
 
-            # mot enough points for the fit
-            if np.sum(mask) < 4:
-                continue
+        # 4 parameters
+        dof = len(pdf) - 4 - 1
 
-            # Gather data for the fitter
-            subpdf['filtercode'] = pd.Series(fids).replace(to_replace=conversiondict)
-            subpdf[f'mag_{conversiondict[fid]}'] = mag_dc
-            subpdf[f'magerr_{conversiondict[fid]}'] = err_dc
+        results = current_event.fits[0]
 
-            # Nullify data which is not this filter
-            subpdf[f'magerr_{conversiondict[fid]}'][~mask] = None
-            subpdf[f'mag_{conversiondict[fid]}'][~mask] = None
+        # Model
+        create_the_fake_telescopes(results, results.fit_results)
 
-            filts.append(str(fid))
+        telescope_ = results.event.fake_telescopes[0]
 
-        results_ml = fit_ml_de_simple(subpdf)
+        flux_model = Model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
 
-        # Compute chi2
-        nfitted_param = 4. # u0, t0, tE, magstar
-        time = np.arange(np.min(jds_), np.max(jds_), 1)
+        time = telescope_.lightcurve_flux[:, 0]
+        magnitude = microltoolbox.flux_to_magnitude(flux_model)
 
         if '1' in filts:
             plot_filt1 = {
-                'x': jds[pdf['i:fid'] == '1'].apply(lambda x: convert_jd(float(x), to='iso')),
-                'y': mag_dc[pdf['i:fid'] == '1'],
+                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:,0]],
+                'y': normalised_lightcurves[0][:,1],
                 'error_y': {
                     'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '1'],
+                    'array': normalised_lightcurves[0][:,2],
                     'visible': True,
                     'color': '#1f77b4'
                 },
@@ -733,34 +730,16 @@ def plot_mulens(n_clicks, object_data):
                     'color': '#1f77b4',
                     'symbol': 'o'}
             }
-            fit_filt1 = {
-                'x': [convert_jd(float(t), to='iso') for t in time],
-                'y': mulens_simple(time, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g),
-                'mode': 'lines',
-                'name': 'fit g band',
-                'showlegend': False,
-                'line': {
-                    'color': '#1f77b4',
-                }
-            }
-
-            # chi2
-            observed = mag_dc[masks['1']]
-            expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g)[masks['1']]
-            err = err_dc[masks['1']]
-            chi2_g = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
         else:
             plot_filt1 = {}
-            fit_filt1 = {}
-            chi2_g = None
 
         if '2' in filts:
             plot_filt2 = {
-                'x': jds[pdf['i:fid'] == '2'].apply(lambda x: convert_jd(float(x), to='iso')),
-                'y': mag_dc[pdf['i:fid'] == '2'],
+                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[1][:,0]],
+                'y': normalised_lightcurves[1][:,1],
                 'error_y': {
                     'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '2'],
+                    'array': normalised_lightcurves[1][:,2],
                     'visible': True,
                     'color': '#ff7f0e'
                 },
@@ -772,32 +751,25 @@ def plot_mulens(n_clicks, object_data):
                     'color': '#ff7f0e',
                     'symbol': 'o'}
             }
-            fit_filt2 = {
-                'x': [convert_jd(float(t), to='iso') for t in time],
-                'y': mulens_simple(time, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r),
-                'mode': 'lines',
-                'name': 'fit r band',
-                'showlegend': False,
-                'line': {
-                    'color': '#ff7f0e',
-                }
-            }
-
-            observed = mag_dc[masks['2']]
-            expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r)[masks['2']]
-            err = err_dc[masks['2']]
-            chi2_r = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
         else:
             plot_filt2 = {}
-            fit_filt2 = {}
-            chi2_r = None
+
+        fit_filt = {
+            'x': [convert_jd(float(t), to='iso') for t in time],
+            'y': magnitude,
+            'mode': 'lines',
+            'name': 'fit',
+            'showlegend': False,
+            'line': {
+                'color': '#1f77b4',
+            }
+        }
 
         figure = {
             'data': [
                 plot_filt1,
-                fit_filt1,
                 plot_filt2,
-                fit_filt2
+                fit_filt
             ],
             "layout": layout_mulens
         }
@@ -805,24 +777,30 @@ def plot_mulens(n_clicks, object_data):
         mulens_params = """
         ```python
         # Fitted parameters
-        t0: {} (jd)
-        tE: {} (days)
-        u0: {}
-        chi2_g/dof: {}
-        chi2_r/dof: {}
+        t0: {} +/- {} (jd)
+        tE: {} +/- {} (days)
+        u0: {} +/- {}
+        chi2/dof: {}
         ```
         ---
-        """.format(results_ml.t0, results_ml.tE, results_ml.u0, chi2_g, chi2_r)
+        """.format(
+            results.outputs.fit_parameters.to,
+            results.outputs.fit_errors.err_to,
+            results.outputs.fit_parameters.tE,
+            results.outputs.fit_errors.err_tE,
+            results.outputs.fit_parameters.uo,
+            results.outputs.fit_errors.err_uo,
+            results.outputs.fit_parameters.chichi / dof
+        )
         return figure, mulens_params
 
     mulens_params = """
     ```python
     # Fitted parameters
-    t0:
-    tE:
-    u0:
-    chi2_g/dof:
-    chi2_r/dof:
+    t0: None
+    tE: None
+    u0: None
+    chi2: None
     ```
     ---
     """

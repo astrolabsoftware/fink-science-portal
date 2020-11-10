@@ -19,3 +19,4 @@ healpy
 numba
 scikit-learn
 iminuit
+pyLIMA
