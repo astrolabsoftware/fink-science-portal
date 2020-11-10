@@ -14,18 +14,20 @@
 # limitations under the License.
 import dash
 from dash.exceptions import PreventUpdate
+from dash.dependencies import Input, Output, State
+
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_table
 
+import healpy as hp
 import pandas as pd
 import numpy as np
-from astropy.time import Time, TimeDelta
+
 import astropy.units as u
+from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
-import healpy as hp
 
 from app import app
 from app import client, clientT, clientP, clientS, nlimit
@@ -43,7 +45,7 @@ Fill one of the field on the left, and click on the _Submit Query_ button.
   * 271.3914265, 45.2545134, 5 or 18:05:33.94, 45:15:16.25, 5
 * _**Search by Date:** Choose a starting date and a time window to see all alerts in this period. Dates are in UTC, and the time window in minutes. Example of valid search:_
   * 2019-11-03 02:40:00
-* _**Get latest 100 alerts by class:** Choose a class of interest using the dropdown menu to see the 100 latest alerts._
+* _**Get latest 100 alerts by class:** Choose a class of interest using the dropdown menu to see the 100 latest alerts processed by Fink._
 
 _The table shows:_
 
@@ -106,33 +108,6 @@ date_range = dbc.FormGroup(
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
-alert_category = dbc.FormGroup(
-    [
-        dbc.Label("Filter by class"),
-        dcc.Dropdown(
-            id="alerts-dropdown",
-            options=[
-                {'label': 'All', 'value': 'All'},
-                {'label': 'SN candidate', 'value': 'SN candidate'},
-                {'label': 'Microlensing candidate', 'value': 'Microlensing candidate'},
-                {'label': 'SIMBAD', 'value': 'SIMBAD'},
-                {'label': 'Solar System', 'value': 'Solar System'},
-                {'label': 'Unknown', 'value': 'Unknown'},
-            ],
-            clearable=False,
-            value='All',
-            style={'width': '100%', 'display': 'inline-block'}
-        )
-    ], style={'width': '100%', 'display': 'inline-block'}
-)
-
-submit_button = dbc.Button(
-    'Submit Query',
-    id='submit_query',
-    style={'width': '100%', 'display': 'inline-block'},
-    block=True
-)
-
 dropdown = dbc.FormGroup(
     [
         dbc.Label("Get latest 100 alerts by class"),
@@ -141,8 +116,8 @@ dropdown = dbc.FormGroup(
             options=[
                 {'label': 'All classes', 'value': 'allclasses'},
                 {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
-                {'label': 'Supernova candidate', 'value': 'SN candidate'},
-                {'label': 'Microlensing candidate', 'value': 'Microlensing candidate'},
+                {'label': 'Supernova candidates', 'value': 'SN candidate'},
+                {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
                 {'label': 'Solar System Object candidates', 'value': 'Solar System'},
                 {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
                 *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
@@ -154,12 +129,19 @@ dropdown = dbc.FormGroup(
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
+submit_button = dbc.Button(
+    'Submit Query',
+    id='submit_query',
+    style={'width': '100%', 'display': 'inline-block'},
+    block=True
+)
+
 advanced_search_button = dbc.Button(
-            "Advanced Search",
-            id="collapse-button",
-            className="mb-3",
-            color="primary",
-        )
+    "Advanced Search",
+    id="collapse-button",
+    className="mb-3",
+    color="primary",
+)
 advanced_search = html.Div(
     [
         dbc.Collapse(
@@ -180,10 +162,12 @@ def toggle_collapse(n, is_open):
         return not is_open
     return is_open
 
+
 layout = html.Div(
     [
         dbc.Container(
             [
+                html.Br(),
                 dbc.Row([
                     dbc.Col(
                         [
@@ -216,12 +200,9 @@ layout = html.Div(
                 ]),
             ], className="mb-8", fluid=True, style={'width': '95%'}
         )
-    ], style={
+    ], className='home', style={
         'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
-        'width': '100%',
-        'height': '100%',
-        'top': '0px',
-        'left': '0px',
+        'background-size': 'contain'
     }
 )
 
@@ -241,23 +222,36 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
 
     Parameters
     ----------
-    value: str
-        Object ID (or prefix) from user input
+    n_clicks: int
+        Represents the number of times that the button has been clicked on.
+    objectid: str
+        ObjectId as given by the user
+    radecradius: str
+        stringified comma-separated conesearch query (RA, Dec, radius)
+    startdate: str
+        Start date in format YYYY/MM/DD HH:mm:ss (UTC)
+    window: int
+        Number minutes
+    alert_class: str
+        Class of the alert to search against
 
     Returns
     ----------
     dash_table
         Dash table containing aggregated data by object ID.
     """
+    # Trigger the query only if the submit button is pressed.
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit_query' not in changed_id:
         raise PreventUpdate
+
     # wrong query
     wrong_id = (objectid is None) or (objectid == '')
     wrong_conesearch = (radecradius is None) or (radecradius == '')
     wrong_date = (startdate is None) or (startdate == '')
     wrong_class = (alert_class is None) or (alert_class == '')
 
+    # If nothing has been filled
     if n_clicks is not None and wrong_id and wrong_conesearch and wrong_date and wrong_class:
         return html.Table()
 
@@ -291,23 +285,36 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
         # # TODO: change that to date search
         return html.Table()
 
+    # Search for latest alerts for a specific class
     if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
-       clientS.setLimit(100)
-       clientS.setRangeScan(True)
-       clientS.setReversed(True)
-       jd_start = Time('2019-11-01 00:00:00').jd
-       jd_stop = Time.now().jd
-       results = clientS.scan(
-           "",
-           "key:key:{}_{},key:key:{}_{}".format(alert_class, jd_start, alert_class, jd_stop),
-           ",".join(colnames + colnames_added_values), 0, False, False
-    )
+        clientS.setLimit(100)
+        clientS.setRangeScan(True)
+        clientS.setReversed(True)
+
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_stop = Time.now().jd
+
+        results = clientS.scan(
+            "",
+            "key:key:{}_{},key:key:{}_{}".format(
+                alert_class,
+                jd_start,
+                alert_class,
+                jd_stop
+            ),
+            ",".join(colnames + colnames_added_values), 0, False, False
+        )
+    # Search for latest alerts (all classes)
     elif alert_class == 'allclasses':
         clientT.setLimit(100)
         clientT.setRangeScan(True)
         clientT.setReversed(True)
+
+        # start of the Fink operations
         jd_start = Time('2019-11-01 00:00:00').jd
         jd_stop = Time.now().jd
+
         to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
         results = clientT.scan(
             "",
@@ -378,6 +385,7 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
 
+    # Fink final classification
     classifications = extract_fink_classification(
         pdfs['d:cdsxmatch'],
         pdfs['d:roid'],
@@ -387,10 +395,12 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
         pdfs['d:snn_sn_vs_all']
     )
 
+    # inplace (booo)
     pdfs['d:cdsxmatch'] = classifications
 
     pdfs = pdfs[colnames]
 
+    # Make clickable objectId
     pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
 
     # Column values are string by default - convert them
@@ -401,18 +411,8 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
         columns={i: j for i, j in zip(colnames, colnames_to_display)}
     )
 
-    # replace cross-match by full classification
-    # pdfs['classification'] = classifications
-
-    # mismatch between nalerthist and number of real alerts
-    # TODO: solve this mismatch!
-    #nalerts = pdfs.groupby('objectId').count()['#detections'].values
-
     # Display only the last alert
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
-
-    #pdfs['#detections'] = nalerts
-
     pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 
     # round numeric values for better display
