@@ -22,11 +22,11 @@ import pandas as pd
 
 from app import app, client
 
-from apps.cards import card_lightcurve, card_cutouts, card_sn_scores
-from apps.cards import card_id, card_fink_added_values, card_sn_properties
-from apps.cards import card_download, card_classification
+from apps.cards import card_cutouts, card_sn_scores
+from apps.cards import card_id, card_sn_properties
+from apps.cards import card_download
 from apps.cards import card_variable_plot, card_variable_button
-from apps.cards import card_explanation_variable
+from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 
 dcc.Location(id='url', refresh=False)
@@ -76,7 +76,7 @@ def tab4_content(data):
     """
     tab4_content_ = html.Div([
         dbc.Row([
-            dbc.Col([card_mulens_plot(data), html.Br(), card_explanation_variable()], width=8),
+            dbc.Col([card_mulens_plot(data), html.Br(), card_explanation_mulens()], width=8),
             dbc.Col([card_mulens_button(data), card_mulens_param()], width=4)
         ]),
     ])
@@ -90,6 +90,7 @@ def tabs(data):
             dbc.Tab(tab3_content(data), label="Variable stars"),
             dbc.Tab(tab4_content(data), label="Microlensing"),
             dbc.Tab(label="Solar System", disabled=True),
+            dbc.Tab(label="GRB", disabled=True)
         ]
     )
     return tabs_
@@ -127,6 +128,7 @@ def layout(name):
 
     layout_ = html.Div(
         [
+            html.Br(),
             dbc.Row(
                 [
                     dbc.Col(
@@ -148,7 +150,7 @@ def layout(name):
                 justify="around", no_gutters=True
             ),
             html.Div(id='object-data', style={'display': 'none'})
-        ], style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)'}
+        ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
     )
 
     return layout_
