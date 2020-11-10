@@ -119,7 +119,7 @@ layout_mulens = dict(
         'title': 'DC magnitude'
     },
     title={
-        "text": "Fit",
+        "text": "pyLIMA Fit (PSPL model)",
         "y": 1.01,
         "yanchor": "bottom"
     }

@@ -383,7 +383,9 @@ def card_explanation_mulens():
     msg = """
     _Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed on the right panel._
 
-    _The fit is done using a simple [Microlensing model](https://github.com/astrolabsoftware/fink-usecases/blob/master/notebooks/mulens_helper.py). The next iteration will make use of [pyLIMA](https://github.com/ebachelet/pyLIMA) described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract)._
+    _The fit is done using [pyLIMA](https://github.com/ebachelet/pyLIMA)
+    described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract).
+    We use a simple PSPL model to fit the data._
     """
     card = dbc.Card(
         dbc.CardBody(
