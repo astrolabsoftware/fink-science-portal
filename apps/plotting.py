@@ -761,15 +761,15 @@ def plot_mulens(n_clicks, object_data):
             'name': 'fit',
             'showlegend': False,
             'line': {
-                'color': '#1f77b4',
+                'color': '#7f7f7f',
             }
         }
 
         figure = {
             'data': [
+                fit_filt,
                 plot_filt1,
-                plot_filt2,
-                fit_filt
+                plot_filt2
             ],
             "layout": layout_mulens
         }
