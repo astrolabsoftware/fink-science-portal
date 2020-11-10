@@ -18,43 +18,10 @@ import dash_bootstrap_components as dbc
 
 from apps.utils import convert_jd, extract_properties
 from apps.utils import extract_fink_classification_single
-from apps.plotting import draw_cutout, extract_latest_cutouts
-from apps.plotting import draw_lightcurve, draw_scores
+from apps.plotting import draw_cutout, draw_scores
 
 import numpy as np
 import urllib
-
-def card_lightcurve(data) -> dbc.Card:
-    """ Card containing the lightcurve object
-
-    Parameters
-    ----------
-    data: java.util.TreeMap
-        Results from a HBase client query
-
-    Returns
-    ----------
-    card: dbc.Card
-        Card with the lightcurve drawn inside
-    """
-    graph = dcc.Graph(
-        id='lightcurve',
-        figure=draw_lightcurve(data),
-        style={
-            'width': '100%',
-            'height': '15pc'
-        },
-        config={'displayModeBar': False}
-    )
-    card = dbc.Card(
-        dbc.CardBody(
-            [
-                graph
-            ]
-        ),
-        className="mt-3"
-    )
-    return card
 
 def card_sn_scores(data) -> dbc.Card:
     """ Card containing the score evolution
@@ -111,7 +78,6 @@ def card_cutouts(data):
     card: dbc.Card
         Card with the cutouts drawn inside
     """
-    science, template, difference = extract_latest_cutouts(data)
     card = dbc.Card(
         dbc.CardBody(
             [
@@ -123,7 +89,6 @@ def card_cutouts(data):
                 dbc.Row([
                     dcc.Graph(
                         id='science-stamps',
-                        figure=draw_cutout(science, 'science'),
                         style={
                             'display': 'inline-block',
                         },
@@ -131,7 +96,6 @@ def card_cutouts(data):
                     ),
                     dcc.Graph(
                         id='template-stamps',
-                        figure=draw_cutout(template, 'template'),
                         style={
                             'display': 'inline-block',
                         },
@@ -139,7 +103,6 @@ def card_cutouts(data):
                     ),
                     dcc.Graph(
                         id='difference-stamps',
-                        figure=draw_cutout(difference, 'difference'),
                         style={
                             'display': 'inline-block',
                         },
@@ -203,6 +166,7 @@ def card_variable_plot(data):
         className="mt-3"
     )
     return card
+
 
 nterms_base = dbc.FormGroup(
     [
@@ -271,7 +235,10 @@ def card_variable_button(data):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Fink class: {}".format(classification), className="card-subtitle"),
+            html.H6(
+                "Fink class: {}".format(classification),
+                className="card-subtitle"
+            ),
             dcc.Markdown(
                 """
                 ---
@@ -294,6 +261,7 @@ def card_variable_button(data):
     )
     return card
 
+
 submit_mulens_button = dbc.Button(
     'Fit data',
     id='submit_mulens',
@@ -302,7 +270,7 @@ submit_mulens_button = dbc.Button(
 )
 
 def card_mulens_button(data):
-    """ Add a card containing button to fit for variable stars
+    """ Add a card containing button to fit for microlensing events
     """
     pdf = extract_properties(
         data, [
@@ -330,7 +298,10 @@ def card_mulens_button(data):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Fink class: {}".format(classification), className="card-subtitle"),
+            html.H6(
+                "Fink class: {}".format(classification),
+                className="card-subtitle"
+            ),
             dcc.Markdown(
                 """
                 ---
@@ -353,7 +324,7 @@ def card_mulens_button(data):
     return card
 
 def card_mulens_plot(data):
-    """ Add a card to fit for variable stars
+    """ Add a card to fit for microlensing events
 
     Parameters
     ----------
@@ -363,7 +334,7 @@ def card_mulens_plot(data):
     Returns
     ----------
     card: dbc.Card
-        Card with the variable drawn inside
+        Card with the microlensing fit drawn inside
     """
     card = dbc.Card(
         dbc.CardBody(
@@ -383,7 +354,7 @@ def card_mulens_plot(data):
     return card
 
 def card_explanation_variable():
-    """
+    """ Explain what is used to fit for variable stars
     """
     msg = """
     _Fill the fields on the right, and press `Fit data` to
@@ -396,6 +367,23 @@ def card_explanation_variable():
     described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
     We use a multiband periodogram (LombScargleMultiband) to find the best period.
     Alternatively, you can manually set the period in days._
+    """
+    card = dbc.Card(
+        dbc.CardBody(
+            dcc.Markdown(msg)
+        ), style={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        }
+    )
+    return card
+
+def card_explanation_mulens():
+    """ Explain what is used to fit for microlensing events
+    """
+    msg = """
+    _Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed on the right panel._
+
+    _The fit is done using a simple [Microlensing model](https://github.com/astrolabsoftware/fink-usecases/blob/master/notebooks/mulens_helper.py). The next iteration will make use of [pyLIMA](https://github.com/ebachelet/pyLIMA) described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract)._
     """
     card = dbc.Card(
         dbc.CardBody(
@@ -526,7 +514,6 @@ def card_sn_properties(data):
     pdf = pdf.sort_values('i:jd', ascending=False)
 
     id0 = pdf['i:objectId'].values[0]
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
     snn_snia_vs_nonia = pdf['d:snn_snia_vs_nonia'].values[0]
     snn_sn_vs_all = pdf['d:snn_sn_vs_all'].values[0]
     rfscore = pdf['d:rfscore'].values[0]
@@ -558,7 +545,10 @@ def card_sn_properties(data):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Fink class: {}".format(classification), className="card-subtitle"),
+            html.H6(
+                "Fink class: {}".format(classification),
+                className="card-subtitle"
+            ),
             dcc.Markdown(
                 """
                 ---
@@ -605,91 +595,8 @@ def card_sn_properties(data):
     )
     return card
 
-def card_fink_added_values(data):
-    pdf = extract_properties(
-        data,
-        [
-            'i:jd',
-            'd:cdsxmatch',
-            'd:mulens_class_1',
-            'd:mulens_class_2',
-            'd:nalerthist',
-            'd:rfscore',
-            'd:roid',
-            'd:snn_sn_vs_all',
-            'd:snn_snia_vs_nonia'
-        ]
-    )
-    pdf = pdf.sort_values('i:jd', ascending=False)
-
-    out = "---\n"
-    out += "``` \n"
-    for index, colname in enumerate(pdf.columns):
-        if colname == 'i:jd':
-            continue
-        if 'snn_' in colname:
-            value = np.round(float(pdf[colname].values[0]), 3)
-        else:
-            value = pdf[colname].values[0]
-
-        out += "{}: {}\n".format(colname[2:], value)
-
-    out += "```"
-    card = dbc.Card(
-        [
-
-            html.H5("Fink added values", className="card-subtitle"),
-            dcc.Markdown(out)
-        ],
-        className="mt-3", body=True
-    )
-    return card
-
-def card_classification(data):
-    """
-    """
-    pdf = extract_properties(
-        data, [
-            'i:objectidps1',
-            'i:distpsnr1',
-            'i:neargaia',
-            'i:jd',
-            'i:ra',
-            'i:dec'
-        ]
-    )
-    pdf = pdf.sort_values('i:jd', ascending=False)
-
-    objectidps1 = pdf['i:objectidps1'].values[0]
-    distpsnr1 = pdf['i:distpsnr1'].values[0]
-    neargaia = pdf['i:neargaia'].values[0]
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
-
-    msg = """
-    ---
-    ```
-    [PS1 ] Closest id: {}
-    [PS1 ] Distance (arcsec): {}
-    [Gaia] Distance (arcsec): {}
-    ```
-    """.format(objectidps1, distpsnr1, neargaia)
-    card = dbc.Card(
-        [
-            html.H5("External resources", className="card-subtitle"),
-            dcc.Markdown(msg),
-            dbc.ButtonGroup([
-                dbc.Button('TNS', id='TNS', target="_blank", href='https://wis-tns.weizmann.ac.il/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)),
-                dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)),
-                dbc.Button('NED', id='NED', target="_blank", href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)),
-            ])
-        ],
-        className="mt-3", body=True
-    )
-    return card
-
 def card_download(data):
-    """
+    """ Card containing a button to download object data
     """
     pdf = extract_properties(data, ['i:objectId'])
     objectid = pdf['i:objectId'].values[0]
@@ -724,6 +631,9 @@ def card_mulens_param():
     return card
 
 def generate_download_link(data):
+    """ Crappy way for downloading data as csv. The URL is modified on-the-fly.
+    TODO: try https://github.com/thedirtyfew/dash-extensions/
+    """
     if data is None:
         return ""
     else:
