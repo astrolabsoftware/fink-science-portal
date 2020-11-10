@@ -707,7 +707,7 @@ def plot_mulens(n_clicks, object_data):
 
         telescope_ = results.event.fake_telescopes[0]
 
-        flux_model = Model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
+        flux_model = mulens_model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
 
         time = telescope_.lightcurve_flux[:, 0]
         magnitude = microltoolbox.flux_to_magnitude(flux_model)
