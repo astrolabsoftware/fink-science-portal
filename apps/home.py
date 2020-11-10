@@ -38,8 +38,7 @@ layout = html.Div([
                 dbc.CardDeck([
                     dbc.Card(children=[
                         html.H3(children="Explore historical data", className="text-center"),
-                        #dbc.Col(html.Img(src="/assets/lc.png", height='175px', width='100%')),
-                        #dbc.CardImg(src="/assets/lc.png"),
+                        html.H6(children="Browse all alert data collected and processed by Fink", className="text-center"),
                         dbc.Button(
                             "Explorer",
                             href="/explorer",
@@ -48,10 +47,9 @@ layout = html.Div([
                         ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
                     dbc.Card(children=[
                         html.H3(children='Explore the Graph database', className="text-center"),
-                        #dbc.Col(html.Img(src="/assets/graph2.png", height='175px', width='100%')),
-                        #dbc.CardImg(src="/assets/graph2.png"),
+                        html.H6(children="Visualise links between alerts and detect patterns in Fink data", className="text-center"),
                         dbc.Button(
-                            "Grafink (Not available)",
+                            "Grafink (Not yet available)",
                             href="/grafink",
                             color="secondary",
                             disabled=True,
@@ -62,54 +60,13 @@ layout = html.Div([
                 )]
             ),
         html.Br(),
-        # dbc.Row([
-        #     dbc.Col(
-        #         dbc.CardDeck([
-        #             dbc.Card(children=[
-        #                 html.H3(children="Supernovae", className="text-center"),
-        #                 #dbc.Col(html.Img(src="/assets/lc.png", height='175px', width='100%')),
-        #                 #dbc.CardImg(src="/assets/lc.png"),
-        #                 dbc.Button(
-        #                     "Learn More",
-        #                     href="/about",
-        #                     color="secondary",
-        #                     className="mt-3"),
-        #                 ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
-        #             dbc.Card(children=[
-        #                 html.H3(children='Microlensing', className="text-center"),
-        #                 #dbc.Col(html.Img(src="/assets/graph2.png", height='175px', width='100%')),
-        #                 #dbc.CardImg(src="/assets/graph2.png"),
-        #                 dbc.Button(
-        #                     "Learn More",
-        #                     href="/about",
-        #                     color="secondary",
-        #                     className="mt-3"),
-        #                 ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
-        #                 dbc.Card(children=[
-        #                     html.H3(children="Solar System", className="text-center"),
-        #                     #dbc.Col(html.Img(src="/assets/lc.png", height='175px', width='100%')),
-        #                     #dbc.CardImg(src="/assets/lc.png"),
-        #                     dbc.Button(
-        #                         "Learn More",
-        #                         href="/about",
-        #                         color="secondary",
-        #                         className="mt-3"),
-        #                     ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
-        #                 dbc.Card(children=[
-        #                     html.H3(children='Variable Stars', className="text-center"),
-        #                     #dbc.Col(html.Img(src="/assets/graph2.png", height='175px', width='100%')),
-        #                     #dbc.CardImg(src="/assets/graph2.png"),
-        #                     dbc.Button(
-        #                         "Learn More",
-        #                         href="/about",
-        #                         color="secondary",
-        #                         className="mt-3"),
-        #                     ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'})
-        #                 ]
-        #             ),
-        #         )]
-        #     ),
-        ])
+        ], className='Absolute-Center'),
+    html.Footer(
+        [
+            html.Img(src="/assets/cnrs.png", height='30px', width='30px'),
+            html.Img(src="/assets/lsstfr.png", height='30px', width='60px'),
+            html.Img(src="/assets/ztf.png", height='30px', width='45px')
+        ], className='footer')
 
     ], className='home', style={
-            'background-image': 'url(/assets/background.png)'})
+            'background-image': 'url(/assets/background.png)', 'background-size': 'contain'})
