@@ -668,7 +668,7 @@ def plot_mulens(n_clicks, object_data):
         current_event.ra = pdf['i:ra'].values[0]
         current_event.dec = pdf['i:dec'].values[0]
 
-        filts = {1: 'g', 2: 'r'}
+        filts = {'1': 'g', '2': 'r'}
         for fid in np.unique(pdf['i:fid'].values):
             mask = pdf['i:fid'].values == fid
             telescope = telescopes.Telescope(
@@ -695,12 +695,12 @@ def plot_mulens(n_clicks, object_data):
 
         current_event.fit(mulens_model, 'DE')
 
-        normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
-
         # 4 parameters
         dof = len(pdf) - 4 - 1
 
         results = current_event.fits[0]
+
+        normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
 
         # Model
         create_the_fake_telescopes(results, results.fit_results)
@@ -724,7 +724,7 @@ def plot_mulens(n_clicks, object_data):
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'text': jds_[pdf['i:fid'] == '1'],
+                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:,0]],
                 'marker': {
                     'size': 12,
                     'color': '#1f77b4',
@@ -745,7 +745,7 @@ def plot_mulens(n_clicks, object_data):
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'text': jds_[pdf['i:fid'] == '2'],
+                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[1][:,0]],
                 'marker': {
                     'size': 12,
                     'color': '#ff7f0e',
@@ -774,6 +774,11 @@ def plot_mulens(n_clicks, object_data):
             "layout": layout_mulens
         }
 
+        # fitted parameters
+        names = results.model.model_dictionnary
+        params = results.fit_results
+        err = np.diag(np.sqrt(results.fit_covariance))
+
         mulens_params = """
         ```python
         # Fitted parameters
@@ -784,13 +789,13 @@ def plot_mulens(n_clicks, object_data):
         ```
         ---
         """.format(
-            results.outputs.fit_parameters.to,
-            results.outputs.fit_errors.err_to,
-            results.outputs.fit_parameters.tE,
-            results.outputs.fit_errors.err_tE,
-            results.outputs.fit_parameters.uo,
-            results.outputs.fit_errors.err_uo,
-            results.outputs.fit_parameters.chichi / dof
+            params[names['to']],
+            err[names['to']],
+            params[names['tE']],
+            err[names['tE']],
+            params[names['uo']],
+            err[names['uo']],
+            params[-1] / dof
         )
         return figure, mulens_params
 
