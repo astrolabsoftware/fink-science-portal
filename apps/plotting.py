@@ -18,14 +18,19 @@ from gatspy import periodic
 
 import java
 import copy
+from astropy.time import Time
 
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
-from apps.utils import extract_row, extract_properties
 from apps.utils import apparent_flux, dc_mag
-from apps.mulens_helper import fit_ml_de_simple, mulens_simple
+# from apps.mulens_helper import fit_ml_de_simple, mulens_simple
+
+from pyLIMA import event
+from pyLIMA import telescopes
+from pyLIMA import microlmodels, microltoolbox
+from pyLIMA.microloutputs import create_the_fake_telescopes
 
 from app import client, app
 
@@ -43,17 +48,24 @@ colors_ = [
 ]
 
 layout_lightcurve = dict(
-    autosize=True,
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
-    legend=dict(font=dict(size=10), orientation="h"),
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        bgcolor='rgba(0,0,0,0)'
+    ),
     xaxis={
-        'title': 'Observation date'
+        'title': 'Observation date',
+        'automargin': True
     },
     yaxis={
         'autorange': 'reversed',
-        'title': 'Magnitude'
+        'title': 'Magnitude',
+        'automargin': True
     }
 )
 
@@ -76,12 +88,12 @@ layout_phase = dict(
     },
     yaxis={
         'autorange': 'reversed',
-        'title': 'Magnitude'
+        'title': 'Apparent DC Magnitude'
     },
     title={
         "text": "Phased data",
-        "y" : 1.01,
-        "yanchor" : "bottom"
+        "y": 1.01,
+        "yanchor": "bottom"
     }
 )
 
@@ -107,9 +119,9 @@ layout_mulens = dict(
         'title': 'DC magnitude'
     },
     title={
-        "text": "Fit",
-        "y" : 1.01,
-        "yanchor" : "bottom"
+        "text": "pyLIMA Fit (PSPL model)",
+        "y": 1.01,
+        "yanchor": "bottom"
     }
 )
 
@@ -128,17 +140,8 @@ layout_scores = dict(
     }
 )
 
-def extract_lightcurve(data: java.util.TreeMap) -> pd.DataFrame:
-    """
-    """
-    values = ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid']
-    pdfs = pd.DataFrame.from_dict(data, orient='index')
-    if pdfs.empty:
-        return pdfs
-    return pdfs[values]
-
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
-    """
+    """ Extract SN scores from the data
     """
     values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all', 'd:rfscore']
     pdfs = pd.DataFrame.from_dict(data, orient='index')
@@ -279,6 +282,8 @@ def draw_scores(data: java.util.TreeMap) -> dict:
     Returns
     ----------
     figure: dict
+
+    TODO: memoise me
     """
     pdf = extract_scores(data)
 
@@ -335,66 +340,107 @@ def draw_scores(data: java.util.TreeMap) -> dict:
     }
     return figure
 
-def extract_latest_cutouts(data: java.util.TreeMap):
+def extract_cutout(object_data, time0, kind):
     """ Extract cutout data from the alert
 
     Parameters
     ----------
-    data: java.util.TreeMap
-        Results from a HBase client query
+    object_data: json
+        Jsonified pandas DataFrame
+    time0: str
+        ISO time of the cutout to extract
+    kind: str
+        science, template, or difference
 
     Returns
     ----------
-    science: np.array
-        2D array containing science data
-    template: np.array
-        2D array containing template data
-    difference: np.array
-        2D array containing difference data
+    data: np.array
+        2D array containing cutout data
     """
     values = [
         'i:jd',
-        'b:cutoutScience_stampData',
-        'b:cutoutTemplate_stampData',
-        'b:cutoutDifference_stampData'
+        'i:fid',
+        'b:cutout{}_stampData'.format(kind.capitalize()),
     ]
-    pdfs = pd.DataFrame.from_dict(data, orient='index')[values]
-    pdfs.sort_values('i:jd', ascending=False)
-    diff = readstamp(
-        client.repository().get(pdfs['b:cutoutDifference_stampData'].values[0]))
-    science = readstamp(
-        client.repository().get(pdfs['b:cutoutScience_stampData'].values[0]))
-    template = readstamp(
-        client.repository().get(pdfs['b:cutoutTemplate_stampData'].values[0]))
-    return science, template, diff
+    pdf_ = pd.read_json(object_data)
+    pdfs = pdf_.loc[:, values]
+    pdfs = pdfs.sort_values('i:jd', ascending=False)
+
+    if time0 is None:
+        position = 0
+    else:
+        # Round to avoid numerical precision issues
+        jds = pdfs['i:jd'].apply(lambda x: np.round(x, 2)).values
+        jd0 = np.round(Time(time0, format='iso').jd, 2)
+        position = np.where(jds == jd0)[0][0]
+
+    # Grab the cutout data
+    cutout = readstamp(
+        client.repository().get(
+            pdfs['b:cutout{}_stampData'.format(kind.capitalize())].values[position]
+        )
+    )
+    return cutout
+
+
+@app.callback(
+    Output("science-stamps", "figure"),
+    [
+        Input('lightcurve_cutouts', 'clickData'),
+        Input('object-data', 'children'),
+    ])
+def draw_cutouts_science(clickData, object_data):
+    """ Draw science cutout data based on lightcurve data
+    """
+    if clickData is not None:
+        # Draw the cutout associated to the clicked data points
+        jd0 = clickData['points'][0]['x']
+    else:
+        # draw the cutout of the last alert
+        jd0 = None
+    data = extract_cutout(object_data, jd0, kind='science')
+    return draw_cutout(data, 'science')
+
+@app.callback(
+    Output("template-stamps", "figure"),
+    [
+        Input('lightcurve_cutouts', 'clickData'),
+        Input('object-data', 'children'),
+    ])
+def draw_cutouts_template(clickData, object_data):
+    """ Draw template cutout data based on lightcurve data
+    """
+    if clickData is not None:
+        jd0 = clickData['points'][0]['x']
+    else:
+        jd0 = None
+    data = extract_cutout(object_data, jd0, kind='template')
+    return draw_cutout(data, 'template')
+
+@app.callback(
+    Output("difference-stamps", "figure"),
+    [
+        Input('lightcurve_cutouts', 'clickData'),
+        Input('object-data', 'children'),
+    ])
+def draw_cutouts_difference(clickData, object_data):
+    """ Draw difference cutout data based on lightcurve data
+    """
+    if clickData is not None:
+        jd0 = clickData['points'][0]['x']
+    else:
+        jd0 = None
+    data = extract_cutout(object_data, jd0, kind='difference')
+    return draw_cutout(data, 'difference')
 
 def draw_cutout(data, title):
-    """ Display alert data and stamps based on its ID.
-
-    By default, the data curve is the light curve (magpsd vs jd).
-
-    Callbacks
-    ----------
-    Input: alert_id coming from the `alerts-dropdown` menu
-    Input: field_name coming from the `field-dropdown` menu
-    Output: Graph to display the historical light curve data of the alert.
-    Output: stamps (Science, Template, Difference)
-
-    Parameters
-    ----------
-    alert_id: str
-        ID of the alerts (must be unique and saved on disk).
-    field_name: str
-        Name of the alert field to plot (default is None).
-
-    Returns
-    ----------
-    html.div: Graph data and layout based on incoming alert data.
+    """ Draw a cutout data
     """
     # Update graph data for stamps
     size = len(data)
-    vmax = data[int(size/2), int(size/2)]
-    vmin = np.min(data) + 0.2*np.median(np.abs(data - np.median(data)))
+    data = np.nan_to_num(data)
+    vmax = data[int(size / 2), int(size / 2)]
+    vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     data = _data_stretch(data, vmin=vmin, vmax=vmax, stretch='asinh')
     data = data[::-1]
     data = convolve(data, smooth=1, kernel='gauss')
@@ -433,7 +479,12 @@ def draw_cutout(data, title):
         Input('object-data', 'children')
     ])
 def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object_data):
-    """
+    """ Fit for the period of a star using gatspy
+
+    See https://zenodo.org/record/47887
+    See https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
+
+    TODO: clean me
     """
     if type(nterms_base) not in [int]:
         return {'data': [], "layout": layout_phase}
@@ -444,10 +495,27 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
 
     if n_clicks is not None:
         pdf_ = pd.read_json(object_data)
-        cols = ['i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid']
+        cols = [
+            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
+        ]
         pdf = pdf_.loc[:, cols]
         pdf['i:fid'] = pdf['i:fid'].astype(str)
         pdf = pdf.sort_values('i:jd', ascending=False)
+
+        mag_dc, err_dc = np.transpose(
+            [
+                dc_mag(*args) for args in zip(
+                    pdf['i:fid'].astype(int).values,
+                    pdf['i:magpsf'].astype(float).values,
+                    pdf['i:sigmapsf'].astype(float).values,
+                    pdf['i:magnr'].astype(float).values,
+                    pdf['i:sigmagnr'].astype(float).values,
+                    pdf['i:magzpsci'].astype(float).values,
+                    pdf['i:isdiffpos'].values
+                )
+            ]
+        )
 
         jd = pdf['i:jd']
         fit_period = False if manual_period is not None else True
@@ -456,13 +524,15 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
             Nterms_band=int(nterms_band),
             fit_period=fit_period
         )
+
+        # Not sure about that...
         model.optimizer.period_range = (0.1, 1.2)
         model.optimizer.quiet = True
 
         model.fit(
             jd.astype(float),
-            pdf['i:magpsf'].astype(float),
-            pdf['i:sigmapsf'].astype(float),
+            mag_dc,
+            err_dc,
             pdf['i:fid'].astype(int)
         )
 
@@ -480,10 +550,10 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
         if '1' in np.unique(pdf['i:fid'].values):
             plot_filt1 = {
                 'x': phase[pdf['i:fid'] == '1'],
-                'y': pdf['i:magpsf'][pdf['i:fid'] == '1'],
+                'y': mag_dc[pdf['i:fid'] == '1'],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '1'],
+                    'array': err_dc[pdf['i:fid'] == '1'],
                     'visible': True,
                     'color': '#1f77b4'
                 },
@@ -512,10 +582,10 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
         if '2' in np.unique(pdf['i:fid'].values):
             plot_filt2 = {
                 'x': phase[pdf['i:fid'] == '2'],
-                'y': pdf['i:magpsf'][pdf['i:fid'] == '2'],
+                'y': mag_dc[pdf['i:fid'] == '2'],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['i:sigmapsf'][pdf['i:fid'] == '2'],
+                    'array': err_dc[pdf['i:fid'] == '2'],
                     'visible': True,
                     'color': '#ff7f0e'
                 },
@@ -563,12 +633,14 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
         Input('object-data', 'children')
     ])
 def plot_mulens(n_clicks, object_data):
-    """
+    """ Fit for microlensing event
+
+    TODO: implement a fit using pyLIMA
     """
     if n_clicks is not None:
         pdf_ = pd.read_json(object_data)
         cols = [
-            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:ra', 'i:dec',
             'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
         ]
         pdf = pdf_.loc[:, cols]
@@ -589,173 +661,151 @@ def plot_mulens(n_clicks, object_data):
             ]
         )
 
-        # Container for measurements
-        subpdf = pd.DataFrame({
-            'filtercode': [],
-            'mag_g': [],
-            'magerr_g': [],
-            'mag_r': [],
-            'magerr_r': [],
-            'time': [],
-            'name': []
-        })
+        current_event = event.Event()
+        current_event.name = pdf['i:objectId'].values[0]
 
-        # Loop over filters
-        conversiondict = {1.0: 'g', 2.0: 'r'}
-        fids = pdf['i:fid'].astype(int).values
-        jds = pdf['i:jd'].astype(float)
-        jds_ = jds.values
-        magpsf = pdf['i:magpsf'].astype(float).values
+        ## Si t'as besoin tu peux ajouter les RA, DEC
+        current_event.ra = pdf['i:ra'].values[0]
+        current_event.dec = pdf['i:dec'].values[0]
 
-        # extract historical and current measurements
-        subpdf['time'] = jds_
-        subpdf['name'] = pdf['i:objectId']
+        filts = {'1': 'g', '2': 'r'}
+        for fid in np.unique(pdf['i:fid'].values):
+            mask = pdf['i:fid'].values == fid
+            telescope = telescopes.Telescope(
+                name='ztf_{}'.format(filts[fid]),
+                camera_filter=format(filts[fid]),
+                light_curve_magnitude=np.transpose(
+                    [
+                        pdf['i:jd'].values[mask],
+                        pdf['i:magpsf'].values[mask],
+                        pdf['i:sigmapsf'].values[mask]
+                    ]
+                ),
+                light_curve_magnitude_dictionnary={
+                    'time': 0,
+                    'mag': 1,
+                    'err_mag': 2
+                }
+            )
 
-        masks = {'1': [], '2': []}
-        filts = []
-        for fid in np.unique(fids):
-            # Select filter
-            mask_fid = fids == fid
+            current_event.telescopes.append(telescope)
 
-            # Remove upper limits
-            maskNone = np.array(magpsf) == np.array(magpsf)
+        # Le modele le plus simple
+        mulens_model = microlmodels.create_model('PSPL', current_event)
 
-            # Remove outliers
-            maskOutlier = np.array(mag_dc) < 22
+        current_event.fit(mulens_model, 'DE')
 
-            # Total mask
-            mask = mask_fid * maskNone * maskOutlier
-            masks[str(fid)] = mask
+        # 4 parameters
+        dof = len(pdf) - 4 - 1
 
-            # mot enough points for the fit
-            if np.sum(mask) < 4:
-                continue
+        results = current_event.fits[0]
 
-            # Gather data for the fitter
-            subpdf['filtercode'] = pd.Series(fids).replace(to_replace=conversiondict)
-            subpdf[f'mag_{conversiondict[fid]}'] = mag_dc
-            subpdf[f'magerr_{conversiondict[fid]}'] = err_dc
+        normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
 
-            # Nullify data which is not this filter
-            subpdf[f'magerr_{conversiondict[fid]}'][~mask] = None
-            subpdf[f'mag_{conversiondict[fid]}'][~mask] = None
+        # Model
+        create_the_fake_telescopes(results, results.fit_results)
 
-            filts.append(str(fid))
+        telescope_ = results.event.fake_telescopes[0]
 
-        results_ml = fit_ml_de_simple(subpdf)
+        flux_model = mulens_model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
 
-        # Compute chi2
-        nfitted_param = 4. # u0, t0, tE, magstar
-        time = np.arange(np.min(jds_), np.max(jds_), 1)
+        time = telescope_.lightcurve_flux[:, 0]
+        magnitude = microltoolbox.flux_to_magnitude(flux_model)
 
         if '1' in filts:
             plot_filt1 = {
-                'x': jds[pdf['i:fid'] == '1'].apply(lambda x: convert_jd(float(x), to='iso')),
-                'y': mag_dc[pdf['i:fid'] == '1'],
+                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:,0]],
+                'y': normalised_lightcurves[0][:,1],
                 'error_y': {
                     'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '1'],
+                    'array': normalised_lightcurves[0][:,2],
                     'visible': True,
                     'color': '#1f77b4'
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'text': jds_[pdf['i:fid'] == '1'],
+                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:,0]],
                 'marker': {
                     'size': 12,
                     'color': '#1f77b4',
                     'symbol': 'o'}
             }
-            fit_filt1 = {
-                'x': [convert_jd(float(t), to='iso') for t in time],
-                'y': mulens_simple(time, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g),
-                'mode': 'lines',
-                'name': 'fit g band',
-                'showlegend': False,
-                'line': {
-                    'color': '#1f77b4',
-                }
-            }
-
-            # chi2
-            observed = mag_dc[masks['1']]
-            expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_g)[masks['1']]
-            err = err_dc[masks['1']]
-            chi2_g = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
         else:
             plot_filt1 = {}
-            fit_filt1 = {}
-            chi2_g = None
 
         if '2' in filts:
             plot_filt2 = {
-                'x': jds[pdf['i:fid'] == '2'].apply(lambda x: convert_jd(float(x), to='iso')),
-                'y': mag_dc[pdf['i:fid'] == '2'],
+                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[1][:,0]],
+                'y': normalised_lightcurves[1][:,1],
                 'error_y': {
                     'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '2'],
+                    'array': normalised_lightcurves[1][:,2],
                     'visible': True,
                     'color': '#ff7f0e'
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'text': jds_[pdf['i:fid'] == '2'],
+                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[1][:,0]],
                 'marker': {
                     'size': 12,
                     'color': '#ff7f0e',
                     'symbol': 'o'}
             }
-            fit_filt2 = {
-                'x': [convert_jd(float(t), to='iso') for t in time],
-                'y': mulens_simple(time, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r),
-                'mode': 'lines',
-                'name': 'fit r band',
-                'showlegend': False,
-                'line': {
-                    'color': '#ff7f0e',
-                }
-            }
-
-            observed = mag_dc[masks['2']]
-            expected = mulens_simple(jds_, results_ml.u0, results_ml.t0, results_ml.tE, results_ml.magStar_r)[masks['2']]
-            err = err_dc[masks['2']]
-            chi2_r = 1. / (len(observed) - nfitted_param) * np.sum((observed - expected)**2/err**2)
         else:
             plot_filt2 = {}
-            fit_filt2 = {}
-            chi2_r = None
+
+        fit_filt = {
+            'x': [convert_jd(float(t), to='iso') for t in time],
+            'y': magnitude,
+            'mode': 'lines',
+            'name': 'fit',
+            'showlegend': False,
+            'line': {
+                'color': '#7f7f7f',
+            }
+        }
 
         figure = {
             'data': [
+                fit_filt,
                 plot_filt1,
-                fit_filt1,
-                plot_filt2,
-                fit_filt2
+                plot_filt2
             ],
             "layout": layout_mulens
         }
 
+        # fitted parameters
+        names = results.model.model_dictionnary
+        params = results.fit_results
+        err = np.diag(np.sqrt(results.fit_covariance))
+
         mulens_params = """
         ```python
         # Fitted parameters
-        t0: {} (jd)
-        tE: {} (days)
-        u0: {}
-        chi2_g/dof: {}
-        chi2_r/dof: {}
+        t0: {} +/- {} (jd)
+        tE: {} +/- {} (days)
+        u0: {} +/- {}
+        chi2/dof: {}
         ```
         ---
-        """.format(results_ml.t0, results_ml.tE, results_ml.u0, chi2_g, chi2_r)
+        """.format(
+            params[names['to']],
+            err[names['to']],
+            params[names['tE']],
+            err[names['tE']],
+            params[names['uo']],
+            err[names['uo']],
+            params[-1] / dof
+        )
         return figure, mulens_params
 
     mulens_params = """
     ```python
     # Fitted parameters
-    t0:
-    tE:
-    u0:
-    chi2_g/dof:
-    chi2_r/dof:
+    t0: None
+    tE: None
+    u0: None
+    chi2: None
     ```
     ---
     """

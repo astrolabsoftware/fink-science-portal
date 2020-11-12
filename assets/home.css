@@ -1,11 +1,29 @@
-className='row',
-style={
-  'verticalAlign':'middle',
-  'textAlign': 'center',
-  'position':'fixed',
-  'width':'100%',
-  'height':'100%',
-  'top':'0px',
-  'left':'0px',
-  'z-index':'1000'
-},
+html, body {
+  height: 100%;
+}
+
+.home {
+  overflow: auto;
+  position:absolute;
+  width:100%;
+  height:92%;
+  margin-top: 50px;
+  top: 0px;
+  left:0;
+  bottom: 0;
+  right: 0;
+}
+
+.finknav {
+    width: 100%;
+    height: 50px;
+    text-align: center;
+}
+
+.Absolute-Center {
+  height: 60%;
+  position: absolute;
+  margin: auto;
+  top: 0; left: 0; bottom: 0; right: 0;
+  vertical-align: middle;
+}

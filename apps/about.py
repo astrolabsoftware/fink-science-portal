@@ -30,40 +30,77 @@ msg_alert="""
 Fink comes to join a few other brokers currently operating on other experiments, such as the Zwicky Transient Facility (ZTF, Bellm et al. 2018) or the High cadence Transient Survey (HiTS, Förster et al. 2016). Among these are ALeRCE (Förster et al. 2020), Ampel (Nordin et al. 2019), Antares (Narayan et al. 2018), Lasair (Smith et al. 2019), MARS and SkyPortal (van der Walt et al. 2019). ZTF has the particularity to use an alert system design that is very close to the one envisioned by LSST (Patterson et al. 2019), hence allowing to prototype and test systems with the relevant features and communication protocols prior to the start of LSST operations.
 """
 msg_thanks="""
-We are grateful to all supporters of the project. Fink is supported by CNRS/IN2P3 within LSST-France (https://www.lsst.fr/). We acknowledge the support from the VirtualData cloud at Université Paris-Saclay which provides the computing resources. 
+We are grateful to all supporters of the project. Fink is supported by CNRS/IN2P3 within LSST-France (https://www.lsst.fr/). We acknowledge the support from the VirtualData cloud at Université Paris-Saclay which provides the computing resources.
 The project received support from the Google Summer of Code 2019 and 2020. The project acknowledges financial support from CNRS-MOMENTUM 2018-2020, NASA grant 80NSSC19K0291, European Structural and Investment Fund and the Czech Ministry of Education, Youth and Sports (Project CoGraDS-CZ.02.1.01/0.0/0.0/15003/0000437).
-This research makes use of ZTF (https://www.ztf.caltech.edu/) public alert data. ZTF is supported by National Science Foundation grant AST-1440341 and a collaboration including Caltech, IPAC, the Weizmann Institute for Science, the Oskar Klein Center at Stockholm University, the University of Maryland, the University of Washington, Deutsches Elektronen-Synchrotron and Humboldt University, Los Alamos National Laboratories, the TANGO Consortium of Taiwan, the University of Wisconsin at Milwaukee, and Lawrence Berkeley National Laboratories. Operations are conducted by COO, IPAC, and UW. 
+This research makes use of ZTF (https://www.ztf.caltech.edu/) public alert data. ZTF is supported by National Science Foundation grant AST-1440341 and a collaboration including Caltech, IPAC, the Weizmann Institute for Science, the Oskar Klein Center at Stockholm University, the University of Maryland, the University of Washington, Deutsches Elektronen-Synchrotron and Humboldt University, Los Alamos National Laboratories, the TANGO Consortium of Taiwan, the University of Wisconsin at Milwaukee, and Lawrence Berkeley National Laboratories. Operations are conducted by COO, IPAC, and UW.
 This research has made use of "Aladin sky atlas" developed at CDS, Strasbourg Observatory, France (see 2000A&AS..143...33B and 2014ASPC..485..277B).
 """
 
 layout = html.Div([
     dbc.Container([
+        dbc.Row(
+            [
+                dbc.Col(html.H2("Fink infrastructure"), className="mb-5 mt-5")
+            ]
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.Img(
+                    src="/assets/infrastructure.png",
+                    height='300px',
+                    width='75%'
+                )
+            ), style={'textAlign': 'center'}
+        ),
+        dbc.Row(
+            html.H5(children=msg_infra, className='text-align')
+        ),
+        dbc.Row(
+            [
+                dbc.Col(html.H2("Fink results"), className="mb-5 mt-5")
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    html.H5(children=msg_results, className='text-align')
+                ),
+                dbc.Col(
+                    html.Img(
+                        src="/assets/footprint_nside128.png",
+                        height='500px',
+                        width='100%'
+                    )
+                ),
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(html.H2("LSST alert ecosystem"), className="mb-5 mt-5")
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(html.H5(children=msg_alert, className='text-align')),
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(html.H2("Acknowledgments"), className="mb-5 mt-5")
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(html.H5(children=msg_thanks, className='text-align')),
+            ]
+        ),
+        html.Br(),
         dbc.Row([
-             dbc.Col(html.H2("Fink infrastructure")
-                     , className="mb-5 mt-5")
-         ]),
-        dbc.Row(dbc.Col(html.Img(src="/assets/infrastructure.png", height='300px', width='75%')), style={'textAlign': 'center'}),
-        dbc.Row(html.H5(children=msg_infra, className='text-align')),
-        dbc.Row([
-              dbc.Col(html.H2("Fink results")
-                      , className="mb-5 mt-5")
-          ]),
-        dbc.Row([
-         dbc.Col(html.H5(children=msg_results, className='text-align')),
-         dbc.Col(html.Img(src="/assets/footprint_nside128.png", height='500px', width='100%')),
-         ]),
-        dbc.Row([
-            dbc.Col(html.H2("LSST alert ecosystem"), className="mb-5 mt-5")
-        ]),
-        dbc.Row([
-            dbc.Col(html.H5(children=msg_alert, className='text-align')),
-        ]),
-        dbc.Row([
-            dbc.Col(html.H2("Acknowledgments"), className="mb-5 mt-5")
-        ]),
-        dbc.Row([
-            dbc.Col(html.H5(children=msg_thanks, className='text-align')),
-        ]),
+            html.Img(src="/assets/cnrs.png", height='100px', width='100px'),
+            html.Img(src="/assets/lsstfr.png", height='100px', width='200px'),
+            html.Img(src="/assets/ztf.png", height='100px', width='150px'),
+        ], justify='center'),
+        html.Br()
     ])
 
 ])
