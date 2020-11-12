@@ -9,10 +9,10 @@ from app import app
 layout = html.Div([
     dbc.Container([
         dbc.Row([
-            dbc.Col(html.H1(children='COVID-19 Worldwide at a glance'), className="mb-2")
+            dbc.Col(html.H1(children='TODO'), className="mb-2")
         ]),
         dbc.Row([
-            dbc.Col(html.H6(children='Visualising trends across the world'), className="mb-4")
+            dbc.Col(html.H6(children='TODO'), className="mb-4")
         ]),
         ])
     ])
