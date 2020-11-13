@@ -398,8 +398,8 @@ def extract_cutout(object_data, time0, kind):
         position = 0
     else:
         # Round to avoid numerical precision issues
-        jds = pdfs['i:jd'].apply(lambda x: np.round(x, 2)).values
-        jd0 = np.round(Time(time0, format='iso').jd, 2)
+        jds = pdfs['i:jd'].apply(lambda x: np.round(x, 3)).values
+        jd0 = np.round(Time(time0, format='iso').jd, 3)
         position = np.where(jds == jd0)[0][0]
 
     # Grab the cutout data
