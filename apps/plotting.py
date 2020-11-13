@@ -157,9 +157,10 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     [
         Input('switch-mag-flux', 'value'),
         Input('url', 'pathname'),
-        Input('object-data', 'children')
+        Input('object-data', 'children'),
+        Input('object-upper', 'children')
     ])
-def draw_lightcurve(switch: int, pathname: str, object_data) -> dict:
+def draw_lightcurve(switch: int, pathname: str, object_data, object_upper) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
@@ -187,8 +188,6 @@ def draw_lightcurve(switch: int, pathname: str, object_data) -> dict:
     jd = pdf['i:jd']
     jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
 
-    pdf['i:fid'] = pdf['i:fid'].astype(str)
-
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
@@ -200,7 +199,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data) -> dict:
         mag, err = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'].astype(int).values,
+                    pdf['i:fid'].values,
                     mag.astype(float).values,
                     err.astype(float).values,
                     pdf['i:magnr'].astype(float).values,
@@ -233,34 +232,34 @@ def draw_lightcurve(switch: int, pathname: str, object_data) -> dict:
     figure = {
         'data': [
             {
-                'x': jd[pdf['i:fid'] == '1'],
-                'y': mag[pdf['i:fid'] == '1'],
+                'x': jd[pdf['i:fid'] == 1],
+                'y': mag[pdf['i:fid'] == 1],
                 'error_y': {
                     'type': 'data',
-                    'array': err[pdf['i:fid'] == '1'],
+                    'array': err[pdf['i:fid'] == 1],
                     'visible': True,
                     'color': '#1f77b4'
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'text': jd[pdf['i:fid'] == '1'],
+                'text': jd[pdf['i:fid'] == 1],
                 'marker': {
                     'size': 12,
                     'color': '#1f77b4',
                     'symbol': 'o'}
             },
             {
-                'x': jd[pdf['i:fid'] == '2'],
-                'y': mag[pdf['i:fid'] == '2'],
+                'x': jd[pdf['i:fid'] == 2],
+                'y': mag[pdf['i:fid'] == 2],
                 'error_y': {
                     'type': 'data',
-                    'array': err[pdf['i:fid'] == '2'],
+                    'array': err[pdf['i:fid'] == 2],
                     'visible': True,
                     'color': '#ff7f0e'
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'text': jd[pdf['i:fid'] == '2'],
+                'text': jd[pdf['i:fid'] == 2],
                 'marker': {
                     'size': 12,
                     'color': '#ff7f0e',
@@ -269,6 +268,35 @@ def draw_lightcurve(switch: int, pathname: str, object_data) -> dict:
         ],
         "layout": layout_lightcurve
     }
+
+    if switch == 0:
+        pdf_upper = pd.read_json(object_upper)
+        if not pdf_upper.empty:
+            pdf_upper['i:jd'] = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+            figure['data'].append(
+                {
+                    'x': pdf_upper['i:jd'][pdf_upper['i:fid'] == 1],
+                    'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 1],
+                    'mode': 'markers',
+                    'marker': {
+                        'color': '#1f77b4',
+                        'symbol': 'triangle-down-open'
+                    },
+                    'showlegend': False
+                }
+            )
+            figure['data'].append(
+                {
+                    'x': pdf_upper['i:jd'][pdf_upper['i:fid'] == 2],
+                    'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 2],
+                    'mode': 'markers',
+                    'marker': {
+                        'color': '#ff7f0e',
+                        'symbol': 'triangle-down-open'
+                    },
+                    'showlegend': False
+                }
+            )
     return figure, figure
 
 def draw_scores(data: java.util.TreeMap) -> dict:

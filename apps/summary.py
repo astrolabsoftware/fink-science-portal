@@ -20,7 +20,7 @@ import visdcc
 
 import pandas as pd
 
-from app import app, client
+from app import app, client, clientU
 
 from apps.cards import card_cutouts, card_sn_scores
 from apps.cards import card_id, card_sn_properties
@@ -110,17 +110,24 @@ def title(name):
 
 
 @app.callback(
-    Output('object-data', 'children'),
+    [
+        Output('object-data', 'children'),
+        Output('object-upper', 'children'),
+    ],
     [
         Input('url', 'pathname'),
     ])
 def store_query(name):
-    """
+    """ Cache query results (data and upper limits) for easy re-use
+
     https://dash.plotly.com/sharing-data-between-callbacks
     """
     results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     pdfs = pd.DataFrame.from_dict(results, orient='index')
-    return pdfs.to_json()
+
+    uppers = clientU.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
+    pdfsU = pd.DataFrame.from_dict(uppers, orient='index')
+    return pdfs.to_json(), pdfsU.to_json()
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
@@ -149,7 +156,8 @@ def layout(name):
                 ],
                 justify="around", no_gutters=True
             ),
-            html.Div(id='object-data', style={'display': 'none'})
+            html.Div(id='object-data', style={'display': 'none'}),
+            html.Div(id='object-upper', style={'display': 'none'})
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
     )
 
