@@ -392,7 +392,11 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
         pdfs['d:mulens_class_1'],
         pdfs['d:mulens_class_2'],
         pdfs['d:snn_snia_vs_nonia'],
-        pdfs['d:snn_sn_vs_all']
+        pdfs['d:snn_sn_vs_all'],
+        pdfs['d:rfscore'],
+        pdfs['i:ndethist'],
+        pdfs['i:drb'],
+        pdfs['i:classtar']
     )
 
     # inplace (booo)
