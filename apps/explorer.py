@@ -266,7 +266,11 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
         'd:mulens_class_1',
         'd:mulens_class_2',
         'd:snn_snia_vs_nonia',
-        'd:snn_sn_vs_all'
+        'd:snn_sn_vs_all',
+        'd:rfscore',
+        'i:ndethist',
+        'i:drb',
+        'i:classtar'
     ]
 
     # Column name to display
