@@ -47,6 +47,12 @@ colors_ = [
     '#17becf'   # blue-teal
 ]
 
+all_radio_options = {
+    "Difference magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
+    "DC magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
+    "DC apparent flux": ["Difference magnitude", "DC magnitude", "DC apparent flux"]
+}
+
 layout_lightcurve = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
@@ -148,6 +154,20 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     if pdfs.empty:
         return pdfs
     return pdfs[values]
+
+@app.callback(
+    Output('switch-mag-flux-score', 'options'),
+    [Input('switch-mag-flux', 'value')])
+def set_radio2_options(selected_radio):
+    return [{'label': i, 'value': i} for i in all_radio_options[selected_radio]]
+
+
+@app.callback(
+    Output('switch-mag-flux-score', 'value'),
+    [Input('switch-mag-flux-score', 'options'), Input('switch-mag-flux', 'value')])
+def set_radio1_value(available_options, value):
+    index = [available_options.index(i) for i in available_options if i['label'] == value][0]
+    return available_options[index]['value']
 
 @app.callback(
     [
