@@ -198,10 +198,10 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
-    if switch == 0:
+    if switch == "Difference magnitude":
         layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
-    elif switch == 1:
+    elif switch == "DC magnitude":
         # inplace replacement
         mag, err = np.transpose(
             [
@@ -218,7 +218,7 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
         )
         layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
-    elif switch == 2:
+    elif switch == "DC apparent flux":
         # inplace replacement
         mag, err = np.transpose(
             [
@@ -276,7 +276,7 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
         "layout": layout_lightcurve
     }
 
-    if switch == 0:
+    if switch == "Difference magnitude":
         pdf_upper = pd.read_json(object_upper)
         if not pdf_upper.empty:
             pdf_upper['i:jd'] = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))

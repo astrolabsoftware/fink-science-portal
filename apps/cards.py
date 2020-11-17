@@ -23,6 +23,12 @@ from apps.plotting import draw_cutout, draw_scores
 import numpy as np
 import urllib
 
+all_options = {
+    "Difference magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
+    "DC magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
+    "DC apparent flux": ["Difference magnitude", "DC magnitude", "DC apparent flux"]
+}
+
 def card_sn_scores(data) -> dbc.Card:
     """ Card containing the score evolution
 
@@ -58,16 +64,7 @@ def card_sn_scores(data) -> dbc.Card:
             [
                 graph_lc,
                 dbc.Row(
-                    dbc.RadioItems(
-                        options=[
-                            {"label": "Difference magnitude", "value": 0},
-                            {"label": "DC magnitude", "value": 1},
-                            {"label": "DC apparent flux", "value": 2}
-                        ],
-                        value=0,
-                        id="switch-mag-flux-score",
-                        inline=True
-                    )
+                    dcc.RadioItems(id='switch-mag-flux-score', inline=True),
                 ),
                 html.Br(),
                 graph_scores
@@ -133,12 +130,8 @@ def card_cutouts(data):
                 ),
                 dbc.Row(
                     dbc.RadioItems(
-                        options=[
-                            {"label": "Difference magnitude", "value": 0},
-                            {"label": "DC magnitude", "value": 1},
-                            {"label": "DC apparent flux", "value": 2}
-                        ],
-                        value=0,
+                        options=[{'label': k, 'value': k} for k in all_options.keys()],
+                        value="Difference magnitude",
                         id="switch-mag-flux",
                         inline=True
                     )
