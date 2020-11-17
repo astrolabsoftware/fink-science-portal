@@ -331,16 +331,18 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
     elif radecradius is not None and radecradius != '':
         clientP.setLimit(1000)
 
-        # Interpret user input.
-        # TODO: unsafe method...
+        # Interpret user input
         ra, dec, radius = radecradius.split(',')
-        if ':' in ra:
-            coord = SkyCoord(ra, dec, unit=(u.hourangle, u.deg))
-            ra = coord.ra.deg
-            dec = coord.dec.deg
-            radius = float(radius) / 3600.
+        if 'h' in ra:
+            coord = SkyCoord(ra, dec, frame='icrs')
+        elif ':' in ra or ' ' in ra:
+            coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
         else:
-            ra, dec, radius = float(ra), float(dec), float(radius) / 3600.
+            coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
+
+        ra = coord.ra.deg
+        dec = coord.dec.deg
+        radius = float(radius) / 3600.
 
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
