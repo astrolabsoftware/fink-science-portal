@@ -692,7 +692,6 @@ def plot_mulens(n_clicks, object_data):
         current_event = event.Event()
         current_event.name = pdf['i:objectId'].values[0]
 
-        ## Si t'as besoin tu peux ajouter les RA, DEC
         current_event.ra = pdf['i:ra'].values[0]
         current_event.dec = pdf['i:dec'].values[0]
 
@@ -740,19 +739,19 @@ def plot_mulens(n_clicks, object_data):
         time = telescope_.lightcurve_flux[:, 0]
         magnitude = microltoolbox.flux_to_magnitude(flux_model)
 
-        if '1' in filts:
+        if '1' in np.unique(pdf['i:fid'].values):
             plot_filt1 = {
-                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:,0]],
-                'y': normalised_lightcurves[0][:,1],
+                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:, 0]],
+                'y': normalised_lightcurves[0][:, 1],
                 'error_y': {
                     'type': 'data',
-                    'array': normalised_lightcurves[0][:,2],
+                    'array': normalised_lightcurves[0][:, 2],
                     'visible': True,
                     'color': '#1f77b4'
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:,0]],
+                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:, 0]],
                 'marker': {
                     'size': 12,
                     'color': '#1f77b4',
@@ -761,19 +760,19 @@ def plot_mulens(n_clicks, object_data):
         else:
             plot_filt1 = {}
 
-        if '2' in filts:
+        if '2' in np.unique(pdf['i:fid'].values):
             plot_filt2 = {
-                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[1][:,0]],
-                'y': normalised_lightcurves[1][:,1],
+                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[1][:, 0]],
+                'y': normalised_lightcurves[1][:, 1],
                 'error_y': {
                     'type': 'data',
-                    'array': normalised_lightcurves[1][:,2],
+                    'array': normalised_lightcurves[1][:, 2],
                     'visible': True,
                     'color': '#ff7f0e'
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[1][:,0]],
+                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[1][:, 0]],
                 'marker': {
                     'size': 12,
                     'color': '#ff7f0e',
