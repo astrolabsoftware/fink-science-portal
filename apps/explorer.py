@@ -116,8 +116,10 @@ dropdown = dbc.FormGroup(
             options=[
                 {'label': 'All classes', 'value': 'allclasses'},
                 {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
+                {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
                 {'label': 'Supernova candidates', 'value': 'SN candidate'},
                 {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
+                {'label': 'Ambiguous', 'value': 'Ambiguous'},
                 {'label': 'Solar System Object candidates', 'value': 'Solar System'},
                 {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
                 *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
@@ -266,7 +268,11 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
         'd:mulens_class_1',
         'd:mulens_class_2',
         'd:snn_snia_vs_nonia',
-        'd:snn_sn_vs_all'
+        'd:snn_sn_vs_all',
+        'd:rfscore',
+        'i:ndethist',
+        'i:drb',
+        'i:classtar'
     ]
 
     # Column name to display
@@ -392,7 +398,11 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
         pdfs['d:mulens_class_1'],
         pdfs['d:mulens_class_2'],
         pdfs['d:snn_snia_vs_nonia'],
-        pdfs['d:snn_sn_vs_all']
+        pdfs['d:snn_sn_vs_all'],
+        pdfs['d:rfscore'],
+        pdfs['i:ndethist'],
+        pdfs['i:drb'],
+        pdfs['i:classtar']
     )
 
     # inplace (booo)
