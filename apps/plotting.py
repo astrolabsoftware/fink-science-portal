@@ -156,16 +156,17 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     ],
     [
         Input('switch-mag-flux', 'value'),
+        Input('switch-mag-flux-score', 'value'),
         Input('url', 'pathname'),
         Input('object-data', 'children'),
         Input('object-upper', 'children')
     ])
-def draw_lightcurve(switch: int, pathname: str, object_data, object_upper) -> dict:
+def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, object_upper) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
     ----------
-    switch: int
+    switch{i}: int
         Choose:
           - 0 to display difference magnitude
           - 1 to display dc magnitude
@@ -177,6 +178,12 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper) -> di
     ----------
     figure: dict
     """
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'switch-mag-flux-score' in changed_id:
+        switch = switch2
+    else:
+        switch = switch1
+
     pdf_ = pd.read_json(object_data)
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
