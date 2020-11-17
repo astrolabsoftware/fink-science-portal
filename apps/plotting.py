@@ -20,12 +20,12 @@ import java
 import copy
 from astropy.time import Time
 
+import dash
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-# from apps.mulens_helper import fit_ml_de_simple, mulens_simple
 
 from pyLIMA import event
 from pyLIMA import telescopes
@@ -46,6 +46,12 @@ colors_ = [
     '#bcbd22',  # curry yellow-green
     '#17becf'   # blue-teal
 ]
+
+all_radio_options = {
+    "Difference magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
+    "DC magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
+    "DC apparent flux": ["Difference magnitude", "DC magnitude", "DC apparent flux"]
+}
 
 layout_lightcurve = dict(
     automargin=True,
@@ -150,22 +156,37 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     return pdfs[values]
 
 @app.callback(
+    Output('switch-mag-flux-score', 'options'),
+    [Input('switch-mag-flux', 'value')])
+def set_radio2_options(selected_radio):
+    return [{'label': i, 'value': i} for i in all_radio_options[selected_radio]]
+
+
+@app.callback(
+    Output('switch-mag-flux-score', 'value'),
+    [Input('switch-mag-flux-score', 'options'), Input('switch-mag-flux', 'value')])
+def set_radio1_value(available_options, value):
+    index = [available_options.index(i) for i in available_options if i['label'] == value][0]
+    return available_options[index]['value']
+
+@app.callback(
     [
         Output('lightcurve_cutouts', 'figure'),
         Output('lightcurve_scores', 'figure')
     ],
     [
         Input('switch-mag-flux', 'value'),
+        Input('switch-mag-flux-score', 'value'),
         Input('url', 'pathname'),
         Input('object-data', 'children'),
         Input('object-upper', 'children')
     ])
-def draw_lightcurve(switch: int, pathname: str, object_data, object_upper) -> dict:
+def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, object_upper) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
     ----------
-    switch: int
+    switch{i}: int
         Choose:
           - 0 to display difference magnitude
           - 1 to display dc magnitude
@@ -177,6 +198,12 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper) -> di
     ----------
     figure: dict
     """
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'switch-mag-flux-score' in changed_id:
+        switch = switch2
+    else:
+        switch = switch1
+
     pdf_ = pd.read_json(object_data)
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
@@ -191,10 +218,10 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper) -> di
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
-    if switch == 0:
+    if switch == "Difference magnitude":
         layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
-    elif switch == 1:
+    elif switch == "DC magnitude":
         # inplace replacement
         mag, err = np.transpose(
             [
@@ -211,7 +238,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper) -> di
         )
         layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
-    elif switch == 2:
+    elif switch == "DC apparent flux":
         # inplace replacement
         mag, err = np.transpose(
             [
@@ -269,7 +296,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper) -> di
         "layout": layout_lightcurve
     }
 
-    if switch == 0:
+    if switch == "Difference magnitude":
         pdf_upper = pd.read_json(object_upper)
         if not pdf_upper.empty:
             pdf_upper['i:jd'] = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))

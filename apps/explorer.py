@@ -119,8 +119,8 @@ dropdown = dbc.FormGroup(
                 {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
                 {'label': 'Supernova candidates', 'value': 'SN candidate'},
                 {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
-                {'label': 'Ambiguous', 'value': 'Ambiguous'},
                 {'label': 'Solar System Object candidates', 'value': 'Solar System'},
+                {'label': 'Ambiguous', 'value': 'Ambiguous'},
                 {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
                 *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
             ],

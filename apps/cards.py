@@ -18,7 +18,7 @@ import dash_bootstrap_components as dbc
 
 from apps.utils import convert_jd, extract_properties
 from apps.utils import extract_fink_classification_single
-from apps.plotting import draw_cutout, draw_scores
+from apps.plotting import draw_cutout, draw_scores, all_radio_options
 
 import numpy as np
 import urllib
@@ -57,6 +57,9 @@ def card_sn_scores(data) -> dbc.Card:
         dbc.CardBody(
             [
                 graph_lc,
+                dbc.Row(
+                    dbc.RadioItems(id='switch-mag-flux-score', inline=True),
+                ),
                 html.Br(),
                 graph_scores
             ]
@@ -121,12 +124,8 @@ def card_cutouts(data):
                 ),
                 dbc.Row(
                     dbc.RadioItems(
-                        options=[
-                            {"label": "Difference magnitude", "value": 0},
-                            {"label": "DC magnitude", "value": 1},
-                            {"label": "DC apparent flux", "value": 2}
-                        ],
-                        value=0,
+                        options=[{'label': k, 'value': k} for k in all_radio_options.keys()],
+                        value="Difference magnitude",
                         id="switch-mag-flux",
                         inline=True
                     )
