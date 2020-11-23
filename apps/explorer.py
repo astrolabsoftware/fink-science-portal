@@ -91,6 +91,7 @@ conesearch = dbc.FormGroup(
             "18 05 33.9424, +45 15 16.2482, 5"
             "18:05:33.9424, 45:15:16.2482, 5",
             target="conesearch",
+            placement='right',
         ),
     ], style={'width': '100%', 'display': 'inline-block'}
 )
