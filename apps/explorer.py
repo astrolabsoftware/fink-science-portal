@@ -41,8 +41,8 @@ Fill one of the fields on the left, and click on the _Submit Query_ button.
 
 * _**Search by Object ID:** Enter a valid object ID to access its data, e.g. try_:
   * ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf, ZTF18acuajcr
-* _**Conesearch:** Perform a conesearch around a position on the sky given by (RA, Dec, radius). RA/Dec can be in decimal degrees, or sexagesimal in the form hh:mm:ss and dd:mm:ss. Radius is in arcseconds. Examples of valid searches:_
-  * 271.3914265, 45.2545134, 5 or 18:05:33.94, 45:15:16.25, 5
+* _**Conesearch:** Perform a conesearch around a position on the sky given by (RA, Dec, radius[arcsec]). The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats. The following ways of initializing a conesearch are all equivalent:_
+  * (271.3914265, 45.2545134, 5), (271d23m29.1354s, 45d15m16.2482s, 5), (18h05m33.9424s, +45d15m16.2482s, 5), (18 05 33.9424, +45 15 16.2482, 5), (18:05:33.9424, 45:15:16.2482, 5)
 * _**Search by Date:** Choose a starting date and a time window to see all alerts in this period. Dates are in UTC, and the time window in minutes. Example of valid search:_
   * 2019-11-03 02:40:00
 * _**Get latest 100 alerts by class:** Choose a class of interest using the drop-down menu to see the 100 latest alerts processed by Fink._
