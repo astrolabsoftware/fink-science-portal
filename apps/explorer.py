@@ -84,13 +84,13 @@ conesearch = dbc.FormGroup(
         ),
         dbc.FormText("e.g. 271.3914265, 45.2545134, 5"),
         dbc.Tooltip(
-            """Perform a conesearch around a position on the sky given by (RA, Dec, radius). The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats. The following ways of initializing a conesearch are all equivalent (radius in arcsecond):"
+            dcc.Markdown("""Perform a conesearch around a position on the sky given by (RA, Dec, radius). The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats. The following ways of initializing a conesearch are all equivalent (radius in arcsecond):"
               271.3914265, 45.2545134, 5
               271d23m29.1354s, 45d15m16.2482s, 5
               18h05m33.9424s, +45d15m16.2482s, 5
               18 05 33.9424, +45 15 16.2482, 5
               18:05:33.9424, 45:15:16.2482, 5
-            """,
+            """),
             target="conesearch",
             placement='right',
         ),
