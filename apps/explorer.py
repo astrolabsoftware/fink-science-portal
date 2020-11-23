@@ -60,7 +60,7 @@ _The table shows:_
 msg_conesearch = """
 Perform a conesearch around a position on the sky given by (RA, Dec, radius).
 The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats.
-The following ways of initializing a conesearch are all equivalent (radius in arcsecond):             
+The following ways of initializing a conesearch are all equivalent (radius in arcsecond):
 
 * 271.3914265, 45.2545134, 5
 * 271d23m29.1354s, 45d15m16.2482s, 5
@@ -69,12 +69,53 @@ The following ways of initializing a conesearch are all equivalent (radius in ar
 * 18:05:33.9424, 45:15:16.2482, 5
 """
 
+msg_objectid = """
+Enter a valid object ID to access its data, e.g. try:
+
+* ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf, ZTF18acuajcr
+"""
+
+msg_date = """
+Choose a starting date and a time window to see all alerts in this period.
+Dates are in UTC, and the time window in minutes.
+Example of valid search:
+
+* 2019-11-03 02:40:00
+"""
+
+msg_latest_alerts = """
+Choose a class of interest using the drop-down menu to see the 100 latest alerts processed by Fink.
+"""
+
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = np.sort(simbad_types)
 
 object_id = dbc.FormGroup(
     [
-        dbc.Label("Search by Object ID"),
+        dbc.Label(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            "",
+                            color="secondary",
+                            id='open-objectid',
+                            outline=True,
+                            size="sm",
+                            style=dict(height='10%')
+                        ), width=1),
+                    dbc.Col("Search by Object ID", width=1),
+                ],
+            )
+        ),
+        dbc.Toast(
+            [dcc.Markdown(msg_objectid, className="mb-0")],
+            id="objectid-toast",
+            header="ObjectId help",
+            icon="light",
+            dismissable=True,
+            is_open=False
+        ),
         dbc.Input(
             placeholder="e.g. ZTF19acmdpyr",
             type="text",
@@ -85,9 +126,42 @@ object_id = dbc.FormGroup(
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
+@app.callback(
+    Output("objectid-toast", "is_open"),
+    [Input("open-objectid", "n_clicks")],
+)
+def open_objectid(n):
+    if n > 0:
+        return True
+    else:
+        return False
+
 conesearch = dbc.FormGroup(
     [
-        dbc.Label("Conesearch"),
+        dbc.Label(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            "",
+                            color="secondary",
+                            id='open-conesearch',
+                            outline=True,
+                            size="sm",
+                            style=dict(height='10%')
+                        ), width=1),
+                    dbc.Col("Conesearch", width=1),
+                ],
+            )
+        ),
+        dbc.Toast(
+            [dcc.Markdown(msg_conesearch, className="mb-0")],
+            id="conesearch-toast",
+            header="Conesearch help",
+            icon="light",
+            dismissable=True,
+            is_open=False
+        ),
         dbc.Input(
             placeholder="ra, dec, radius",
             type="text",
@@ -95,17 +169,45 @@ conesearch = dbc.FormGroup(
             debounce=True
         ),
         dbc.FormText("e.g. 271.3914265, 45.2545134, 5"),
-        dbc.Tooltip(
-            dcc.Markdown(msg_conesearch),
-            target="conesearch",
-            placement='right',
-        ),
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
+@app.callback(
+    Output("conesearch-toast", "is_open"),
+    [Input("open-conesearch", "n_clicks")],
+)
+def open_conesearch(n):
+    if n > 0:
+        return True
+    else:
+        return False
+
 date_range = dbc.FormGroup(
     [
-        dbc.Label("Search by Date"),
+        dbc.Label(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            "",
+                            color="secondary",
+                            id='open-date',
+                            outline=True,
+                            size="sm",
+                            style=dict(height='10%')
+                        ), width=1),
+                    dbc.Col("Search by Date", width=1),
+                ],
+            )
+        ),
+        dbc.Toast(
+            [dcc.Markdown(msg_date, className="mb-0")],
+            id="date-toast",
+            header="Date help",
+            icon="light",
+            dismissable=True,
+            is_open=False
+        ),
         html.Br(),
         dbc.Input(
             placeholder="YYYY-MM-DD HH:mm:ss",
@@ -125,9 +227,42 @@ date_range = dbc.FormGroup(
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
+@app.callback(
+    Output("date-toast", "is_open"),
+    [Input("open-date", "n_clicks")],
+)
+def open_date(n):
+    if n > 0:
+        return True
+    else:
+        return False
+
 dropdown = dbc.FormGroup(
     [
-        dbc.Label("Get latest 100 alerts by class"),
+        dbc.Label(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            "",
+                            color="secondary",
+                            id='open-latest-alerts',
+                            outline=True,
+                            size="sm",
+                            style=dict(height='10%')
+                        ), width=1),
+                    dbc.Col("Get latest 100 alerts by class", width=1),
+                ],
+            )
+        ),
+        dbc.Toast(
+            [dcc.Markdown(msg_latest_alerts, className="mb-0")],
+            id="latest-alerts-toast",
+            header="Latest alerts help",
+            icon="light",
+            dismissable=True,
+            is_open=False
+        ),
         dcc.Dropdown(
             id='class-dropdown',
             options=[
@@ -147,6 +282,16 @@ dropdown = dbc.FormGroup(
         )
     ], style={'width': '100%', 'display': 'inline-block'}
 )
+
+@app.callback(
+    Output("latest-alerts-toast", "is_open"),
+    [Input("open-latest-alerts", "n_clicks")],
+)
+def open_latest_alerts(n):
+    if n > 0:
+        return True
+    else:
+        return False
 
 submit_button = dbc.Button(
     'Submit Query',
