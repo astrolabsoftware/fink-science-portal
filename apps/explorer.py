@@ -37,15 +37,15 @@ from apps.utils import extract_fink_classification
 from apps.utils import markdownify_objectid
 
 msg = """
-Fill one of the field on the left, and click on the _Submit Query_ button.
+Fill one of the fields on the left, and click on the _Submit Query_ button.
 
 * _**Search by Object ID:** Enter a valid object ID to access its data, e.g. try_:
   * ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf, ZTF18acuajcr
-* _**Conesearch:** Peform a conesearch around a position on the sky given by (RA, Dec, radius). RA/Dec can be in decimal degrees, or sexagesimal in the form hh:mm:ss and dd:mm:ss. Radius is in arcsecond. Examples of valid searches:_
+* _**Conesearch:** Perform a conesearch around a position on the sky given by (RA, Dec, radius). RA/Dec can be in decimal degrees, or sexagesimal in the form hh:mm:ss and dd:mm:ss. Radius is in arcseconds. Examples of valid searches:_
   * 271.3914265, 45.2545134, 5 or 18:05:33.94, 45:15:16.25, 5
 * _**Search by Date:** Choose a starting date and a time window to see all alerts in this period. Dates are in UTC, and the time window in minutes. Example of valid search:_
   * 2019-11-03 02:40:00
-* _**Get latest 100 alerts by class:** Choose a class of interest using the dropdown menu to see the 100 latest alerts processed by Fink._
+* _**Get latest 100 alerts by class:** Choose a class of interest using the drop-down menu to see the 100 latest alerts processed by Fink._
 
 _The table shows:_
 
@@ -54,7 +54,7 @@ _The table shows:_
 - _Dec: Declination of candidate; J2000 (deg)_
 - _last seen: last date the object has been seen by Fink_
 - _classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)_
-- _ndethist: Number of spatially-coincident detections falling within 1.5 arcsec going back to beginning of survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included._
+- _ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included._
 """
 
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
