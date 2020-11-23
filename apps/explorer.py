@@ -57,6 +57,18 @@ _The table shows:_
 - _ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included._
 """
 
+msg_conesearch = """
+Perform a conesearch around a position on the sky given by (RA, Dec, radius).
+The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats.
+The following ways of initializing a conesearch are all equivalent (radius in arcsecond):             
+
+* 271.3914265, 45.2545134, 5
+* 271d23m29.1354s, 45d15m16.2482s, 5
+* 18h05m33.9424s, +45d15m16.2482s, 5
+* 18 05 33.9424, +45 15 16.2482, 5
+* 18:05:33.9424, 45:15:16.2482, 5
+"""
+
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = np.sort(simbad_types)
 
@@ -84,13 +96,7 @@ conesearch = dbc.FormGroup(
         ),
         dbc.FormText("e.g. 271.3914265, 45.2545134, 5"),
         dbc.Tooltip(
-            dcc.Markdown("""Perform a conesearch around a position on the sky given by (RA, Dec, radius). The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats. The following ways of initializing a conesearch are all equivalent (radius in arcsecond):"
-            * 271.3914265, 45.2545134, 5
-            * 271d23m29.1354s, 45d15m16.2482s, 5
-            * 18h05m33.9424s, +45d15m16.2482s, 5
-            * 18 05 33.9424, +45 15 16.2482, 5
-            * 18:05:33.9424, 45:15:16.2482, 5
-            """),
+            dcc.Markdown(msg_conesearch),
             target="conesearch",
             placement='right',
         ),
