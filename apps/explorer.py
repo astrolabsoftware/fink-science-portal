@@ -103,8 +103,8 @@ object_id = dbc.FormGroup(
                             outline=True,
                             size="sm",
                             style=dict(height='10%')
-                        ), width=1),
-                    dbc.Col("Search by Object ID", width=1),
+                        )),
+                    dbc.Col("Search by Object ID"),
                 ],
             )
         ),
@@ -149,8 +149,9 @@ conesearch = dbc.FormGroup(
                             outline=True,
                             size="sm",
                             style=dict(height='10%')
-                        ), width=1),
-                    dbc.Col("Conesearch", width=1),
+                        )
+                    ),
+                    dbc.Col("Conesearch"),
                 ],
             )
         ),
@@ -195,8 +196,9 @@ date_range = dbc.FormGroup(
                             outline=True,
                             size="sm",
                             style=dict(height='10%')
-                        ), width=1),
-                    dbc.Col("Search by Date", width=1),
+                        ),
+                    ),
+                    dbc.Col("Search by Date"),
                 ],
             )
         ),
@@ -250,8 +252,9 @@ dropdown = dbc.FormGroup(
                             outline=True,
                             size="sm",
                             style=dict(height='10%')
-                        ), width=1),
-                    dbc.Col("Get latest 100 alerts by class", width=1),
+                        )
+                    ),
+                    dbc.Col("Get latest 100 alerts by class"),
                 ],
             )
         ),
