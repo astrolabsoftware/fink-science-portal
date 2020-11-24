@@ -366,8 +366,7 @@ layout = html.Div(
                             #dbc.Row(advanced_search_button),
                             #dbc.Row(advanced_search),
                             dbc.Row(dropdown),
-                            dbc.Row(submit_button),
-                            noresults_toast,
+                            dbc.Row([submit_button, noresults_toast]),
                         ], width=3
                     ),
                     dbc.Col([
