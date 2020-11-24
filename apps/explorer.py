@@ -86,7 +86,7 @@ simbad_types = np.sort(simbad_types)
 
 
 noresults_toast = dbc.Toast(
-    "", #dcc.Markdown("Try another query", className="mb-0"),
+    "",
     header="",
     id="noresults-toast",
     icon="danger",
@@ -112,10 +112,22 @@ noresults_toast = dbc.Toast(
     ]
 )
 def open_noresults(n, table, objectid, radecradius, startdate, window, alert_class):
+    """ Toast to warn the user about the fact that we found no results
+    """
     id_click = (objectid is not None) and (objectid != '')
     conesearch_click = (radecradius is not None) and (radecradius != '')
     date_click = (startdate is not None) and (startdate != '')
     class_click = (alert_class is not None) and (alert_class != '')
+
+    # multiple queries
+    if type(table) == str:
+        m = []
+        for name, condition in zip([objectid, radecradius, startdate, alert_class], [id_click, conesearch_click, date_click, class_click]):
+            if condition:
+                m.append(name)
+        header = "Multiple constraints"
+        text = "Multiple constraints are not yet allowed. Keep only one among {}".format(name)
+        return True, text, header
 
     # ugly hack on the type
     if n and (table['namespace'] == 'dash_html_components'):
@@ -474,6 +486,14 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit_query' not in changed_id:
         raise PreventUpdate
+
+    id_click = (objectid is not None) and (objectid != '')
+    conesearch_click = (radecradius is not None) and (radecradius != '')
+    date_click = (startdate is not None) and (startdate != '')
+    class_click = (alert_class is not None) and (alert_class != '')
+
+    if np.sum([id_click, conesearch_click, date_click, class_click]) > 1:
+        return 'multiple queries'
 
     # wrong query
     wrong_id = (objectid is None) or (objectid == '')
