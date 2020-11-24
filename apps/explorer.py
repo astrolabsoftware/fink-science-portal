@@ -85,6 +85,26 @@ simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = np.sort(simbad_types)
 
 
+@app.callback(
+    [
+        Output("objectid", "value"),
+        Output("conesearch", "value"),
+        Output('startdate', 'value'),
+        Output('window', 'value'),
+        Output('class-dropdown', 'value')
+    ],
+    [
+        Input("reset_button", "n_clicks"),
+    ]
+)
+def reset_button(n_clicks):
+    # Trigger the query only if the reset button is pressed.
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset_button' not in changed_id:
+        raise PreventUpdate
+    if n_clicks:
+        return None, None, None, None, None
+
 noresults_toast = dbc.Toast(
     "",
     header="",
@@ -379,8 +399,13 @@ def open_latest_alerts(n, is_open):
 submit_button = dbc.Button(
     'Submit Query',
     id='submit_query',
-    style={'width': '100%', 'display': 'inline-block'},
-    block=True
+)
+
+reset_button = dbc.Button(
+    'Reset',
+    id='reset_button',
+    outline=True,
+    color='secondary',
 )
 
 advanced_search_button = dbc.Button(
@@ -431,7 +456,7 @@ layout = html.Div(
                             #dbc.Row(advanced_search_button),
                             #dbc.Row(advanced_search),
                             dbc.Row(dropdown),
-                            dbc.Row(submit_button),
+                            dbc.Row(dbc.ButtonGroup([submit_button, reset_button])),
                         ], width=3
                     ),
                     dbc.Col([
@@ -457,6 +482,7 @@ layout = html.Div(
     Output("table", "children"),
     [
         Input("submit_query", "n_clicks"),
+        Input("reset_button", "n_clicks"),
         Input("objectid", "value"),
         Input("conesearch", "value"),
         Input('startdate', 'value'),
@@ -464,7 +490,7 @@ layout = html.Div(
         Input('class-dropdown', 'value')
     ]
 )
-def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_class):
+def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, window, alert_class):
     """ Query the HBase database and format results into a DataFrame.
 
     Parameters
@@ -487,6 +513,9 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
     dash_table
         Dash table containing aggregated data by object ID.
     """
+    if reset_button:
+        return html.Table()
+
     # Trigger the query only if the submit button is pressed.
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit_query' not in changed_id:
