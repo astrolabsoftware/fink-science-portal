@@ -97,10 +97,9 @@ noresults_toast = dbc.Toast(
 
 @app.callback(
     Output("noresults-toast", "is_open"),
-    [Input("submit_query", "n_clicks"), Input("table", "children")],
-    [State("noresults-toast", "is_open")],
+    [Input("submit_query", "n_clicks"), Input("table", "children")]
 )
-def open_noresults(n, table, is_open):
+def open_noresults(n, table):
     if n and table is None:
         return True
     return False
