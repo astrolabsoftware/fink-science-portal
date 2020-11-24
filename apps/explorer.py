@@ -125,7 +125,7 @@ object_id = dbc.FormGroup(
     [Input("open-objectid", "n_clicks")],
 )
 def open_objectid(n):
-    if n > 0:
+    if n is not None or n > 0:
         return True
     else:
         return False
@@ -172,7 +172,7 @@ conesearch = dbc.FormGroup(
     [Input("open-conesearch", "n_clicks")],
 )
 def open_conesearch(n):
-    if n > 0:
+    if n is not None or n > 0:
         return True
     else:
         return False
@@ -228,7 +228,7 @@ date_range = dbc.FormGroup(
     [Input("open-date", "n_clicks")],
 )
 def open_date(n):
-    if n > 0:
+    if n is not None or n > 0:
         return True
     else:
         return False
@@ -280,15 +280,25 @@ dropdown = dbc.FormGroup(
     ], style={'width': '100%', 'display': 'inline-block'}
 )
 
+# @app.callback(
+#     Output("latest-alerts-toast", "is_open"),
+#     [Input("open-latest-alerts", "n_clicks")],
+# )
+# def open_latest_alerts(n):
+#     if n is not None or n > 0:
+#         return True
+#     else:
+#         return False
+
 @app.callback(
     Output("latest-alerts-toast", "is_open"),
     [Input("open-latest-alerts", "n_clicks")],
+    [State("latest-alerts-toast", "is_open")],
 )
-def open_latest_alerts(n):
-    if n > 0:
-        return True
-    else:
-        return False
+def open_latest_alerts(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 submit_button = dbc.Button(
     'Submit Query',
