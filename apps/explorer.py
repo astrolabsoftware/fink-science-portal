@@ -129,7 +129,7 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
             )
         elif date_click:
             header = "Search by Date"
-            if window >= 0:
+            if window:
                 jd_start = Time(startdate).jd
                 jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
 
