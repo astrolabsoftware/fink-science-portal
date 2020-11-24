@@ -150,8 +150,8 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
                 Time(jd_start, format='jd').iso,
                 Time(jd_stop, format='jd').iso
             )
-        return True, text
-    return False, ""
+        return True, text, header
+    return False, "", ""
 
 object_id = dbc.FormGroup(
     [
