@@ -368,9 +368,9 @@ layout = html.Div(
                             dbc.Row(submit_button),
                         ], width=3
                     ),
+                    noresults_toast,
                     dbc.Col([
                         html.H6(id="table"),
-                        noresults_toast,
                         dbc.Card(
                             dbc.CardBody(
                                 dcc.Markdown(msg)
