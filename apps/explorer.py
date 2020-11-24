@@ -82,7 +82,7 @@ Choose a class of interest using the drop-down menu to see the 100 latest alerts
 """
 
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
-simbad_types = np.sort(simbad_types)
+simbad_types = np.sort([i.capitalize() for i in simbad_types])
 
 
 @app.callback(
