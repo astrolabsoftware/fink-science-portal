@@ -99,6 +99,10 @@ simbad_types = np.sort(simbad_types)
     ]
 )
 def reset_button(n_clicks):
+    # Trigger the query only if the submit button is pressed.
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset_button' not in changed_id:
+        raise PreventUpdate
     if n_clicks:
         return html.Table(), None, None, None, None, None, None
 
