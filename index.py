@@ -29,12 +29,8 @@ dropdown = dbc.DropdownMenu(
         dbc.DropdownMenuItem("About", href="/about"),
         dbc.DropdownMenuItem("Fink Website", href="https://fink-broker.org/"),
         dbc.DropdownMenuItem(
-            "GitHub",
-            href="https://github.com/astrolabsoftware/fink-broker"
-        ),
-        dbc.DropdownMenuItem(
-            "Fink documentation",
-            href="https://fink-broker.readthedocs.io/en/latest/"
+            "Science Portal GitHub",
+            href="https://github.com/astrolabsoftware/fink-science-portal"
         ),
     ],
     nav=True,
@@ -43,53 +39,39 @@ dropdown = dbc.DropdownMenu(
 )
 
 navbar = dbc.Navbar(
-    dbc.Container(
-        [
-            html.A(
-                # Use row and col to control vertical alignment of logo / brand
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            dbc.NavbarBrand(
-                                "Fink Science portal",
-                                className="ml-2"
-                            )
-                        ),
-                    ],
-                    align="center",
-                    no_gutters=True,
-                ),
-                href="/home",
+    [
+        html.A(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.NavbarBrand(
+                            "Fink Science portal - beta version",
+                            className="ml-2"
+                        )
+                    ),
+                ],
+                justify="start",
+                no_gutters=True,
             ),
-            dbc.NavbarToggler(id="navbar-toggler2"),
-            dbc.Collapse(
-                dbc.Nav(
-                    # right align dropdown menu with ml-auto className
-                    [dropdown],
-                    className="ml-auto",
-                    navbar=True
-                ),
-                id="navbar-collapse2",
+            href="/home",
+        ),
+        dbc.NavbarToggler(id="navbar-toggler2"),
+        dbc.Collapse(
+            dbc.Nav(
+                # right align dropdown menu with ml-auto className
+                [dropdown],
+                className="ml-auto",
                 navbar=True,
+                vertical=True
             ),
-        ]
-    ),
+            id="navbar-collapse2",
+            navbar=True,
+        )
+    ],
     color="light",
     dark=False,
-    className="mb-4",
+    className="finknav",
 )
-
-# def toggle_navbar_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-#
-# for i in [2]:
-#     app.callback(
-#         Output(f"navbar-collapse{i}", "is_open"),
-#         [Input(f"navbar-toggler{i}", "n_clicks")],
-#         [State(f"navbar-collapse{i}", "is_open")],
-#     )(toggle_navbar_collapse)
 
 # embedding the navigation bar
 app.layout = html.Div([
