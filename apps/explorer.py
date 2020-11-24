@@ -87,8 +87,8 @@ simbad_types = np.sort(simbad_types)
 
 noresults_toast = dbc.Toast(
     "", #dcc.Markdown("Try another query", className="mb-0"),
+    header="",
     id="noresults-toast",
-    header="No results found",
     icon="danger",
     dismissable=True,
     is_open=False,
@@ -98,7 +98,8 @@ noresults_toast = dbc.Toast(
 @app.callback(
     [
         Output("noresults-toast", "is_open"),
-        Output("noresults-toast", "children")
+        Output("noresults-toast", "children"),
+        Output("noresults-toast", "header")
     ],
     [
         Input("submit_query", "n_clicks"),
@@ -119,12 +120,15 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
     # ugly hack on the type
     if n and (table['namespace'] == 'dash_html_components'):
         if id_click:
+            header = "Search by Object ID"
             text = "{} not found".format(objectid)
         elif conesearch_click:
+            header = "Conesearch"
             text = "No alerts found for (RA, Dec, radius) = {}".format(
                 radecradius
             )
         elif date_click:
+            header = "Search by Date"
             if window >= 0:
                 jd_start = Time(startdate).jd
                 jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
@@ -136,6 +140,7 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
             else:
                 text = "You need to set a window (in minutes)"
         elif class_click:
+            header = "Get latest 100 alerts by class"
             # start of the Fink operations
             jd_start = Time('2019-11-01 00:00:00').jd
             jd_stop = Time.now().jd
