@@ -114,6 +114,11 @@ noresults_toast = dbc.Toast(
 def open_noresults(n, table, objectid, radecradius, startdate, window, alert_class):
     """ Toast to warn the user about the fact that we found no results
     """
+    # Trigger the query only if the submit button is pressed.
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'submit_query' not in changed_id:
+        raise PreventUpdate
+
     id_click = (objectid is not None) and (objectid != '')
     conesearch_click = (radecradius is not None) and (radecradius != '')
     date_click = (startdate is not None) and (startdate != '')
@@ -126,7 +131,7 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
             if condition:
                 m.append(name)
         header = "Multiple constraints"
-        text = "Multiple constraints are not yet allowed. Keep only one among {}".format(name)
+        text = "Multiple constraints are not yet allowed. Keep only one among {}".format(m)
         return True, text, header
 
     # ugly hack on the type
