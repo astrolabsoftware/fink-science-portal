@@ -85,7 +85,7 @@ simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = np.sort(simbad_types)
 
 
-noresults = dbc.Toast(
+noresults_toast = dbc.Toast(
     [dcc.Markdown("Try another query", className="mb-0")],
     id="noresults-toast",
     header="No results found",
@@ -367,6 +367,7 @@ layout = html.Div(
                             #dbc.Row(advanced_search),
                             dbc.Row(dropdown),
                             dbc.Row(submit_button),
+                            noresults_toast,
                         ], width=3
                     ),
                     dbc.Col([
