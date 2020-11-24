@@ -103,7 +103,7 @@ def reset_button(n_clicks):
     if 'reset_button' not in changed_id:
         raise PreventUpdate
     if n_clicks:
-        return None, None, None, None, None, None
+        return None, None, None, None, None
 
 noresults_toast = dbc.Toast(
     "",
