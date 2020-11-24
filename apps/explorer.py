@@ -125,13 +125,13 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
     class_click = (alert_class is not None) and (alert_class != '')
 
     # multiple queries
-    if type(table) == str:
+    if np.sum([id_click, conesearch_click, date_click, class_click]) > 1:
         m = []
-        for name, condition in zip([objectid, radecradius, startdate, alert_class], [id_click, conesearch_click, date_click, class_click]):
+        for name, condition in zip(["Search by Object ID", "Conesearch", "Search by Date", "Get latest 100 alerts by class"], [id_click, conesearch_click, date_click, class_click]):
             if condition:
                 m.append(name)
-        header = "Multiple constraints"
-        text = "Multiple constraints are not yet allowed. Keep only one among {}".format(m)
+        header = "Multi index search"
+        text = "Searching along multiple fields is not yet allowed. Keep only one among {}".format(m)
         return True, text, header
 
     # ugly hack on the type
@@ -498,7 +498,7 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
     class_click = (alert_class is not None) and (alert_class != '')
 
     if np.sum([id_click, conesearch_click, date_click, class_click]) > 1:
-        return 'multiple queries'
+        raise PreventUpdate
 
     # wrong query
     wrong_id = (objectid is None) or (objectid == '')
