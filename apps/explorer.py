@@ -86,23 +86,67 @@ simbad_types = np.sort(simbad_types)
 
 
 noresults_toast = dbc.Toast(
-    dcc.Markdown("Try another query", className="mb-0"),
+    "", #dcc.Markdown("Try another query", className="mb-0"),
     id="noresults-toast",
     header="No results found",
     icon="danger",
     dismissable=True,
     is_open=False,
     style={"position": "fixed", "top": 66, "right": 10, "width": 350},
-),
+)
 
 @app.callback(
-    Output("noresults-toast", "is_open"),
-    [Input("submit_query", "n_clicks"), Input("table", "children")]
+    [
+        Output("noresults-toast", "is_open"),
+        Output("noresults-toast", "children")
+    ],
+    [
+        Input("submit_query", "n_clicks"),
+        Input("table", "children"),
+        Input("objectid", "value"),
+        Input("conesearch", "value"),
+        Input('startdate', 'value'),
+        Input('window', 'value'),
+        Input('class-dropdown', 'value')
+    ]
 )
-def open_noresults(n, table):
-    if n and (table is None):
-        return True
-    return False
+def open_noresults(n, table, objectid, radecradius, startdate, window, alert_class):
+    id_click = (objectid is not None) or (objectid != '')
+    conesearch_click = (radecradius is not None) or (radecradius != '')
+    date_click = (startdate is not None) or (startdate != '')
+    class_click = (alert_class is not None) or (alert_class != '')
+
+    # ugly hack on the type
+    if n and (table['namespace'] == 'dash_html_components'):
+        if id_click:
+            text = "{} not found".format(objectid)
+        elif conesearch_click:
+            text = "No alerts found for (RA, Dec, radius) = {}".format(
+                radecradius
+            )
+        elif date_click:
+            if window >= 0:
+                jd_start = Time(startdate).jd
+                jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
+
+                text = "No alerts found between {} and {}".format(
+                    Time(jd_start, format='jd').iso,
+                    Time(jd_end, format='jd').iso
+                )
+            else:
+                text = "You need to set a window (in minutes)"
+        elif class_click:
+            # start of the Fink operations
+            jd_start = Time('2019-11-01 00:00:00').jd
+            jd_stop = Time.now().jd
+
+            text = "No alerts for class {} in between {} and {}".format(
+                class,
+                Time(jd_start, format='jd').iso,
+                Time(jd_end, format='jd').iso
+            )
+        return True, text
+    return False, ""
 
 object_id = dbc.FormGroup(
     [
@@ -368,7 +412,6 @@ layout = html.Div(
                             dbc.Row(submit_button),
                         ], width=3
                     ),
-                    noresults_toast,
                     dbc.Col([
                         html.H6(id="table"),
                         dbc.Card(
@@ -381,7 +424,7 @@ layout = html.Div(
                     ], width=9),
                 ]),
             ], className="mb-8", fluid=True, style={'width': '95%'}
-        )
+        ), noresults_toast
     ], className='home', style={
         'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
         'background-size': 'contain'
