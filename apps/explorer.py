@@ -101,9 +101,9 @@ noresults_toast = dbc.Toast(
     [State("noresults-toast", "is_open")],
 )
 def open_noresults(n, table, is_open):
-    if n and not table.children:
-        return not is_open
-    return is_open
+    if n and table.children is None:
+        return True
+    return False
 
 object_id = dbc.FormGroup(
     [
