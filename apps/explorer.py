@@ -399,15 +399,13 @@ def open_latest_alerts(n, is_open):
 submit_button = dbc.Button(
     'Submit Query',
     id='submit_query',
-    style={'width': '100%', 'display': 'inline-block'},
-    block=True
 )
 
 reset_button = dbc.Button(
     'Reset',
     id='reset_button',
-    style={'width': '100%', 'display': 'inline-block'},
-    block=True
+    outline=True,
+    color='secondary',
 )
 
 advanced_search_button = dbc.Button(
@@ -458,8 +456,7 @@ layout = html.Div(
                             #dbc.Row(advanced_search_button),
                             #dbc.Row(advanced_search),
                             dbc.Row(dropdown),
-                            dbc.Row(submit_button),
-                            dbc.Row(reset_button),
+                            dbc.Row(dbc.ButtonGroup([submit_button, reset_button])),
                         ], width=3
                     ),
                     dbc.Col([
