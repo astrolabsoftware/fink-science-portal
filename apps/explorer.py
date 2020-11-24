@@ -112,10 +112,10 @@ noresults_toast = dbc.Toast(
     ]
 )
 def open_noresults(n, table, objectid, radecradius, startdate, window, alert_class):
-    id_click = (objectid is not None) or (objectid != '')
-    conesearch_click = (radecradius is not None) or (radecradius != '')
-    date_click = (startdate is not None) or (startdate != '')
-    class_click = (alert_class is not None) or (alert_class != '')
+    id_click = (objectid is not None) and (objectid != '')
+    conesearch_click = (radecradius is not None) and (radecradius != '')
+    date_click = (startdate is not None) and (startdate != '')
+    class_click = (alert_class is not None) and (alert_class != '')
 
     # ugly hack on the type
     if n and (table['namespace'] == 'dash_html_components'):
