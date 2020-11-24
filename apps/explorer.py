@@ -141,9 +141,9 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
             jd_stop = Time.now().jd
 
             text = "No alerts for class {} in between {} and {}".format(
-                class,
+                alert_class,
                 Time(jd_start, format='jd').iso,
-                Time(jd_end, format='jd').iso
+                Time(jd_stop, format='jd').iso
             )
         return True, text
     return False, ""
