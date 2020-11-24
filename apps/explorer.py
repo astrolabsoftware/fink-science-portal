@@ -86,7 +86,7 @@ simbad_types = np.sort(simbad_types)
 
 
 noresults_toast = dbc.Toast(
-    [dcc.Markdown("Try another query", className="mb-0")],
+    dcc.Markdown("Try another query", className="mb-0"),
     id="noresults-toast",
     header="No results found",
     icon="danger",
@@ -100,7 +100,7 @@ noresults_toast = dbc.Toast(
     [Input("submit_query", "n_clicks"), Input("table", "children")]
 )
 def open_noresults(n, table):
-    if n and table is None:
+    if n and (table is None):
         return True
     return False
 
