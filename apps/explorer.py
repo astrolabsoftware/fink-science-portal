@@ -87,7 +87,6 @@ simbad_types = np.sort(simbad_types)
 
 @app.callback(
     [
-        Output("table", "children"),
         Output("objectid", "value"),
         Output("conesearch", "value"),
         Output('startdate', 'value'),
@@ -104,7 +103,7 @@ def reset_button(n_clicks):
     if 'reset_button' not in changed_id:
         raise PreventUpdate
     if n_clicks:
-        return html.Table(), None, None, None, None, None, None
+        return None, None, None, None, None, None
 
 noresults_toast = dbc.Toast(
     "",
