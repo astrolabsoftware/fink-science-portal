@@ -105,7 +105,7 @@ object_id = dbc.FormGroup(
         dbc.Toast(
             [dcc.Markdown(msg_objectid, className="mb-0")],
             id="objectid-toast",
-            header="ObjectId help",
+            header="Help",
             icon="light",
             dismissable=True,
             is_open=False
@@ -123,12 +123,12 @@ object_id = dbc.FormGroup(
 @app.callback(
     Output("objectid-toast", "is_open"),
     [Input("open-objectid", "n_clicks")],
+    [State("objectid-toast", "is_open")],
 )
-def open_objectid(n):
-    if n is not None or n > 0:
-        return True
-    else:
-        return False
+def open_objectid(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 conesearch = dbc.FormGroup(
     [
@@ -152,7 +152,7 @@ conesearch = dbc.FormGroup(
         dbc.Toast(
             [dcc.Markdown(msg_conesearch, className="mb-0")],
             id="conesearch-toast",
-            header="Conesearch help",
+            header="Help",
             icon="light",
             dismissable=True,
             is_open=False
@@ -170,12 +170,12 @@ conesearch = dbc.FormGroup(
 @app.callback(
     Output("conesearch-toast", "is_open"),
     [Input("open-conesearch", "n_clicks")],
+    [State("conesearch-toast", "is_open")],
 )
-def open_conesearch(n):
-    if n is not None or n > 0:
-        return True
-    else:
-        return False
+def open_conesearch(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 date_range = dbc.FormGroup(
     [
@@ -199,7 +199,7 @@ date_range = dbc.FormGroup(
         dbc.Toast(
             [dcc.Markdown(msg_date, className="mb-0")],
             id="date-toast",
-            header="Date help",
+            header="Help",
             icon="light",
             dismissable=True,
             is_open=False
@@ -226,12 +226,12 @@ date_range = dbc.FormGroup(
 @app.callback(
     Output("date-toast", "is_open"),
     [Input("open-date", "n_clicks")],
+    [State("date-toast", "is_open")],
 )
-def open_date(n):
-    if n is not None or n > 0:
-        return True
-    else:
-        return False
+def open_date(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 dropdown = dbc.FormGroup(
     [
@@ -255,7 +255,7 @@ dropdown = dbc.FormGroup(
         dbc.Toast(
             [dcc.Markdown(msg_latest_alerts, className="mb-0")],
             id="latest-alerts-toast",
-            header="Latest alerts help",
+            header="Help",
             icon="light",
             dismissable=True,
             is_open=False
@@ -279,16 +279,6 @@ dropdown = dbc.FormGroup(
         )
     ], style={'width': '100%', 'display': 'inline-block'}
 )
-
-# @app.callback(
-#     Output("latest-alerts-toast", "is_open"),
-#     [Input("open-latest-alerts", "n_clicks")],
-# )
-# def open_latest_alerts(n):
-#     if n is not None or n > 0:
-#         return True
-#     else:
-#         return False
 
 @app.callback(
     Output("latest-alerts-toast", "is_open"),
