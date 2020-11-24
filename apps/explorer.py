@@ -366,11 +366,12 @@ layout = html.Div(
                             #dbc.Row(advanced_search_button),
                             #dbc.Row(advanced_search),
                             dbc.Row(dropdown),
-                            dbc.Row([submit_button, noresults_toast]),
+                            dbc.Row(submit_button),
                         ], width=3
                     ),
                     dbc.Col([
                         html.H6(id="table"),
+                        noresults_toast,
                         dbc.Card(
                             dbc.CardBody(
                                 dcc.Markdown(msg)
