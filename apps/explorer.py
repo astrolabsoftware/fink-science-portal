@@ -85,6 +85,23 @@ simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = np.sort(simbad_types)
 
 
+@app.callback(
+    [
+        Output("table", "children"),
+        Output("objectid", "value"),
+        Output("conesearch", "value"),
+        Output('startdate', 'value'),
+        Output('window', 'value'),
+        Output('class-dropdown', 'value')
+    ],
+    [
+        Input("reset_button", "n_clicks"),
+    ]
+)
+def reset_button(n_clicks):
+    if n_clicks:
+        return html.Table(), None, None, None, None, None, None
+
 noresults_toast = dbc.Toast(
     "",
     header="",
@@ -383,6 +400,13 @@ submit_button = dbc.Button(
     block=True
 )
 
+reset_button = dbc.Button(
+    'Reset',
+    id='reset_button',
+    style={'width': '100%', 'display': 'inline-block'},
+    block=True
+)
+
 advanced_search_button = dbc.Button(
     "Advanced Search",
     id="collapse-button",
@@ -432,6 +456,7 @@ layout = html.Div(
                             #dbc.Row(advanced_search),
                             dbc.Row(dropdown),
                             dbc.Row(submit_button),
+                            dbc.Row(reset_button),
                         ], width=3
                     ),
                     dbc.Col([
