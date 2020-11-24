@@ -84,6 +84,27 @@ Choose a class of interest using the drop-down menu to see the 100 latest alerts
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = np.sort(simbad_types)
 
+
+noresults = dbc.Toast(
+    [dcc.Markdown("Try another query", className="mb-0")],
+    id="noresults-toast",
+    header="No results found",
+    icon="danger",
+    dismissable=True,
+    is_open=False,
+    style={"position": "fixed", "top": 66, "right": 10, "width": 350},
+),
+
+@app.callback(
+    Output("noresults-toast", "is_open"),
+    [Input("submit_query", "n_clicks"), Input("table", "children")],
+    [State("noresults-toast", "is_open")],
+)
+def open_noresults(n, table, is_open):
+    if n and not table.children:
+        return not is_open
+    return is_open
+
 object_id = dbc.FormGroup(
     [
         dbc.Label(
