@@ -485,6 +485,7 @@ layout = html.Div(
     Output("table", "children"),
     [
         Input("submit_query", "n_clicks"),
+        Input("reset_button", "n_clicks"),
         Input("objectid", "value"),
         Input("conesearch", "value"),
         Input('startdate', 'value'),
@@ -492,7 +493,7 @@ layout = html.Div(
         Input('class-dropdown', 'value')
     ]
 )
-def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_class):
+def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, window, alert_class):
     """ Query the HBase database and format results into a DataFrame.
 
     Parameters
@@ -515,6 +516,8 @@ def construct_table(n_clicks, objectid, radecradius, startdate, window, alert_cl
     dash_table
         Dash table containing aggregated data by object ID.
     """
+    if reset_button:
+        return html.Table()
     # Trigger the query only if the submit button is pressed.
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit_query' not in changed_id:
