@@ -213,7 +213,7 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
     pdf = pdf_.loc[:, cols]
 
     # type conversion
-    dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
 
     # shortcuts
     mag = pdf['i:magpsf']
