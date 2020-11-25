@@ -454,8 +454,12 @@ def draw_cutouts(clickData, object_data):
         jd0 = None
     figs = []
     for kind in ['science', 'template', 'difference']:
-        data = extract_cutout(object_data, jd0, kind=kind)
-        figs.append(draw_cutout(data, kind))
+        try:
+            data = extract_cutout(object_data, jd0, kind=kind)
+            figs.append(draw_cutout(data, kind))
+        except OSError as e:
+            data = dcc.Markdown("Load fail, refresh the page")
+            figs.append(data)
     return figs
 
 def draw_cutout(data, title):
