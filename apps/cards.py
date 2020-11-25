@@ -89,29 +89,30 @@ def card_cutouts(data):
                     dbc.Col(html.H5(children="Template", className="text-center")),
                     dbc.Col(html.H5(children="Difference", className="text-center"))
                 ]),
-                dbc.Row([
-                    dcc.Graph(
-                        id='science-stamps',
-                        style={
-                            'display': 'inline-block',
-                        },
-                        config={'displayModeBar': False}
-                    ),
-                    dcc.Graph(
-                        id='template-stamps',
-                        style={
-                            'display': 'inline-block',
-                        },
-                        config={'displayModeBar': False}
-                    ),
-                    dcc.Graph(
-                        id='difference-stamps',
-                        style={
-                            'display': 'inline-block',
-                        },
-                        config={'displayModeBar': False}
-                    ),
-                ], justify='around', no_gutters=True),
+                dbc.Row(id='stamps', justify='around', no_gutters=True),
+                # dbc.Row([
+                #     dcc.Graph(
+                #         id='science-stamps',
+                #         style={
+                #             'display': 'inline-block',
+                #         },
+                #         config={'displayModeBar': False}
+                #     ),
+                #     dcc.Graph(
+                #         id='template-stamps',
+                #         style={
+                #             'display': 'inline-block',
+                #         },
+                #         config={'displayModeBar': False}
+                #     ),
+                #     dcc.Graph(
+                #         id='difference-stamps',
+                #         style={
+                #             'display': 'inline-block',
+                #         },
+                #         config={'displayModeBar': False}
+                #     ),
+                # ], justify='around', no_gutters=True),
                 html.Br(),
                 html.Br(),
                 dcc.Graph(
@@ -555,10 +556,10 @@ def card_sn_properties(data):
                 """
                 ---
                 ```python
-                # SuperNNova classification
+                # SuperNNova classifiers
                 SN Ia score: {:.2f}
                 SNe score: {:.2f}
-                # Random Forest classification
+                # Early SN classifier
                 RF score: {:.2f}
                 ```
                 ---

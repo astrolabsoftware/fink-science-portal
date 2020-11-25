@@ -23,6 +23,7 @@ from astropy.time import Time
 import dash
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
+import dash_core_components as dcc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
@@ -343,12 +344,12 @@ def draw_scores(data: java.util.TreeMap) -> dict:
     pdf = extract_scores(data)
 
     jd = pdf['i:jd']
-    jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
     figure = {
         'data': [
             {
-                'x': jd,
-                'y': [0.5] * len(jd),
+                'x': dates,
+                'y': [0.5] * len(dates),
                 'mode': 'lines',
                 'showlegend': False,
                 'line': {
@@ -358,33 +359,33 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 }
             },
             {
-                'x': jd,
+                'x': dates,
                 'y': pdf['d:snn_snia_vs_nonia'],
                 'mode': 'markers',
                 'name': 'SN Ia score',
-                'text': jd,
+                'text': dates,
                 'marker': {
                     'size': 10,
                     'color': '#2ca02c',
                     'symbol': 'circle'}
             },
             {
-                'x': jd,
+                'x': dates,
                 'y': pdf['d:snn_sn_vs_all'],
                 'mode': 'markers',
                 'name': 'SNe score',
-                'text': jd,
+                'text': dates,
                 'marker': {
                     'size': 10,
                     'color': '#d62728',
                     'symbol': 'square'}
             },
             {
-                'x': jd,
+                'x': dates,
                 'y': pdf['d:rfscore'],
                 'mode': 'markers',
                 'name': 'Random Forest',
-                'text': jd,
+                'text': dates,
                 'marker': {
                     'size': 10,
                     'color': '#9467bd',
@@ -438,55 +439,58 @@ def extract_cutout(object_data, time0, kind):
     return cutout
 
 
-@app.callback(
-    Output("science-stamps", "figure"),
-    [
-        Input('lightcurve_cutouts', 'clickData'),
-        Input('object-data', 'children'),
-    ])
-def draw_cutouts_science(clickData, object_data):
-    """ Draw science cutout data based on lightcurve data
-    """
-    if clickData is not None:
-        # Draw the cutout associated to the clicked data points
-        jd0 = clickData['points'][0]['x']
-    else:
-        # draw the cutout of the last alert
-        jd0 = None
-    data = extract_cutout(object_data, jd0, kind='science')
-    return draw_cutout(data, 'science')
+# @app.callback(
+#     Output("science-stamps", "figure"),
+#     [
+#         Input('lightcurve_cutouts', 'clickData'),
+#         Input('object-data', 'children'),
+#     ])
+# def draw_cutouts_science(clickData, object_data):
+#     """ Draw science cutout data based on lightcurve data
+#     """
+#     if clickData is not None:
+#         # Draw the cutout associated to the clicked data points
+#         jd0 = clickData['points'][0]['x']
+#     else:
+#         # draw the cutout of the last alert
+#         jd0 = None
+#     data = extract_cutout(object_data, jd0, kind='science')
+#     return draw_cutout(data, 'science')
+#
+# @app.callback(
+#     Output("template-stamps", "figure"),
+#     [
+#         Input('lightcurve_cutouts', 'clickData'),
+#         Input('object-data', 'children'),
+#     ])
+# def draw_cutouts_template(clickData, object_data):
+#     """ Draw template cutout data based on lightcurve data
+#     """
+#     if clickData is not None:
+#         jd0 = clickData['points'][0]['x']
+#     else:
+#         jd0 = None
+#     data = extract_cutout(object_data, jd0, kind='template')
+#     return draw_cutout(data, 'template')
 
 @app.callback(
-    Output("template-stamps", "figure"),
+    Output("stamps", "figure"),
     [
         Input('lightcurve_cutouts', 'clickData'),
         Input('object-data', 'children'),
     ])
-def draw_cutouts_template(clickData, object_data):
-    """ Draw template cutout data based on lightcurve data
-    """
-    if clickData is not None:
-        jd0 = clickData['points'][0]['x']
-    else:
-        jd0 = None
-    data = extract_cutout(object_data, jd0, kind='template')
-    return draw_cutout(data, 'template')
-
-@app.callback(
-    Output("difference-stamps", "figure"),
-    [
-        Input('lightcurve_cutouts', 'clickData'),
-        Input('object-data', 'children'),
-    ])
-def draw_cutouts_difference(clickData, object_data):
+def draw_cutouts(clickData, object_data):
     """ Draw difference cutout data based on lightcurve data
     """
     if clickData is not None:
         jd0 = clickData['points'][0]['x']
     else:
         jd0 = None
-    data = extract_cutout(object_data, jd0, kind='difference')
-    return draw_cutout(data, 'difference')
+    figs = []
+    for kind in ['science', 'template', 'difference']:
+        data = extract_cutout(object_data, jd0, kind=kind)
+        figs.append(draw_cutout(data, kind))
+    return figs
 
 def draw_cutout(data, title):
     """ Draw a cutout data
@@ -522,7 +526,15 @@ def draw_cutout(data, title):
         width=150, height=150,
         autosize=False)
 
-    return fig
+    graph = dcc.Graph(
+        id='{}-stamps'.format(title),
+        figure=fig,
+        style={
+            'display': 'inline-block',
+        },
+        config={'displayModeBar': False}
+    )
+    return graph
 
 @app.callback(
     Output('variable_plot', 'figure'),
