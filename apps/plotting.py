@@ -319,12 +319,12 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
 
     if switch == "Difference magnitude":
         pdf_upper = pd.read_json(object_upper)
+        # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
         hovertemplate_upper = r"""
-        <b>candid</b>: %{customdata[0]}<br>
         <b>diffmaglim</b>: %{y:.2f}<br>
         <b>%{xaxis.title.text}</b>: %{x}<br>
-        <i>jd</i>=%{customdata[1]}<br>
-        <i>mjd</i>=%{customdata[2]}
+        <i>jd</i>=%{customdata[0]}<br>
+        <i>mjd</i>=%{customdata[1]}
         """
         if not pdf_upper.empty:
             dates2 = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
@@ -335,7 +335,6 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
                     'mode': 'markers',
                     'customdata': list(
                         zip(
-                            pdf_upper['i:candid'][pdf_upper['i:fid'] == 1],
                             pdf_upper['i:jd'][pdf_upper['i:fid'] == 1],
                             pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 1],
                         )
