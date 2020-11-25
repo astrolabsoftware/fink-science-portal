@@ -377,7 +377,7 @@ dropdown = dbc.FormGroup(
                 {'label': 'Solar System Object candidates', 'value': 'Solar System'},
                 {'label': 'Ambiguous', 'value': 'Ambiguous'},
                 {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
-                *[{'label': label, 'value': value} for label, values in zip(simbad_types_display, simbad_types)]
+                *[{'label': label, 'value': value} for label, value in zip(simbad_types_display, simbad_types)]
             ],
             searchable=True,
             clearable=True,
