@@ -257,11 +257,10 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
         layout_lightcurve['yaxis']['autorange'] = True
 
     hovertemplate = r"""
-    <b>candid</b>: %{customdata[0]}<br>
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x}<br>
-    <i>jd</i>=%{customdata[1]}<br>
-    <i>mjd</i>=%{customdata[2]}
+    <i>jd</i>=%{customdata[0]}<br>
+    <i>mjd</i>=%{customdata[1]}
     """
     figure = {
         'data': [
@@ -278,7 +277,6 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
                 'name': 'g band',
                 'customdata': list(
                     zip(
-                        pdf['i:candid'][pdf['i:fid'] == 1],
                         pdf['i:jd'][pdf['i:fid'] == 1],
                         pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
                     )
@@ -302,7 +300,6 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
                 'name': 'r band',
                 'customdata': list(
                     zip(
-                        pdf['i:candid'][pdf['i:fid'] == 2],
                         pdf['i:jd'][pdf['i:fid'] == 2],
                         pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
                     )
