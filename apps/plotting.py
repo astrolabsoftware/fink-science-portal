@@ -260,6 +260,7 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
     <i>mjd</i>=%{customdata}
+    <extra></extra>
     """
     figure = {
         'data': [
@@ -310,6 +311,7 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
         <b>diffmaglim</b>: %{y:.2f}<br>
         <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
         <i>mjd</i>=%{customdata}
+        <extra></extra>
         """
         if not pdf_upper.empty:
             dates2 = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
