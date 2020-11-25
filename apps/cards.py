@@ -90,29 +90,6 @@ def card_cutouts(data):
                     dbc.Col(html.H5(children="Difference", className="text-center"))
                 ]),
                 dbc.Row(id='stamps', justify='around', no_gutters=True),
-                # dbc.Row([
-                #     dcc.Graph(
-                #         id='science-stamps',
-                #         style={
-                #             'display': 'inline-block',
-                #         },
-                #         config={'displayModeBar': False}
-                #     ),
-                #     dcc.Graph(
-                #         id='template-stamps',
-                #         style={
-                #             'display': 'inline-block',
-                #         },
-                #         config={'displayModeBar': False}
-                #     ),
-                #     dcc.Graph(
-                #         id='difference-stamps',
-                #         style={
-                #             'display': 'inline-block',
-                #         },
-                #         config={'displayModeBar': False}
-                #     ),
-                # ], justify='around', no_gutters=True),
                 html.Br(),
                 html.Br(),
                 dcc.Graph(

@@ -439,41 +439,6 @@ def extract_cutout(object_data, time0, kind):
     )
     return cutout
 
-
-# @app.callback(
-#     Output("science-stamps", "figure"),
-#     [
-#         Input('lightcurve_cutouts', 'clickData'),
-#         Input('object-data', 'children'),
-#     ])
-# def draw_cutouts_science(clickData, object_data):
-#     """ Draw science cutout data based on lightcurve data
-#     """
-#     if clickData is not None:
-#         # Draw the cutout associated to the clicked data points
-#         jd0 = clickData['points'][0]['x']
-#     else:
-#         # draw the cutout of the last alert
-#         jd0 = None
-#     data = extract_cutout(object_data, jd0, kind='science')
-#     return draw_cutout(data, 'science')
-#
-# @app.callback(
-#     Output("template-stamps", "figure"),
-#     [
-#         Input('lightcurve_cutouts', 'clickData'),
-#         Input('object-data', 'children'),
-#     ])
-# def draw_cutouts_template(clickData, object_data):
-#     """ Draw template cutout data based on lightcurve data
-#     """
-#     if clickData is not None:
-#         jd0 = clickData['points'][0]['x']
-#     else:
-#         jd0 = None
-#     data = extract_cutout(object_data, jd0, kind='template')
-#     return draw_cutout(data, 'template')
-
 @app.callback(
     Output("stamps", "children"),
     [
