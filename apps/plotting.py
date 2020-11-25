@@ -352,6 +352,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'y': [0.5] * len(dates),
                 'mode': 'lines',
                 'showlegend': False,
+                'hoverinfo': 'skip',
                 'line': {
                     'color': 'black',
                     'width': 2.5,
@@ -474,7 +475,7 @@ def extract_cutout(object_data, time0, kind):
 #     return draw_cutout(data, 'template')
 
 @app.callback(
-    Output("stamps", "figure"),
+    Output("stamps", "children"),
     [
         Input('lightcurve_cutouts', 'clickData'),
         Input('object-data', 'children'),
