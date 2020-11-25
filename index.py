@@ -22,6 +22,7 @@ from app import app
 
 # import all pages in the app
 from apps import home, explorer, grafink, summary, about
+from apps import __version__ as portal_version
 
 # building the navigation bar
 dropdown = dbc.DropdownMenu(
@@ -45,7 +46,7 @@ navbar = dbc.Navbar(
                 [
                     dbc.Col(
                         dbc.NavbarBrand(
-                            "Fink Science portal - beta version",
+                            "Fink Science portal - {}".format(portal_version),
                             className="ml-2"
                         )
                     ),
