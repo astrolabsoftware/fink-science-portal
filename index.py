@@ -61,7 +61,6 @@ navbar = dbc.Navbar(
             dbc.Nav(
                 # right align dropdown menu with ml-auto className
                 [dropdown],
-                className="ml-auto",
                 navbar=True,
                 vertical=True
             ),
