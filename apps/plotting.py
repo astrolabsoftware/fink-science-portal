@@ -259,7 +259,7 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <i>mjd</i>=%{customdata}
+    <b>mjd</b>: %{customdata}
     <extra></extra>
     """
     figure = {
@@ -310,7 +310,7 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
         hovertemplate_upper = r"""
         <b>diffmaglim</b>: %{y:.2f}<br>
         <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-        <i>mjd</i>=%{customdata}
+        <b>mjd</b>: %{customdata}
         <extra></extra>
         """
         if not pdf_upper.empty:
