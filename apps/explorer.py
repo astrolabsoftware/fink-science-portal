@@ -513,11 +513,12 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     dash_table
         Dash table containing aggregated data by object ID.
     """
-    if reset_button:
+    # Trigger the query only if the reset button is not pressed.
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if reset_button and 'reset_button' in changed_id:
         return html.Table()
 
     # Trigger the query only if the submit button is pressed.
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'submit_query' not in changed_id:
         raise PreventUpdate
 
