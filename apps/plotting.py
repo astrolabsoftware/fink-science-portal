@@ -363,8 +363,8 @@ def draw_scores(data: java.util.TreeMap) -> dict:
 
     jd = pdf['i:jd']
     dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
-    hovertemplate = r"""
-    <b>%{name}</b>: %{y:.2f}<br>
+    hovertemplate = """
+    <b>{}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
     <b>mjd</b>: %{customdata}
     <extra></extra>
@@ -389,7 +389,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'mode': 'markers',
                 'name': 'SN Ia score',
                 'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
-                'hovertemplate': hovertemplate,
+                'hovertemplate': hovertemplate.format('SN Ia score'),
                 'marker': {
                     'size': 10,
                     'color': '#2ca02c',
@@ -401,7 +401,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'mode': 'markers',
                 'name': 'SNe score',
                 'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
-                'hovertemplate': hovertemplate,
+                'hovertemplate': hovertemplate.format('SNe score'),
                 'marker': {
                     'size': 10,
                     'color': '#d62728',
@@ -411,9 +411,9 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'x': dates,
                 'y': pdf['d:rfscore'],
                 'mode': 'markers',
-                'name': 'Random Forest',
+                'name': 'Early SN Ia score',
                 'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
-                'hovertemplate': hovertemplate,
+                'hovertemplate': hovertemplate.format('Early SN Ia score'),
                 'marker': {
                     'size': 10,
                     'color': '#9467bd',
