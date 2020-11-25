@@ -388,7 +388,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'y': pdf['d:snn_snia_vs_nonia'],
                 'mode': 'markers',
                 'name': 'SN Ia score',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5),
+                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
@@ -400,7 +400,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'y': pdf['d:snn_sn_vs_all'],
                 'mode': 'markers',
                 'name': 'SNe score',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5),
+                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
@@ -412,7 +412,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'y': pdf['d:rfscore'],
                 'mode': 'markers',
                 'name': 'Random Forest',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5),
+                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
