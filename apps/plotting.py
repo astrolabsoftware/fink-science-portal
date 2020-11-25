@@ -507,7 +507,7 @@ def draw_cutout(data, title):
     return graph
 
 @app.callback(
-    Output('variable_plot', 'figure'),
+    Output('variable_plot', 'children'),
     [
         Input('nterms_base', 'value'),
         Input('nterms_band', 'value'),
@@ -657,12 +657,22 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
             ],
             "layout": layout_phase_
         }
-        return figure
-    return {'data': [], "layout": layout_phase}
+        graph = dcc.Graph(
+            figure=figure,
+            style={
+                'width': '100%',
+                'height': '25pc'
+            },
+            config={'displayModeBar': False}
+        )
+        return graph
+
+    # quite referentially opaque...
+    return ""
 
 @app.callback(
     [
-        Output('mulens_plot', 'figure'),
+        Output('mulens_plot', 'children'),
         Output('mulens_params', 'children'),
     ],
     [
@@ -810,6 +820,18 @@ def plot_mulens(n_clicks, object_data):
             "layout": layout_mulens
         }
 
+        if sum([len(i) for i in figure['data']]) > 0:
+            graph = dcc.Graph(
+                figure=figure,
+                style={
+                    'width': '100%',
+                    'height': '25pc'
+                },
+                config={'displayModeBar': False}
+            )
+        else:
+            graph = ""
+
         # fitted parameters
         names = results.model.model_dictionnary
         params = results.fit_results
@@ -833,7 +855,7 @@ def plot_mulens(n_clicks, object_data):
             err[names['uo']],
             params[-1] / dof
         )
-        return figure, mulens_params
+        return graph, mulens_params
 
     mulens_params = """
     ```python
@@ -845,7 +867,7 @@ def plot_mulens(n_clicks, object_data):
     ```
     ---
     """
-    return {'data': [], "layout": layout_mulens}, mulens_params
+    return "", mulens_params
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('object-data', 'children'))

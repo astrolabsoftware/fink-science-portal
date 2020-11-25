@@ -128,18 +128,7 @@ def card_variable_plot(data):
         Card with the variable drawn inside
     """
     card = dbc.Card(
-        dbc.CardBody(
-            [
-                dcc.Graph(
-                    id='variable_plot',
-                    style={
-                        'width': '100%',
-                        'height': '25pc'
-                    },
-                    config={'displayModeBar': False}
-                )
-            ]
-        ),
+        dbc.CardBody(id='variable_plot'),
         className="mt-3"
     )
     return card
@@ -314,18 +303,7 @@ def card_mulens_plot(data):
         Card with the microlensing fit drawn inside
     """
     card = dbc.Card(
-        dbc.CardBody(
-            [
-                dcc.Graph(
-                    id='mulens_plot',
-                    style={
-                        'width': '100%',
-                        'height': '25pc'
-                    },
-                    config={'displayModeBar': False}
-                )
-            ]
-        ),
+        dbc.CardBody(id='mulens_plot'),
         className="mt-3"
     )
     return card
