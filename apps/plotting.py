@@ -214,7 +214,7 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
 
     # type conversion
     jd = pdf['i:jd']
-    jd = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
 
     # shortcuts
     mag = pdf['i:magpsf']
@@ -257,10 +257,17 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
         layout_lightcurve['yaxis']['title'] = 'Apparent DC flux'
         layout_lightcurve['yaxis']['autorange'] = True
 
+    hovertemplate = r"""
+    <b>candid</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x}<br>
+    <i>jd</i>=%{customdata[1]}<br>
+    <i>mjd</i>=%{customdata[2]}
+    """
     figure = {
         'data': [
             {
-                'x': jd[pdf['i:fid'] == 1],
+                'x': dates[pdf['i:fid'] == 1],
                 'y': mag[pdf['i:fid'] == 1],
                 'error_y': {
                     'type': 'data',
@@ -270,14 +277,21 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'text': jd[pdf['i:fid'] == 1],
+                'customdata': list(
+                    zip(
+                        pdf['i:candid'][pdf['i:fid'] == 1],
+                        pdf['i:jd'][pdf['i:fid'] == 1],
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                    )
+                ),
+                'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
                     'color': '#1f77b4',
                     'symbol': 'o'}
             },
             {
-                'x': jd[pdf['i:fid'] == 2],
+                'x': dates[pdf['i:fid'] == 2],
                 'y': mag[pdf['i:fid'] == 2],
                 'error_y': {
                     'type': 'data',
@@ -287,7 +301,14 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'text': jd[pdf['i:fid'] == 2],
+                'customdata': list(
+                    zip(
+                        pdf['i:candid'][pdf['i:fid'] == 2],
+                        pdf['i:jd'][pdf['i:fid'] == 2],
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                    )
+                ),
+                'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
                     'color': '#ff7f0e',
@@ -299,13 +320,28 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
 
     if switch == "Difference magnitude":
         pdf_upper = pd.read_json(object_upper)
+        hovertemplate_upper = r"""
+        <b>candid</b>: %{customdata[0]}<br>
+        <b>diffmaglim</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x}<br>
+        <i>jd</i>=%{customdata[1]}<br>
+        <i>mjd</i>=%{customdata[2]}
+        """
         if not pdf_upper.empty:
-            pdf_upper['i:jd'] = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+            dates2 = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
             figure['data'].append(
                 {
-                    'x': pdf_upper['i:jd'][pdf_upper['i:fid'] == 1],
+                    'x': dates2[pdf_upper['i:fid'] == 1],
                     'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 1],
                     'mode': 'markers',
+                    'customdata': list(
+                        zip(
+                            pdf_upper['i:candid'][pdf_upper['i:fid'] == 1],
+                            pdf_upper['i:jd'][pdf_upper['i:fid'] == 1],
+                            pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 1],
+                        )
+                    ),
+                    'hovertemplate': hovertemplate_upper,
                     'marker': {
                         'color': '#1f77b4',
                         'symbol': 'triangle-down-open'
@@ -315,9 +351,17 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
             )
             figure['data'].append(
                 {
-                    'x': pdf_upper['i:jd'][pdf_upper['i:fid'] == 2],
+                    'x': dates2[pdf_upper['i:fid'] == 2],
                     'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 2],
                     'mode': 'markers',
+                    'customdata': list(
+                        zip(
+                            pdf_upper['i:candid'][pdf_upper['i:fid'] == 2],
+                            pdf_upper['i:jd'][pdf_upper['i:fid'] == 2],
+                            pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 2],
+                        )
+                    ),
+                    'hovertemplate': hovertemplate_upper,
                     'marker': {
                         'color': '#ff7f0e',
                         'symbol': 'triangle-down-open'
