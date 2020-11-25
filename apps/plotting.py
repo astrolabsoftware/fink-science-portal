@@ -364,9 +364,9 @@ def draw_scores(data: java.util.TreeMap) -> dict:
     jd = pdf['i:jd']
     dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
     hovertemplate = """
-    <b>{}</b>: %{y:.2f}<br>
+    <b>%{customdata[0]}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
+    <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
     figure = {
@@ -388,8 +388,13 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'y': pdf['d:snn_snia_vs_nonia'],
                 'mode': 'markers',
                 'name': 'SN Ia score',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
-                'hovertemplate': hovertemplate.format('SN Ia score'),
+                'customdata': list(
+                    zip(
+                        ['SN Ia score'] * len(pdf),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
                     'color': '#2ca02c',
@@ -400,8 +405,13 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'y': pdf['d:snn_sn_vs_all'],
                 'mode': 'markers',
                 'name': 'SNe score',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
-                'hovertemplate': hovertemplate.format('SNe score'),
+                'customdata': list(
+                    zip(
+                        ['SN Ia score'] * len(pdf),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
                     'color': '#d62728',
@@ -412,8 +422,13 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'y': pdf['d:rfscore'],
                 'mode': 'markers',
                 'name': 'Early SN Ia score',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
-                'hovertemplate': hovertemplate.format('Early SN Ia score'),
+                'customdata': list(
+                    zip(
+                        ['SN Ia score'] * len(pdf),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
                     'color': '#9467bd',
