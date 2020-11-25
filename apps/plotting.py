@@ -58,6 +58,9 @@ layout_lightcurve = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -138,6 +141,9 @@ layout_scores = dict(
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
     legend=dict(font=dict(size=10), orientation="h"),
+    hoverlabel={
+        'align': "left"
+    },
     xaxis={
         'title': 'Observation date'
     },
@@ -407,7 +413,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'name': 'SNe score',
                 'customdata': list(
                     zip(
-                        ['SN Ia score'] * len(pdf),
+                        ['SNe score'] * len(pdf),
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                     )
                 ),
@@ -424,7 +430,7 @@ def draw_scores(data: java.util.TreeMap) -> dict:
                 'name': 'Early SN Ia score',
                 'customdata': list(
                     zip(
-                        ['SN Ia score'] * len(pdf),
+                        ['Early SN Ia score'] * len(pdf),
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                     )
                 ),
