@@ -81,9 +81,8 @@ msg_latest_alerts = """
 Choose a class of interest using the drop-down menu to see the 100 latest alerts processed by Fink.
 """
 
-simbad_types = np.sort(pd.read_csv('assets/simbad_types.csv', header=None)[0].values)
-simbad_types_display = [i.capitalize() for i in simbad_types]
-
+simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
+simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
 @app.callback(
     [
@@ -377,7 +376,7 @@ dropdown = dbc.FormGroup(
                 {'label': 'Solar System Object candidates', 'value': 'Solar System'},
                 {'label': 'Ambiguous', 'value': 'Ambiguous'},
                 {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
-                *[{'label': label, 'value': value} for label, value in zip(simbad_types_display, simbad_types)]
+                *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
             ],
             searchable=True,
             clearable=True,
