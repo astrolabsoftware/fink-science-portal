@@ -354,7 +354,6 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
                     'mode': 'markers',
                     'customdata': list(
                         zip(
-                            pdf_upper['i:candid'][pdf_upper['i:fid'] == 2],
                             pdf_upper['i:jd'][pdf_upper['i:fid'] == 2],
                             pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 2],
                         )
