@@ -208,12 +208,11 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
     pdf_ = pd.read_json(object_data)
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos'
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:candid'
     ]
     pdf = pdf_.loc[:, cols]
 
     # type conversion
-    jd = pdf['i:jd']
     dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
 
     # shortcuts
