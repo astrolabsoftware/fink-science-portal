@@ -99,7 +99,7 @@ def extract_fink_classification_single(data):
         pdf['d:cdsxmatch'],
         pdf['d:roid'],
         pdf['d:mulens_class_1'],
-        pdf['d:mulens_class_1'],
+        pdf['d:mulens_class_2'],
         pdf['d:snn_snia_vs_nonia'],
         pdf['d:snn_sn_vs_all'],
         pdf['d:rfscore'],
