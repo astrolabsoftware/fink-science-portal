@@ -40,7 +40,7 @@ layout = html.Div(
         dbc.Container(
             [
                 dbc.Row([
-                    dbc.Col(
+                    dbc.Col([
                         dcc.Upload(
                             id='datatable-upload',
                             children=html.Div([
@@ -75,7 +75,7 @@ layout = html.Div(
                                 'backgroundColor': 'rgb(230, 230, 230)',
                                 'fontWeight': 'bold'
                             }
-                        ),
+                        )],
                     )
                 ])
             ]
