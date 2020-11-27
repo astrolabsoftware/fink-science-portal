@@ -48,7 +48,28 @@ layout = html.Div([
             'borderRadius': '5px', 'textAlign': 'center', 'margin': '10px'
         },
     ),
-    html.H6(id="datatable-upload-container"),
+    dash_table.DataTable(
+        id='datatable-upload-container',
+        page_size=10,
+        style_as_list_view=True,
+        sort_action="native",
+        filter_action="native",
+        markdown_options={'link_target': '_blank'},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_cell={'padding': '5px', 'textAlign': 'center'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    ),
 ], className='home', style={
     'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
     'background-size': 'contain'
@@ -73,7 +94,8 @@ def parse_contents(contents, filename):
         ])
 
 
-@app.callback(Output("datatable-upload-container", "children"),
+@app.callback(Output('datatable-upload-container', 'data'),
+              Output('datatable-upload-container', 'columns'),
               Input('datatable-upload', 'contents'),
               State('datatable-upload', 'filename'))
 def update_output(contents, filename):
@@ -211,34 +233,13 @@ def update_output(contents, filename):
     # round numeric values for better display
     pdfs = pdfs.round(2)
 
-    table = dash_table.DataTable(
-        data=pdfs.sort_values('last seen', ascending=False).to_dict('records'),
-        columns=[
-            {
-                'id': c,
-                'name': c,
-                'type': 'text',
-                'presentation': 'markdown'
-            } for c in colnames_to_display
-        ],
-        page_size=10,
-        style_as_list_view=True,
-        sort_action="native",
-        filter_action="native",
-        markdown_options={'link_target': '_blank'},
-        style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        },
-        style_cell={'padding': '5px', 'textAlign': 'center'},
-        style_data_conditional=[
-            {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
-            }
-        ],
-        style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
-    )
-    return table#df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
+    data = pdfs.sort_values('last seen', ascending=False).to_dict('records'),
+    columns = [
+        {
+            'id': c,
+            'name': c,
+            'type': 'text',
+            'presentation': 'markdown'
+        } for c in colnames_to_display
+    ]
+    return data, columns
