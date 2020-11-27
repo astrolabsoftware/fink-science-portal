@@ -377,7 +377,7 @@ def card_explanation_xmatch():
     * `classification`: the class of the last alert received for this object, inferred by Fink.
 
     Note that the system will limit to the first 1000 rows of your file (or 5MB max) for the moment.
-    Contact us by opening an [issue]() if you need other file format
+    Contact us by opening an [issue](https://github.com/astrolabsoftware/fink-science-portal/issues) if you need other file format
     """
     card = dbc.Card(
         dbc.CardBody(
