@@ -48,7 +48,7 @@ layout = html.Div([
             'borderRadius': '5px', 'textAlign': 'center', 'margin': '10px'
         },
     ),
-    dash_table.DataTable(id='datatable-upload-container')
+    html.H6(id="datatable-upload-container"),
 ], className='home', style={
     'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
     'background-size': 'contain'
@@ -73,8 +73,7 @@ def parse_contents(contents, filename):
         ])
 
 
-@app.callback(Output('datatable-upload-container', 'data'),
-              Output('datatable-upload-container', 'columns'),
+@app.callback(Output("datatable-upload-container", "children"),
               Input('datatable-upload', 'contents'),
               State('datatable-upload', 'filename'))
 def update_output(contents, filename):
