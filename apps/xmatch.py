@@ -251,19 +251,19 @@ def update_output(contents, filename):
     pdfs_fink = pdfs_fink.round(2)
 
     # Final join
-    join = pd.concat(
+    join_df = pd.concat(
         [pdfs_fink[['objectId', 'classification', idname]], df],
         axis=1,
         join='inner'
     )
-    data = join.to_dict('records')
+    data = join_df.to_dict('records')
     columns = [
         {
             'id': c,
             'name': c,
             'type': 'text',
             'presentation': 'markdown'
-        } for c in join.columns
+        } for c in join_df.columns
     ]
     # data = pdfs_fink.sort_values('last seen', ascending=False).to_dict('records')
     # columns = [
