@@ -113,12 +113,13 @@ def update_output(contents, filename):
     raname = [i for i in df.columns if i in ['i:ra', 'RA', 'ra', 'Ra']][0]
     decname = [i for i in df.columns if i in ['i:dec', 'DEC', 'dec', 'Dec']][0]
     # extract ra/dec
-    if 'h' in ra:
+    ra0 = df[raname].values
+    if 'h' in ra0:
         coords = [
             SkyCoord(ra, dec, frame='icrs')
             for ra, dec in zip(df[raname].values, df[decname].values)
         ]
-    elif ':' in ra or ' ' in ra:
+    elif ':' in ra0 or ' ' in ra0:
         coords = [
             SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
             for ra, dec in zip(df[raname].values, df[decname].values)
