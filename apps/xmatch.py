@@ -74,7 +74,9 @@ layout = html.Div(
                             style_header={
                                 'backgroundColor': 'rgb(230, 230, 230)',
                                 'fontWeight': 'bold'
-                            }
+                            },
+                            export_format='csv',
+                            export_headers='display'
                         )],
                     )
                 ])
