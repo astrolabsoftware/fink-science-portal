@@ -24,6 +24,9 @@ import pandas as pd
 import healpy as hp
 import numpy as np
 
+import astropy.units as u
+from astropy.coordinates import SkyCoord
+
 from app import app
 from app import clientP
 
@@ -110,8 +113,24 @@ def update_output(contents, filename):
     raname = [i for i in df.columns if i in ['i:ra', 'RA', 'ra', 'Ra']][0]
     decname = [i for i in df.columns if i in ['i:dec', 'DEC', 'dec', 'Dec']][0]
     # extract ra/dec
-    ras = [float(i) for i in df[raname].values]
-    decs = [float(i) for i in df[decname].values]
+    if 'h' in ra:
+        coords = [
+            SkyCoord(ra, dec, frame='icrs')
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    elif ':' in ra or ' ' in ra:
+        coords = [
+            SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    else:
+        coords = [
+            SkyCoord(ra, dec, frame='icrs', unit='deg')
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    ras = [coord.ra.deg for i in df[raname].values]
+    decs = [coord.dec.deg for i in df[decname].values]
+
     nrow = len(ra)
     indices = [i for i in range(nrow)]
 
