@@ -116,7 +116,7 @@ def update_output(contents, filename):
     raname = [i for i in df.columns if i in ['i:ra', 'RA', 'ra', 'Ra']][0]
     decname = [i for i in df.columns if i in ['i:dec', 'DEC', 'dec', 'Dec']][0]
     # extract ra/dec
-    ra0 = df[raname].values
+    ra0 = df[raname].values[0]
     if 'h' in ra0:
         coords = [
             SkyCoord(ra, dec, frame='icrs')
