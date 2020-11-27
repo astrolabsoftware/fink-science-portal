@@ -54,7 +54,6 @@ layout = html.Div([
                             "Xmatch",
                             href="/xmatch",
                             color="secondary",
-                            disabled=True,
                             className="mt-3"
                         ),
                     ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}
