@@ -252,7 +252,7 @@ def update_output(contents, filename):
 
     # Final join
     join = pd.concat(
-        [pdfs_fink[['objectId', 'classification']], df],
+        [pdfs_fink[['objectId', 'classification', idname]], df],
         axis=1,
         join='inner'
     )
