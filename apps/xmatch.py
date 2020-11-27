@@ -107,8 +107,8 @@ def update_output(contents, filename):
     ]
     dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
-    raname = [i for i in df.columns if i in ['RA', 'ra', 'Ra']][0]
-    decname = [i for i in df.columns if i in ['DEC', 'dec', 'Dec']][0]
+    raname = [i for i in df.columns if i in ['i:ra', 'RA', 'ra', 'Ra']][0]
+    decname = [i for i in df.columns if i in ['i:dec', 'DEC', 'dec', 'Dec']][0]
     # extract ra/dec
     ras = [float(i) for i in df[raname].values]
     decs = [float(i) for i in df[decname].values]
