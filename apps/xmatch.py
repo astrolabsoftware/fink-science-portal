@@ -32,6 +32,7 @@ from app import clientP
 
 from apps.utils import extract_fink_classification
 from apps.utils import markdownify_objectid
+from apps.utils import convert_jd
 
 layout = html.Div([
     dcc.Upload(
