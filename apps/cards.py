@@ -355,10 +355,10 @@ def card_explanation_xmatch():
     """ Explain how xmatch works
     """
     msg = """
-    The Fink Xmatch service allows you to cross-match you catalog data with
-    all Fink alert data processed so far (more than 60 million alerts, from ZTF). You just need to drag and drop
+    The Fink Xmatch service allows you to cross-match your catalog data with
+    all Fink alert data processed so far (more than 60 million alerts, from ZTF). Just drag and drop
     a csv file containing at least position columns named `RA` and `Dec`, and a
-    column containing ids named `ID` (case insensitive). The catalog can also contained
+    column containing ids named `ID` (could be string, integer, ... anything to identify your objects). Required column names are case insensitive. The catalog can also contained
     other columns that will be displayed.
 
     The xmatch service will perform a conesearch around the positions with a fix radius of 1.5 arcseconds.
