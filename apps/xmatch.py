@@ -80,6 +80,9 @@ def update_output(contents, filename):
     if contents is None:
         return [{}], []
     df = parse_contents(contents, filename)
+    nrow = len(df)
+    if nrow > 1000:
+        df = df.head(1000)
 
     # Columns of interest
     colnames = [
@@ -132,7 +135,6 @@ def update_output(contents, filename):
     ras = [coord.ra.deg for coord in coords]
     decs = [coord.dec.deg for coord in coords]
 
-    nrow = len(ra)
     indices = [i for i in range(nrow)]
 
     radius = 1.5 # arcsec
