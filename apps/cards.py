@@ -371,13 +371,13 @@ def card_explanation_xmatch():
     * 18 05 33.9424, +45 15 16.2482
     * 18:05:33.9424, 45:15:16.2482
 
-    The final table will contain the original columns of your catalog for all row matching a Fink object, with two new columns:
+    The final table will contain the original columns of your catalog for all rows matching a Fink object, with two new columns:
 
     * `objectId`: clickable ZTF objectId.
     * `classification`: the class of the last alert received for this object, inferred by Fink.
 
-    Note that the system will limit to the first 1000 rows of your file (or 5MB max) for the moment.
-    Contact us by opening an [issue](https://github.com/astrolabsoftware/fink-science-portal/issues) if you need other file format
+    This service is still experimental, and your feedback is welcome. Note that the system will limit to the first 1000 rows of your file (or 5MB max) for the moment.
+    Contact us by opening an [issue](https://github.com/astrolabsoftware/fink-science-portal/issues) if you need other file formats or encounter problems.
     """
     card = dbc.Card(
         dbc.CardBody(
