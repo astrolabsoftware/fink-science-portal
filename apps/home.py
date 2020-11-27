@@ -37,7 +37,7 @@ layout = html.Div([
             dbc.Col(
                 dbc.CardDeck([
                     dbc.Card(children=[
-                        html.H3(children="Explore historical data", className="text-center"),
+                        html.H3(children="Explore Fink historical data", className="text-center"),
                         html.H6(children="Browse all alert data collected and processed by Fink", className="text-center"),
                         dbc.Button(
                             "Explorer",
@@ -54,6 +54,7 @@ layout = html.Div([
                             "Xmatch",
                             href="/xmatch",
                             color="secondary",
+                            disabled=True,
                             className="mt-3"
                         ),
                     ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}
