@@ -250,13 +250,28 @@ def update_output(contents, filename):
     # round numeric values for better display
     pdfs_fink = pdfs_fink.round(2)
 
-    data = pdfs_fink.sort_values('last seen', ascending=False).to_dict('records')
+    # Final join
+    join = pd.concat(
+        [pdfs_fink[['objectId', 'classification']], df],
+        axis=1,
+        join='inner'
+    )
+    data = df.to_dict('records')
     columns = [
         {
             'id': c,
             'name': c,
             'type': 'text',
             'presentation': 'markdown'
-        } for c in colnames_to_display
+        } for c in join.columns
     ]
+    # data = pdfs_fink.sort_values('last seen', ascending=False).to_dict('records')
+    # columns = [
+    #     {
+    #         'id': c,
+    #         'name': c,
+    #         'type': 'text',
+    #         'presentation': 'markdown'
+    #     } for c in colnames_to_display
+    # ]
     return data, columns
