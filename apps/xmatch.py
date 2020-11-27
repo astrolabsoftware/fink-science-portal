@@ -152,6 +152,7 @@ def update_output(contents, filename):
 
     raname = [i for i in df.columns if i in ['i:ra', 'RA', 'ra', 'Ra']][0]
     decname = [i for i in df.columns if i in ['i:dec', 'DEC', 'dec', 'Dec']][0]
+    idname = [i for i in df.columns if i in ['ID', 'id', 'Name', 'name', 'NAME']][0]
     # extract ra/dec
     ra0 = df[raname].values[0]
     if 'h' in ra0:
@@ -171,17 +172,13 @@ def update_output(contents, filename):
         ]
     ras = [coord.ra.deg for coord in coords]
     decs = [coord.dec.deg for coord in coords]
+    ids = df[idname].values
 
     radius = 1.5 # arcsec
     # loop over rows
     clientP.setLimit(10)
     count = 0
-    for ra, dec in zip(ras, decs):
-        pix = hp.ang2pix(
-            131072,
-            np.pi / 2.0 - np.pi / 180.0 * dec,
-            np.pi / 180.0 * ra
-        )
+    for oid, ra, dec in zip(ids, ras, decs):
         vec = hp.ang2vec(
             np.pi / 2.0 - np.pi / 180.0 * dec,
             np.pi / 180.0 * ra
@@ -205,6 +202,7 @@ def update_output(contents, filename):
         # Loop over results and construct the dataframe
         if not results.isEmpty():
             pdf = pd.DataFrame.from_dict(results, orient='index')
+            pdf[idname] = [oid] * len(pdf)
             if count == 0:
                 pdfs = pdf
             else:
@@ -228,27 +226,31 @@ def update_output(contents, filename):
     # inplace (booo)
     pdfs['d:cdsxmatch'] = classifications
 
-    pdfs = pdfs[colnames]
+    colnames.append(idname)
+    colnames_to_display.append(idname)
+    dtypes.update({idname: type(pdfs[idname].values[0])})
+
+    pdfs_fink = pdfs[colnames]
 
     # Make clickable objectId
-    pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
+    pdfs_fink['i:objectId'] = pdfs_fink['i:objectId'].apply(markdownify_objectid)
 
     # Column values are string by default - convert them
-    pdfs = pdfs.astype(dtype=dtypes)
+    pdfs_fink = pdfs_fink.astype(dtype=dtypes)
 
     # Rename columns
-    pdfs = pdfs.rename(
+    pdfs_fink = pdfs_fink.rename(
         columns={i: j for i, j in zip(colnames, colnames_to_display)}
     )
 
     # Display only the last alert
-    pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
-    pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
+    pdfs_fink = pdfs_fink.loc[pdfs_fink.groupby('objectId')['last seen'].idxmax()]
+    pdfs_fink['last seen'] = pdfs_fink['last seen'].apply(convert_jd)
 
     # round numeric values for better display
-    pdfs = pdfs.round(2)
+    pdfs_fink = pdfs_fink.round(2)
 
-    data = pdfs.sort_values('last seen', ascending=False).to_dict('records')
+    data = pdfs_fink.sort_values('last seen', ascending=False).to_dict('records')
     columns = [
         {
             'id': c,
