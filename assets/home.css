@@ -21,7 +21,7 @@ html, body {
 }
 
 .Absolute-Center {
-  height: 60%;
+  height: 40%;
   position: absolute;
   margin: auto;
   top: 0; left: 0; bottom: 0; right: 0;
