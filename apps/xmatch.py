@@ -129,8 +129,8 @@ def update_output(contents, filename):
             SkyCoord(ra, dec, frame='icrs', unit='deg')
             for ra, dec in zip(df[raname].values, df[decname].values)
         ]
-    ras = [coord.ra.deg for i in df[raname].values]
-    decs = [coord.dec.deg for i in df[decname].values]
+    ras = [coord.ra.deg for coord in coords]
+    decs = [coord.dec.deg for coord in coords]
 
     nrow = len(ra)
     indices = [i for i in range(nrow)]
