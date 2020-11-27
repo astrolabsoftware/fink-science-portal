@@ -21,7 +21,7 @@ from app import server
 from app import app
 
 # import all pages in the app
-from apps import home, explorer, grafink, summary, about
+from apps import home, explorer, grafink, summary, about, xmatch
 from apps import __version__ as portal_version
 
 # building the navigation bar
@@ -90,6 +90,8 @@ def display_page(pathname):
         return about.layout
     elif pathname == '/grafink':
         return grafink.layout
+    elif pathname == '/xmatch':
+        return xmatch.layout
     elif 'ZTF' in pathname:
         return summary.layout(pathname)
     else:

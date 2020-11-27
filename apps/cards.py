@@ -312,16 +312,16 @@ def card_explanation_variable():
     """ Explain what is used to fit for variable stars
     """
     msg = """
-    _Fill the fields on the right, and press `Fit data` to
-    perform a time series analysis of the data:_
+    Fill the fields on the right, and press `Fit data` to
+    perform a time series analysis of the data:
 
-    - _Number of base terms: number of frequency terms to use for the base model common to all bands (default=1)_
-    - _Number of band terms: number of frequency terms to use for the residuals between the base model and each individual band (default=1)_
+    - Number of base terms: number of frequency terms to use for the base model common to all bands (default=1)
+    - Number of band terms: number of frequency terms to use for the residuals between the base model and each individual band (default=1)
 
-    _The fit is done using [gatspy](https://zenodo.org/record/47887)
+    The fit is done using [gatspy](https://zenodo.org/record/47887)
     described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
     We use a multiband periodogram (LombScargleMultiband) to find the best period.
-    Alternatively, you can manually set the period in days._
+    Alternatively, you can manually set the period in days.
     """
     card = dbc.Card(
         dbc.CardBody(
@@ -336,11 +336,48 @@ def card_explanation_mulens():
     """ Explain what is used to fit for microlensing events
     """
     msg = """
-    _Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed on the right panel._
+    Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed on the right panel.
 
-    _The fit is done using [pyLIMA](https://github.com/ebachelet/pyLIMA)
+    The fit is done using [pyLIMA](https://github.com/ebachelet/pyLIMA)
     described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract).
-    We use a simple PSPL model to fit the data._
+    We use a simple PSPL model to fit the data.
+    """
+    card = dbc.Card(
+        dbc.CardBody(
+            dcc.Markdown(msg)
+        ), style={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        }
+    )
+    return card
+
+def card_explanation_xmatch():
+    """ Explain how xmatch works
+    """
+    msg = """
+    The Fink Xmatch service allows you to cross-match your catalog data with
+    all Fink alert data processed so far (more than 60 million alerts, from ZTF). Just drag and drop
+    a csv file containing at least position columns named `RA` and `Dec`, and a
+    column containing ids named `ID` (could be string, integer, ... anything to identify your objects). Required column names are case insensitive. The catalog can also contained
+    other columns that will be displayed.
+
+    The xmatch service will perform a conesearch around the positions with a fix radius of 1.5 arcseconds.
+    The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats.
+    The following ways of declaring positions are all equivalent:
+
+    * 271.3914265, 45.2545134
+    * 271d23m29.1354s, 45d15m16.2482s
+    * 18h05m33.9424s, +45d15m16.2482s
+    * 18 05 33.9424, +45 15 16.2482
+    * 18:05:33.9424, 45:15:16.2482
+
+    The final table will contain the original columns of your catalog for all rows matching a Fink object, with two new columns:
+
+    * `objectId`: clickable ZTF objectId.
+    * `classification`: the class of the last alert received for this object, inferred by Fink.
+
+    This service is still experimental, and your feedback is welcome. Note that the system will limit to the first 1000 rows of your file (or 5MB max) for the moment.
+    Contact us by opening an [issue](https://github.com/astrolabsoftware/fink-science-portal/issues) if you need other file formats or encounter problems.
     """
     card = dbc.Card(
         dbc.CardBody(

@@ -37,14 +37,27 @@ layout = html.Div([
             dbc.Col(
                 dbc.CardDeck([
                     dbc.Card(children=[
-                        html.H3(children="Explore historical data", className="text-center"),
+                        html.H3(children="Explore Fink historical data", className="text-center"),
                         html.H6(children="Browse all alert data collected and processed by Fink", className="text-center"),
                         dbc.Button(
                             "Explorer",
                             href="/explorer",
                             color="secondary",
-                            className="mt-3"),
-                        ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}),
+                            className="mt-3"
+                        ),
+                    ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}
+                    ),
+                    dbc.Card(children=[
+                        html.H3(children="Cross-match with Fink data", className="text-center"),
+                        html.H6(children="Upload your catalog and cross-match against Fink alert data", className="text-center"),
+                        dbc.Button(
+                            "Xmatch",
+                            href="/xmatch",
+                            color="secondary",
+                            className="mt-3"
+                        ),
+                    ], body=True, color="dark", outline=True, style={'background-color': 'rgba(245, 245, 245, .75)'}
+                    ),
                     dbc.Card(children=[
                         html.H3(children='Explore the Graph database', className="text-center"),
                         html.H6(children="Visualise links between alerts and detect patterns in Fink data", className="text-center"),
