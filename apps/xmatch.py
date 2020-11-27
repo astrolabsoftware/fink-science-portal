@@ -135,12 +135,11 @@ def update_output(contents, filename):
     ras = [coord.ra.deg for coord in coords]
     decs = [coord.dec.deg for coord in coords]
 
-    indices = [i for i in range(nrow)]
-
     radius = 1.5 # arcsec
     # loop over rows
     clientP.setLimit(10)
-    for index, ra, dec in zip(indices, ras, decs):
+    count = 0
+    for ra, dec in zip(ras, decs):
         pix = hp.ang2pix(
             131072,
             np.pi / 2.0 - np.pi / 180.0 * dec,
@@ -169,10 +168,11 @@ def update_output(contents, filename):
         # Loop over results and construct the dataframe
         if not results.isEmpty():
             pdf = pd.DataFrame.from_dict(results, orient='index')
-            if index == 0:
+            if count == 0:
                 pdfs = pdf
             else:
                 pdfs = pd.concat((pdfs, pdf))
+            count += 1
 
     # Fink final classification
     classifications = extract_fink_classification(
