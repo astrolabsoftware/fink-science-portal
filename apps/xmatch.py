@@ -228,7 +228,7 @@ def update_output(contents, filename):
 
     colnames.append(idname)
     colnames_to_display.append(idname)
-    dtypes.update({idname: type(pdfs[idname].values[0])})
+    dtypes.update({idname: type(df[idname].values[0])})
 
     pdfs_fink = pdfs[colnames]
 
@@ -251,10 +251,10 @@ def update_output(contents, filename):
     pdfs_fink = pdfs_fink.round(2)
 
     # Final join
-    join_df = pd.concat(
-        [pdfs_fink[['objectId', 'classification', idname]], df],
-        axis=1,
-        join='inner'
+    join_df = pd.merge(
+        pdfs_fink[['objectId', 'classification', idname]],
+        df,
+        on=idname
     )
     data = join_df.to_dict('records')
     columns = [
