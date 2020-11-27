@@ -256,7 +256,7 @@ def update_output(contents, filename):
         axis=1,
         join='inner'
     )
-    data = df.to_dict('records')
+    data = join.to_dict('records')
     columns = [
         {
             'id': c,
