@@ -34,6 +34,7 @@ from app import clientP
 from apps.utils import extract_fink_classification
 from apps.utils import markdownify_objectid
 from apps.utils import convert_jd
+from apps.cards import card_explanation_xmatch
 
 layout = html.Div(
     [
@@ -41,6 +42,7 @@ layout = html.Div(
             [
                 dbc.Row([
                     dbc.Col([
+                        card_explanation_xmatch(),
                         dcc.Upload(
                             id='datatable-upload',
                             children=html.Div([
@@ -265,13 +267,4 @@ def update_output(contents, filename):
             'presentation': 'markdown'
         } for c in join_df.columns
     ]
-    # data = pdfs_fink.sort_values('last seen', ascending=False).to_dict('records')
-    # columns = [
-    #     {
-    #         'id': c,
-    #         'name': c,
-    #         'type': 'text',
-    #         'presentation': 'markdown'
-    #     } for c in colnames_to_display
-    # ]
     return data, columns
