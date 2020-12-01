@@ -771,8 +771,8 @@ def plot_mulens(n_clicks, object_data):
                 light_curve_magnitude=np.transpose(
                     [
                         pdf['i:jd'].values[mask],
-                        pdf['i:magpsf'].values[mask],
-                        pdf['i:sigmapsf'].values[mask]
+                        mag_dc[mask],
+                        err_dc[mask]
                     ]
                 ),
                 light_curve_magnitude_dictionnary={
