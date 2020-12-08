@@ -355,7 +355,7 @@ def return_object():
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
-    if request.json['withcutouts'] == 'True':
+    if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf['b:cutoutScience_stampData'].apply(
             lambda x: client.repository().get(x)
         )
