@@ -35,16 +35,17 @@ api_doc = """
 
 | HTTP Method | URI | Action |
 |-------------|-----|--------|
-| POST | http://134.158.75.151:24000/api/v1/objects| Retrieve object data from the Fink database |
+| POST | http://134.158.75.151:24000/api/v1/objects| Retrieve single object data from the Fink database |
 | GET | http://134.158.75.151:24000/api/v1/objects | Obtain information about retrieving object data |
 | POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database |
 | GET | http://134.158.75.151:24000/api/v1/explorer | Obtain information about querying the Fink alert database|
 | POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data|
 | GET | http://134.158.75.151:24000/api/v1/xmatch | Obtain information about catalog cross-match|
 
-## Retrieve object data
+## Retrieve single object data
 
 The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/objects.
+
 In a unix shell, you would simply use
 
 ```bash
@@ -79,6 +80,10 @@ r = ...
 
 pd.read_csv(io.BytesIO(r.content))
 ```
+
+## Query the Fink alert database
+
+The list of arguments for querying the Fink alert database can be found at http://134.158.75.151:24000/api/v1/explorer.
 """
 
 layout = html.Div(
