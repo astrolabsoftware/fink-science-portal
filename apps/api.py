@@ -110,6 +110,7 @@ layout = html.Div(
                         ),
                     ]
                 ),
+                html.Br(),
                 dbc.Row(
                     [
                         dbc.Card(
@@ -121,6 +122,7 @@ layout = html.Div(
                         ),
                     ]
                 ),
+                html.Br(),
                 dbc.Row(
                     [
                         dbc.Card(
