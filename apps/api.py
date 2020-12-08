@@ -73,7 +73,7 @@ def return_object():
         f = io.BytesIO()
         pdf.to_parquet(f)
         f.seek(0)
-        return f
+        return f.read()
 
     rep = {
         'status': 'error',
