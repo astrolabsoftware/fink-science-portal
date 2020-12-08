@@ -82,10 +82,6 @@ r = ...
 
 pd.read_csv(io.BytesIO(r.content))
 ```
-
-## Query the Fink alert database
-
-The list of arguments for querying the Fink alert database can be found at http://134.158.75.151:24000/api/v1/explorer.
 """
 
 api_doc_explorer = """
