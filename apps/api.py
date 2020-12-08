@@ -85,7 +85,7 @@ def return_object():
     """ Retrieve object data from the Fink database
     """
     # Check all required args are here
-    required_args = [i for i in args_objects if i['required'] is True]
+    required_args = [i['name'] for i in args_objects if i['required'] is True]
     for required_arg in required_args:
         if required_arg not in request.json:
             rep = {
