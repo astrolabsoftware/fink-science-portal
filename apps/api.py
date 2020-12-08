@@ -108,7 +108,10 @@ layout = html.Div(
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
                         ),
-                        html.Br(),
+                    ]
+                ),
+                dbc.Row(
+                    [
                         dbc.Card(
                             dbc.CardBody(
                                 dcc.Markdown(api_doc_object)
@@ -116,14 +119,17 @@ layout = html.Div(
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
                         ),
-                        html.Br(),
+                    ]
+                ),
+                dbc.Row(
+                    [
                         dbc.Card(
                             dbc.CardBody(
                                 dcc.Markdown(api_doc_explorer)
                             ), style={
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
-                        )
+                        ),
                     ]
                 ),
             ], className="mb-8", fluid=True, style={'width': '95%'}
