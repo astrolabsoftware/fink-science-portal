@@ -31,6 +31,8 @@ api_bp = Blueprint('', __name__)
 api_doc = """
 # Fink API
 
+## Summary of services
+
 | HTTP Method | URI | Action |
 |-------------|-----|--------|
 | POST | http://134.158.75.151:24000/api/v1/objects| Retrieve object data from the Fink database |
@@ -39,6 +41,16 @@ api_doc = """
 | GET | http://134.158.75.151:24000/api/v1/explorer | Obtain information about querying the Fink alert database|
 | POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data|
 | GET | http://134.158.75.151:24000/api/v1/xmatch | Obtain information about catalog cross-match|
+
+## Retrieve object data
+
+The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/objects.
+In a unix shell, you would simply use
+
+```bash
+# Get data for ZTF19acnjwgm and save it in a CSV file
+curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/objects -o ZTF19acnjwgm.csv
+```
 
 """
 
