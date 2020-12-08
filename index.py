@@ -98,5 +98,13 @@ def display_page(pathname):
         return home.layout
 
 
+# register the API
+try:
+    from apps.api import api_bp
+    server.register_blueprint(api_bp, url_prefix='/')
+except ImportError as e:
+    print('API not yet registered')
+
+
 if __name__ == '__main__':
     app.run_server(debug=True)
