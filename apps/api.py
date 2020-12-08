@@ -48,12 +48,21 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(dcc.Markdown(api_doc))
+                        dbc.Card(
+                            dbc.CardBody(
+                                dcc.Markdown(api_doc)
+                            ), style={
+                                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                            }
+                        )
                     ]
                 ),
             ]
         )
-    ]
+    ], className='home', style={
+        'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
+        'background-size': 'contain'
+    }
 )
 
 args_objects = [
