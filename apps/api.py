@@ -41,11 +41,6 @@ args_objects = [
 def return_object_arguments():
     """ Obtain information about retrieving object data
     """
-    args_objects.append(
-        {
-            'Example': """curl -H "Content-Type: application/json" -X POST -d '{{"objectId":"ZTF19acnjwgm", "output-format":"csv"}}' {}/api/v1/objects -o ZTF19acnjwgm.csv""".format(PORTAL_URL)
-        }
-    )
     return jsonify({'args': args_objects})
 
 @api_bp.route('/api/v1/objects', methods=['POST'])
