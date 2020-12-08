@@ -52,6 +52,24 @@ In a unix shell, you would simply use
 curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/objects -o ZTF19acnjwgm.csv
 ```
 
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/objects',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+    'output-format': 'json'
+  }
+)
+
+pdf = pd.read_json(r.content)
+```
+
 """
 
 layout = html.Div(
