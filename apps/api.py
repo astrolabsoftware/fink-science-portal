@@ -28,7 +28,7 @@ PORTAL_URL = 'http://134.158.75.151:24000'
 
 api_bp = Blueprint('', __name__)
 
-api_doc = """
+api_doc_summary = """
 # Fink API
 
 ## Summary of services
@@ -86,6 +86,57 @@ pd.read_csv(io.BytesIO(r.content))
 The list of arguments for querying the Fink alert database can be found at http://134.158.75.151:24000/api/v1/explorer.
 """
 
+api_doc_object = """
+## Retrieve single object data
+
+The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/objects.
+
+In a unix shell, you would simply use
+
+```bash
+# Get data for ZTF19acnjwgm and save it in a CSV file
+curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/objects -o ZTF19acnjwgm.csv
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/objects',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+    'output-format': 'json'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+Note that for `csv` output, you need to use
+
+```python
+# get data for ZTF19acnjwgm in CSV format...
+r = ...
+
+pd.read_csv(io.BytesIO(r.content))
+```
+
+## Query the Fink alert database
+
+The list of arguments for querying the Fink alert database can be found at http://134.158.75.151:24000/api/v1/explorer.
+"""
+
+api_doc_explorer = """
+## Query the Fink alert database
+
+The list of arguments for querying the Fink alert database can be found at http://134.158.75.151:24000/api/v1/explorer.
+"""
+
 layout = html.Div(
     [
         html.Br(),
@@ -95,7 +146,21 @@ layout = html.Div(
                     [
                         dbc.Card(
                             dbc.CardBody(
-                                dcc.Markdown(api_doc)
+                                dcc.Markdown(api_doc_summary)
+                            ), style={
+                                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                            }
+                        ),
+                        dbc.Card(
+                            dbc.CardBody(
+                                dcc.Markdown(api_doc_object)
+                            ), style={
+                                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                            }
+                        ),
+                        dbc.Card(
+                            dbc.CardBody(
+                                dcc.Markdown(api_doc_explorer)
                             ), style={
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
