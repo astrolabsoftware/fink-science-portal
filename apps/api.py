@@ -70,7 +70,10 @@ def return_object():
     elif request.json['output-format'] == 'csv':
         return pdf.to_csv(index=False)
     elif request.json['output-format'] == 'parquet':
-        return pdf.to_parquet(io.BytesIO())
+        f = io.BytesIO()
+        pdf.to_parquet(f)
+        f.seek(0)
+        return f
 
     rep = {
         'status': 'error',
