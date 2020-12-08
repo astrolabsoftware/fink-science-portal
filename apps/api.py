@@ -67,9 +67,18 @@ r = requests.post(
   }
 )
 
+# Format output in a DataFrame
 pdf = pd.read_json(r.content)
 ```
 
+Note that for `csv` output, you need to use
+
+```python
+# get data for ZTF19acnjwgm in CSV format...
+r = ...
+
+pd.read_csv(io.BytesIO(r.content))
+```
 """
 
 layout = html.Div(
