@@ -41,49 +41,6 @@ api_doc_summary = """
 | GET | http://134.158.75.151:24000/api/v1/explorer | Obtain information about querying the Fink alert database|
 | POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data|
 | GET | http://134.158.75.151:24000/api/v1/xmatch | Obtain information about catalog cross-match|
-
-## Retrieve single object data
-
-The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/objects.
-
-In a unix shell, you would simply use
-
-```bash
-# Get data for ZTF19acnjwgm and save it in a CSV file
-curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/objects -o ZTF19acnjwgm.csv
-```
-
-In python, you would use
-
-```python
-import requests
-import pandas as pd
-
-# get data for ZTF19acnjwgm
-r = requests.post(
-  'http://134.158.75.151:24000/api/v1/objects',
-  json={
-    'objectId': 'ZTF19acnjwgm',
-    'output-format': 'json'
-  }
-)
-
-# Format output in a DataFrame
-pdf = pd.read_json(r.content)
-```
-
-Note that for `csv` output, you need to use
-
-```python
-# get data for ZTF19acnjwgm in CSV format...
-r = ...
-
-pd.read_csv(io.BytesIO(r.content))
-```
-
-## Query the Fink alert database
-
-The list of arguments for querying the Fink alert database can be found at http://134.158.75.151:24000/api/v1/explorer.
 """
 
 api_doc_object = """
@@ -151,6 +108,7 @@ layout = html.Div(
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
                         ),
+                        html.Br(),
                         dbc.Card(
                             dbc.CardBody(
                                 dcc.Markdown(api_doc_object)
@@ -158,6 +116,7 @@ layout = html.Div(
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
                         ),
+                        html.Br(),
                         dbc.Card(
                             dbc.CardBody(
                                 dcc.Markdown(api_doc_explorer)
