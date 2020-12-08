@@ -102,6 +102,8 @@ def display_page(pathname):
 try:
     from apps.api import api_bp
     server.register_blueprint(api_bp, url_prefix='/')
+    server.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+    server.config['JSON_SORT_KEYS'] = False
 except ImportError as e:
     print('API not yet registered')
 
