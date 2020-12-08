@@ -108,7 +108,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get data for ZTF19acnjwgm and save it in a CSV file
-curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm"}' http://134.158.75.151:24000/api/v1/explorer -o search_ZTF19acnjwgm.csv
+curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm"}' http://134.158.75.151:24000/api/v1/explorer -o search_ZTF19acnjwgm.json
 ```
 
 In python, you would use
@@ -145,7 +145,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get all objects falling within (center, radius) = ((ra, dec), radius)
-curl -H "Content-Type: application/json" -X POST -d '{"ra":"271.3914265", "dec":"45.2545134", "radius":"5"}' http://134.158.75.151:24000/api/v1/explorer -o conesearch.csv
+curl -H "Content-Type: application/json" -X POST -d '{"ra":"271.3914265", "dec":"45.2545134", "radius":"5"}' http://134.158.75.151:24000/api/v1/explorer -o conesearch.json
 ```
 
 In python, you would use
@@ -180,7 +180,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get all objects between 2019-11-03 02:40:00 and 2019-11-03 02:50:00 UTC
-curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2019-11-03 02:40:00", "window":"10"}' http://134.158.75.151:24000/api/v1/explorer -o datesearch.csv
+curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2019-11-03 02:40:00", "window":"10"}' http://134.158.75.151:24000/api/v1/explorer -o datesearch.json
 ```
 
 In python, you would use
