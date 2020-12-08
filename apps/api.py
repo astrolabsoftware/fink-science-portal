@@ -273,7 +273,7 @@ def query_db():
     """ Query the Fink database
     """
     # Check the user specifies only one group
-    all_groups = [i['group'] for i in request.json]
+    all_groups = [i['group'] for i in args_explorer if i['name'] in request.json]
     if len(np.unique(all_groups)) != 1:
         rep = {
             'status': 'error',
@@ -283,7 +283,7 @@ def query_db():
 
     # Check the user specifies all parameters within a group
     user_group = np.unique(all_groups)[0]
-    required_args = [i['name'] for i in args_objects if i['group'] == user_group]
+    required_args = [i['name'] for i in args_explorer if i['group'] == user_group]
     for required_arg in required_args:
         if required_arg not in request.json:
             rep = {
