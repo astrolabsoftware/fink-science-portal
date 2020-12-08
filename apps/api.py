@@ -357,13 +357,13 @@ def return_object():
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
-            lambda x: client.repository().get(x)
+            lambda x: str(client.repository().get(x))
         )
         pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
-            lambda x: client.repository().get(x)
+            lambda x: str(client.repository().get(x))
         )
         pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
-            lambda x: client.repository().get(x)
+            lambda x: str(client.repository().get(x))
         )
 
     if 'output-format' not in request.json or request.json['output-format'] == 'json':
