@@ -19,7 +19,7 @@ import dash_bootstrap_components as dbc
 from flask import request, jsonify, Response
 
 from app import client, clientP, clientT, nlimit
-from apps.utils import extract_fink_classification
+from apps.utils import extract_fink_classification, convert_jd
 
 import io
 import healpy as hp
