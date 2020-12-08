@@ -45,7 +45,7 @@ api_doc_summary = """
 |-------------|-----|--------|
 | POST | http://134.158.75.151:24000/api/v1/objects| Retrieve single object data from the Fink database |
 | POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database |
-| POST | http://134.158.75.151:24000/api/v1/latest | Get latest alerts by class |
+| POST | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class |
 | POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data|
 """
 
