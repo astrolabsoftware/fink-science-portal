@@ -18,7 +18,7 @@ import dash_bootstrap_components as dbc
 
 from flask import request, jsonify, Response
 
-from app import client, clientP, clientT
+from app import client, clientP, clientT, nlimit
 from apps.utils import extract_fink_classification
 
 import io
