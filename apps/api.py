@@ -41,41 +41,9 @@ args_objects = [
 def return_object_arguments():
     """ Obtain information about retrieving object data
     """
-    msg = """
-    In python you would use
-    ```python
-    import requests
-    import pandas as pd
-    import io
-
-    # get data for ZTF19acnjwgm as json
-    r = requests.post(
-      '{}/api/v1/objects',
-      json={{'objectId': 'ZTF19acnjwgm', 'output-format': 'json'}}
-    )
-
-    pdf = pd.read_json(r.content)
-
-    # get data for ZTF19acnjwgm as csv
-    r = requests.post(
-      '{}/api/v1/objects',
-      json={{'objectId': 'ZTF19acnjwgm', 'output-format': 'csv'}}
-    )
-
-    pdf = pd.read_csv(io.BytesIO(r.content))
-    ```
-
-    In a unix shell, you would simply use
-    ```sh
-    curl -H "Content-Type: application/json" \
-        -X POST -d '{{"objectId":"ZTF19acnjwgm", "output-format":"csv"}}' \
-        {}/api/v1/objects \
-        -o ZTF19acnjwgm.csv
-    ```
-    """.format(PORTAL_URL, PORTAL_URL, PORTAL_URL)
     args_objects.append(
         {
-            'Usage': msg
+            'Example': """curl -H "Content-Type: application/json" -X POST -d '{{"objectId":"ZTF19acnjwgm", "output-format":"csv"}}' {}/api/v1/objects -o ZTF19acnjwgm.csv""".format(PORTAL_URL)
         }
     )
     return jsonify({'args': args_objects})
