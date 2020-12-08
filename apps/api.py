@@ -51,7 +51,7 @@ def return_object_arguments():
     # get data for ZTF19acnjwgm as json
     r = requests.post(
       '{}/api/v1/objects',
-      json={'objectId': 'ZTF19acnjwgm', 'output-format': 'json'}
+      json={{'objectId': 'ZTF19acnjwgm', 'output-format': 'json'}}
     )
 
     pdf = pd.read_json(r.content)
@@ -59,7 +59,7 @@ def return_object_arguments():
     # get data for ZTF19acnjwgm as csv
     r = requests.post(
       '{}/api/v1/objects',
-      json={'objectId': 'ZTF19acnjwgm', 'output-format': 'csv'}
+      json={{'objectId': 'ZTF19acnjwgm', 'output-format': 'csv'}}
     )
 
     pdf = pd.read_csv(io.BytesIO(r.content))
@@ -68,7 +68,7 @@ def return_object_arguments():
     In a unix shell, you would simply use
     ```sh
     curl -H "Content-Type: application/json" \
-        -X POST -d '{"objectId":"ZTF19acnjwgm", "output-format":"csv"}' \
+        -X POST -d '{{"objectId":"ZTF19acnjwgm", "output-format":"csv"}}' \
         {}/api/v1/objects \
         -o ZTF19acnjwgm.csv
     ```
