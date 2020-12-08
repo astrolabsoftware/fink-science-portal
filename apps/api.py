@@ -97,7 +97,114 @@ pd.read_csv(io.BytesIO(r.content))
 api_doc_explorer = """
 ## Query the Fink alert database
 
+Currently, you cannot query using several conditions.
+You must choose among `Search by Object ID` (group 0), `Conesearch` (group 1), or `Search by Date` (group 2).
+In a future release, you will be able to combine searches.
 The list of arguments for querying the Fink alert database can be found at http://134.158.75.151:24000/api/v1/explorer.
+
+### Search by Object ID
+
+Enter a valid object ID to access its data, e.g. try:
+
+* ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf, ZTF18acuajcr
+
+In a unix shell, you would simply use
+
+```bash
+# Get data for ZTF19acnjwgm and save it in a CSV file
+curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm"}' http://134.158.75.151:24000/api/v1/explorer -o search_ZTF19acnjwgm.csv
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/explorer',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+### Conesearch
+
+Perform a conesearch around a position on the sky given by (RA, Dec, radius).
+The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats.
+The following ways of initializing a conesearch are all equivalent (radius in arcsecond):
+
+* 271.3914265, 45.2545134, 5
+* 271d23m29.1354s, 45d15m16.2482s, 5
+* 18h05m33.9424s, +45d15m16.2482s, 5
+* 18 05 33.9424, +45 15 16.2482, 5
+* 18:05:33.9424, 45:15:16.2482, 5
+
+In a unix shell, you would simply use
+
+```bash
+# Get all objects falling within (center, radius) = ((ra, dec), radius)
+curl -H "Content-Type: application/json" -X POST -d '{"ra":"271.3914265", "dec":"45.2545134", "radius":"5"}' http://134.158.75.151:24000/api/v1/explorer -o conesearch.csv
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/explorer',
+  json={
+    'ra': '271.3914265',
+    'dec': '45.2545134',
+    'radius': '5'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+### Search by Date
+
+Choose a starting date and a time window to see all alerts in this period.
+Dates are in UTC, and the time window in minutes.
+Example of valid search:
+
+* 2019-11-03 02:40:00
+
+In a unix shell, you would simply use
+
+```bash
+# Get all objects between 2019-11-03 02:40:00 and 2019-11-03 02:50:00 UTC
+curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2019-11-03 02:40:00", "window":"10"}' http://134.158.75.151:24000/api/v1/explorer -o datesearch.csv
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/explorer',
+  json={
+    'startdate': '2019-11-03 02:40:00',
+    'window': '10'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
 """
 
 layout = html.Div(
