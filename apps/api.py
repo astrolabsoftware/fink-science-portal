@@ -18,7 +18,7 @@ import dash_bootstrap_components as dbc
 
 from flask import request, jsonify, Response
 
-from app import client, clientP, clientT, nlimit
+from app import client, clientP, clientT, clientS, nlimit
 from apps.utils import extract_fink_classification, convert_jd
 
 import io
@@ -258,6 +258,11 @@ args_objects = [
         'description': 'ZTF Object ID'
     },
     {
+        'name': 'withcutouts',
+        'required': False,
+        'description': 'If True, retrieve also gzipped FITS cutouts.'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet'
@@ -349,6 +354,18 @@ def return_object():
         0, True, True
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    if request.json['withcutouts'] == 'True':
+        pdf['b:cutoutScience_stampData'].apply(
+            lambda x: client.repository().get(x)
+        )
+        pdf['b:cutoutTemplate_stampData'].apply(
+            lambda x: client.repository().get(x)
+        )
+        pdf['b:cutoutDifference_stampData'].apply(
+            lambda x: client.repository().get(x)
+        )
+
     if 'output-format' not in request.json or request.json['output-format'] == 'json':
         return pdf.to_json()
     elif request.json['output-format'] == 'csv':
@@ -494,6 +511,131 @@ def query_db():
 
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
+
+    if results.isEmpty():
+        return pd.DataFrame({}).to_json()
+
+    # Loop over results and construct the dataframe
+    pdfs = pd.DataFrame.from_dict(results, orient='index')
+
+    # Fink final classification
+    classifications = extract_fink_classification(
+        pdfs['d:cdsxmatch'],
+        pdfs['d:roid'],
+        pdfs['d:mulens_class_1'],
+        pdfs['d:mulens_class_2'],
+        pdfs['d:snn_snia_vs_nonia'],
+        pdfs['d:snn_sn_vs_all'],
+        pdfs['d:rfscore'],
+        pdfs['i:ndethist'],
+        pdfs['i:drb'],
+        pdfs['i:classtar']
+    )
+
+    # inplace (booo)
+    pdfs['d:cdsxmatch'] = classifications
+
+    pdfs = pdfs[colnames]
+
+    # Column values are string by default - convert them
+    pdfs = pdfs.astype(dtype=dtypes)
+
+    # Rename columns
+    pdfs = pdfs.rename(
+        columns={i: j for i, j in zip(colnames, colnames_to_display)}
+    )
+
+    # Display only the last alert
+    pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
+    pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
+
+    return pdfs.to_json()
+
+@api_bp.route('/api/v1/latests', methods=['GET'])
+def latest_objects_arguments():
+    """ Obtain information about latest objects
+    """
+    return jsonify({'args': args_latest})
+
+@api_bp.route('/api/v1/latests', methods=['POST'])
+def latest_objects():
+    """ Get latest objects by class
+    """
+    # Check all required args are here
+    required_args = [i['name'] for i in args_latest if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in request.json:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    # Columns of interest
+    colnames = [
+        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
+    ]
+
+    colnames_added_values = [
+        'd:cdsxmatch',
+        'd:roid',
+        'd:mulens_class_1',
+        'd:mulens_class_2',
+        'd:snn_snia_vs_nonia',
+        'd:snn_sn_vs_all',
+        'd:rfscore',
+        'i:ndethist',
+        'i:drb',
+        'i:classtar'
+    ]
+
+    # Column name to display
+    colnames_to_display = [
+        'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
+    ]
+
+    # Types of columns
+    dtypes_ = [
+        np.str, np.float, np.float, np.float, np.str, np.int
+    ]
+    dtypes = {i: j for i, j in zip(colnames, dtypes_)}
+
+    # Search for latest alerts for a specific class
+    if request.jon['class'] != 'allclasses':
+        clientS.setLimit(int(request.json['n']))
+        clientS.setRangeScan(True)
+        clientS.setReversed(True)
+
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_stop = Time.now().jd
+
+        results = clientS.scan(
+            "",
+            "key:key:{}_{},key:key:{}_{}".format(
+                request.json['class'],
+                jd_start,
+                request.json['class'],
+                jd_stop
+            ),
+            ",".join(colnames + colnames_added_values), 0, False, False
+        )
+    elif request.json['class'] == 'allclasses':
+        clientT.setLimit(int(request.json['n']))
+        clientT.setRangeScan(True)
+        clientT.setReversed(True)
+
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_stop = Time.now().jd
+
+        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
+        results = clientT.scan(
+            "",
+            to_evaluate,
+            ",".join(colnames + colnames_added_values),
+            0, True, True
+        )
 
     if results.isEmpty():
         return pd.DataFrame({}).to_json()
