@@ -380,6 +380,9 @@ def query_db():
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
 
+    if results.isEmpty():
+        return pd.DataFrame({}).to_json()
+
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
 
