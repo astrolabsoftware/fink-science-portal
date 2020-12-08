@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from flask import request, abort, jsonify
+import dash_core_components as dcc
+
+from flask import request, jsonify, Response
 from app import client
 
 import io
@@ -23,6 +25,34 @@ from flask import Blueprint
 PORTAL_URL = 'http://134.158.75.151:24000'
 
 api_bp = Blueprint('', __name__)
+
+api_doc = """
+# Fink API
+
+| HTTP Method | URI | Action |
+|-------------|-----|--------|
+| POST | http://134.158.75.151:24000/api/v1/objects| Retrieve object data from the Fink database |
+| GET | http://134.158.75.151:24000/api/v1/objects | Obtain information about retrieving object data |
+| POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database |
+| GET | http://134.158.75.151:24000/api/v1/explorer | Obtain information about querying the Fink alert database|
+| POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data|
+| GET | http://134.158.75.151:24000/api/v1/xmatch | Obtain information about catalog cross-match|
+
+"""
+
+layout = html.Div(
+    [
+        dbc.Container(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(dcc.Markdown(api_doc))
+                    ]
+                ),
+            ]
+        )
+    ]
+)
 
 args_objects = [
     {
