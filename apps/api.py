@@ -356,13 +356,13 @@ def return_object():
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdf['b:cutoutScience_stampData'].apply(
+        pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
             lambda x: client.repository().get(x)
         )
-        pdf['b:cutoutTemplate_stampData'].apply(
+        pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
             lambda x: client.repository().get(x)
         )
-        pdf['b:cutoutDifference_stampData'].apply(
+        pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
             lambda x: client.repository().get(x)
         )
 
