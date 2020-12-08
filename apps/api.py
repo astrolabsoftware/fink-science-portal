@@ -158,7 +158,7 @@ In python, you would use
 import requests
 import pandas as pd
 
-# get data for ZTF19acnjwgm
+# Get all objects falling within (center, radius) = ((ra, dec), radius)
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/explorer',
   json={
@@ -193,7 +193,7 @@ In python, you would use
 import requests
 import pandas as pd
 
-# get data for ZTF19acnjwgm
+# Get all objects between 2019-11-03 02:40:00 and 2019-11-03 02:50:00 UTC
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/explorer',
   json={
@@ -291,7 +291,7 @@ args_explorer = [
         'name': 'radius',
         'required': False,
         'group': 1,
-        'description': 'Conesearch radius in arcsec. Maximum is 180 arcseconds.'
+        'description': 'Conesearch radius in arcsec. Maximum is 60 arcseconds.'
     },
     {
         'name': 'startdate',
@@ -303,7 +303,7 @@ args_explorer = [
         'name': 'window',
         'required': False,
         'group': 2,
-        'description': 'Time window in minutes'
+        'description': 'Time window in minutes. Maximum is 180 minutes.'
     }
 ]
 
@@ -444,6 +444,12 @@ def query_db():
         # Interpret user input
         ra, dec = request.json['ra'], request.json['dec']
         radius = request.json['radius']
+        if int(radius) > 60:
+            rep = {
+                'status': 'error',
+                'text': "`radius` cannot be bigger than 60 arcseconds.\n"
+            }
+            return Response(str(rep), 400)
         if 'h' in ra:
             coord = SkyCoord(ra, dec, frame='icrs')
         elif ':' in ra or ' ' in ra:
@@ -470,6 +476,12 @@ def query_db():
             0, True, True
         )
     elif user_group == 2:
+        if int(request.json['window']) > 180:
+            rep = {
+                'status': 'error',
+                'text': "`window` cannot be bigger than 180 minutes.\n"
+            }
+            return Response(str(rep), 400)
         # Time to jd
         jd_start = Time(request.json['startdate']).jd
         jd_end = jd_start + TimeDelta(int(request.json['window']) * 60, format='sec').jd
