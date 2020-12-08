@@ -44,6 +44,7 @@ api_doc = """
 
 layout = html.Div(
     [
+        html.Br(),
         dbc.Container(
             [
                 dbc.Row(
@@ -57,7 +58,7 @@ layout = html.Div(
                         )
                     ]
                 ),
-            ]
+            ], className="mb-8", fluid=True, style={'width': '95%'}
         )
     ], className='home', style={
         'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
