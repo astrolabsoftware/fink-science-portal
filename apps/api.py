@@ -17,10 +17,18 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from flask import request, jsonify, Response
-from app import client
+
+from app import client, clientP, clientT
+from apps.utils import extract_fink_classification
 
 import io
+import healpy as hp
 import pandas as pd
+import numpy as np
+
+import astropy.units as u
+from astropy.time import Time, TimeDelta
+from astropy.coordinates import SkyCoord
 
 from flask import Blueprint
 
@@ -39,6 +47,8 @@ api_doc_summary = """
 | GET | http://134.158.75.151:24000/api/v1/objects | Obtain information about retrieving object data |
 | POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database |
 | GET | http://134.158.75.151:24000/api/v1/explorer | Obtain information about querying the Fink alert database|
+| POST | http://134.158.75.151:24000/api/v1/latest | Get latest alerts by class |
+| GET | http://134.158.75.151:24000/api/v1/latest | Obtain information about latest alerts by class|
 | POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data|
 | GET | http://134.158.75.151:24000/api/v1/xmatch | Obtain information about catalog cross-match|
 """
@@ -151,6 +161,63 @@ args_objects = [
     }
 ]
 
+args_explorer = [
+    {
+        'name': 'objectId',
+        'required': False,
+        'group': 0,
+        'description': 'ZTF Object ID'
+    },
+    {
+        'name': 'ra',
+        'required': False,
+        'group': 1,
+        'description': 'Right Ascension'
+    },
+    {
+        'name': 'dec',
+        'required': False,
+        'group': 1,
+        'description': 'Declination'
+    },
+    {
+        'name': 'radius',
+        'required': False,
+        'group': 1,
+        'description': 'Conesearch radius in arcsec. Maximum is 180 arcseconds.'
+    },
+    {
+        'name': 'startdate',
+        'required': False,
+        'group': 2,
+        'description': 'Starting date in UTC'
+    },
+    {
+        'name': 'window',
+        'required': False,
+        'group': 2,
+        'description': 'Time window in minutes'
+    }
+]
+
+args_latest = [
+    {
+        'name': 'class',
+        'required': True,
+        'description': 'Fink derived class'
+    },
+    {
+        'name': 'n',
+        'required': False,
+        'description': 'Last N alerts to transfer. Default is 100, max is 1000.'
+    },
+    {
+        'name': 'columns',
+        'required': False,
+        'description': 'Data columns to transfer. '
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -194,3 +261,157 @@ def return_object():
         'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
     }
     return Response(str(rep), 400)
+
+@api_bp.route('/api/v1/explorer', methods=['GET'])
+def query_db_arguments():
+    """ Obtain information about querying the Fink database
+    """
+    return jsonify({'args': args_explorer})
+
+@api_bp.route('/api/v1/explorer', methods=['POST'])
+def query_db():
+    """ Query the Fink database
+    """
+    # Check the user specifies only one group
+    all_groups = [i['group'] for i in request.json]
+    if len(np.unique(all_groups)) != 1:
+        rep = {
+            'status': 'error',
+            'text': "You need to set parameters from the same group\n"
+        }
+        return Response(str(rep), 400)
+
+    # Check the user specifies all parameters within a group
+    user_group = np.unique(all_groups)[0]
+    required_args = [i['name'] for i in args_objects if i['group'] == user_group]
+    for required_arg in required_args:
+        if required_arg not in request.json:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required for group {}. Use GET to check arguments.\n".format(required_arg, user_group)
+            }
+            return Response(str(rep), 400)
+
+    # Columns of interest
+    colnames = [
+        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
+    ]
+
+    colnames_added_values = [
+        'd:cdsxmatch',
+        'd:roid',
+        'd:mulens_class_1',
+        'd:mulens_class_2',
+        'd:snn_snia_vs_nonia',
+        'd:snn_sn_vs_all',
+        'd:rfscore',
+        'i:ndethist',
+        'i:drb',
+        'i:classtar'
+    ]
+
+    # Column name to display
+    colnames_to_display = [
+        'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
+    ]
+
+    # Types of columns
+    dtypes_ = [
+        np.str, np.float, np.float, np.float, np.str, np.int
+    ]
+    dtypes = {i: j for i, j in zip(colnames, dtypes_)}
+
+    if user_group == 0:
+        # objectId search
+        to_evaluate = "key:key:{}".format(request.json['objectId'])
+
+        results = client.scan(
+            "",
+            to_evaluate,
+            ",".join(colnames + colnames_added_values),
+            0, True, True
+        )
+    if user_group == 1:
+        clientP.setLimit(1000)
+
+        # Interpret user input
+        ra, dec = request.json['ra'], request.json['dec']
+        radius = request.json['radius']
+        if 'h' in ra:
+            coord = SkyCoord(ra, dec, frame='icrs')
+        elif ':' in ra or ' ' in ra:
+            coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
+        else:
+            coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
+
+        ra = coord.ra.deg
+        dec = coord.dec.deg
+        radius = float(radius) / 3600.
+
+        # angle to vec conversion
+        vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
+
+        # list of neighbour pixels
+        pixs = hp.query_disc(131072, vec, np.pi / 180 * radius, inclusive=True)
+
+        # Send request
+        to_evaluate = ",".join(['key:key:{}'.format(i) for i in pixs])
+        results = clientP.scan(
+            "",
+            to_evaluate,
+            ",".join(colnames + colnames_added_values),
+            0, True, True
+        )
+    elif user_group == 2:
+        # Time to jd
+        jd_start = Time(request.json['startdate']).jd
+        jd_end = jd_start + TimeDelta(int(request.json['window']) * 60, format='sec').jd
+
+        # Send the request. RangeScan.
+        clientT.setRangeScan(True)
+        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_end)
+        results = clientT.scan(
+            "",
+            to_evaluate,
+            ",".join(colnames + colnames_added_values),
+            0, True, True
+        )
+
+    # reset the limit in case it has been changed above
+    client.setLimit(nlimit)
+
+    # Loop over results and construct the dataframe
+    pdfs = pd.DataFrame.from_dict(results, orient='index')
+
+    # Fink final classification
+    classifications = extract_fink_classification(
+        pdfs['d:cdsxmatch'],
+        pdfs['d:roid'],
+        pdfs['d:mulens_class_1'],
+        pdfs['d:mulens_class_2'],
+        pdfs['d:snn_snia_vs_nonia'],
+        pdfs['d:snn_sn_vs_all'],
+        pdfs['d:rfscore'],
+        pdfs['i:ndethist'],
+        pdfs['i:drb'],
+        pdfs['i:classtar']
+    )
+
+    # inplace (booo)
+    pdfs['d:cdsxmatch'] = classifications
+
+    pdfs = pdfs[colnames]
+
+    # Column values are string by default - convert them
+    pdfs = pdfs.astype(dtype=dtypes)
+
+    # Rename columns
+    pdfs = pdfs.rename(
+        columns={i: j for i, j in zip(colnames, colnames_to_display)}
+    )
+
+    # Display only the last alert
+    pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
+    pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
+
+    return pdfs.to_json()
