@@ -601,7 +601,7 @@ def latest_objects():
     dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     # Search for latest alerts for a specific class
-    if request.jon['class'] != 'allclasses':
+    if request.json['class'] != 'allclasses':
         clientS.setLimit(int(request.json['n']))
         clientS.setRangeScan(True)
         clientS.setReversed(True)
