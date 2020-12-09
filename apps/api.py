@@ -41,12 +41,12 @@ api_doc_summary = """
 
 ## Summary of services
 
-| HTTP Method | URI | Action |
-|-------------|-----|--------|
-| POST | http://134.158.75.151:24000/api/v1/objects| Retrieve single object data from the Fink database |
-| POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database |
-| POST | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class |
-| POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data|
+| HTTP Method | URI | Action | Availability |
+|-------------|-----|--------|--------------|
+| POST | http://134.158.75.151:24000/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
+| POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
+| POST | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
+| POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
 """
 
 api_doc_object = """
