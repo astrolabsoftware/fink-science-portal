@@ -439,9 +439,11 @@ def toggle_collapse(n, is_open):
         return not is_open
     return is_open
 
-schema = list(client.schema().columnNames())
-fink_fields = [i for i in schema if i.startswith('d:')]
-ztf_fields = [i for i in schema if i.startswith('i:')]
+
+schema = client.schema()
+schema_list = list(schema.columnNames())
+fink_fields = [i for i in schema_list if i.startswith('d:')]
+ztf_fields = [i for i in schema_list if i.startswith('i:')]
 
 layout = html.Div(
     [
@@ -609,28 +611,6 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     if n_clicks is not None and wrong_id and wrong_conesearch and wrong_date and wrong_class:
         return [], []
 
-    # Columns of interest
-    # colnames = [
-    #     'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
-    # ]
-
-    # colnames_added_values = [
-    #     'd:cdsxmatch',
-    #     'd:roid',
-    #     'd:mulens_class_1',
-    #     'd:mulens_class_2',
-    #     'd:snn_snia_vs_nonia',
-    #     'd:snn_sn_vs_all',
-    #     'd:rfscore',
-    #     'i:ndethist',
-    #     'i:drb',
-    #     'i:classtar'
-    # ]
-
-    # Column name to display
-    # colnames_to_display = [
-    #     'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
-    # ]
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'i:lastdate', 'd:classification', 'i:ndethist'
     ]
@@ -764,8 +744,6 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     pdfs['d:classification'] = classifications
 
-    # pdfs = pdfs[colnames]
-
     # Make clickable objectId
     pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
 
@@ -784,6 +762,9 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # round numeric values for better display
     # pdfs = pdfs.round(2)
+
+    schema_client = client.schema()
+    pdfs = pdfs.astype({i: schema_client.type(i) for i in pdfs.columns})
 
     data = pdfs.sort_values('i:jd', ascending=False).to_dict('records')
 
