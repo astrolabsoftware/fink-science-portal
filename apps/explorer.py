@@ -144,7 +144,12 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
     date_click = (startdate is not None) and (startdate != '')
     class_click = (alert_class is not None) and (alert_class != '')
 
-    # multiple queries
+    # no queries
+    if np.sum([id_click, conesearch_click, date_click, class_click]) == 0:
+        header = "No fields"
+        text = "You need to fill at least one searching field"
+        return True, text, header
+
     if np.sum([id_click, conesearch_click, date_click, class_click]) > 1:
         m = []
         for name, condition in zip(["Search by Object ID", "Conesearch", "Search by Date", "Get latest 100 alerts by class"], [id_click, conesearch_click, date_click, class_click]):
