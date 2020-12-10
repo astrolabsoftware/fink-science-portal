@@ -440,7 +440,7 @@ def toggle_collapse(n, is_open):
     return is_open
 
 
-schema = client.schema()
+schema = clientP.schema()
 schema_list = list(schema.columnNames())
 fink_fields = [i for i in schema_list if i.startswith('d:')]
 ztf_fields = [i for i in schema_list if i.startswith('i:')]
