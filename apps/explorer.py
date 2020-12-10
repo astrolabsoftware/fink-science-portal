@@ -555,7 +555,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # Trigger the query only if the reset button is not pressed.
     if reset_button and 'reset_button' in changed_id:
-        return [], {}
+        return [], []
 
     # Adding new columns (no client call)
     if 'field-dropdown' in changed_id:
@@ -595,7 +595,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # If nothing has been filled
     if n_clicks is not None and wrong_id and wrong_conesearch and wrong_date and wrong_class:
-        return [], {}
+        return [], []
 
     # Columns of interest
     # colnames = [
@@ -632,7 +632,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # default table
     if n_clicks is None:
         # # TODO: change that to date search
-        return [], {}
+        return [], []
 
     # Search for latest alerts for a specific class
     if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
@@ -731,7 +731,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     client.setLimit(nlimit)
 
     if results.isEmpty():
-        return [], {}
+        return [], []
 
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
