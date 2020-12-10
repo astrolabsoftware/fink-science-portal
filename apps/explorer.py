@@ -154,7 +154,7 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
         return True, text, header
 
     # ugly hack on the type
-    if n and len(table) > 0:
+    if n and len(table) == 0:
         if id_click:
             header = "Search by Object ID"
             text = "{} not found".format(objectid)
