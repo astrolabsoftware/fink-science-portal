@@ -499,7 +499,7 @@ def update_columns(value, columns):
         raise PreventUpdate
 
     columns.append({
-        'label': value,
+        'name': value,
         'id': value
     })
 
@@ -736,7 +736,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # )
     #
     # # Display only the last alert
-    # pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
+    pdfs = pdfs.loc[pdfs.groupby('objectId')['i:jd'].idxmax()]
     # pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 
     # round numeric values for better display
