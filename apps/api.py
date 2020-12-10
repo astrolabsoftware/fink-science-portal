@@ -47,7 +47,7 @@ api_doc_summary = """
 | POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
 | POST | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
-| GET  | http://134.158.75.151:24000/api/v1/class  | Display all Fink derived classification | &#x2611;&#xFE0F; |
+| GET  | http://134.158.75.151:24000/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 """
 
 api_doc_object = """
@@ -209,7 +209,12 @@ api_doc_latests = """
 
 The list of arguments for getting latest alerts by class can be found at http://134.158.75.151:24000/api/v1/latests.
 
-The list of Fink class can be found at http://134.158.75.151:24000/api/v1/class
+The list of Fink class can be found at http://134.158.75.151:24000/api/v1/classes
+
+```bash
+# Get list of available class in Fink
+curl -H "Content-Type: application/json" -X GET http://134.158.75.151:24000/api/v1/classes -o finkclass.json
+```
 
 In a unix shell, you would simply use
 
@@ -281,6 +286,18 @@ layout = html.Div(
                         dbc.Card(
                             dbc.CardBody(
                                 dcc.Markdown(api_doc_explorer)
+                            ), style={
+                                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                            }
+                        ),
+                    ]
+                ),
+                html.Br(),
+                dbc.Row(
+                    [
+                        dbc.Card(
+                            dbc.CardBody(
+                                dcc.Markdown(api_doc_latests)
                             ), style={
                                 'backgroundColor': 'rgb(248, 248, 248, .7)'
                             }
@@ -744,7 +761,7 @@ def latest_objects():
     }
     return Response(str(rep), 400)
 
-@api_bp.route('/api/v1/class', methods=['GET'])
+@api_bp.route('/api/v1/classes', methods=['GET'])
 def class_arguments():
     """ Obtain all Fink derived class
     """
