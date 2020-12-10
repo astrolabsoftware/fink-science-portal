@@ -475,7 +475,7 @@ layout = html.Div(
                             options=[
                                 {'label': 'Fink derived fields', 'disabled': True, 'value': 'None'},
                                 *[{'label': field, 'value': field} for field in fink_fields],
-                                {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
+                                {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
                                 *[{'label': field, 'value': field} for field in ztf_fields]
                             ],
                             searchable=True,
