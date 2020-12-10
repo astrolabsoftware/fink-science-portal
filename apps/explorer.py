@@ -728,6 +728,9 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
 
+    schema_client = client.schema()
+    pdfs = pdfs.astype({i: schema_client.type(i) for i in pdfs.columns})
+
     # Fink final classification
     classifications = extract_fink_classification(
         pdfs['d:cdsxmatch'],
@@ -762,9 +765,6 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # round numeric values for better display
     # pdfs = pdfs.round(2)
-
-    schema_client = client.schema()
-    pdfs = pdfs.astype({i: schema_client.type(i) for i in pdfs.columns})
 
     data = pdfs.sort_values('i:jd', ascending=False).to_dict('records')
 
