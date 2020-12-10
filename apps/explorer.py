@@ -467,7 +467,7 @@ layout = html.Div(
                             } for id in ['i:magpsf', 'i:sigmapsf']],
                             placeholder="Add more fields to the table",
                         ),
-                        html.Br()
+                        html.Br(),
                         dash_table.DataTable(
                             id="table",
                             page_size=10,
