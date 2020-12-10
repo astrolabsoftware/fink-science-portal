@@ -728,14 +728,14 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
 
-    schema_client = client.schema()
-    converter = {
-        'integer': int,
-        'float': float,
-        'double': float,
-        'string': str
-    }
-    pdfs = pdfs.astype({i: converter[schema_client.type(i)] for i in pdfs.columns})
+    # schema_client = client.schema()
+    # converter = {
+    #     'integer': int,
+    #     'float': float,
+    #     'double': float,
+    #     'string': str
+    # }
+    # pdfs = pdfs.astype({i: converter[schema_client.type(i)] for i in pdfs.columns})
 
     # Fink final classification
     classifications = extract_fink_classification(
