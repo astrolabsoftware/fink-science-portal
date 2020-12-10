@@ -459,6 +459,13 @@ layout = html.Div(
                         ], width=3
                     ),
                     dbc.Col([
+                        dcc.Dropdown(
+                            id='columns-dropdown',
+                            options=[{
+                                'label': 'label: ' + id,
+                                'value': id
+                            } for id in ['i:magpsf', 'i:sigmapsf']]
+                        ),
                         html.H6(id="table"),
                         dbc.Card(
                             dbc.CardBody(
@@ -476,6 +483,27 @@ layout = html.Div(
         'background-size': 'contain'
     }
 )
+
+@app.callback(
+    Output('table', 'columns'),
+    [Input('columns-dropdown', 'value')],
+    [State('table', 'columns')]
+)
+def update_columns(value, columns):
+    if value is None or columns is None:
+        raise PreventUpdate
+
+    inColumns = any(c.get('id') == value for c in columns)
+
+    if inColumns == True:
+        raise PreventUpdate
+
+    columns.append({
+        'label': 'label: ' + value,
+        'id': value
+    })
+
+    return columns
 
 @app.callback(
     Output("table", "children"),
@@ -540,33 +568,36 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         return html.Table()
 
     # Columns of interest
-    colnames = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
-    ]
+    # colnames = [
+    #     'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
+    # ]
 
-    colnames_added_values = [
-        'd:cdsxmatch',
-        'd:roid',
-        'd:mulens_class_1',
-        'd:mulens_class_2',
-        'd:snn_snia_vs_nonia',
-        'd:snn_sn_vs_all',
-        'd:rfscore',
-        'i:ndethist',
-        'i:drb',
-        'i:classtar'
-    ]
+    # colnames_added_values = [
+    #     'd:cdsxmatch',
+    #     'd:roid',
+    #     'd:mulens_class_1',
+    #     'd:mulens_class_2',
+    #     'd:snn_snia_vs_nonia',
+    #     'd:snn_sn_vs_all',
+    #     'd:rfscore',
+    #     'i:ndethist',
+    #     'i:drb',
+    #     'i:classtar'
+    # ]
 
     # Column name to display
+    # colnames_to_display = [
+    #     'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
+    # ]
     colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
+        'i:objectId', 'i:ra', 'i:dec', 'i:timestamp', 'd:classification', 'i:ndethist'
     ]
 
     # Types of columns
-    dtypes_ = [
-        np.str, np.float, np.float, np.float, np.str, np.int
-    ]
-    dtypes = {i: j for i, j in zip(colnames, dtypes_)}
+    # dtypes_ = [
+    #     np.str, np.float, np.float, np.float, np.str, np.int
+    # ]
+    # dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     # default table
     if n_clicks is None:
@@ -591,7 +622,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
                 alert_class,
                 jd_stop
             ),
-            ",".join(colnames + colnames_added_values), 0, False, False
+            "*", 0, False, False
         )
     # Search for latest alerts (all classes)
     elif alert_class == 'allclasses':
@@ -607,7 +638,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         results = clientT.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
     elif radecradius is not None and radecradius != '':
@@ -637,7 +668,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         results = clientP.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
     elif startdate is not None and window is not None and startdate != '':
@@ -651,7 +682,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         results = clientT.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
     else:
@@ -662,7 +693,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         results = client.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
 
@@ -689,31 +720,30 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         pdfs['i:classtar']
     )
 
-    # inplace (booo)
-    pdfs['d:cdsxmatch'] = classifications
+    pdfs['d:classification'] = classifications
 
-    pdfs = pdfs[colnames]
+    # pdfs = pdfs[colnames]
 
     # Make clickable objectId
     pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
 
-    # Column values are string by default - convert them
-    pdfs = pdfs.astype(dtype=dtypes)
-
-    # Rename columns
-    pdfs = pdfs.rename(
-        columns={i: j for i, j in zip(colnames, colnames_to_display)}
-    )
-
-    # Display only the last alert
-    pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
-    pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
+    # # Column values are string by default - convert them
+    # pdfs = pdfs.astype(dtype=dtypes)
+    #
+    # # Rename columns
+    # pdfs = pdfs.rename(
+    #     columns={i: j for i, j in zip(colnames, colnames_to_display)}
+    # )
+    #
+    # # Display only the last alert
+    # pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
+    # pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 
     # round numeric values for better display
-    pdfs = pdfs.round(2)
+    # pdfs = pdfs.round(2)
 
     table = dash_table.DataTable(
-        data=pdfs.sort_values('last seen', ascending=False).to_dict('records'),
+        data=pdfs.sort_values('i:jd', ascending=False).to_dict('records'),
         columns=[
             {
                 'id': c,
