@@ -464,8 +464,10 @@ layout = html.Div(
                             options=[{
                                 'label': id,
                                 'value': id
-                            } for id in ['i:magpsf', 'i:sigmapsf']]
+                            } for id in ['i:magpsf', 'i:sigmapsf']],
+                            placeholder="Add more fields to the table",
                         ),
+                        html.Br()
                         dash_table.DataTable(
                             id="table",
                             page_size=10,
