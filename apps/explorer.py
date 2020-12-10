@@ -462,7 +462,7 @@ layout = html.Div(
                         dcc.Dropdown(
                             id='columns-dropdown',
                             options=[{
-                                'label': 'label: ' + id,
+                                'label': id,
                                 'value': id
                             } for id in ['i:magpsf', 'i:sigmapsf']]
                         ),
@@ -499,7 +499,7 @@ def update_columns(value, columns):
         raise PreventUpdate
 
     columns.append({
-        'label': 'label: ' + value,
+        'label': value,
         'id': value
     })
 
