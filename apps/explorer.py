@@ -517,6 +517,7 @@ layout = html.Div(
         Input("conesearch", "value"),
         Input('startdate', 'value'),
         Input('window', 'value'),
+        Input('class-dropdown', 'value'),
         Input('field-dropdown', 'value')
     ],
     [
