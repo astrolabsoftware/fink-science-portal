@@ -91,7 +91,8 @@ simbad_types = sorted(simbad_types, key=lambda s: s.lower())
         Output('startdate', 'value'),
         Output('window', 'value'),
         Output('class-dropdown', 'value'),
-        Output('field-dropdown', 'value')
+        Output('field-dropdown', 'value'),
+        Output('table', 'data')
     ],
     [
         Input("reset_button", "n_clicks"),
@@ -103,7 +104,7 @@ def reset_button(n_clicks):
     if 'reset_button' not in changed_id:
         raise PreventUpdate
     if n_clicks:
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, []
 
 noresults_toast = dbc.Toast(
     "",
