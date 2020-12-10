@@ -499,8 +499,9 @@ def update_columns(value, columns):
         raise PreventUpdate
 
     columns.append({
-        'name': value,
-        'id': value
+        'label': value,
+        'id': value,
+        'name': value
     })
 
     return columns
@@ -749,12 +750,11 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             {
                 'id': c,
                 'name': c,
+                'label': c,
                 'type': 'text',
                 'presentation': 'markdown',
-                'selectable': True
             } for c in colnames_to_display
         ],
-        column_selectable="single",
         page_size=10,
         style_as_list_view=True,
         sort_action="native",
