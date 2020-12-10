@@ -47,7 +47,7 @@ api_doc_summary = """
 | POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
 | POST | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
-| GET  | http://134.158.75.151:24000/api/v1/class  | Display all Fink derived classification |
+| GET  | http://134.158.75.151:24000/api/v1/class  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 """
 
 api_doc_object = """
@@ -744,7 +744,7 @@ def latest_objects():
     }
     return Response(str(rep), 400)
 
-@api_bp.route('/api/v1/latests', methods=['GET'])
+@api_bp.route('/api/v1/class', methods=['GET'])
 def class_arguments():
     """ Obtain all Fink derived class
     """
@@ -761,4 +761,4 @@ def class_arguments():
         'Cross-match': simbad_types
     }
 
-    return jsonify({'args': args_latest})
+    return jsonify({'classnames': types})
