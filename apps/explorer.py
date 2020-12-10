@@ -552,7 +552,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # Trigger the query only if the reset button is not pressed.
     if reset_button and 'reset_button' in changed_id:
-        return return [], {}
+        return [], {}
 
     # Adding new columns (no client call)
     if 'field-dropdown' in changed_id:
