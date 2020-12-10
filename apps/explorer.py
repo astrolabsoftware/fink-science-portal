@@ -147,7 +147,7 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
     # no queries
     if np.sum([id_click, conesearch_click, date_click, class_click]) == 0:
         header = "No fields"
-        text = "You need to fill at least one searching field"
+        text = "You need to define your query"
         return True, text, header
 
     if np.sum([id_click, conesearch_click, date_click, class_click]) > 1:
