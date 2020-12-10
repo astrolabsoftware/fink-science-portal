@@ -466,7 +466,7 @@ layout = html.Div(
                                 'value': id
                             } for id in ['i:magpsf', 'i:sigmapsf']]
                         ),
-                        dash_table.Datatable(
+                        dash_table.DataTable(
                             id="table",
                             page_size=10,
                             style_as_list_view=True,
