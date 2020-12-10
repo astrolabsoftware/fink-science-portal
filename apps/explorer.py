@@ -556,7 +556,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # Adding new columns (no client call)
     if 'field-dropdown' in changed_id:
-        if field_dropdown is None or columns is None:
+        if field_dropdown is None or len(columns) == 0:
             raise PreventUpdate
 
         incolumns = any(c.get('id') == field_dropdown for c in columns)
