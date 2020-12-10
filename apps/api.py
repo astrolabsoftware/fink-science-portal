@@ -137,10 +137,10 @@ The initializer for RA/Dec is very flexible and supports inputs provided in a nu
 The following ways of initializing a conesearch are all equivalent (radius in arcsecond):
 
 * 271.3914265, 45.2545134, 5
-* 271d23m29.1354s, 45d15m16.2482s, 5
-* 18h05m33.9424s, +45d15m16.2482s, 5
-* 18 05 33.9424, +45 15 16.2482, 5
-* 18:05:33.9424, 45:15:16.2482, 5
+* 271d23m29.135s, 45d15m16.25s, 5
+* 18h05m33.942s, +45d15m16.25s, 5
+* 18 05 33.942, +45 15 16.25, 5
+* 18:05:33.942, 45:15:16.25, 5
 
 In a unix shell, you would simply use
 
