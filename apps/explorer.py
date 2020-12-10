@@ -154,7 +154,7 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
         return True, text, header
 
     # ugly hack on the type
-    if n and (table['namespace'] == 'dash_html_components'):
+    if n and (table['data'] == []):
         if id_click:
             header = "Search by Object ID"
             text = "{} not found".format(objectid)
@@ -591,7 +591,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # If nothing has been filled
     if n_clicks is not None and wrong_id and wrong_conesearch and wrong_date and wrong_class:
-        return html.Table()
+        return {}, []
 
     # Columns of interest
     # colnames = [
@@ -628,7 +628,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # default table
     if n_clicks is None:
         # # TODO: change that to date search
-        return html.Table()
+        return {}, []
 
     # Search for latest alerts for a specific class
     if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
@@ -727,7 +727,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     client.setLimit(nlimit)
 
     if results.isEmpty():
-        return html.Table()
+        return {}, []
 
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
