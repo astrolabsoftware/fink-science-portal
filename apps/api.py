@@ -367,7 +367,7 @@ def return_object():
         )
 
     if 'output-format' not in request.json or request.json['output-format'] == 'json':
-        return pdf.to_json()
+        return pdf.to_json(orient='records')
     elif request.json['output-format'] == 'csv':
         return pdf.to_csv(index=False)
     elif request.json['output-format'] == 'parquet':
@@ -549,7 +549,7 @@ def query_db():
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
     pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 
-    return pdfs.to_json()
+    return pdfs.to_json(orient='records')
 
 @api_bp.route('/api/v1/latests', methods=['GET'])
 def latest_objects_arguments():
@@ -674,4 +674,4 @@ def latest_objects():
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
     pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 
-    return pdfs.to_json()
+    return pdfs.to_json(orient='records')
