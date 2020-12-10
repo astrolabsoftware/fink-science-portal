@@ -434,6 +434,9 @@ def toggle_collapse(n, is_open):
         return not is_open
     return is_open
 
+schema = list(client.schema().columnNames())
+fink_fields = [i for i in schema if i.startswith('d:')]
+ztf_fields = [i for i in schema if i.startswith('i:')]
 
 layout = html.Div(
     [
@@ -462,10 +465,14 @@ layout = html.Div(
                     dbc.Col([
                         dcc.Dropdown(
                             id='field-dropdown',
-                            options=[{
-                                'label': id,
-                                'value': id
-                            } for id in ['i:magpsf', 'i:sigmapsf']],
+                            options=[
+                                {'label': 'Fink derived fields', 'disabled': True, 'value': 'None'},
+                                *[{'label': field, 'value': field} for field in fink_fields],
+                                {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
+                                *[{'label': field, 'value': field} for field in ztf_fields]
+                            ],
+                            searchable=True,
+                            clearable=True,
                             placeholder="Add more fields to the table",
                         ),
                         html.Br(),
