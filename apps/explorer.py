@@ -122,7 +122,7 @@ noresults_toast = dbc.Toast(
     ],
     [
         Input("submit_query", "n_clicks"),
-        Input("table", "children"),
+        Input("table", "data"),
         Input("objectid", "value"),
         Input("conesearch", "value"),
         Input('startdate', 'value'),
@@ -154,7 +154,7 @@ def open_noresults(n, table, objectid, radecradius, startdate, window, alert_cla
         return True, text, header
 
     # ugly hack on the type
-    if n and ('data' in table):
+    if n and len(table) > 0:
         if id_click:
             header = "Search by Object ID"
             text = "{} not found".format(objectid)
