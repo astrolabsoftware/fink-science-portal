@@ -47,6 +47,7 @@ api_doc_summary = """
 | POST | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
 | POST | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
+| GET  | http://134.158.75.151:24000/api/v1/class  | Display all Fink derived classification |
 """
 
 api_doc_object = """
@@ -203,6 +204,49 @@ pdf = pd.read_json(r.content)
 ```
 """
 
+api_doc_latests = """
+## Get latest alerts by class
+
+The list of arguments for getting latest alerts by class can be found at http://134.158.75.151:24000/api/v1/latests.
+
+The list of Fink class can be found at http://134.158.75.151:24000/api/v1/class
+
+In a unix shell, you would simply use
+
+```bash
+# Get latests 5 Early SN candidates
+curl -H "Content-Type: application/json" -X POST -d '{"class":"Early SN candidate", "n":"5"}' http://134.158.75.151:24000/api/v1/latests -o latest_five_sn_candidates.json
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# Get latests 5 Early SN candidates
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/latests',
+  json={
+    'class': 'Early SN candidate',
+    'n': '5'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+Note that for `csv` output, you need to use
+
+```python
+# get latests in CSV format...
+r = ...
+
+pd.read_csv(io.BytesIO(r.content))
+```
+"""
+
 layout = html.Div(
     [
         html.Br(),
@@ -317,12 +361,17 @@ args_latest = [
     {
         'name': 'n',
         'required': False,
-        'description': 'Last N alerts to transfer. Default is 100, max is 1000.'
+        'description': 'Last N alerts to transfer. Default is 10, max is 1000.'
     },
     {
         'name': 'columns',
         'required': False,
         'description': 'Data columns to transfer. '
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet'
     }
 ]
 
@@ -571,6 +620,11 @@ def latest_objects():
             }
             return Response(str(rep), 400)
 
+    if 'n' not in request.json:
+        nalerts = 10
+    else:
+        nalerts = int(request.json['n'])
+
     # Columns of interest
     colnames = [
         'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
@@ -602,7 +656,7 @@ def latest_objects():
 
     # Search for latest alerts for a specific class
     if request.json['class'] != 'allclasses':
-        clientS.setLimit(int(request.json['n']))
+        clientS.setLimit(nalerts)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
 
@@ -621,7 +675,7 @@ def latest_objects():
             ",".join(colnames + colnames_added_values), 0, False, False
         )
     elif request.json['class'] == 'allclasses':
-        clientT.setLimit(int(request.json['n']))
+        clientT.setLimit(nalerts)
         clientT.setRangeScan(True)
         clientT.setReversed(True)
 
@@ -674,4 +728,37 @@ def latest_objects():
     pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
     pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
 
-    return pdfs.to_json(orient='records')
+    if 'output-format' not in request.json or request.json['output-format'] == 'json':
+        return pdf.to_json(orient='records')
+    elif request.json['output-format'] == 'csv':
+        return pdf.to_csv(index=False)
+    elif request.json['output-format'] == 'parquet':
+        f = io.BytesIO()
+        pdf.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
+    }
+    return Response(str(rep), 400)
+
+@api_bp.route('/api/v1/latests', methods=['GET'])
+def class_arguments():
+    """ Obtain all Fink derived class
+    """
+    # SIMBAD
+    simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
+    simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+
+    # Fink science modules
+    fink_types = pd.read_csv('assets/fink_types.csv', header=None)[0].values
+    fink_types = sorted(fink_types, key=lambda s: s.lower())
+
+    types = {
+        'Fink classifiers': fink_types,
+        'Cross-match': simbad_types
+    }
+
+    return jsonify({'args': args_latest})
