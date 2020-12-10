@@ -584,7 +584,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         columns.append({
             'name': field_dropdown,
             'id': field_dropdown,
-            'hideable': True,
+            # 'hideable': True,
         })
 
         return data, columns
@@ -779,7 +779,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             'id': c,
             'name': c,
             'type': 'text',
-            'hideable': True,
+            # 'hideable': True,
             'presentation': 'markdown',
         } for c in colnames_to_display
     ]
