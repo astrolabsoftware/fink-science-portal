@@ -590,7 +590,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     #     'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
     # ]
     colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:timestamp', 'd:classification', 'i:ndethist'
+        'i:objectId', 'i:ra', 'i:dec', 'i:lastdate', 'd:classification', 'i:ndethist'
     ]
 
     # Types of columns
@@ -736,8 +736,9 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # )
     #
     # # Display only the last alert
+    pdfs['i:jd'] = pdfs['i:jd'].astype(float)
     pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
-    # pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
+    pdfs['i:lastdate'] = pdfs['i:jd'].apply(convert_jd)
 
     # round numeric values for better display
     # pdfs = pdfs.round(2)
