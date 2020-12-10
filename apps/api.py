@@ -758,7 +758,7 @@ def class_arguments():
 
     types = {
         'Fink classifiers': fink_types,
-        'Cross-match': simbad_types
+        'Cross-match with SIMBAD': simbad_types
     }
 
     return jsonify({'classnames': types})
