@@ -304,6 +304,7 @@ layout = html.Div(
                                 ),
                             ], label="Get latest alerts"
                         ),
+                        dbc.Tab(label="Xmatch", disabled=True),
                     ]
                 )
             ], className="mb-8", fluid=True, style={'width': '80%'}
