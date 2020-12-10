@@ -778,5 +778,5 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             'type': 'text',
             'presentation': 'markdown',
         } for c in colnames_to_display
-    ],
+    ]
     return data, columns
