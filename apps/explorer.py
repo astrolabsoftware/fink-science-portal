@@ -750,9 +750,11 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
                 'id': c,
                 'name': c,
                 'type': 'text',
-                'presentation': 'markdown'
+                'presentation': 'markdown',
+                'selectable': True
             } for c in colnames_to_display
         ],
+        column_selectable="single",
         page_size=10,
         style_as_list_view=True,
         sort_action="native",
