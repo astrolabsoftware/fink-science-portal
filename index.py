@@ -21,7 +21,7 @@ from app import server
 from app import app
 
 # import all pages in the app
-from apps import home, explorer, grafink, summary, about, xmatch
+from apps import home, explorer, grafink, summary, about, xmatch, api
 from apps import __version__ as portal_version
 
 # building the navigation bar
@@ -92,10 +92,22 @@ def display_page(pathname):
         return grafink.layout
     elif pathname == '/xmatch':
         return xmatch.layout
+    elif pathname == '/api':
+        return api.layout
     elif 'ZTF' in pathname:
         return summary.layout(pathname)
     else:
         return home.layout
+
+
+# register the API
+try:
+    from apps.api import api_bp
+    server.register_blueprint(api_bp, url_prefix='/')
+    server.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+    server.config['JSON_SORT_KEYS'] = False
+except ImportError as e:
+    print('API not yet registered')
 
 
 if __name__ == '__main__':
