@@ -460,13 +460,34 @@ layout = html.Div(
                     ),
                     dbc.Col([
                         dcc.Dropdown(
-                            id='columns-dropdown',
+                            id='field-dropdown',
                             options=[{
                                 'label': id,
                                 'value': id
                             } for id in ['i:magpsf', 'i:sigmapsf']]
                         ),
-                        html.H6(id="table"),
+                        dash_table.Datatable(
+                            id="table",
+                            page_size=10,
+                            style_as_list_view=True,
+                            sort_action="native",
+                            filter_action="native",
+                            markdown_options={'link_target': '_blank'},
+                            style_data={
+                                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                            },
+                            style_cell={'padding': '5px', 'textAlign': 'center'},
+                            style_data_conditional=[
+                                {
+                                    'if': {'row_index': 'odd'},
+                                    'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                }
+                            ],
+                            style_header={
+                                'backgroundColor': 'rgb(230, 230, 230)',
+                                'fontWeight': 'bold'
+                            }
+                        ),
                         dbc.Card(
                             dbc.CardBody(
                                 dcc.Markdown(msg)
@@ -485,29 +506,10 @@ layout = html.Div(
 )
 
 @app.callback(
-    Output('table', 'columns'),
-    [Input('columns-dropdown', 'value')],
-    [State('table', 'columns')]
-)
-def update_columns(value, columns):
-    if value is None or columns is None:
-        raise PreventUpdate
-
-    inColumns = any(c.get('id') == value for c in columns)
-
-    if inColumns == True:
-        raise PreventUpdate
-
-    columns.append({
-        'label': value,
-        'id': value,
-        'name': value
-    })
-
-    return columns
-
-@app.callback(
-    Output("table", "children"),
+    [
+        Output("table", "data"),
+        Output("table", "columns")
+    ],
     [
         Input("submit_query", "n_clicks"),
         Input("reset_button", "n_clicks"),
@@ -515,10 +517,14 @@ def update_columns(value, columns):
         Input("conesearch", "value"),
         Input('startdate', 'value'),
         Input('window', 'value'),
-        Input('class-dropdown', 'value')
+        Input('field-dropdown', 'value')
+    ],
+    [
+        State('table', 'data'),
+        State('table', 'columns')
     ]
 )
-def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, window, alert_class):
+def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, window, alert_class, field_dropdown, data, columns):
     """ Query the HBase database and format results into a DataFrame.
 
     Parameters
@@ -541,10 +547,28 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     dash_table
         Dash table containing aggregated data by object ID.
     """
-    # Trigger the query only if the reset button is not pressed.
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+
+    # Trigger the query only if the reset button is not pressed.
     if reset_button and 'reset_button' in changed_id:
         return html.Table()
+
+    # Adding new columns (no client call)
+    if 'field-dropdown' in changed_id:
+        if field_dropdown is None or columns is None:
+            raise PreventUpdate
+
+        incolumns = any(c.get('id') == field_dropdown for c in columns)
+
+        if incolumns is True:
+            raise PreventUpdate
+
+        columns.append({
+            'name': field_dropdown,
+            'id': field_dropdown
+        })
+
+        return data, columns
 
     # Trigger the query only if the submit button is pressed.
     if 'submit_query' not in changed_id:
@@ -744,35 +768,14 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # round numeric values for better display
     # pdfs = pdfs.round(2)
 
-    table = dash_table.DataTable(
-        data=pdfs.sort_values('i:jd', ascending=False).to_dict('records'),
-        columns=[
-            {
-                'id': c,
-                'name': c,
-                'label': c,
-                'type': 'text',
-                'presentation': 'markdown',
-            } for c in colnames_to_display
-        ],
-        page_size=10,
-        style_as_list_view=True,
-        sort_action="native",
-        filter_action="native",
-        markdown_options={'link_target': '_blank'},
-        style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        },
-        style_cell={'padding': '5px', 'textAlign': 'center'},
-        style_data_conditional=[
-            {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
-            }
-        ],
-        style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
-    )
-    return table
+    data = pdfs.sort_values('i:jd', ascending=False).to_dict('records')
+
+    columns = [
+        {
+            'id': c,
+            'name': c,
+            'type': 'text',
+            'presentation': 'markdown',
+        } for c in colnames_to_display
+    ],
+    return data, columns
