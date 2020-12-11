@@ -744,7 +744,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     pdfs['d:classification'] = classifications
 
-    # pdfs['d:r-g'] = extract_last_r_minus_g_each_object(pdfs)
+    pdfs['d:r-g'] = extract_last_r_minus_g_each_object(pdfs)
 
     # Make clickable objectId
     pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
