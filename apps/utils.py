@@ -407,6 +407,7 @@ def extract_last_r_minus_g_each_object(pdf):
 
         subpdf['i:jd'] = subpdf['i:jd'].astype(float)
         subpdf['i:fid'] = subpdf['i:fid'].astype(int)
+        subpdf = subpdf.sort_values('i:jd', ascending=False)
 
         # Compute DC mag
         cols = [
