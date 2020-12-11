@@ -445,7 +445,7 @@ schema = clientP.schema()
 schema_list = list(schema.columnNames())
 fink_fields = [i for i in schema_list if i.startswith('d:')]
 ztf_fields = [i for i in schema_list if i.startswith('i:')]
-fink_additional_fields = ['a:r-g', 'a:classification', 'a:lastdate']
+fink_additional_fields = ['a:r-g', 'a:rate(r-g)', 'a:classification', 'a:lastdate']
 
 layout = html.Div(
     [
@@ -774,7 +774,8 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     pdfs['a:classification'] = classifications
 
     pdfs = pdfs.sort_values('i:objectId')
-    pdfs['a:r-g'] = extract_last_r_minus_g_each_object(pdfs)
+    pdfs['a:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
+    pdfs['a:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
     if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
         pdfs = pdfs[pdfs['a:classification'] == alert_class]
 

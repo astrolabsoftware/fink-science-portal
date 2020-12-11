@@ -393,13 +393,13 @@ def r_minus_g(fid, mag):
 
     return sign * np.diff(mag)[0]
 
-def extract_last_r_minus_g_each_object(pdf):
+def extract_last_r_minus_g_each_object(pdf, kind):
     """ Extract last r-g for each object in a pandas DataFrame
     """
     # extract unique objects
     ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
     ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
-    last_r_minus_g = []
+    r_minus_g = []
 
     # loop over objects
     for id_ in ids:
@@ -434,19 +434,29 @@ def extract_last_r_minus_g_each_object(pdf):
         # compute r-g for those nights
         values = [r_minus_g(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
 
-        if len(values) > 0:
-            last_r_minus_g = np.concatenate(
+        if kind == 'last':
+            if len(values) > 0:
+                val = values[-1]
+            else:
+                val = None
+            r_minus_g = np.concatenate(
                 [
-                    last_r_minus_g,
-                    [values[-1]] * len(subpdf)
+                    r_minus_g,
+                    [val] * len(subpdf)
                 ]
             )
-        else:
-            last_r_minus_g = np.concatenate(
+        elif kind == 'rate':
+            if len(values) > 1:
+                val = values[-1] - values[0]
+                dt = np.mean(gpdf_night['i:jd'].values[-1]) - np.mean(gpdf_night['i:jd'].values[0])
+                rate = val / dt
+            else:
+                rate = None
+            r_minus_g = np.concatenate(
                 [
-                    last_r_minus_g,
-                    [None] * len(subpdf)
+                    r_minus_g,
+                    [rate] * len(subpdf)
                 ]
             )
 
-    return last_r_minus_g
+    return r_minus_g
