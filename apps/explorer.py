@@ -445,7 +445,7 @@ schema = clientP.schema()
 schema_list = list(schema.columnNames())
 fink_fields = [i for i in schema_list if i.startswith('d:')]
 ztf_fields = [i for i in schema_list if i.startswith('i:')]
-fink_additional_fields = ['d:r-g', 'd:classification', 'i:lastdate']
+fink_additional_fields = ['a:r-g', 'a:classification', 'a:lastdate']
 
 layout = html.Div(
     [
@@ -742,9 +742,10 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         pdfs['i:classtar']
     )
 
-    pdfs['d:classification'] = classifications
+    pdfs['a:classification'] = classifications
 
-    pdfs['d:r-g'] = extract_last_r_minus_g_each_object(pdfs)
+    pdfs = pdfs.sort_values('i:objectId')
+    pdfs['a:r-g'] = extract_last_r_minus_g_each_object(pdfs)
 
     # Make clickable objectId
     pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
@@ -752,7 +753,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # Display only the last alert
     pdfs['i:jd'] = pdfs['i:jd'].astype(float)
     pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
-    pdfs['i:lastdate'] = pdfs['i:jd'].apply(convert_jd)
+    pdfs['a:lastdate'] = pdfs['i:jd'].apply(convert_jd)
 
     data = pdfs.sort_values('i:jd', ascending=False).to_dict('records')
 
