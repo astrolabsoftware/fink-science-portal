@@ -588,6 +588,8 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         columns.append({
             'name': field_dropdown,
             'id': field_dropdown,
+            'type': 'text',
+            'presentation': 'markdown'
             # 'hideable': True,
         })
 
