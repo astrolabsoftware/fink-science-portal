@@ -628,6 +628,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # Search for latest alerts for a specific class
     if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
+        # double trouble method
         clientS.setLimit(100)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
@@ -636,7 +637,8 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         jd_start = Time('2019-11-01 00:00:00').jd
         jd_stop = Time.now().jd
 
-        results = clientS.scan(
+        # Get first objectId
+        objectids = clientS.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
                 alert_class,
@@ -644,8 +646,19 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
                 alert_class,
                 jd_stop
             ),
-            "*", 0, False, False
+            "i:objectId", 0, False, False
         )
+        pdf_objectids = pd.DataFrame.from_dict(objectids, orient='index')
+
+        # Get data then
+        results = {}
+        for obj in np.unique(pdf_objectids['i:objectId'].values):
+            r = client.scan(
+                "",
+                "key:key:{}".format(obj),
+                "*", 0, False, False
+            )
+            results.update(dict(r))
     # Search for latest alerts (all classes)
     elif alert_class == 'allclasses':
         clientT.setLimit(100)
