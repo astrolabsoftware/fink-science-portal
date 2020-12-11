@@ -751,7 +751,8 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         'long': int,
         'float': float,
         'double': float,
-        'string': str
+        'string': str,
+        'fits/image': str
     }
     pdfs = pdfs.astype({i: converter[schema_client.type(i)] for i in pdfs.columns})
 
