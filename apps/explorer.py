@@ -637,8 +637,8 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         jd_start = Time('2019-11-01 00:00:00').jd
         jd_stop = Time.now().jd
 
-        # Get first objectId
-        objectids = clientS.scan(
+        # Fast but inaccurate solution
+        results = clientS.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
                 alert_class,
@@ -646,23 +646,36 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
                 alert_class,
                 jd_stop
             ),
-            "i:objectId", 0, False, False
+            "*", 0, False, False
         )
-        pdf_objectids = pd.DataFrame.from_dict(objectids, orient='index')
 
-        # Get data then
-        count = 0
-        for obj in np.unique(pdf_objectids['i:objectId'].values):
-            r = client.scan(
-                "",
-                "key:key:{}".format(obj),
-                "*", 0, False, False
-            )
-            if count == 0:
-                results = r
-            else:
-                results.putAll(r)
-            count += 1
+        # Slow but accurate solution below
+        # # Get first objectId
+        # objectids = clientS.scan(
+        #     "",
+        #     "key:key:{}_{},key:key:{}_{}".format(
+        #         alert_class,
+        #         jd_start,
+        #         alert_class,
+        #         jd_stop
+        #     ),
+        #     "i:objectId", 0, False, False
+        # )
+        # pdf_objectids = pd.DataFrame.from_dict(objectids, orient='index')
+        #
+        # # Get data then
+        # count = 0
+        # for obj in np.unique(pdf_objectids['i:objectId'].values):
+        #     r = client.scan(
+        #         "",
+        #         "key:key:{}".format(obj),
+        #         "*", 0, False, False
+        #     )
+        #     if count == 0:
+        #         results = r
+        #     else:
+        #         results.putAll(r)
+        #     count += 1
 
     # Search for latest alerts (all classes)
     elif alert_class == 'allclasses':
