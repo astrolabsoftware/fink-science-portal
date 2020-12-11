@@ -775,6 +775,8 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     pdfs = pdfs.sort_values('i:objectId')
     pdfs['a:r-g'] = extract_last_r_minus_g_each_object(pdfs)
+    if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
+        pdfs = pdfs[pdfs['a:classification'] == alert_class]
 
     # Make clickable objectId
     pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
