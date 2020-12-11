@@ -651,14 +651,18 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         pdf_objectids = pd.DataFrame.from_dict(objectids, orient='index')
 
         # Get data then
-        results = {}
+        count = 0
         for obj in np.unique(pdf_objectids['i:objectId'].values):
             r = client.scan(
                 "",
                 "key:key:{}".format(obj),
                 "*", 0, False, False
             )
-            results.update(dict(r))
+            if count == 0:
+                results = r
+            else:
+                results.putAll(r)
+
     # Search for latest alerts (all classes)
     elif alert_class == 'allclasses':
         clientT.setLimit(100)
