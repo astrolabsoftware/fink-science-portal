@@ -431,13 +431,16 @@ def extract_last_r_minus_g_each_object(pdf):
         gpdf_night = gpdf[mask]
 
         # compute r-g for those nights
-        gpdf_night['r-g'] = [r_minus_g(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
+        values = [r_minus_g(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
 
-        last_r_minus_g = np.concatenate(
-            [
-                last_r_minus_g,
-                [gpdf_night['r-g'].values[-1]]*len(subpdf)
-            ]
-        )
+        if len(values) > 0:
+            last_r_minus_g = np.concatenate(
+                [
+                    last_r_minus_g,
+                    [values[-1]] * len(subpdf)
+                ]
+            )
+        else:
+            last_r_minus_g = None
 
     return last_r_minus_g
