@@ -441,6 +441,11 @@ def extract_last_r_minus_g_each_object(pdf):
                 ]
             )
         else:
-            last_r_minus_g = None
+            last_r_minus_g = np.concatenate(
+                [
+                    last_r_minus_g,
+                    [None] * len(subpdf)
+                ]
+            )
 
     return last_r_minus_g
