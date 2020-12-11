@@ -662,6 +662,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
                 results = r
             else:
                 results.putAll(r)
+            count += 1
 
     # Search for latest alerts (all classes)
     elif alert_class == 'allclasses':
