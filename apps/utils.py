@@ -412,7 +412,7 @@ def extract_last_r_minus_g_each_object(pdf):
 
         mag, err = np.array(
             [
-                dc_mag(i[0], i[1], i[2], i[3], i[4], i[5], i[6])
+                dc_mag(int(i[0]), float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), i[6])
                     for i in zip(*[subpdf[j].values for j in cols])
             ]
         ).T
