@@ -618,7 +618,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         return [], []
 
     colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:lastdate', 'd:classification', 'i:ndethist'
+        'i:objectId', 'i:ra', 'i:dec', 'a:lastdate', 'a:classification', 'i:ndethist'
     ]
 
     # default table
@@ -727,6 +727,16 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
+
+    schema_client = client.schema()
+    converter = {
+        'integer': int,
+        'long': int,
+        'float': float,
+        'double': float,
+        'string': str
+    }
+    pdfs = pdfs.astype({i: converter[schema_client.type(i)] for i in pdfs.columns})
 
     # Fink final classification
     classifications = extract_fink_classification(
