@@ -399,7 +399,7 @@ def extract_last_r_minus_g_each_object(pdf, kind):
     # extract unique objects
     ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
     ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
-    r_minus_g = []
+    out_r_minus_g = []
 
     # loop over objects
     for id_ in ids:
@@ -439,9 +439,9 @@ def extract_last_r_minus_g_each_object(pdf, kind):
                 val = values[-1]
             else:
                 val = None
-            r_minus_g = np.concatenate(
+            out_r_minus_g = np.concatenate(
                 [
-                    r_minus_g,
+                    out_r_minus_g,
                     [val] * len(subpdf)
                 ]
             )
@@ -452,11 +452,11 @@ def extract_last_r_minus_g_each_object(pdf, kind):
                 rate = val / dt
             else:
                 rate = None
-            r_minus_g = np.concatenate(
+            out_r_minus_g = np.concatenate(
                 [
-                    r_minus_g,
+                    out_r_minus_g,
                     [rate] * len(subpdf)
                 ]
             )
 
-    return r_minus_g
+    return out_r_minus_g
