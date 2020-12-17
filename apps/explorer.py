@@ -35,6 +35,7 @@ from apps.utils import extract_row
 from apps.utils import convert_jd
 from apps.utils import extract_fink_classification
 from apps.utils import markdownify_objectid
+from apps.utils import extract_last_r_minus_g_each_object
 
 msg = """
 ![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
@@ -444,6 +445,7 @@ schema = clientP.schema()
 schema_list = list(schema.columnNames())
 fink_fields = [i for i in schema_list if i.startswith('d:')]
 ztf_fields = [i for i in schema_list if i.startswith('i:')]
+fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdate']
 
 layout = html.Div(
     [
@@ -473,8 +475,10 @@ layout = html.Div(
                         dcc.Dropdown(
                             id='field-dropdown',
                             options=[
-                                {'label': 'Fink derived fields', 'disabled': True, 'value': 'None'},
+                                {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
                                 *[{'label': field, 'value': field} for field in fink_fields],
+                                {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
+                                *[{'label': field, 'value': field} for field in fink_additional_fields],
                                 {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
                                 *[{'label': field, 'value': field} for field in ztf_fields]
                             ],
@@ -584,6 +588,8 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         columns.append({
             'name': field_dropdown,
             'id': field_dropdown,
+            'type': 'text',
+            'presentation': 'markdown'
             # 'hideable': True,
         })
 
@@ -612,14 +618,8 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         return [], []
 
     colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:lastdate', 'd:classification', 'i:ndethist'
+        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
-
-    # Types of columns
-    # dtypes_ = [
-    #     np.str, np.float, np.float, np.float, np.str, np.int
-    # ]
-    # dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     # default table
     if n_clicks is None:
@@ -628,6 +628,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
 
     # Search for latest alerts for a specific class
     if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
+        # double trouble method
         clientS.setLimit(100)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
@@ -636,6 +637,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         jd_start = Time('2019-11-01 00:00:00').jd
         jd_stop = Time.now().jd
 
+        # Fast but inaccurate solution
         results = clientS.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
@@ -646,6 +648,36 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             ),
             "*", 0, False, False
         )
+        schema_client = clientS.schema()
+
+        # Slow but accurate solution below
+        # # Get first objectId
+        # objectids = clientS.scan(
+        #     "",
+        #     "key:key:{}_{},key:key:{}_{}".format(
+        #         alert_class,
+        #         jd_start,
+        #         alert_class,
+        #         jd_stop
+        #     ),
+        #     "i:objectId", 0, False, False
+        # )
+        # pdf_objectids = pd.DataFrame.from_dict(objectids, orient='index')
+        #
+        # # Get data then
+        # count = 0
+        # for obj in np.unique(pdf_objectids['i:objectId'].values):
+        #     r = client.scan(
+        #         "",
+        #         "key:key:{}".format(obj),
+        #         "*", 0, False, False
+        #     )
+        #     if count == 0:
+        #         results = r
+        #     else:
+        #         results.putAll(r)
+        #     count += 1
+
     # Search for latest alerts (all classes)
     elif alert_class == 'allclasses':
         clientT.setLimit(100)
@@ -663,6 +695,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             "*",
             0, True, True
         )
+        schema_client = clientT.schema()
     elif radecradius is not None and radecradius != '':
         clientP.setLimit(1000)
 
@@ -693,6 +726,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             "*",
             0, True, True
         )
+        schema_client = clientP.schema()
     elif startdate is not None and window is not None and startdate != '':
         # Time to jd
         jd_start = Time(startdate).jd
@@ -707,6 +741,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             "*",
             0, True, True
         )
+        schema_client = clientT.schema()
     else:
         # objectId search
         # TODO: check input with a regex
@@ -718,6 +753,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             "*",
             0, True, True
         )
+        schema_client = client.schema()
 
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
@@ -728,14 +764,19 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
 
-    # schema_client = client.schema()
-    # converter = {
-    #     'integer': int,
-    #     'float': float,
-    #     'double': float,
-    #     'string': str
-    # }
-    # pdfs = pdfs.astype({i: converter[schema_client.type(i)] for i in pdfs.columns})
+    # weird... I do not understand why this can happen (all indices table are treated the same)
+    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
+        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
+
+    converter = {
+        'integer': int,
+        'long': int,
+        'float': float,
+        'double': float,
+        'string': str,
+        'fits/image': str
+    }
+    pdfs = pdfs.astype({i: converter[schema_client.type(i)] for i in pdfs.columns})
 
     # Fink final classification
     classifications = extract_fink_classification(
@@ -751,26 +792,21 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         pdfs['i:classtar']
     )
 
-    pdfs['d:classification'] = classifications
+    pdfs['v:classification'] = classifications
+
+    pdfs = pdfs.sort_values('i:objectId')
+    pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
+    pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
+    if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
+        pdfs = pdfs[pdfs['v:classification'] == alert_class]
 
     # Make clickable objectId
     pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
 
-    # # Column values are string by default - convert them
-    # pdfs = pdfs.astype(dtype=dtypes)
-    #
-    # # Rename columns
-    # pdfs = pdfs.rename(
-    #     columns={i: j for i, j in zip(colnames, colnames_to_display)}
-    # )
-    #
-    # # Display only the last alert
+    # Display only the last alert
     pdfs['i:jd'] = pdfs['i:jd'].astype(float)
     pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
-    pdfs['i:lastdate'] = pdfs['i:jd'].apply(convert_jd)
-
-    # round numeric values for better display
-    # pdfs = pdfs.round(2)
+    pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
 
     data = pdfs.sort_values('i:jd', ascending=False).to_dict('records')
 

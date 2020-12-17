@@ -372,3 +372,91 @@ def dc_mag(fid, magpsf, sigmapsf, magnr, sigmagnr, magzpsci, isdiffpos):
         dc_sigmag = sigmapsf
 
     return dc_mag, dc_sigmag
+
+def r_minus_g(fid, mag):
+    """ Compute r-g based on vectors of filters and magnitudes
+    """
+    if len(fid) == 2:
+        # +1 if [g, r]
+        # -1 if [r, g]
+        sign = np.diff(fid)[0]
+    else:
+        # last measurement
+        last_fid = fid[-1]
+
+        # last measurement with different filter
+        # could take the mean
+        index_other = np.where(np.array(fid) != last_fid)[0][-1]
+
+        sign = np.diff([fid[index_other], last_fid])[0]
+        mag = [mag[index_other], mag[-1]]
+
+    return sign * np.diff(mag)[0]
+
+def extract_last_r_minus_g_each_object(pdf, kind):
+    """ Extract last r-g for each object in a pandas DataFrame
+    """
+    # extract unique objects
+    ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
+    ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
+    out_r_minus_g = []
+
+    # loop over objects
+    for id_ in ids:
+        subpdf = pdf[pdf['i:objectId'] == id_]
+
+        subpdf['i:jd'] = subpdf['i:jd'].astype(float)
+        subpdf['i:fid'] = subpdf['i:fid'].astype(int)
+        subpdf = subpdf.sort_values('i:jd', ascending=False)
+
+        # Compute DC mag
+        cols = [
+            'i:fid', 'i:magpsf', 'i:sigmapsf', 'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos',
+        ]
+
+        mag, err = np.array(
+            [
+                dc_mag(int(i[0]), float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), i[6])
+                    for i in zip(*[subpdf[j].values for j in cols])
+            ]
+        ).T
+        subpdf['i:dcmag'] = mag
+
+        # group by night
+        gpdf = subpdf.groupby('i:nid')[['i:dcmag', 'i:fid', 'i:jd']].agg(list)
+
+        # take only nights with at least measurements on 2 different filters
+        mask = gpdf['i:fid'].apply(
+            lambda x: (len(x) > 1) & (np.sum(x) / len(x) != x[0])
+        )
+        gpdf_night = gpdf[mask]
+
+        # compute r-g for those nights
+        values = [r_minus_g(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
+
+        if kind == 'last':
+            if len(values) > 0:
+                val = values[-1]
+            else:
+                val = None
+            out_r_minus_g = np.concatenate(
+                [
+                    out_r_minus_g,
+                    [val] * len(subpdf)
+                ]
+            )
+        elif kind == 'rate':
+            if len(values) > 1:
+                val = values[-1] - values[0]
+                dt = np.mean(gpdf_night['i:jd'].values[-1]) - np.mean(gpdf_night['i:jd'].values[0])
+                rate = val / dt
+            else:
+                rate = None
+            out_r_minus_g = np.concatenate(
+                [
+                    out_r_minus_g,
+                    [rate] * len(subpdf)
+                ]
+            )
+
+    return out_r_minus_g
