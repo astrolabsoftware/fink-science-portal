@@ -330,6 +330,11 @@ args_objects = [
         'description': 'If True, retrieve also gzipped FITS cutouts.'
     },
     {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See http://134.158.75.151:24000/api/v1/columns for more information.'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet'
@@ -418,11 +423,15 @@ def return_object():
             }
             return Response(str(rep), 400)
 
+    if 'columns' in request.json:
+        cols = request.json['columns']
+    else:
+        cols = '*'
     to_evaluate = "key:key:{}".format(request.json['objectId'])
     results = client.scan(
         "",
         to_evaluate,
-        "*",
+        cols,
         0, True, True
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
