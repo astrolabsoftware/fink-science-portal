@@ -48,6 +48,7 @@ api_doc_summary = """
 | POST/GET | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST/GET | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
 | GET  | http://134.158.75.151:24000/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
+| GET  | http://134.158.75.151:24000/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
 """
 
 api_doc_object = """
@@ -779,6 +780,21 @@ def class_arguments():
     types = {
         'Fink classifiers': fink_types,
         'Cross-match with SIMBAD': simbad_types
+    }
+
+    return jsonify({'classnames': types})
+
+@api_bp.route('/api/v1/columns', methods=['GET'])
+def columns_arguments():
+    """ Obtain all alert fields available and their type
+    """
+    # ZTF candidate fields
+    r = requests.get('https://raw.githubusercontent.com/ZwickyTransientFacility/ztf-avro-alert/master/schema/candidate.avsc')
+    tmp = pd.DataFrame.from_dict(r.json())
+    ztf_candidate = tmp['fields'].apply(pd.Series)
+
+    types = {
+        'ZTF candidates': {i: j for i, j in zip(ztf_candidate.name, ztf_candidate.doc)}
     }
 
     return jsonify({'classnames': types})
