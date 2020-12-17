@@ -22,6 +22,8 @@ from app import client, clientP, clientT, clientS, nlimit
 from apps.utils import extract_fink_classification, convert_jd
 
 import io
+import requests
+
 import healpy as hp
 import pandas as pd
 import numpy as np
