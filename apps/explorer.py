@@ -445,7 +445,7 @@ schema = clientP.schema()
 schema_list = list(schema.columnNames())
 fink_fields = [i for i in schema_list if i.startswith('d:')]
 ztf_fields = [i for i in schema_list if i.startswith('i:')]
-fink_additional_fields = ['a:r-g', 'a:rate(r-g)', 'a:classification', 'a:lastdate']
+fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdate']
 
 layout = html.Div(
     [
@@ -618,7 +618,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         return [], []
 
     colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec', 'a:lastdate', 'a:classification', 'i:ndethist'
+        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
 
     # default table
@@ -792,13 +792,13 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         pdfs['i:classtar']
     )
 
-    pdfs['a:classification'] = classifications
+    pdfs['v:classification'] = classifications
 
     pdfs = pdfs.sort_values('i:objectId')
-    pdfs['a:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
-    pdfs['a:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
+    pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
+    pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
     if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
-        pdfs = pdfs[pdfs['a:classification'] == alert_class]
+        pdfs = pdfs[pdfs['v:classification'] == alert_class]
 
     # Make clickable objectId
     pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
@@ -806,7 +806,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # Display only the last alert
     pdfs['i:jd'] = pdfs['i:jd'].astype(float)
     pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
-    pdfs['a:lastdate'] = pdfs['i:jd'].apply(convert_jd)
+    pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
 
     data = pdfs.sort_values('i:jd', ascending=False).to_dict('records')
 
