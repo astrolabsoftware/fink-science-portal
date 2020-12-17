@@ -21,6 +21,7 @@ from flask import request, jsonify, Response
 from app import client, clientP, clientT, clientS, nlimit
 from apps.utils import extract_fink_classification, convert_jd
 from apps.utils import hbase_type_converter
+from apps.utils import extract_last_r_minus_g_each_object
 
 import io
 import requests
