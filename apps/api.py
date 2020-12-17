@@ -796,7 +796,7 @@ def columns_arguments():
     ztf_candidate = tmp['fields'].apply(pd.Series)
 
     types = {
-        'ZTF candidates': {i: j for i, j in zip(ztf_candidate.name, ztf_candidate.doc)}
+        'ZTF candidates': {i: {'type': j, 'doc': k} for i, j, k in zip(ztf_candidate.name, ztf_candidate.type, ztf_candidate.doc)}
     }
 
     return jsonify({'classnames': types})
