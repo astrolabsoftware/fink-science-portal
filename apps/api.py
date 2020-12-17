@@ -22,6 +22,8 @@ from app import client, clientP, clientT, clientS, nlimit
 from apps.utils import extract_fink_classification, convert_jd
 
 import io
+import requests
+
 import healpy as hp
 import pandas as pd
 import numpy as np
@@ -48,6 +50,7 @@ api_doc_summary = """
 | POST/GET | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST/GET | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
 | GET  | http://134.158.75.151:24000/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
+| GET  | http://134.158.75.151:24000/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
 """
 
 api_doc_object = """
@@ -782,3 +785,69 @@ def class_arguments():
     }
 
     return jsonify({'classnames': types})
+
+@api_bp.route('/api/v1/columns', methods=['GET'])
+def columns_arguments():
+    """ Obtain all alert fields available and their type
+    """
+    # ZTF candidate fields
+    r = requests.get('https://raw.githubusercontent.com/ZwickyTransientFacility/ztf-avro-alert/master/schema/candidate.avsc')
+    tmp = pd.DataFrame.from_dict(r.json())
+    ztf_candidate = tmp['fields'].apply(pd.Series)
+    ztf_candidate = ztf_candidate.append(
+        {
+            "name": "schemavsn",
+            "type": "string",
+            "doc": "schema version used"
+        }, ignore_index=True
+    )
+    ztf_candidate = ztf_candidate.append(
+        {
+            "name": "publisher",
+            "type": "string",
+            "doc": "origin of alert packet"
+        }, ignore_index=True
+    )
+    ztf_candidate = ztf_candidate.append(
+        {
+            "name": "objectId",
+            "type": "string",
+            "doc": "object identifier or name"
+        }, ignore_index=True
+    )
+
+    # Science modules
+    fink_science = pd.DataFrame(
+        [
+            {'name': 'cdsxmatch', 'type': 'string', 'doc': 'SIMBAD closest counterpart, based on position. See http://134.158.75.151:24000/api/v1/classes'},
+            {'name': 'mulens_class_1', 'type': ['string', 'null'], 'doc': 'Predicted class of an alert in band g using LIA (among microlensing ML, variable star VS, cataclysmic event CV, and constant event CONSTANT). Nothing if not classified.'},
+            {'name': 'mulens_class_2', 'type': ['string', 'null'], 'doc': 'Predicted class of an alert in band r using LIA (among microlensing ML, variable star VS, cataclysmic event CV, and constant event CONSTANT). Nothing if not classified.'},
+            {'name': 'rfscore', 'type': 'double', 'doc': 'Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.'},
+            {'name': 'roid', 'type': 'int', 'doc': 'Determine if the alert is a potential Solar System object (experimental). See https://github.com/astrolabsoftware/fink-science/blob/db57c40cd9be10502e34c5117c6bf3793eb34718/fink_science/asteroids/processor.py#L26'},
+            {'name': 'snn_sn_vs_all', 'type': 'double', 'doc': 'The probability of an alert to be a SNe vs. anything else (variable stars and other categories in the training) using SuperNNova'},
+            {'name': 'snn_snia_vs_nonia', 'type': 'double', 'doc': 'The probability of an alert to be a SN Ia vs. core-collapse SNe using SuperNNova'},
+        ]
+    )
+
+    # Science modules
+    fink_derived = pd.DataFrame(
+        [
+            {'name': 'classification', 'type': 'string', 'doc': 'Fink inferred classification. See http://134.158.75.151:24000/api/v1/classes'},
+            {'name': 'r-g', 'type': 'double', 'doc': 'Last r-g measurement for this object.'},
+            {'name': 'rate(r-g)', 'type': 'double', 'doc': 'r-g rate in mag/day (between last and first available r-g measurements).'},
+            {'name': 'lastdate', 'type': 'string', 'doc': 'Datetime for the alert (from the i:jd field).'},
+        ]
+    )
+
+    # Sort by name
+    ztf_candidate = ztf_candidate.sort_values('name')
+    fink_science = fink_science.sort_values('name')
+    fink_derived = fink_derived.sort_values('name')
+
+    types = {
+        'ZTF original fields (i:)': {i: {'type': j, 'doc': k} for i, j, k in zip(ztf_candidate.name, ztf_candidate.type, ztf_candidate.doc)},
+        'Fink science module outputs (d:)': {i: {'type': j, 'doc': k} for i, j, k in zip(fink_science.name, fink_science.type, fink_science.doc)},
+        'Fink added values (v:)': {i: {'type': j, 'doc': k} for i, j, k in zip(fink_derived.name, fink_derived.type, fink_derived.doc)}
+    }
+
+    return jsonify({'fields': types})

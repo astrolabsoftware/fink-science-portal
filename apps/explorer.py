@@ -42,14 +42,16 @@ msg = """
 
 Fill one of the fields on the left, and click on the _Submit Query_ button. You can access help by clicking on the buttons at the left of each field.
 
-The table shows:
+By default, the table shows:
 
-- objectId: Unique identifier for this object
-- RA: Right Ascension of candidate; J2000 (deg)
-- Dec: Declination of candidate; J2000 (deg)
-- last seen: last date the object has been seen by Fink
-- classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)
-- ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
+- i:objectId: Unique identifier for this object
+- i:ra: Right Ascension of candidate; J2000 (deg)
+- i:dec: Declination of candidate; J2000 (deg)
+- v:lastdate: last date the object has been seen by Fink
+- v:classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)
+- i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
+
+Users can also add more columns using the dropdown button above. Full documentation of all available fields can be found at http://134.158.75.151:24000/api/v1/columns.
 """
 
 msg_conesearch = """
