@@ -109,7 +109,7 @@ r = requests.post(
 )
 ```
 
-Note that the fields should be comma-separated **without** space. Unknown field names are ignored.
+Note that the fields should be comma-separated. Unknown field names are ignored.
 """
 
 api_doc_explorer = """
@@ -442,7 +442,7 @@ def return_object():
             return Response(str(rep), 400)
 
     if 'columns' in request.json:
-        cols = request.json['columns']
+        cols = request.json['columns'].replace(" ", "")
     else:
         cols = '*'
     to_evaluate = "key:key:{}".format(request.json['objectId'])
@@ -517,19 +517,6 @@ def query_db():
     # Columns of interest
     colnames = [
         'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
-    ]
-
-    colnames_added_values = [
-        'd:cdsxmatch',
-        'd:roid',
-        'd:mulens_class_1',
-        'd:mulens_class_2',
-        'd:snn_snia_vs_nonia',
-        'd:snn_sn_vs_all',
-        'd:rfscore',
-        'i:ndethist',
-        'i:drb',
-        'i:classtar'
     ]
 
     # Column name to display
