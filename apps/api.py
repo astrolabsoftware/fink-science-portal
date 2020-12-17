@@ -794,9 +794,27 @@ def columns_arguments():
     r = requests.get('https://raw.githubusercontent.com/ZwickyTransientFacility/ztf-avro-alert/master/schema/candidate.avsc')
     tmp = pd.DataFrame.from_dict(r.json())
     ztf_candidate = tmp['fields'].apply(pd.Series)
-    ztf_candidate.append({"name": "schemavsn", "type": "string", "doc": "schema version used"})
-    ztf_candidate.append({"name": "publisher", "type": "string", "doc": "origin of alert packet"})
-	ztf_candidate.append({"name": "objectId", "type": "string", "doc": "object identifier or name"})
+    ztf_candidate.append(
+        {
+            "name": "schemavsn",
+            "type": "string",
+            "doc": "schema version used"
+        }
+    )
+    ztf_candidate.append(
+        {
+            "name": "publisher",
+            "type": "string",
+            "doc": "origin of alert packet"
+        }
+    )
+    ztf_candidate.append(
+        {
+            "name": "objectId",
+            "type": "string",
+            "doc": "object identifier or name"
+        }
+    )
 
     # Science modules
     fink_science = pd.DataFrame(
