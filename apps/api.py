@@ -20,6 +20,7 @@ from flask import request, jsonify, Response
 
 from app import client, clientP, clientT, clientS, nlimit
 from apps.utils import extract_fink_classification, convert_jd
+from apps.utils import hbase_type_converter
 
 import io
 import requests
@@ -532,7 +533,7 @@ def query_db():
 
     # Column name to display
     colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
+        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
 
     # Types of columns
@@ -551,6 +552,7 @@ def query_db():
             ",".join(colnames + colnames_added_values),
             0, True, True
         )
+        schema_client = client.schema()
     if user_group == 1:
         clientP.setLimit(1000)
 
@@ -588,6 +590,7 @@ def query_db():
             ",".join(colnames + colnames_added_values),
             0, True, True
         )
+        schema_client = clientP.schema()
     elif user_group == 2:
         if int(request.json['window']) > 180:
             rep = {
@@ -608,6 +611,7 @@ def query_db():
             ",".join(colnames + colnames_added_values),
             0, True, True
         )
+        schema_client = clientT.schema()
 
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
@@ -617,6 +621,12 @@ def query_db():
 
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
+
+    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
+        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
+
+    pdfs = pdfs.astype(
+        {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
 
     # Fink final classification
     classifications = extract_fink_classification(
@@ -632,24 +642,23 @@ def query_db():
         pdfs['i:classtar']
     )
 
-    # inplace (booo)
-    pdfs['d:cdsxmatch'] = classifications
+    pdfs['v:classification'] = classifications
 
-    pdfs = pdfs[colnames]
+    pdfs = pdfs.sort_values('i:objectId')
+    pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
+    pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
+    if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
+        pdfs = pdfs[pdfs['v:classification'] == alert_class]
 
-    # Column values are string by default - convert them
-    pdfs = pdfs.astype(dtype=dtypes)
-
-    # Rename columns
-    pdfs = pdfs.rename(
-        columns={i: j for i, j in zip(colnames, colnames_to_display)}
-    )
+    # Make clickable objectId
+    pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
 
     # Display only the last alert
-    pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
-    pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
+    pdfs['i:jd'] = pdfs['i:jd'].astype(float)
+    pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
+    pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
 
-    return pdfs.to_json(orient='records')
+    return pdfs.sort_values('i:jd', ascending=False).to_json(orient='records')
 
 @api_bp.route('/api/v1/latests', methods=['GET'])
 def latest_objects_arguments():

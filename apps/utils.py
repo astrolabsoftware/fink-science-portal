@@ -27,6 +27,15 @@ from astropy.time import Time
 
 import java
 
+hbase_type_converter = {
+    'integer': int,
+    'long': int,
+    'float': float,
+    'double': float,
+    'string': str,
+    'fits/image': str
+}
+
 def markdownify_objectid(objectid):
     """
     """
