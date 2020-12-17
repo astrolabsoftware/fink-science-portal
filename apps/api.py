@@ -799,21 +799,21 @@ def columns_arguments():
             "name": "schemavsn",
             "type": "string",
             "doc": "schema version used"
-        }
+        }, ignore_index=True
     )
     ztf_candidate.append(
         {
             "name": "publisher",
             "type": "string",
             "doc": "origin of alert packet"
-        }
+        }, ignore_index=True
     )
     ztf_candidate.append(
         {
             "name": "objectId",
             "type": "string",
             "doc": "object identifier or name"
-        }
+        }, ignore_index=True
     )
 
     # Science modules
