@@ -550,7 +550,7 @@ def query_db():
         results = client.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
         schema_client = client.schema()
@@ -588,7 +588,7 @@ def query_db():
         results = clientP.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
         schema_client = clientP.schema()
@@ -609,7 +609,7 @@ def query_db():
         results = clientT.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
         schema_client = clientT.schema()
