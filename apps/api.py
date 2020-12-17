@@ -92,6 +92,22 @@ r = ...
 
 pd.read_csv(io.BytesIO(r.content))
 ```
+
+By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
+But you can also choose to transfer only a subset of the fields:
+
+```python
+# select only jd, and magpsf
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/objects',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+    'columns': 'i:jd,i:magpsf'
+  }
+)
+```
+
+Note that the fields should be comma-separated **without** space. Unknown field names are ignored.
 """
 
 api_doc_explorer = """
@@ -435,6 +451,9 @@ def return_object():
         0, True, True
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    if 'key:key' in pdfs.columns or 'key:time' in pdf.columns:
+        pdf = pdf.drop(columns=['key:key', 'key:time'])
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
