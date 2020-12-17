@@ -647,11 +647,6 @@ def query_db():
     pdfs = pdfs.sort_values('i:objectId')
     pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
     pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
-    if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
-        pdfs = pdfs[pdfs['v:classification'] == alert_class]
-
-    # Make clickable objectId
-    pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
 
     # Display only the last alert
     pdfs['i:jd'] = pdfs['i:jd'].astype(float)
