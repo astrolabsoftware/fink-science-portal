@@ -648,6 +648,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             ),
             "*", 0, False, False
         )
+        schema_client = clientS.schema()
 
         # Slow but accurate solution below
         # # Get first objectId
@@ -694,6 +695,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             "*",
             0, True, True
         )
+        schema_client = clientT.schema()
     elif radecradius is not None and radecradius != '':
         clientP.setLimit(1000)
 
@@ -724,6 +726,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             "*",
             0, True, True
         )
+        schema_client = clientP.schema()
     elif startdate is not None and window is not None and startdate != '':
         # Time to jd
         jd_start = Time(startdate).jd
@@ -738,6 +741,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             "*",
             0, True, True
         )
+        schema_client = clientT.schema()
     else:
         # objectId search
         # TODO: check input with a regex
@@ -749,6 +753,7 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
             "*",
             0, True, True
         )
+        schema_client = client.schema()
 
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
@@ -759,7 +764,10 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
 
-    schema_client = client.schema()
+    # weird... I do not understand why this can happen (all indices table are treated the same)
+    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
+        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
+
     converter = {
         'integer': int,
         'long': int,
