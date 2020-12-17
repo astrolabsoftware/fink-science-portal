@@ -51,7 +51,7 @@ By default, the table shows:
 - v:classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)
 - i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
 
-Users can also add more columns using the dropdown button above. Full documentation of all available fields can be found at [TBD].
+Users can also add more columns using the dropdown button above. Full documentation of all available fields can be found at http://134.158.75.151:24000/api/v1/columns.
 """
 
 msg_conesearch = """

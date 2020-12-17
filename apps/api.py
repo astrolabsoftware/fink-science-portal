@@ -794,21 +794,21 @@ def columns_arguments():
     r = requests.get('https://raw.githubusercontent.com/ZwickyTransientFacility/ztf-avro-alert/master/schema/candidate.avsc')
     tmp = pd.DataFrame.from_dict(r.json())
     ztf_candidate = tmp['fields'].apply(pd.Series)
-    ztf_candidate.append(
+    ztf_candidate = ztf_candidate.append(
         {
             "name": "schemavsn",
             "type": "string",
             "doc": "schema version used"
         }, ignore_index=True
     )
-    ztf_candidate.append(
+    ztf_candidate = ztf_candidate.append(
         {
             "name": "publisher",
             "type": "string",
             "doc": "origin of alert packet"
         }, ignore_index=True
     )
-    ztf_candidate.append(
+    ztf_candidate = ztf_candidate.append(
         {
             "name": "objectId",
             "type": "string",
