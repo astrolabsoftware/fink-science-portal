@@ -452,7 +452,7 @@ def return_object():
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
-    if 'key:key' in pdfs.columns or 'key:time' in pdf.columns:
+    if 'key:key' in pdf.columns or 'key:time' in pdf.columns:
         pdf = pdf.drop(columns=['key:key', 'key:time'])
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
