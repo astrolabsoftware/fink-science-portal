@@ -60,8 +60,8 @@ navbar = dbc.Navbar(
         dbc.Collapse(
             dbc.Nav(
                 # right align dropdown menu with ml-auto className
-                [dropdown],
                 dbc.Button('API', href="http://134.158.75.151:24000/api"),
+                [dropdown],
                 navbar=True,
                 vertical=True
             ),
