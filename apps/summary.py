@@ -133,7 +133,6 @@ def store_query(name):
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
-    results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     r = requests.post(
         '{}/api/v1/objects'.format(APIURL),
         json={
@@ -158,7 +157,7 @@ def layout(name):
                                     'height': '25pc'
                                 }
                             ),
-                            card_download(results)
+                            card_download(pdf)
                         ], width={"size": 3},
                     ),
                     dbc.Col(tabs(pdf), width=8)
