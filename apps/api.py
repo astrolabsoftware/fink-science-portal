@@ -37,7 +37,7 @@ from astropy.coordinates import SkyCoord
 
 from flask import Blueprint
 
-PORTAL_URL = 'http://134.158.75.151:24000'
+APIURL = "http://134.158.75.151:24000"
 
 api_bp = Blueprint('', __name__)
 
@@ -468,6 +468,8 @@ def return_object():
         cols,
         0, True, True
     )
+
+    schema_client = client.schema()
 
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)

@@ -21,21 +21,17 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import dash_table
 
-import healpy as hp
 import pandas as pd
 import numpy as np
 
-import astropy.units as u
+import requests
+
 from astropy.time import Time, TimeDelta
-from astropy.coordinates import SkyCoord
 
 from app import app
 from app import client, clientT, clientP, clientS, nlimit
-from apps.utils import extract_row
-from apps.utils import convert_jd
-from apps.utils import extract_fink_classification
 from apps.utils import markdownify_objectid
-from apps.utils import extract_last_r_minus_g_each_object
+from apps.api import APIURL
 
 msg = """
 ![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
@@ -629,188 +625,50 @@ def construct_table(n_clicks, reset_button, objectid, radecradius, startdate, wi
         return [], []
 
     # Search for latest alerts for a specific class
-    if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
-        # double trouble method
-        clientS.setLimit(100)
-        clientS.setRangeScan(True)
-        clientS.setReversed(True)
-
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-        jd_stop = Time.now().jd
-
-        # Fast but inaccurate solution
-        results = clientS.scan(
-            "",
-            "key:key:{}_{},key:key:{}_{}".format(
-                alert_class,
-                jd_start,
-                alert_class,
-                jd_stop
-            ),
-            "*", 0, False, False
+    if alert_class is not None and alert_class != '':
+        r = requests.post(
+            '{}/api/v1/latests'.format(APIURL),
+            json={
+                'class': alert_class,
+                'n': '100'
+            }
         )
-        schema_client = clientS.schema()
-
-        # Slow but accurate solution below
-        # # Get first objectId
-        # objectids = clientS.scan(
-        #     "",
-        #     "key:key:{}_{},key:key:{}_{}".format(
-        #         alert_class,
-        #         jd_start,
-        #         alert_class,
-        #         jd_stop
-        #     ),
-        #     "i:objectId", 0, False, False
-        # )
-        # pdf_objectids = pd.DataFrame.from_dict(objectids, orient='index')
-        #
-        # # Get data then
-        # count = 0
-        # for obj in np.unique(pdf_objectids['i:objectId'].values):
-        #     r = client.scan(
-        #         "",
-        #         "key:key:{}".format(obj),
-        #         "*", 0, False, False
-        #     )
-        #     if count == 0:
-        #         results = r
-        #     else:
-        #         results.putAll(r)
-        #     count += 1
-
-    # Search for latest alerts (all classes)
-    elif alert_class == 'allclasses':
-        clientT.setLimit(100)
-        clientT.setRangeScan(True)
-        clientT.setReversed(True)
-
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-        jd_stop = Time.now().jd
-
-        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
-        results = clientT.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
-        )
-        schema_client = clientT.schema()
     elif radecradius is not None and radecradius != '':
-        clientP.setLimit(1000)
-
-        # Interpret user input
         ra, dec, radius = radecradius.split(',')
-        if 'h' in ra:
-            coord = SkyCoord(ra, dec, frame='icrs')
-        elif ':' in ra or ' ' in ra:
-            coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
-        else:
-            coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
-
-        ra = coord.ra.deg
-        dec = coord.dec.deg
-        radius = float(radius) / 3600.
-
-        # angle to vec conversion
-        vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
-
-        # list of neighbour pixels
-        pixs = hp.query_disc(131072, vec, np.pi / 180 * radius, inclusive=True)
-
-        # Send request
-        to_evaluate = ",".join(['key:key:{}'.format(i) for i in pixs])
-        results = clientP.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json={
+                'ra': ra,
+                'dec': dec,
+                'radius': float(radius)
+            }
         )
-        schema_client = clientP.schema()
     elif startdate is not None and window is not None and startdate != '':
-        # Time to jd
-        jd_start = Time(startdate).jd
-        jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
-
-        # Send the request. RangeScan.
-        clientT.setRangeScan(True)
-        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_end)
-        results = clientT.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json={
+                'startdate': startdate,
+                'window': window
+            }
         )
-        schema_client = clientT.schema()
     else:
-        # objectId search
-        # TODO: check input with a regex
-        to_evaluate = "key:key:{}".format(objectid)
-
-        results = client.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json={
+                'objectId': objectid,
+            }
         )
-        schema_client = client.schema()
 
-    # reset the limit in case it has been changed above
-    client.setLimit(nlimit)
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
 
-    if results.isEmpty():
+    if pdf.empty:
         return [], []
 
-    # Loop over results and construct the dataframe
-    pdfs = pd.DataFrame.from_dict(results, orient='index')
-
-    # weird... I do not understand why this can happen (all indices table are treated the same)
-    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
-        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
-
-    converter = {
-        'integer': int,
-        'long': int,
-        'float': float,
-        'double': float,
-        'string': str,
-        'fits/image': str
-    }
-    pdfs = pdfs.astype({i: converter[schema_client.type(i)] for i in pdfs.columns})
-
-    # Fink final classification
-    classifications = extract_fink_classification(
-        pdfs['d:cdsxmatch'],
-        pdfs['d:roid'],
-        pdfs['d:mulens_class_1'],
-        pdfs['d:mulens_class_2'],
-        pdfs['d:snn_snia_vs_nonia'],
-        pdfs['d:snn_sn_vs_all'],
-        pdfs['d:rfscore'],
-        pdfs['i:ndethist'],
-        pdfs['i:drb'],
-        pdfs['i:classtar']
-    )
-
-    pdfs['v:classification'] = classifications
-
-    pdfs = pdfs.sort_values('i:objectId')
-    pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
-    pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
-    if alert_class is not None and alert_class != '' and alert_class != 'allclasses':
-        pdfs = pdfs[pdfs['v:classification'] == alert_class]
-
     # Make clickable objectId
-    pdfs['i:objectId'] = pdfs['i:objectId'].apply(markdownify_objectid)
+    pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
 
-    # Display only the last alert
-    pdfs['i:jd'] = pdfs['i:jd'].astype(float)
-    pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
-    pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
-
-    data = pdfs.sort_values('i:jd', ascending=False).to_dict('records')
+    data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
 
     columns = [
         {

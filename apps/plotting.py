@@ -351,12 +351,12 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
             )
     return figure, figure
 
-def draw_scores(data: java.util.TreeMap) -> dict:
+def draw_scores(pdf) -> dict:
     """ Draw scores from SNN module
 
     Parameters
     ----------
-    data: java.util.TreeMap
+    pdf: pd.DataFrame
         Results from a HBase client query
 
     Returns
@@ -365,10 +365,8 @@ def draw_scores(data: java.util.TreeMap) -> dict:
 
     TODO: memoise me
     """
-    pdf = extract_scores(data)
-
     jd = pdf['i:jd']
-    dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = pdf['v:lastdate']
     hovertemplate = """
     <b>%{customdata[0]}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
