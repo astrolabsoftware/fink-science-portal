@@ -135,7 +135,7 @@ def layout(name):
     # even if there is one object ID, this returns  several alerts
     results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     r = requests.post(
-        '{}/api/v1/explorer'.format(APIURL),
+        '{}/api/v1/objects'.format(APIURL),
         json={
             'objectId': name[1:],
         }
