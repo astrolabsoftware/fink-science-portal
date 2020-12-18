@@ -40,7 +40,7 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool):
     """
     """
     if hbase_output.isEmpty():
-        return pd.DataFrame({}).to_json()
+        return pd.DataFrame({})
 
     # Construct the dataframe
     pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
