@@ -199,7 +199,7 @@ def card_variable_button(pdf):
             dbc.Row(submit_varstar_button),
             dbc.Row(
                 dbc.Button(
-                    'Search in ASAS-SN',
+                    'Search in ASAS-SN Var. Stars',
                     id='asas-sn',
                     style={'width': '100%', 'display': 'inline-block'},
                     block=True,
