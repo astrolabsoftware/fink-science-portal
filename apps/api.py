@@ -421,11 +421,6 @@ args_latest = [
         'description': 'Last N alerts to transfer. Default is 10, max is 1000.'
     },
     {
-        'name': 'columns',
-        'required': False,
-        'description': 'Data columns to transfer. '
-    },
-    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet'
@@ -670,6 +665,11 @@ def latest_objects_arguments():
 def latest_objects():
     """ Get latest objects by class
     """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
     # Check all required args are here
     required_args = [i['name'] for i in args_latest if i['required'] is True]
     for required_arg in required_args:
@@ -684,35 +684,6 @@ def latest_objects():
         nalerts = 10
     else:
         nalerts = int(request.json['n'])
-
-    # Columns of interest
-    colnames = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
-    ]
-
-    colnames_added_values = [
-        'd:cdsxmatch',
-        'd:roid',
-        'd:mulens_class_1',
-        'd:mulens_class_2',
-        'd:snn_snia_vs_nonia',
-        'd:snn_sn_vs_all',
-        'd:rfscore',
-        'i:ndethist',
-        'i:drb',
-        'i:classtar'
-    ]
-
-    # Column name to display
-    colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
-    ]
-
-    # Types of columns
-    dtypes_ = [
-        np.str, np.float, np.float, np.float, np.str, np.int
-    ]
-    dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     # Search for latest alerts for a specific class
     if request.json['class'] != 'allclasses':
@@ -732,7 +703,7 @@ def latest_objects():
                 request.json['class'],
                 jd_stop
             ),
-            ",".join(colnames + colnames_added_values), 0, False, False
+            "*", 0, False, False
         )
     elif request.json['class'] == 'allclasses':
         clientT.setLimit(nalerts)
@@ -747,7 +718,7 @@ def latest_objects():
         results = clientT.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
 
@@ -756,6 +727,12 @@ def latest_objects():
 
     # Loop over results and construct the dataframe
     pdfs = pd.DataFrame.from_dict(results, orient='index')
+
+    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
+        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
+
+    pdfs = pdfs.astype(
+        {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
 
     # Fink final classification
     classifications = extract_fink_classification(
@@ -771,30 +748,27 @@ def latest_objects():
         pdfs['i:classtar']
     )
 
-    # inplace (booo)
-    pdfs['d:cdsxmatch'] = classifications
+    pdfs['v:classification'] = classifications
 
-    pdfs = pdfs[colnames]
-
-    # Column values are string by default - convert them
-    pdfs = pdfs.astype(dtype=dtypes)
-
-    # Rename columns
-    pdfs = pdfs.rename(
-        columns={i: j for i, j in zip(colnames, colnames_to_display)}
-    )
+    pdfs = pdfs.sort_values('i:objectId')
+    pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
+    pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
 
     # Display only the last alert
-    pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
-    pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
+    pdfs['i:jd'] = pdfs['i:jd'].astype(float)
+    pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
+    pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
 
-    if 'output-format' not in request.json or request.json['output-format'] == 'json':
-        return pdf.to_json(orient='records')
-    elif request.json['output-format'] == 'csv':
-        return pdf.to_csv(index=False)
-    elif request.json['output-format'] == 'parquet':
+    # sort values by time
+    pdfs = pdfs.sort_values('i:jd', ascending=False)
+
+    if output_format == 'json':
+        return pdfs.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdfs.to_csv(index=False)
+    elif output_format == 'parquet':
         f = io.BytesIO()
-        pdf.to_parquet(f)
+        pdfs.to_parquet(f)
         f.seek(0)
         return f.read()
 
