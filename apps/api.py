@@ -703,7 +703,8 @@ def latest_objects():
         )
         schema_client = clientT.schema()
 
-    pdfs = format_hbase_output(results, schema_client, group_alerts=True)
+    # We want to return alerts
+    pdfs = format_hbase_output(results, schema_client, group_alerts=False)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
