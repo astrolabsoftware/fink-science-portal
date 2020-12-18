@@ -27,6 +27,66 @@ from astropy.time import Time
 
 import java
 
+hbase_type_converter = {
+    'integer': int,
+    'long': int,
+    'float': float,
+    'double': float,
+    'string': str,
+    'fits/image': str
+}
+
+def format_hbase_output(hbase_output, schema_client, group_alerts: bool):
+    """
+    """
+    if hbase_output.isEmpty():
+        return pd.DataFrame({})
+
+    # Construct the dataframe
+    pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
+
+    # Remove hbase specific fields
+    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
+        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
+
+    # Type conversion
+    pdfs = pdfs.astype(
+        {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
+
+    # Fink final classification
+    classifications = extract_fink_classification(
+        pdfs['d:cdsxmatch'],
+        pdfs['d:roid'],
+        pdfs['d:mulens_class_1'],
+        pdfs['d:mulens_class_2'],
+        pdfs['d:snn_snia_vs_nonia'],
+        pdfs['d:snn_sn_vs_all'],
+        pdfs['d:rfscore'],
+        pdfs['i:ndethist'],
+        pdfs['i:drb'],
+        pdfs['i:classtar']
+    )
+
+    pdfs['v:classification'] = classifications
+
+    # Extract color evolution
+    pdfs = pdfs.sort_values('i:objectId')
+    pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
+    pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
+
+    # Display only the last alert
+    if group_alerts:
+        pdfs['i:jd'] = pdfs['i:jd'].astype(float)
+        pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
+
+    # Human readable time
+    pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
+
+    # sort values by time
+    pdfs = pdfs.sort_values('i:jd', ascending=False)
+
+    return pdfs
+
 def markdownify_objectid(objectid):
     """
     """

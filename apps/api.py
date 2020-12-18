@@ -20,6 +20,9 @@ from flask import request, jsonify, Response
 
 from app import client, clientP, clientT, clientS, nlimit
 from apps.utils import extract_fink_classification, convert_jd
+from apps.utils import hbase_type_converter
+from apps.utils import extract_last_r_minus_g_each_object
+from apps.utils import format_hbase_output
 
 import io
 import requests
@@ -92,10 +95,31 @@ r = ...
 
 pd.read_csv(io.BytesIO(r.content))
 ```
+
+By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
+But you can also choose to transfer only a subset of the fields:
+
+```python
+# select only jd, and magpsf
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/objects',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+    'columns': 'i:jd,i:magpsf'
+  }
+)
+```
+
+Note that the fields should be comma-separated. Unknown field names are ignored.
 """
 
 api_doc_explorer = """
 ## Query the Fink alert database
+
+This service allows you to search matching objects in the database.
+If several alerts from the same object match the query, we group information and
+only display the data from the last alert. To get a full history about an object,
+you should use the `Retrieve single object data` service instead.
 
 Currently, you cannot query using several conditions.
 You must choose among `Search by Object ID` (group 0), `Conesearch` (group 1), or `Search by Date` (group 2).
@@ -111,7 +135,7 @@ Enter a valid object ID to access its data, e.g. try:
 In a unix shell, you would simply use
 
 ```bash
-# Get data for ZTF19acnjwgm and save it in a CSV file
+# Get data for ZTF19acnjwgm and save it in a JSON file
 curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm"}' http://134.158.75.151:24000/api/v1/explorer -o search_ZTF19acnjwgm.json
 ```
 
@@ -330,6 +354,11 @@ args_objects = [
         'description': 'If True, retrieve also gzipped FITS cutouts.'
     },
     {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See http://134.158.75.151:24000/api/v1/columns for more information.'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet'
@@ -372,6 +401,12 @@ args_explorer = [
         'required': False,
         'group': 2,
         'description': 'Time window in minutes. Maximum is 180 minutes.'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'group': None,
+        'description': 'Output format among json[default], csv, parquet'
     }
 ]
 
@@ -385,11 +420,6 @@ args_latest = [
         'name': 'n',
         'required': False,
         'description': 'Last N alerts to transfer. Default is 10, max is 1000.'
-    },
-    {
-        'name': 'columns',
-        'required': False,
-        'description': 'Data columns to transfer. '
     },
     {
         'name': 'output-format',
@@ -408,6 +438,11 @@ def return_object_arguments():
 def return_object():
     """ Retrieve object data from the Fink database
     """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
     # Check all required args are here
     required_args = [i['name'] for i in args_objects if i['required'] is True]
     for required_arg in required_args:
@@ -418,14 +453,26 @@ def return_object():
             }
             return Response(str(rep), 400)
 
+    if 'columns' in request.json:
+        cols = request.json['columns'].replace(" ", "")
+    else:
+        cols = '*'
     to_evaluate = "key:key:{}".format(request.json['objectId'])
+
+    # We do not want to perform full scan if the objectid is a wildcard
+    client.setLimit(1000)
+
     results = client.scan(
         "",
         to_evaluate,
-        "*",
+        cols,
         0, True, True
     )
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    # reset the limit in case it has been changed above
+    client.setLimit(nlimit)
+
+    pdf = format_hbase_output(results, schema_client, group_alerts=False)
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
@@ -438,11 +485,11 @@ def return_object():
             lambda x: str(client.repository().get(x))
         )
 
-    if 'output-format' not in request.json or request.json['output-format'] == 'json':
+    if output_format == 'json':
         return pdf.to_json(orient='records')
-    elif request.json['output-format'] == 'csv':
+    elif output_format == 'csv':
         return pdf.to_csv(index=False)
-    elif request.json['output-format'] == 'parquet':
+    elif output_format == 'parquet':
         f = io.BytesIO()
         pdf.to_parquet(f)
         f.seek(0)
@@ -450,7 +497,7 @@ def return_object():
 
     rep = {
         'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
     }
     return Response(str(rep), 400)
 
@@ -464,8 +511,13 @@ def query_db_arguments():
 def query_db():
     """ Query the Fink database
     """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
     # Check the user specifies only one group
-    all_groups = [i['group'] for i in args_explorer if i['name'] in request.json]
+    all_groups = [i['group'] for i in args_explorer if i['group'] is not None and i['name'] in request.json]
     if len(np.unique(all_groups)) != 1:
         rep = {
             'status': 'error',
@@ -484,45 +536,23 @@ def query_db():
             }
             return Response(str(rep), 400)
 
-    # Columns of interest
-    colnames = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
-    ]
-
-    colnames_added_values = [
-        'd:cdsxmatch',
-        'd:roid',
-        'd:mulens_class_1',
-        'd:mulens_class_2',
-        'd:snn_snia_vs_nonia',
-        'd:snn_sn_vs_all',
-        'd:rfscore',
-        'i:ndethist',
-        'i:drb',
-        'i:classtar'
-    ]
-
-    # Column name to display
-    colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
-    ]
-
-    # Types of columns
-    dtypes_ = [
-        np.str, np.float, np.float, np.float, np.str, np.int
-    ]
-    dtypes = {i: j for i, j in zip(colnames, dtypes_)}
-
     if user_group == 0:
         # objectId search
         to_evaluate = "key:key:{}".format(request.json['objectId'])
 
+        # Avoid a full scan
+        client.setLimit(1000)
+
         results = client.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
+        # reset the limit in case it has been changed above
+        client.setLimit(nlimit)
+
+        schema_client = client.schema()
     if user_group == 1:
         clientP.setLimit(1000)
 
@@ -557,9 +587,10 @@ def query_db():
         results = clientP.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
+        schema_client = clientP.schema()
     elif user_group == 2:
         if int(request.json['window']) > 180:
             rep = {
@@ -577,51 +608,31 @@ def query_db():
         results = clientT.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
+        schema_client = clientT.schema()
 
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
 
-    if results.isEmpty():
-        return pd.DataFrame({}).to_json()
+    pdfs = format_hbase_output(results, schema_client, group_alerts=True)
 
-    # Loop over results and construct the dataframe
-    pdfs = pd.DataFrame.from_dict(results, orient='index')
+    if output_format == 'json':
+        return pdfs.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdfs.to_csv(index=False)
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdfs.to_parquet(f)
+        f.seek(0)
+        return f.read()
 
-    # Fink final classification
-    classifications = extract_fink_classification(
-        pdfs['d:cdsxmatch'],
-        pdfs['d:roid'],
-        pdfs['d:mulens_class_1'],
-        pdfs['d:mulens_class_2'],
-        pdfs['d:snn_snia_vs_nonia'],
-        pdfs['d:snn_sn_vs_all'],
-        pdfs['d:rfscore'],
-        pdfs['i:ndethist'],
-        pdfs['i:drb'],
-        pdfs['i:classtar']
-    )
-
-    # inplace (booo)
-    pdfs['d:cdsxmatch'] = classifications
-
-    pdfs = pdfs[colnames]
-
-    # Column values are string by default - convert them
-    pdfs = pdfs.astype(dtype=dtypes)
-
-    # Rename columns
-    pdfs = pdfs.rename(
-        columns={i: j for i, j in zip(colnames, colnames_to_display)}
-    )
-
-    # Display only the last alert
-    pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
-    pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
-
-    return pdfs.to_json(orient='records')
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
+    }
+    return Response(str(rep), 400)
 
 @api_bp.route('/api/v1/latests', methods=['GET'])
 def latest_objects_arguments():
@@ -633,6 +644,11 @@ def latest_objects_arguments():
 def latest_objects():
     """ Get latest objects by class
     """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
     # Check all required args are here
     required_args = [i['name'] for i in args_latest if i['required'] is True]
     for required_arg in required_args:
@@ -647,35 +663,6 @@ def latest_objects():
         nalerts = 10
     else:
         nalerts = int(request.json['n'])
-
-    # Columns of interest
-    colnames = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
-    ]
-
-    colnames_added_values = [
-        'd:cdsxmatch',
-        'd:roid',
-        'd:mulens_class_1',
-        'd:mulens_class_2',
-        'd:snn_snia_vs_nonia',
-        'd:snn_sn_vs_all',
-        'd:rfscore',
-        'i:ndethist',
-        'i:drb',
-        'i:classtar'
-    ]
-
-    # Column name to display
-    colnames_to_display = [
-        'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
-    ]
-
-    # Types of columns
-    dtypes_ = [
-        np.str, np.float, np.float, np.float, np.str, np.int
-    ]
-    dtypes = {i: j for i, j in zip(colnames, dtypes_)}
 
     # Search for latest alerts for a specific class
     if request.json['class'] != 'allclasses':
@@ -695,8 +682,9 @@ def latest_objects():
                 request.json['class'],
                 jd_stop
             ),
-            ",".join(colnames + colnames_added_values), 0, False, False
+            "*", 0, False, False
         )
+        schema_client = clientS.schema()
     elif request.json['class'] == 'allclasses':
         clientT.setLimit(nalerts)
         clientT.setRangeScan(True)
@@ -710,54 +698,21 @@ def latest_objects():
         results = clientT.scan(
             "",
             to_evaluate,
-            ",".join(colnames + colnames_added_values),
+            "*",
             0, True, True
         )
+        schema_client = clientT.schema()
 
-    if results.isEmpty():
-        return pd.DataFrame({}).to_json()
+    # We want to return alerts
+    pdfs = format_hbase_output(results, schema_client, group_alerts=False)
 
-    # Loop over results and construct the dataframe
-    pdfs = pd.DataFrame.from_dict(results, orient='index')
-
-    # Fink final classification
-    classifications = extract_fink_classification(
-        pdfs['d:cdsxmatch'],
-        pdfs['d:roid'],
-        pdfs['d:mulens_class_1'],
-        pdfs['d:mulens_class_2'],
-        pdfs['d:snn_snia_vs_nonia'],
-        pdfs['d:snn_sn_vs_all'],
-        pdfs['d:rfscore'],
-        pdfs['i:ndethist'],
-        pdfs['i:drb'],
-        pdfs['i:classtar']
-    )
-
-    # inplace (booo)
-    pdfs['d:cdsxmatch'] = classifications
-
-    pdfs = pdfs[colnames]
-
-    # Column values are string by default - convert them
-    pdfs = pdfs.astype(dtype=dtypes)
-
-    # Rename columns
-    pdfs = pdfs.rename(
-        columns={i: j for i, j in zip(colnames, colnames_to_display)}
-    )
-
-    # Display only the last alert
-    pdfs = pdfs.loc[pdfs.groupby('objectId')['last seen'].idxmax()]
-    pdfs['last seen'] = pdfs['last seen'].apply(convert_jd)
-
-    if 'output-format' not in request.json or request.json['output-format'] == 'json':
-        return pdf.to_json(orient='records')
-    elif request.json['output-format'] == 'csv':
-        return pdf.to_csv(index=False)
-    elif request.json['output-format'] == 'parquet':
+    if output_format == 'json':
+        return pdfs.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdfs.to_csv(index=False)
+    elif output_format == 'parquet':
         f = io.BytesIO()
-        pdf.to_parquet(f)
+        pdfs.to_parquet(f)
         f.seek(0)
         return f.read()
 
