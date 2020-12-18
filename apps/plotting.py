@@ -66,7 +66,8 @@ layout_lightcurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        bgcolor='rgba(0,0,0,0)'
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
         'title': 'Observation date',
@@ -91,7 +92,7 @@ layout_phase = dict(
         y=0.02,
         xanchor="right",
         x=1,
-        bgcolor='rgba(0,0,0,0)'
+        bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
         'title': 'Phase'
@@ -119,7 +120,7 @@ layout_mulens = dict(
         y=1.02,
         xanchor="right",
         x=1,
-        bgcolor='rgba(0,0,0,0)'
+        bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
         'title': 'Observation date'
@@ -140,12 +141,20 @@ layout_scores = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
-    legend=dict(font=dict(size=10), orientation="h"),
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
     hoverlabel={
         'align': "left"
     },
     xaxis={
-        'title': 'Observation date'
+        'title': 'Observation date',
+        'automargin': True
     },
     yaxis={
         'title': 'Score',
