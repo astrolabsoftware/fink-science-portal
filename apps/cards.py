@@ -24,7 +24,7 @@ from apps.utils import extract_fink_classification_single
 from apps.plotting import draw_cutout, draw_scores, all_radio_options
 
 from astropy.time import Time
-
+import pandas as pd
 import numpy as np
 import urllib
 
