@@ -37,7 +37,7 @@ from astropy.coordinates import SkyCoord
 
 from flask import Blueprint
 
-PORTAL_URL = 'http://134.158.75.151:24000'
+APIURL = "http://134.158.75.151:24000"
 
 api_bp = Blueprint('', __name__)
 

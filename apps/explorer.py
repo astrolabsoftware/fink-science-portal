@@ -31,6 +31,7 @@ from astropy.time import Time, TimeDelta
 from app import app
 from app import client, clientT, clientP, clientS, nlimit
 from apps.utils import markdownify_objectid
+from apps.api import APIURL
 
 msg = """
 ![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
@@ -81,8 +82,6 @@ Choose a class of interest using the drop-down menu to see the 100 latest alerts
 
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
-
-APIURL = "http://134.158.75.151:24000"
 
 @app.callback(
     [
