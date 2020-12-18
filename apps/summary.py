@@ -29,6 +29,7 @@ from apps.cards import card_download
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
+from apps.utils import format_hbase_output
 from apps.api import APIURL
 
 dcc.Location(id='url', refresh=False)
@@ -56,8 +57,8 @@ def tab2_content(pdf):
     """
     tab2_content_ = html.Div([
         dbc.Row([
-            dbc.Col(card_sn_scores(pdf), width=8),
-            dbc.Col([card_sn_properties(pdf)], width=4)
+            dbc.Col(card_sn_scores(), width=8),
+            dbc.Col(id='card_sn_properties', width=4)
         ]),
     ])
     return tab2_content_
@@ -125,7 +126,8 @@ def store_query(name):
     https://dash.plotly.com/sharing-data-between-callbacks
     """
     results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
-    pdfs = pd.DataFrame.from_dict(results, orient='index')
+    schema_client = client.schema()
+    pdfs = format_hbase_output(results, schema_client, group_alerts=False)
 
     uppers = clientU.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     pdfsU = pd.DataFrame.from_dict(uppers, orient='index')

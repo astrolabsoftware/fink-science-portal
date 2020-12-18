@@ -360,7 +360,12 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
             )
     return figure, figure
 
-def draw_scores(pdf) -> dict:
+@app.callback(
+    Output('scores', 'figure'),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_scores(object_data) -> dict:
     """ Draw scores from SNN module
 
     Parameters
@@ -374,8 +379,11 @@ def draw_scores(pdf) -> dict:
 
     TODO: memoise me
     """
-    jd = pdf['i:jd']
-    dates = pdf['v:lastdate']
+    pdf = pd.read_json(object_data)
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
     hovertemplate = """
     <b>%{customdata[0]}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
