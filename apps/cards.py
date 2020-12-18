@@ -16,6 +16,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 
+from app import client, app
+
 from apps.utils import convert_jd, extract_properties
 from apps.utils import extract_fink_classification_single
 from apps.plotting import draw_cutout, draw_scores, all_radio_options
