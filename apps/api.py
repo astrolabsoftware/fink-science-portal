@@ -458,12 +458,19 @@ def return_object():
     else:
         cols = '*'
     to_evaluate = "key:key:{}".format(request.json['objectId'])
+
+    # We do not want to perform full scan if the objectid is a wildcard
+    client.setLimit(1000)
+
     results = client.scan(
         "",
         to_evaluate,
         cols,
         0, True, True
     )
+
+    # reset the limit in case it has been changed above
+    client.setLimit(nlimit)
 
     pdf = format_hbase_output(results, schema_client, group_alerts=False)
 
@@ -533,12 +540,18 @@ def query_db():
         # objectId search
         to_evaluate = "key:key:{}".format(request.json['objectId'])
 
+        # Avoid a full scan
+        client.setLimit(1000)
+
         results = client.scan(
             "",
             to_evaluate,
             "*",
             0, True, True
         )
+        # reset the limit in case it has been changed above
+        client.setLimit(nlimit)
+
         schema_client = client.schema()
     if user_group == 1:
         clientP.setLimit(1000)
