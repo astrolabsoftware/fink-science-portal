@@ -20,6 +20,8 @@ from apps.utils import convert_jd, extract_properties
 from apps.utils import extract_fink_classification_single
 from apps.plotting import draw_cutout, draw_scores, all_radio_options
 
+from astropy.time import Time
+
 import numpy as np
 import urllib
 
@@ -430,39 +432,55 @@ def card_id(pdf):
     )
     return card
 
-def card_sn_properties(pdf):
+@app.callback(
+    Output("card_sn_properties", "children"),
+    [
+        Input('lightcurve_cutouts', 'clickData'),
+        Input('object-data', 'children'),
+    ])
+def card_sn_properties(clickData, object_data):
     """ Add a card containing SN alert data
     """
+    pdf = pd.read_json(object_data)
     pdf = pdf.sort_values('i:jd', ascending=False)
 
-    id0 = pdf['i:objectId'].values[0]
-    snn_snia_vs_nonia = pdf['d:snn_snia_vs_nonia'].values[0]
-    snn_sn_vs_all = pdf['d:snn_sn_vs_all'].values[0]
-    rfscore = pdf['d:rfscore'].values[0]
-    classtar = pdf['i:classtar'].values[0]
-    ndethist = pdf['i:ndethist'].values[0]
-    drb = pdf['i:drb'].values[0]
+    if clickData is not None:
+        time0 = clickData['points'][0]['x']
+        # Round to avoid numerical precision issues
+        jds = pdf['i:jd'].apply(lambda x: np.round(x, 3)).values
+        jd0 = np.round(Time(time0, format='iso').jd, 3)
+        position = np.where(jds == jd0)[0][0]
+    else:
+        position = 0
 
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
+    id0 = pdf['i:objectId'].values[position]
+    snn_snia_vs_nonia = pdf['d:snn_snia_vs_nonia'].values[position]
+    snn_sn_vs_all = pdf['d:snn_sn_vs_all'].values[position]
+    rfscore = pdf['d:rfscore'].values[position]
+    classtar = pdf['i:classtar'].values[position]
+    ndethist = pdf['i:ndethist'].values[position]
+    drb = pdf['i:drb'].values[position]
 
-    distnr = pdf['i:distnr'].values[0]
+    ra0 = pdf['i:ra'].values[position]
+    dec0 = pdf['i:dec'].values[position]
+
+    distnr = pdf['i:distnr'].values[position]
     magpsfs = pdf['i:magpsf'].astype(float).values
     magnrs = pdf['i:magnr'].astype(float).values
     fids = pdf['i:fid'].values
 
     if float(distnr) < 2:
-        deltamagref = np.round(magnrs[0] - magpsfs[0], 3)
+        deltamagref = np.round(magnrs[position] - magpsfs[position], 3)
     else:
         deltamagref = None
 
-    mask = fids == fids[0]
+    mask = fids == fids[position]
     if np.sum(mask) > 1:
         deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
     else:
         deltamaglatest = None
 
-    classification = pdf['v:classification'].values[0]
+    classification = pdf['v:classification'].values[position]
 
     card = dbc.Card(
         [
