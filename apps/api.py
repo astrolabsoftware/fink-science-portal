@@ -115,6 +115,11 @@ Note that the fields should be comma-separated. Unknown field names are ignored.
 api_doc_explorer = """
 ## Query the Fink alert database
 
+This service allows you to search matching objects in the database.
+If several alerts from the same object match the query, we group information and
+only display the data from the last alert. To get a full history about an object,
+you should use the `Retrieve single object data` service instead.
+
 Currently, you cannot query using several conditions.
 You must choose among `Search by Object ID` (group 0), `Conesearch` (group 1), or `Search by Date` (group 2).
 In a future release, you will be able to combine searches.
@@ -129,7 +134,7 @@ Enter a valid object ID to access its data, e.g. try:
 In a unix shell, you would simply use
 
 ```bash
-# Get data for ZTF19acnjwgm and save it in a CSV file
+# Get data for ZTF19acnjwgm and save it in a JSON file
 curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm"}' http://134.158.75.151:24000/api/v1/explorer -o search_ZTF19acnjwgm.json
 ```
 
