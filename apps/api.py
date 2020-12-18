@@ -469,6 +469,8 @@ def return_object():
         0, True, True
     )
 
+    schema_client = client.schema()
+
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
 
