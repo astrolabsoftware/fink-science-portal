@@ -399,6 +399,7 @@ args_explorer = [
     {
         'name': 'output-format',
         'required': False,
+        'group': None,
         'description': 'Output format among json[default], csv, parquet'
     }
 ]
@@ -501,14 +502,11 @@ def query_db():
     """
     if 'output-format' in request.json:
         output_format = request.json['output-format']
-
-        # remove from the dict as it has no group
-        request.json.pop('output-format')
     else:
         output_format = 'json'
 
     # Check the user specifies only one group
-    all_groups = [i['group'] for i in args_explorer if i['name'] in request.json]
+    all_groups = [i['group'] for i in args_explorer if i['group'] is not None and i['name'] in request.json]
     if len(np.unique(all_groups)) != 1:
         rep = {
             'status': 'error',
