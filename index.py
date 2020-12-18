@@ -36,7 +36,7 @@ dropdown = dbc.DropdownMenu(
     ],
     nav=True,
     in_navbar=True,
-    label="Explore",
+    label="Info",
 )
 
 navbar = dbc.Navbar(
@@ -60,7 +60,12 @@ navbar = dbc.Navbar(
         dbc.Collapse(
             dbc.Nav(
                 # right align dropdown menu with ml-auto className
-                [dbc.NavItem(dbc.NavLink('API', href="http://134.158.75.151:24000/api")), dropdown],
+                [
+                    dbc.NavItem(dbc.NavLink('Explorer', href="http://134.158.75.151:24000/explorer")),
+                    dbc.NavItem(dbc.NavLink('Xmatch', href="http://134.158.75.151:24000/xmatch")),
+                    dbc.NavItem(dbc.NavLink('API', href="http://134.158.75.151:24000/api")),
+                    dropdown
+                ],
                 navbar=True
             ),
             id="navbar-collapse2",
