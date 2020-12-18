@@ -168,6 +168,9 @@ def card_variable_button(pdf):
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
 
+    ra0 = pdf['i:ra'].values[0]
+    dec0 = pdf['i:dec'].values[0]
+
     classification = pdf['v:classification'].values[0]
 
     card = dbc.Card(
@@ -193,7 +196,17 @@ def card_variable_button(pdf):
                     float(neargaia), float(distnr))
             ),
             dbc.Row(nterms_base),
-            dbc.Row(submit_varstar_button)
+            dbc.Row(submit_varstar_button),
+            dbc.Row(
+                dbc.Button(
+                    'Search in ASAS-SN Var. Stars',
+                    id='asas-sn',
+                    style={'width': '100%', 'display': 'inline-block'},
+                    block=True,
+                    target="_blank",
+                    href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
+                )
+            )
         ],
         className="mt-3", body=True
     )
