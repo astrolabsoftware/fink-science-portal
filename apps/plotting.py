@@ -356,7 +356,7 @@ def draw_scores(pdf) -> dict:
 
     Parameters
     ----------
-    data: java.util.TreeMap
+    pdf: pd.DataFrame
         Results from a HBase client query
 
     Returns

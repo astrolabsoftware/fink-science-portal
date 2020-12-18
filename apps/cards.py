@@ -506,10 +506,9 @@ def card_sn_properties(pdf):
     )
     return card
 
-def card_download(data):
+def card_download(pdf):
     """ Card containing a button to download object data
     """
-    pdf = extract_properties(data, ['i:objectId'])
     objectid = pdf['i:objectId'].values[0]
     card = dbc.Card(
         [
@@ -519,7 +518,7 @@ def card_download(data):
                         'Download Object Data',
                         id="download-link",
                         download="{}.csv".format(objectid),
-                        href=generate_download_link(data),
+                        href=generate_download_link(pdf),
                         target="_blank", style={"color": "white"}),
                     id='download',
                     target="_blank",
@@ -541,14 +540,13 @@ def card_mulens_param():
     )
     return card
 
-def generate_download_link(data):
+def generate_download_link(pdf):
     """ Crappy way for downloading data as csv. The URL is modified on-the-fly.
     TODO: try https://github.com/thedirtyfew/dash-extensions/
     """
-    if data is None:
+    if pdf.empty:
         return ""
     else:
-        pdf = extract_properties(data, None)
         # drop cutouts from download for the moment
         pdf = pdf.drop(
             columns=[
