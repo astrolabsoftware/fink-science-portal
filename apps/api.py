@@ -705,6 +705,7 @@ def latest_objects():
             ),
             "*", 0, False, False
         )
+        schema_client = clientS.schema()
     elif request.json['class'] == 'allclasses':
         clientT.setLimit(nalerts)
         clientT.setRangeScan(True)
@@ -721,6 +722,7 @@ def latest_objects():
             "*",
             0, True, True
         )
+        schema_client = clientT.schema()
 
     if results.isEmpty():
         return pd.DataFrame({}).to_json()
