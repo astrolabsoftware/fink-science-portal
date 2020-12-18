@@ -29,6 +29,7 @@ from apps.cards import card_download
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
+from apps.utils import format_hbase_output
 from apps.api import APIURL
 
 dcc.Location(id='url', refresh=False)
