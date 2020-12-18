@@ -22,6 +22,7 @@ from app import client, clientP, clientT, clientS, nlimit
 from apps.utils import extract_fink_classification, convert_jd
 from apps.utils import hbase_type_converter
 from apps.utils import extract_last_r_minus_g_each_object
+from apps.utils import format_hbase_output
 
 import io
 import requests
@@ -437,6 +438,11 @@ def return_object_arguments():
 def return_object():
     """ Retrieve object data from the Fink database
     """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
     # Check all required args are here
     required_args = [i['name'] for i in args_objects if i['required'] is True]
     for required_arg in required_args:
@@ -458,10 +464,8 @@ def return_object():
         cols,
         0, True, True
     )
-    pdf = pd.DataFrame.from_dict(results, orient='index')
 
-    if 'key:key' in pdf.columns or 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:key', 'key:time'])
+    pdf = format_hbase_output(results, schema_client, group_alerts=False)
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
@@ -474,11 +478,11 @@ def return_object():
             lambda x: str(client.repository().get(x))
         )
 
-    if 'output-format' not in request.json or request.json['output-format'] == 'json':
+    if output_format == 'json':
         return pdf.to_json(orient='records')
-    elif request.json['output-format'] == 'csv':
+    elif output_format == 'csv':
         return pdf.to_csv(index=False)
-    elif request.json['output-format'] == 'parquet':
+    elif output_format == 'parquet':
         f = io.BytesIO()
         pdf.to_parquet(f)
         f.seek(0)
@@ -486,7 +490,7 @@ def return_object():
 
     rep = {
         'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
     }
     return Response(str(rep), 400)
 
@@ -599,45 +603,7 @@ def query_db():
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
 
-    if results.isEmpty():
-        return pd.DataFrame({}).to_json()
-
-    # Loop over results and construct the dataframe
-    pdfs = pd.DataFrame.from_dict(results, orient='index')
-
-    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
-        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
-
-    pdfs = pdfs.astype(
-        {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
-
-    # Fink final classification
-    classifications = extract_fink_classification(
-        pdfs['d:cdsxmatch'],
-        pdfs['d:roid'],
-        pdfs['d:mulens_class_1'],
-        pdfs['d:mulens_class_2'],
-        pdfs['d:snn_snia_vs_nonia'],
-        pdfs['d:snn_sn_vs_all'],
-        pdfs['d:rfscore'],
-        pdfs['i:ndethist'],
-        pdfs['i:drb'],
-        pdfs['i:classtar']
-    )
-
-    pdfs['v:classification'] = classifications
-
-    pdfs = pdfs.sort_values('i:objectId')
-    pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
-    pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
-
-    # Display only the last alert
-    pdfs['i:jd'] = pdfs['i:jd'].astype(float)
-    pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
-    pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
-
-    # sort values by time
-    pdfs = pdfs.sort_values('i:jd', ascending=False)
+    pdfs = format_hbase_output(results, schema_client, group_alerts=True)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
@@ -724,45 +690,7 @@ def latest_objects():
         )
         schema_client = clientT.schema()
 
-    if results.isEmpty():
-        return pd.DataFrame({}).to_json()
-
-    # Loop over results and construct the dataframe
-    pdfs = pd.DataFrame.from_dict(results, orient='index')
-
-    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
-        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
-
-    pdfs = pdfs.astype(
-        {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
-
-    # Fink final classification
-    classifications = extract_fink_classification(
-        pdfs['d:cdsxmatch'],
-        pdfs['d:roid'],
-        pdfs['d:mulens_class_1'],
-        pdfs['d:mulens_class_2'],
-        pdfs['d:snn_snia_vs_nonia'],
-        pdfs['d:snn_sn_vs_all'],
-        pdfs['d:rfscore'],
-        pdfs['i:ndethist'],
-        pdfs['i:drb'],
-        pdfs['i:classtar']
-    )
-
-    pdfs['v:classification'] = classifications
-
-    pdfs = pdfs.sort_values('i:objectId')
-    pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
-    pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
-
-    # Display only the last alert
-    pdfs['i:jd'] = pdfs['i:jd'].astype(float)
-    pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
-    pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
-
-    # sort values by time
-    pdfs = pdfs.sort_values('i:jd', ascending=False)
+    pdfs = format_hbase_output(results, schema_client, group_alerts=True)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
