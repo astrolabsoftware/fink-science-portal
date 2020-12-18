@@ -395,6 +395,11 @@ args_explorer = [
         'required': False,
         'group': 2,
         'description': 'Time window in minutes. Maximum is 180 minutes.'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet'
     }
 ]
 
@@ -494,6 +499,14 @@ def query_db_arguments():
 def query_db():
     """ Query the Fink database
     """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+
+        # remove from the dict as it has no group
+        request.json.pop('output-format')
+    else:
+        output_format = 'json'
+
     # Check the user specifies only one group
     all_groups = [i['group'] for i in args_explorer if i['name'] in request.json]
     if len(np.unique(all_groups)) != 1:
@@ -625,7 +638,24 @@ def query_db():
     pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
     pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
 
-    return pdfs.sort_values('i:jd', ascending=False).to_json(orient='records')
+    # sort values by time
+    pdfs = pdfs.sort_values('i:jd', ascending=False)
+
+    if output_format == 'json':
+        return pdfs.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdfs.to_csv(index=False)
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdfs.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
+    }
+    return Response(str(rep), 400)
 
 @api_bp.route('/api/v1/latests', methods=['GET'])
 def latest_objects_arguments():
