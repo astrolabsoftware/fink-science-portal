@@ -438,7 +438,7 @@ def card_id(pdf):
 @app.callback(
     Output("card_sn_properties", "children"),
     [
-        Input('lightcurve_cutouts', 'clickData'),
+        Input('lightcurve_scores', 'clickData'),
         Input('object-data', 'children'),
     ])
 def card_sn_properties(clickData, object_data):
