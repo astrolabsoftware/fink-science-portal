@@ -56,7 +56,7 @@ def tab2_content(pdf):
     """
     tab2_content_ = html.Div([
         dbc.Row([
-            dbc.Col(card_sn_scores(pdf), width=8),
+            dbc.Col(card_sn_scores(), width=8),
             dbc.Col([card_sn_properties(pdf)], width=4)
         ]),
     ])
