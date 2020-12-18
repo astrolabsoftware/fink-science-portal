@@ -23,7 +23,7 @@ from apps.plotting import draw_cutout, draw_scores, all_radio_options
 import numpy as np
 import urllib
 
-def card_sn_scores() -> dbc.Card:
+def card_sn_scores(pdf) -> dbc.Card:
     """ Card containing the score evolution
 
     Returns
@@ -41,7 +41,7 @@ def card_sn_scores() -> dbc.Card:
     )
     graph_scores = dcc.Graph(
         id='scores',
-        figure=draw_scores(data),
+        figure=draw_scores(pdf),
         style={
             'width': '100%',
             'height': '15pc'
