@@ -514,22 +514,6 @@ def query_db():
             }
             return Response(str(rep), 400)
 
-    # Columns of interest
-    colnames = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
-    ]
-
-    # Column name to display
-    colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
-    ]
-
-    # Types of columns
-    dtypes_ = [
-        np.str, np.float, np.float, np.float, np.str, np.int
-    ]
-    dtypes = {i: j for i, j in zip(colnames, dtypes_)}
-
     if user_group == 0:
         # objectId search
         to_evaluate = "key:key:{}".format(request.json['objectId'])
