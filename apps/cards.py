@@ -23,13 +23,8 @@ from apps.plotting import draw_cutout, draw_scores, all_radio_options
 import numpy as np
 import urllib
 
-def card_sn_scores(data) -> dbc.Card:
+def card_sn_scores() -> dbc.Card:
     """ Card containing the score evolution
-
-    Parameters
-    ----------
-    data: java.util.TreeMap
-        Results from a HBase client query
 
     Returns
     ----------
@@ -68,13 +63,8 @@ def card_sn_scores(data) -> dbc.Card:
     )
     return card
 
-def card_cutouts(data):
+def card_cutouts():
     """ Add a card containing cutouts
-
-    Parameters
-    ----------
-    data: java.util.TreeMap
-        Results from a HBase client query
 
     Returns
     ----------
@@ -114,13 +104,8 @@ def card_cutouts(data):
     )
     return card
 
-def card_variable_plot(data):
+def card_variable_plot():
     """ Add a card to fit for variable stars
-
-    Parameters
-    ----------
-    data: java.util.TreeMap
-        Results from a HBase client query
 
     Returns
     ----------
@@ -172,22 +157,9 @@ submit_varstar_button = dbc.Button(
     block=True
 )
 
-def card_variable_button(data):
+def card_variable_button(pdf):
     """ Add a card containing button to fit for variable stars
     """
-    pdf = extract_properties(
-        data, [
-            'i:objectId',
-            'i:jd',
-            'd:cdsxmatch',
-            'i:objectidps1',
-            'i:distpsnr1',
-            'i:neargaia',
-            'i:distnr',
-        ]
-    )
-    pdf = pdf.sort_values('i:jd', ascending=False)
-
     id0 = pdf['i:objectId'].values[0]
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
@@ -196,7 +168,7 @@ def card_variable_button(data):
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
 
-    classification = extract_fink_classification_single(data)
+    classification = pdf['v:classification'].values[0]
 
     card = dbc.Card(
         [
@@ -235,22 +207,9 @@ submit_mulens_button = dbc.Button(
     block=True
 )
 
-def card_mulens_button(data):
+def card_mulens_button(pdf):
     """ Add a card containing button to fit for microlensing events
     """
-    pdf = extract_properties(
-        data, [
-            'i:objectId',
-            'i:jd',
-            'd:cdsxmatch',
-            'i:objectidps1',
-            'i:distpsnr1',
-            'i:neargaia',
-            'i:distnr',
-        ]
-    )
-    pdf = pdf.sort_values('i:jd', ascending=False)
-
     id0 = pdf['i:objectId'].values[0]
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
@@ -259,7 +218,7 @@ def card_mulens_button(data):
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
 
-    classification = extract_fink_classification_single(data)
+    classification = pdf['v:classification'].values[0]
 
     card = dbc.Card(
         [
@@ -289,13 +248,8 @@ def card_mulens_button(data):
     )
     return card
 
-def card_mulens_plot(data):
+def card_mulens_plot():
     """ Add a card to fit for microlensing events
-
-    Parameters
-    ----------
-    data: java.util.TreeMap
-        Results from a HBase client query
 
     Returns
     ----------
@@ -388,33 +342,13 @@ def card_explanation_xmatch():
     )
     return card
 
-def card_id(data):
+def card_id(pdf):
     """ Add a card containing basic alert data
     """
-    pdf = extract_properties(
-        data, [
-            'i:objectId',
-            'i:candid',
-            'i:jd',
-            'i:ra',
-            'i:dec',
-            'd:cdsxmatch',
-            'i:objectidps1',
-            'i:distpsnr1',
-            'i:neargaia',
-            'i:distnr',
-            'i:magpsf',
-            'i:magnr',
-            'i:fid'
-        ]
-    )
-    pdf = pdf.sort_values('i:jd', ascending=False)
-
     id0 = pdf['i:objectId'].values[0]
-    candid0 = pdf['i:candid'].values[0]
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
-    date0 = convert_jd(float(pdf['i:jd'].values[0]))
+    date0 = pdf['v:lastdate'].values[0]
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     distnr = pdf['i:distnr'].values[0]
@@ -437,7 +371,7 @@ def card_id(data):
     else:
         deltamaglatest = None
 
-    classification = extract_fink_classification_single(data)
+    classification = pdf['v:classification'].values[0]
 
     card = dbc.Card(
         [
@@ -484,28 +418,9 @@ def card_id(data):
     )
     return card
 
-def card_sn_properties(data):
+def card_sn_properties(pdf):
     """ Add a card containing SN alert data
     """
-    pdf = extract_properties(
-        data, [
-            'i:objectId',
-            'i:ra',
-            'i:dec',
-            'i:jd',
-            'd:cdsxmatch',
-            'd:snn_snia_vs_nonia',
-            'd:snn_sn_vs_all',
-            'd:rfscore',
-            'i:classtar',
-            'i:ndethist',
-            'i:drb',
-            'i:distnr',
-            'i:magpsf',
-            'i:magnr',
-            'i:fid'
-        ]
-    )
     pdf = pdf.sort_values('i:jd', ascending=False)
 
     id0 = pdf['i:objectId'].values[0]
@@ -535,7 +450,7 @@ def card_sn_properties(data):
     else:
         deltamaglatest = None
 
-    classification = extract_fink_classification_single(data)
+    classification = pdf['v:classification'].values[0]
 
     card = dbc.Card(
         [

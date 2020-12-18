@@ -19,6 +19,7 @@ import dash_bootstrap_components as dbc
 import visdcc
 
 import pandas as pd
+import requests
 
 from app import app, client, clientU
 
@@ -28,67 +29,68 @@ from apps.cards import card_download
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
+from apps.api import APIURL
 
 dcc.Location(id='url', refresh=False)
 
-def tab1_content(data):
+def tab1_content(pdf):
     """ Summary tab
 
     Parameters
     ----------
-    data: java.util.TreeMap
+    pdf: pd.DataFrame
         Results from a HBase client query
     """
     tab1_content_ = html.Div([
         dbc.Row([
-            dbc.Col(card_cutouts(data), width=8),
+            dbc.Col(card_cutouts(), width=8),
             dbc.Col([
-                card_id(data)
+                card_id(pdf)
             ], width=4)
         ]),
     ])
     return tab1_content_
 
-def tab2_content(data):
+def tab2_content(pdf):
     """ Supernova tab
     """
     tab2_content_ = html.Div([
         dbc.Row([
-            dbc.Col(card_sn_scores(data), width=8),
-            dbc.Col([card_sn_properties(data)], width=4)
+            dbc.Col(card_sn_scores(), width=8),
+            dbc.Col([card_sn_properties(pdf)], width=4)
         ]),
     ])
     return tab2_content_
 
-def tab3_content(data):
+def tab3_content(pdf):
     """ Variable stars tab
     """
     tab3_content_ = html.Div([
         dbc.Row([
-            dbc.Col([card_variable_plot(data), html.Br(), card_explanation_variable()], width=8),
-            dbc.Col([card_variable_button(data)], width=4)
+            dbc.Col([card_variable_plot(), html.Br(), card_explanation_variable()], width=8),
+            dbc.Col([card_variable_button(pdf)], width=4)
         ]),
     ])
     return tab3_content_
 
-def tab4_content(data):
+def tab4_content(pdf):
     """ Microlensing tab
     """
     tab4_content_ = html.Div([
         dbc.Row([
-            dbc.Col([card_mulens_plot(data), html.Br(), card_explanation_mulens()], width=8),
-            dbc.Col([card_mulens_button(data), card_mulens_param()], width=4)
+            dbc.Col([card_mulens_plot(), html.Br(), card_explanation_mulens()], width=8),
+            dbc.Col([card_mulens_button(pdf), card_mulens_param()], width=4)
         ]),
     ])
     return tab4_content_
 
-def tabs(data):
+def tabs(pdf):
     tabs_ = dbc.Tabs(
         [
-            dbc.Tab(tab1_content(data), label="Summary", tab_style={"margin-left": "auto"}),
-            dbc.Tab(tab2_content(data), label="Supernovae"),
-            dbc.Tab(tab3_content(data), label="Variable stars"),
-            dbc.Tab(tab4_content(data), label="Microlensing"),
+            dbc.Tab(tab1_content(pdf), label="Summary", tab_style={"margin-left": "auto"}),
+            dbc.Tab(tab2_content(pdf), label="Supernovae"),
+            dbc.Tab(tab3_content(pdf), label="Variable stars"),
+            dbc.Tab(tab4_content(pdf), label="Microlensing"),
             dbc.Tab(label="Solar System", disabled=True),
             dbc.Tab(label="GRB", disabled=True)
         ]
@@ -132,6 +134,13 @@ def store_query(name):
 def layout(name):
     # even if there is one object ID, this returns  several alerts
     results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
+    r = requests.post(
+        '{}/api/v1/explorer'.format(APIURL),
+        json={
+            'objectId': name[1:],
+        }
+    )
+    pdf = pd.read_json(r.content)
 
     layout_ = html.Div(
         [
@@ -152,7 +161,7 @@ def layout(name):
                             card_download(results)
                         ], width={"size": 3},
                     ),
-                    dbc.Col(tabs(results), width=8)
+                    dbc.Col(tabs(pdf), width=8)
                 ],
                 justify="around", no_gutters=True
             ),
