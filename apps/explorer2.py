@@ -14,6 +14,9 @@ from app import app
 import requests
 import pandas as pd
 
+simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
+simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+
 msg_conesearch = """
 ##### Object ID
 
@@ -160,11 +163,28 @@ def input_type(n1, n2, n3, n4, n_reset, container):
 
     if button_id == "dropdown-menu-item-4":
         elem = [
-            dcc.Dropdown(id="select", options=[
-                {"label": "Option 1", "value": "1"},
-                {"label": "Option 2", "value": "2"},
-                {"label": "Disabled option", "value": "3", "disabled": True},
-            ]),
+            dcc.Dropdown(
+                id='select',
+                options=[
+                    {'label': 'All classes', 'value': 'allclasses'},
+                    {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
+                    {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
+                    {'label': 'Supernova candidates', 'value': 'SN candidate'},
+                    {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
+                    {'label': 'Solar System Object candidates', 'value': 'Solar System'},
+                    {'label': 'Ambiguous', 'value': 'Ambiguous'},
+                    {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
+                    *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
+                ],
+                searchable=True,
+                clearable=True,
+                placeholder="Start typing or choose a class",
+            )
+            # dcc.Dropdown(id="select", options=[
+            #     {"label": "Option 1", "value": "1"},
+            #     {"label": "Option 2", "value": "2"},
+            #     {"label": "Disabled option", "value": "3", "disabled": True},
+            # ]),
             html.Br()
         ]
         return elem
@@ -246,10 +266,15 @@ def logo(ns, nr):
         Input("submit", "n_clicks"),
         Input("reset", "n_clicks"),
         Input("input-group-dropdown-input", "value"),
+        Input("dropdown-menu-item-1", "n_clicks"),
+        Input("dropdown-menu-item-2", "n_clicks"),
+        Input("dropdown-menu-item-3", "n_clicks"),
+        Input("dropdown-menu-item-4", "n_clicks"),
+        Input("select", "value"),
     ],
     State("results", "children"),
 )
-def results(ns, nr, query, results):
+def results(ns, nr, query, q1, q2, q3, q4, alert_class, results):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
@@ -262,12 +287,33 @@ def results(ns, nr, query, results):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "submit":
-        r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
-            json={
-                'objectId': query,
-            }
-        )
+        if q1:
+            r = requests.post(
+                '{}/api/v1/explorer'.format(APIURL),
+                json={
+                    'objectId': query,
+                }
+            )
+        elif q2:
+            ra, dec, radius = query.split(',')
+            r = requests.post(
+                '{}/api/v1/explorer'.format(APIURL),
+                json={
+                    'ra': ra,
+                    'dec': dec,
+                    'radius': float(radius)
+                }
+            )
+        elif q3:
+            pass
+        elif q4:
+            r = requests.post(
+                '{}/api/v1/latests'.format(APIURL),
+                json={
+                    'class': alert_class,
+                    'n': '100'
+                }
+            )
 
         # Format output in a DataFrame
         pdf = pd.read_json(r.content)
