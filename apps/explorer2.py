@@ -208,16 +208,16 @@ def on_button_click(n1, n2, n3, n4, n_reset, val):
 
 @app.callback(
     [
-        Output("table", "data"),
-        Output("table", "columns")
+        Output("table2", "data"),
+        Output("table2", "columns")
     ],
     [
         Input("submit", "n_clicks"),
         Input("reset", "n_clicks")
     ],
     [
-        State('table', 'data'),
-        State('table', 'columns')
+        State('table2', 'data'),
+        State('table2', 'columns')
     ]
 )
 def table(n_submit, n_reset, data, columns):
@@ -332,7 +332,7 @@ def results(ns, nr, query, results):
         table = dash_table.DataTable(
             data=pdf.to_dict('records'),
             columns=columns,
-            id="table",
+            id="table2",
             page_size=10,
             style_as_list_view=True,
             sort_action="native",
