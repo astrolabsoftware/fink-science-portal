@@ -158,7 +158,7 @@ def input_type(n1, n2, n3, n4, n_reset, container):
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return html.div([dcc.Dropdown(id='select')], style={'display': 'none'})
+        return html.Div([dcc.Dropdown(id='select')], style={'display': 'none'})
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -190,7 +190,7 @@ def input_type(n1, n2, n3, n4, n_reset, container):
         ]
         return elem
     elif button_id == "reset":
-        return html.div([dcc.Dropdown(id='select')], style={'display': 'none'})
+        return html.Div([dcc.Dropdown(id='select')], style={'display': 'none'})
     else:
         return container
 
