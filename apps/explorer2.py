@@ -190,7 +190,7 @@ def input_type(n1, n2, n3, n4, n_reset, container):
         ]
         return elem
     elif button_id == "reset":
-        return []
+        return dcc.Dropdown(id='select')
     else:
         return container
 
