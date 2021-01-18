@@ -158,7 +158,7 @@ def input_type(n1, n2, n3, n4, n_reset, container):
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return container
+        return dcc.Dropdown(id='select')
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
