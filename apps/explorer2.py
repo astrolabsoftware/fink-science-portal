@@ -437,67 +437,8 @@ def results(ns, nr, query, results):
     # else:
     #     return []
 
-# building the navigation bar
-dropdown = dbc.DropdownMenu(
-    children=[
-        dbc.DropdownMenuItem("About", href="/about"),
-        dbc.DropdownMenuItem("Fink Website", href="https://fink-broker.org/"),
-        dbc.DropdownMenuItem(
-            "Science Portal GitHub",
-            href="https://github.com/astrolabsoftware/fink-science-portal"
-        ),
-    ],
-    nav=True,
-    in_navbar=True,
-    label="Info",
-)
-
-navbar = dbc.Navbar(
+layout = html.Div(
     [
-        html.A(
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.NavbarBrand(
-                            "Fink Science portal {}".format(0.3),
-                            className="ml-2"
-                        )
-                    ),
-                ],
-                justify="start",
-                no_gutters=True,
-            ),
-            href="/home",
-        ),
-        dbc.NavbarToggler(id="navbar-toggler2"),
-        dbc.Collapse(
-            dbc.Nav(
-                # right align dropdown menu with ml-auto className
-                [
-                    dbc.NavItem(dbc.NavLink('Explorer', href="http://134.158.75.151:24000/explorer")),
-                    dbc.NavItem(dbc.NavLink('Xmatch', href="http://134.158.75.151:24000/xmatch")),
-                    dbc.NavItem(dbc.NavLink('API', href="http://134.158.75.151:24000/api")),
-                    dropdown
-                ],
-                navbar=True
-            ),
-            id="navbar-collapse2",
-            navbar=True,
-        )
-    ],
-    color="light",
-    dark=False,
-    className="finknav",
-)
-
-app.layout = html.Div(
-    [
-        navbar,
-        # dbc.Container(
-        #     [
-        #         html.Div(id='logo')
-        #     ], className='mb-1', fluid=True, style={'width': '50%'}
-        # ),
         dbc.Container(
             [
                 html.Div(id='logo'),
@@ -515,7 +456,3 @@ app.layout = html.Div(
         'background-size': 'contain'
     }
 )
-
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
