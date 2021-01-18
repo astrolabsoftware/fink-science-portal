@@ -6,6 +6,8 @@ from dash.dependencies import Input, Output, State
 import dash_table
 from dash.exceptions import PreventUpdate
 
+from app import app
+
 import pandas as pd
 
 # bootstrap theme
@@ -162,19 +164,6 @@ def tab1():
 
 def tab2(table):
     return [html.Br(), table]
-
-# @app.callback(
-#     Output("content", "children"),
-#     [Input("tabs", "active_tab")]
-# )
-# def switch_tab(at):
-#     if at == "t1":
-#         return tab2()
-#     elif at == "t2":
-#         return html.Div([])
-#     elif at == "t0":
-#         return tab1()
-#     return html.P("This shouldn't ever be displayed...")
 
 @app.callback(
     Output("container", "children"),
