@@ -10,36 +10,6 @@ from app import app
 
 import pandas as pd
 
-# bootstrap theme
-# https://bootswatch.com/spacelab/
-external_stylesheets = [
-    dbc.themes.SPACELAB,
-    'http://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css'
-]
-external_scripts = [
-    'http://code.jquery.com/jquery-1.9.1.min.js',
-    'http://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css',
-    'https://use.fontawesome.com/releases/v5.7.2/css/all.css'
-]
-# external_stylesheets = [dbc.themes.LUX]
-# external_stylesheets = [dbc.themes.FLATLY]
-
-app = dash.Dash(
-    __name__,
-    external_stylesheets=external_stylesheets,
-    external_scripts=external_scripts,
-    meta_tags=[{
-        "name": "viewport",
-        "content": "width=device-width, initial-scale=1"
-    }]
-)
-
-app.title = 'Fink Science Portal'
-server = app.server
-app.config.suppress_callback_exceptions = True
-
 msg_conesearch = """
 ##### Object ID
 
