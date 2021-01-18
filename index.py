@@ -90,6 +90,8 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname == '/explorer':
         return explorer.layout
+    elif pathname == '/explorer2':
+        return explorer2.layout
     elif pathname == '/about':
         return about.layout
     elif pathname == '/grafink':

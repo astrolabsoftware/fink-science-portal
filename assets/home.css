@@ -28,4 +28,22 @@ html, body {
   vertical-align: middle;
 }
 
+.inputbar:focus {
+  outline: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.rcorners2 {
+  border-radius: 25px;
+  border: 2px solid black;
+  padding: 0px;
+}
+
+.buttonbar {
+    border: 0px black solid;
+    background: #ffffff00;
+    color: grey;
+}
+
 img[alt=logoexp] { width: 200px; horizontal-align: middle; display: block; margin: auto;}
