@@ -92,6 +92,7 @@ input_group = dbc.InputGroup(
             dropdown_menu_items,
             addon_type="append",
             id='dropdown-query',
+            label="objectID",
             toggle_style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
         dbc.Input(
