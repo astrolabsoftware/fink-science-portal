@@ -192,7 +192,7 @@ def input_type(n1, n2, n3, n4, n_reset, container):
     elif button_id == "reset":
         return html.Div([dcc.Dropdown(id='select')], style={'display': 'none'})
     else:
-        return container
+        return html.Div([dcc.Dropdown(id='select')], style={'display': 'none'})
 
 @app.callback(
     [
@@ -284,7 +284,9 @@ def results(ns, nr, query, query_type, alert_class, results):
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id == "submit":
+    if button_id == "reset":
+        return html.Div([])
+    elif button_id == "submit":
         if query_type == 'objectID':
             r = requests.post(
                 '{}/api/v1/explorer'.format(APIURL),
@@ -368,8 +370,6 @@ def results(ns, nr, query, query_type, alert_class, results):
             )
         ]
         return results_
-    elif button_id == "reset":
-        return html.Div([])
     else:
         return results
 
