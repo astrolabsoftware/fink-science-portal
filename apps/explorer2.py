@@ -179,7 +179,7 @@ def input_type(n1, n2, n3, n4, n_reset, container):
                 searchable=True,
                 clearable=True,
                 placeholder="Start typing or choose a class",
-            )
+            ),
             # dcc.Dropdown(id="select", options=[
             #     {"label": "Option 1", "value": "1"},
             #     {"label": "Option 2", "value": "2"},
