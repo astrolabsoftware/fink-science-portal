@@ -266,15 +266,12 @@ def logo(ns, nr):
         Input("submit", "n_clicks"),
         Input("reset", "n_clicks"),
         Input("input-group-dropdown-input", "value"),
-        Input("dropdown-menu-item-1", "active"),
-        Input("dropdown-menu-item-2", "active"),
-        Input("dropdown-menu-item-3", "active"),
-        Input("dropdown-menu-item-4", "active"),
+        Input("dropdown-query", "label"),
         Input("select", "value"),
     ],
     State("results", "children"),
 )
-def results(ns, nr, query, q1, q2, q3, q4, alert_class, results):
+def results(ns, nr, query, query_type, alert_class, results):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
@@ -287,14 +284,14 @@ def results(ns, nr, query, q1, q2, q3, q4, alert_class, results):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "submit":
-        if q1:
+        if query_type == 'objectID':
             r = requests.post(
                 '{}/api/v1/explorer'.format(APIURL),
                 json={
                     'objectId': query,
                 }
             )
-        elif q2:
+        elif query_type == 'Conesearch':
             ra, dec, radius = query.split(',')
             r = requests.post(
                 '{}/api/v1/explorer'.format(APIURL),
@@ -304,9 +301,9 @@ def results(ns, nr, query, q1, q2, q3, q4, alert_class, results):
                     'radius': float(radius)
                 }
             )
-        elif q3:
+        elif query_type == 'Date':
             pass
-        elif q4:
+        elif query_type == 'Class':
             r = requests.post(
                 '{}/api/v1/latests'.format(APIURL),
                 json={
