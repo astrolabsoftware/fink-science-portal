@@ -6,8 +6,12 @@ from dash.dependencies import Input, Output, State
 import dash_table
 from dash.exceptions import PreventUpdate
 
+from apps.utils import markdownify_objectid
+from apps.api import APIURL
+
 from app import app
 
+import requests
 import pandas as pd
 
 msg_conesearch = """
@@ -207,71 +211,6 @@ def on_button_click(n1, n2, n3, n4, n_reset, val):
         return "Valid object ID", "objectID", ""
 
 @app.callback(
-    [
-        Output("table2", "data"),
-        Output("table2", "columns")
-    ],
-    [
-        Input("submit", "n_clicks"),
-        Input("reset", "n_clicks")
-    ],
-    [
-        State('table2', 'data'),
-        State('table2', 'columns')
-    ]
-)
-def table(n_submit, n_reset, data, columns):
-    # if n_submit is None:
-        # return [], []
-    ctx = dash.callback_context
-    # pdf = pd.DataFrame({'a': range(int(n_submit))})
-    # columns = [
-    #     {
-    #         'id': c,
-    #         'name': c,
-    #         'type': 'text',
-    #         # 'hideable': True,
-    #         'presentation': 'markdown',
-    #     } for c in pdf.columns
-    # ]
-    # return pdf.to_dict('records'), columns
-
-    # changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    # # Trigger the query only if the submit button is pressed.
-    # if 'submit' not in changed_id:
-    #     raise PreventUpdate
-    #
-    # # Trigger the query only if the reset button is not pressed.
-    # if n_reset and 'reset' in changed_id:
-    #     return [], []
-    # elif n_submit and 'submit' in changed_id:
-    #     button_id = 'submit'
-    # else:
-    #     return [], []
-
-    if not ctx.triggered:
-        return data, columns
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if button_id == "submit":
-        pdf = pd.DataFrame({'a': range(int(n_submit))})
-        columns = [
-            {
-                'id': c,
-                'name': c,
-                'type': 'text',
-                # 'hideable': True,
-                'presentation': 'markdown',
-            } for c in pdf.columns
-        ]
-        return pdf.to_dict('records'), columns
-    elif button_id == "reset":
-        return [], []
-    else:
-        return data, columns
-
-@app.callback(
     Output("logo", "children"),
     [
         Input("submit", "n_clicks"),
@@ -311,6 +250,10 @@ def logo(ns, nr):
     State("results", "children"),
 )
 def results(ns, nr, query, results):
+    colnames_to_display = [
+        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
+    ]
+
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -319,20 +262,36 @@ def results(ns, nr, query, results):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "submit":
-        pdf = pd.DataFrame({'a': [query]*ns})
-        columns = [
-            {
-                'id': c,
-                'name': c,
-                'type': 'text',
-                # 'hideable': True,
-                'presentation': 'markdown',
-            } for c in pdf.columns
-        ]
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json={
+                'objectId': query,
+            }
+        )
+
+        # Format output in a DataFrame
+        pdf = pd.read_json(r.content)
+
+        if pdf.empty:
+            data, columns = [], []
+        else:
+            # Make clickable objectId
+            pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
+
+            data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
+
+            columns = [
+                {
+                    'id': c,
+                    'name': c,
+                    'type': 'text',
+                    # 'hideable': True,
+                    'presentation': 'markdown',
+                } for c in colnames_to_display
+            ]
         table = dash_table.DataTable(
-            data=pdf.to_dict('records'),
+            data=data,
             columns=columns,
-            id="table2",
             page_size=10,
             style_as_list_view=True,
             sort_action="native",
