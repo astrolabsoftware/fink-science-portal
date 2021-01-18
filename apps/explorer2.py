@@ -356,7 +356,11 @@ layout = html.Div(
             [
                 html.Div(id='logo'),
                 html.Br(),
-                dbc.Row(input_group, justify='left'),
+                dbc.Row([
+                    dbc.Col(html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='90%', width='150%'), width=1),
+                    dbc.Col(input_group, width=11),
+                ], justify='between'),
+                #dbc.Row(input_group, justify='left'),
                 html.Br(),
                 dcc.Dropdown(
                     id='select',
@@ -375,7 +379,7 @@ layout = html.Div(
                     clearable=True,
                     placeholder="Start typing or choose a class",
                 ),
-            ], id='trash', fluid=True, style={'width': '50%'}
+            ], id='trash', fluid=True, style={'width': '60%'}
         ),
         dbc.Container(id='results')
     ],
