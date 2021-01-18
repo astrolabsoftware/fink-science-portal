@@ -129,7 +129,7 @@ input_group = dbc.InputGroup(
         ),
         dbc.Button(
             "Go", id="submit", #outline=True, color='light',
-            href="/",
+            href="/explorer2",
             style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, .75)', 'color': 'grey'}
         ),
         modal
@@ -334,7 +334,6 @@ def logo(ns, nr):
         return logo
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
 
     if button_id == "submit":
         return []
