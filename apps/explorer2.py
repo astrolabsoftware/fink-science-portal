@@ -144,7 +144,7 @@ def tab2(table):
     return [html.Br(), table]
 
 @app.callback(
-    Output("container", "children"),
+    Output("select", "style"),
     [
         Input("dropdown-menu-item-1", "n_clicks"),
         Input("dropdown-menu-item-2", "n_clicks"),
@@ -152,47 +152,22 @@ def tab2(table):
         Input("dropdown-menu-item-4", "n_clicks"),
         Input("reset", "n_clicks"),
     ],
-    State("container", "children"),
+    State("select", "style"),
 )
 def input_type(n1, n2, n3, n4, n_reset, container):
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return html.Div([dcc.Dropdown(id='select')], style={'display': 'none'})
+        return {'display': 'none'}
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "dropdown-menu-item-4":
-        elem = [
-            dcc.Dropdown(
-                id='select',
-                options=[
-                    {'label': 'All classes', 'value': 'allclasses'},
-                    {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
-                    {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
-                    {'label': 'Supernova candidates', 'value': 'SN candidate'},
-                    {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
-                    {'label': 'Solar System Object candidates', 'value': 'Solar System'},
-                    {'label': 'Ambiguous', 'value': 'Ambiguous'},
-                    {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
-                    *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
-                ],
-                searchable=True,
-                clearable=True,
-                placeholder="Start typing or choose a class",
-            ),
-            # dcc.Dropdown(id="select", options=[
-            #     {"label": "Option 1", "value": "1"},
-            #     {"label": "Option 2", "value": "2"},
-            #     {"label": "Disabled option", "value": "3", "disabled": True},
-            # ]),
-            html.Br()
-        ]
-        return elem
+        return {}
     elif button_id == "reset":
-        return html.Div([dcc.Dropdown(id='select')], style={'display': 'none'})
+        return {'display': 'none'}
     else:
-        return html.Div([dcc.Dropdown(id='select')], style={'display': 'none'})
+        return {'display': 'none'}
 
 @app.callback(
     [
@@ -286,6 +261,8 @@ def results(ns, nr, query, query_type, alert_class, results):
 
     if button_id == "reset":
         return html.Div([])
+    elif button_id != "submit":
+        raise PreventUpdate
     elif button_id == "submit":
         if query_type == 'objectID':
             r = requests.post(
@@ -373,31 +350,6 @@ def results(ns, nr, query, query_type, alert_class, results):
     else:
         return results
 
-    # results_ = [
-    #     dbc.Tabs(
-    #         [
-    #             dbc.Tab(label='Info', tab_id='t0'),
-    #             dbc.Tab(label="Table", tab_id='t1'),
-    #             dbc.Tab(label="Sky map", tab_id='t2'),
-    #         ],
-    #         id="tabs",
-    #         active_tab="t1",
-    #     ),
-    #     html.Div(id="content", style={'width': '85%'}),
-    # ]
-    # if not ctx.triggered:
-    #     return []
-    # else:
-    #     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    #
-    #
-    # if button_id == "submit":
-    #     return results_
-    # elif button_id == "reset":
-    #     return []
-    # else:
-    #     return []
-
 layout = html.Div(
     [
         dbc.Container(
@@ -406,8 +358,24 @@ layout = html.Div(
                 html.Br(),
                 dbc.Row(input_group, justify='left'),
                 html.Br(),
-                html.Div(id='container'),
-            ], fluid=True, style={'width': '50%'}
+                dcc.Dropdown(
+                    id='select',
+                    options=[
+                        {'label': 'All classes', 'value': 'allclasses'},
+                        {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
+                        {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
+                        {'label': 'Supernova candidates', 'value': 'SN candidate'},
+                        {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
+                        {'label': 'Solar System Object candidates', 'value': 'Solar System'},
+                        {'label': 'Ambiguous', 'value': 'Ambiguous'},
+                        {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
+                        *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
+                    ],
+                    searchable=True,
+                    clearable=True,
+                    placeholder="Start typing or choose a class",
+                ),
+            ], id='trash', fluid=True, style={'width': '50%'}
         ),
         dbc.Container(id='results')
     ],
