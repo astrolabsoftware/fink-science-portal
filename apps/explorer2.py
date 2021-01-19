@@ -464,19 +464,24 @@ def open_noresults(n, results, query, query_type, dropdown_option):
     good_class = query_type == 'Class'
 
     # no queries
-    if np.sum([good_objectid, good_conesearch, good_datesearch, good_class]) == 0:
-        header = "No fields"
-        text = "You need to define your query"
+    bad_objectid = (query_type == 'objectID') and not (query.startswith('ZTF'))
+    if bad_objectid:
+        header = "Bad ZTF object ID"
+        text = "ZTF object ID must start with ZTF"
         return True, text, header
 
-    bad_objectid = (query_type == 'objectID') and not (query.startswith('ZTF'))
     bad_conesearch = (query_type == 'Conesearch') and not (len(query.split(',')) == 3)
+    if bad_conesearch:
+        header = "Bad Conesearch formula"
+        text = "Conesearch must contain comma-separated RA, Dec, radius"
+        return True, text, header
+
     if query_type == 'Date':
         try:
             _ = Time(query)
         except (ValueError, TypeError) as e:
             header = 'Bad start time'
-            return True, e, header
+            return True, str(e), header
 
     # ugly hack
     if n and int(results) == 0:
