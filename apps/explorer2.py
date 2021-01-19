@@ -106,6 +106,7 @@ input_group = dbc.InputGroup(
             id='dropdown-query',
             label="objectID",
             color='light',
+            className='rcorners3',
             toggle_style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
         dbc.Input(

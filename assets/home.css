@@ -40,6 +40,43 @@ html, body {
   padding: 0px;
 }
 
+.rcorners3 {
+  border-radius: 25px;
+  border: 0px solid grey;
+  padding: 0px;
+  /* other CSS styles */
+
+  /* round the corners */
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 25px;
+
+
+  /* make it glow! */
+  -webkit-box-shadow: 0px 0px 4px #F5622E;
+  -moz-box-shadow: 0px 0px 2px #F5622E;
+  box-shadow: 0px 0px 4px #F5622E;
+}
+
+.rcorners4 {
+  border-radius: 25px;
+  border: 0px solid grey;
+  padding: 0px;
+  outline:none;
+  /* other CSS styles */
+
+  /* round the corners */
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 25px;
+
+
+  /* make it glow! */
+  -webkit-box-shadow: 0px 0px 2px #15284F;
+  -moz-box-shadow: 0px 0px 2px #15284F;
+  box-shadow: 0px 0px 4px #15284F;
+}
+
 .buttonbar {
     border: 0px black solid;
     background: #ffffff00;
