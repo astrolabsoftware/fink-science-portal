@@ -323,7 +323,14 @@ def results(ns, nr, query, query_type, dropdown_option, results):
             }
         )
     elif query_type == 'Conesearch':
-        ra, dec, radius = query.split(',')
+        try:
+            ra, dec, radius = query.split(',')
+        except ValueError as e:
+            return dash_table.DataTable(
+                data=[],
+                columns=[],
+                id='result_table'
+            ), 0
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
