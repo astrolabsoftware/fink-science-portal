@@ -327,26 +327,19 @@ def populate_result_table(data, columns):
 
 @app.callback(
     [
-        Output("results", "children"),
-        Output("validate_results", "value"),
+        Output("result_table", "data"),
+        Output("result_table", "columns"),
     ],
     [
-        Input("submit", "n_clicks"),
-        Input("reset", "n_clicks"),
-        Input("input-group-dropdown-input", "value"),
-        Input("dropdown-query", "label"),
-        Input("select", "value"),
         Input('field-dropdown2', 'value')
     ],
-    State("results", "children")
-)
-def results(ns, nr, query, query_type, dropdown_option, field_dropdown, results):
-    colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
+    [
+        State("result_table", "data"),
+        State("result_table", "columns"),
     ]
-
-    ctx = dash.callback_context
-
+)
+def update_table(field_dropdown, data, columns):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     # Adding new columns (no client call)
     if 'field-dropdown2' in changed_id:
         if field_dropdown is None or len(columns) == 0:
@@ -371,8 +364,28 @@ def results(ns, nr, query, query_type, dropdown_option, field_dropdown, results)
             # 'hideable': True,
         })
 
-        table = populate_result_table(data, columns)
-        return construct_results_layout(table), 1
+        return data, columns
+
+@app.callback(
+    [
+        Output("results", "children"),
+        Output("validate_results", "value"),
+    ],
+    [
+        Input("submit", "n_clicks"),
+        Input("reset", "n_clicks"),
+        Input("input-group-dropdown-input", "value"),
+        Input("dropdown-query", "label"),
+        Input("select", "value"),
+    ],
+    State("results", "children")
+)
+def results(ns, nr, query, query_type, dropdown_option, results):
+    colnames_to_display = [
+        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
+    ]
+
+    ctx = dash.callback_context
 
     if not ctx.triggered:
         return results
