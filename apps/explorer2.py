@@ -297,12 +297,20 @@ def results(ns, nr, query, query_type, dropdown_option, results):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "reset":
-        return html.Div([])
+        return dash_table.DataTable(
+            data=[],
+            columns=[],
+            id='result_table'
+        )
     elif button_id != "submit":
         raise PreventUpdate
 
     if (query_type in ['objectID', 'Conesearch', 'Date']) and ((query == '') or (query is None)):
-        return html.Div([])
+        return dash_table.DataTable(
+            data=[],
+            columns=[],
+            id='result_table'
+        )
 
     if query_type == 'objectID':
         r = requests.post(
@@ -369,6 +377,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
     table = dash_table.DataTable(
         data=data,
         columns=columns,
+        id='result_table',
         page_size=10,
         style_as_list_view=True,
         sort_action="native",
@@ -421,7 +430,7 @@ noresults_toast = dbc.Toast(
     ],
     [
         Input("submit", "n_clicks"),
-        Input("results", "children"),
+        Input("result_table", "data"),
         Input("input-group-dropdown-input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
@@ -458,7 +467,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
             return True, e, header
 
     # ugly hack
-    if n and type(results) == list:
+    if n and len(results) == 0:
         if good_objectid:
             header = "Search by Object ID"
             text = "{} not found".format(query)
