@@ -145,6 +145,7 @@ def tab2(table):
     [
         Output("select", "style"),
         Output("select", "options"),
+        Output("select", "placeholder"),
     ],
     [
         Input("dropdown-menu-item-1", "n_clicks"),
@@ -158,7 +159,7 @@ def input_type(n1, n2, n3, n4, n_reset):
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return {'display': 'none'}
+        return {'display': 'none'}, [], ''
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -185,9 +186,9 @@ def input_type(n1, n2, n3, n4, n_reset):
         placeholder = "Start typing or choose a class"
         return {}, options, placeholder
     elif button_id == "reset":
-        return {'display': 'none'}, [], ""
+        return {'display': 'none'}, [], ''
     else:
-        return {'display': 'none'}, [], ""
+        return {'display': 'none'}, [], ''
 
 @app.callback(
     [
