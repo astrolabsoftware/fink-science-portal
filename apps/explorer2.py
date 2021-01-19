@@ -362,6 +362,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
 
     if pdf.empty:
         data, columns = [], []
+        validation = 0
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
@@ -377,6 +378,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
                 'presentation': 'markdown',
             } for c in colnames_to_display
         ]
+        validation = 1
     table = dash_table.DataTable(
         data=data,
         columns=columns,
@@ -412,7 +414,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
             active_tab="t1",
         )
     ]
-    return results_, 1
+    return results_, validation
 
 
 noresults_toast = dbc.Toast(
@@ -470,7 +472,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
             return True, e, header
 
     # ugly hack
-    if n and results == 0:
+    if n and int(results) == 0:
         if good_objectid:
             header = "Search by Object ID"
             text = "{} not found".format(query)
