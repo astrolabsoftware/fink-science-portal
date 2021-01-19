@@ -98,22 +98,20 @@ input_group = dbc.InputGroup(
         dbc.Input(
             id="input-group-dropdown-input",
             autoFocus=True,
-            type='search',
             style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
             className='inputbar'
         ),
         dbc.Button(
             "X", id="reset",
-            # outline=True, color='light',
             style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
         dbc.Button(
-            "Go", id="submit", #outline=True, color='light',
+            "Go", id="submit",
             href="/explorer2",
             style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
         modal
-    ], style={"border":"0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
+    ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
 )
 msg = """
 ![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
@@ -144,17 +142,19 @@ def tab2(table):
     return [html.Br(), table]
 
 @app.callback(
-    Output("select", "style"),
+    [
+        Output("select", "style"),
+        Output("select", "options"),
+    ],
     [
         Input("dropdown-menu-item-1", "n_clicks"),
         Input("dropdown-menu-item-2", "n_clicks"),
         Input("dropdown-menu-item-3", "n_clicks"),
         Input("dropdown-menu-item-4", "n_clicks"),
         Input("reset", "n_clicks"),
-    ],
-    State("select", "style"),
+    ]
 )
-def input_type(n1, n2, n3, n4, n_reset, container):
+def input_type(n1, n2, n3, n4, n_reset):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -162,12 +162,32 @@ def input_type(n1, n2, n3, n4, n_reset, container):
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id == "dropdown-menu-item-4":
-        return {}
+    if button_id == "dropdown-menu-item-3":
+        options = [
+            {'label': ' 1 minute', 'value': 1},
+            {'label': '10 minutes', 'value': 10},
+            {'label': '60 minutes', 'value': 60}
+        ]
+        placeholder = "Choose a time window"
+        return {}, options
+    elif button_id == "dropdown-menu-item-4":
+        options = [
+            {'label': 'All classes', 'value': 'allclasses'},
+            {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
+            {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
+            {'label': 'Supernova candidates', 'value': 'SN candidate'},
+            {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
+            {'label': 'Solar System Object candidates', 'value': 'Solar System'},
+            {'label': 'Ambiguous', 'value': 'Ambiguous'},
+            {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
+            *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
+        ]
+        placeholder = "Start typing or choose a class"
+        return {}, options, placeholder
     elif button_id == "reset":
-        return {'display': 'none'}
+        return {'display': 'none'}, [], ""
     else:
-        return {'display': 'none'}
+        return {'display': 'none'}, [], ""
 
 @app.callback(
     [
@@ -247,7 +267,7 @@ def logo(ns, nr):
     ],
     State("results", "children"),
 )
-def results(ns, nr, query, query_type, alert_class, results):
+def results(ns, nr, query, query_type, dropdown_options, results):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
@@ -282,12 +302,18 @@ def results(ns, nr, query, query_type, alert_class, results):
                 }
             )
         elif query_type == 'Date':
-            pass
+            r = requests.post(
+                '{}/api/v1/explorer'.format(APIURL),
+                json={
+                    'startdate': query,
+                    'window': dropdown_options
+                }
+            )
         elif query_type == 'Class':
             r = requests.post(
                 '{}/api/v1/latests'.format(APIURL),
                 json={
-                    'class': alert_class,
+                    'class': dropdown_options,
                     'n': '100'
                 }
             )
@@ -360,20 +386,8 @@ layout = html.Div(
                 html.Br(),
                 dcc.Dropdown(
                     id='select',
-                    options=[
-                        {'label': 'All classes', 'value': 'allclasses'},
-                        {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
-                        {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
-                        {'label': 'Supernova candidates', 'value': 'SN candidate'},
-                        {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
-                        {'label': 'Solar System Object candidates', 'value': 'Solar System'},
-                        {'label': 'Ambiguous', 'value': 'Ambiguous'},
-                        {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
-                        *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
-                    ],
                     searchable=True,
                     clearable=True,
-                    placeholder="Start typing or choose a class",
                 ),
             ], id='trash', fluid=True, style={'width': '60%'}
         ),
