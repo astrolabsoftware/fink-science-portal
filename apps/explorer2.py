@@ -274,7 +274,10 @@ def logo(ns, nr):
         return logo
 
 @app.callback(
-    Output("results", "children"),
+    [
+        Output("results", "children"),
+        Output("validate_results", "value"),
+    ]
     [
         Input("submit", "n_clicks"),
         Input("reset", "n_clicks"),
@@ -301,7 +304,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
             data=[],
             columns=[],
             id='result_table'
-        )
+        ), 0
     elif button_id != "submit":
         raise PreventUpdate
 
@@ -310,7 +313,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
             data=[],
             columns=[],
             id='result_table'
-        )
+        ), 0
 
     if query_type == 'objectID':
         r = requests.post(
@@ -409,7 +412,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
             active_tab="t1",
         )
     ]
-    return results_
+    return results_, 1
 
 
 noresults_toast = dbc.Toast(
@@ -430,7 +433,7 @@ noresults_toast = dbc.Toast(
     ],
     [
         Input("submit", "n_clicks"),
-        Input("result_table", "data"),
+        Input("validate_results", "value"),
         Input("input-group-dropdown-input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
@@ -467,7 +470,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
             return True, e, header
 
     # ugly hack
-    if n and len(results) == 0:
+    if n and results == 0:
         if good_objectid:
             header = "Search by Object ID"
             text = "{} not found".format(query)
@@ -526,6 +529,7 @@ layout = html.Div(
             ], id='trash', fluid=True, style={'width': '60%'}
         ),
         dbc.Container(id='results'),
+        dbc.Input(id='validate_results', style={'display': 'none'})
         noresults_toast
     ],
     className='home',
