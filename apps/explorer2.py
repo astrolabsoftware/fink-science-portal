@@ -384,11 +384,10 @@ def results(ns, query, query_type, dropdown_option, results):
     ]
 
     ctx = dash.callback_context
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if not ctx.triggered or button_id != "submit":
+    if button_id != "submit":
         raise PreventUpdate
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     is_ok = validate_query(query, query_type)
     if not is_ok['flag']:
