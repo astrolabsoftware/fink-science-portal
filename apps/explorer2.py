@@ -458,7 +458,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
             return True, e, header
 
     # ugly hack
-    if n and type(results) != []:
+    if n and type(results) == list:
         if good_objectid:
             header = "Search by Object ID"
             text = "{} not found".format(query)
