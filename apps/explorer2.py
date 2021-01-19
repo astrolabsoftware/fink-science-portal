@@ -456,7 +456,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
     if 'submit' not in changed_id:
         raise PreventUpdate
 
-    good_query = (query is not None) or (query != '')
+    empty_query = (query is None) or (query == '')
 
     good_objectid = (query.startswith('ZTF')) and (query_type == 'objectID')
     good_conesearch = (len(query.split(',')) == 3) and (query_type == 'Conesearch')
@@ -464,7 +464,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
     good_class = query_type == 'Class'
 
     # no queries
-    if not good_query and ((query_type == 'objectID') or (query_type == 'Conesearch')):
+    if empty_query and ((query_type == 'objectID') or (query_type == 'Conesearch')):
         header = "Empty query"
         text = "You need to choose a query type and fill the search bar"
         return True, text, header
