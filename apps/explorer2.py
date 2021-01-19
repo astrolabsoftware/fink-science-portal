@@ -8,6 +8,7 @@ from dash.exceptions import PreventUpdate
 
 from apps.utils import markdownify_objectid
 from apps.api import APIURL
+from apps.utils import isoify_time
 
 from app import app
 
@@ -340,6 +341,14 @@ def results(ns, nr, query, query_type, dropdown_option, results):
             }
         )
     elif query_type == 'Date':
+        try:
+            startdate = isoify_time(query)
+        except ValueError as e:
+            return dash_table.DataTable(
+                data=[],
+                columns=[],
+                id='result_table'
+            ), 0
         if dropdown_option is None:
             window = 1
         else:
@@ -347,7 +356,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
-                'startdate': query,
+                'startdate': startdate,
                 'window': window
             }
         )
@@ -486,7 +495,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
     # bad search date
     if query_type == 'Date':
         try:
-            _ = Time(query)
+            _ = isoify_time(query)
         except (ValueError, TypeError) as e:
             header = 'Bad start time'
             return True, str(e), header
