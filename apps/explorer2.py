@@ -116,6 +116,7 @@ input_group = dbc.InputGroup(
         dbc.Input(
             id="input-group-dropdown-input",
             autoFocus=True,
+            type='search',
             style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
             className='inputbar'
         ),
@@ -265,7 +266,7 @@ def on_button_click(n1, n2, n3, n4, val):
         Input("submit", "n_clicks")
     ],
 )
-def logo(ns, nr):
+def logo(ns):
     """
     """
     ctx = dash.callback_context
