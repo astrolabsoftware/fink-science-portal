@@ -421,7 +421,7 @@ noresults_toast = dbc.Toast(
     ],
     [
         Input("submit", "n_clicks"),
-        Input("table", "data"),
+        Input("results", "children"),
         Input("input-group-dropdown-input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
