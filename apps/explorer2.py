@@ -120,10 +120,6 @@ input_group = dbc.InputGroup(
             className='inputbar'
         ),
         dbc.Button(
-            "X", id="reset",
-            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
-        ),
-        dbc.Button(
             "Go", id="submit",
             href="/explorer2",
             style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
@@ -194,10 +190,9 @@ def tab2(table):
         Input("dropdown-menu-item-2", "n_clicks"),
         Input("dropdown-menu-item-3", "n_clicks"),
         Input("dropdown-menu-item-4", "n_clicks"),
-        Input("reset", "n_clicks"),
     ]
 )
-def input_type(n1, n2, n3, n4, n_reset):
+def input_type(n1, n2, n3, n4):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -227,8 +222,6 @@ def input_type(n1, n2, n3, n4, n_reset):
         ]
         placeholder = "Start typing or choose a class (default is last 100 alerts)"
         return {}, options, placeholder
-    elif button_id == "reset":
-        return {'display': 'none'}, [], ''
     else:
         return {'display': 'none'}, [], ''
 
@@ -243,11 +236,10 @@ def input_type(n1, n2, n3, n4, n_reset):
         Input("dropdown-menu-item-2", "n_clicks"),
         Input("dropdown-menu-item-3", "n_clicks"),
         Input("dropdown-menu-item-4", "n_clicks"),
-        Input("reset", "n_clicks"),
     ],
     State("input-group-dropdown-input", "value")
 )
-def on_button_click(n1, n2, n3, n4, n_reset, val):
+def on_button_click(n1, n2, n3, n4, val):
     ctx = dash.callback_context
 
     default = "Enter a valid object ID or choose another query type"
@@ -256,9 +248,7 @@ def on_button_click(n1, n2, n3, n4, n_reset, val):
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id == "reset":
-        return default, 'objectID', ""
-    elif button_id == "dropdown-menu-item-1":
+    if button_id == "dropdown-menu-item-1":
         return "Enter a valid ZTF object ID", "objectID", val
     elif button_id == "dropdown-menu-item-2":
         return "Perform a conesearch around RA, Dec, radius. See Help for the syntax", "Conesearch", val
@@ -272,8 +262,7 @@ def on_button_click(n1, n2, n3, n4, n_reset, val):
 @app.callback(
     Output("logo", "children"),
     [
-        Input("submit", "n_clicks"),
-        Input("reset", "n_clicks"),
+        Input("submit", "n_clicks")
     ],
 )
 def logo(ns, nr):
@@ -294,8 +283,6 @@ def logo(ns, nr):
 
     if button_id == "submit":
         return []
-    elif button_id == "reset":
-        return logo
     else:
         return logo
 
@@ -384,14 +371,13 @@ def update_table(field_dropdown, data, columns):
     ],
     [
         Input("submit", "n_clicks"),
-        Input("reset", "n_clicks"),
         Input("input-group-dropdown-input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
     ],
     State("results", "children")
 )
-def results(ns, nr, query, query_type, dropdown_option, results):
+def results(ns, query, query_type, dropdown_option, results):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
@@ -403,13 +389,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id == "reset":
-        return dash_table.DataTable(
-            data=[],
-            columns=[],
-            id='result_table'
-        ), 0
-    elif button_id != "submit":
+    if button_id != "submit":
         raise PreventUpdate
 
     if (query_type in ['objectID', 'Conesearch', 'Date']) and ((query == '') or (query is None)):
