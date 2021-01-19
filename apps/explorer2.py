@@ -277,7 +277,7 @@ def logo(ns, nr):
     [
         Output("results", "children"),
         Output("validate_results", "value"),
-    ]
+    ],
     [
         Input("submit", "n_clicks"),
         Input("reset", "n_clicks"),
