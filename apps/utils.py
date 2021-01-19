@@ -138,7 +138,7 @@ def validate_query(query, query_type):
             _ = isoify_time(query)
         except (ValueError, TypeError) as e:
             header = 'Bad start time'
-            return {'flag': False, 'header': header, 'text': text}
+            return {'flag': False, 'header': header, 'text': str(e)}
 
     return {'flag': True, 'header': 'Good query', 'text': 'Well done'}
 
