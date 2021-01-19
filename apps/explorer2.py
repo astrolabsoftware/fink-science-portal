@@ -170,7 +170,7 @@ def input_type(n1, n2, n3, n4, n_reset):
             {'label': '60 minutes', 'value': 60}
         ]
         placeholder = "Choose a time window"
-        return {}, options
+        return {}, options, placeholder
     elif button_id == "dropdown-menu-item-4":
         options = [
             {'label': 'All classes', 'value': 'allclasses'},
