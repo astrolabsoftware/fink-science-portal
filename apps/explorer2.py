@@ -410,89 +410,89 @@ noresults_toast = dbc.Toast(
     style={"position": "fixed", "top": 66, "right": 10, "width": 350},
 )
 
-@app.callback(
-    [
-        Output("noresults-toast", "is_open"),
-        Output("noresults-toast", "children"),
-        Output("noresults-toast", "header")
-    ],
-    [
-        Input("submit", "n_clicks"),
-        Input("results", "children"),
-        Input("input-group-dropdown-input", "value"),
-        Input("dropdown-query", "label"),
-        Input("select", "value"),
-    ]
-)
-def open_noresults(n, results, query, query_type, dropdown_option):
-    """ Toast to warn the user about the fact that we found no results
-    """
-    # Trigger the query only if the submit button is pressed.
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'submit' not in changed_id:
-        raise PreventUpdate
-
-    good_query = (query is not None) or (query != '')
-
-    good_objectid = (query.startwith('ZTF')) and (query_type == 'objectID')
-    good_conesearch = (len(query.split(',')) == 3) and (query_type == 'Conesearch')
-    good_datesearch = (query != '') and (query_type == 'Date')
-    good_class = query_type == 'Class'
-
-    # no queries
-    if np.sum([good_objectid, good_conesearch, good_datesearch, good_class]) == 0:
-        header = "No fields"
-        text = "You need to define your query"
-        return True, text, header
-
-    bad_objectid = (query_type == 'objectID') and not (query.startwith('ZTF'))
-    bad_conesearch = (query_type == 'Conesearch') and not (len(query.split(',')) == 3)
-    if query_type == 'Date':
-        try:
-            _ = Time(query)
-        except (ValueError, TypeError) as e:
-            header = 'Bad start time'
-            return True, e, header
-
-    if n and results.children == []:
-        if good_objectid:
-            header = "Search by Object ID"
-            text = "{} not found".format(query)
-        elif good_conesearch:
-            header = "Conesearch"
-            text = "No alerts found for (RA, Dec, radius) = {}".format(
-                query
-            )
-        elif good_datesearch:
-            header = "Search by Date"
-            if dropdown_option is None:
-                window = 1
-            else:
-                window = dropdown_option
-            jd_start = Time(query).jd
-            jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
-
-            text = "No alerts found between {} and {}".format(
-                Time(jd_start, format='jd').iso,
-                Time(jd_end, format='jd').iso
-            )
-        elif good_class:
-            header = "Get latest 100 alerts by class"
-            if dropdown_option is None:
-                alert_class = 'allclasses'
-            else:
-                alert_class = dropdown_option
-            # start of the Fink operations
-            jd_start = Time('2019-11-01 00:00:00').jd
-            jd_stop = Time.now().jd
-
-            text = "No alerts for class {} in between {} and {}".format(
-                alert_class,
-                Time(jd_start, format='jd').iso,
-                Time(jd_stop, format='jd').iso
-            )
-        return True, text, header
-    return False, "", ""
+# @app.callback(
+#     [
+#         Output("noresults-toast", "is_open"),
+#         Output("noresults-toast", "children"),
+#         Output("noresults-toast", "header")
+#     ],
+#     [
+#         Input("submit", "n_clicks"),
+#         Input("results", "children"),
+#         Input("input-group-dropdown-input", "value"),
+#         Input("dropdown-query", "label"),
+#         Input("select", "value"),
+#     ]
+# )
+# def open_noresults(n, results, query, query_type, dropdown_option):
+#     """ Toast to warn the user about the fact that we found no results
+#     """
+#     # Trigger the query only if the submit button is pressed.
+#     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+#     if 'submit' not in changed_id:
+#         raise PreventUpdate
+#
+#     good_query = (query is not None) or (query != '')
+#
+#     good_objectid = (query.startwith('ZTF')) and (query_type == 'objectID')
+#     good_conesearch = (len(query.split(',')) == 3) and (query_type == 'Conesearch')
+#     good_datesearch = (query != '') and (query_type == 'Date')
+#     good_class = query_type == 'Class'
+#
+#     # no queries
+#     if np.sum([good_objectid, good_conesearch, good_datesearch, good_class]) == 0:
+#         header = "No fields"
+#         text = "You need to define your query"
+#         return True, text, header
+#
+#     bad_objectid = (query_type == 'objectID') and not (query.startwith('ZTF'))
+#     bad_conesearch = (query_type == 'Conesearch') and not (len(query.split(',')) == 3)
+#     if query_type == 'Date':
+#         try:
+#             _ = Time(query)
+#         except (ValueError, TypeError) as e:
+#             header = 'Bad start time'
+#             return True, e, header
+#
+#     if n and results.children == []:
+#         if good_objectid:
+#             header = "Search by Object ID"
+#             text = "{} not found".format(query)
+#         elif good_conesearch:
+#             header = "Conesearch"
+#             text = "No alerts found for (RA, Dec, radius) = {}".format(
+#                 query
+#             )
+#         elif good_datesearch:
+#             header = "Search by Date"
+#             if dropdown_option is None:
+#                 window = 1
+#             else:
+#                 window = dropdown_option
+#             jd_start = Time(query).jd
+#             jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
+#
+#             text = "No alerts found between {} and {}".format(
+#                 Time(jd_start, format='jd').iso,
+#                 Time(jd_end, format='jd').iso
+#             )
+#         elif good_class:
+#             header = "Get latest 100 alerts by class"
+#             if dropdown_option is None:
+#                 alert_class = 'allclasses'
+#             else:
+#                 alert_class = dropdown_option
+#             # start of the Fink operations
+#             jd_start = Time('2019-11-01 00:00:00').jd
+#             jd_stop = Time.now().jd
+#
+#             text = "No alerts for class {} in between {} and {}".format(
+#                 alert_class,
+#                 Time(jd_start, format='jd').iso,
+#                 Time(jd_stop, format='jd').iso
+#             )
+#         return True, text, header
+#     return False, "", ""
 
 
 layout = html.Div(
