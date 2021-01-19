@@ -107,6 +107,41 @@ def markdownify_objectid(objectid):
     )
     return objectid_markdown
 
+def validate_query(query, query_type):
+    """ Validate a query. Need to be rewritten in a better way.
+    """
+    empty_query = (query is None) or (query == '')
+
+    # no queries
+    if empty_query and ((query_type == 'objectID') or (query_type == 'Conesearch') or (query_type == 'Date')):
+        header = "Empty query"
+        text = "You need to choose a query type and fill the search bar"
+        return {'flag': False, 'header': header, 'text': text}
+
+    # bad objectId
+    bad_objectid = (query_type == 'objectID') and not (query.startswith('ZTF'))
+    if bad_objectid:
+        header = "Bad ZTF object ID"
+        text = "ZTF object ID must start with `ZTF`"
+        return {'flag': False, 'header': header, 'text': text}
+
+    # bad conesearch
+    bad_conesearch = (query_type == 'Conesearch') and not (len(query.split(',')) == 3)
+    if bad_conesearch:
+        header = "Bad Conesearch formula"
+        text = "Conesearch must contain comma-separated RA, Dec, radius"
+        return {'flag': False, 'header': header, 'text': text}
+
+    # bad search date
+    if query_type == 'Date':
+        try:
+            _ = isoify_time(query)
+        except (ValueError, TypeError) as e:
+            header = 'Bad start time'
+            return {'flag': False, 'header': header, 'text': text}
+
+    return {'flag': True, 'header': 'Good query', 'text': 'Well done'}
+
 def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
     """ Extract one row from the client result, and return result as dict
     """
