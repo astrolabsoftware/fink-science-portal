@@ -433,15 +433,15 @@ def results(ns, nr, query, query_type, dropdown_option, results):
     return results_, validation
 
 
-noresults_toast = dbc.Toast(
+noresults_toast = html.Div([dbc.Toast(
     "",
     header="",
     id="noresults-toast2",
     icon="danger",
     dismissable=True,
     is_open=False,
-    style={"position": "fixed", "top": 10, "right": 10, "width": 350},
-)
+    #style={"position": "fixed", "top": 10, "right": 10, "width": 350},
+), html.Br()])
 
 @app.callback(
     [
@@ -558,11 +558,12 @@ layout = html.Div(
                     searchable=True,
                     clearable=True,
                 ),
+                html.Br(),
+                noresults_toast
             ], id='trash', fluid=True, style={'width': '60%'}
         ),
         dbc.Container(id='results'),
         dbc.Input(id='validate_results', style={'display': 'none'}),
-        noresults_toast
     ],
     className='home',
     style={
