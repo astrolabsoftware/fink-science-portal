@@ -38,6 +38,8 @@ from apps.cards import card_explanation_xmatch
 
 layout = html.Div(
     [
+        html.Br(),
+        html.Br(),
         dbc.Container(
             [
                 dbc.Row([
@@ -56,6 +58,7 @@ layout = html.Div(
                                 'borderRadius': '5px', 'textAlign': 'center', 'margin': '10px'
                             },
                         ),
+                        html.H6(id='xmatch-message'),
                         dash_table.DataTable(
                             id='datatable-upload-container',
                             page_size=10,
@@ -113,6 +116,7 @@ def parse_contents(contents, filename):
 
 @app.callback(Output('datatable-upload-container', 'data'),
               Output('datatable-upload-container', 'columns'),
+              Output('xmatch-message', 'children'),
               Input('datatable-upload', 'contents'),
               State('datatable-upload', 'filename'))
 def update_output(contents, filename):
@@ -146,6 +150,8 @@ def update_output(contents, filename):
         'objectId', 'RA', 'Dec', 'last seen', 'classification', 'ndethist'
     ]
 
+    unique_cols = np.unique(colnames + colnames_added_values).tolist()
+
     # Types of columns
     dtypes_ = [
         np.str, np.float, np.float, np.float, np.str, np.int
@@ -157,12 +163,12 @@ def update_output(contents, filename):
     idname = [i for i in df.columns if i in ['ID', 'id', 'Name', 'name', 'NAME']][0]
     # extract ra/dec
     ra0 = df[raname].values[0]
-    if 'h' in ra0:
+    if 'h' in str(ra0):
         coords = [
             SkyCoord(ra, dec, frame='icrs')
             for ra, dec in zip(df[raname].values, df[decname].values)
         ]
-    elif ':' in ra0 or ' ' in ra0:
+    elif ':' in str(ra0) or ' ' in str(ra0):
         coords = [
             SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
             for ra, dec in zip(df[raname].values, df[decname].values)
@@ -176,10 +182,12 @@ def update_output(contents, filename):
     decs = [coord.dec.deg for coord in coords]
     ids = df[idname].values
 
-    radius = 1.5 # arcsec
+    radius = 1.5
+    #1.5 # arcsec
     # loop over rows
-    clientP.setLimit(10)
+    #clientP.setLimit(10)
     count = 0
+    pdfs = pd.DataFrame(columns=unique_cols + [idname])
     for oid, ra, dec in zip(ids, ras, decs):
         vec = hp.ang2vec(
             np.pi / 2.0 - np.pi / 180.0 * dec,
@@ -197,19 +205,27 @@ def update_output(contents, filename):
         results = clientP.scan(
             "",
             to_search,
-            ",".join(colnames + colnames_added_values),
+            ",".join(unique_cols),
             0, True, True
         )
 
         # Loop over results and construct the dataframe
         if not results.isEmpty():
-            pdf = pd.DataFrame.from_dict(results, orient='index')
+            pdf = pd.DataFrame.from_dict(results, orient='index')[unique_cols]
             pdf[idname] = [oid] * len(pdf)
-            if count == 0:
-                pdfs = pdf
-            else:
-                pdfs = pd.concat((pdfs, pdf))
-            count += 1
+            pdfs = pd.concat((pdfs, pdf), ignore_index=True)
+
+    if pdfs.empty:
+        columns = [
+            {
+                'id': c,
+                'name': c,
+                'type': 'text',
+                'presentation': 'markdown'
+            } for c in df.columns
+        ]
+        data = pd.DataFrame(columns=df.columns).to_dict('records')
+        return data, columns, "No match for {}".format(filename)
 
     # Fink final classification
     classifications = extract_fink_classification(
@@ -267,4 +283,8 @@ def update_output(contents, filename):
             'presentation': 'markdown'
         } for c in join_df.columns
     ]
-    return data, columns
+    if len(join_df) == 1:
+        msg = "1 object found in {}".format(filename)
+    else:
+        msg = "{} objects found in {}".format(len(join_df), filename)
+    return data, columns, msg

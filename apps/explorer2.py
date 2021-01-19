@@ -401,6 +401,8 @@ def results(ns, nr, query, query_type, dropdown_option, results):
 
 layout = html.Div(
     [
+        html.Br(),
+        html.Br(),
         dbc.Container(
             [
                 html.Div(id='logo'),

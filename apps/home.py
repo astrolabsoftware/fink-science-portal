@@ -31,6 +31,8 @@ Fink comes to join a few other brokers currently operating on other experiments,
 """
 
 layout = html.Div([
+    html.Br(),
+    html.Br(),
     dbc.Container([
         dbc.Row(dbc.Col(html.Img(src="/assets/Fink_PrimaryLogo_WEB.png", height='100%', width='40%')), style={'textAlign': 'center'}),
         dbc.Row([

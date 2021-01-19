@@ -447,6 +447,8 @@ fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdat
 
 layout = html.Div(
     [
+        html.Br(),
+        html.Br(),
         dbc.Container(
             [
                 html.Br(),

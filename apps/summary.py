@@ -146,6 +146,7 @@ def layout(name):
     layout_ = html.Div(
         [
             html.Br(),
+            html.Br(),
             dbc.Row(
                 [
                     dbc.Col(

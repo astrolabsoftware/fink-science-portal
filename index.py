@@ -72,7 +72,7 @@ navbar = dbc.Navbar(
             navbar=True,
         )
     ],
-    color="light",
+    color="rgba(255,255,255,0.0)",
     dark=False,
     className="finknav",
 )
