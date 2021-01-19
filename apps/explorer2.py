@@ -385,13 +385,10 @@ def results(ns, query, query_type, dropdown_option, results):
 
     ctx = dash.callback_context
 
-    if not ctx.triggered:
-        return results
+    if not ctx.triggered or button_id != "submit":
+        raise PreventUpdate
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if button_id != "submit":
-        raise PreventUpdate
 
     is_ok = validate_query(query, query_type)
     if not is_ok['flag']:
@@ -409,14 +406,7 @@ def results(ns, query, query_type, dropdown_option, results):
             }
         )
     elif query_type == 'Conesearch':
-        try:
-            ra, dec, radius = query.split(',')
-        except ValueError as e:
-            return dash_table.DataTable(
-                data=[],
-                columns=[],
-                id='result_table'
-            ), 0
+        ra, dec, radius = query.split(',')
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
@@ -426,14 +416,7 @@ def results(ns, query, query_type, dropdown_option, results):
             }
         )
     elif query_type == 'Date':
-        try:
-            startdate = isoify_time(query)
-        except ValueError as e:
-            return dash_table.DataTable(
-                data=[],
-                columns=[],
-                id='result_table'
-            ), 0
+        startdate = isoify_time(query)
         if dropdown_option is None:
             window = 1
         else:
@@ -521,53 +504,22 @@ def open_noresults(n, results, query, query_type, dropdown_option):
     if 'submit' not in changed_id:
         raise PreventUpdate
 
-    empty_query = (query is None) or (query == '')
-
-    good_objectid = (query.startswith('ZTF')) and (query_type == 'objectID')
-    good_conesearch = (len(query.split(',')) == 3) and (query_type == 'Conesearch')
-    good_datesearch = (query != '') and (query_type == 'Date')
-    good_class = query_type == 'Class'
-
-    # no queries
-    if empty_query and ((query_type == 'objectID') or (query_type == 'Conesearch')):
-        header = "Empty query"
-        text = "You need to choose a query type and fill the search bar"
-        return True, text, header
-
-    # bad objectId
-    bad_objectid = (query_type == 'objectID') and not (query.startswith('ZTF'))
-    if bad_objectid:
-        header = "Bad ZTF object ID"
-        text = "ZTF object ID must start with `ZTF`"
-        return True, text, header
-
-    # bad conesearch
-    bad_conesearch = (query_type == 'Conesearch') and not (len(query.split(',')) == 3)
-    if bad_conesearch:
-        header = "Bad Conesearch formula"
-        text = "Conesearch must contain comma-separated RA, Dec, radius"
-        return True, text, header
-
-    # bad search date
-    if query_type == 'Date':
-        try:
-            _ = isoify_time(query)
-        except (ValueError, TypeError) as e:
-            header = 'Bad start time'
-            return True, str(e), header
+    validation = validate_query(query, query_type)
+    if not validation['flag']:
+        return (not validation['flag']), validation['header'], validation['text']
 
     # Good query, but no results
     # ugly hack
     if n and int(results) == 0:
-        if good_objectid:
+        if query_type == 'objectID':
             header = "Search by Object ID"
             text = "{} not found".format(query)
-        elif good_conesearch:
+        elif query_type == 'Conesearch':
             header = "Conesearch"
             text = "No alerts found for (RA, Dec, radius) = {}".format(
                 query
             )
-        elif good_datesearch:
+        elif query_type == 'Date':
             header = "Search by Date"
             if dropdown_option is None:
                 window = 1
@@ -580,7 +532,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
                 Time(jd_start, format='jd').iso,
                 Time(jd_end, format='jd').iso
             )
-        elif good_class:
+        elif query_type == 'Class':
             header = "Get latest 100 alerts by class"
             if dropdown_option is None:
                 alert_class = 'allclasses'
