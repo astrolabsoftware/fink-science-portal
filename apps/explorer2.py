@@ -99,21 +99,21 @@ input_group = dbc.InputGroup(
             id="input-group-dropdown-input",
             autoFocus=True,
             type='search',
-            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, .75)', 'color': 'grey'},
+            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
             className='inputbar'
         ),
         dbc.Button(
             "X", id="reset",
             # outline=True, color='light',
-            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, .75)', 'color': 'grey'}
+            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
         dbc.Button(
             "Go", id="submit", #outline=True, color='light',
             href="/explorer2",
-            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, .75)', 'color': 'grey'}
+            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
         modal
-    ], style={"border":"0.5px black solid"}, className='rcorners2'
+    ], style={"border":"0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
 )
 msg = """
 ![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
@@ -356,11 +356,7 @@ layout = html.Div(
             [
                 html.Div(id='logo'),
                 html.Br(),
-                dbc.Row([
-                    dbc.Col(html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='90%', width='150%'), width=1),
-                    dbc.Col(input_group, width=11),
-                ], justify='between'),
-                #dbc.Row(input_group, justify='left'),
+                dbc.Row(input_group),
                 html.Br(),
                 dcc.Dropdown(
                     id='select',
