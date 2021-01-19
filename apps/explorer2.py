@@ -299,106 +299,108 @@ def results(ns, nr, query, query_type, dropdown_option, results):
         return html.Div([])
     elif button_id != "submit":
         raise PreventUpdate
-    elif button_id == "submit":
-        if query_type == 'objectID':
-            r = requests.post(
-                '{}/api/v1/explorer'.format(APIURL),
-                json={
-                    'objectId': query,
-                }
-            )
-        elif query_type == 'Conesearch':
-            ra, dec, radius = query.split(',')
-            r = requests.post(
-                '{}/api/v1/explorer'.format(APIURL),
-                json={
-                    'ra': ra,
-                    'dec': dec,
-                    'radius': float(radius)
-                }
-            )
-        elif query_type == 'Date':
-            if dropdown_option is None:
-                window = 1
-            else:
-                window = dropdown_option
-            r = requests.post(
-                '{}/api/v1/explorer'.format(APIURL),
-                json={
-                    'startdate': query,
-                    'window': window
-                }
-            )
-        elif query_type == 'Class':
-            if dropdown_option is None:
-                alert_class = 'allclasses'
-            else:
-                alert_class = dropdown_option
-            r = requests.post(
-                '{}/api/v1/latests'.format(APIURL),
-                json={
-                    'class': alert_class,
-                    'n': '100'
-                }
-            )
 
-        # Format output in a DataFrame
-        pdf = pd.read_json(r.content)
+    if (query_type in ['objectID', 'Conesearch', 'Date']) and ((query == '') or (query is None)):
+        return html.Div([])
 
-        if pdf.empty:
-            data, columns = [], []
-        else:
-            # Make clickable objectId
-            pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
-
-            data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
-
-            columns = [
-                {
-                    'id': c,
-                    'name': c,
-                    'type': 'text',
-                    # 'hideable': True,
-                    'presentation': 'markdown',
-                } for c in colnames_to_display
-            ]
-        table = dash_table.DataTable(
-            data=data,
-            columns=columns,
-            page_size=10,
-            style_as_list_view=True,
-            sort_action="native",
-            filter_action="native",
-            markdown_options={'link_target': '_blank'},
-            style_data={
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
-            },
-            style_cell={'padding': '5px', 'textAlign': 'center'},
-            style_data_conditional=[
-                {
-                    'if': {'row_index': 'odd'},
-                    'backgroundColor': 'rgb(248, 248, 248, .7)'
-                }
-            ],
-            style_header={
-                'backgroundColor': 'rgb(230, 230, 230)',
-                'fontWeight': 'bold'
+    if query_type == 'objectID':
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json={
+                'objectId': query,
             }
         )
-        results_ = [
-            dbc.Tabs(
-                [
-                    dbc.Tab(tab1(), label='Info', tab_id='t0'),
-                    dbc.Tab(tab2(table), label="Table", tab_id='t1'),
-                    dbc.Tab(label="Sky map", tab_id='t2', disabled=True),
-                ],
-                id="tabs",
-                active_tab="t1",
-            )
-        ]
-        return results_
+    elif query_type == 'Conesearch':
+        ra, dec, radius = query.split(',')
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json={
+                'ra': ra,
+                'dec': dec,
+                'radius': float(radius)
+            }
+        )
+    elif query_type == 'Date':
+        if dropdown_option is None:
+            window = 1
+        else:
+            window = dropdown_option
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json={
+                'startdate': query,
+                'window': window
+            }
+        )
+    elif query_type == 'Class':
+        if dropdown_option is None:
+            alert_class = 'allclasses'
+        else:
+            alert_class = dropdown_option
+        r = requests.post(
+            '{}/api/v1/latests'.format(APIURL),
+            json={
+                'class': alert_class,
+                'n': '100'
+            }
+        )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+
+    if pdf.empty:
+        data, columns = [], []
     else:
-        return results
+        # Make clickable objectId
+        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
+
+        data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
+
+        columns = [
+            {
+                'id': c,
+                'name': c,
+                'type': 'text',
+                # 'hideable': True,
+                'presentation': 'markdown',
+            } for c in colnames_to_display
+        ]
+    table = dash_table.DataTable(
+        data=data,
+        columns=columns,
+        page_size=10,
+        style_as_list_view=True,
+        sort_action="native",
+        filter_action="native",
+        markdown_options={'link_target': '_blank'},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_cell={'padding': '5px', 'textAlign': 'center'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    )
+    results_ = [
+        dbc.Tabs(
+            [
+                dbc.Tab(tab1(), label='Info', tab_id='t0'),
+                dbc.Tab(tab2(table), label="Table", tab_id='t1'),
+                dbc.Tab(label="Sky map", tab_id='t2', disabled=True),
+            ],
+            id="tabs",
+            active_tab="t1",
+        )
+    ]
+    return results_
+
 
 noresults_toast = dbc.Toast(
     "",
