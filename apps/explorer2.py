@@ -369,7 +369,6 @@ def results(ns, nr, query, query_type, dropdown_option, results):
     table = dash_table.DataTable(
         data=data,
         columns=columns,
-        id='table2',
         page_size=10,
         style_as_list_view=True,
         sort_action="native",
@@ -422,7 +421,7 @@ noresults_toast = dbc.Toast(
     ],
     [
         Input("submit", "n_clicks"),
-        Input("table2", "data"),
+        Input("table", "data"),
         Input("input-group-dropdown-input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
@@ -458,7 +457,8 @@ def open_noresults(n, results, query, query_type, dropdown_option):
             header = 'Bad start time'
             return True, e, header
 
-    if n and results == []:
+    # ugly hack
+    if n and type(results) != []:
         if good_objectid:
             header = "Search by Object ID"
             text = "{} not found".format(query)
