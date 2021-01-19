@@ -87,6 +87,17 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool):
 
     return pdfs
 
+def isoify_time(t):
+    try:
+        tt = Time(t)
+    except ValueError as e:
+        ft = float(t)
+        if ft // 2400000:
+            tt = Time(ft, format='jd')
+        else:
+            tt = Time(ft, format='mjd')
+    return tt.iso
+
 def markdownify_objectid(objectid):
     """
     """
