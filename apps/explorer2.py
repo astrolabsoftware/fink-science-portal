@@ -440,7 +440,7 @@ noresults_toast = dbc.Toast(
     icon="danger",
     dismissable=True,
     is_open=False,
-    style={"position": "fixed", "top": 66, "right": 10, "width": 350},
+    style={"position": "fixed", "top": 10, "right": 10, "width": 350},
 )
 
 @app.callback(
