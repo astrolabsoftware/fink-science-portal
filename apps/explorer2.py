@@ -345,12 +345,6 @@ def update_table(field_dropdown, data, columns):
         if field_dropdown is None or len(columns) == 0:
             raise PreventUpdate
 
-        try:
-            columns = results[0]['props']['children'][1]['props']['children'][1]['props']['columns']
-            data = results[0]['props']['children'][1]['props']['children'][1]['props']['data']
-        except KeyError as e:
-            raise PreventUpdate
-
         incolumns = any(c.get('id') == field_dropdown for c in columns)
 
         if incolumns is True:
@@ -365,6 +359,8 @@ def update_table(field_dropdown, data, columns):
         })
 
         return data, columns
+    else:
+        raise PreventUpdate
 
 @app.callback(
     [
