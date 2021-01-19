@@ -514,7 +514,8 @@ layout = html.Div(
                 ),
             ], id='trash', fluid=True, style={'width': '60%'}
         ),
-        dbc.Container(id='results')
+        dbc.Container(id='results'),
+        noresults_toast
     ],
     className='home',
     style={
