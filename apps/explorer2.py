@@ -165,11 +165,11 @@ def input_type(n1, n2, n3, n4, n_reset):
 
     if button_id == "dropdown-menu-item-3":
         options = [
-            {'label': ' 1 minute', 'value': 1},
+            {'label': '1 minute', 'value': 1},
             {'label': '10 minutes', 'value': 10},
-            {'label': '60 minutes', 'value': 60}
+            {'label': '60 minutes (can be long)', 'value': 60}
         ]
-        placeholder = "Choose a time window"
+        placeholder = "Choose a time window (default is 1 minute)"
         return {}, options, placeholder
     elif button_id == "dropdown-menu-item-4":
         options = [
@@ -183,7 +183,7 @@ def input_type(n1, n2, n3, n4, n_reset):
             {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
             *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
         ]
-        placeholder = "Start typing or choose a class"
+        placeholder = "Start typing or choose a class (default is last 100 alerts)"
         return {}, options, placeholder
     elif button_id == "reset":
         return {'display': 'none'}, [], ''
@@ -217,13 +217,13 @@ def on_button_click(n1, n2, n3, n4, n_reset, val):
     if button_id == "reset":
         return default, 'objectID', ""
     elif button_id == "dropdown-menu-item-1":
-        return "Valid object ID", "objectID", val
+        return "Enter a valid ZTF object ID", "objectID", val
     elif button_id == "dropdown-menu-item-2":
-        return "Conesearch", "Conesearch", val
+        return "Perform a conesearch around RA, Dec, radius. See help for the syntax", "Conesearch", val
     elif button_id == "dropdown-menu-item-3":
-        return "Date search", "Date", val
+        return "Search alerts inside a time window. Type here the start time.", "Date", val
     elif button_id == "dropdown-menu-item-4":
-        return "Class search", "Class", val
+        return "Show last 100 alerts for a particular class", "Class", val
     else:
         return "Valid object ID", "objectID", ""
 
@@ -268,7 +268,7 @@ def logo(ns, nr):
     ],
     State("results", "children"),
 )
-def results(ns, nr, query, query_type, dropdown_options, results):
+def results(ns, nr, query, query_type, dropdown_option, results):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
@@ -303,18 +303,26 @@ def results(ns, nr, query, query_type, dropdown_options, results):
                 }
             )
         elif query_type == 'Date':
+            if dropdown_option is None:
+                window = 1
+            else:
+                window = dropdown_option
             r = requests.post(
                 '{}/api/v1/explorer'.format(APIURL),
                 json={
                     'startdate': query,
-                    'window': dropdown_options
+                    'window': window
                 }
             )
         elif query_type == 'Class':
+            if dropdown_option is None:
+                alert_class = 'allclasses'
+            else:
+                alert_class = dropdown_option
             r = requests.post(
                 '{}/api/v1/latests'.format(APIURL),
                 json={
-                    'class': dropdown_options,
+                    'class': alert_class,
                     'n': '100'
                 }
             )
