@@ -17,7 +17,7 @@ import pandas as pd
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
-msg_conesearch = """
+message_help = """
 ##### Object ID
 
 Enter a valid object ID to access its data, e.g. try:
@@ -40,9 +40,11 @@ The following ways of initializing a conesearch are all equivalent (radius in ar
 
 Choose a starting date and a time window to see all alerts in this period.
 Dates are in UTC, and the time window in minutes.
-Example of valid search:
+You can choose YYYY-MM-DD hh:mm:ss, Julian Date, or Modified Julian Date. Example of valid search:
 
 * 2019-11-03 02:40:00
+* 2458790.61111
+* 58790.11111
 
 ##### Class
 
@@ -52,11 +54,21 @@ Choose a class of interest using the drop-down menu to see the 100 latest alerts
 
 modal = html.Div(
     [
-        dbc.Button("Help", id="open", color='light', outline=True, style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}),
+        dbc.Button(
+            "Help",
+            id="open",
+            color='light',
+            outline=True,
+            style={
+                "border":"0px black solid",
+                'background': 'rgba(255, 255, 255, 0.0)',
+                'color': 'grey'
+            }
+        ),
         dbc.Modal(
             [
                 dbc.ModalHeader("Fink Science Portal"),
-                dbc.ModalBody(dcc.Markdown(msg_conesearch)),
+                dbc.ModalBody(dcc.Markdown(message_help)),
                 dbc.ModalFooter(
                     dbc.Button("Close", id="close", className="ml-auto")
                 ),
@@ -93,6 +105,8 @@ input_group = dbc.InputGroup(
             addon_type="append",
             id='dropdown-query',
             label="objectID",
+            color='light',
+            outline=True,
             toggle_style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
         dbc.Input(
@@ -219,9 +233,9 @@ def on_button_click(n1, n2, n3, n4, n_reset, val):
     elif button_id == "dropdown-menu-item-1":
         return "Enter a valid ZTF object ID", "objectID", val
     elif button_id == "dropdown-menu-item-2":
-        return "Perform a conesearch around RA, Dec, radius. See help for the syntax", "Conesearch", val
+        return "Perform a conesearch around RA, Dec, radius. See Help for the syntax", "Conesearch", val
     elif button_id == "dropdown-menu-item-3":
-        return "Search alerts inside a time window. Type here the start time.", "Date", val
+        return "Search alerts inside a time window. See Help for the syntax", "Date", val
     elif button_id == "dropdown-menu-item-4":
         return "Show last 100 alerts for a particular class", "Class", val
     else:
