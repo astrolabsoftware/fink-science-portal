@@ -529,7 +529,7 @@ layout = html.Div(
             ], id='trash', fluid=True, style={'width': '60%'}
         ),
         dbc.Container(id='results'),
-        dbc.Input(id='validate_results', style={'display': 'none'})
+        dbc.Input(id='validate_results', style={'display': 'none'}),
         noresults_toast
     ],
     className='home',
