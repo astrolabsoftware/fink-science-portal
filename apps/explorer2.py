@@ -8,7 +8,7 @@ from dash.exceptions import PreventUpdate
 
 from apps.utils import markdownify_objectid
 from apps.api import APIURL
-from apps.utils import isoify_time
+from apps.utils import isoify_time, validate_query
 
 from app import app
 from app import clientP
@@ -393,7 +393,8 @@ def results(ns, query, query_type, dropdown_option, results):
     if button_id != "submit":
         raise PreventUpdate
 
-    if (query_type in ['objectID', 'Conesearch', 'Date']) and ((query == '') or (query is None)):
+    is_ok = validate_query(query, query_type)
+    if not is_ok['flag']:
         return dash_table.DataTable(
             data=[],
             columns=[],
