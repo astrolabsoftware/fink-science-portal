@@ -464,18 +464,26 @@ def open_noresults(n, results, query, query_type, dropdown_option):
     good_class = query_type == 'Class'
 
     # no queries
+    if not good_query and ((query_type == 'objectID') or (query_type == 'Conesearch')):
+        header = "Empty query"
+        text = "You need to choose a query type and fill the search bar"
+        return True, text, header
+
+    # bad objectId
     bad_objectid = (query_type == 'objectID') and not (query.startswith('ZTF'))
     if bad_objectid:
         header = "Bad ZTF object ID"
-        text = "ZTF object ID must start with ZTF"
+        text = "ZTF object ID must start with `ZTF`"
         return True, text, header
 
+    # bad conesearch
     bad_conesearch = (query_type == 'Conesearch') and not (len(query.split(',')) == 3)
     if bad_conesearch:
         header = "Bad Conesearch formula"
         text = "Conesearch must contain comma-separated RA, Dec, radius"
         return True, text, header
 
+    # bad search date
     if query_type == 'Date':
         try:
             _ = Time(query)
@@ -483,6 +491,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
             header = 'Bad start time'
             return True, str(e), header
 
+    # Good query, but no results
     # ugly hack
     if n and int(results) == 0:
         if good_objectid:
