@@ -11,6 +11,7 @@ from apps.api import APIURL
 from apps.utils import isoify_time
 
 from app import app
+from app import clientP
 
 import requests
 import pandas as pd
@@ -41,9 +42,9 @@ The following ways of initializing a conesearch are all equivalent (radius in ar
 
 ##### Date search
 
-Choose a starting date and a time window to see all alerts in this period.
+Choose a starting date and a time window to see all processed alerts in this period.
 Dates are in UTC, and the time window in minutes.
-You can choose YYYY-MM-DD hh:mm:ss, Julian Date, or Modified Julian Date. Example of valid search:
+Among several, you can choose YYYY-MM-DD hh:mm:ss, Julian Date, or Modified Julian Date. Example of valid search:
 
 * 2019-11-03 02:40:00
 * 2458790.61111
@@ -155,8 +156,32 @@ def tab1():
     ])
     return h
 
+schema = clientP.schema()
+schema_list = list(schema.columnNames())
+fink_fields = [i for i in schema_list if i.startswith('d:')]
+ztf_fields = [i for i in schema_list if i.startswith('i:')]
+fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdate']
+
 def tab2(table):
-    return [html.Br(), table]
+    return [
+        html.Br(),
+        dcc.Dropdown(
+            id='field-dropdown2',
+            options=[
+                {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in fink_fields],
+                {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in fink_additional_fields],
+                {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in ztf_fields]
+            ],
+            searchable=True,
+            clearable=True,
+            placeholder="Add more fields to the table",
+        ),
+        html.Br(),
+        table
+    ]
 
 @app.callback(
     [
@@ -274,6 +299,47 @@ def logo(ns, nr):
     else:
         return logo
 
+def construct_results_layout(table):
+    results_ = [
+        dbc.Tabs(
+            [
+                dbc.Tab(tab1(), label='Info', tab_id='t0'),
+                dbc.Tab(tab2(table), label="Table", tab_id='t1'),
+                dbc.Tab(label="Sky map", tab_id='t2', disabled=True),
+            ],
+            id="tabs",
+            active_tab="t1",
+        )
+    ]
+    return results_
+
+def populate_result_table(data, columns):
+    table = dash_table.DataTable(
+        data=data,
+        columns=columns,
+        id='result_table',
+        page_size=10,
+        style_as_list_view=True,
+        sort_action="native",
+        filter_action="native",
+        markdown_options={'link_target': '_blank'},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_cell={'padding': '5px', 'textAlign': 'center'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    )
+    return table
+
 @app.callback(
     [
         Output("results", "children"),
@@ -286,14 +352,39 @@ def logo(ns, nr):
         Input("dropdown-query", "label"),
         Input("select", "value"),
     ],
-    State("results", "children"),
+    [
+        State("results", "children"),
+        State("result_table", "data"),
+        State("result_table", "columns"),
+    ]
 )
-def results(ns, nr, query, query_type, dropdown_option, results):
+def results(ns, nr, query, query_type, dropdown_option, results, prv_data, prv_columns):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
 
     ctx = dash.callback_context
+
+    # Adding new columns (no client call)
+    if 'field-dropdown2' in changed_id:
+        if field_dropdown is None or len(prv_columns) == 0:
+            raise PreventUpdate
+
+        incolumns = any(c.get('id') == field_dropdown for c in prv_columns)
+
+        if incolumns is True:
+            raise PreventUpdate
+
+        columns.append({
+            'name': field_dropdown,
+            'id': field_dropdown,
+            'type': 'text',
+            'presentation': 'markdown'
+            # 'hideable': True,
+        })
+
+        table = populate_result_table(prv_data, columns)
+        return construct_results_layout(table), 1
 
     if not ctx.triggered:
         return results
@@ -395,53 +486,24 @@ def results(ns, nr, query, query_type, dropdown_option, results):
             } for c in colnames_to_display
         ]
         validation = 1
-    table = dash_table.DataTable(
-        data=data,
-        columns=columns,
-        id='result_table',
-        page_size=10,
-        style_as_list_view=True,
-        sort_action="native",
-        filter_action="native",
-        markdown_options={'link_target': '_blank'},
-        style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        },
-        style_cell={'padding': '5px', 'textAlign': 'center'},
-        style_data_conditional=[
-            {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
-            }
-        ],
-        style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
-    )
-    results_ = [
-        dbc.Tabs(
-            [
-                dbc.Tab(tab1(), label='Info', tab_id='t0'),
-                dbc.Tab(tab2(table), label="Table", tab_id='t1'),
-                dbc.Tab(label="Sky map", tab_id='t2', disabled=True),
-            ],
-            id="tabs",
-            active_tab="t1",
-        )
+
+    table = populate_result_table(data, columns)
+    return construct_results_layout(table), validation
+
+
+noresults_toast = html.Div(
+    [
+        dbc.Toast(
+            "",
+            header="",
+            id="noresults-toast2",
+            icon="danger",
+            dismissable=True,
+            is_open=False
+        ),
+        html.Br()
     ]
-    return results_, validation
-
-
-noresults_toast = html.Div([dbc.Toast(
-    "",
-    header="",
-    id="noresults-toast2",
-    icon="danger",
-    dismissable=True,
-    is_open=False,
-    #style={"position": "fixed", "top": 10, "right": 10, "width": 350},
-), html.Br()])
+)
 
 @app.callback(
     [
