@@ -436,7 +436,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
 
     good_query = (query is not None) or (query != '')
 
-    good_objectid = (query.startwith('ZTF')) and (query_type == 'objectID')
+    good_objectid = (query.startswith('ZTF')) and (query_type == 'objectID')
     good_conesearch = (len(query.split(',')) == 3) and (query_type == 'Conesearch')
     good_datesearch = (query != '') and (query_type == 'Date')
     good_class = query_type == 'Class'
@@ -447,7 +447,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
         text = "You need to define your query"
         return True, text, header
 
-    bad_objectid = (query_type == 'objectID') and not (query.startwith('ZTF'))
+    bad_objectid = (query_type == 'objectID') and not (query.startswith('ZTF'))
     bad_conesearch = (query_type == 'Conesearch') and not (len(query.split(',')) == 3)
     if query_type == 'Date':
         try:
