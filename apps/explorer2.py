@@ -165,6 +165,21 @@ fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdat
 def tab2(table):
     return [
         html.Br(),
+        dcc.Dropdown(
+            id='field-dropdown2',
+            options=[
+                {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in fink_fields],
+                {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in fink_additional_fields],
+                {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in ztf_fields]
+            ],
+            searchable=True,
+            clearable=True,
+            placeholder="Add more fields to the table",
+        ),
+        html.Br(),
         table
     ]
 
@@ -616,21 +631,6 @@ layout = html.Div(
                     id='select',
                     searchable=True,
                     clearable=True,
-                ),
-                html.Br(),
-                dcc.Dropdown(
-                    id='field-dropdown2',
-                    options=[
-                        {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
-                        *[{'label': field, 'value': field} for field in fink_fields],
-                        {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
-                        *[{'label': field, 'value': field} for field in fink_additional_fields],
-                        {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
-                        *[{'label': field, 'value': field} for field in ztf_fields]
-                    ],
-                    searchable=True,
-                    clearable=True,
-                    placeholder="Add more fields to the table",
                 ),
                 html.Br(),
                 noresults_toast
