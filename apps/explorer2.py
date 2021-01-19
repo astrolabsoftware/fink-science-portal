@@ -403,7 +403,7 @@ def results(ns, nr, query, query_type, dropdown_option, results):
 noresults_toast = dbc.Toast(
     "",
     header="",
-    id="noresults-toast",
+    id="noresults-toast2",
     icon="danger",
     dismissable=True,
     is_open=False,
@@ -412,9 +412,9 @@ noresults_toast = dbc.Toast(
 
 @app.callback(
     [
-        Output("noresults-toast", "is_open"),
-        Output("noresults-toast", "children"),
-        Output("noresults-toast", "header")
+        Output("noresults-toast2", "is_open"),
+        Output("noresults-toast2", "children"),
+        Output("noresults-toast2", "header")
     ],
     [
         Input("submit", "n_clicks"),
