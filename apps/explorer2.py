@@ -165,21 +165,21 @@ fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdat
 def tab2(table):
     return [
         html.Br(),
-        # dcc.Dropdown(
-        #     id='field-dropdown2',
-        #     options=[
-        #         {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
-        #         *[{'label': field, 'value': field} for field in fink_fields],
-        #         {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
-        #         *[{'label': field, 'value': field} for field in fink_additional_fields],
-        #         {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
-        #         *[{'label': field, 'value': field} for field in ztf_fields]
-        #     ],
-        #     searchable=True,
-        #     clearable=True,
-        #     placeholder="Add more fields to the table",
-        # ),
-        # html.Br(),
+        dcc.Dropdown(
+            id='field-dropdown2',
+            options=[
+                {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in fink_fields],
+                {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in fink_additional_fields],
+                {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
+                *[{'label': field, 'value': field} for field in ztf_fields]
+            ],
+            searchable=True,
+            clearable=True,
+            placeholder="Add more fields to the table",
+        ),
+        html.Br(),
         table
     ]
 
@@ -351,38 +351,43 @@ def populate_result_table(data, columns):
         Input("input-group-dropdown-input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
+        Input('field-dropdown2', 'value')
     ],
     State("results", "children")
 )
-def results(ns, nr, query, query_type, dropdown_option, results):
+def results(ns, nr, query, query_type, dropdown_option, results, field_dropdown):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
 
     ctx = dash.callback_context
 
-    print(results)
+    # Adding new columns (no client call)
+    if 'field-dropdown2' in changed_id:
+        try:
+            columns = results[0]['props']['children'][1]['props']['children'][1]['props']['columns']
+            data = results[0]['props']['children'][1]['props']['children'][1]['props']['data']
+        except KeyError as e:
+            raise PreventUpdate
 
-    # # Adding new columns (no client call)
-    # if 'field-dropdown2' in changed_id:
-    #     if field_dropdown is None or len(prv_columns) == 0:
-    #         raise PreventUpdate
-    #
-    #     incolumns = any(c.get('id') == field_dropdown for c in prv_columns)
-    #
-    #     if incolumns is True:
-    #         raise PreventUpdate
-    #
-    #     columns.append({
-    #         'name': field_dropdown,
-    #         'id': field_dropdown,
-    #         'type': 'text',
-    #         'presentation': 'markdown'
-    #         # 'hideable': True,
-    #     })
-    #
-    #     table = populate_result_table(prv_data, columns)
-    #     return construct_results_layout(table), 1
+        if field_dropdown is None or len(columns) == 0:
+            raise PreventUpdate
+
+        incolumns = any(c.get('id') == field_dropdown for c in columns)
+
+        if incolumns is True:
+            raise PreventUpdate
+
+        columns.append({
+            'name': field_dropdown,
+            'id': field_dropdown,
+            'type': 'text',
+            'presentation': 'markdown'
+            # 'hideable': True,
+        })
+
+        table = populate_result_table(data, columns)
+        return construct_results_layout(table), 1
 
     if not ctx.triggered:
         return results
