@@ -13,6 +13,7 @@ from app import app
 
 import requests
 import pandas as pd
+import numpy as np
 from astropy.time import Time, TimeDelta
 
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
