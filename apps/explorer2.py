@@ -355,7 +355,7 @@ def populate_result_table(data, columns):
     ],
     State("results", "children")
 )
-def results(ns, nr, query, query_type, dropdown_option, results, field_dropdown):
+def results(ns, nr, query, query_type, dropdown_option, field_dropdown, results):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
@@ -364,13 +364,13 @@ def results(ns, nr, query, query_type, dropdown_option, results, field_dropdown)
 
     # Adding new columns (no client call)
     if 'field-dropdown2' in changed_id:
+        if field_dropdown is None or len(columns) == 0:
+            raise PreventUpdate
+
         try:
             columns = results[0]['props']['children'][1]['props']['children'][1]['props']['columns']
             data = results[0]['props']['children'][1]['props']['children'][1]['props']['data']
         except KeyError as e:
-            raise PreventUpdate
-
-        if field_dropdown is None or len(columns) == 0:
             raise PreventUpdate
 
         incolumns = any(c.get('id') == field_dropdown for c in columns)
