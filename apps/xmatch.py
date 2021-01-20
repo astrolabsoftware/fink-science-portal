@@ -114,14 +114,20 @@ def parse_contents(contents, filename):
         ])
 
 
-@app.callback(Output('datatable-upload-container', 'data'),
-              Output('datatable-upload-container', 'columns'),
-              Output('xmatch-message', 'children'),
-              Input('datatable-upload', 'contents'),
-              State('datatable-upload', 'filename'))
+@app.callback(
+    [
+        Output('datatable-upload-container', 'data'),
+        Output('datatable-upload-container', 'columns'),
+        Output('xmatch-message', 'children'),
+    ],
+    [
+        Input('datatable-upload', 'contents'),
+    ],
+    State('datatable-upload', 'filename')
+)
 def update_output(contents, filename):
     if contents is None:
-        return [{}], []
+        return [{}], [], ""
     df = parse_contents(contents, filename)
     nrow = len(df)
     if nrow > 1000:
