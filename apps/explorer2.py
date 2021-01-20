@@ -215,7 +215,7 @@ def display_skymap(validation, data, columns, projection):
 
         # Javascript. Note the use {{}} for dictionary
         img = """
-        var a = A.aladin('#aladin-lite-div', {{target: '0 60', survey: 'P/Mellinger/color', showReticle: true, allowFullZoomout: true, fov: 360}});
+        var a = A.aladin('#aladin-lite-div-skymap', {{target: '0 60', survey: 'P/Mellinger/color', showReticle: true, allowFullZoomout: true, fov: 360}});
         a.setProjection('{}');
         var cat = A.catalog({{name: 'Some markers', sourceSize: 18, shape: 'cross', color: 'orange'}});
         a.addCatalog(cat);
