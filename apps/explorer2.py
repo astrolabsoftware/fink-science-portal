@@ -184,12 +184,13 @@ def tab2(table):
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
     [
+        Input("validate_results", "value"),
         Input("result_table", "data"),
         Input("result_table", "columns"),
         Input('projection', 'value')
     ],
 )
-def display_skymap(data, columns, projection):
+def display_skymap(validation, data, columns, projection):
     """ Integrate aladin light in the 2nd Tab of the dashboard.
 
     the default parameters are:
@@ -207,33 +208,36 @@ def display_skymap(data, columns, projection):
     alert_id: str
         ID of the alert
     """
-    # Coordinate of the current alert
-    ra0 = 0.
-    dec0 = 0.
+    if validation:
+        # Coordinate of the current alert
+        ra0 = 0.
+        dec0 = 0.
 
-    # Javascript. Note the use {{}} for dictionary
-    img = """
-    var a = A.aladin('#aladin-lite-div', {{target: '0 60', survey: 'P/Mellinger/color', showReticle: true, allowFullZoomout: true, fov: 360}});
-    a.setProjection('{}');
-    var cat = A.catalog({{name: 'Some markers', sourceSize: 18, shape: 'cross', color: 'orange'}});
-    a.addCatalog(cat);
-    """.format(projection)
+        # Javascript. Note the use {{}} for dictionary
+        img = """
+        var a = A.aladin('#aladin-lite-div', {{target: '0 60', survey: 'P/Mellinger/color', showReticle: true, allowFullZoomout: true, fov: 360}});
+        a.setProjection('{}');
+        var cat = A.catalog({{name: 'Some markers', sourceSize: 18, shape: 'cross', color: 'orange'}});
+        a.addCatalog(cat);
+        """.format(projection)
 
-    ras = [1, 20, 30]
-    decs = [1, 20, 30]
-    link = '<a target="_blank" href="https://simbad.u-strasbg.fr/simbad/sim-id?Ident=V*+V971+Tau&NbIdent=1">{}</a>'
-    titles = [link.format(i) for i in ['toto', 'tutu', 'toto']]
-    mags = [17.3, 21.6, 12.5]
-    classes = ['t', 'u', 'y']
-    for ra, dec, title, mag, class_ in zip(ras, decs, titles, mags, classes):
-        img += """cat.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>Classification:</em> {}<br/>'}})]);""".format(ra, dec, title, mag, class_)
+        ras = [1, 20, 30]
+        decs = [1, 20, 30]
+        link = '<a target="_blank" href="https://simbad.u-strasbg.fr/simbad/sim-id?Ident=V*+V971+Tau&NbIdent=1">{}</a>'
+        titles = [link.format(i) for i in ['toto', 'tutu', 'toto']]
+        mags = [17.3, 21.6, 12.5]
+        classes = ['t', 'u', 'y']
+        for ra, dec, title, mag, class_ in zip(ras, decs, titles, mags, classes):
+            img += """cat.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>Classification:</em> {}<br/>'}})]);""".format(ra, dec, title, mag, class_)
 
-    # img cannot be executed directly because of formatting
-    # We split line-by-line and remove comments
-    img_to_show = [i for i in img.split('\n') if '// ' not in i]
-    print(" ".join(img_to_show))
+        # img cannot be executed directly because of formatting
+        # We split line-by-line and remove comments
+        img_to_show = [i for i in img.split('\n') if '// ' not in i]
+        print(" ".join(img_to_show))
 
-    return " ".join(img_to_show)
+        return " ".join(img_to_show)
+    else:
+        return ""
 
 def tab3():
     return [
