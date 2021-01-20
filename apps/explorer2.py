@@ -64,7 +64,7 @@ modal = html.Div(
             color='light',
             outline=True,
             style={
-                "border":"0px black solid",
+                "border": "0px black solid",
                 'background': 'rgba(255, 255, 255, 0.0)',
                 'color': 'grey'
             }
@@ -131,7 +131,7 @@ input_group = dbc.InputGroup(
 msg = """
 ![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
 
-Fill one of the fields on the left, and click on the _Submit Query_ button. You can access help by clicking on the buttons at the left of each field.
+Fill the search bar and hit the search button. You can access help by clicking on the Help button at the right of the bar.
 
 By default, the table shows:
 
@@ -142,7 +142,7 @@ By default, the table shows:
 - v:classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)
 - i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
 
-Users can also add more columns using the dropdown button above. Full documentation of all available fields can be found at http://134.158.75.151:24000/api/v1/columns.
+You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at https://fink-portal.ijclab.in2p3.fr:24000/api/v1/columns.
 """
 
 def tab1():
