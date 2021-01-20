@@ -5,6 +5,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import dash_table
 from dash.exceptions import PreventUpdate
+import visdcc
 
 from apps.utils import markdownify_objectid
 from apps.api import APIURL
