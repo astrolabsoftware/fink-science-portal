@@ -121,7 +121,7 @@ input_group = dbc.InputGroup(
             className='inputbar'
         ),
         dbc.Button(
-            "Go", id="submit",
+            html.I(className="fas fa-search fa-1x"), id="submit",
             href="/explorer2",
             style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
