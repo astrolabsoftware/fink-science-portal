@@ -123,7 +123,7 @@ input_group = dbc.InputGroup(
         dbc.Button(
             html.I(className="fas fa-search fa-1x"), id="submit",
             href="/explorer2",
-            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F75'}
+            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
         ),
         modal
     ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
