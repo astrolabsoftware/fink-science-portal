@@ -260,7 +260,7 @@ def display_skymap(validation, data, columns):
             **{i: 'blue' for i in simbad_types}
         }
         for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
-            cat = 'cat_{}'.format(class_)
+            cat = 'cat_{}'.format(class_.replace(' ', '_'))
             color = colors[class_]
             if cat not in img:
                 img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'cross', color: '{}'}});a.addCatalog({});""".format(cat, class_, color, cat)
