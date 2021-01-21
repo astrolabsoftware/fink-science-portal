@@ -234,6 +234,10 @@ def display_skymap(validation, data, columns):
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if validation and (button_id == "validate_results"):
         pdf = pd.DataFrame(data)
+
+        # TODO: remove me by finding a method to overlay thousands of markers
+        pdf = pdf.head(1000)
+
         # Coordinate of the first alert
         ra0 = pdf['i:ra'].values[0]
         dec0 = pdf['i:dec'].values[0]
