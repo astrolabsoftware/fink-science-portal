@@ -244,7 +244,7 @@ def display_skymap(validation, data, columns):
         ras = pdf['i:ra'].values
         decs = pdf['i:dec'].values
         filts = pdf['i:fid'].values
-        filts_dic = {'1': 'g', '2': 'r'}
+        filts_dic = {1: 'g', 2: 'r'}
         times = pdf['v:lastdate'].values
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
