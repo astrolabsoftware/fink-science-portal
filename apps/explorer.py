@@ -250,30 +250,18 @@ def display_skymap(validation, data, columns):
         titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
         mags = pdf['i:magpsf'].values
         classes = pdf['v:classification'].values
+        colors = {
+            'Early SN candidate': 'red',
+            'SN candidate': 'orange',
+            'Microlensing candidate': 'green',
+            'Solar System': 'white',
+            'Ambiguous': 'purple',
+            'Unknown': 'yellow',
+            **{i: 'blue' for i in simbad_types}
+        }
         for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
-
-            # TODO: make a dictionary instead
-            if class_ == 'Early SN candidate':
-                cat = 'cat_esn'
-                color = 'red'
-            elif class_ == 'SN candidate':
-                cat = 'cat_sn'
-                color = 'orange'
-            elif class_ == 'Microlensing candidate':
-                cat = 'cat_mulens'
-                color = 'green'
-            elif class_ == 'Solar System':
-                cat = 'cat_sso'
-                color = 'white'
-            elif class_ in simbad_types:
-                cat = 'cat_sso'
-                color = 'blue'
-            elif class_ in 'Ambiguous':
-                cat = 'cat_ambiguous'
-                color = 'purple'
-            elif class_ in 'Unknown':
-                cat = 'cat_unknown'
-                color = 'yellow'
+            cat = 'cat_{}'.format(class_)
+            color = colors[class_]
             if cat not in img:
                 img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'cross', color: '{}'}});a.addCatalog({});""".format(cat, class_, color, cat)
             img += """{}.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>filter:</em> {}<br/><em>time:</em> {}<br/><em>Classification:</em> {}<br/>'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
