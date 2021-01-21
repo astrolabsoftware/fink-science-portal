@@ -122,7 +122,7 @@ dropdown_menu_items = [
 ]
 
 
-input_group = dbc.InputGroup(
+fink_search_bar = dbc.InputGroup(
     [
         dbc.DropdownMenu(
             dropdown_menu_items,
@@ -131,19 +131,20 @@ input_group = dbc.InputGroup(
             label="objectID",
             color='light',
             className='rcorners3',
-            toggle_style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
+            toggle_style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
         ),
         dbc.Input(
-            id="input-group-dropdown-input",
+            id="search_bar_input",
             autoFocus=True,
             type='search',
-            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
+            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
             className='inputbar'
         ),
         dbc.Button(
-            html.I(className="fas fa-search fa-1x"), id="submit",
+            html.I(className="fas fa-search fa-1x"),
+            id="submit",
             href="/explorer2",
-            style={"border":"0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
+            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
         ),
         modal
     ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
@@ -214,33 +215,30 @@ def display_table_results(table):
     ],
 )
 def display_skymap(validation, data, columns):
-    """ Integrate aladin light in the 2nd Tab of the dashboard.
+    """ Display explorer result on a sky map (Aladin lite)
+
+    TODO: image is not displayed correctly the first time
+    TODO: for several search, images are superimposed... we need to find a way to clear the prevous view
 
     the default parameters are:
         * PanSTARRS colors
-        * FoV = 0.02 deg
-        * SIMBAD catalig overlayed.
+        * FoV = 360 deg
+        * Fink alerts overlayed
 
     Callbacks
     ----------
-    Input: takes the alert ID
+    Input: takes the validation flag (0: no results, 1: results) and table data
     Output: Display a sky image around the alert position from aladin.
-
-    Parameters
-    ----------
-    alert_id: str
-        ID of the alert
     """
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if validation and (button_id == "validate_results"):
         pdf = pd.DataFrame(data)
-        # Coordinate of the current alert
+        # Coordinate of the first alert
         ra0 = pdf['i:ra'].values[0]
         dec0 = pdf['i:dec'].values[0]
 
         # Javascript. Note the use {{}} for dictionary
-        # for the choice of projection, see this example https://aladin.u-strasbg.fr/AladinLite/doc/tutorials/interactive-finding-chart/step3-source-code.html
         img = """
         var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});
         var cat = A.catalog({{name: 'Fink alerts', sourceSize: 18, shape: 'cross', color: 'orange'}});
@@ -265,7 +263,15 @@ def display_skymap(validation, data, columns):
     else:
         return ""
 
-def tab3():
+def display_skymap():
+    """ Display the sky map in the explorer tab results (Aladin lite)
+
+    It uses `visdcc` to execute javascript directly.
+
+    Returns
+    ---------
+    out: list of objects
+    """
     return [
         dbc.Container(
             html.Div(
@@ -294,6 +300,14 @@ def tab3():
     ]
 )
 def input_type(n1, n2, n3, n4):
+    """ Decide if the dropdown below the search bar should be shown
+
+    Only some query types need to have a dropdown (Date & Class search). In
+    those cases, we show the dropdown, otherwise it is hidden.
+
+    In the case of class search, the options are derived from the
+    Fink classification, and the SIMBAD labels.
+    """
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -328,9 +342,9 @@ def input_type(n1, n2, n3, n4):
 
 @app.callback(
     [
-        Output("input-group-dropdown-input", "placeholder"),
+        Output("search_bar_input", "placeholder"),
         Output("dropdown-query", "label"),
-        Output("input-group-dropdown-input", "value")
+        Output("search_bar_input", "value")
     ],
     [
         Input("dropdown-menu-item-1", "n_clicks"),
@@ -338,9 +352,11 @@ def input_type(n1, n2, n3, n4):
         Input("dropdown-menu-item-3", "n_clicks"),
         Input("dropdown-menu-item-4", "n_clicks"),
     ],
-    State("input-group-dropdown-input", "value")
+    State("search_bar_input", "value")
 )
 def on_button_click(n1, n2, n3, n4, val):
+    """ Change the placeholder value of the search bar based on the query type
+    """
     ctx = dash.callback_context
 
     default = "Enter a valid object ID or choose another query type"
@@ -367,14 +383,22 @@ def on_button_click(n1, n2, n3, n4, val):
     ],
 )
 def logo(ns):
-    """
+    """ Show the logo in the start page (and hide it otherwise)
     """
     ctx = dash.callback_context
 
     logo = [
         html.Br(),
         html.Br(),
-        dbc.Row(dbc.Col(html.Img(src="/assets/Fink_PrimaryLogo_WEB.png", height='100%', width='60%')), style={'textAlign': 'center'}),
+        dbc.Row(
+            dbc.Col(
+                html.Img(
+                    src="/assets/Fink_PrimaryLogo_WEB.png",
+                    height='100%',
+                    width='60%'
+                )
+            ), style={'textAlign': 'center'}
+        ),
         html.Br()
     ]
     if not ctx.triggered:
@@ -388,12 +412,14 @@ def logo(ns):
         return logo
 
 def construct_results_layout(table):
+    """ Construct the tabs containing explorer query results
+    """
     results_ = [
         dbc.Tabs(
             [
                 dbc.Tab(print_msg_info(), label='Info', tab_id='t0'),
                 dbc.Tab(display_table_results(table), label="Table", tab_id='t1'),
-                dbc.Tab(tab3(), label="Sky map", tab_id='t2'),
+                dbc.Tab(display_skymap(), label="Sky map", tab_id='t2'),
             ],
             id="tabs",
             active_tab="t1",
@@ -402,6 +428,8 @@ def construct_results_layout(table):
     return results_
 
 def populate_result_table(data, columns):
+    """ Define options of the results table, and add data and columns
+    """
     table = dash_table.DataTable(
         data=data,
         columns=columns,
@@ -442,6 +470,8 @@ def populate_result_table(data, columns):
     ]
 )
 def update_table(field_dropdown, data, columns):
+    """ Update table by adding new columns (no server call)
+    """
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     # Adding new columns (no client call)
     if 'field-dropdown2' in changed_id:
@@ -472,13 +502,22 @@ def update_table(field_dropdown, data, columns):
     ],
     [
         Input("submit", "n_clicks"),
-        Input("input-group-dropdown-input", "value"),
+        Input("search_bar_input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
     ],
     State("results", "children")
 )
 def results(ns, query, query_type, dropdown_option, results):
+    """ Query the database from the search input
+
+    Returns
+    ---------
+    out: list of Tabs
+        Tabs containing info, table, and skymap with the results
+    validation: int
+        0: not results found, 1: results found
+    """
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
@@ -590,7 +629,7 @@ noresults_toast = html.Div(
     [
         Input("submit", "n_clicks"),
         Input("validate_results", "value"),
-        Input("input-group-dropdown-input", "value"),
+        Input("search_bar_input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
     ]
@@ -658,7 +697,7 @@ layout = html.Div(
             [
                 html.Div(id='logo'),
                 html.Br(),
-                dbc.Row(input_group),
+                dbc.Row(fink_search_bar),
                 html.Br(),
                 dcc.Dropdown(
                     id='select',
