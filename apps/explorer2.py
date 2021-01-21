@@ -243,7 +243,7 @@ def display_skymap(validation, data, columns):
 
 def tab3():
     return [
-        dbc.Row(
+        dbc.Container(
             html.Div(
                 [
                     visdcc.Run_js(id='aladin-lite-div-skymap')
@@ -251,7 +251,8 @@ def tab3():
                     'width': '100%',
                     'height': '25pc'
                 }
-            )
+            ),
+            dcc.Markdown('_Hit the fullscreen button if the image is not displayed (we are working on it...)_')
         )
     ]
 
