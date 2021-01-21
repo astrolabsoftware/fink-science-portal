@@ -281,7 +281,6 @@ def display_skymap(validation, data, columns):
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
         img_to_show = [i for i in img.split('\n') if '// ' not in i]
-        print(" ".join(img_to_show))
 
         return " ".join(img_to_show)
     else:
