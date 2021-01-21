@@ -256,12 +256,15 @@ def display_skymap(validation, data, columns):
             'Microlensing candidate': 'green',
             'Solar System': 'white',
             'Ambiguous': 'purple',
-            'Unknown': 'yellow',
-            **{i: 'blue' for i in simbad_types}
+            'Unknown': 'yellow'
         }
         for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
-            cat = 'cat_{}'.format(class_.replace(' ', '_'))
-            color = colors[class_]
+            if class_ in simbad_types:
+                cat = 'cat_{}'.format(simbad_types.index(class_))
+                color = '#3C8DFF'
+            else:
+                cat = 'cat_{}'.format(class_.replace(' ', '_'))
+                color = colors[class_]
             if cat not in img:
                 img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'cross', color: '{}'}});a.addCatalog({});""".format(cat, class_, color, cat)
             img += """{}.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>filter:</em> {}<br/><em>time:</em> {}<br/><em>Classification:</em> {}<br/>'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
