@@ -57,6 +57,23 @@ Choose a class of interest using the drop-down menu to see the 100 latest alerts
 
 """
 
+msg_info = """
+![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
+
+Fill the search bar and hit the search button. You can access help by clicking on the Help button at the right of the bar.
+
+By default, the table shows:
+
+- i:objectId: Unique identifier for this object
+- i:ra: Right Ascension of candidate; J2000 (deg)
+- i:dec: Declination of candidate; J2000 (deg)
+- v:lastdate: last date the object has been seen by Fink
+- v:classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)
+- i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
+
+You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at https://fink-portal.ijclab.in2p3.fr:24000/api/v1/columns.
+"""
+
 modal = html.Div(
     [
         dbc.Button(
@@ -90,6 +107,8 @@ modal = html.Div(
     [State("modal", "is_open")],
 )
 def toggle_modal(n1, n2, is_open):
+    """ Callback for the modal (open/close)
+    """
     if n1 or n2:
         return not is_open
     return is_open
@@ -129,38 +148,43 @@ input_group = dbc.InputGroup(
         modal
     ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
 )
-msg = """
-![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
 
-Fill the search bar and hit the search button. You can access help by clicking on the Help button at the right of the bar.
-
-By default, the table shows:
-
-- i:objectId: Unique identifier for this object
-- i:ra: Right Ascension of candidate; J2000 (deg)
-- i:dec: Declination of candidate; J2000 (deg)
-- v:lastdate: last date the object has been seen by Fink
-- v:classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)
-- i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
-
-You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at https://fink-portal.ijclab.in2p3.fr:24000/api/v1/columns.
-"""
-
-def tab1():
+def print_msg_info():
+    """ Display the explorer info message
+    """
     h = html.Div([
         dbc.Row([
-            dcc.Markdown(msg)
+            dcc.Markdown(msg_info)
         ]),
     ])
     return h
 
-schema = clientP.schema()
-schema_list = list(schema.columnNames())
-fink_fields = [i for i in schema_list if i.startswith('d:')]
-ztf_fields = [i for i in schema_list if i.startswith('i:')]
-fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdate']
+def display_table_results(table):
+    """ Display explorer results in the form of a table with a dropdown
+    menu on top to insert more data columns.
 
-def tab2(table):
+    The dropdown menu options are taken from the client schema (ZTF & Fink). It also
+    contains other derived fields from the portal (fink_additional_fields).
+
+    Parameters
+    ----------
+    table: dash_table.DataTable
+        Dash DataTable containing the results. Can be empty.
+
+    Returns
+    ----------
+    out: list of objects
+        The list of objects contain:
+          1. A dropdown menu to add new columns in the table
+          2. Table of results
+        The dropdown is shown only if the table is non-empty.
+    """
+    schema = clientP.schema()
+    schema_list = list(schema.columnNames())
+    fink_fields = [i for i in schema_list if i.startswith('d:')]
+    ztf_fields = [i for i in schema_list if i.startswith('i:')]
+    fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdate']
+
     return [
         html.Br(),
         dcc.Dropdown(
@@ -367,8 +391,8 @@ def construct_results_layout(table):
     results_ = [
         dbc.Tabs(
             [
-                dbc.Tab(tab1(), label='Info', tab_id='t0'),
-                dbc.Tab(tab2(table), label="Table", tab_id='t1'),
+                dbc.Tab(print_msg_info(), label='Info', tab_id='t0'),
+                dbc.Tab(display_table_results(table), label="Table", tab_id='t1'),
                 dbc.Tab(tab3(), label="Sky map", tab_id='t2'),
             ],
             id="tabs",
