@@ -186,11 +186,10 @@ def tab2(table):
     [
         Input("validate_results", "value"),
         Input("result_table", "data"),
-        Input("result_table", "columns"),
-        Input('projection', 'value')
+        Input("result_table", "columns")
     ],
 )
-def display_skymap(validation, data, columns, projection):
+def display_skymap(validation, data, columns):
     """ Integrate aladin light in the 2nd Tab of the dashboard.
 
     the default parameters are:
@@ -208,25 +207,28 @@ def display_skymap(validation, data, columns, projection):
     alert_id: str
         ID of the alert
     """
-    if validation:
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if validation and (button_id == "validate_results"):
+        pdf = pd.DataFrame(data)
         # Coordinate of the current alert
-        ra0 = 0.
-        dec0 = 0.
+        ra0 = pdf['i:ra'].values[0]
+        dec0 = pdf['i:dec'].values[0]
 
         # Javascript. Note the use {{}} for dictionary
+        # for the choice of projection, see this example https://aladin.u-strasbg.fr/AladinLite/doc/tutorials/interactive-finding-chart/step3-source-code.html
         img = """
-        var a = A.aladin('#aladin-lite-div-skymap', {{target: '0 60', survey: 'P/Mellinger/color', showReticle: true, allowFullZoomout: true, fov: 360}});
-        a.setProjection('{}');
-        var cat = A.catalog({{name: 'Some markers', sourceSize: 18, shape: 'cross', color: 'orange'}});
+        var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});
+        var cat = A.catalog({{name: 'Fink alerts', sourceSize: 18, shape: 'cross', color: 'orange'}});
         a.addCatalog(cat);
-        """.format(projection)
+        """.format(ra0, dec0)
 
-        ras = [1, 20, 30]
-        decs = [1, 20, 30]
-        link = '<a target="_blank" href="https://simbad.u-strasbg.fr/simbad/sim-id?Ident=V*+V971+Tau&NbIdent=1">{}</a>'
-        titles = [link.format(i) for i in ['toto', 'tutu', 'toto']]
-        mags = [17.3, 21.6, 12.5]
-        classes = ['t', 'u', 'y']
+        ras = pdf['i:ra'].values
+        decs = pdf['i:dec'].values
+        link = '<a target="_blank" href="{}/{}">{}</a>'
+        titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
+        mags = pdf['i:magpsf'].values
+        classes = pdf['v:classification'].values
         for ra, dec, title, mag, class_ in zip(ras, decs, titles, mags, classes):
             img += """cat.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>Classification:</em> {}<br/>'}})]);""".format(ra, dec, title, mag, class_)
 
@@ -247,20 +249,8 @@ def tab3():
                     visdcc.Run_js(id='aladin-lite-div-skymap')
                 ], style={
                     'width': '100%',
-                    'height': '30pc'
+                    'height': '25pc'
                 }
-            )
-        ),
-        dbc.Row(
-            dbc.RadioItems(
-                options=[
-                    {'label': 'Aitoff', 'value': 'aitoff'},
-                    {'label': 'Mollweide', 'value': 'mollweide'},
-                    {'label': 'Orthographic', 'value': 'orthographic'}
-                ],
-                value="aitoff",
-                id="projection",
-                inline=True
             )
         )
     ]
