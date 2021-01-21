@@ -246,13 +246,13 @@ def tab3():
         dbc.Container(
             html.Div(
                 [
-                    visdcc.Run_js(id='aladin-lite-div-skymap')
+                    visdcc.Run_js(id='aladin-lite-div-skymap'),
+                    dcc.Markdown('_Hit the fullscreen button if the image is not displayed (we are working on it...)_')
                 ], style={
                     'width': '100%',
                     'height': '25pc'
                 }
-            ),
-            dcc.Markdown('_Hit the fullscreen button if the image is not displayed (we are working on it...)_')
+            )
         )
     ]
 
