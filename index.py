@@ -72,9 +72,10 @@ navbar = dbc.Navbar(
             navbar=True,
         )
     ],
-    color="light",
+    color="rgba(255,255,255,0.9)",
     dark=False,
     className="finknav",
+    fixed='top'
 )
 
 # embedding the navigation bar

@@ -282,6 +282,8 @@ pd.read_csv(io.BytesIO(r.content))
 layout = html.Div(
     [
         html.Br(),
+        html.Br(),
+        html.Br(),
         dbc.Container(
             [
                 dbc.Row(
