@@ -243,11 +243,14 @@ def display_skymap(validation, data, columns):
 
         ras = pdf['i:ra'].values
         decs = pdf['i:dec'].values
+        filts = pdf['i:fid'].values
+        filts_dic = {'1': 'g', '2': 'r'}
+        times = pdf['v:lastdate'].values
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
         mags = pdf['i:magpsf'].values
         classes = pdf['v:classification'].values
-        for ra, dec, title, mag, class_ in zip(ras, decs, titles, mags, classes):
+        for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
 
             # TODO: make a dictionary instead
             if class_ == 'Early SN candidate':
@@ -273,7 +276,7 @@ def display_skymap(validation, data, columns):
                 color = 'yellow'
             if cat not in img:
                 img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'cross', color: '{}'}});a.addCatalog({});""".format(cat, class_, color, cat)
-            img += """{}.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>Classification:</em> {}<br/>'}})]);""".format(cat, ra, dec, title, mag, class_)
+            img += """{}.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>filter:</em> {}<br/><em>time:</em> {}<br/><em>Classification:</em> {}<br/>'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
 
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
