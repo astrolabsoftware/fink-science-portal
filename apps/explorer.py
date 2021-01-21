@@ -272,7 +272,7 @@ def display_skymap(validation, data, columns):
                 cat = 'cat_unknown'
                 color = 'yellow'
             if cat not in img:
-                img += """var {} = A.catalog({{name: '{}', sourceSize: 10, shape: 'cross', color: '{}'}});a.addCatalog({});""".format(cat, class_, color, cat)
+                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'cross', color: '{}'}});a.addCatalog({});""".format(cat, class_, color, cat)
             img += """{}.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>Classification:</em> {}<br/>'}})]);""".format(cat, ra, dec, title, mag, class_)
 
         # img cannot be executed directly because of formatting
