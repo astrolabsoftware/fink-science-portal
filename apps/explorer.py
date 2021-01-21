@@ -295,7 +295,8 @@ def display_skymap():
             html.Div(
                 [
                     visdcc.Run_js(id='aladin-lite-div-skymap'),
-                    dcc.Markdown('_Hit the fullscreen button if the image is not displayed (we are working on it...)_')
+                    dcc.Markdown('_Hit the fullscreen button if the image is not displayed (we are working on it...)_'),
+                    dcc.Markdown('_Currently limited to 1000 markers displayed (work in progress)_')
                 ], style={
                     'width': '100%',
                     'height': '25pc'
