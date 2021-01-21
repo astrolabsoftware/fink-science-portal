@@ -239,11 +239,7 @@ def display_skymap(validation, data, columns):
         dec0 = pdf['i:dec'].values[0]
 
         # Javascript. Note the use {{}} for dictionary
-        img = """
-        var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});
-        var cat = A.catalog({{name: 'Fink alerts', sourceSize: 18, shape: 'cross', color: 'orange'}});
-        a.addCatalog(cat);
-        """.format(ra0, dec0)
+        img = """var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});""".format(ra0, dec0)
 
         ras = pdf['i:ra'].values
         decs = pdf['i:dec'].values
@@ -252,7 +248,32 @@ def display_skymap(validation, data, columns):
         mags = pdf['i:magpsf'].values
         classes = pdf['v:classification'].values
         for ra, dec, title, mag, class_ in zip(ras, decs, titles, mags, classes):
-            img += """cat.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>Classification:</em> {}<br/>'}})]);""".format(ra, dec, title, mag, class_)
+
+            # TODO: make a dictionary instead
+            if class_ == 'Early SN candidate':
+                cat = 'cat_esn'
+                color = 'red'
+            elif class_ == 'SN candidate':
+                cat = 'cat_sn'
+                color = 'orange'
+            elif class_ == 'Microlensing candidate':
+                cat = 'cat_mulens'
+                color = 'green'
+            elif class_ == 'Solar System':
+                cat = 'cat_sso'
+                color = 'white'
+            elif class_ in simbad_types:
+                cat = 'cat_sso'
+                color = 'blue'
+            elif class_ in 'Ambiguous':
+                cat = 'cat_ambiguous'
+                color = 'purple'
+            elif class_ in 'Unknown':
+                cat = 'cat_unknown'
+                color = 'yellow'
+            if cat not in img:
+                img += """var {} = A.catalog({{name: '{}', sourceSize: 10, shape: 'cross', color: '{}'}});a.addCatalog({});""".format(cat, class_, color, cat)
+            img += """{}.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>Classification:</em> {}<br/>'}})]);""".format(cat, ra, dec, title, mag, class_)
 
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
