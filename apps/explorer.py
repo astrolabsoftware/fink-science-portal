@@ -215,10 +215,9 @@ def display_table_results(table):
     ],
 )
 def display_skymap(validation, data, columns):
-    """ Display explorer result on a sky map (Aladin lite)
+    """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
-    TODO: for several search, images are superimposed... we need to find a way to clear the prevous view
 
     the default parameters are:
         * PanSTARRS colors
@@ -232,32 +231,59 @@ def display_skymap(validation, data, columns):
     """
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if len(data) > 1000:
+        msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
+        return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
     if validation and (button_id == "validate_results"):
         pdf = pd.DataFrame(data)
+
         # Coordinate of the first alert
         ra0 = pdf['i:ra'].values[0]
         dec0 = pdf['i:dec'].values[0]
 
         # Javascript. Note the use {{}} for dictionary
-        img = """
-        var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});
-        var cat = A.catalog({{name: 'Fink alerts', sourceSize: 18, shape: 'cross', color: 'orange'}});
-        a.addCatalog(cat);
-        """.format(ra0, dec0)
+        # Force redraw of the Aladin lite window
+        img = """var container = document.getElementById('aladin-lite-div-skymap');var txt = ''; container.innerHTML = txt;"""
+
+        # Aladin lite
+        img += """var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});""".format(ra0, dec0)
 
         ras = pdf['i:ra'].values
         decs = pdf['i:dec'].values
+        filts = pdf['i:fid'].values
+        filts_dic = {1: 'g', 2: 'r'}
+        times = pdf['v:lastdate'].values
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
         mags = pdf['i:magpsf'].values
         classes = pdf['v:classification'].values
-        for ra, dec, title, mag, class_ in zip(ras, decs, titles, mags, classes):
-            img += """cat.addSources([A.marker({}, {}, {{popupTitle: '{}', popupDesc: '<em>mag:</em> {:.2f}<br/><em>Classification:</em> {}<br/>'}})]);""".format(ra, dec, title, mag, class_)
+        colors = {
+            'Early SN candidate': 'red',
+            'SN candidate': 'orange',
+            'Microlensing candidate': 'green',
+            'Solar System': 'white',
+            'Ambiguous': 'purple',
+            'Unknown': 'yellow'
+        }
+        cats = []
+        for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
+            if class_ in simbad_types:
+                cat = 'cat_{}'.format(simbad_types.index(class_))
+                color = '#3C8DFF'
+            else:
+                cat = 'cat_{}'.format(class_.replace(' ', '_'))
+                color = colors[class_]
+            if cat not in img:
+                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_, color)
+                cats.append(cat)
+            img += """{}.addSources([A.source({}, {}, {{objectId: '{}', mag: {:.2f}, filter: '{}', time: '{}', Classification: '{}'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
+
+        for cat in sorted(cats):
+            img += """a.addCatalog({});""".format(cat)
 
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
         img_to_show = [i for i in img.split('\n') if '// ' not in i]
-        print(" ".join(img_to_show))
 
         return " ".join(img_to_show)
     else:
@@ -277,7 +303,7 @@ def display_skymap():
             html.Div(
                 [
                     visdcc.Run_js(id='aladin-lite-div-skymap'),
-                    dcc.Markdown('_Hit the fullscreen button if the image is not displayed (we are working on it...)_')
+                    dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
                 ], style={
                     'width': '100%',
                     'height': '25pc'
