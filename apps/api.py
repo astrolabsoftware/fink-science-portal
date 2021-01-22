@@ -97,6 +97,17 @@ r = ...
 pd.read_csv(io.BytesIO(r.content))
 ```
 
+You can also get a votable using the json output format:
+
+```python
+from astropy.table import Table
+
+# get data for ZTF19acnjwgm in JSON format...
+r = ...
+
+t = Table(r.json())
+```
+
 By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
 But you can also choose to transfer only a subset of the fields:
 
@@ -364,7 +375,7 @@ args_objects = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, votable, parquet'
+        'description': 'Output format among json[default], csv, parquet'
     }
 ]
 
@@ -409,7 +420,7 @@ args_explorer = [
         'name': 'output-format',
         'required': False,
         'group': None,
-        'description': 'Output format among json[default], csv, votable, parquet'
+        'description': 'Output format among json[default], csv, parquet'
     }
 ]
 
@@ -427,7 +438,7 @@ args_latest = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, votable, parquet'
+        'description': 'Output format among json[default], csv, parquet'
     }
 ]
 
@@ -494,8 +505,6 @@ def return_object():
         return pdf.to_json(orient='records')
     elif output_format == 'csv':
         return pdf.to_csv(index=False)
-    elif output_format == 'votable':
-        return Table.from_pandas(pdf)
     elif output_format == 'parquet':
         f = io.BytesIO()
         pdf.to_parquet(f)
@@ -629,8 +638,6 @@ def query_db():
         return pdfs.to_json(orient='records')
     elif output_format == 'csv':
         return pdfs.to_csv(index=False)
-    elif output_format == 'votable':
-        return Table.from_pandas(pdf)
     elif output_format == 'parquet':
         f = io.BytesIO()
         pdfs.to_parquet(f)
@@ -719,8 +726,6 @@ def latest_objects():
         return pdfs.to_json(orient='records')
     elif output_format == 'csv':
         return pdfs.to_csv(index=False)
-    elif output_format == 'votable':
-        return Table.from_pandas(pdf)
     elif output_format == 'parquet':
         f = io.BytesIO()
         pdfs.to_parquet(f)
