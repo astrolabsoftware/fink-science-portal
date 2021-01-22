@@ -34,6 +34,7 @@ import numpy as np
 import astropy.units as u
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 
 from flask import Blueprint
 
@@ -94,6 +95,17 @@ Note that for `csv` output, you need to use
 r = ...
 
 pd.read_csv(io.BytesIO(r.content))
+```
+
+You can also get a votable using the json output format:
+
+```python
+from astropy.table import Table
+
+# get data for ZTF19acnjwgm in JSON format...
+r = ...
+
+t = Table(r.json())
 ```
 
 By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
