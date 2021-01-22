@@ -34,6 +34,7 @@ import numpy as np
 import astropy.units as u
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 
 from flask import Blueprint
 
@@ -363,7 +364,7 @@ args_objects = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, votable, parquet'
     }
 ]
 
@@ -408,7 +409,7 @@ args_explorer = [
         'name': 'output-format',
         'required': False,
         'group': None,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, votable, parquet'
     }
 ]
 
@@ -426,7 +427,7 @@ args_latest = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, votable, parquet'
     }
 ]
 
@@ -493,6 +494,8 @@ def return_object():
         return pdf.to_json(orient='records')
     elif output_format == 'csv':
         return pdf.to_csv(index=False)
+    elif output_format == 'votable':
+        return Table.from_pandas(pdf)
     elif output_format == 'parquet':
         f = io.BytesIO()
         pdf.to_parquet(f)
@@ -626,6 +629,8 @@ def query_db():
         return pdfs.to_json(orient='records')
     elif output_format == 'csv':
         return pdfs.to_csv(index=False)
+    elif output_format == 'votable':
+        return Table.from_pandas(pdf)
     elif output_format == 'parquet':
         f = io.BytesIO()
         pdfs.to_parquet(f)
@@ -714,6 +719,8 @@ def latest_objects():
         return pdfs.to_json(orient='records')
     elif output_format == 'csv':
         return pdfs.to_csv(index=False)
+    elif output_format == 'votable':
+        return Table.from_pandas(pdf)
     elif output_format == 'parquet':
         f = io.BytesIO()
         pdfs.to_parquet(f)
