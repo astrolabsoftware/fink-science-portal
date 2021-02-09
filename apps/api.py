@@ -18,7 +18,7 @@ import dash_bootstrap_components as dbc
 
 from flask import request, jsonify, Response
 
-from app import client, clientP, clientT, clientS, nlimit
+from app import client, clientP, clientT, clientS, clientSSO, nlimit
 from apps.utils import extract_fink_classification, convert_jd
 from apps.utils import hbase_type_converter
 from apps.utils import extract_last_r_minus_g_each_object
@@ -49,13 +49,14 @@ api_doc_summary = """
 
 | HTTP Method | URI | Action | Availability |
 |-------------|-----|--------|--------------|
-| POST/GET | http://134.158.75.151:24000/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
-| POST/GET | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
-| POST/GET | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
-| POST/GET | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
-| GET  | http://134.158.75.151:24000/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
-| GET  | http://134.158.75.151:24000/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-"""
+| POST/GET | {}/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
+| GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
+| GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
+""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
 ## Retrieve single object data
@@ -291,6 +292,93 @@ pd.read_csv(io.BytesIO(r.content))
 ```
 """
 
+api_doc_sso = """
+## Retrieve Solar System Object data
+
+The list of arguments for retrieving SSO data can be found at http://134.158.75.151:24000/api/v1/sso.
+The numbers or designations are taken from the MPC archive.
+When searching for a particular asteroid or comet, it is best to use the IAU number,
+as in 4209 for asteroid "4209 Briggs". You can also try for numbered comet (e.g. 10P),
+or interstellar object (none so far...). If the number does not yet exist, you can search for designation.
+Here are some examples of valid queries:
+
+* Asteroids by number (default)
+  * Asteroids (Main Belt): 4209, 1922
+  * Asteroids (Hungarians): 18582, 77799
+  * Asteroids (Jupiter Trojans): 4501, 1583
+  * Asteroids (Mars Crossers): 302530
+* Asteroids by designation (if number does not exist yet)
+  * 2010JO69, 2017AD19, 2012XK111
+* Comets by number (default)
+  * 10P, 249P, 124P
+* Comets by designation (if number does no exist yet)
+  * C/2020V2, C/2020R2
+
+Note for designation, you can also use space (2010 JO69 or C/2020 V2).
+
+In a unix shell, you would simply use
+
+```bash
+# Get data for the asteroid 4209 and save it in a CSV file
+curl -H "Content-Type: application/json" -X POST -d '{"n_or_d":"4209", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/sso -o 4209.csv
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/sso',
+  json={
+    'n_or_d': '4209',
+    'output-format': 'json'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+Note that for `csv` output, you need to use
+
+```python
+# get data for asteroid 4209 in CSV format...
+r = ...
+
+pd.read_csv(io.BytesIO(r.content))
+```
+
+You can also get a votable using the json output format:
+
+```python
+from astropy.table import Table
+
+# get data for asteroid 4209 in JSON format...
+r = ...
+
+t = Table(r.json())
+```
+
+By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
+But you can also choose to transfer only a subset of the fields:
+
+```python
+# select only jd, and magpsf
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/sso',
+  json={
+    'n_or_d': '4209',
+    'columns': 'i:jd,i:magpsf'
+  }
+)
+```
+
+Note that the fields should be comma-separated. Unknown field names are ignored.
+"""
+
 layout = html.Div(
     [
         html.Br(),
@@ -345,6 +433,17 @@ layout = html.Div(
                                 ),
                             ], label="Get latest alerts"
                         ),
+                        dbc.Tab(
+                            [
+                                dbc.Card(
+                                    dbc.CardBody(
+                                        dcc.Markdown(api_doc_sso)
+                                    ), style={
+                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                    }
+                                ),
+                            ], label="Get Solar System Objects"
+                        ),
                         dbc.Tab(label="Xmatch", disabled=True),
                     ]
                 )
@@ -370,7 +469,7 @@ args_objects = [
     {
         'name': 'columns',
         'required': False,
-        'description': 'Comma-separated data columns to transfer. Default is all columns. See http://134.158.75.151:24000/api/v1/columns for more information.'
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
     },
     {
         'name': 'output-format',
@@ -442,6 +541,24 @@ args_latest = [
     }
 ]
 
+args_sso = [
+    {
+        'name': 'n_or_d',
+        'required': False,
+        'description': 'IAU number of the object, or designation of the object IF the number does not exist yet. Example for numbers: 4209 (asteroid) or 10P (comet). Example for designations: 2010JO69 (asteroid) or C/2020V2 (comet).'
+    },
+    {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet'
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -469,8 +586,10 @@ def return_object():
 
     if 'columns' in request.json:
         cols = request.json['columns'].replace(" ", "")
+        truncated = True
     else:
         cols = '*'
+        truncated = False
     to_evaluate = "key:key:{}".format(request.json['objectId'])
 
     # We do not want to perform full scan if the objectid is a wildcard
@@ -488,7 +607,9 @@ def return_object():
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
 
-    pdf = format_hbase_output(results, schema_client, group_alerts=False)
+    pdf = format_hbase_output(
+        results, schema_client, group_alerts=False, truncated=truncated
+    )
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
@@ -822,3 +943,65 @@ def columns_arguments():
     }
 
     return jsonify({'fields': types})
+
+@api_bp.route('/api/v1/sso', methods=['GET'])
+def return_soo_arguments():
+    """ Obtain information about retrieving Solar System Object data
+    """
+    return jsonify({'args': args_sso})
+
+@api_bp.route('/api/v1/sso', methods=['POST'])
+def return_sso():
+    """ Retrieve Solar System Object data from the Fink database
+    """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
+    if 'columns' in request.json:
+        cols = request.json['columns'].replace(" ", "")
+        truncated = True
+    else:
+        cols = '*'
+        truncated = False
+
+    payload = request.json['n_or_d'].replace(' ', '')
+
+    # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
+    to_evaluate = "key:key:{}_".format(payload)
+
+    # We do not want to perform full scan if the objectid is a wildcard
+    clientSSO.setLimit(1000)
+
+    results = clientSSO.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, True, True
+    )
+
+    schema_client = clientSSO.schema()
+
+    # reset the limit in case it has been changed above
+    clientSSO.setLimit(nlimit)
+
+    pdf = format_hbase_output(
+        results, schema_client, group_alerts=False, truncated=truncated
+    )
+
+    if output_format == 'json':
+        return pdf.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdf.to_csv(index=False)
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdf.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
+    }
+    return Response(str(rep), 400)

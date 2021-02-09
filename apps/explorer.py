@@ -55,6 +55,28 @@ Among several, you can choose YYYY-MM-DD hh:mm:ss, Julian Date, or Modified Juli
 
 Choose a class of interest using the drop-down menu to see the 100 latest alerts processed by Fink.
 
+##### Solar System Objects (SSO)
+
+Search for Solar System Object in the Fink database.
+The numbers or designations are taken from the MPC archive.
+When searching for a particular asteroid or comet, it is best to use the IAU number,
+as in 4209 for asteroid "4209 Briggs". You can also try for numbered comet (e.g. 10P),
+or interstellar object (none so far...). If the number does not yet exist, you can search for designation.
+Here are some examples of valid queries:
+
+* Asteroids by number (default)
+  * Asteroids (Main Belt): 4209, 1922
+  * Asteroids (Hungarians): 18582, 77799
+  * Asteroids (Jupiter Trojans): 4501, 1583
+  * Asteroids (Mars Crossers): 302530
+* Asteroids by designation (if number does not exist yet)
+  * 2010JO69, 2017AD19, 2012XK111
+* Comets by number (default)
+  * 10P, 249P, 124P
+* Comets by designation (if number does no exist yet)
+  * C/2020V2, C/2020R2
+
+Note for designation, you can also use space (2010 JO69 or C/2020 V2).
 """
 
 msg_info = """
@@ -118,7 +140,8 @@ dropdown_menu_items = [
     dbc.DropdownMenuItem("ZTF Object ID", id="dropdown-menu-item-1"),
     dbc.DropdownMenuItem("Conesearch", id="dropdown-menu-item-2"),
     dbc.DropdownMenuItem("Date Search", id="dropdown-menu-item-3"),
-    dbc.DropdownMenuItem("Class search", id="dropdown-menu-item-4")
+    dbc.DropdownMenuItem("Class search", id="dropdown-menu-item-4"),
+    dbc.DropdownMenuItem("SSO search", id="dropdown-menu-item-5")
 ]
 
 
@@ -323,9 +346,10 @@ def display_skymap():
         Input("dropdown-menu-item-2", "n_clicks"),
         Input("dropdown-menu-item-3", "n_clicks"),
         Input("dropdown-menu-item-4", "n_clicks"),
+        Input("dropdown-menu-item-5", "n_clicks")
     ]
 )
-def input_type(n1, n2, n3, n4):
+def input_type(n1, n2, n3, n4, n5):
     """ Decide if the dropdown below the search bar should be shown
 
     Only some query types need to have a dropdown (Date & Class search). In
@@ -377,10 +401,11 @@ def input_type(n1, n2, n3, n4):
         Input("dropdown-menu-item-2", "n_clicks"),
         Input("dropdown-menu-item-3", "n_clicks"),
         Input("dropdown-menu-item-4", "n_clicks"),
+        Input("dropdown-menu-item-5", "n_clicks")
     ],
     State("search_bar_input", "value")
 )
-def on_button_click(n1, n2, n3, n4, val):
+def on_button_click(n1, n2, n3, n4, n5, val):
     """ Change the placeholder value of the search bar based on the query type
     """
     ctx = dash.callback_context
@@ -399,6 +424,8 @@ def on_button_click(n1, n2, n3, n4, val):
         return "Search alerts inside a time window. See Help for the syntax", "Date", val
     elif button_id == "dropdown-menu-item-4":
         return "Show last 100 alerts for a particular class", "Class", val
+    elif button_id == "dropdown-menu-item-5":
+        return "Enter a valid IAU number. See Help for more information", "SSO", val
     else:
         return "Valid object ID", "objectID", ""
 
@@ -569,6 +596,16 @@ def results(ns, query, query_type, dropdown_option, results):
                 'objectId': query,
             }
         )
+    elif query_type == 'SSO':
+        # strip from spaces
+        query_ = str(query.replace(' ', ''))
+
+        r = requests.post(
+            '{}/api/v1/sso'.format(APIURL),
+            json={
+                'n_or_d': query_
+            }
+        )
     elif query_type == 'Conesearch':
         ra, dec, radius = query.split(',')
         r = requests.post(
@@ -678,6 +715,9 @@ def open_noresults(n, results, query, query_type, dropdown_option):
         if query_type == 'objectID':
             header = "Search by Object ID"
             text = "{} not found".format(query)
+        elif query_type == 'SSO':
+            header = "Search by Solar System Object ID"
+            text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
         elif query_type == 'Conesearch':
             header = "Conesearch"
             text = "No alerts found for (RA, Dec, radius) = {}".format(
