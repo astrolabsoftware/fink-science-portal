@@ -949,7 +949,7 @@ def return_sso():
         output_format = 'json'
 
     # Check at least (and at most) a number or a designation is there
-    args = [i['name'] for i in args_objects]
+    args = [i['name'] for i in args_sso]
     if ('number' in args) and ('designation' in args):
         rep = {
             'status': 'error',
