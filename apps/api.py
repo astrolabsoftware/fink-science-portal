@@ -432,6 +432,17 @@ layout = html.Div(
                                 ),
                             ], label="Get latest alerts"
                         ),
+                        dbc.Tab(
+                            [
+                                dbc.Card(
+                                    dbc.CardBody(
+                                        dcc.Markdown(api_doc_sso)
+                                    ), style={
+                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                    }
+                                ),
+                            ], label="Get Solar System Objects"
+                        ),
                         dbc.Tab(label="Xmatch", disabled=True),
                     ]
                 )
