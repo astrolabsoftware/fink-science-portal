@@ -586,8 +586,10 @@ def return_object():
 
     if 'columns' in request.json:
         cols = request.json['columns'].replace(" ", "")
+        truncated = True
     else:
         cols = '*'
+        truncated = False
     to_evaluate = "key:key:{}".format(request.json['objectId'])
 
     # We do not want to perform full scan if the objectid is a wildcard
@@ -605,7 +607,9 @@ def return_object():
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
 
-    pdf = format_hbase_output(results, schema_client, group_alerts=False)
+    pdf = format_hbase_output(
+        results, schema_client, group_alerts=False, truncated=truncated
+    )
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
@@ -957,8 +961,10 @@ def return_sso():
 
     if 'columns' in request.json:
         cols = request.json['columns'].replace(" ", "")
+        truncated = True
     else:
         cols = '*'
+        truncated = False
 
     payload = request.json['n_or_d'].replace(' ', '')
 
@@ -980,7 +986,9 @@ def return_sso():
     # reset the limit in case it has been changed above
     clientSSO.setLimit(nlimit)
 
-    pdf = format_hbase_output(results, schema_client, group_alerts=False)
+    pdf = format_hbase_output(
+        results, schema_client, group_alerts=False, truncated=truncated
+    )
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
