@@ -600,19 +600,11 @@ def results(ns, query, query_type, dropdown_option, results):
         # strip from spaces
         query_ = str(query.replace(' ', ''))
 
-        if query_.isnumeric() or query_.endswith('P'):
-            # asteroid or comet / number
-            payload = {
-                'number': query_
-            }
-        elif query_.startswith('C') or query_.isalnum():
-            # comet or asteroid designation
-            payload = {
-                'designation': query_
-            }
         r = requests.post(
             '{}/api/v1/sso'.format(APIURL),
-            json=payload
+            json={
+                'n_or_d': query_
+            }
         )
     elif query_type == 'Conesearch':
         ra, dec, radius = query.split(',')

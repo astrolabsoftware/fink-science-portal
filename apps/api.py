@@ -49,13 +49,13 @@ api_doc_summary = """
 
 | HTTP Method | URI | Action | Availability |
 |-------------|-----|--------|--------------|
-| POST/GET | http://134.158.75.151:24000/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
-| POST/GET | http://134.158.75.151:24000/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
-| POST/GET | http://134.158.75.151:24000/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
-| POST/GET | http://134.158.75.151:24000/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
-| GET  | http://134.158.75.151:24000/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
-| GET  | http://134.158.75.151:24000/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-"""
+| POST/GET | {}/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
+| GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
+| GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
+""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
 ## Retrieve single object data
@@ -319,7 +319,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get data for the asteroid 4209 and save it in a CSV file
-curl -H "Content-Type: application/json" -X POST -d '{"number":"4209", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/sso -o 4209.csv
+curl -H "Content-Type: application/json" -X POST -d '{"n_or_d":"4209", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/sso -o 4209.csv
 ```
 
 In python, you would use
@@ -332,7 +332,7 @@ import pandas as pd
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/sso',
   json={
-    'number': '4209',
+    'n_or_d': '4209',
     'output-format': 'json'
   }
 )
@@ -369,7 +369,7 @@ But you can also choose to transfer only a subset of the fields:
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/sso',
   json={
-    'number': '4209',
+    'n_or_d': '4209',
     'columns': 'i:jd,i:magpsf'
   }
 )
@@ -457,7 +457,7 @@ args_objects = [
     {
         'name': 'columns',
         'required': False,
-        'description': 'Comma-separated data columns to transfer. Default is all columns. See http://134.158.75.151:24000/api/v1/columns for more information.'
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
     },
     {
         'name': 'output-format',
@@ -531,19 +531,14 @@ args_latest = [
 
 args_sso = [
     {
-        'name': 'number',
+        'name': 'n_or_d',
         'required': False,
-        'description': 'IAU number of the object. Example 4209 (asteroid) or 10P (comet).'
-    },
-    {
-        'name': 'designation',
-        'required': False,
-        'description': 'Designation of the object IF the number does not exist yet. Do not use if the number exists. Example 2010JO69 (asteroid) or C/2020V2 (comet)'
+        'description': 'IAU number of the object, or designation of the object IF the number does not exist yet. Example for numbers: 4209 (asteroid) or 10P (comet). Example for designations: 2010JO69 (asteroid) or C/2020V2 (comet).'
     },
     {
         'name': 'columns',
         'required': False,
-        'description': 'Comma-separated data columns to transfer. Default is all columns. See http://134.158.75.151:24000/api/v1/columns for more information.'
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
     },
     {
         'name': 'output-format',
@@ -948,31 +943,12 @@ def return_sso():
     else:
         output_format = 'json'
 
-    # Check at least (and at most) a number or a designation is there
-    args = [i['name'] for i in args_sso]
-    if ('number' in args) and ('designation' in args):
-        rep = {
-            'status': 'error',
-            'text': "Use either number or designation, but not both.\n"
-        }
-        return Response(str(rep), 400)
-    elif ('number' not in args) and ('designation' not in args):
-        rep = {
-            'status': 'error',
-            'text': "You need to specify a number or a designation.\n"
-        }
-        return Response(str(rep), 400)
-
     if 'columns' in request.json:
         cols = request.json['columns'].replace(" ", "")
     else:
         cols = '*'
 
-    if 'number' in request.json:
-        # classical case
-        payload = request.json['number']
-    elif 'designation' in request.json:
-        payload = request.json['designation'].replace(' ', '')
+    payload = request.json['n_or_d'].replace(' ', '')
 
     # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
     to_evaluate = "key:key:{}_".format(payload)
