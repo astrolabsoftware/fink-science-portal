@@ -36,7 +36,7 @@ hbase_type_converter = {
     'fits/image': str
 }
 
-def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncated: bool):
+def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncated: bool = False):
     """
     """
     if hbase_output.isEmpty():
