@@ -376,6 +376,7 @@ def input_type(n1, n2, n3, n4, n5):
     elif button_id == "dropdown-menu-item-4":
         options = [
             {'label': 'All classes', 'value': 'allclasses'},
+            {'label': 'Unknown', 'value': 'Unknown'},
             {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
             {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
             {'label': 'Supernova candidates', 'value': 'SN candidate'},
@@ -385,7 +386,7 @@ def input_type(n1, n2, n3, n4, n5):
             {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
             *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
         ]
-        placeholder = "Start typing or choose a class (default is last 100 alerts)"
+        placeholder = "Start typing or choose a class. We will display the last 100 alerts for this class."
         return {}, options, placeholder
     else:
         return {'display': 'none'}, [], ''
