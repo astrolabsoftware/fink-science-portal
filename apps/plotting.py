@@ -520,20 +520,42 @@ def draw_cutouts(clickData, object_data):
         try:
             data = extract_cutout(object_data, jd0, kind=kind)
             figs.append(draw_cutout(data, kind))
-        except OSError as e:
+        except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
     return figs
+
+# Sigmoid function used for img_normalizer
+def sigmoid(img):
+    # Compute mean and std of the image
+    img_mean, img_std = img.mean(), img.std()
+    # restore img to normal mean and std
+    img_normalize = (img - img_mean) / img_std
+    # image inversion
+    inv_norm = -img_normalize
+    # compute exponential of inv img
+    exp_norm = np.exp(inv_norm)
+    # perform sigmoid calculation and return it
+    return 1 / (1 + exp_norm)
+
+# Image normalisation between vmin and vmax using Sigmoid function
+def sigmoid_normalizer(img, vmin, vmax):
+    return (vmax - vmin) * sigmoid(img) + vmin
+
+def legacy_normalizer(data):
+    size = len(data)
+    vmax = data[int(size / 2), int(size / 2)]
+    vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
+    return _data_stretch(data, vmin=vmin, vmax=vmax, stretch='asinh')
 
 def draw_cutout(data, title):
     """ Draw a cutout data
     """
     # Update graph data for stamps
-    size = len(data)
     data = np.nan_to_num(data)
-    vmax = data[int(size / 2), int(size / 2)]
-    vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
-    data = _data_stretch(data, vmin=vmin, vmax=vmax, stretch='asinh')
+    
+    data = sigmoid_normalizer(data, 0, 1)
+    
     data = data[::-1]
     data = convolve(data, smooth=1, kernel='gauss')
 
