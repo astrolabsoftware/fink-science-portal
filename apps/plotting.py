@@ -525,7 +525,7 @@ def draw_cutouts(clickData, object_data):
             figs.append(data)
     return figs
 
-def sigmoid(img: float array) -> float array:
+def sigmoid(img: list) -> list:
     
     """ Sigmoid function used for img_normalizer
 
@@ -550,7 +550,7 @@ def sigmoid(img: float array) -> float array:
     # perform sigmoid calculation and return it
     return 1 / (1 + exp_norm)
 
-def sigmoid_normalizer(img: float array, vmin: float, vmax: float) -> float array:
+def sigmoid_normalizer(img: list, vmin: float, vmax: float) -> list:
     """ Image normalisation between vmin and vmax using Sigmoid function
 
     Parameters
@@ -564,7 +564,7 @@ def sigmoid_normalizer(img: float array, vmin: float, vmax: float) -> float arra
     """
     return (vmax - vmin) * sigmoid(img) + vmin
 
-def legacy_normalizer(data: float array) -> float array:
+def legacy_normalizer(data: list) -> list:
     """ Old cutout normalizer which use the central pixel
 
     Parameters
