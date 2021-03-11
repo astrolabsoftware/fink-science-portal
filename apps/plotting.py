@@ -525,8 +525,20 @@ def draw_cutouts(clickData, object_data):
             figs.append(data)
     return figs
 
-# Sigmoid function used for img_normalizer
-def sigmoid(img):
+def sigmoid(img: float array) -> float array:
+    
+    """ Sigmoid function used for img_normalizer
+
+    Parameters
+    -----------
+    img: float array
+        a float array representing a non-normalized image
+
+    Returns
+    -----------
+    out: float array 
+    """
+    
     # Compute mean and std of the image
     img_mean, img_std = img.mean(), img.std()
     # restore img to normal mean and std
@@ -538,23 +550,44 @@ def sigmoid(img):
     # perform sigmoid calculation and return it
     return 1 / (1 + exp_norm)
 
-# Image normalisation between vmin and vmax using Sigmoid function
-def sigmoid_normalizer(img, vmin, vmax):
+def sigmoid_normalizer(img: float array, vmin: float, vmax: float) -> float array:
+    """ Image normalisation between vmin and vmax using Sigmoid function
+
+    Parameters
+    -----------
+    img: float array
+        a float array representing a non-normalized image
+
+    Returns
+    -----------
+    out: float array where data are bounded between vmin and vmax
+    """
     return (vmax - vmin) * sigmoid(img) + vmin
 
-def legacy_normalizer(data):
+def legacy_normalizer(data: float array) -> float array:
+    """ Old cutout normalizer which use the central pixel
+
+    Parameters
+    -----------
+    data: float array
+        a float array representing a non-normalized image
+
+    Returns
+    -----------
+    out: float array where data are bouded between vmin and vmax
+    """
     size = len(data)
     vmax = data[int(size / 2), int(size / 2)]
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     return _data_stretch(data, vmin=vmin, vmax=vmax, stretch='asinh')
 
-def draw_cutout(data, title):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1):
     """ Draw a cutout data
     """
     # Update graph data for stamps
     data = np.nan_to_num(data)
     
-    data = sigmoid_normalizer(data, 0, 1)
+    data = sigmoid_normalizer(data, lower_bound, upper_bound)
     
     data = data[::-1]
     data = convolve(data, smooth=1, kernel='gauss')
