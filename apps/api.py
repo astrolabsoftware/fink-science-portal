@@ -873,7 +873,7 @@ def class_arguments():
 
     types = {
         'Fink classifiers': fink_types,
-        'Cross-match with SIMBAD': simbad_types
+        'Cross-match with SIMBAD (see http://simbad.u-strasbg.fr/simbad/sim-display?data=otypes)': simbad_types
     }
 
     return jsonify({'classnames': types})
