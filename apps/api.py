@@ -804,7 +804,7 @@ def query_db():
     pdfs = format_hbase_output(results, schema_client, group_alerts=True)
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdf = extract_cutouts(pdf, client)
+        pdfs = extract_cutouts(pdfs, client)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
@@ -895,7 +895,7 @@ def latest_objects():
     pdfs = format_hbase_output(results, schema_client, group_alerts=False)
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdf = extract_cutouts(pdf, client)
+        pdfs = extract_cutouts(pdfs, client)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
