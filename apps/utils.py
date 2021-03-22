@@ -187,9 +187,9 @@ def extract_cutouts(pdf: pd.DataFrame, client) -> pd.DataFrame:
         Modified original DataFrame with cutout data uncompressed (2D array)
     """
     if 'b:cutoutScience_stampData' not in pdf.columns:
-        pdf['b:cutoutScience_stampData'] = 'binary:' + pdf['objectId'] + '_' + pdf['jd'].astype('str') + ':cutoutScience_stampData'
-        pdf['b:cutoutTemplate_stampData'] = 'binary:' + pdf['objectId'] + '_' + pdf['jd'].astype('str') + ':cutoutTemplate_stampData'
-        pdf['b:cutoutDifference_stampData'] = 'binary:' + pdf['objectId'] + '_' + pdf['jd'].astype('str') + ':cutoutDifference_stampData'
+        pdf['b:cutoutScience_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutScience_stampData'
+        pdf['b:cutoutTemplate_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutTemplate_stampData'
+        pdf['b:cutoutDifference_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutDifference_stampData'
 
     pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
         lambda x: readstamp(client.repository().get(x))
