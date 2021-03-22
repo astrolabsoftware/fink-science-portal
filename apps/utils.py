@@ -169,6 +169,34 @@ def readstamp(stamp: str) -> np.array:
             data = hdul[0].data
     return data
 
+def extract_cutouts(pdf: pd.DataFrame, client) -> pd.DataFrame:
+    """ Query and uncompress cutout data from the HBase table
+
+    Inplace modifications
+
+    Parameters
+    ----------
+    pdf: Pandas DataFrame
+        DataFrame returned by `format_hbase_output` (see api.py)
+    client: com.Lomikel.HBaser.HBaseClient
+        HBase client used to query the database
+
+    Returns
+    ----------
+    pdf: Pandas DataFrame
+        Modified original DataFrame with cutout data uncompressed (2D array)
+    """
+    pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
+        lambda x: readstamp(client.repository().get(x))
+    )
+    pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
+        lambda x: readstamp(client.repository().get(x))
+    )
+    pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
+        lambda x: readstamp(client.repository().get(x))
+    )
+    return pdf
+
 def extract_properties(data: str, fieldnames: list):
     """
     """

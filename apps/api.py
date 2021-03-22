@@ -23,6 +23,7 @@ from apps.utils import extract_fink_classification, convert_jd
 from apps.utils import hbase_type_converter
 from apps.utils import extract_last_r_minus_g_each_object
 from apps.utils import format_hbase_output
+from apps.utils import extract_cutouts
 
 import io
 import requests
@@ -464,7 +465,7 @@ args_objects = [
     {
         'name': 'withcutouts',
         'required': False,
-        'description': 'If True, retrieve also gzipped FITS cutouts.'
+        'description': 'If True, retrieve also uncompressed FITS cutout data (2D array).'
     },
     {
         'name': 'columns',
@@ -612,15 +613,7 @@ def return_object():
     )
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
-            lambda x: str(client.repository().get(x))
-        )
-        pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
-            lambda x: str(client.repository().get(x))
-        )
-        pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
-            lambda x: str(client.repository().get(x))
-        )
+        pdf = extract_cutouts(pdf, client)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
