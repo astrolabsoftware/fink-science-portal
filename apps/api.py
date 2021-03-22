@@ -738,6 +738,7 @@ def query_db():
         client.setLimit(nlimit)
 
         schema_client = client.schema()
+        client_ = client
     if user_group == 1:
         clientP.setLimit(1000)
 
@@ -776,6 +777,7 @@ def query_db():
             0, True, True
         )
         schema_client = clientP.schema()
+        client_ = clientP
     elif user_group == 2:
         if int(request.json['window']) > 180:
             rep = {
@@ -797,6 +799,7 @@ def query_db():
             0, True, True
         )
         schema_client = clientT.schema()
+        client_ = clientT
 
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
@@ -804,7 +807,7 @@ def query_db():
     pdfs = format_hbase_output(results, schema_client, group_alerts=True)
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdfs = extract_cutouts(pdfs, client)
+        pdfs = extract_cutouts(pdfs, client_)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
