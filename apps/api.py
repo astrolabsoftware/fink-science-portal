@@ -125,6 +125,45 @@ r = requests.post(
 ```
 
 Note that the fields should be comma-separated. Unknown field names are ignored.
+
+Finally, you can also request data from cutouts stored in alerts (science, template and difference).
+Simply set `withcutouts` in the json payload (string):
+
+```python
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# transfer cutout data
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/objects',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+    'withcutouts': 'True'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+
+columns = [
+    'b:cutoutScience_stampData',
+    'b:cutoutTemplate_stampData',
+    'b:cutoutDifference_stampData'
+]
+
+for col in columns:
+    # 2D array
+    data = pdf[col].values[0]
+
+    # do whatever plotting
+
+plt.show()
+```
+
+See [here](https://github.com/astrolabsoftware/fink-science-portal/blob/1dea22170449f120d92f404ac20bbb856e1e77fc/apps/plotting.py#L463-L625) how we do in the Science Portal to display cutouts.
+Note that you need to flip the array to get the correct orientation on sky (`data[::-1]`).
+
 """
 
 api_doc_explorer = """
