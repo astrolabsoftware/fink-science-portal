@@ -161,7 +161,7 @@ for col in columns:
 plt.show()
 ```
 
-See [here](https://github.com/astrolabsoftware/fink-science-portal/blob/1dea22170449f120d92f404ac20bbb856e1e77fc/apps/plotting.py#L463-L625) how we do in the Science Portal to display cutouts.
+See [here](https://github.com/astrolabsoftware/fink-science-portal/blob/1dea22170449f120d92f404ac20bbb856e1e77fc/apps/plotting.py#L584-L593) how we do in the Science Portal to display cutouts.
 Note that you need to flip the array to get the correct orientation on sky (`data[::-1]`).
 
 """
@@ -556,12 +556,6 @@ args_explorer = [
         'description': 'Time window in minutes. Maximum is 180 minutes.'
     },
     {
-        'name': 'withcutouts',
-        'required': False,
-        'group': None,
-        'description': 'If True, retrieve also uncompressed FITS cutout data (2D array).'
-    },
-    {
         'name': 'output-format',
         'required': False,
         'group': None,
@@ -581,11 +575,6 @@ args_latest = [
         'description': 'Last N alerts to transfer. Default is 10, max is 1000.'
     },
     {
-        'name': 'withcutouts',
-        'required': False,
-        'description': 'If True, retrieve also uncompressed FITS cutout data (2D array).'
-    },
-    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet'
@@ -602,11 +591,6 @@ args_sso = [
         'name': 'columns',
         'required': False,
         'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
-    },
-    {
-        'name': 'withcutouts',
-        'required': False,
-        'description': 'If True, retrieve also uncompressed FITS cutout data (2D array).'
     },
     {
         'name': 'output-format',
@@ -803,9 +787,6 @@ def query_db():
 
     pdfs = format_hbase_output(results, schema_client, group_alerts=True)
 
-    if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdfs = extract_cutouts(pdfs, client)
-
     if output_format == 'json':
         return pdfs.to_json(orient='records')
     elif output_format == 'csv':
@@ -893,9 +874,6 @@ def latest_objects():
 
     # We want to return alerts
     pdfs = format_hbase_output(results, schema_client, group_alerts=False)
-
-    if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdfs = extract_cutouts(pdfs, client)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
@@ -1068,9 +1046,6 @@ def return_sso():
     pdf = format_hbase_output(
         results, schema_client, group_alerts=False, truncated=truncated
     )
-
-    if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdf = extract_cutouts(pdf, client)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
