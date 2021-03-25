@@ -283,6 +283,7 @@ def display_skymap(validation, data, columns):
         colors = {
             'Early SN candidate': 'red',
             'SN candidate': 'orange',
+            'Kilonova candidate': 'blue',
             'Microlensing candidate': 'green',
             'Solar System': 'white',
             'Ambiguous': 'purple',
@@ -380,6 +381,7 @@ def input_type(n1, n2, n3, n4, n5):
             {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
             {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
             {'label': 'Supernova candidates', 'value': 'SN candidate'},
+            {'label': 'Kilonova candidates', 'value': 'Kilonova candidate'},
             {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
             {'label': 'Solar System Object candidates', 'value': 'Solar System'},
             {'label': 'Ambiguous', 'value': 'Ambiguous'},

@@ -1,4 +1,4 @@
-# Copyright 2020 AstroLab Software
+# Copyright 2020-2021 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +17,9 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 
-from app import client, app
+from app import app
 
-from apps.utils import convert_jd, extract_properties
-from apps.utils import extract_fink_classification_single
-from apps.plotting import draw_cutout, draw_scores, all_radio_options
+from apps.plotting import all_radio_options
 
 from astropy.time import Time
 import pandas as pd
