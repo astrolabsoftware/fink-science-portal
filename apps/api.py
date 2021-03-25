@@ -23,6 +23,7 @@ from apps.utils import extract_fink_classification, convert_jd
 from apps.utils import hbase_type_converter
 from apps.utils import extract_last_r_minus_g_each_object
 from apps.utils import format_hbase_output
+from apps.utils import extract_cutouts
 
 import io
 import requests
@@ -124,6 +125,45 @@ r = requests.post(
 ```
 
 Note that the fields should be comma-separated. Unknown field names are ignored.
+
+Finally, you can also request data from cutouts stored in alerts (science, template and difference).
+Simply set `withcutouts` in the json payload (string):
+
+```python
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# transfer cutout data
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/objects',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+    'withcutouts': 'True'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+
+columns = [
+    'b:cutoutScience_stampData',
+    'b:cutoutTemplate_stampData',
+    'b:cutoutDifference_stampData'
+]
+
+for col in columns:
+    # 2D array
+    data = pdf[col].values[0]
+
+    # do whatever plotting
+
+plt.show()
+```
+
+See [here](https://github.com/astrolabsoftware/fink-science-portal/blob/1dea22170449f120d92f404ac20bbb856e1e77fc/apps/plotting.py#L584-L593) how we do in the Science Portal to display cutouts.
+Note that you need to flip the array to get the correct orientation on sky (`data[::-1]`).
+
 """
 
 api_doc_explorer = """
@@ -464,7 +504,7 @@ args_objects = [
     {
         'name': 'withcutouts',
         'required': False,
-        'description': 'If True, retrieve also gzipped FITS cutouts.'
+        'description': 'If True, retrieve also uncompressed FITS cutout data (2D array).'
     },
     {
         'name': 'columns',
@@ -612,15 +652,7 @@ def return_object():
     )
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
-        pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
-            lambda x: str(client.repository().get(x))
-        )
-        pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
-            lambda x: str(client.repository().get(x))
-        )
-        pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
-            lambda x: str(client.repository().get(x))
-        )
+        pdf = extract_cutouts(pdf, client)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
@@ -908,6 +940,30 @@ def columns_arguments():
         }, ignore_index=True
     )
 
+    ztf_cutouts = pd.DataFrame.from_dict(
+        [
+            {
+                "name": "cutoutScience_stampData",
+                "type": "array",
+                "doc": "2D array from the Science cutout FITS"
+            }
+        ]
+    )
+    ztf_cutouts = ztf_cutouts.append(
+        {
+            "name": "cutoutTemplate_stampData",
+            "type": "array",
+            "doc": "2D array from the Template cutout FITS"
+        }, ignore_index=True
+    )
+    ztf_cutouts = ztf_cutouts.append(
+        {
+            "name": "cutoutDifference_stampData",
+            "type": "array",
+            "doc": "2D array from the Difference cutout FITS"
+        }, ignore_index=True
+    )
+
     # Science modules
     fink_science = pd.DataFrame(
         [
@@ -938,6 +994,7 @@ def columns_arguments():
 
     types = {
         'ZTF original fields (i:)': {i: {'type': j, 'doc': k} for i, j, k in zip(ztf_candidate.name, ztf_candidate.type, ztf_candidate.doc)},
+        'ZTF original cutouts (b:)': {i: {'type': j, 'doc': k} for i, j, k in zip(ztf_cutouts.name, ztf_cutouts.type, ztf_cutouts.doc)},
         'Fink science module outputs (d:)': {i: {'type': j, 'doc': k} for i, j, k in zip(fink_science.name, fink_science.type, fink_science.doc)},
         'Fink added values (v:)': {i: {'type': j, 'doc': k} for i, j, k in zip(fink_derived.name, fink_derived.type, fink_derived.doc)}
     }
@@ -945,7 +1002,7 @@ def columns_arguments():
     return jsonify({'fields': types})
 
 @api_bp.route('/api/v1/sso', methods=['GET'])
-def return_soo_arguments():
+def return_sso_arguments():
     """ Obtain information about retrieving Solar System Object data
     """
     return jsonify({'args': args_sso})
