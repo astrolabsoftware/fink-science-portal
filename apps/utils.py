@@ -45,6 +45,9 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
     # Construct the dataframe
     pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
 
+    if 'd:knscore' not in pdfs.columns:
+        pdfs['d:knscore'] = np.zeros(len(pdfs), dtype=float)
+
     # Remove hbase specific fields
     if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
         pdfs = pdfs.drop(columns=['key:key', 'key:time'])
@@ -65,7 +68,10 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
             pdfs['d:rfscore'],
             pdfs['i:ndethist'],
             pdfs['i:drb'],
-            pdfs['i:classtar']
+            pdfs['i:classtar'],
+            pdfs['i:jd'],
+            pdfs['i:jdstarthist'],
+            pdfs['d:knscore']
         )
 
         pdfs['v:classification'] = classifications
@@ -230,7 +236,10 @@ def extract_fink_classification_single(data):
             'd:rfscore',
             'i:ndethist',
             'i:drb',
-            'i:classtar'
+            'i:classtar',
+            'i:jd',
+            'i:jdstarthist',
+            'd:knscore'
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
@@ -245,7 +254,10 @@ def extract_fink_classification_single(data):
         pdf['d:rfscore'],
         pdf['i:ndethist'],
         pdf['i:drb'],
-        pdf['i:classtar']
+        pdf['i:classtar'],
+        pdfs['i:jd'],
+        pdfs['i:jdstarthist'],
+        pdfs['d:knscore']
     )
 
     return classification[0]
@@ -253,8 +265,8 @@ def extract_fink_classification_single(data):
 def extract_fink_classification(
         cdsxmatch, roid, mulens_class_1, mulens_class_2,
         snn_snia_vs_nonia, snn_sn_vs_all, rfscore,
-        ndethist, drb, classtar):
-    """ Assign label to alerts based on individual science module results
+        ndethist, drb, classtar, jd, jdstarthist, knscore_):
+    """ Extract the classification of an alert based on module outputs
 
     See https://arxiv.org/abs/2009.10185 for more information
     """
@@ -268,10 +280,16 @@ def extract_fink_classification(
     snn1 = snn_snia_vs_nonia.astype(float) > 0.5
     snn2 = snn_sn_vs_all.astype(float) > 0.5
     active_learn = rfscore.astype(float) > 0.5
+
+    # KN
+    high_knscore = knscore_.astype(float) > 0.5
+
+    # Others
     low_ndethist = ndethist.astype(int) < 400
     high_drb = drb.astype(float) > 0.5
     high_classtar = classtar.astype(float) > 0.4
-    early_ndethist = ndethist.astype(int) <= 20
+    early_ndethist = ndethist.astype(int) < 20
+    new_detection = jd.astype(float) - jdstarthist.astype(float) < 20
 
     list_simbad_galaxies = [
         "galaxy",
@@ -292,10 +310,17 @@ def extract_fink_classification(
         "PartofG",
     ]
     keep_cds = \
-        ["Unknown", "Fail", "Candidate_SN*", "SN", "Transient"] + list_simbad_galaxies
+        ["Unknown", "Candidate_SN*", "SN", "Transient", "Fail"] + list_simbad_galaxies
 
     f_sn = (snn1 | snn2) & cdsxmatch.isin(keep_cds) & low_ndethist & high_drb & high_classtar
     f_sn_early = early_ndethist & active_learn & f_sn
+
+    # Kilonova
+    keep_cds = \
+        ["Unknown", "Transient", "Fail"] + list_simbad_galaxies
+
+    f_kn = high_knscore & high_drb & high_classtar & new_detection
+    f_kn = f_kn & early_ndethist & cdsxmatch.isin(keep_cds)
 
     # Solar System Objects
     f_roid = roid.astype(int).isin([2, 3])
@@ -306,6 +331,7 @@ def extract_fink_classification(
     classification.mask(f_mulens.values, 'Microlensing candidate', inplace=True)
     classification.mask(f_sn.values, 'SN candidate', inplace=True)
     classification.mask(f_sn_early.values, 'Early SN candidate', inplace=True)
+    classification.mask(f_kn.values, 'Kilonova candidate', inplace=True)
     classification.mask(f_roid.values, 'Solar System', inplace=True)
 
     # If several flags are up, we cannot rely on the classification
