@@ -101,7 +101,16 @@ def card_cutouts():
                         id="switch-mag-flux",
                         inline=True
                     )
-                )
+                ),
+                html.Br(),
+                dcc.Markdown(
+                    """
+                    Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+                    In addition, the _Difference magnitude_ view shows:
+                    - upper triangles with errors (&#9650;), that represent alert measurements that does not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                    - lower triangles (&#9661;), that represent 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                    """
+                ),
             ]
         ),
         className="mt-3"

@@ -21,7 +21,7 @@ import visdcc
 import pandas as pd
 import requests
 
-from app import app, client, clientU
+from app import app, client, clientU, clientUV
 
 from apps.cards import card_cutouts, card_sn_scores
 from apps.cards import card_id, card_sn_properties
@@ -116,6 +116,7 @@ def title(name):
     [
         Output('object-data', 'children'),
         Output('object-upper', 'children'),
+        Output('object-uppervalid', 'children'),
     ],
     [
         Input('url', 'pathname'),
@@ -131,7 +132,10 @@ def store_query(name):
 
     uppers = clientU.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     pdfsU = pd.DataFrame.from_dict(uppers, orient='index')
-    return pdfs.to_json(), pdfsU.to_json()
+
+    uppersV = clientUV.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
+    pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
+    return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json()
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
@@ -168,7 +172,8 @@ def layout(name):
                 justify="around", no_gutters=True
             ),
             html.Div(id='object-data', style={'display': 'none'}),
-            html.Div(id='object-upper', style={'display': 'none'})
+            html.Div(id='object-upper', style={'display': 'none'}),
+            html.Div(id='object-uppervalid', style={'display': 'none'}),
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
     )
 
