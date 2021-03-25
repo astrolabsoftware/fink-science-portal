@@ -68,7 +68,7 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
             pdfs['i:classtar'],
             pdfs['i:jd'],
             pdfs['i:jdstarthist'],
-            pdfs['knscore']
+            pdfs['d:knscore']
         )
 
         pdfs['v:classification'] = classifications
@@ -236,7 +236,7 @@ def extract_fink_classification_single(data):
             'i:classtar',
             'i:jd',
             'i:jdstarthist',
-            'knscore'
+            'd:knscore'
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
@@ -254,7 +254,7 @@ def extract_fink_classification_single(data):
         pdf['i:classtar'],
         pdfs['i:jd'],
         pdfs['i:jdstarthist'],
-        pdfs['knscore']
+        pdfs['d:knscore']
     )
 
     return classification[0]
