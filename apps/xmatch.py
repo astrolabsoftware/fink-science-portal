@@ -149,7 +149,9 @@ def update_output(contents, filename):
         'd:rfscore',
         'i:ndethist',
         'i:drb',
-        'i:classtar'
+        'i:classtar',
+        'd:knscore',
+        'i:jdstarthist'
     ]
 
     # Column name to display
@@ -220,6 +222,8 @@ def update_output(contents, filename):
         if not results.isEmpty():
             pdf = pd.DataFrame.from_dict(results, orient='index')[unique_cols]
             pdf[idname] = [oid] * len(pdf)
+            if 'd:knscore' not in pdf.columns:
+                pdf['d:knscore'] = np.zeros(len(pdf), dtype=float)
             pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
     if pdfs.empty:
@@ -245,7 +249,10 @@ def update_output(contents, filename):
         pdfs['d:rfscore'],
         pdfs['i:ndethist'],
         pdfs['i:drb'],
-        pdfs['i:classtar']
+        pdfs['i:classtar'],
+        pdfs['i:jd'],
+        pdfs['i:jdstarthist'],
+        pdfs['d:knscore']
     )
 
     # inplace (booo)
