@@ -195,9 +195,10 @@ def set_radio1_value(available_options, value):
         Input('switch-mag-flux-score', 'value'),
         Input('url', 'pathname'),
         Input('object-data', 'children'),
-        Input('object-upper', 'children')
+        Input('object-upper', 'children'),
+        Input('object-uppervalid', 'children')
     ])
-def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, object_upper) -> dict:
+def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, object_upper, object_uppervalid) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
@@ -354,6 +355,59 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
                     'marker': {
                         'color': '#ff7f0e',
                         'symbol': 'triangle-down-open'
+                    },
+                    'showlegend': False
+                }
+            )
+        pdf_upperv = pd.read_json(object_uppervalid)
+        # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
+        hovertemplate_upperv = r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+        if not pdf_upperv.empty:
+            dates2 = pdf_upperv['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+            mask = np.array([False if i in pdf['i:jd'].values else True for i in pdf_upperv['i:jd'].values])
+            dates2 = dates2[mask]
+            pdf_upperv = pdf_upperv[mask]
+            figure['data'].append(
+                {
+                    'x': dates2[pdf_upperv['i:fid'] == 1],
+                    'y': pdf_upperv['i:magpsf'][pdf_upperv['i:fid'] == 1],
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf_upperv['i:sigmapsf'][pdf_upperv['i:fid'] == 1],
+                        'visible': True,
+                        'color': '#1f77b4'
+                    },
+                    'mode': 'markers',
+                    'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 1],
+                    'hovertemplate': hovertemplate_upperv,
+                    'marker': {
+                        'color': '#1f77b4',
+                        'symbol': 'triangle-up'
+                    },
+                    'showlegend': False
+                }
+            )
+            figure['data'].append(
+                {
+                    'x': dates2[pdf_upperv['i:fid'] == 2],
+                    'y': pdf_upperv['i:magpsf'][pdf_upperv['i:fid'] == 2],
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf_upperv['i:sigmapsf'][pdf_upperv['i:fid'] == 2],
+                        'visible': True,
+                        'color': '#ff7f0e'
+                    },
+                    'mode': 'markers',
+                    'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 2],
+                    'hovertemplate': hovertemplate_upperv,
+                    'marker': {
+                        'color': '#ff7f0e',
+                        'symbol': 'triangle-up'
                     },
                     'showlegend': False
                 }
@@ -526,7 +580,7 @@ def draw_cutouts(clickData, object_data):
     return figs
 
 def sigmoid(img: list) -> list:
-    
+
     """ Sigmoid function used for img_normalizer
 
     Parameters
@@ -536,9 +590,9 @@ def sigmoid(img: list) -> list:
 
     Returns
     -----------
-    out: float array 
+    out: float array
     """
-    
+
     # Compute mean and std of the image
     img_mean, img_std = img.mean(), img.std()
     # restore img to normal mean and std
@@ -586,9 +640,9 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
     """
     # Update graph data for stamps
     data = np.nan_to_num(data)
-    
+
     data = sigmoid_normalizer(data, lower_bound, upper_bound)
-    
+
     data = data[::-1]
     data = convolve(data, smooth=1, kernel='gauss')
 
