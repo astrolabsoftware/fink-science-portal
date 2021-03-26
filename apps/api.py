@@ -1,4 +1,4 @@
-# Copyright 2020 AstroLab Software
+# Copyright 2020-2021 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +17,15 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from flask import request, jsonify, Response
+from flask import send_file
+
+from PIL import Image as im
+from matplotlib import cm
 
 from app import client, clientP, clientT, clientS, clientSSO, nlimit
-from apps.utils import extract_fink_classification, convert_jd
-from apps.utils import hbase_type_converter
-from apps.utils import extract_last_r_minus_g_each_object
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
+from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
 import io
 import requests
@@ -54,10 +56,11 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
+""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
 ## Retrieve single object data
@@ -419,6 +422,162 @@ r = requests.post(
 Note that the fields should be comma-separated. Unknown field names are ignored.
 """
 
+api_doc_cutout = """
+## Retrieve cutout data from the Fink database
+
+The list of arguments for retrieving cutout data can be found at http://134.158.75.151:24000/api/v1/cutouts.
+
+### PNG
+
+In a unix shell, you can retrieve the last cutout of an object by simply using
+
+```bash
+curl -H "Content-Type: application/json" \\
+    -X POST -d \\
+    '{"objectId":"ZTF19acnjwgm", "kind":"Science"}' \\
+    http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.png
+```
+
+This will retrieve the `Science` image and save it on `cutoutScience.png`.
+In Python, the equivalent script would be:
+
+```python
+import io
+import requests
+from PIL import Image as im
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science',
+    }
+)
+
+image = im.open(io.BytesIO(r.content))
+image.save('cutoutScience.png')
+```
+
+Note you can choose between the `Science`, `Template`, or `Difference` images.
+You can also customise the image treatment by
+
+```python
+import io
+import requests
+from PIL import Image as im
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science', # Science, Template, Difference
+        'stretch': 'sigmoid', # sigmoid[default], linear, sqrt, power, log, asinh
+        'colormap': 'viridis', # Valid matplotlib colormap name (see matplotlib.cm). Default is grayscale.
+        'pmin': 0.5, # The percentile value used to determine the pixel value of minimum cut level. Default is 0.5. No effect for sigmoid.
+        'pmax': 99.5, # The percentile value used to determine the pixel value of maximum cut level. Default is 99.5. No effect for sigmoid.
+        'convolution_kernel': 'gauss' # Convolve the image with a kernel (gauss or box). Default is None (not specified).
+    }
+)
+
+image = im.open(io.BytesIO(r.content))
+image.save('mysupercutout.png')
+```
+
+By default, you will retrieve the cutout of the last alert emitted for the object `objectId`.
+You can also access cutouts of other alerts from this object by specifying their candidate ID:
+
+```python
+import io
+import requests
+import pandas as pd
+from PIL import Image as im
+
+# Get all candidate ID with JD for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/objects',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'columns': 'i:candid,i:jd'
+    }
+)
+
+pdf_candid = pd.read_json(r.content)
+# Get the first alert
+first_alert = pdf_candid['i:candid'].values[-1]
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science',
+        'candid': first_alert
+    }
+)
+
+image = im.open(io.BytesIO(r.content))
+image.save('mysupercutout_firstalert.png')
+```
+
+### FITS
+
+You can also retrieve the original FITS file stored in the alert:
+
+```bash
+curl -H "Content-Type: application/json" \\
+    -X POST -d \\
+    '{"objectId":"ZTF19acnjwgm", "kind":"Science", "output-format": "FITS"}' \\
+    http://134.158.75.151:24001/api/v1/cutouts -o cutoutScience.fits
+```
+
+or equivalently in Python:
+
+```python
+import io
+from astropy.io import fits
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science',
+        'output-format': 'FITS'
+    }
+)
+
+data = fits.open(io.BytesIO(r.content))
+data.writeto('cutoutScience.fits')
+```
+
+### Numpy array
+
+You can also retrieve only the data block stored in the alert:
+
+```python
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science',
+        'output-format': 'array'
+    }
+)
+
+pdf = pd.read_json(r.content)
+array = pdf['b:cutoutScience_stampData'].values[0]
+```
+
+"""
+
 layout = html.Div(
     [
         html.Br(),
@@ -483,6 +642,17 @@ layout = html.Div(
                                     }
                                 ),
                             ], label="Get Solar System Objects"
+                        ),
+                        dbc.Tab(
+                            [
+                                dbc.Card(
+                                    dbc.CardBody(
+                                        dcc.Markdown(api_doc_cutout)
+                                    ), style={
+                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                    }
+                                ),
+                            ], label="Get Image data"
                         ),
                         dbc.Tab(label="Xmatch", disabled=True),
                     ]
@@ -596,6 +766,54 @@ args_sso = [
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet'
+    }
+]
+
+args_cutouts = [
+    {
+        'name': 'objectId',
+        'required': True,
+        'description': 'ZTF Object ID'
+    },
+    {
+        'name': 'kind',
+        'required': True,
+        'description': 'Science, Template, or Difference'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'PNG[default], FITS, array'
+    },
+    {
+        'name': 'candid',
+        'required': False,
+        'description': 'Candidate ID of the alert belonging to the object with `objectId`. If not filled, the cutouts of the latest alert is returned'
+    },
+    {
+        'name': 'stretch',
+        'required': False,
+        'description': 'Stretch function to be applied. Available: sigmoid[default], linear, sqrt, power, log, asinh.'
+    },
+    {
+        'name': 'colormap',
+        'required': False,
+        'description': 'Valid matplotlib colormap name (see matplotlib.cm). Default is grayscale.'
+    },
+    {
+        'name': 'pmin',
+        'required': False,
+        'description': 'The percentile value used to determine the pixel value of minimum cut level. Default is 0.5. No effect for sigmoid.'
+    },
+    {
+        'name': 'pmax',
+        'required': False,
+        'description': 'The percentile value used to determine the pixel value of maximum cut level. Default is 99.5. No effect for sigmoid.'
+    },
+    {
+        'name': 'convolution_kernel',
+        'required': False,
+        'description': 'Convolve the image with a kernel (gauss or box). Default is None (not specified).'
     }
 ]
 
@@ -1063,3 +1281,131 @@ def return_sso():
         'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
     }
     return Response(str(rep), 400)
+
+@api_bp.route('/api/v1/cutouts', methods=['GET'])
+def cutouts_arguments():
+    """ Obtain information about cutouts service
+    """
+    return jsonify({'args': args_cutouts})
+
+@api_bp.route('/api/v1/cutouts', methods=['POST'])
+def return_cutouts():
+    """ Retrieve cutout data from the Fink database
+    """
+    assert request.json['kind'] in ['Science', 'Template', 'Difference']
+
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'PNG'
+
+    # default stretch is sigmoid
+    if 'stretch' in request.json:
+        stretch = request.json['stretch']
+    else:
+        stretch = 'sigmoid'
+
+    # default name based on parameters
+    filename = '{}_{}'.format(
+        request.json['objectId'],
+        request.json['kind']
+    )
+
+    if output_format == 'PNG':
+        filename = filename + '.png'
+    elif output_format == 'JPEG':
+        filename = filename + '.jpg'
+    elif output_format == 'FITS':
+        filename = filename + '.fits'
+
+    # Query the Database (object query)
+    results = client.scan(
+        "",
+        "key:key:{}".format(request.json['objectId']),
+        "b:cutout{}_stampData,i:jd,i:candid".format(request.json['kind']),
+        0, True, True
+    )
+    truncated = True
+
+    # Format the results
+    schema_client = client.schema()
+    pdf = format_hbase_output(
+        results, schema_client, group_alerts=False, truncated=truncated
+    )
+
+    # Extract only the alert of interest
+    if 'candid' in request.json:
+        pdf = pdf[pdf['i:candid'].astype(str) == str(request.json['candid'])]
+    else:
+        # pdf has been sorted in `format_hbase_output`
+        pdf = pdf.iloc[0:1]
+
+    if pdf.empty:
+        return send_file(
+            io.BytesIO(),
+            mimetype='image/png',
+            as_attachment=True,
+            attachment_filename=filename
+        )
+    # Extract cutouts
+    if output_format == 'FITS':
+        pdf = extract_cutouts(
+            pdf,
+            client,
+            col='b:cutout{}_stampData'.format(request.json['kind']),
+            return_type='FITS'
+        )
+    else:
+        pdf = extract_cutouts(
+            pdf,
+            client,
+            col='b:cutout{}_stampData'.format(request.json['kind']),
+            return_type='array'
+        )
+
+    array = pdf['b:cutout{}_stampData'.format(request.json['kind'])].values[0]
+
+    # send the FITS file
+    if output_format == 'FITS':
+        return send_file(
+            array,
+            mimetype='application/octet-stream',
+            as_attachment=True,
+            attachment_filename=filename
+        )
+    # send the array
+    elif output_format == 'array':
+        return pdf[['b:cutout{}_stampData'.format(request.json['kind'])]].to_json(orient='records')
+
+    if stretch == 'sigmoid':
+        array = sigmoid_normalizer(array, 0, 1)
+    else:
+        pmin = 0.5
+        if 'pmin' in request.json:
+            pmin = float(request.json['pmin'])
+        pmax = 99.5
+        if 'pmax' in request.json:
+            pmax = float(request.json['pmax'])
+        array = legacy_normalizer(array, stretch=stretch, pmin=pmin, pmax=pmax)
+
+    if 'convolution_kernel' in request.json:
+        assert request.json['convolution_kernel'] in ['gauss', 'box']
+        array = convolve(array, smooth=1, kernel=request.json['convolution_kernel'])
+
+    # colormap
+    if "colormap" in request.json:
+        colormap = getattr(cm, request.json['colormap'])
+    else:
+        colormap = lambda x: x
+    array = np.uint8(colormap(array) * 255)
+
+    # Convert to PNG
+    data = im.fromarray(array)
+    datab = io.BytesIO()
+    data.save(datab, format='PNG')
+    datab.seek(0)
+    return send_file(
+        datab,
+        mimetype='image/png',
+        as_attachment=True,
+        attachment_filename=filename)

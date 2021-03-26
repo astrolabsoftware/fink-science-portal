@@ -155,7 +155,7 @@ def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
     data = clientresult[key]
     return dict(data)
 
-def readstamp(stamp: str) -> np.array:
+def readstamp(stamp: str, return_type='array') -> np.array:
     """ Read the stamp data inside an alert.
 
     Parameters
@@ -164,18 +164,26 @@ def readstamp(stamp: str) -> np.array:
         dictionary containing alert data
     field: string
         Name of the stamps: cutoutScience, cutoutTemplate, cutoutDifference
+    return_type: str
+        Data block of HDU 0 (`array`) or original FITS uncompressed (`FITS`) as file-object.
+        Default is `array`.
 
     Returns
     ----------
     data: np.array
-        2D array containing image data
+        2D array containing image data (`array`) or FITS file uncompressed as file-object (`FITS`)
     """
     with gzip.open(io.BytesIO(stamp), 'rb') as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
-            data = hdul[0].data
+            if return_type == 'array':
+                data = hdul[0].data
+            elif return_type == 'FITS':
+                data = io.BytesIO()
+                hdul.writeto(data)
+                data.seek(0)
     return data
 
-def extract_cutouts(pdf: pd.DataFrame, client) -> pd.DataFrame:
+def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') -> pd.DataFrame:
     """ Query and uncompress cutout data from the HBase table
 
     Inplace modifications
@@ -186,25 +194,37 @@ def extract_cutouts(pdf: pd.DataFrame, client) -> pd.DataFrame:
         DataFrame returned by `format_hbase_output` (see api.py)
     client: com.Lomikel.HBaser.HBaseClient
         HBase client used to query the database
+    col: str
+        Name of the cutouts to be downloaded (e.g. b:cutoutScience_stampData). If None, return all 3
+    return_type: str
+        array or original gzipped FITS
 
     Returns
     ----------
     pdf: Pandas DataFrame
         Modified original DataFrame with cutout data uncompressed (2D array)
     """
+    if col is not None:
+        cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
+        assert col in cols
+        pdf[col] = pdf[col].apply(
+            lambda x: readstamp(client.repository().get(x), return_type=return_type)
+        )
+        return pdf
+
     if 'b:cutoutScience_stampData' not in pdf.columns:
         pdf['b:cutoutScience_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutScience_stampData'
         pdf['b:cutoutTemplate_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutTemplate_stampData'
         pdf['b:cutoutDifference_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutDifference_stampData'
 
     pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x))
+        lambda x: readstamp(client.repository().get(x), return_type=return_type)
     )
     pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x))
+        lambda x: readstamp(client.repository().get(x), return_type=return_type)
     )
     pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x))
+        lambda x: readstamp(client.repository().get(x), return_type=return_type)
     )
     return pdf
 
@@ -412,9 +432,9 @@ def _data_stretch(
 
     data = normalizer(image, clip=True).filled(0)
     data = np.nan_to_num(data)
-    data = np.clip(data * 255., 0., 255.)
+    #data = np.clip(data * 255., 0., 255.)
 
-    return data.astype(np.uint8)
+    return data#.astype(np.uint8)
 
 def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
     """ Conversion from magnitude to Fluxcal from SNANA manual
