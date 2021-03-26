@@ -1207,10 +1207,7 @@ def return_cutouts():
         )
     # send the array
     elif output_format == 'array':
-        return send_file(
-            pdf[['b:cutout{}_stampData'.format(request.json['kind'])]].to_json(orient='records'),
-            mimetype='application/octet-stream'
-        )
+        return pdf[['b:cutout{}_stampData'.format(request.json['kind'])]].to_json(orient='records')
 
     if stretch == 'sigmoid':
         array = sigmoid_normalizer(array, 0, 1)

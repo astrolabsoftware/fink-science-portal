@@ -165,20 +165,22 @@ def readstamp(stamp: str, return_type='array') -> np.array:
     field: string
         Name of the stamps: cutoutScience, cutoutTemplate, cutoutDifference
     return_type: str
-        Data block of HDU 0 (`array`) or original FITS uncompressed (`FITS`).
+        Data block of HDU 0 (`array`) or original FITS uncompressed (`FITS`) as file-object.
         Default is `array`.
 
     Returns
     ----------
     data: np.array
-        2D array containing image data (`array`) or FITS file uncompressed (`FITS`)
+        2D array containing image data (`array`) or FITS file uncompressed as file-object (`FITS`)
     """
     with gzip.open(io.BytesIO(stamp), 'rb') as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
             if return_type == 'array':
                 data = hdul[0].data
             elif return_type == 'FITS':
-                data = hdul
+                data = io.BytesIO()
+                hdul.writeto(data)
+                data.seek(0)
     return data
 
 def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') -> pd.DataFrame:
