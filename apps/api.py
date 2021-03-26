@@ -438,7 +438,7 @@ curl -H "Content-Type: application/json" \\
     http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.png
 ```
 
-This will retrieve the `science` image and save it on `cutoutScience.png`.
+This will retrieve the `Science` image and save it on `cutoutScience.png`.
 In Python, the equivalent script would be:
 
 ```python
@@ -782,7 +782,7 @@ args_cutouts = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'PNG[default], JPEG, FITS, array'
+        'description': 'PNG[default], FITS, array'
     },
     {
         'name': 'candid',
