@@ -56,10 +56,11 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
+""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
 ## Retrieve single object data
@@ -421,6 +422,161 @@ r = requests.post(
 Note that the fields should be comma-separated. Unknown field names are ignored.
 """
 
+api_doc_cutout = """
+## Retrieve cutout data from the Fink database
+
+The list of arguments for retrieving cutout data can be found at http://134.158.75.151:24000/api/v1/cutouts.
+
+### PNG
+
+In a unix shell, you can retrieve the last cutout of an object by simply using
+
+```bash
+curl -H "Content-Type: application/json" \
+    -X POST -d \
+    '{"objectId":"ZTF19acnjwgm", "kind":"Science"}' \
+    http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.png
+```
+
+This will retrieve the `science` image and save it on `cutoutScience.png`.
+In Python, the equivalent script would be:
+
+```python
+import io
+import requests
+from PIL import Image as im
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science',
+    }
+)
+
+image = im.open(io.BytesIO(r.content))
+image.save('cutoutScience.png')
+```
+
+Note you can choose between the `Science`, `Template`, or `Difference` images.
+You can also customise the image treatment by
+
+```python
+import io
+import requests
+from PIL import Image as im
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science', # Science, Template, Difference
+        'stretch': 'sigmoid', # sigmoid[default], linear, sqrt, power, log, asinh
+        'colormap': 'viridis', # Valid matplotlib colormap name (see matplotlib.cm). Default is grayscale.
+        'pmin': 0.5, # The percentile value used to determine the pixel value of minimum cut level. Default is 0.5. No effect for sigmoid.
+        'pmax': 99.5, # The percentile value used to determine the pixel value of maximum cut level. Default is 99.5. No effect for sigmoid.
+    }
+)
+
+image = im.open(io.BytesIO(r.content))
+image.save('mysupercutout.png')
+```
+
+By default, you will retrieve the cutout of the last alert emitted for the object `objectId`.
+You can also access cutouts of other alerts from this object by specifying their candidate ID:
+
+```python
+import io
+import requests
+import pandas as pd
+from PIL import Image as im
+
+# Get all candidate ID with JD for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/objects',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'columns': 'i:candid,i:jd'
+    }
+)
+
+pdf_candid = pd.read_json(r.content)
+# Get the first alert
+first_alert = pdf_candid['i:candid'].values[-1]
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science',
+        'candid': first_alert
+    }
+)
+
+image = im.open(io.BytesIO(r.content))
+image.save('mysupercutout_firstalert.png')
+```
+
+### FITS
+
+You can also retrieve the original FITS file stored in the alert:
+
+```bash
+curl -H "Content-Type: application/json" \
+    -X POST -d \
+    '{"objectId":"ZTF19acnjwgm", "kind":"Science", "output-format": "FITS"}' \
+    http://134.158.75.151:24001/api/v1/cutouts -o cutoutScience.fits
+```
+
+or equivalently in Python:
+
+```python
+import io
+from astropy.io import fits
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science',
+        'output-format': 'FITS'
+    }
+)
+
+data = fits.open(io.BytesIO(r.content))
+data.writeto('cutoutScience.fits')
+```
+
+### Numpy array
+
+You can also retrieve only the data block stored in the alert:
+
+```python
+import requests
+import pandas as pd
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    'http://134.158.75.151:24001/api/v1/cutouts',
+    json={
+        'objectId': 'ZTF19acnjwgm',
+        'kind': 'Science',
+        'output-format': 'array'
+    }
+)
+
+pdf = pd.read_json(r.content)
+array = pdf['b:cutoutScience_stampData'].values[0]
+```
+
+"""
+
 layout = html.Div(
     [
         html.Br(),
@@ -485,6 +641,17 @@ layout = html.Div(
                                     }
                                 ),
                             ], label="Get Solar System Objects"
+                        ),
+                        dbc.Tab(
+                            [
+                                dbc.Card(
+                                    dbc.CardBody(
+                                        dcc.Markdown(api_doc_cutout)
+                                    ), style={
+                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                    }
+                                ),
+                            ], label="Get Image data"
                         ),
                         dbc.Tab(label="Xmatch", disabled=True),
                     ]
@@ -1167,7 +1334,7 @@ def return_cutouts():
 
     # Extract only the alert of interest
     if 'candid' in request.json:
-        pdf = pdf[pdf['i:candid'] == request.json['i:candid']]
+        pdf = pdf[pdf['i:candid'].astype(str) == str(request.json['candid'])]
     else:
         # pdf has been sorted in `format_hbase_output`
         pdf = pdf.iloc[0:1]
