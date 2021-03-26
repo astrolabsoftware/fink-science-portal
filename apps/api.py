@@ -477,6 +477,7 @@ r = requests.post(
         'colormap': 'viridis', # Valid matplotlib colormap name (see matplotlib.cm). Default is grayscale.
         'pmin': 0.5, # The percentile value used to determine the pixel value of minimum cut level. Default is 0.5. No effect for sigmoid.
         'pmax': 99.5, # The percentile value used to determine the pixel value of maximum cut level. Default is 99.5. No effect for sigmoid.
+        'convolution_kernel': 'gauss' # Convolve the image with a kernel (gauss or box). Default is None (not specified).
     }
 )
 
