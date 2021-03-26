@@ -613,6 +613,11 @@ args_cutouts = [
         'description': 'Science, Template, or Difference'
     },
     {
+        'name': 'output-format',
+        'required': False,
+        'description': 'PNG[default], JPEG, FITS, array'
+    },
+    {
         'name': 'candid',
         'required': False,
         'description': 'Candidate ID of the alert belonging to the object with `objectId`. If not filled, the cutouts of the latest alert is returned'
@@ -1121,6 +1126,11 @@ def return_cutouts():
     """
     assert request.json['kind'] in ['Science', 'Template', 'Difference']
 
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'PNG'
+
     # default stretch is sigmoid
     if 'stretch' in request.json:
         stretch = request.json['stretch']
@@ -1128,10 +1138,17 @@ def return_cutouts():
         stretch = 'sigmoid'
 
     # default name based on parameters
-    filename = '{}_{}.png'.format(
+    filename = '{}_{}'.format(
         request.json['objectId'],
         request.json['kind']
     )
+
+    if output_format == 'PNG':
+        filename = filename + '.png'
+    elif output_format == 'JPEG':
+        filename = filename + '.jpg'
+    elif output_format == 'FITS':
+        filename = filename + '.fits'
 
     # Query the Database (object query)
     results = client.scan(
@@ -1163,8 +1180,37 @@ def return_cutouts():
             attachment_filename=filename
         )
     # Extract cutouts
-    pdf = extract_cutouts(pdf, client, col='b:cutout{}_stampData'.format(request.json['kind']))
+    if output_format == 'FITS':
+        pdf = extract_cutouts(
+            pdf,
+            client,
+            col='b:cutout{}_stampData'.format(request.json['kind']),
+            return_type='FITS'
+        )
+    else:
+        pdf = extract_cutouts(
+            pdf,
+            client,
+            col='b:cutout{}_stampData'.format(request.json['kind']),
+            return_type='array'
+        )
+
     array = pdf['b:cutout{}_stampData'.format(request.json['kind'])].values[0]
+
+    # send the FITS file
+    if output_format == 'FITS':
+        return send_file(
+            array,
+            mimetype='application/octet-stream',
+            as_attachment=True,
+            attachment_filename=filename
+        )
+    # send the array
+    elif output_format == 'array':
+        return send_file(
+            return pdf[['b:cutout{}_stampData'.format(request.json['kind'])]].to_json(orient='records'),
+            mimetype='application/octet-stream'
+        )
 
     if stretch == 'sigmoid':
         array = sigmoid_normalizer(array, 0, 1)

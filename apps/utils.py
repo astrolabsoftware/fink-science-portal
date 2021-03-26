@@ -155,7 +155,7 @@ def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
     data = clientresult[key]
     return dict(data)
 
-def readstamp(stamp: str) -> np.array:
+def readstamp(stamp: str, return_type='array') -> np.array:
     """ Read the stamp data inside an alert.
 
     Parameters
@@ -164,18 +164,24 @@ def readstamp(stamp: str) -> np.array:
         dictionary containing alert data
     field: string
         Name of the stamps: cutoutScience, cutoutTemplate, cutoutDifference
+    return_type: str
+        Data block of HDU 0 (`array`) or original FITS uncompressed (`FITS`).
+        Default is `array`.
 
     Returns
     ----------
     data: np.array
-        2D array containing image data
+        2D array containing image data (`array`) or FITS file uncompressed (`FITS`)
     """
     with gzip.open(io.BytesIO(stamp), 'rb') as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
-            data = hdul[0].data
+            if return_type == 'array':
+                data = hdul[0].data
+            elif return_type == 'FITS':
+                data = hdul
     return data
 
-def extract_cutouts(pdf: pd.DataFrame, client, col=None) -> pd.DataFrame:
+def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') -> pd.DataFrame:
     """ Query and uncompress cutout data from the HBase table
 
     Inplace modifications
@@ -188,6 +194,8 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None) -> pd.DataFrame:
         HBase client used to query the database
     col: str
         Name of the cutouts to be downloaded (e.g. b:cutoutScience_stampData). If None, return all 3
+    return_type: str
+        array or original gzipped FITS
 
     Returns
     ----------
@@ -198,7 +206,7 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None) -> pd.DataFrame:
         cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
         assert col in cols
         pdf[col] = pdf[col].apply(
-            lambda x: readstamp(client.repository().get(x))
+            lambda x: readstamp(client.repository().get(x), return_type=return_type)
         )
         return pdf
 
@@ -208,13 +216,13 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None) -> pd.DataFrame:
         pdf['b:cutoutDifference_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutDifference_stampData'
 
     pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x))
+        lambda x: readstamp(client.repository().get(x), return_type=return_type)
     )
     pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x))
+        lambda x: readstamp(client.repository().get(x), return_type=return_type)
     )
     pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x))
+        lambda x: readstamp(client.repository().get(x), return_type=return_type)
     )
     return pdf
 
