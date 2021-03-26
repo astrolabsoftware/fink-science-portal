@@ -448,7 +448,7 @@ from PIL import Image as im
 
 # get data for ZTF19acnjwgm
 r = requests.post(
-    'http://134.158.75.151:24001/api/v1/cutouts',
+    'http://134.158.75.151:24000/api/v1/cutouts',
     json={
         'objectId': 'ZTF19acnjwgm',
         'kind': 'Science',
@@ -469,7 +469,7 @@ from PIL import Image as im
 
 # get data for ZTF19acnjwgm
 r = requests.post(
-    'http://134.158.75.151:24001/api/v1/cutouts',
+    'http://134.158.75.151:24000/api/v1/cutouts',
     json={
         'objectId': 'ZTF19acnjwgm',
         'kind': 'Science', # Science, Template, Difference
@@ -496,7 +496,7 @@ from PIL import Image as im
 
 # Get all candidate ID with JD for ZTF19acnjwgm
 r = requests.post(
-    'http://134.158.75.151:24001/api/v1/objects',
+    'http://134.158.75.151:24000/api/v1/objects',
     json={
         'objectId': 'ZTF19acnjwgm',
         'columns': 'i:candid,i:jd'
@@ -509,7 +509,7 @@ first_alert = pdf_candid['i:candid'].values[-1]
 
 # get data for ZTF19acnjwgm
 r = requests.post(
-    'http://134.158.75.151:24001/api/v1/cutouts',
+    'http://134.158.75.151:24000/api/v1/cutouts',
     json={
         'objectId': 'ZTF19acnjwgm',
         'kind': 'Science',
@@ -529,7 +529,7 @@ You can also retrieve the original FITS file stored in the alert:
 curl -H "Content-Type: application/json" \\
     -X POST -d \\
     '{"objectId":"ZTF19acnjwgm", "kind":"Science", "output-format": "FITS"}' \\
-    http://134.158.75.151:24001/api/v1/cutouts -o cutoutScience.fits
+    http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.fits
 ```
 
 or equivalently in Python:
@@ -542,7 +542,7 @@ import pandas as pd
 
 # get data for ZTF19acnjwgm
 r = requests.post(
-    'http://134.158.75.151:24001/api/v1/cutouts',
+    'http://134.158.75.151:24000/api/v1/cutouts',
     json={
         'objectId': 'ZTF19acnjwgm',
         'kind': 'Science',
@@ -564,7 +564,7 @@ import pandas as pd
 
 # get data for ZTF19acnjwgm
 r = requests.post(
-    'http://134.158.75.151:24001/api/v1/cutouts',
+    'http://134.158.75.151:24000/api/v1/cutouts',
     json={
         'objectId': 'ZTF19acnjwgm',
         'kind': 'Science',
