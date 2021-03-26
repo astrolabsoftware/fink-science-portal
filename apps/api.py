@@ -1,4 +1,4 @@
-# Copyright 2020 AstroLab Software
+# Copyright 2020-2021 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +17,15 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from flask import request, jsonify, Response
+from flask import send_file
+
+from PIL import Image as im
+from matplotlib import cm
 
 from app import client, clientP, clientT, clientS, clientSSO, nlimit
-from apps.utils import extract_fink_classification, convert_jd
-from apps.utils import hbase_type_converter
-from apps.utils import extract_last_r_minus_g_each_object
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
+from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
 import io
 import requests
@@ -599,6 +601,49 @@ args_sso = [
     }
 ]
 
+args_cutouts = [
+    {
+        'name': 'objectId',
+        'required': True,
+        'description': 'ZTF Object ID'
+    },
+    {
+        'name': 'kind',
+        'required': True,
+        'description': 'Science, Template, or Difference'
+    },
+    {
+        'name': 'candid',
+        'required': False,
+        'description': 'Candidate ID of the alert belonging to the object with `objectId`. If not filled, the cutouts of the latest alert is returned'
+    },
+    {
+        'name': 'stretch',
+        'required': False,
+        'description': 'Stretch function to be applied. Available: sigmoid[default], linear, sqrt, power, log, asinh.'
+    },
+    {
+        'name': 'colormap',
+        'required': False,
+        'description': 'Valid matplotlib colormap name (see matplotlib.cm). Default is grayscale.'
+    },
+    {
+        'name': 'pmin',
+        'required': False,
+        'description': 'The percentile value used to determine the pixel value of minimum cut level. Default is 0.5. No effect for sigmoid.'
+    },
+    {
+        'name': 'pmax',
+        'required': False,
+        'description': 'The percentile value used to determine the pixel value of maximum cut level. Default is 99.5. No effect for sigmoid.'
+    },
+    {
+        'name': 'convolution_kernel',
+        'required': False,
+        'description': 'Convolve the image with a kernel (gauss or box). Default is None (not specified).'
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -1063,3 +1108,93 @@ def return_sso():
         'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
     }
     return Response(str(rep), 400)
+
+@api_bp.route('/api/v1/cutouts', methods=['GET'])
+def cutouts_arguments():
+    """ Obtain information about cutouts service
+    """
+    return jsonify({'args': args_cutouts})
+
+@api_bp.route('/api/v1/cutouts', methods=['POST'])
+def return_cutouts():
+    """ Retrieve cutout data from the Fink database
+    """
+    assert request.json['kind'] in ['Science', 'Template', 'Difference']
+
+    # default stretch is sigmoid
+    if 'stretch' in request.json:
+        stretch = request.json['stretch']
+    else:
+        stretch = 'sigmoid'
+
+    # default name based on parameters
+    filename = '{}_{}.png'.format(
+        request.json['objectId'],
+        request.json['kind']
+    )
+
+    # Query the Database (object query)
+    results = client.scan(
+        "",
+        "key:key:{}".format(request.json['objectId']),
+        "b:cutout{}_stampData,i:jd,i:candid".format(request.json['kind']),
+        0, True, True
+    )
+    truncated = True
+
+    # Format the results
+    schema_client = client.schema()
+    pdf = format_hbase_output(
+        results, schema_client, group_alerts=False, truncated=truncated
+    )
+
+    # Extract only the alert of interest
+    if 'candid' in request.json:
+        pdf = pdf[pdf['i:candid'] == request.json['i:candid']]
+    else:
+        # pdf has been sorted in `format_hbase_output`
+        pdf = pdf.iloc[0:1]
+
+    if pdf.empty:
+        return send_file(
+            io.BytesIO(),
+            mimetype='image/png',
+            as_attachment=True,
+            attachment_filename=filename
+        )
+    # Extract cutouts
+    pdf = extract_cutouts(pdf, client, col='b:cutout{}_stampData'.format(request.json['kind']))
+    array = pdf['b:cutout{}_stampData'.format(request.json['kind'])].values[0]
+
+    if stretch == 'sigmoid':
+        array = sigmoid_normalizer(array, 0, 1)
+    else:
+        pmin = 0.5
+        if 'pmin' in request.json:
+            pmin = float(request.json['pmin'])
+        pmax = 99.5
+        if 'pmax' in request.json:
+            pmax = float(request.json['pmax'])
+        array = legacy_normalizer(array, stretch=stretch, pmin=pmin, pmax=pmax)
+
+    if 'convolution_kernel' in request.json:
+        assert request.json['convolution_kernel'] in ['gauss', 'box']
+        array = convolve(array, smooth=1, kernel=request.json['convolution_kernel'])
+
+    # colormap
+    if "colormap" in request.json:
+        colormap = getattr(cm, request.json['colormap'])
+    else:
+        colormap = lambda x: x
+    array = np.uint8(colormap(array) * 255)
+
+    # Convert to PNG
+    data = im.fromarray(array)
+    datab = io.BytesIO()
+    data.save(datab, format='PNG')
+    datab.seek(0)
+    return send_file(
+        datab,
+        mimetype='image/png',
+        as_attachment=True,
+        attachment_filename=filename)

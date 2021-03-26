@@ -175,7 +175,7 @@ def readstamp(stamp: str) -> np.array:
             data = hdul[0].data
     return data
 
-def extract_cutouts(pdf: pd.DataFrame, client) -> pd.DataFrame:
+def extract_cutouts(pdf: pd.DataFrame, client, col=None) -> pd.DataFrame:
     """ Query and uncompress cutout data from the HBase table
 
     Inplace modifications
@@ -186,12 +186,22 @@ def extract_cutouts(pdf: pd.DataFrame, client) -> pd.DataFrame:
         DataFrame returned by `format_hbase_output` (see api.py)
     client: com.Lomikel.HBaser.HBaseClient
         HBase client used to query the database
+    col: str
+        Name of the cutouts to be downloaded (e.g. b:cutoutScience_stampData). If None, return all 3
 
     Returns
     ----------
     pdf: Pandas DataFrame
         Modified original DataFrame with cutout data uncompressed (2D array)
     """
+    if col is not None:
+        cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
+        assert col in cols
+        pdf[col] = pdf[col].apply(
+            lambda x: readstamp(client.repository().get(x))
+        )
+        return pdf
+
     if 'b:cutoutScience_stampData' not in pdf.columns:
         pdf['b:cutoutScience_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutScience_stampData'
         pdf['b:cutoutTemplate_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutTemplate_stampData'
@@ -412,9 +422,9 @@ def _data_stretch(
 
     data = normalizer(image, clip=True).filled(0)
     data = np.nan_to_num(data)
-    data = np.clip(data * 255., 0., 255.)
+    #data = np.clip(data * 255., 0., 255.)
 
-    return data.astype(np.uint8)
+    return data#.astype(np.uint8)
 
 def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
     """ Conversion from magnitude to Fluxcal from SNANA manual

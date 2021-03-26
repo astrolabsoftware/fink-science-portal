@@ -618,7 +618,7 @@ def sigmoid_normalizer(img: list, vmin: float, vmax: float) -> list:
     """
     return (vmax - vmin) * sigmoid(img) + vmin
 
-def legacy_normalizer(data: list) -> list:
+def legacy_normalizer(data: list, stretch='asinh', pmin=0.5, pmax=99.5) -> list:
     """ Old cutout normalizer which use the central pixel
 
     Parameters
@@ -633,7 +633,7 @@ def legacy_normalizer(data: list) -> list:
     size = len(data)
     vmax = data[int(size / 2), int(size / 2)]
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
-    return _data_stretch(data, vmin=vmin, vmax=vmax, stretch='asinh')
+    return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
 
 def draw_cutout(data, title, lower_bound=0, upper_bound=1):
     """ Draw a cutout data
