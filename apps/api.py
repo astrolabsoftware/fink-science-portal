@@ -1208,7 +1208,7 @@ def return_cutouts():
     # send the array
     elif output_format == 'array':
         return send_file(
-            return pdf[['b:cutout{}_stampData'.format(request.json['kind'])]].to_json(orient='records'),
+            pdf[['b:cutout{}_stampData'.format(request.json['kind'])]].to_json(orient='records'),
             mimetype='application/octet-stream'
         )
 
