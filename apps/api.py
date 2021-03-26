@@ -432,9 +432,9 @@ The list of arguments for retrieving cutout data can be found at http://134.158.
 In a unix shell, you can retrieve the last cutout of an object by simply using
 
 ```bash
-curl -H "Content-Type: application/json" \
-    -X POST -d \
-    '{"objectId":"ZTF19acnjwgm", "kind":"Science"}' \
+curl -H "Content-Type: application/json" \\
+    -X POST -d \\
+    '{"objectId":"ZTF19acnjwgm", "kind":"Science"}' \\
     http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.png
 ```
 
@@ -525,9 +525,9 @@ image.save('mysupercutout_firstalert.png')
 You can also retrieve the original FITS file stored in the alert:
 
 ```bash
-curl -H "Content-Type: application/json" \
-    -X POST -d \
-    '{"objectId":"ZTF19acnjwgm", "kind":"Science", "output-format": "FITS"}' \
+curl -H "Content-Type: application/json" \\
+    -X POST -d \\
+    '{"objectId":"ZTF19acnjwgm", "kind":"Science", "output-format": "FITS"}' \\
     http://134.158.75.151:24001/api/v1/cutouts -o cutoutScience.fits
 ```
 
