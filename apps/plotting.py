@@ -1123,7 +1123,7 @@ def integrate_aladin_lite(object_data):
     return " ".join(img_to_show)
 
 @app.callback(
-    Output('sso_lightcurve', 'figure'),
+    Output('sso_lightcurve', 'children'),
     [
         Input('url', 'pathname'),
         Input('object-data', 'children')
