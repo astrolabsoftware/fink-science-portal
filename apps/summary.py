@@ -29,7 +29,7 @@ from apps.cards import card_download
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
-from apps.cards import card_sso_lightcurve, card_sso_skymap #, card_sso_mpc_params
+from apps.cards import card_sso_lightcurve, card_sso_skymap, card_sso_mpc_params
 
 from apps.utils import format_hbase_output
 from apps.api import APIURL
@@ -90,6 +90,7 @@ def tab4_content(pdf):
 def tab5_content(pdf):
     """ SSO tab
     """
+    ssnamenr = pdf['i:ssnamenr'].values[0]
     tab5_content_ = html.Div([
         dbc.Row(
             [
@@ -99,20 +100,10 @@ def tab5_content(pdf):
         dbc.Row(
             [
                 dbc.Col([card_sso_skymap()], width=6),
-                dbc.Col([], width=6),
+                dbc.Col([card_sso_mpc_params(ssnamenr)], width=6),
             ]
         )
     ])
-    # tab5_content_ = html.Div([
-    #     dbc.Row(
-    #         [
-    #             dbc.Col([card_sso_skymap(pdf), card_sso_lightcurve()]),
-    #         ]),
-    #     dbc.Row(
-    #         [
-    #             dbc.Col(card_sso_mpc_params(pdf)),
-    #         ]),
-    # ])
     return tab5_content_
 
 def tabs(pdf):

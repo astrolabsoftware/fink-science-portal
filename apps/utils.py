@@ -17,6 +17,7 @@ import pandas as pd
 import gzip
 import io
 from astropy.io import fits
+from astroquery.mpc import MPC
 
 from astropy.convolution import convolve as astropy_convolve
 from astropy.convolution import Gaussian2DKernel
@@ -647,3 +648,29 @@ def extract_last_r_minus_g_each_object(pdf, kind):
             )
 
     return out_r_minus_g
+
+def queryMPC(number, kind='asteroid'):
+    """Query MPC for information about object 'designation'.
+
+    Parameters
+    ----------
+    designation: str
+        A name for the object that the MPC will understand.
+        This can be a number, proper name, or the packed designation.
+    kind: str
+        asteroid or comet
+
+    Returns
+    -------
+    pd.Series
+        Series containing orbit and select physical information.
+    """
+    try:
+        mpc = MPC.query_object(target_type=kind, number=number)
+        mpc = mpc[0]
+    except IndexError:
+        mpc = MPC.query_object(target_type=kind, designation=number)
+    except RuntimeError:
+        return pd.Series({})
+    orbit = pd.Series(mpc)
+    return orbit

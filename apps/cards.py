@@ -21,6 +21,7 @@ import visdcc
 from app import app
 
 from apps.plotting import all_radio_options
+from apps.utils import queryMPC
 
 from astropy.time import Time
 import pandas as pd
@@ -638,3 +639,36 @@ def generate_download_link(pdf):
         csv_string = pdf.to_csv(index=False, encoding='utf-8')
         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
         return csv_string
+
+def card_sso_mpc_params(ssnamenr):
+    """ MPC parameters
+    """
+    data = queryMPC(ssnamenr, kind='asteroids')
+    if data.empty:
+        return dash_table.DataTable()
+
+    table = dash_table.DataTable(
+        data=data.values,
+        columns=data.index.to_list(),
+        id='result_mpc',
+        page_size=10,
+        style_as_list_view=True,
+        sort_action="native",
+        filter_action="native",
+        markdown_options={'link_target': '_blank'},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_cell={'padding': '5px', 'textAlign': 'center'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    )
+    return table
