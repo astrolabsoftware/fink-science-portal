@@ -643,7 +643,7 @@ def generate_download_link(pdf):
 def card_sso_mpc_params(ssnamenr):
     """ MPC parameters
     """
-    data = queryMPC(ssnamenr, kind='asteroids')
+    data = queryMPC(ssnamenr, kind='asteroid')
     if data.empty:
         return dash_table.DataTable()
 
