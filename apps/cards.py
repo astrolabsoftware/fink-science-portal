@@ -338,7 +338,18 @@ def card_sso_lightcurve():
         Card with the SSO lightcurve
     """
     card = dbc.Card(
-        dbc.CardBody(id='sso_lightcurve'),
+        dbc.CardBody(
+            [
+                dcc.Graph(
+                    id='sso_lightcurve',
+                    style={
+                        'width': '100%',
+                        'height': '15pc'
+                    },
+                    config={'displayModeBar': False}
+                ),
+            ]
+        ),
         className="mt-3"
     )
     return card
