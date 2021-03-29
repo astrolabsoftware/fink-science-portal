@@ -147,6 +147,7 @@ def title(name):
         Output('object-data', 'children'),
         Output('object-upper', 'children'),
         Output('object-uppervalid', 'children'),
+        Output('object-sso', 'children'),
     ],
     [
         Input('url', 'pathname'),
