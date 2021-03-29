@@ -1126,9 +1126,9 @@ def integrate_aladin_lite(object_data):
     Output('sso_lightcurve', 'children'),
     [
         Input('url', 'pathname'),
-        Input('object-data', 'children')
+        Input('object-sso', 'children')
     ])
-def draw_sso_lightcurve(pathname: str, object_data) -> dict:
+def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     """ Draw SSO object lightcurve with errorbars
 
     Parameters
@@ -1140,22 +1140,7 @@ def draw_sso_lightcurve(pathname: str, object_data) -> dict:
     ----------
     figure: dict
     """
-    pdf_ = pd.read_json(object_data)
-    cols = [
-        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-        'i:candid', 'i:ssnamenr'
-    ]
-    pdf_ = pdf_.loc[:, cols]
-
-    # API call to retrieve all data for this SSO
-    payload = pdf_['i:ssnamenr'].values[0]
-    results = clientSSO.scan(
-        "",
-        "key:key:{}_".format(payload),
-        ",".join(cols),
-        0, True, True
-    )
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
         ### First observation - not referenced in the Minor Planet Center

@@ -21,7 +21,7 @@ import visdcc
 import pandas as pd
 import requests
 
-from app import app, client, clientU, clientUV
+from app import app, client, clientU, clientUV, clientSSO
 
 from apps.cards import card_cutouts, card_sn_scores
 from apps.cards import card_id, card_sn_properties
@@ -98,7 +98,8 @@ def tab5_content(pdf):
         ),
         dbc.Row(
             [
-                dbc.Col([card_sso_skymap()]),
+                dbc.Col([card_sso_skymap()], width=6),
+                dbc.Col([], width=6),
             ]
         )
     ])
@@ -164,7 +165,20 @@ def store_query(name):
 
     uppersV = clientUV.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
-    return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json()
+
+    payload = pdfs['i:ssnamenr'].values[0]
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:candid', 'i:ssnamenr'
+    ]
+    results = clientSSO.scan(
+        "",
+        "key:key:{}_".format(payload),
+        ",".join(cols),
+        0, True, True
+    )
+    pdfsso = pd.DataFrame.from_dict(results, orient='index')
+    return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json()
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
@@ -203,6 +217,7 @@ def layout(name):
             html.Div(id='object-data', style={'display': 'none'}),
             html.Div(id='object-upper', style={'display': 'none'}),
             html.Div(id='object-uppervalid', style={'display': 'none'}),
+            html.Div(id='object-sso', style={'display': 'none'}),
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
     )
 
