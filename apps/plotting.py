@@ -1158,9 +1158,7 @@ def draw_sso_lightcurve(pathname: str, object_data) -> dict:
     pdf = pd.DataFrame.from_dict(results, orient='index')
     if pdf.empty:
         msg = """
-        <div align="center">
-        First observation - not referenced in the Minor Planet Center
-        </div>
+        ### First observation - not referenced in the Minor Planet Center
         """
         return dcc.Markdown(msg)
 
