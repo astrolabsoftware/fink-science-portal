@@ -1123,14 +1123,12 @@ def integrate_aladin_lite(object_data):
     return " ".join(img_to_show)
 
 @app.callback(
-    [
-        Output('sso_lightcurve', 'figure')
-    ],
+    Output('sso_lightcurve', 'figure'),
     [
         Input('url', 'pathname'),
         Input('object-data', 'children')
     ])
-def draw_lightcurve(pathname: str, object_data) -> dict:
+def draw_sso_lightcurve(pathname: str, object_data) -> dict:
     """ Draw SSO object lightcurve with errorbars
 
     Parameters
