@@ -168,15 +168,10 @@ def store_query(name):
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
 
     payload = pdfs['i:ssnamenr'].values[0]
-    cols = [
-        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-        'i:candid', 'i:ssnamenr', 'i:ra', 'i:dec',
-        'v:lastdate', 'v:classification', 'i:objectId'
-    ]
     results = clientSSO.scan(
         "",
         "key:key:{}_".format(payload),
-        ",".join(cols),
+        "*",
         0, True, True
     )
     pdfsso = pd.DataFrame.from_dict(results, orient='index')
