@@ -76,10 +76,11 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
 
         pdfs['v:classification'] = classifications
 
-        # Extract color evolution
-        pdfs = pdfs.sort_values('i:objectId')
-        pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
-        pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
+        if extract_color:
+            # Extract color evolution
+            pdfs = pdfs.sort_values('i:objectId')
+            pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
+            pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
 
         # Human readable time
         pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
