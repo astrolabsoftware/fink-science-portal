@@ -1156,9 +1156,12 @@ def draw_sso_lightcurve(pathname: str, object_data) -> dict:
         0, True, True
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
+    if pdf.empty:
+        return dcc.Markdown("No data found in MPC")
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
 
     # shortcuts
     mag = pdf['i:magpsf']
@@ -1214,4 +1217,12 @@ def draw_sso_lightcurve(pathname: str, object_data) -> dict:
         ],
         "layout": layout_sso_lightcurve
     }
-    return figure
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '25pc'
+        },
+        config={'displayModeBar': False}
+    )
+    return graph
