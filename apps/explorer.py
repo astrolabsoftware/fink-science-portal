@@ -342,10 +342,10 @@ def display_skymap_sso(object_data):
 
     # Javascript. Note the use {{}} for dictionary
     # Force redraw of the Aladin lite window
-    img = """var container = document.getElementById('aladin-lite-div-skymap');var txt = ''; container.innerHTML = txt;"""
+    img = """var container = document.getElementById('aladin-lite-div-skymap_sso');var txt = ''; container.innerHTML = txt;"""
 
     # Aladin lite
-    img += """var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});""".format(ra0, dec0)
+    img += """var a = A.aladin('#aladin-lite-div-skymap_sso', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});""".format(ra0, dec0)
 
     ras = pdf['i:ra'].values
     decs = pdf['i:dec'].values
@@ -353,7 +353,7 @@ def display_skymap_sso(object_data):
     filts_dic = {1: 'g', 2: 'r'}
     times = pdf['v:lastdate'].values
     link = '<a target="_blank" href="{}/{}">{}</a>'
-    titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
+    titles = [link.format(APIURL, i, i) for i in pdf['i:objectId'].values]
     mags = pdf['i:magpsf'].values
     classes = pdf['v:classification'].values
     colors = {
