@@ -16,6 +16,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
+import visdcc
 
 from app import app
 
@@ -342,6 +343,29 @@ def card_sso_lightcurve():
         className="mt-3"
     )
     return card
+
+def card_sso_skymap():
+    """ Display the sky map in the explorer tab results (Aladin lite)
+
+    It uses `visdcc` to execute javascript directly.
+
+    Returns
+    ---------
+    out: list of objects
+    """
+    return [
+        dbc.Container(
+            html.Div(
+                [
+                    visdcc.Run_js(id='aladin-lite-div-skymap_sso'),
+                    dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
+                ], style={
+                    'width': '100%',
+                    'height': '25pc'
+                }
+            )
+        )
+    ]
 
 def card_explanation_xmatch():
     """ Explain how xmatch works
