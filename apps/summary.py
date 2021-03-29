@@ -170,7 +170,8 @@ def store_query(name):
     payload = pdfs['i:ssnamenr'].values[0]
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-        'i:candid', 'i:ssnamenr'
+        'i:candid', 'i:ssnamenr', 'i:ra', 'i:dec',
+        'v:lastdate', 'v:classification', 'i:objectId'
     ]
     results = clientSSO.scan(
         "",
