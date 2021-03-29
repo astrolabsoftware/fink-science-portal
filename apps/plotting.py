@@ -1188,7 +1188,7 @@ def draw_lightcurve(pathname: str, object_data) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
@@ -1206,7 +1206,7 @@ def draw_lightcurve(pathname: str, object_data) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
