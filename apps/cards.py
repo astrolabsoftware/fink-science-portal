@@ -648,9 +648,18 @@ def card_sso_mpc_params(ssnamenr):
     if data.empty:
         return dash_table.DataTable()
 
+    columns = [
+        {
+            'id': c,
+            'name': c,
+            'type': 'text',
+            # 'hideable': True,
+            'presentation': 'markdown',
+        } for c in ['Parameters', 'Values']
+    ]
     table = dash_table.DataTable(
-        data=data.values,
-        columns=data.index.to_list(),
+        data=data.to_dict('records'),
+        columns=columns,
         id='result_mpc',
         page_size=10,
         style_as_list_view=True,
