@@ -174,7 +174,10 @@ def store_query(name):
         "*",
         0, True, True
     )
-    pdfsso = pd.DataFrame.from_dict(results, orient='index')
+    schema_client_sso = clientSSO.schema()
+    pdfsso = format_hbase_output(
+        results, schema_client_sso, group_alerts=False, truncated=False
+    )
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json()
 
 def layout(name):
