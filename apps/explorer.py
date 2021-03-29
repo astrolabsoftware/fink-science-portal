@@ -316,10 +316,10 @@ def display_skymap(validation, data, columns):
 @app.callback(
     Output('aladin-lite-div-skymap_sso', 'run'),
     [
-        Input('object-data', 'children')
+        Input('object-sso', 'children')
     ],
 )
-def display_skymap_sso(object_data):
+def display_skymap_sso(object_sso):
     """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
@@ -334,7 +334,7 @@ def display_skymap_sso(object_data):
     Input: takes the object data
     Output: Display a sky image with all SSO position from aladin.
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(object_sso)
 
     # Coordinate of the first alert
     ra0 = pdf['i:ra'].values[0]
