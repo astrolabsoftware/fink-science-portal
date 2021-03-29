@@ -1,4 +1,4 @@
-# Copyright 2020 AstroLab Software
+# Copyright 2020-2021 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
-from app import client, app
+from app import client, app, clientSSO
 
 colors_ = [
     '#1f77b4',  # muted blue
@@ -159,6 +159,32 @@ layout_scores = dict(
     yaxis={
         'title': 'Score',
         'range': [0, 1]
+    }
+)
+
+layout_sso_lightcurve = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': 'Observation date',
+        'automargin': True
+    },
+    yaxis={
+        'autorange': 'reversed',
+        'title': 'Magnitude',
+        'automargin': True
     }
 )
 
@@ -1095,3 +1121,99 @@ def integrate_aladin_lite(object_data):
     img_to_show = [i for i in img.split('\n') if '// ' not in i]
 
     return " ".join(img_to_show)
+
+@app.callback(
+    [
+        Output('sso_lightcurve', 'figure')
+    ],
+    [
+        Input('url', 'pathname'),
+        Input('object-data', 'children')
+    ])
+def draw_lightcurve(pathname: str, object_data) -> dict:
+    """ Draw SSO object lightcurve with errorbars
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf_ = pd.read_json(object_data)
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:candid', 'i:ssnamenr'
+    ]
+    pdf_ = pdf_.loc[:, cols]
+
+    # API call to retrieve all data for this SSO
+    payload = pdf_['i:ssnamenr'].values[0]
+    results = clientSSO.scan(
+        "",
+        "key:key:{}_".format(payload),
+        ",".join(cols),
+        0, True, True
+    )
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    # shortcuts
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+
+    layout_sso_lightcurve['yaxis']['title'] = 'Difference magnitude'
+    layout_sso_lightcurve['yaxis']['autorange'] = 'reversed'
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': dates[pdf['i:fid'] == 1],
+                'y': mag[pdf['i:fid'] == 1],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 1],
+                    'visible': True,
+                    'color': '#1f77b4'
+                },
+                'mode': 'markers',
+                'name': 'g band',
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            },
+            {
+                'x': dates[pdf['i:fid'] == 2],
+                'y': mag[pdf['i:fid'] == 2],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 2],
+                    'visible': True,
+                    'color': '#ff7f0e'
+                },
+                'mode': 'markers',
+                'name': 'r band',
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#ff7f0e',
+                    'symbol': 'o'}
+            }
+        ],
+        "layout": layout_sso_lightcurve
+    }
+    return figure

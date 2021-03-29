@@ -105,8 +105,8 @@ def card_cutouts():
                     """
                     Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
                     In addition, the _Difference magnitude_ view shows:
-                    - upper triangles with errors (&#9650;), that represent alert measurements that does not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                    - lower triangles (&#9661;), that represent 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                    - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
                     """
                 ),
             ]
@@ -326,6 +326,20 @@ def card_explanation_mulens():
         ), style={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         }
+    )
+    return card
+
+def card_sso_lightcurve():
+    """ Add a card to display SSO lightcurve
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the SSO lightcurve
+    """
+    card = dbc.Card(
+        dbc.CardBody(id='sso_lightcurve'),
+        className="mt-3"
     )
     return card
 

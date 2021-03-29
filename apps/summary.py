@@ -29,6 +29,8 @@ from apps.cards import card_download
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
+from apps.cards import card_sso_lightcurve #card_sso_skymap, card_sso_mpc_params
+
 from apps.utils import format_hbase_output
 from apps.api import APIURL
 
@@ -85,6 +87,27 @@ def tab4_content(pdf):
     ])
     return tab4_content_
 
+def tab5_content(pdf):
+    """ SSO tab
+    """
+    tab5_content_ = html.Div([
+        dbc.Row(
+            [
+                dbc.Col([card_sso_lightcurve()]),
+            ])
+    ])
+    # tab5_content_ = html.Div([
+    #     dbc.Row(
+    #         [
+    #             dbc.Col([card_sso_skymap(pdf), card_sso_lightcurve()]),
+    #         ]),
+    #     dbc.Row(
+    #         [
+    #             dbc.Col(card_sso_mpc_params(pdf)),
+    #         ]),
+    # ])
+    return tab5_content_
+
 def tabs(pdf):
     tabs_ = dbc.Tabs(
         [
@@ -92,7 +115,7 @@ def tabs(pdf):
             dbc.Tab(tab2_content(pdf), label="Supernovae"),
             dbc.Tab(tab3_content(pdf), label="Variable stars"),
             dbc.Tab(tab4_content(pdf), label="Microlensing"),
-            dbc.Tab(label="Solar System", disabled=True),
+            dbc.Tab(tab5_content(pdf), label="Solar System"),
             dbc.Tab(label="GRB", disabled=True)
         ]
     )
