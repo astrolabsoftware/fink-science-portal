@@ -1157,7 +1157,12 @@ def draw_sso_lightcurve(pathname: str, object_data) -> dict:
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
     if pdf.empty:
-        return dcc.Markdown("No data found in MPC")
+        msg = """
+        <div align="center">
+        First observation - not referenced in the Minor Planet Center
+        </div>
+        """
+        return dcc.Markdown(msg)
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
