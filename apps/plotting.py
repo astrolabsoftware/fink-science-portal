@@ -1209,7 +1209,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '15pc'
         },
         config={'displayModeBar': False}
     )
