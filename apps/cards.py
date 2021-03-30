@@ -780,7 +780,9 @@ def download_sso_modal(ssnamenr):
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
     ```
-    """.format(ssnamenr, ssnamenr.replace('/', '_'), ssnamenr)
+
+    See http://134.158.75.151:24000/api for more options.
+    """.format(ssnamenr, str(ssnamenr).replace('/', '_'), ssnamenr)
     modal = [
         dbc.Button(
             "Download {} data".format(ssnamenr),
@@ -806,6 +808,69 @@ def download_sso_modal(ssnamenr):
     [State("modal-sso", "is_open")],
 )
 def toggle_modal_sso(n1, n2, is_open):
+    """ Callback for the modal (open/close)
+    """
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+def download_object_modal(objectid):
+    message_download = """
+    In a unix shell, simply paste (CSV):
+
+    ```bash
+    curl -H "Content-Type: application/json" -X POST \\
+        -d '{{"objectId":"{}", "output-format":"csv"}}' \\
+        http://134.158.75.151:24000/api/v1/objects \\
+        -o {}.csv
+    ```
+
+    Or in a python terminal, simply paste:
+
+    ```python
+    import requests
+    import pandas as pd
+
+    # get data for ZTF19acnjwgm
+    r = requests.post(
+      'http://134.158.75.151:24000/api/v1/objects',
+      json={{
+        'objectId': '{}',
+        'output-format': 'json'
+      }}
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    ```
+
+    See http://134.158.75.151:24000/api for more options.
+    """.format(objectid, str(objectid).replace('/', '_'), objectid)
+    modal = [
+        dbc.Button(
+            "Download {} data".format(objectid),
+            id="open-object",
+            color='secondary',
+        ),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Download {} data".format(objectid)),
+                dbc.ModalBody(dcc.Markdown(message_download)),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close-object", className="ml-auto")
+                ),
+            ],
+            id="modal-object", scrollable=True
+        ),
+    ]
+    return modal
+
+@app.callback(
+    Output("modal-object", "is_open"),
+    [Input("open-object", "n_clicks"), Input("close-object", "n_clicks")],
+    [State("modal-object", "is_open")],
+)
+def toggle_modal_object(n1, n2, is_open):
     """ Callback for the modal (open/close)
     """
     if n1 or n2:
