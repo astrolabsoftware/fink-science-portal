@@ -658,7 +658,10 @@ def generate_download_link(pdf):
 def card_sso_mpc_params(ssnamenr):
     """ MPC parameters
     """
-    data = queryMPC(ssnamenr, kind='asteroid')
+    if ssnamenr.startswith('C') or (ssnamenr[-1] == 'P'):
+        data = queryMPC(ssnamenr, kind='comet')
+    else:
+        data = queryMPC(ssnamenr, kind='asteroid')
 
     template = """
     ```python
@@ -759,7 +762,7 @@ def download_sso_modal(ssnamenr):
     """.format(ssnamenr, ssnamenr, ssnamenr)
     modal = [
         dbc.Button(
-            "Download SSO data",
+            "Download {} data".format(ssnamenr),
             id="open-sso",
             color='secondary',
         ),
