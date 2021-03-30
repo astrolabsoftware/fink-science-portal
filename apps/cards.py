@@ -774,7 +774,7 @@ def download_sso_modal(ssnamenr):
                         dbc.Button("Close", id="close-sso-modal", className="ml-auto")
                     ),
                 ],
-                id="modal", scrollable=True
+                id="modal-sso", scrollable=True
             ),
         ]
     )
