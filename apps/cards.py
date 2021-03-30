@@ -676,7 +676,7 @@ def card_sso_mpc_params(ssnamenr):
             ],
             className="mt-3", body=True
         )
-        return dash_table.DataTable()
+        return card
 
     card = dbc.Card(
         [
