@@ -22,7 +22,7 @@ import visdcc
 from app import app
 
 from apps.plotting import all_radio_options
-from apps.utils import queryMPC
+from apps.utils import queryMPC, convert_mpc_type
 
 from astropy.time import Time
 import pandas as pd
@@ -645,40 +645,66 @@ def card_sso_mpc_params(ssnamenr):
     """ MPC parameters
     """
     data = queryMPC(ssnamenr, kind='asteroid')
+
+    template = """
+    ```python
+    # Properties from MPC
+    number: {}
+    FORMAT: 'KEP'
+    a: {}
+    q: {}
+    e: {}
+    inc: {}
+    Omega: {}
+    argPeri: {}
+    tPeri: {}
+    meanAnomaly: {}
+    epoch: {}
+    H: {}
+    g: {}
+    ```
+    ---
+    """
     if data.empty:
+        card = dbc.Card(
+            [
+                html.H5("Name: None", className="card-title"),
+                html.H6("Orbit type: None", className="card-subtitle"),
+                dcc.Markdown(
+                    template.format(*([None] * 12))
+                )
+            ],
+            className="mt-3", body=True
+        )
         return dash_table.DataTable()
 
-    columns = [
-        {
-            'id': c,
-            'name': c,
-            'type': 'text',
-            # 'hideable': True,
-            'presentation': 'markdown',
-        } for c in ['Parameters', 'Values']
-    ]
-    table = dash_table.DataTable(
-        data=data.to_dict('records'),
-        columns=columns,
-        id='result_mpc',
-        page_size=10,
-        style_as_list_view=True,
-        sort_action="native",
-        filter_action="native",
-        markdown_options={'link_target': '_blank'},
-        style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        },
-        style_cell={'padding': '5px', 'textAlign': 'center'},
-        style_data_conditional=[
-            {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
-            }
+    card = dbc.Card(
+        [
+            html.H5("Name: {}".format(data['name']), className="card-title"),
+            html.H6("Orbit type: {}".format(
+                convert_mpc_type(int(data['orbit_type']))
+            ), className="card-subtitle"),
+            dcc.Markdown(
+                template.format(
+                    data['number'],
+                    float(data['semimajor_axis']),
+                    float(data['perihelion_distance']),
+                    float(data['eccentricity']),
+                    float(data['inclination']),
+                    float(data['ascending_node']),
+                    float(data['argument_of_perihelion']),
+                    float(data['perihelion_date_jd']) - 2400000.5,
+                    float(data['mean_anomaly']),
+                    float(data['epoch_jd']) - 2400000.5,
+                    float(data['absolute_magnitude']),
+                    float(data['phase_slope'])
+                )
+            ),
+            dbc.ButtonGroup([
+                dbc.Button('MPC', id='MPC', target="_blank", href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(data['name']), color='light'),
+                dbc.Button('JPL', id='JPL', target="_blank", href='https://ssd.jpl.nasa.gov/sbdb.cgi', color='light'),
+            ]),
         ],
-        style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
+        className="mt-3", body=True
     )
-    return table
+    return card

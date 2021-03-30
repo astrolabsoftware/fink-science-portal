@@ -674,3 +674,19 @@ def queryMPC(number, kind='asteroid'):
         return pd.Series({})
     orbit = pd.Series(mpc)
     return orbit
+
+def convert_mpc_type(index):
+    dic = {
+        0: "Unclassified (mostly Main Belters)",
+        1: "Atiras",
+        2: "Atens",
+        3: "Apollos",
+        4: "Amors",
+        5: "Mars Crossers",
+        6: "Hungarias",
+        7: "Phocaeas",
+        8: "Hildas",
+        9: "Jupiter Trojans",
+        10: "Distant Objects",
+    }
+    return dic[index]
