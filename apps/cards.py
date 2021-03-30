@@ -729,15 +729,15 @@ def card_sso_mpc_params(ssnamenr):
             dcc.Markdown(
                 template.format(
                     data['number'],
-                    float(data['period']),
-                    float(data['semimajor_axis']),
-                    float(data['perihelion_distance']),
-                    float(data['eccentricity']),
-                    float(data['inclination']),
-                    float(data['ascending_node']),
-                    float(data['argument_of_perihelion']),
+                    data['period'],
+                    data['semimajor_axis'],
+                    data['perihelion_distance'],
+                    data['eccentricity'],
+                    data['inclination'],
+                    data['ascending_node'],
+                    data['argument_of_perihelion'],
                     float(data['perihelion_date_jd']) - 2400000.5,
-                    float(data['mean_anomaly']),
+                    data['mean_anomaly'],
                     float(data['epoch_jd']) - 2400000.5,
                     phase_slope,
                     neo
