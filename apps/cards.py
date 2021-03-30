@@ -678,7 +678,11 @@ def card_sso_mpc_params(ssnamenr):
     ---
     """
     ssnamenr_ = str(ssnamenr)
-    if ssnamenr_.startswith('C') or (ssnamenr_[-1] == 'P'):
+    if ssnamenr_.startswith('C/'):
+        kind = 'comet'
+        ssnamenr_ = ssnamenr_[:-2] + ' ' + ssnamenr_[-2:]
+        data = queryMPC(ssnamenr_, kind=kind)
+    elif (ssnamenr_[-1] == 'P'):
         kind = 'comet'
         data = queryMPC(ssnamenr_, kind=kind)
     else:
