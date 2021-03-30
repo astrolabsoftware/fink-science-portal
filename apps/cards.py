@@ -662,7 +662,7 @@ def card_sso_mpc_params(ssnamenr):
     ```python
     # Properties from MPC
     number: {}
-    period: {}
+    period (year): {}
     a (AU): {}
     q (AU): {}
     e: {}
@@ -677,27 +677,13 @@ def card_sso_mpc_params(ssnamenr):
     ```
     ---
     """
-
     ssnamenr_ = str(ssnamenr)
     if ssnamenr_.startswith('C') or (ssnamenr_[-1] == 'P'):
-        data = queryMPC(ssnamenr, kind='comet')
-        header = [
-            html.H5("Name: {}".format(data['n_or_d']), className="card-title"),
-            html.H6("Orbit type: Comet", className="card-subtitle"),
-        ]
-        phase_slope = None
+        kind = 'comet'
+        data = queryMPC(ssnamenr_, kind=kind)
     else:
-        data = queryMPC(ssnamenr, kind='asteroid')
-        if data['name'] is None:
-            name = ssnamenr
-        else:
-            name = data['name']
-        orbit_type = convert_mpc_type(int(data['orbit_type']))
-        header = [
-            html.H5("Name: {}".format(name), className="card-title"),
-            html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
-        ]
-        phase_slope = data['phase_slope']
+        kind = 'asteroid'
+        data = queryMPC(ssnamenr_, kind=kind)
 
     if data.empty:
         card = dbc.Card(
@@ -711,6 +697,23 @@ def card_sso_mpc_params(ssnamenr):
             className="mt-3", body=True
         )
         return card
+    if kind == 'comet':
+        header = [
+            html.H5("Name: {}".format(data['n_or_d']), className="card-title"),
+            html.H6("Orbit type: Comet", className="card-subtitle"),
+        ]
+        phase_slope = None
+    elif kind == 'asteroid':
+        if data['name'] is None:
+            name = ssnamenr
+        else:
+            name = data['name']
+        orbit_type = convert_mpc_type(int(data['orbit_type']))
+        header = [
+            html.H5("Name: {}".format(name), className="card-title"),
+            html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
+        ]
+        phase_slope = data['phase_slope']
 
     card = dbc.Card(
         [
@@ -731,7 +734,7 @@ def card_sso_mpc_params(ssnamenr):
                     float(data['mean_anomaly']),
                     float(data['epoch_jd']) - 2400000.5,
                     float(phase_slope),
-                    float(data['neo'])
+                    int(data['neo'])
                 )
             ),
             dbc.ButtonGroup([
