@@ -658,17 +658,11 @@ def generate_download_link(pdf):
 def card_sso_mpc_params(ssnamenr):
     """ MPC parameters
     """
-    ssnamenr_ = str(ssnamenr)
-    if ssnamenr_.startswith('C') or (ssnamenr_[-1] == 'P'):
-        data = queryMPC(ssnamenr, kind='comet')
-    else:
-        data = queryMPC(ssnamenr, kind='asteroid')
-
     template = """
     ```python
     # Properties from MPC
     number: {}
-    FORMAT: 'KEP'
+    period: {}
     a (AU): {}
     q (AU): {}
     e: {}
@@ -678,38 +672,53 @@ def card_sso_mpc_params(ssnamenr):
     tPeri (MJD): {}
     meanAnomaly (deg): {}
     epoch (MJD): {}
-    H: {}
     g: {}
+    neo: {}
     ```
     ---
     """
+
+    ssnamenr_ = str(ssnamenr)
+    if ssnamenr_.startswith('C') or (ssnamenr_[-1] == 'P'):
+        data = queryMPC(ssnamenr, kind='comet')
+        header = [
+            html.H5("Name: {}".format(data['n_or_d']), className="card-title"),
+            html.H6("Orbit type: Comet", className="card-subtitle"),
+        ]
+    else:
+        data = queryMPC(ssnamenr, kind='asteroid')
+        if data['name'] is None:
+            name = ssnamenr
+        else:
+            name = data['name']
+        orbit_type = convert_mpc_type(int(data['orbit_type']))
+        header = [
+            html.H5("Name: {}".format(name), className="card-title"),
+            html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
+        ]
+
     if data.empty:
         card = dbc.Card(
             [
                 html.H5("Name: None", className="card-title"),
                 html.H6("Orbit type: None", className="card-subtitle"),
                 dcc.Markdown(
-                    template.format(*([None] * 12))
+                    template.format(*([None] * 13))
                 )
             ],
             className="mt-3", body=True
         )
         return card
 
-    orbit_type = convert_mpc_type(int(data['orbit_type']))
-    if data['name'] is None:
-        name = ssnamenr
-    else:
-        name = data['name']
     card = dbc.Card(
         [
             *download_sso_modal(ssnamenr),
             dcc.Markdown("""---"""),
-            html.H5("Name: {}".format(name), className="card-title"),
-            html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
+            *header,
             dcc.Markdown(
                 template.format(
                     data['number'],
+                    float(data['period']),
                     float(data['semimajor_axis']),
                     float(data['perihelion_distance']),
                     float(data['eccentricity']),
@@ -719,8 +728,8 @@ def card_sso_mpc_params(ssnamenr):
                     float(data['perihelion_date_jd']) - 2400000.5,
                     float(data['mean_anomaly']),
                     float(data['epoch_jd']) - 2400000.5,
-                    float(data['absolute_magnitude']),
-                    float(data['phase_slope'])
+                    float(data['phase_slope']),
+                    float(data['neo'])
                 )
             ),
             dbc.ButtonGroup([
