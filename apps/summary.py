@@ -194,6 +194,7 @@ def layout(name):
                                     'height': '25pc'
                                 }
                             ),
+                            html.Br(),
                             *download_object_modal(pdf['i:objectId'].values[0])
                         ], width={"size": 3},
                     ),

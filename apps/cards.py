@@ -754,7 +754,7 @@ def card_sso_mpc_params(ssnamenr):
 
 def download_sso_modal(ssnamenr):
     message_download_sso = """
-    In a unix shell, simply paste (CSV):
+    In a terminal, simply paste (CSV):
 
     ```bash
     curl -H "Content-Type: application/json" -X POST \\
@@ -816,7 +816,7 @@ def toggle_modal_sso(n1, n2, is_open):
 
 def download_object_modal(objectid):
     message_download = """
-    In a unix shell, simply paste (CSV):
+    In a terminal, simply paste (CSV):
 
     ```bash
     curl -H "Content-Type: application/json" -X POST \\
@@ -851,6 +851,7 @@ def download_object_modal(objectid):
             "Download {} data".format(objectid),
             id="open-object",
             color='secondary',
+            size="lg", block=True
         ),
         dbc.Modal(
             [
