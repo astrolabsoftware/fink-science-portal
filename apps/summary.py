@@ -194,7 +194,7 @@ def layout(name):
                                     'height': '25pc'
                                 }
                             ),
-                            download_object_modal(pdf['i:objectId'].values[0])
+                            *download_object_modal(pdf['i:objectId'].values[0])
                         ], width={"size": 3},
                     ),
                     dbc.Col(tabs(pdf), width=8)
