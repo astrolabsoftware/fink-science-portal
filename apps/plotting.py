@@ -1264,13 +1264,9 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
         msg = ""
         return dcc.Markdown(msg)
 
-    # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
-    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
-
     # shortcuts
-    ra = pdf['i:ra']
-    dec = pdf['i:dec']
+    ra = pdf['i:ra'].apply(lambda x: float(x))
+    dec = pdf['i:dec'].apply(lambda x: float(x))
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
