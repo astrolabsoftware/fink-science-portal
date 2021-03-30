@@ -733,7 +733,7 @@ def card_sso_mpc_params(ssnamenr):
                     float(data['perihelion_date_jd']) - 2400000.5,
                     float(data['mean_anomaly']),
                     float(data['epoch_jd']) - 2400000.5,
-                    float(phase_slope),
+                    phase_slope,
                     int(data['neo'])
                 )
             ),
