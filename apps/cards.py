@@ -658,7 +658,8 @@ def generate_download_link(pdf):
 def card_sso_mpc_params(ssnamenr):
     """ MPC parameters
     """
-    if ssnamenr.startswith('C') or (ssnamenr[-1] == 'P'):
+    ssnamenr_ = str(ssnamenr)
+    if ssnamenr_.startswith('C') or (ssnamenr_[-1] == 'P'):
         data = queryMPC(ssnamenr, kind='comet')
     else:
         data = queryMPC(ssnamenr, kind='asteroid')
