@@ -665,15 +665,15 @@ def card_sso_mpc_params(ssnamenr):
     # Properties from MPC
     number: {}
     FORMAT: 'KEP'
-    a: {}
-    q: {}
+    a (AU): {}
+    q (AU): {}
     e: {}
-    inc: {}
-    Omega: {}
-    argPeri: {}
-    tPeri: {}
-    meanAnomaly: {}
-    epoch: {}
+    inc (deg): {}
+    Omega (deg): {}
+    argPeri (deg): {}
+    tPeri (MJD): {}
+    meanAnomaly (deg): {}
+    epoch (MJD): {}
     H: {}
     g: {}
     ```
