@@ -718,7 +718,64 @@ def card_sso_mpc_params(ssnamenr):
                 dbc.Button('MPC', id='MPC', target="_blank", href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(data['name']), color='light'),
                 dbc.Button('JPL', id='JPL', target="_blank", href='https://ssd.jpl.nasa.gov/sbdb.cgi', color='light'),
             ]),
+            download_sso_modal(),
         ],
         className="mt-3", body=True
     )
     return card
+
+def download_sso_modal(ssnamenr):
+    message_download_sso = """
+    In a unix shell, simply paste (CSV):
+
+    ```bash
+    curl -H "Content-Type: application/json" \\
+        -X POST -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
+        http://134.158.75.151:24000/api/v1/sso -o {}.csv
+    ```
+
+    Or in a python terminal, simply paste:
+
+    ```python
+    import requests
+    import pandas as pd
+
+    # get data for ZTF19acnjwgm
+    r = requests.post(
+      'http://134.158.75.151:24000/api/v1/sso',
+      json={
+        'n_or_d': '{}',
+        'output-format': 'json'
+      }
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    ```
+    """.format(ssnamenr, ssnamenr, ssnamenr)
+    modal = html.Div(
+        [
+            dbc.Button(
+                "Download SSO data",
+                id="open",
+                color='light',
+                outline=True,
+                style={
+                    "border": "0px black solid",
+                    'background': 'rgba(255, 255, 255, 0.0)',
+                    'color': 'grey'
+                }
+            ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader("Download {} data".format(ssnamenr)),
+                    dbc.ModalBody(dcc.Markdown(message_download_sso)),
+                    dbc.ModalFooter(
+                        dbc.Button("Close", id="close-sso-modal", className="ml-auto")
+                    ),
+                ],
+                id="modal", scrollable=True
+            ),
+        ]
+    )
+    return modal
