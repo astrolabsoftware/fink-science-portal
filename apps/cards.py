@@ -692,12 +692,17 @@ def card_sso_mpc_params(ssnamenr):
         )
         return card
 
+    orbit_type = convert_mpc_type(int(data['orbit_type']))
+    if data['name'] is None:
+        name = ssnamenr
+    else:
+        name = data['name']
     card = dbc.Card(
         [
-            html.H5("Name: {}".format(data['name']), className="card-title"),
-            html.H6("Orbit type: {}".format(
-                convert_mpc_type(int(data['orbit_type']))
-            ), className="card-subtitle"),
+            *download_sso_modal(ssnamenr),
+            dcc.Markdown("""---"""),
+            html.H5("Name: {}".format(name), className="card-title"),
+            html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
             dcc.Markdown(
                 template.format(
                     data['number'],
@@ -718,7 +723,6 @@ def card_sso_mpc_params(ssnamenr):
                 dbc.Button('MPC', id='MPC', target="_blank", href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(data['name']), color='light'),
                 dbc.Button('JPL', id='JPL', target="_blank", href='https://ssd.jpl.nasa.gov/sbdb.cgi', color='light'),
             ]),
-            download_sso_modal(ssnamenr),
         ],
         className="mt-3", body=True
     )
@@ -753,25 +757,23 @@ def download_sso_modal(ssnamenr):
     pdf = pd.read_json(r.content)
     ```
     """.format(ssnamenr, ssnamenr, ssnamenr)
-    modal = html.Div(
-        [
-            dbc.Button(
-                "Download SSO data",
-                id="open-sso",
-                color='secondary',
-            ),
-            dbc.Modal(
-                [
-                    dbc.ModalHeader("Download {} data".format(ssnamenr)),
-                    dbc.ModalBody(dcc.Markdown(message_download_sso)),
-                    dbc.ModalFooter(
-                        dbc.Button("Close", id="close-sso", className="ml-auto")
-                    ),
-                ],
-                id="modal-sso", scrollable=True
-            ),
-        ]
-    )
+    modal = [
+        dbc.Button(
+            "Download SSO data",
+            id="open-sso",
+            color='secondary',
+        ),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Download {} data".format(ssnamenr)),
+                dbc.ModalBody(dcc.Markdown(message_download_sso)),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close-sso", className="ml-auto")
+                ),
+            ],
+            id="modal-sso", scrollable=True
+        ),
+    ]
     return modal
 
 @app.callback(
