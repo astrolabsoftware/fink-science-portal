@@ -743,10 +743,10 @@ def download_sso_modal(ssnamenr):
     # get data for ZTF19acnjwgm
     r = requests.post(
       'http://134.158.75.151:24000/api/v1/sso',
-      json={
+      json={{
         'n_or_d': '{}',
         'output-format': 'json'
-      }
+      }}
     )
 
     # Format output in a DataFrame
