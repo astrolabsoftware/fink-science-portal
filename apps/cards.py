@@ -718,7 +718,7 @@ def card_sso_mpc_params(ssnamenr):
                 dbc.Button('MPC', id='MPC', target="_blank", href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(data['name']), color='light'),
                 dbc.Button('JPL', id='JPL', target="_blank", href='https://ssd.jpl.nasa.gov/sbdb.cgi', color='light'),
             ]),
-            download_sso_modal(),
+            download_sso_modal(ssnamenr),
         ],
         className="mt-3", body=True
     )
