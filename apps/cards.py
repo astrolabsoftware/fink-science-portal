@@ -703,6 +703,7 @@ def card_sso_mpc_params(ssnamenr):
             html.H6("Orbit type: Comet", className="card-subtitle"),
         ]
         phase_slope = None
+        neo = 0
     elif kind == 'asteroid':
         if data['name'] is None:
             name = ssnamenr
@@ -714,6 +715,7 @@ def card_sso_mpc_params(ssnamenr):
             html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
         ]
         phase_slope = data['phase_slope']
+        neo = int(data['neo'])
 
     card = dbc.Card(
         [
@@ -734,7 +736,7 @@ def card_sso_mpc_params(ssnamenr):
                     float(data['mean_anomaly']),
                     float(data['epoch_jd']) - 2400000.5,
                     phase_slope,
-                    int(data['neo'])
+                    neo
                 )
             ),
             dbc.ButtonGroup([
