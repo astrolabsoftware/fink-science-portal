@@ -685,6 +685,7 @@ def card_sso_mpc_params(ssnamenr):
             html.H5("Name: {}".format(data['n_or_d']), className="card-title"),
             html.H6("Orbit type: Comet", className="card-subtitle"),
         ]
+        phase_slope = None
     else:
         data = queryMPC(ssnamenr, kind='asteroid')
         if data['name'] is None:
@@ -696,6 +697,7 @@ def card_sso_mpc_params(ssnamenr):
             html.H5("Name: {}".format(name), className="card-title"),
             html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
         ]
+        phase_slope = data['phase_slope']
 
     if data.empty:
         card = dbc.Card(
@@ -728,7 +730,7 @@ def card_sso_mpc_params(ssnamenr):
                     float(data['perihelion_date_jd']) - 2400000.5,
                     float(data['mean_anomaly']),
                     float(data['epoch_jd']) - 2400000.5,
-                    float(data['phase_slope']),
+                    float(phase_slope),
                     float(data['neo'])
                 )
             ),
