@@ -15,11 +15,14 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
+import dash_table
+import visdcc
 
 from app import app
 
 from apps.plotting import all_radio_options
+from apps.utils import queryMPC, convert_mpc_type
 
 from astropy.time import Time
 import pandas as pd
@@ -105,8 +108,8 @@ def card_cutouts():
                     """
                     Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
                     In addition, the _Difference magnitude_ view shows:
-                    - upper triangles with errors (&#9650;), that represent alert measurements that does not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                    - lower triangles (&#9661;), that represent 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                    - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
                     """
                 ),
             ]
@@ -328,6 +331,53 @@ def card_explanation_mulens():
         }
     )
     return card
+
+def card_sso_lightcurve():
+    """ Add a card to display SSO lightcurve
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the SSO lightcurve
+    """
+    card = dbc.Card(
+        dbc.CardBody(id='sso_lightcurve'),
+        className="mt-3"
+    )
+    return card
+
+def card_sso_radec():
+    """ Add a card to display SSO radec
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the SSO radec
+    """
+    card = dbc.Card(
+        dbc.CardBody(id='sso_radec'),
+        className="mt-3"
+    )
+    return card
+
+def card_sso_skymap():
+    """ Display the sky map in the explorer tab results (Aladin lite)
+
+    It uses `visdcc` to execute javascript directly.
+
+    Returns
+    ---------
+    out: list of objects
+    """
+    return html.Div(
+        [
+            visdcc.Run_js(id='aladin-lite-div-skymap_sso'),
+            dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
+        ], style={
+            'width': '100%',
+            'height': '25pc'
+        }
+    )
 
 def card_explanation_xmatch():
     """ Explain how xmatch works
@@ -604,3 +654,226 @@ def generate_download_link(pdf):
         csv_string = pdf.to_csv(index=False, encoding='utf-8')
         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
         return csv_string
+
+def card_sso_mpc_params(ssnamenr):
+    """ MPC parameters
+    """
+    template = """
+    ```python
+    # Properties from MPC
+    number: {}
+    period (year): {}
+    a (AU): {}
+    q (AU): {}
+    e: {}
+    inc (deg): {}
+    Omega (deg): {}
+    argPeri (deg): {}
+    tPeri (MJD): {}
+    meanAnomaly (deg): {}
+    epoch (MJD): {}
+    g: {}
+    neo: {}
+    ```
+    ---
+    """
+    ssnamenr_ = str(ssnamenr)
+    if ssnamenr_.startswith('C/'):
+        kind = 'comet'
+        ssnamenr_ = ssnamenr_[:-2] + ' ' + ssnamenr_[-2:]
+        data = queryMPC(ssnamenr_, kind=kind)
+    elif (ssnamenr_[-1] == 'P'):
+        kind = 'comet'
+        data = queryMPC(ssnamenr_, kind=kind)
+    else:
+        kind = 'asteroid'
+        data = queryMPC(ssnamenr_, kind=kind)
+
+    if data.empty:
+        card = dbc.Card(
+            [
+                html.H5("Name: None", className="card-title"),
+                html.H6("Orbit type: None", className="card-subtitle"),
+                dcc.Markdown(
+                    template.format(*([None] * 13))
+                )
+            ],
+            className="mt-3", body=True
+        )
+        return card
+    if kind == 'comet':
+        header = [
+            html.H5("Name: {}".format(data['n_or_d']), className="card-title"),
+            html.H6("Orbit type: Comet", className="card-subtitle"),
+        ]
+        phase_slope = None
+        neo = 0
+    elif kind == 'asteroid':
+        if data['name'] is None:
+            name = ssnamenr
+        else:
+            name = data['name']
+        orbit_type = convert_mpc_type(int(data['orbit_type']))
+        header = [
+            html.H5("Name: {}".format(name), className="card-title"),
+            html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
+        ]
+        phase_slope = data['phase_slope']
+        neo = int(data['neo'])
+
+    card = dbc.Card(
+        [
+            *download_sso_modal(ssnamenr),
+            dcc.Markdown("""---"""),
+            *header,
+            dcc.Markdown(
+                template.format(
+                    data['number'],
+                    data['period'],
+                    data['semimajor_axis'],
+                    data['perihelion_distance'],
+                    data['eccentricity'],
+                    data['inclination'],
+                    data['ascending_node'],
+                    data['argument_of_perihelion'],
+                    float(data['perihelion_date_jd']) - 2400000.5,
+                    data['mean_anomaly'],
+                    float(data['epoch_jd']) - 2400000.5,
+                    phase_slope,
+                    neo
+                )
+            ),
+            dbc.ButtonGroup([
+                dbc.Button('MPC', id='MPC', target="_blank", href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_), color='light'),
+                dbc.Button('JPL', id='JPL', target="_blank", href='https://ssd.jpl.nasa.gov/sbdb.cgi', color='light'),
+            ]),
+        ],
+        className="mt-3", body=True
+    )
+    return card
+
+def download_sso_modal(ssnamenr):
+    message_download_sso = """
+    In a terminal, simply paste (CSV):
+
+    ```bash
+    curl -H "Content-Type: application/json" -X POST \\
+        -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
+        http://134.158.75.151:24000/api/v1/sso -o {}.csv
+    ```
+
+    Or in a python terminal, simply paste:
+
+    ```python
+    import requests
+    import pandas as pd
+
+    # get data for ZTF19acnjwgm
+    r = requests.post(
+      'http://134.158.75.151:24000/api/v1/sso',
+      json={{
+        'n_or_d': '{}',
+        'output-format': 'json'
+      }}
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    ```
+
+    See http://134.158.75.151:24000/api for more options.
+    """.format(ssnamenr, str(ssnamenr).replace('/', '_'), ssnamenr)
+    modal = [
+        dbc.Button(
+            "Download {} data".format(ssnamenr),
+            id="open-sso",
+            color='secondary',
+        ),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Download {} data".format(ssnamenr)),
+                dbc.ModalBody(dcc.Markdown(message_download_sso)),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close-sso", className="ml-auto")
+                ),
+            ],
+            id="modal-sso", scrollable=True
+        ),
+    ]
+    return modal
+
+@app.callback(
+    Output("modal-sso", "is_open"),
+    [Input("open-sso", "n_clicks"), Input("close-sso", "n_clicks")],
+    [State("modal-sso", "is_open")],
+)
+def toggle_modal_sso(n1, n2, is_open):
+    """ Callback for the modal (open/close)
+    """
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+def download_object_modal(objectid):
+    message_download = """
+    In a terminal, simply paste (CSV):
+
+    ```bash
+    curl -H "Content-Type: application/json" -X POST \\
+        -d '{{"objectId":"{}", "output-format":"csv"}}' \\
+        http://134.158.75.151:24000/api/v1/objects \\
+        -o {}.csv
+    ```
+
+    Or in a python terminal, simply paste:
+
+    ```python
+    import requests
+    import pandas as pd
+
+    # get data for ZTF19acnjwgm
+    r = requests.post(
+      'http://134.158.75.151:24000/api/v1/objects',
+      json={{
+        'objectId': '{}',
+        'output-format': 'json'
+      }}
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    ```
+
+    See http://134.158.75.151:24000/api for more options.
+    """.format(objectid, str(objectid).replace('/', '_'), objectid)
+    modal = [
+        dbc.Button(
+            "Download {} data".format(objectid),
+            id="open-object",
+            color='secondary',
+            size="lg", block=True
+        ),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Download {} data".format(objectid)),
+                dbc.ModalBody(dcc.Markdown(message_download)),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close-object", className="ml-auto")
+                ),
+            ],
+            id="modal-object", scrollable=True
+        ),
+    ]
+    return modal
+
+@app.callback(
+    Output("modal-object", "is_open"),
+    [Input("open-object", "n_clicks"), Input("close-object", "n_clicks")],
+    [State("modal-object", "is_open")],
+)
+def toggle_modal_object(n1, n2, is_open):
+    """ Callback for the modal (open/close)
+    """
+    if n1 or n2:
+        return not is_open
+    return is_open

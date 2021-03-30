@@ -17,6 +17,7 @@ import pandas as pd
 import gzip
 import io
 from astropy.io import fits
+from astroquery.mpc import MPC
 
 from astropy.convolution import convolve as astropy_convolve
 from astropy.convolution import Gaussian2DKernel
@@ -36,7 +37,7 @@ hbase_type_converter = {
     'fits/image': str
 }
 
-def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncated: bool = False):
+def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncated: bool = False, extract_color: bool = True):
     """
     """
     if hbase_output.isEmpty():
@@ -76,10 +77,11 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
 
         pdfs['v:classification'] = classifications
 
-        # Extract color evolution
-        pdfs = pdfs.sort_values('i:objectId')
-        pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
-        pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
+        if extract_color:
+            # Extract color evolution
+            pdfs = pdfs.sort_values('i:objectId')
+            pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
+            pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
 
         # Human readable time
         pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
@@ -646,3 +648,46 @@ def extract_last_r_minus_g_each_object(pdf, kind):
             )
 
     return out_r_minus_g
+
+def queryMPC(number, kind='asteroid'):
+    """Query MPC for information about object 'designation'.
+
+    Parameters
+    ----------
+    designation: str
+        A name for the object that the MPC will understand.
+        This can be a number, proper name, or the packed designation.
+    kind: str
+        asteroid or comet
+
+    Returns
+    -------
+    pd.Series
+        Series containing orbit and select physical information.
+    """
+    try:
+        mpc = MPC.query_object(target_type=kind, number=number)
+        mpc = mpc[0]
+    except IndexError:
+        mpc = MPC.query_object(target_type=kind, designation=number)
+        mpc = mpc[0]
+    except RuntimeError:
+        return pd.Series({})
+    orbit = pd.Series(mpc)
+    return orbit
+
+def convert_mpc_type(index):
+    dic = {
+        0: "Unclassified (mostly Main Belters)",
+        1: "Atiras",
+        2: "Atens",
+        3: "Apollos",
+        4: "Amors",
+        5: "Mars Crossers",
+        6: "Hungarias",
+        7: "Phocaeas",
+        8: "Hildas",
+        9: "Jupiter Trojans",
+        10: "Distant Objects",
+    }
+    return dic[index]

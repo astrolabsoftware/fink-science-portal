@@ -21,14 +21,16 @@ import visdcc
 import pandas as pd
 import requests
 
-from app import app, client, clientU, clientUV
+from app import app, client, clientU, clientUV, clientSSO
 
 from apps.cards import card_cutouts, card_sn_scores
 from apps.cards import card_id, card_sn_properties
-from apps.cards import card_download
+from apps.cards import download_object_modal
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
+from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
+
 from apps.utils import format_hbase_output
 from apps.api import APIURL
 
@@ -85,6 +87,20 @@ def tab4_content(pdf):
     ])
     return tab4_content_
 
+def tab5_content(pdf):
+    """ SSO tab
+    """
+    ssnamenr = pdf['i:ssnamenr'].values[0]
+    tab5_content_ = html.Div([
+        dbc.Row(
+            [
+                dbc.Col([card_sso_lightcurve(), card_sso_radec()]),
+                dbc.Col([card_sso_mpc_params(ssnamenr)], width=4)
+            ]
+        ),
+    ])
+    return tab5_content_
+
 def tabs(pdf):
     tabs_ = dbc.Tabs(
         [
@@ -92,7 +108,7 @@ def tabs(pdf):
             dbc.Tab(tab2_content(pdf), label="Supernovae"),
             dbc.Tab(tab3_content(pdf), label="Variable stars"),
             dbc.Tab(tab4_content(pdf), label="Microlensing"),
-            dbc.Tab(label="Solar System", disabled=True),
+            dbc.Tab(tab5_content(pdf), label="Solar System"),
             dbc.Tab(label="GRB", disabled=True)
         ]
     )
@@ -117,6 +133,7 @@ def title(name):
         Output('object-data', 'children'),
         Output('object-upper', 'children'),
         Output('object-uppervalid', 'children'),
+        Output('object-sso', 'children'),
     ],
     [
         Input('url', 'pathname'),
@@ -135,7 +152,20 @@ def store_query(name):
 
     uppersV = clientUV.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
-    return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json()
+
+    payload = pdfs['i:ssnamenr'].values[0]
+    results = clientSSO.scan(
+        "",
+        "key:key:{}_".format(payload),
+        "*",
+        0, True, True
+    )
+    schema_client_sso = clientSSO.schema()
+    pdfsso = format_hbase_output(
+        results, schema_client_sso,
+        group_alerts=False, truncated=False, extract_color=False
+    )
+    return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json()
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
@@ -164,7 +194,8 @@ def layout(name):
                                     'height': '25pc'
                                 }
                             ),
-                            card_download(pdf)
+                            html.Br(),
+                            *download_object_modal(pdf['i:objectId'].values[0])
                         ], width={"size": 3},
                     ),
                     dbc.Col(tabs(pdf), width=8)
@@ -174,6 +205,7 @@ def layout(name):
             html.Div(id='object-data', style={'display': 'none'}),
             html.Div(id='object-upper', style={'display': 'none'}),
             html.Div(id='object-uppervalid', style={'display': 'none'}),
+            html.Div(id='object-sso', style={'display': 'none'}),
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
     )
 
