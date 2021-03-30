@@ -346,6 +346,20 @@ def card_sso_lightcurve():
     )
     return card
 
+def card_sso_radec():
+    """ Add a card to display SSO radec
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the SSO radec
+    """
+    card = dbc.Card(
+        dbc.CardBody(id='sso_radec'),
+        className="mt-3"
+    )
+    return card
+
 def card_sso_skymap():
     """ Display the sky map in the explorer tab results (Aladin lite)
 

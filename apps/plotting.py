@@ -188,6 +188,32 @@ layout_sso_lightcurve = dict(
     }
 )
 
+layout_sso_radec = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    yaxis={
+        'title': 'Declination',
+        'automargin': True
+    },
+    xaxis={
+        'autorange': 'reversed',
+        'title': 'Right Ascension',
+        'automargin': True
+    }
+)
+
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """ Extract SN scores from the data
     """
@@ -1143,7 +1169,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
-        ### First observation - not referenced in the Minor Planet Center
+        ### Not referenced in the Minor Planet Center
         """
         return dcc.Markdown(msg)
 
@@ -1204,6 +1230,76 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
             }
         ],
         "layout": layout_sso_lightcurve
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    return graph
+
+@app.callback(
+    Output('sso_radec', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-sso', 'children')
+    ])
+def draw_sso_radec(pathname: str, object_sso) -> dict:
+    """ Draw SSO object radec
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_sso)
+    if pdf.empty:
+        msg = ""
+        return dcc.Markdown(msg)
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    # shortcuts
+    ra = pdf['i:ra']
+    dec = pdf['i:dec']
+
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': ra,
+                'y': dec,
+                'mode': 'markers',
+                'name': 'Observations',
+                'customdata': list(
+                    zip(
+                        pdf['i:objectId'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': 'rgba(135, 206, 250, 0.5)',
+                    'symbol': 'circle-open-dot'}
+            }
+        ],
+        "layout": layout_sso_radec
     }
     graph = dcc.Graph(
         figure=figure,
