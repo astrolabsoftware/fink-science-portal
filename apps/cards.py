@@ -729,8 +729,8 @@ def download_sso_modal(ssnamenr):
     In a unix shell, simply paste (CSV):
 
     ```bash
-    curl -H "Content-Type: application/json" \\
-        -X POST -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
+    curl -H "Content-Type: application/json" -X POST \\
+        -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
         http://134.158.75.151:24000/api/v1/sso -o {}.csv
     ```
 
@@ -758,13 +758,7 @@ def download_sso_modal(ssnamenr):
             dbc.Button(
                 "Download SSO data",
                 id="open-sso",
-                color='light',
-                outline=True,
-                style={
-                    "border": "0px black solid",
-                    'background': 'rgba(255, 255, 255, 0.0)',
-                    'color': 'grey'
-                }
+                color='secondary',
             ),
             dbc.Modal(
                 [
