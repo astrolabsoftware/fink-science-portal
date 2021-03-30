@@ -15,7 +15,7 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_table
 import visdcc
 
@@ -785,7 +785,7 @@ def download_sso_modal(ssnamenr):
     [Input("open-sso", "n_clicks"), Input("close-sso", "n_clicks")],
     [State("modal-sso", "is_open")],
 )
-def toggle_modal(n1, n2, is_open):
+def toggle_modal_sso(n1, n2, is_open):
     """ Callback for the modal (open/close)
     """
     if n1 or n2:
