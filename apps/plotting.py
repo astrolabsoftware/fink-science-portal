@@ -1291,7 +1291,7 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': 'rgba(135, 206, 250, 0.85)',
+                    'color': '#d62728',
                     'symbol': 'circle-open-dot'}
             }
         ],

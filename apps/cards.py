@@ -780,7 +780,7 @@ def download_sso_modal(ssnamenr):
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
     ```
-    """.format(ssnamenr, ssnamenr, ssnamenr)
+    """.format(ssnamenr, ssnamenr.replace('/', '_'), ssnamenr)
     modal = [
         dbc.Button(
             "Download {} data".format(ssnamenr),
