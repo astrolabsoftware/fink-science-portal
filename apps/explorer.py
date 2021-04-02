@@ -389,7 +389,7 @@ def input_type(n1, n2, n3, n4, n5):
             {'label': 'Solar System Object candidates', 'value': 'Solar System'},
             {'label': 'Ambiguous', 'value': 'Ambiguous'},
             {'label': 'TNS classified data', 'disabled': True, 'value': 'None'},
-            *[{'label': simtype, 'value': simtype} for simtype in tns_types]
+            *[{'label': simtype, 'value': simtype} for simtype in tns_types],
             {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
             *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
         ]
