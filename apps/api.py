@@ -299,7 +299,7 @@ The list of Fink class can be found at http://134.158.75.151:24000/api/v1/classe
 curl -H "Content-Type: application/json" -X GET http://134.158.75.151:24000/api/v1/classes -o finkclass.json
 ```
 
-In a unix shell, you would simply use
+To get the last 5 candidates of the class `Early SN candidate`, you would simply use in a unix shell:
 
 ```bash
 # Get latests 5 Early SN candidates
@@ -333,6 +333,28 @@ r = ...
 
 pd.read_csv(io.BytesIO(r.content))
 ```
+
+You can also specify `startdate` and `stopdate` for your search:
+
+```python
+import requests
+import pandas as pd
+
+# Get all classified SN Ia from TNS between March 1st 2021 and March 5th 2021
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/latests',
+  json={
+    'class': '(TNS) SN Ia',
+    'n': '100',
+    'startdate': '2021-03-01',
+    'stopdate': '2021-03-05'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
 """
 
 api_doc_sso = """
