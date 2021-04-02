@@ -1052,7 +1052,28 @@ def latest_objects():
         nalerts = int(request.json['n'])
 
     # Search for latest alerts for a specific class
-    if request.json['class'] != 'allclasses':
+    tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
+    if request.json['class'].isin(tns_classes):
+        clientTNS.setLimit(nalerts)
+        clientTNS.setRangeScan(True)
+        clientTNS.setReversed(True)
+
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_stop = Time.now().jd
+
+        results = clientTNS.scan(
+            "",
+            "key:key:{}_{},key:key:{}_{}".format(
+                request.json['class'],
+                jd_start,
+                request.json['class'],
+                jd_stop
+            ),
+            "*", 0, False, False
+        )
+        schema_client = clientTNS.schema()
+    elif request.json['class'] != 'allclasses':
         clientS.setLimit(nalerts)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
@@ -1113,6 +1134,10 @@ def latest_objects():
 def class_arguments():
     """ Obtain all Fink derived class
     """
+    # TNS
+    tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
+    tns_types = sorted(tns_types, key=lambda s: s.lower())
+
     # SIMBAD
     simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
@@ -1123,6 +1148,7 @@ def class_arguments():
 
     types = {
         'Fink classifiers': fink_types,
+        'TNS classified data': tns_types,
         'Cross-match with SIMBAD (see http://simbad.u-strasbg.fr/simbad/sim-display?data=otypes)': simbad_types
     }
 
