@@ -354,7 +354,8 @@ r = requests.post(
 # Format output in a DataFrame
 pdf = pd.read_json(r.content)
 ```
-
+There is no limit of time, but you will be limited by the
+number of alerts retrieve on the server side `n` (current max is 1000).
 """
 
 api_doc_sso = """
