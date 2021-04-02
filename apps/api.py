@@ -1121,7 +1121,7 @@ def latest_objects():
 
     if is_tns:
         pdfs['key:key'] = pdfs['key:key'].apply(lambda x: x.split('_')[0])
-        pdf.rename(columns={'key:key': 'TNS'}, inplace=True)
+        pdfs.rename(columns={'key:key': 'TNS'}, inplace=True)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
