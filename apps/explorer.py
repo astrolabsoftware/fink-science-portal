@@ -389,9 +389,9 @@ def input_type(n1, n2, n3, n4, n5):
             {'label': 'Solar System Object candidates', 'value': 'Solar System'},
             {'label': 'Ambiguous', 'value': 'Ambiguous'},
             {'label': 'TNS classified data', 'disabled': True, 'value': 'None'},
-            *[{'label': '(TNS) ' + simtype, 'value': 'TNS|' + simtype} for simtype in tns_types],
+            *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
             {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
-            *[{'label': '(CDS) ' + simtype, 'value': simtype} for simtype in simbad_types]
+            *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
         ]
         placeholder = "Start typing or choose a class. We will display the last 100 alerts for this class."
         return {}, options, placeholder

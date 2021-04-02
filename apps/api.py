@@ -1074,7 +1074,7 @@ def latest_objects():
 
     # Search for latest alerts for a specific class
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
-    is_tns = request.json['class'].startswith('TNS|') and (request.json['class'].split('|')[1] in tns_classes)
+    is_tns = request.json['class'].startswith('(TNS)') and (request.json['class'].split('(TNS) ')[1] in tns_classes)
     if is_tns:
         classname = request.json['class'].split('|')[1]
         clientTNS.setLimit(nalerts)
@@ -1093,7 +1093,8 @@ def latest_objects():
         )
         schema_client = clientTNS.schema()
         group_alerts = True
-    elif request.json['class'] != 'allclasses':
+    elif request.json['class'].startswith('(SIMBAD)'):
+        classname = request.json['class'].split('(SIMBAD) ')[1]
         clientS.setLimit(nalerts)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
@@ -1101,9 +1102,9 @@ def latest_objects():
         results = clientS.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
-                request.json['class'],
+                classname,
                 jd_start,
-                request.json['class'],
+                classname,
                 jd_stop
             ),
             "*", 0, False, False
@@ -1151,10 +1152,12 @@ def class_arguments():
     # TNS
     tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
     tns_types = sorted(tns_types, key=lambda s: s.lower())
+    tns_types = ['(TNS) ' + x for x in tns_types]
 
     # SIMBAD
     simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+    tns_types = ['(SIMBAD) ' + x for x in tns_types]
 
     # Fink science modules
     fink_types = pd.read_csv('assets/fink_types.csv', header=None)[0].values
