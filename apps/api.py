@@ -1070,7 +1070,7 @@ def latest_objects():
     if 'stopdate' not in request.json:
         jd_stop = Time.now().jd
     else:
-        jd_start = Time(request.json['stopdate']).jd
+        jd_stop = Time(request.json['stopdate']).jd
 
     # Search for latest alerts for a specific class
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
