@@ -1157,7 +1157,7 @@ def class_arguments():
     # SIMBAD
     simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
-    tns_types = ['(SIMBAD) ' + x for x in tns_types]
+    simbad_types = ['(SIMBAD) ' + x for x in simbad_types]
 
     # Fink science modules
     fink_types = pd.read_csv('assets/fink_types.csv', header=None)[0].values
