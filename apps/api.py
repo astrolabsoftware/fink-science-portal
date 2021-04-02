@@ -1054,6 +1054,7 @@ def latest_objects():
     # Search for latest alerts for a specific class
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
     if request.json['class'].startswith('TNS|') and request.json['class'].split('|')[1] in tns_classes:
+        classname = request.json['class'].split('|')[1]
         clientTNS.setLimit(nalerts)
         clientTNS.setRangeScan(True)
         clientTNS.setReversed(True)
@@ -1065,9 +1066,9 @@ def latest_objects():
         results = clientTNS.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
-                request.json['class'],
+                classname,
                 jd_start,
-                request.json['class'],
+                classname,
                 jd_stop
             ),
             "*", 0, False, False
