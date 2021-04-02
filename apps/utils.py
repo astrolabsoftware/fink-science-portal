@@ -50,16 +50,12 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
         pdfs['d:knscore'] = np.zeros(len(pdfs), dtype=float)
 
     # Remove hbase specific fields
-    keys = pdfs['key:key']
     if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
         pdfs = pdfs.drop(columns=['key:key', 'key:time'])
 
     # Type conversion
     pdfs = pdfs.astype(
         {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
-
-    # restore HBase key
-    pdfs['key:key'] = keys
 
     if not truncated:
         # Fink final classification

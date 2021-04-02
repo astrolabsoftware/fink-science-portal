@@ -1128,10 +1128,6 @@ def latest_objects():
     # We want to return alerts
     pdfs = format_hbase_output(results, schema_client, group_alerts=group_alerts)
 
-    if is_tns:
-        pdfs['key:key'] = pdfs['key:key'].apply(lambda x: x.split('_')[0])
-        pdfs.rename(columns={'key:key': 'TNS'}, inplace=True)
-
     if output_format == 'json':
         return pdfs.to_json(orient='records')
     elif output_format == 'csv':
