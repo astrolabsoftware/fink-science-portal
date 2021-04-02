@@ -1053,7 +1053,8 @@ def latest_objects():
 
     # Search for latest alerts for a specific class
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
-    if request.json['class'].startswith('TNS|') and request.json['class'].split('|')[1] in tns_classes:
+    is_tns = request.json['class'].startswith('TNS|') and (request.json['class'].split('|')[1] in tns_classes)
+    if is_tns:
         classname = request.json['class'].split('|')[1]
         clientTNS.setLimit(nalerts)
         clientTNS.setRangeScan(True)
@@ -1071,7 +1072,7 @@ def latest_objects():
                 classname,
                 jd_stop
             ),
-            "*", 0, False, False
+            "*", 0, True, True
         )
         schema_client = clientTNS.schema()
         group_alerts = True
@@ -1117,6 +1118,10 @@ def latest_objects():
 
     # We want to return alerts
     pdfs = format_hbase_output(results, schema_client, group_alerts=group_alerts)
+
+    if is_tns:
+        pdfs['key:key'] = pdfs['key:key'].apply(lambda x: x.split('_')[0])
+        pdf.rename(columns={'key:key': 'TNS'}, inplace=True)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
