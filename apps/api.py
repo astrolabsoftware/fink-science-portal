@@ -22,7 +22,7 @@ from flask import send_file
 from PIL import Image as im
 from matplotlib import cm
 
-from app import client, clientP, clientT, clientS, clientSSO, nlimit
+from app import client, clientP, clientT, clientS, clientSSO, clientTNS, nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
@@ -299,7 +299,7 @@ The list of Fink class can be found at http://134.158.75.151:24000/api/v1/classe
 curl -H "Content-Type: application/json" -X GET http://134.158.75.151:24000/api/v1/classes -o finkclass.json
 ```
 
-In a unix shell, you would simply use
+To get the last 5 candidates of the class `Early SN candidate`, you would simply use in a unix shell:
 
 ```bash
 # Get latests 5 Early SN candidates
@@ -333,6 +333,29 @@ r = ...
 
 pd.read_csv(io.BytesIO(r.content))
 ```
+
+You can also specify `startdate` and `stopdate` for your search:
+
+```python
+import requests
+import pandas as pd
+
+# Get all classified SN Ia from TNS between March 1st 2021 and March 5th 2021
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/latests',
+  json={
+    'class': '(TNS) SN Ia',
+    'n': '100',
+    'startdate': '2021-03-01',
+    'stopdate': '2021-03-05'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+There is no limit of time, but you will be limited by the
+number of alerts retrieve on the server side `n` (current max is 1000).
 """
 
 api_doc_sso = """
@@ -742,7 +765,17 @@ args_latest = [
     {
         'name': 'n',
         'required': False,
-        'description': 'Last N alerts to transfer. Default is 10, max is 1000.'
+        'description': 'Last N alerts to transfer between stopping date and starting date. Default is 10, max is 1000.'
+    },
+    {
+        'name': 'startdate',
+        'required': False,
+        'description': 'Starting date in UTC (iso, jd, or MJD). Default is 2019-11-01 00:00:00'
+    },
+    {
+        'name': 'stopdate',
+        'required': False,
+        'description': 'Stopping date in UTC (iso, jd, or MJD). Default is now.'
     },
     {
         'name': 'output-format',
@@ -1051,35 +1084,60 @@ def latest_objects():
     else:
         nalerts = int(request.json['n'])
 
+    if 'startdate' not in request.json:
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+    else:
+        jd_start = Time(request.json['startdate']).jd
+
+    if 'stopdate' not in request.json:
+        jd_stop = Time.now().jd
+    else:
+        jd_stop = Time(request.json['stopdate']).jd
+
     # Search for latest alerts for a specific class
-    if request.json['class'] != 'allclasses':
+    tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
+    is_tns = request.json['class'].startswith('(TNS)') and (request.json['class'].split('(TNS) ')[1] in tns_classes)
+    if is_tns:
+        classname = request.json['class'].split('(TNS) ')[1]
+        clientTNS.setLimit(nalerts)
+        clientTNS.setRangeScan(True)
+        clientTNS.setReversed(True)
+
+        results = clientTNS.scan(
+            "",
+            "key:key:{}_{},key:key:{}_{}".format(
+                classname,
+                jd_start,
+                classname,
+                jd_stop
+            ),
+            "*", 0, True, True
+        )
+        schema_client = clientTNS.schema()
+        group_alerts = True
+    elif request.json['class'].startswith('(SIMBAD)'):
+        classname = request.json['class'].split('(SIMBAD) ')[1]
         clientS.setLimit(nalerts)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
 
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-        jd_stop = Time.now().jd
-
         results = clientS.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
-                request.json['class'],
+                classname,
                 jd_start,
-                request.json['class'],
+                classname,
                 jd_stop
             ),
             "*", 0, False, False
         )
         schema_client = clientS.schema()
+        group_alerts = False
     elif request.json['class'] == 'allclasses':
         clientT.setLimit(nalerts)
         clientT.setRangeScan(True)
         clientT.setReversed(True)
-
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-        jd_stop = Time.now().jd
 
         to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
         results = clientT.scan(
@@ -1089,9 +1147,10 @@ def latest_objects():
             0, True, True
         )
         schema_client = clientT.schema()
+        group_alerts = False
 
     # We want to return alerts
-    pdfs = format_hbase_output(results, schema_client, group_alerts=False)
+    pdfs = format_hbase_output(results, schema_client, group_alerts=group_alerts)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
@@ -1113,9 +1172,15 @@ def latest_objects():
 def class_arguments():
     """ Obtain all Fink derived class
     """
+    # TNS
+    tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
+    tns_types = sorted(tns_types, key=lambda s: s.lower())
+    tns_types = ['(TNS) ' + x for x in tns_types]
+
     # SIMBAD
     simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+    simbad_types = ['(SIMBAD) ' + x for x in simbad_types]
 
     # Fink science modules
     fink_types = pd.read_csv('assets/fink_types.csv', header=None)[0].values
@@ -1123,6 +1188,7 @@ def class_arguments():
 
     types = {
         'Fink classifiers': fink_types,
+        'TNS classified data': tns_types,
         'Cross-match with SIMBAD (see http://simbad.u-strasbg.fr/simbad/sim-display?data=otypes)': simbad_types
     }
 

@@ -22,6 +22,9 @@ from astropy.time import Time, TimeDelta
 simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
+tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
+tns_types = sorted(tns_types, key=lambda s: s.lower())
+
 message_help = """
 ##### Object ID
 
@@ -313,80 +316,6 @@ def display_skymap(validation, data, columns):
     else:
         return ""
 
-@app.callback(
-    Output('aladin-lite-div-skymap_sso', 'run'),
-    [
-        Input('object-sso', 'children')
-    ],
-)
-def display_skymap_sso(object_sso):
-    """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
-
-    TODO: image is not displayed correctly the first time
-
-    the default parameters are:
-        * PanSTARRS colors
-        * FoV = 360 deg
-        * Fink alerts overlayed
-
-    Callbacks
-    ----------
-    Input: takes the object data
-    Output: Display a sky image with all SSO position from aladin.
-    """
-    pdf = pd.read_json(object_sso)
-
-    # Coordinate of the first alert
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
-
-    # Javascript. Note the use {{}} for dictionary
-    # Force redraw of the Aladin lite window
-    img = """var container = document.getElementById('aladin-lite-div-skymap_sso');var txt = ''; container.innerHTML = txt;"""
-
-    # Aladin lite
-    img += """var a = A.aladin('#aladin-lite-div-skymap_sso', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});""".format(ra0, dec0)
-
-    ras = pdf['i:ra'].values
-    decs = pdf['i:dec'].values
-    filts = pdf['i:fid'].values
-    filts_dic = {1: 'g', 2: 'r'}
-    times = pdf['v:lastdate'].values
-    link = '<a target="_blank" href="{}/{}">{}</a>'
-    titles = [link.format(APIURL, i, i) for i in pdf['i:objectId'].values]
-    mags = pdf['i:magpsf'].values
-    classes = pdf['v:classification'].values
-    colors = {
-        'Early SN candidate': 'red',
-        'SN candidate': 'orange',
-        'Kilonova candidate': 'blue',
-        'Microlensing candidate': 'green',
-        'Solar System': 'white',
-        'Ambiguous': 'purple',
-        'Unknown': 'yellow'
-    }
-    cats = []
-    for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
-        if class_ in simbad_types:
-            cat = 'cat_{}'.format(simbad_types.index(class_))
-            color = '#3C8DFF'
-        else:
-            cat = 'cat_{}'.format(class_.replace(' ', '_'))
-            color = colors[class_]
-        if cat not in cats:
-            img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_, color)
-            cats.append(cat)
-        img += """{}.addSources([A.source({}, {}, {{objectId: '{}', mag: {:.2f}, filter: '{}', time: '{}', Classification: '{}'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
-
-    for cat in sorted(cats):
-        img += """a.addCatalog({});""".format(cat)
-
-    # img cannot be executed directly because of formatting
-    # We split line-by-line and remove comments
-    img_to_show = [i for i in img.split('\n') if '// ' not in i]
-
-    return " ".join(img_to_show)
-
 def display_skymap():
     """ Display the sky map in the explorer tab results (Aladin lite)
 
@@ -459,8 +388,10 @@ def input_type(n1, n2, n3, n4, n5):
             {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
             {'label': 'Solar System Object candidates', 'value': 'Solar System'},
             {'label': 'Ambiguous', 'value': 'Ambiguous'},
+            {'label': 'TNS classified data', 'disabled': True, 'value': 'None'},
+            *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
             {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
-            *[{'label': simtype, 'value': simtype} for simtype in simbad_types]
+            *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
         ]
         placeholder = "Start typing or choose a class. We will display the last 100 alerts for this class."
         return {}, options, placeholder
