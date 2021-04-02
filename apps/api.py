@@ -1076,7 +1076,7 @@ def latest_objects():
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
     is_tns = request.json['class'].startswith('(TNS)') and (request.json['class'].split('(TNS) ')[1] in tns_classes)
     if is_tns:
-        classname = request.json['class'].split('|')[1]
+        classname = request.json['class'].split('(TNS) ')[1]
         clientTNS.setLimit(nalerts)
         clientTNS.setRangeScan(True)
         clientTNS.setReversed(True)
