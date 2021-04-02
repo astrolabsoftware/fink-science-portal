@@ -742,7 +742,17 @@ args_latest = [
     {
         'name': 'n',
         'required': False,
-        'description': 'Last N alerts to transfer. Default is 10, max is 1000.'
+        'description': 'Last N alerts to transfer between stopping date and starting date. Default is 10, max is 1000.'
+    },
+    {
+        'name': 'startdate',
+        'required': False,
+        'description': 'Starting date in UTC (iso, jd, or MJD). Default is 2019-11-01 00:00:00'
+    },
+    {
+        'name': 'stopdate',
+        'required': False,
+        'description': 'Stopping date in UTC (iso, jd, or MJD). Default is now.'
     },
     {
         'name': 'output-format',
@@ -1051,6 +1061,17 @@ def latest_objects():
     else:
         nalerts = int(request.json['n'])
 
+    if 'startdate' not in request.json:
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+    else:
+        jd_start = Time(request.json['startdate']).jd
+
+    if 'stopdate' not in request.json:
+        jd_stop = Time.now().jd
+    else:
+        jd_start = Time(request.json['stopdate']).jd
+
     # Search for latest alerts for a specific class
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
     is_tns = request.json['class'].startswith('TNS|') and (request.json['class'].split('|')[1] in tns_classes)
@@ -1059,10 +1080,6 @@ def latest_objects():
         clientTNS.setLimit(nalerts)
         clientTNS.setRangeScan(True)
         clientTNS.setReversed(True)
-
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-        jd_stop = Time.now().jd
 
         results = clientTNS.scan(
             "",
@@ -1081,10 +1098,6 @@ def latest_objects():
         clientS.setRangeScan(True)
         clientS.setReversed(True)
 
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-        jd_stop = Time.now().jd
-
         results = clientS.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
@@ -1101,10 +1114,6 @@ def latest_objects():
         clientT.setLimit(nalerts)
         clientT.setRangeScan(True)
         clientT.setReversed(True)
-
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-        jd_stop = Time.now().jd
 
         to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
         results = clientT.scan(
