@@ -22,7 +22,7 @@ from flask import send_file
 from PIL import Image as im
 from matplotlib import cm
 
-from app import client, clientP, clientT, clientS, clientSSO, nlimit
+from app import client, clientP, clientT, clientS, clientSSO, clientTNS, nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
@@ -1053,7 +1053,7 @@ def latest_objects():
 
     # Search for latest alerts for a specific class
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
-    if request.json['class'].isin(tns_classes):
+    if request.json['class'] in tns_classes:
         clientTNS.setLimit(nalerts)
         clientTNS.setRangeScan(True)
         clientTNS.setReversed(True)
