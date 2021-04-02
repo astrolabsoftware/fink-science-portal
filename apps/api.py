@@ -1074,6 +1074,7 @@ def latest_objects():
             "*", 0, False, False
         )
         schema_client = clientTNS.schema()
+        group_alerts = True
     elif request.json['class'] != 'allclasses':
         clientS.setLimit(nalerts)
         clientS.setRangeScan(True)
@@ -1094,6 +1095,7 @@ def latest_objects():
             "*", 0, False, False
         )
         schema_client = clientS.schema()
+        group_alerts = False
     elif request.json['class'] == 'allclasses':
         clientT.setLimit(nalerts)
         clientT.setRangeScan(True)
@@ -1111,9 +1113,10 @@ def latest_objects():
             0, True, True
         )
         schema_client = clientT.schema()
+        group_alerts = False
 
     # We want to return alerts
-    pdfs = format_hbase_output(results, schema_client, group_alerts=False)
+    pdfs = format_hbase_output(results, schema_client, group_alerts=group_alerts)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
