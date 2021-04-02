@@ -669,8 +669,13 @@ def queryMPC(number, kind='asteroid'):
         mpc = MPC.query_object(target_type=kind, number=number)
         mpc = mpc[0]
     except IndexError:
-        mpc = MPC.query_object(target_type=kind, designation=number)
-        mpc = mpc[0]
+        try:
+            mpc = MPC.query_object(target_type=kind, designation=number)
+            mpc = mpc[0]
+        except IndexError:
+            return pd.Series({})
+    except IndexError:
+        return pd.Series({})
     except RuntimeError:
         return pd.Series({})
     orbit = pd.Series(mpc)
