@@ -695,6 +695,11 @@ args_objects = [
         'description': 'ZTF Object ID'
     },
     {
+        'name': 'withupperlim',
+        'required': False,
+        'description': 'If True, retrieve also upper limit measurements, and bad quality measurements. Use the column `d:tag` in your results.'
+    },
+    {
         'name': 'withcutouts',
         'required': False,
         'description': 'If True, retrieve also uncompressed FITS cutout data (2D array).'
@@ -904,6 +909,34 @@ def return_object():
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf = extract_cutouts(pdf, client)
+
+    if 'withupperlim' in request.json and request.json['withupperlim'] == 'True':
+        # upper limits
+        resultsU = clientU.scan(
+            "",
+            "key:key:{}".format(to_evaluate),
+            "*", 0, False, False
+        )
+
+        # bad quality
+        resultsUP = clientUP.scan(
+            "",
+            "key:key:{}".format(to_evaluate),
+            "*", 0, False, False
+        )
+
+        pdfU = pd.DataFrame.from_dict(resultsU, orient='index')
+        pdfUP = pd.DataFrame.from_dict(resultsUP, orient='index')
+
+        pdf['d:tag'] = 'valid'
+        pdfU['d:tag'] = 'upperlim'
+        pdfUP['d:tag'] = 'badquality'
+
+        pdf_ = pd.concat((pdf, pdfU, pdfUP), axis=0)
+        pdf_['i:jd'] = pdf_['i:jd'].astype(float)
+
+        # replace
+        pdf = pdf_.sort_values('i:jd', ascending=False)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
