@@ -1218,8 +1218,11 @@ def latest_objects():
         )
         schema_client = clientTNS.schema()
         group_alerts = True
-    elif request.json['class'].startswith('(SIMBAD)'):
-        classname = request.json['class'].split('(SIMBAD) ')[1]
+    elif request.json['class'].startswith('(SIMBAD)') or request.json['class'] != 'allclasses':
+        if request.json['class'].startswith('(SIMBAD)'):
+            classname = request.json['class'].split('(SIMBAD) ')[1]
+        else:
+            classname = request.json['class']
         clientS.setLimit(nalerts)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
