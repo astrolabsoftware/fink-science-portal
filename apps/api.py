@@ -129,6 +129,75 @@ r = requests.post(
 
 Note that the fields should be comma-separated. Unknown field names are ignored.
 
+### Upper limits and bd quality data
+
+You can also retrieve upper limits and bad quality data (as defined by Fink quality cuts)
+alongside valid measurements. For this you would use `withupperlim` (see usage below).
+Note that the returned data will contained a new column, `d:tag`, to easily check data type:
+`valid` (valid alert measurements), `upperlim` (upper limits), `badquality` (alert measurements that did not pass quality cuts).
+Here is an example that query the data, and plot it:
+
+```python
+import requests
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_context('talk')
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/objects',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+    'withupperlim': 'True'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+
+fig = plt.figure(figsize=(15, 6))
+
+colordic = {1: 'C0', 2: 'C1'}
+
+for filt in np.unique(pdf['i:fid']):
+    maskFilt = pdf['i:fid'] == filt
+
+    # The column `d:tag` is used to check data type
+    maskValid = pdf['d:tag'] == 'valid'
+    plt.errorbar(
+        pdf[maskValid & maskFilt]['i:jd'].apply(lambda x: x - 2400000.5),
+        pdf[maskValid & maskFilt]['i:magpsf'],
+        pdf[maskValid & maskFilt]['i:sigmapsf'],
+        ls = '', marker='o', color=colordic[filt]
+    )
+
+    maskUpper = pdf['d:tag'] == 'upperlim'
+    plt.plot(
+        pdf[maskUpper & maskFilt]['i:jd'].apply(lambda x: x - 2400000.5),
+        pdf[maskUpper & maskFilt]['i:diffmaglim'],
+        ls='', marker='^', color=colordic[filt], markerfacecolor='none'
+    )
+
+    maskBadquality = pdf['d:tag'] == 'badquality'
+    plt.errorbar(
+        pdf[maskBadquality & maskFilt]['i:jd'].apply(lambda x: x - 2400000.5),
+        pdf[maskBadquality & maskFilt]['i:magpsf'],
+        pdf[maskBadquality & maskFilt]['i:sigmapsf'],
+        ls='', marker='v', color=colordic[filt]
+    )
+
+plt.gca().invert_yaxis()
+plt.xlabel('Modified Julian Date')
+plt.ylabel('Magnitude')
+plt.show()
+```
+
+![sn_example](https://user-images.githubusercontent.com/20426972/113519225-2ba29480-958b-11eb-9452-15e84f0e5efc.png)
+
+### Cutouts
+
 Finally, you can also request data from cutouts stored in alerts (science, template and difference).
 Simply set `withcutouts` in the json payload (string):
 
@@ -697,7 +766,7 @@ args_objects = [
     {
         'name': 'withupperlim',
         'required': False,
-        'description': 'If True, retrieve also upper limit measurements, and bad quality measurements. Use the column `d:tag` in your results.'
+        'description': 'If True, retrieve also upper limit measurements, and bad quality measurements. Use the column `d:tag` in your results: valid, upperlim, badquality.'
     },
     {
         'name': 'withcutouts',
