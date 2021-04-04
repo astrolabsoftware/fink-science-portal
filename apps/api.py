@@ -22,7 +22,7 @@ from flask import send_file
 from PIL import Image as im
 from matplotlib import cm
 
-from app import client, clientP, clientT, clientS, clientSSO, clientTNS, nlimit
+from app import client, clientP, clientT, clientS, clientSSO, clientTNS, clientU, clientUV, nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
@@ -919,7 +919,7 @@ def return_object():
         )
 
         # bad quality
-        resultsUP = clientUP.scan(
+        resultsUP = clientUV.scan(
             "",
             "key:key:{}".format(to_evaluate),
             "*", 0, False, False
