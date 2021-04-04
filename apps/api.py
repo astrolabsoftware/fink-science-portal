@@ -914,14 +914,14 @@ def return_object():
         # upper limits
         resultsU = clientU.scan(
             "",
-            "key:key:{}".format(to_evaluate),
+            "{}".format(to_evaluate),
             "*", 0, False, False
         )
 
         # bad quality
         resultsUP = clientUV.scan(
             "",
-            "key:key:{}".format(to_evaluate),
+            "{}".format(to_evaluate),
             "*", 0, False, False
         )
 
