@@ -22,7 +22,7 @@ from flask import send_file
 from PIL import Image as im
 from matplotlib import cm
 
-from app import client, clientP, clientT, clientS, clientSSO, clientTNS, nlimit
+from app import client, clientP, clientT, clientS, clientSSO, clientTNS, clientU, clientUV, nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
@@ -128,6 +128,75 @@ r = requests.post(
 ```
 
 Note that the fields should be comma-separated. Unknown field names are ignored.
+
+### Upper limits and bd quality data
+
+You can also retrieve upper limits and bad quality data (as defined by Fink quality cuts)
+alongside valid measurements. For this you would use `withupperlim` (see usage below).
+Note that the returned data will contained a new column, `d:tag`, to easily check data type:
+`valid` (valid alert measurements), `upperlim` (upper limits), `badquality` (alert measurements that did not pass quality cuts).
+Here is an example that query the data, and plot it:
+
+```python
+import requests
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_context('talk')
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/objects',
+  json={
+    'objectId': 'ZTF19acnjwgm',
+    'withupperlim': 'True'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+
+fig = plt.figure(figsize=(15, 6))
+
+colordic = {1: 'C0', 2: 'C1'}
+
+for filt in np.unique(pdf['i:fid']):
+    maskFilt = pdf['i:fid'] == filt
+
+    # The column `d:tag` is used to check data type
+    maskValid = pdf['d:tag'] == 'valid'
+    plt.errorbar(
+        pdf[maskValid & maskFilt]['i:jd'].apply(lambda x: x - 2400000.5),
+        pdf[maskValid & maskFilt]['i:magpsf'],
+        pdf[maskValid & maskFilt]['i:sigmapsf'],
+        ls = '', marker='o', color=colordic[filt]
+    )
+
+    maskUpper = pdf['d:tag'] == 'upperlim'
+    plt.plot(
+        pdf[maskUpper & maskFilt]['i:jd'].apply(lambda x: x - 2400000.5),
+        pdf[maskUpper & maskFilt]['i:diffmaglim'],
+        ls='', marker='^', color=colordic[filt], markerfacecolor='none'
+    )
+
+    maskBadquality = pdf['d:tag'] == 'badquality'
+    plt.errorbar(
+        pdf[maskBadquality & maskFilt]['i:jd'].apply(lambda x: x - 2400000.5),
+        pdf[maskBadquality & maskFilt]['i:magpsf'],
+        pdf[maskBadquality & maskFilt]['i:sigmapsf'],
+        ls='', marker='v', color=colordic[filt]
+    )
+
+plt.gca().invert_yaxis()
+plt.xlabel('Modified Julian Date')
+plt.ylabel('Magnitude')
+plt.show()
+```
+
+![sn_example](https://user-images.githubusercontent.com/20426972/113519225-2ba29480-958b-11eb-9452-15e84f0e5efc.png)
+
+### Cutouts
 
 Finally, you can also request data from cutouts stored in alerts (science, template and difference).
 Simply set `withcutouts` in the json payload (string):
@@ -695,6 +764,11 @@ args_objects = [
         'description': 'ZTF Object ID'
     },
     {
+        'name': 'withupperlim',
+        'required': False,
+        'description': 'If True, retrieve also upper limit measurements, and bad quality measurements. Use the column `d:tag` in your results: valid, upperlim, badquality.'
+    },
+    {
         'name': 'withcutouts',
         'required': False,
         'description': 'If True, retrieve also uncompressed FITS cutout data (2D array).'
@@ -904,6 +978,34 @@ def return_object():
 
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf = extract_cutouts(pdf, client)
+
+    if 'withupperlim' in request.json and request.json['withupperlim'] == 'True':
+        # upper limits
+        resultsU = clientU.scan(
+            "",
+            "{}".format(to_evaluate),
+            "*", 0, False, False
+        )
+
+        # bad quality
+        resultsUP = clientUV.scan(
+            "",
+            "{}".format(to_evaluate),
+            "*", 0, False, False
+        )
+
+        pdfU = pd.DataFrame.from_dict(resultsU, orient='index')
+        pdfUP = pd.DataFrame.from_dict(resultsUP, orient='index')
+
+        pdf['d:tag'] = 'valid'
+        pdfU['d:tag'] = 'upperlim'
+        pdfUP['d:tag'] = 'badquality'
+
+        pdf_ = pd.concat((pdf, pdfU, pdfUP), axis=0)
+        pdf_['i:jd'] = pdf_['i:jd'].astype(float)
+
+        # replace
+        pdf = pdf_.sort_values('i:jd', ascending=False)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
