@@ -129,7 +129,7 @@ r = requests.post(
 
 Note that the fields should be comma-separated. Unknown field names are ignored.
 
-### Upper limits and bd quality data
+### Upper limits and bad quality data
 
 You can also retrieve upper limits and bad quality data (as defined by Fink quality cuts)
 alongside valid measurements. For this you would use `withupperlim` (see usage below).
