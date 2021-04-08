@@ -303,6 +303,9 @@ def card_explanation_variable():
     described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
     We use a multiband periodogram (LombScargleMultiband) to find the best period.
     Alternatively, you can manually set the period in days.
+
+    The title of the plot will give you the fitted period, and a score for the fit.
+    The score is between 0 (poor fit) and 1 (excellent fit).
     """
     card = dbc.Card(
         dbc.CardBody(
