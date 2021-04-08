@@ -53,12 +53,29 @@ def card_sn_scores() -> dbc.Card:
         },
         config={'displayModeBar': False}
     )
+    msg = dcc.Markdown(
+        """
+        Fink's machine learning classification scores are derived from:
+        - [SuperNNova](https://github.com/supernnova/SuperNNova) ([Möller & de Boissière 2019](https://academic.oup.com/mnras/article-abstract/491/3/4277/5651173)) to classify SNe at all light-curve epochs (`SN Ia score` & `SNe score`)
+        - Random Forest (Leoni et al. in prep) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
+
+        Note that we then combine these scores, with other criteria,
+        to give a final classification to the alert. An `Early SN candidate` requires that:
+        - the alert passes the Fink quality cuts
+        - the alert has no known transient association (from catalogues)
+        - the alert is relatively new (number of previous detections < 20)
+        - the alert has at least one of a SuperNNova model trained to identify SNe Ia or SNe (`SN Ia score` or `SNe score`) with a probability higher than 50% of this alert being a SN.
+        - the alert has the Random Forest model trained to select early supernovae (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN.
+        """
+    )
     card = dbc.Card(
         dbc.CardBody(
             [
                 graph_lc,
                 html.Br(),
-                graph_scores
+                graph_scores,
+                html.Br(),
+                msg
             ]
         ),
         className="mt-3"
