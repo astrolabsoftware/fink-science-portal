@@ -75,9 +75,11 @@ def card_sn_scores() -> dbc.Card:
             [
                 graph_lc,
                 html.Br(),
-                graph_scores,
-                html.Br(),
-                msg
+                dbc.Tabs(
+                    dbc.Tab(graph_scores, label='Score evolution', tab_id='snt0'),
+                    dbc.Tab("", label='Color evolution', tab_id='snt1'),
+                    dbc.Tab(msg, label='Information', tab_id='snt2'),
+                ),
             ]
         ),
         className="mt-3"
