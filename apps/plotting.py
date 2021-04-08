@@ -183,8 +183,7 @@ layout_colors = dict(
         'automargin': True
     },
     yaxis={
-        'title': 'Color evolution',
-        'range': [0, 1]
+        'title': 'Color evolution'
     }
 )
 
@@ -717,7 +716,7 @@ def draw_color(object_data) -> dict:
                     'symbol': 'circle'}
             },
         ],
-        "layout": layout_scores
+        "layout": layout_colors
     }
     return figure
 
