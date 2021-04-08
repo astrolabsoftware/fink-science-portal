@@ -451,7 +451,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         Input('object-uppervalid', 'children')
     ])
 def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_uppervalid) -> dict:
-    """ Draw object lightcurve with errorbars
+    """ Draw object lightcurve with errorbars (SM view - DC mag fixed)
 
     Parameters
     ----------
