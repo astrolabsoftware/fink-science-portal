@@ -55,7 +55,7 @@ def card_sn_scores() -> dbc.Card:
     )
     msg = dcc.Markdown(
         """
-        Fink's machine learning classification scores are derived from:
+        Fink's machine learning classification scores for Supernovae are derived from:
         - [SuperNNova](https://github.com/supernnova/SuperNNova) ([Möller & de Boissière 2019](https://academic.oup.com/mnras/article-abstract/491/3/4277/5651173)) to classify SNe at all light-curve epochs (`SN Ia score` & `SNe score`)
         - Random Forest (Leoni et al. in prep) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
 
@@ -78,7 +78,7 @@ def card_sn_scores() -> dbc.Card:
                 dbc.Tabs(
                     [
                         dbc.Tab(graph_scores, label='Score evolution', tab_id='snt0'),
-                        dbc.Tab(graph_scores, label='Color evolution', tab_id='snt1'),
+                        dbc.Tab("", label='Color evolution', tab_id='snt1'),
                         dbc.Tab(msg, label='Information', tab_id='snt2'),
                     ]
                 ),
