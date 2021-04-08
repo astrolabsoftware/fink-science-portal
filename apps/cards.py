@@ -53,6 +53,14 @@ def card_sn_scores() -> dbc.Card:
         },
         config={'displayModeBar': False}
     )
+    graph_color = dcc.Graph(
+        id='colors',
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
     msg = dcc.Markdown(
         """
         Fink's machine learning classification scores for Supernovae are derived from:
@@ -78,7 +86,7 @@ def card_sn_scores() -> dbc.Card:
                 dbc.Tabs(
                     [
                         dbc.Tab(graph_scores, label='Score evolution', tab_id='snt0'),
-                        dbc.Tab("", label='Color evolution', tab_id='snt1'),
+                        dbc.Tab(graph_color, label='Color evolution', tab_id='snt1'),
                         dbc.Tab(msg, label='Information', tab_id='snt2'),
                     ]
                 ),

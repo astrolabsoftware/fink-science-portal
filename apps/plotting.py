@@ -162,6 +162,32 @@ layout_scores = dict(
     }
 )
 
+layout_colors = dict(
+    autosize=True,
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    hoverlabel={
+        'align': "left"
+    },
+    xaxis={
+        'title': 'Observation date',
+        'automargin': True
+    },
+    yaxis={
+        'title': 'Color evolution',
+        'range': [0, 1]
+    }
+)
+
 layout_sso_lightcurve = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
@@ -636,6 +662,60 @@ def draw_scores(object_data) -> dict:
                     'color': '#9467bd',
                     'symbol': 'diamond'}
             }
+        ],
+        "layout": layout_scores
+    }
+    return figure
+
+@app.callback(
+    Output('colors', 'figure'),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_color(object_data) -> dict:
+    """ Draw color evolution
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Results from a HBase client query
+
+    Returns
+    ----------
+    figure: dict
+
+    TODO: memoise me
+    """
+    pdf = pd.read_json(object_data)
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    hovertemplate = """
+    <b>%{customdata[0]}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': dates,
+                'y': pdf['v:r-g'],
+                'mode': 'markers',
+                'name': 'r-g',
+                'customdata': list(
+                    zip(
+                        ['r-g'] * len(pdf),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#2ca02c',
+                    'symbol': 'circle'}
+            },
         ],
         "layout": layout_scores
     }
