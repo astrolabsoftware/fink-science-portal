@@ -60,11 +60,13 @@ def card_sn_scores() -> dbc.Card:
         - Random Forest (Leoni et al. in prep) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
 
         Note that we then combine these scores, with other criteria,
-        to give a final classification to the alert. An `Early SN candidate` requires that:
+        to give a final classification to the alert. An `SN candidate` requires that:
         - the alert passes the Fink quality cuts
         - the alert has no known transient association (from catalogues)
-        - the alert is relatively new (number of previous detections < 20)
         - the alert has at least one of a SuperNNova model trained to identify SNe Ia or SNe (`SN Ia score` or `SNe score`) with a probability higher than 50% of this alert being a SN.
+
+        In addition, the alert is considered as `Early SN candidate` if it also satisfies:
+        - the alert is relatively new (number of previous detections < 20)
         - the alert has the Random Forest model trained to select early supernovae (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN.
         """
     )
