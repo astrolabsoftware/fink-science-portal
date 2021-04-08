@@ -806,7 +806,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
         tfit = np.linspace(0, period, 100)
 
         layout_phase_ = copy.deepcopy(layout_phase)
-        layout_phase_['title']['text'] = 'Period: {} days'.format(period)
+        layout_phase_['title']['text'] = 'Period: {} days - score: {:.2f}'.format(period, model.score(period))
 
         if '1' in np.unique(pdf['i:fid'].values):
             plot_filt1 = {
