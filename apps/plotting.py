@@ -224,38 +224,20 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     return pdfs[values]
 
 @app.callback(
-    Output('switch-mag-flux-score', 'options'),
-    [Input('switch-mag-flux', 'value')])
-def set_radio2_options(selected_radio):
-    return [{'label': i, 'value': i} for i in all_radio_options[selected_radio]]
-
-
-@app.callback(
-    Output('switch-mag-flux-score', 'value'),
-    [Input('switch-mag-flux-score', 'options'), Input('switch-mag-flux', 'value')])
-def set_radio1_value(available_options, value):
-    index = [available_options.index(i) for i in available_options if i['label'] == value][0]
-    return available_options[index]['value']
-
-@app.callback(
-    [
-        Output('lightcurve_cutouts', 'figure'),
-        Output('lightcurve_scores', 'figure')
-    ],
+    Output('lightcurve_cutouts', 'figure'),
     [
         Input('switch-mag-flux', 'value'),
-        Input('switch-mag-flux-score', 'value'),
         Input('url', 'pathname'),
         Input('object-data', 'children'),
         Input('object-upper', 'children'),
         Input('object-uppervalid', 'children')
     ])
-def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, object_upper, object_uppervalid) -> dict:
+def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, object_uppervalid) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
     ----------
-    switch{i}: int
+    switch: int
         Choose:
           - 0 to display difference magnitude
           - 1 to display dc magnitude
@@ -267,12 +249,6 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
     ----------
     figure: dict
     """
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'switch-mag-flux-score' in changed_id:
-        switch = switch2
-    else:
-        switch = switch1
-
     pdf_ = pd.read_json(object_data)
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
@@ -464,7 +440,106 @@ def draw_lightcurve(switch1: int, switch2: int, pathname: str, object_data, obje
                     'showlegend': False
                 }
             )
-    return figure, figure
+    return figure
+
+@app.callback(
+    Output('lightcurve_scores', 'figure'),
+    [
+        Input('url', 'pathname'),
+        Input('object-data', 'children'),
+        Input('object-upper', 'children'),
+        Input('object-uppervalid', 'children')
+    ])
+def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_uppervalid) -> dict:
+    """ Draw object lightcurve with errorbars
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf_ = pd.read_json(object_data)
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:candid'
+    ]
+    pdf = pdf_.loc[:, cols]
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    # shortcuts
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+    # inplace replacement
+    mag, err = np.transpose(
+        [
+            dc_mag(*args) for args in zip(
+                pdf['i:fid'].values,
+                mag.astype(float).values,
+                err.astype(float).values,
+                pdf['i:magnr'].astype(float).values,
+                pdf['i:sigmagnr'].astype(float).values,
+                pdf['i:magzpsci'].astype(float).values,
+                pdf['i:isdiffpos'].values
+            )
+        ]
+    )
+    layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
+    layout_lightcurve['yaxis']['autorange'] = 'reversed'
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': dates[pdf['i:fid'] == 1],
+                'y': mag[pdf['i:fid'] == 1],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 1],
+                    'visible': True,
+                    'color': '#1f77b4'
+                },
+                'mode': 'markers',
+                'name': 'g band',
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            },
+            {
+                'x': dates[pdf['i:fid'] == 2],
+                'y': mag[pdf['i:fid'] == 2],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 2],
+                    'visible': True,
+                    'color': '#ff7f0e'
+                },
+                'mode': 'markers',
+                'name': 'r band',
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#ff7f0e',
+                    'symbol': 'o'}
+            }
+        ],
+        "layout": layout_lightcurve
+    }
+    return figure
 
 @app.callback(
     Output('scores', 'figure'),

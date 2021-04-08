@@ -57,9 +57,6 @@ def card_sn_scores() -> dbc.Card:
         dbc.CardBody(
             [
                 graph_lc,
-                dbc.Row(
-                    dbc.RadioItems(id='switch-mag-flux-score', inline=True),
-                ),
                 html.Br(),
                 graph_scores
             ]
