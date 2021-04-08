@@ -93,7 +93,7 @@ By default, the table shows:
 - i:ra: Right Ascension of candidate; J2000 (deg)
 - i:dec: Declination of candidate; J2000 (deg)
 - v:lastdate: last date the object has been seen by Fink
-- v:classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System Object, SIMBAD class, ...)
+- v:classification: Classification inferred by Fink (Supernova candidate, Microlensing candidate, Solar System, SIMBAD class, ...)
 - i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
 
 You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at https://fink-portal.ijclab.in2p3.fr:24000/api/v1/columns.
@@ -288,7 +288,8 @@ def display_skymap(validation, data, columns):
             'SN candidate': 'orange',
             'Kilonova candidate': 'blue',
             'Microlensing candidate': 'green',
-            'Solar System': 'white',
+            'Solar System MPC': 'white',
+            'Solar System candidate': 'grey',
             'Ambiguous': 'purple',
             'Unknown': 'yellow'
         }
@@ -386,7 +387,8 @@ def input_type(n1, n2, n3, n4, n5):
             {'label': 'Supernova candidates', 'value': 'SN candidate'},
             {'label': 'Kilonova candidates', 'value': 'Kilonova candidate'},
             {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
-            {'label': 'Solar System Object candidates', 'value': 'Solar System'},
+            {'label': 'Solar System (MPC)', 'value': 'Solar System MPC'},
+            {'label': 'Solar System (candidates)', 'value': 'Solar System candidate'},
             {'label': 'Ambiguous', 'value': 'Ambiguous'},
             {'label': 'TNS classified data', 'disabled': True, 'value': 'None'},
             *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
