@@ -77,7 +77,7 @@ def card_sn_scores() -> dbc.Card:
                 html.Br(),
                 dbc.Tabs(
                     dbc.Tab(graph_scores, label='Score evolution', tab_id='snt0'),
-                    dbc.Tab("", label='Color evolution', tab_id='snt1'),
+                    dbc.Tab(graph_scores, label='Color evolution', tab_id='snt1'),
                     dbc.Tab(msg, label='Information', tab_id='snt2'),
                 ),
             ]
