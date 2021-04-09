@@ -26,7 +26,7 @@ from astropy.convolution import Box2DKernel
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
 
-import java
+
 
 hbase_type_converter = {
     'integer': int,
@@ -151,7 +151,7 @@ def validate_query(query, query_type):
 
     return {'flag': True, 'header': 'Good query', 'text': 'Well done'}
 
-def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
+def extract_row(key: str, clientresult) -> dict:
     """ Extract one row from the client result, and return result as dict
     """
     data = clientresult[key]
