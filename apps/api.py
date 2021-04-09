@@ -1138,7 +1138,12 @@ def query_db():
     # reset the limit in case it has been changed above
     client.setLimit(nlimit)
 
-    pdfs = format_hbase_output(results, schema_client, group_alerts=True)
+    pdfs = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=True,
+        extract_color=False
+    )
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
