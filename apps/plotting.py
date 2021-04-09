@@ -692,21 +692,21 @@ def draw_color(object_data) -> dict:
 
     hovertemplate = """
     <b>%{customdata[0]}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>%{xaxis.title.text}</b>: %{x}<br>
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
     figure = {
         'data': [
             {
-                'x': dates,
-                'y': pdf['v:g-r'],
+                'x': ['Last g-r'],
+                'y': pdf['v:g-r'].values[0:1],
                 'mode': 'markers',
                 'name': 'g-r',
                 'customdata': list(
                     zip(
-                        ['g-r'] * len(pdf),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        ['Last g-r'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5).values[0:1],
                     )
                 ),
                 'hovertemplate': hovertemplate,
