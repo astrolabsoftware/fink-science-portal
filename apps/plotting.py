@@ -179,7 +179,6 @@ layout_colors = dict(
         'align': "left"
     },
     xaxis={
-        'title': 'Observation date',
         'automargin': True
     },
     yaxis={
@@ -691,8 +690,8 @@ def draw_color(object_data) -> dict:
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
 
     hovertemplate = """
+    <b>%{x}</b><br>
     <b>%{customdata[0]}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x}<br>
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
@@ -714,6 +713,40 @@ def draw_color(object_data) -> dict:
                     'size': 10,
                     'color': '#2ca02c',
                     'symbol': 'circle'}
+            },
+            {
+                'x': [r'$(\Delta\text{g})^{\text{last}}$'],
+                'y': pdf['v:g-r'].values[0:1],
+                'mode': 'markers',
+                'name': 'Last delta g',
+                'customdata': list(
+                    zip(
+                        ['delta g'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5).values[0:1],
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#d62728',
+                    'symbol': 'square'}
+            },
+            {
+                'x': [r'$(\Delta\text{r})^{\text{last}}$'],
+                'y': pdf['v:g-r'].values[0:1],
+                'mode': 'markers',
+                'name': 'Last delta r',
+                'customdata': list(
+                    zip(
+                        ['delta r'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5).values[0:1],
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#9467bd',
+                    'symbol': 'diamond'}
             },
         ],
         "layout": layout_colors
