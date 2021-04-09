@@ -700,12 +700,12 @@ def draw_color(object_data) -> dict:
         'data': [
             {
                 'x': dates,
-                'y': pdf['v:r-g'],
+                'y': pdf['v:g-r'],
                 'mode': 'markers',
-                'name': 'r-g',
+                'name': 'g-r',
                 'customdata': list(
                     zip(
-                        ['r-g'] * len(pdf),
+                        ['g-r'] * len(pdf),
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                     )
                 ),

@@ -1376,8 +1376,8 @@ def columns_arguments():
     fink_derived = pd.DataFrame(
         [
             {'name': 'classification', 'type': 'string', 'doc': 'Fink inferred classification. See http://134.158.75.151:24000/api/v1/classes'},
-            {'name': 'r-g', 'type': 'double', 'doc': 'Last r-g measurement for this object.'},
-            {'name': 'rate(r-g)', 'type': 'double', 'doc': 'r-g rate in mag/day (between last and first available r-g measurements).'},
+            {'name': 'g-r', 'type': 'double', 'doc': 'Last g-r measurement for this object.'},
+            {'name': 'rate(g-r)', 'type': 'double', 'doc': 'g-r rate in mag/day (between last and first available g-r measurements).'},
             {'name': 'lastdate', 'type': 'string', 'doc': 'Datetime for the alert (from the i:jd field).'},
         ]
     )
