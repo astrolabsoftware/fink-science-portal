@@ -783,6 +783,12 @@ def draw_color_rate(object_data) -> dict:
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
+
+    hovertemplate_rate = """
+    <b>%{customdata[0]} in mag/day</b>: %{y:.2f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
     m1 = pdf['i:fid'] == 1
     m2 = pdf['i:fid'] == 2
     figure = {
@@ -832,7 +838,7 @@ def draw_color_rate(object_data) -> dict:
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m1],
                     )
                 ),
-                'hovertemplate': hovertemplate,
+                'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
                     'color': '#2ca02c',
@@ -849,7 +855,7 @@ def draw_color_rate(object_data) -> dict:
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m2],
                     )
                 ),
-                'hovertemplate': hovertemplate,
+                'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
                     'color': '#d62728',
