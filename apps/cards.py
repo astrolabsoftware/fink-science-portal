@@ -94,8 +94,8 @@ def card_sn_scores() -> dbc.Card:
                 dbc.Tabs(
                     [
                         dbc.Tab(graph_scores, label='Score evolution', tab_id='snt0'),
-                        dbc.Tab(graph_color, label='Color evolution (last)', tab_id='snt1'),
-                        dbc.Tab(graph_color_rate, label='Color evolution (rate)', tab_id='snt2'),
+                        dbc.Tab(graph_color, label='Color (last)', tab_id='snt1'),
+                        dbc.Tab(graph_color_rate, label='Color (rate)', tab_id='snt2'),
                         dbc.Tab(msg, label='Information', tab_id='snt3'),
                     ]
                 ),

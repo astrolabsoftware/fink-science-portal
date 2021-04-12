@@ -790,7 +790,7 @@ def draw_color_rate(object_data) -> dict:
                 'name': r'$\Delta\text{g}$',
                 'customdata': list(
                     zip(
-                        ['delta g'],
+                        ['delta g'] * len(pdf['i:jd']),
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                     )
                 ),
@@ -807,7 +807,7 @@ def draw_color_rate(object_data) -> dict:
                 'name': 'delta r',
                 'customdata': list(
                     zip(
-                        ['dr'],
+                        ['dr'] * len(pdf['i:jd']),
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                     )
                 ),
@@ -824,7 +824,7 @@ def draw_color_rate(object_data) -> dict:
                 'name': r'$\Delta\text{g}/\Delta\text{t}$',
                 'customdata': list(
                     zip(
-                        ['rate(delta g)'],
+                        ['rate(delta g)'] * len(pdf['i:jd']),
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                     )
                 ),
@@ -841,7 +841,7 @@ def draw_color_rate(object_data) -> dict:
                 'name': r'$\Delta\text{r}/\Delta\text{t}$',
                 'customdata': list(
                     zip(
-                        ['rate(delta r)'],
+                        ['rate(delta r)'] * len(pdf['i:jd']),
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                     )
                 ),
