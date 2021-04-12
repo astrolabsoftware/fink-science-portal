@@ -80,8 +80,8 @@ def card_sn_scores() -> dbc.Card:
     color_rate_explanation = dcc.Markdown(
         """
         We show:
-        - `delta g` (filled green circle): `(delta g)(i) = g(i) - g(i-1)`, that is the difference along the filter band `g` axis.
-        - `delta r` (filled red square): `(delta r)(i) = r(i) - r(i-1)`, that is the difference along the filter band `r` axis.
+        - `delta g` (filled green circle): `(delta g)(i) = g(i) - g(i-1)`, that is the magnitude difference for the `g` band.
+        - `delta r` (filled red square): `(delta r)(i) = r(i) - r(i-1)`, that is the magnitude difference for the `r` band.
         - `rate g` (open green circle): magnitude increase rate per day for the `g` band.
         - `rate r` (open red square): magnitude increase rate per day for the `r` band.
         """
