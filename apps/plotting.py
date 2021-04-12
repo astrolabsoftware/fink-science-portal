@@ -806,10 +806,10 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m2],
                 'y': pdf['v:dr'][m2],
                 'mode': 'markers',
-                'name': 'delta r',
+                'name': r'$\Delta\text{r}$',
                 'customdata': list(
                     zip(
-                        ['dr'] * len(pdf['i:jd'][m2]),
+                        ['delta r'] * len(pdf['i:jd'][m2]),
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m2],
                     )
                 ),
