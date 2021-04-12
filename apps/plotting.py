@@ -789,7 +789,7 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m1],
                 'y': pdf['v:dg'][m1],
                 'mode': 'markers',
-                'name': r'$\Delta\text{g}$',
+                'name': 'delta g',
                 'customdata': list(
                     zip(
                         ['delta g'] * len(pdf['i:jd'][m1]),
@@ -806,7 +806,7 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m2],
                 'y': pdf['v:dr'][m2],
                 'mode': 'markers',
-                'name': r'$\Delta\text{r}$',
+                'name': 'delta r',
                 'customdata': list(
                     zip(
                         ['delta r'] * len(pdf['i:jd'][m2]),
@@ -823,7 +823,7 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m1],
                 'y': pdf['v:rate(dg)'][m1],
                 'mode': 'markers',
-                'name': r'$\Delta\text{g}/\Delta\text{t}$',
+                'name': 'rate g',
                 'customdata': list(
                     zip(
                         ['rate(delta g)'] * len(pdf['i:jd'][m1]),
@@ -840,7 +840,7 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m2],
                 'y': pdf['v:rate(dr)'][m2],
                 'mode': 'markers',
-                'name': r'$\Delta\text{r}/\Delta\text{t}$',
+                'name': 'rate r',
                 'customdata': list(
                     zip(
                         ['rate(delta r)'] * len(pdf['i:jd'][m2]),
