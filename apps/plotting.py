@@ -694,6 +694,8 @@ def draw_color(object_data) -> dict:
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
+    m1 = pdf['i:fid'] == 1
+    m2 = pdf['i:fid'] == 2
     figure = {
         'data': [
             {
@@ -715,7 +717,7 @@ def draw_color(object_data) -> dict:
             },
             {
                 'x': [r'$(\Delta\text{g})^{\text{last}}$'],
-                'y': pdf['v:dg'].values[0:1],
+                'y': pdf['v:dg'][m1].values[0:1],
                 'mode': 'markers',
                 'name': 'Last delta g',
                 'customdata': list(
@@ -732,7 +734,7 @@ def draw_color(object_data) -> dict:
             },
             {
                 'x': [r'$(\Delta\text{r})^{\text{last}}$'],
-                'y': pdf['v:dr'].values[0:1],
+                'y': pdf['v:dr'][m2].values[0:1],
                 'mode': 'markers',
                 'name': 'Last delta r',
                 'customdata': list(
