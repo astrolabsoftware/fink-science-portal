@@ -488,8 +488,14 @@ def card_id(pdf):
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
 
-    rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
-    rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
+    try:
+        rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
+    except IndexError:
+        rate_g = 0.0
+    try:
+        rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
+    except IndexError:
+        rate_r = 0.0
 
     classification = pdf['v:classification'].values[0]
 
@@ -573,9 +579,18 @@ def card_sn_properties(clickData, object_data):
     ra0 = pdf['i:ra'].values[position]
     dec0 = pdf['i:dec'].values[position]
 
-    g_minus_r = pdf['v:rate(g-r)'].values[0]
-    rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
-    rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
+    try:
+        g_minus_r = pdf['v:rate(g-r)'].values[0]
+    except IndexError:
+        g_minus_r = 0.0
+    try:
+        rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
+    except IndexError:
+        rate_g = 0.0
+    try:
+        rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
+    except IndexError:
+        rate_r = 0.0
 
     classification = pdf['v:classification'].values[position]
 
@@ -803,7 +818,6 @@ def download_sso_modal(ssnamenr):
     import requests
     import pandas as pd
 
-    # get data for ZTF19acnjwgm
     r = requests.post(
       'http://134.158.75.151:24000/api/v1/sso',
       json={{
