@@ -781,17 +781,19 @@ def draw_color_rate(object_data) -> dict:
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
+    m1 = [pdf['i:fid'] == 1]
+    m2 = [pdf['i:fid'] == 2]
     figure = {
         'data': [
             {
-                'x': dates,
-                'y': pdf['v:dg'],
+                'x': dates[m1],
+                'y': pdf['v:dg'][m1],
                 'mode': 'markers',
                 'name': r'$\Delta\text{g}$',
                 'customdata': list(
                     zip(
-                        ['delta g'] * len(pdf['i:jd']),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        ['delta g'] * len(pdf['i:jd'][m1]),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m1],
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -801,14 +803,14 @@ def draw_color_rate(object_data) -> dict:
                     'symbol': 'circle'}
             },
             {
-                'x': dates,
-                'y': pdf['v:dr'],
+                'x': dates[m2],
+                'y': pdf['v:dr'][m2],
                 'mode': 'markers',
                 'name': 'delta r',
                 'customdata': list(
                     zip(
-                        ['dr'] * len(pdf['i:jd']),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        ['dr'] * len(pdf['i:jd'][m2]),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m2],
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -818,14 +820,14 @@ def draw_color_rate(object_data) -> dict:
                     'symbol': 'square'}
             },
             {
-                'x': dates,
-                'y': pdf['v:rate(dg)'],
+                'x': dates[m1],
+                'y': pdf['v:rate(dg)'][m1],
                 'mode': 'markers',
                 'name': r'$\Delta\text{g}/\Delta\text{t}$',
                 'customdata': list(
                     zip(
-                        ['rate(delta g)'] * len(pdf['i:jd']),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        ['rate(delta g)'] * len(pdf['i:jd'][m1]),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m1],
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -835,14 +837,14 @@ def draw_color_rate(object_data) -> dict:
                     'symbol': 'circle-open'}
             },
             {
-                'x': dates,
-                'y': pdf['v:rate(dr)'],
+                'x': dates[m2],
+                'y': pdf['v:rate(dr)'][m2],
                 'mode': 'markers',
                 'name': r'$\Delta\text{r}/\Delta\text{t}$',
                 'customdata': list(
                     zip(
-                        ['rate(delta r)'] * len(pdf['i:jd']),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        ['rate(delta r)'] * len(pdf['i:jd'][m2]),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m2],
                     )
                 ),
                 'hovertemplate': hovertemplate,

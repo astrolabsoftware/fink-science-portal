@@ -723,7 +723,7 @@ def extract_delta_color(pdf: pd.DataFrame, filter_: int):
     vec = np.nan_to_num(vec)
     rate = np.nan_to_num(rate)
 
-    return vec, rate
+    return vec[::-1], rate[::-1]
 
 def queryMPC(number, kind='asteroid'):
     """Query MPC for information about object 'designation'.
