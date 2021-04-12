@@ -647,9 +647,9 @@ def extract_last_g_minus_r_each_object(pdf, kind):
                 pdf['v:rate(g-r)'][pdf['i:nid'] == nid_] = val / jd_
 
     if kind == 'last':
-        return pdf['v:g-r'].values[::-1]
+        return pdf['v:g-r'].replace(0.0, np.nan).values
     elif kind == 'rate':
-        return pdf['v:rate(g-r)'].values[::-1]
+        return pdf['v:rate(g-r)'].replace(0.0, np.nan).values
 
 def extract_delta_color(pdf: pd.DataFrame, filter_: int):
     """ Extract last g-r for each object in a pandas DataFrame
