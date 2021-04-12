@@ -595,7 +595,11 @@ def extract_last_g_minus_r_each_object(pdf, kind):
     # extract unique objects
     ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
     ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
-    out_g_minus_r = []
+
+    if kind == 'last':
+        pdf['v:g-r'] = 0.0
+    elif kind == 'rate':
+        pdf['v:rate(g-r)'] = 0.0
 
     # loop over objects
     for id_ in ids:
@@ -634,29 +638,18 @@ def extract_last_g_minus_r_each_object(pdf, kind):
 
         if kind == 'last':
             vec_ = np.diff(values, append=np.nan)
-            vec = np.zeros(len(subpdf))
             for val, nid_ in zip(vec_, nid):
-                vec[subpdf['i:nid'] == nid_] = val
-            out_g_minus_r = np.concatenate(
-                [
-                    out_g_minus_r,
-                    vec
-                ]
-            )
+                pdf['v:g-r'][pdf['i:nid'] == nid_] = val
         elif kind == 'rate':
             vec_ = np.diff(values, append=np.nan)
             jd_diff = np.diff(jd, append=np.nan)
-            vec = np.zeros(len(subpdf))
             for val, jd_, nid_ in zip(vec_, jd_diff, nid):
-                vec[subpdf['i:nid'] == nid_] = val / jd_
-            out_g_minus_r = np.concatenate(
-                [
-                    out_g_minus_r,
-                    vec
-                ]
-            )
+                pdf['v:rate(g-r)'][pdf['i:nid'] == nid_] = val / jd_
 
-    return out_g_minus_r
+    if kind == 'last':
+        return pdf['v:g-r'].values
+    elif kind == 'rate':
+        return pdf['v:rate(g-r)'].values
 
 def extract_delta_color(pdf: pd.DataFrame, filter_: int):
     """ Extract last g-r for each object in a pandas DataFrame
