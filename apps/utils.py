@@ -619,7 +619,7 @@ def extract_last_g_minus_r_each_object(pdf, kind):
         subpdf['i:dcmag'] = mag
 
         # group by night
-        gpdf = subpdf.groupby('i:nid')[['i:dcmag', 'i:fid', 'i:jd']].agg(list)
+        gpdf = subpdf.groupby('i:nid')[['i:dcmag', 'i:fid', 'i:jd', 'i:nid']].agg(list)
 
         # take only nights with at least measurements on 2 different filters
         mask = gpdf['i:fid'].apply(
@@ -629,29 +629,30 @@ def extract_last_g_minus_r_each_object(pdf, kind):
 
         # compute r-g for those nights
         values = [g_minus_r(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
+        nid = [nid_ for nid_ in gpdf[mask]['i:nid'].apply(lambda x: x[0]).values]
+        jd = [jd_ for jd_ in gpdf[mask]['i:nid'].apply(lambda x: np.mean(x)).values]
 
         if kind == 'last':
-            if len(values) > 0:
-                val = values[-1]
-            else:
-                val = None
+            vec_ = np.diff(values, append=np.nan)
+            vec = np.zeros(len(pdf))
+            for val, nid_ in zip(vec_, nid):
+                vec[pdf['i:nid'] == nid_] = val
             out_g_minus_r = np.concatenate(
                 [
                     out_g_minus_r,
-                    [val] * len(subpdf)
+                    vec
                 ]
             )
         elif kind == 'rate':
-            if len(values) > 1:
-                val = values[-1] - values[0]
-                dt = np.mean(gpdf_night['i:jd'].values[-1]) - np.mean(gpdf_night['i:jd'].values[0])
-                rate = val / dt
-            else:
-                rate = None
+            vec_ = np.diff(values, append=np.nan)
+            jd_diff = np.diff(jd, append=np.nan)
+            vec = np.zeros(len(pdf))
+            for val, jd_, nid_ in zip(vec_, jd_diff, nid):
+                vec[pdf['i:nid'] == nid_] = val / jd_
             out_g_minus_r = np.concatenate(
                 [
                     out_g_minus_r,
-                    [rate] * len(subpdf)
+                    vec
                 ]
             )
 
