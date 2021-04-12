@@ -488,22 +488,8 @@ def card_id(pdf):
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
 
-    # magpsfs = pdf['i:magpsf'].astype(float).values
-    # magnrs = pdf['i:magnr'].astype(float).values
-    # fids = pdf['i:fid'].values
-
     rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
     rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
-    # if float(distnr) < 2:
-    #     deltamagref = np.round(magnrs[0] - magpsfs[0], 3)
-    # else:
-    #     deltamagref = None
-    #
-    # mask = fids == fids[0]
-    # if np.sum(mask) > 1:
-    #     deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
-    # else:
-    #     deltamaglatest = None
 
     classification = pdf['v:classification'].values[0]
 
@@ -521,7 +507,7 @@ def card_id(pdf):
                 ```
                 ---
                 ```python
-                # Variability
+                # Variability (DC magnitude)
                 Rate g (last): {:.2f} mag/day
                 Rate r (last): {:.2f} mag/day
                 ```
@@ -587,21 +573,8 @@ def card_sn_properties(clickData, object_data):
     ra0 = pdf['i:ra'].values[position]
     dec0 = pdf['i:dec'].values[position]
 
-    distnr = pdf['i:distnr'].values[position]
-    magpsfs = pdf['i:magpsf'].astype(float).values
-    magnrs = pdf['i:magnr'].astype(float).values
-    fids = pdf['i:fid'].values
-
-    if float(distnr) < 2:
-        deltamagref = np.round(magnrs[position] - magpsfs[position], 3)
-    else:
-        deltamagref = None
-
-    mask = fids == fids[position]
-    if np.sum(mask) > 1:
-        deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
-    else:
-        deltamaglatest = None
+    rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
+    rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
 
     classification = pdf['v:classification'].values[position]
 
@@ -614,7 +587,6 @@ def card_sn_properties(clickData, object_data):
             ),
             dcc.Markdown(
                 """
-                ---
                 ```python
                 # SuperNNova classifiers
                 SN Ia score: {:.2f}
@@ -624,9 +596,9 @@ def card_sn_properties(clickData, object_data):
                 ```
                 ---
                 ```python
-                # Variability
-                Dmag (latest): {}
-                Dmag (reference): {}
+                # Variability (DC magnitude)
+                Rate g (last): {:.2f} mag/day
+                Rate r (last): {:.2f} mag/day
                 ```
                 ---
                 ```python
@@ -640,8 +612,8 @@ def card_sn_properties(clickData, object_data):
                     float(snn_snia_vs_nonia),
                     float(snn_sn_vs_all),
                     float(rfscore),
-                    deltamaglatest,
-                    deltamagref,
+                    rate_g,
+                    rate_r,
                     float(classtar),
                     ndethist,
                     float(drb)
