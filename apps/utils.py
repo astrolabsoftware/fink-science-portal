@@ -83,6 +83,7 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
             pdfs['v:g-r'] = extract_last_g_minus_r_each_object(pdfs, kind='last')
             pdfs['v:rate(g-r)'] = extract_last_g_minus_r_each_object(pdfs, kind='rate')
 
+            pdfs = pdfs.sort_values('i:jd', ascending=False)
             pdfs['v:dg'], pdfs['v:rate(dg)'] = extract_delta_color(pdfs, filter_=1)
             pdfs['v:dr'], pdfs['v:rate(dr)'] = extract_delta_color(pdfs, filter_=2)
 
@@ -723,7 +724,7 @@ def extract_delta_color(pdf: pd.DataFrame, filter_: int):
     vec = np.nan_to_num(vec)
     rate = np.nan_to_num(rate)
 
-    return vec[::-1], rate[::-1]
+    return vec, rate
 
 def queryMPC(number, kind='asteroid'):
     """Query MPC for information about object 'designation'.

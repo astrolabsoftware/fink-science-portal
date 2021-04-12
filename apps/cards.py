@@ -69,6 +69,23 @@ def card_sn_scores() -> dbc.Card:
         },
         config={'displayModeBar': False}
     )
+    color_explanation = dcc.Markdown(
+        """
+        We show the last color evolution in 3 ways:
+        - `Last g-r`: `(g-r)(i) - (g-r)(i-1)`, where `i` and `i-1` are the last two nights where both g and r measurements are available
+        - `delta(g)^last`: `g(i) - g(i-1)`, where `g(i)` and `g(i-1)` are the last two measurements in the g band
+        - `delta(r)^last`: `r(i) - r(i-1)`, where `r(i)` and `r(i-1)` are the last two measurements in the r band
+        """
+    )
+    color_rate_explanation = dcc.Markdown(
+        """
+        We show:
+        - `delta g` (filled green circle): `(delta g)(i) = g(i) - g(i-1)`, that is the difference along the filter band `g` axis.
+        - `delta r` (filled red square): `(delta r)(i) = r(i) - r(i-1)`, that is the difference along the filter band `r` axis.
+        - `rate g` (open green circle): `(rate g)(i) = (g(i) - g(i-1))/(jd(i) - jd(i-1))`, that is magnitude increase rate per day for the `g` band.
+        - `rate r` (open red square): `(rate r)(i) = r(i) - r(i-1)/(jd(i) - jd(i-1))`, that is magnitude increase rate per day for the `r` band.
+        """
+    )
     msg = dcc.Markdown(
         """
         Fink's machine learning classification scores for Supernovae are derived from:
@@ -94,8 +111,8 @@ def card_sn_scores() -> dbc.Card:
                 dbc.Tabs(
                     [
                         dbc.Tab(graph_scores, label='Score evolution', tab_id='snt0'),
-                        dbc.Tab(graph_color, label='Color (last)', tab_id='snt1'),
-                        dbc.Tab(graph_color_rate, label='Color (rate)', tab_id='snt2'),
+                        dbc.Tab([graph_color, html.Br(), color_explanation], label='Color (last)', tab_id='snt1'),
+                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color (rate)', tab_id='snt2'),
                         dbc.Tab(msg, label='Information', tab_id='snt3'),
                     ]
                 ),
