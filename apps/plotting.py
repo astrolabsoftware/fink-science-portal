@@ -891,7 +891,7 @@ def draw_color(object_data) -> dict:
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
 
     hovertemplate = """
-    <b>%{customdata[0]}</b>: %{y:.2f}<br>
+    <b>%{customdata[0]}</b>: %{y:.3f}<br>
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
@@ -982,14 +982,8 @@ def draw_color_rate(object_data) -> dict:
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
 
-    hovertemplate = """
-    <b>%{customdata[0]}</b>: %{y:.2f}<br>
-    <b>mjd</b>: %{customdata[1]}
-    <extra></extra>
-    """
-
     hovertemplate_rate = """
-    <b>%{customdata[0]} in mag/day</b>: %{y:.2f}<br>
+    <b>%{customdata[0]} in mag/day</b>: %{y:.3f}<br>
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
