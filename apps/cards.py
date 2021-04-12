@@ -483,24 +483,27 @@ def card_id(pdf):
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     distnr = pdf['i:distnr'].values[0]
-    objectidps1 = pdf['i:objectidps1'].values[0]
+    # objectidps1 = pdf['i:objectidps1'].values[0]
+    ssnamenr = pdf['i:ssnamenr'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
 
-    magpsfs = pdf['i:magpsf'].astype(float).values
-    magnrs = pdf['i:magnr'].astype(float).values
-    fids = pdf['i:fid'].values
+    # magpsfs = pdf['i:magpsf'].astype(float).values
+    # magnrs = pdf['i:magnr'].astype(float).values
+    # fids = pdf['i:fid'].values
 
-    if float(distnr) < 2:
-        deltamagref = np.round(magnrs[0] - magpsfs[0], 3)
-    else:
-        deltamagref = None
-
-    mask = fids == fids[0]
-    if np.sum(mask) > 1:
-        deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
-    else:
-        deltamaglatest = None
+    rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
+    rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
+    # if float(distnr) < 2:
+    #     deltamagref = np.round(magnrs[0] - magpsfs[0], 3)
+    # else:
+    #     deltamagref = None
+    #
+    # mask = fids == fids[0]
+    # if np.sum(mask) > 1:
+    #     deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
+    # else:
+    #     deltamaglatest = None
 
     classification = pdf['v:classification'].values[0]
 
@@ -519,14 +522,14 @@ def card_id(pdf):
                 ---
                 ```python
                 # Variability
-                Dmag (latest): {}
-                Dmag (reference): {}
+                Rate g (last): {} mag/day
+                Rate r (last): {} mag/day
                 ```
                 ---
                 ```python
                 # Neighbourhood
                 SIMBAD: {}
-                PS1: {}
+                MPC: {}
                 Distance (PS1): {:.2f} arcsec
                 Distance (Gaia): {:.2f} arcsec
                 Distance (ZTF): {:.2f} arcsec
@@ -534,8 +537,8 @@ def card_id(pdf):
                 ---
                 """.format(
                     date0, ra0, dec0,
-                    deltamaglatest, deltamagref,
-                    cdsxmatch, objectidps1, float(distpsnr1),
+                    rate_g, rate_r,
+                    cdsxmatch, ssnamenr, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
             dbc.ButtonGroup([
