@@ -598,7 +598,7 @@ def card_sn_properties(clickData, object_data):
                 ---
                 ```python
                 # Variability (DC magnitude)
-                g-r (last): {}
+                g-r (last): {:.2f}
                 Rate g (last): {:.2f} mag/day
                 Rate r (last): {:.2f} mag/day
                 ```
