@@ -634,9 +634,9 @@ def extract_last_g_minus_r_each_object(pdf, kind):
 
         if kind == 'last':
             vec_ = np.diff(values, append=np.nan)
-            vec = np.zeros(len(pdf))
+            vec = np.zeros(len(subpdf))
             for val, nid_ in zip(vec_, nid):
-                vec[pdf['i:nid'] == nid_] = val
+                vec[subpdf['i:nid'] == nid_] = val
             out_g_minus_r = np.concatenate(
                 [
                     out_g_minus_r,
@@ -646,9 +646,9 @@ def extract_last_g_minus_r_each_object(pdf, kind):
         elif kind == 'rate':
             vec_ = np.diff(values, append=np.nan)
             jd_diff = np.diff(jd, append=np.nan)
-            vec = np.zeros(len(pdf))
+            vec = np.zeros(len(subpdf))
             for val, jd_, nid_ in zip(vec_, jd_diff, nid):
-                vec[pdf['i:nid'] == nid_] = val / jd_
+                vec[subpdf['i:nid'] == nid_] = val / jd_
             out_g_minus_r = np.concatenate(
                 [
                     out_g_minus_r,
