@@ -83,6 +83,10 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
             pdfs['v:g-r'] = extract_last_g_minus_r_each_object(pdfs, kind='last')
             pdfs['v:rate(g-r)'] = extract_last_g_minus_r_each_object(pdfs, kind='rate')
 
+            pdfs['v:dg'], pdfs['v:rate(dg)'] = extract_delta_color(pdfs, filter_=1)
+            pdfs['v:dr'], pdfs['v:rate(dr)'] = extract_delta_color(pdfs, filter_=2)
+
+
         # Human readable time
         pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
 
@@ -651,6 +655,75 @@ def extract_last_g_minus_r_each_object(pdf, kind):
             )
 
     return out_g_minus_r
+
+def extract_delta_color(pdf: pd.DataFrame, filter_: int):
+    """ Extract last g-r for each object in a pandas DataFrame
+
+    Parameters
+    ----------
+    pdf: pandas DataFrame
+        DataFrame containing alert parameters from an API call
+    filter_: int
+        Filter band, as integer. g: 1, r: 2
+
+    Returns
+    ----------
+    vec: np.array
+        Vector containing delta(mag) for the filter `filter_`. Last measurement
+        shown first.
+    rate: np.array
+        Vector containing delta(mag)/delta(time) for the filter `filter_`.
+        Last measurement shown first.
+    """
+    # extract unique objects
+    ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
+    ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
+
+    # loop over objects
+    vec = []
+    rate = []
+    for id_ in ids:
+        maskId = pdf['i:objectId'] == id_
+        subpdf = pdf[maskId]
+
+        subpdf['i:jd'] = subpdf['i:jd'].astype(float)
+        subpdf['i:fid'] = subpdf['i:fid'].astype(int)
+        subpdf = subpdf.sort_values('i:jd', ascending=False)
+
+        # Compute DC mag
+        cols = [
+            'i:fid', 'i:magpsf', 'i:sigmapsf', 'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos',
+        ]
+
+        mag, err = np.array(
+            [
+                dc_mag(int(i[0]), float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), i[6])
+                    for i in zip(*[subpdf[j].values for j in cols])
+            ]
+        ).T
+        subpdf['i:dcmag'] = mag
+
+        vec_ = np.zeros_like(mag)
+        rate_ = np.zeros_like(mag)
+
+        mask = subpdf['i:fid'] == filter_
+
+        # Diff color
+        vec_[mask] = subpdf[mask]['i:dcmag'].diff(periods=-1).values
+
+        # temp diff jd
+        djd = subpdf[mask]['i:jd'].diff(periods=-1).values
+
+        # color rate
+        rate_[mask] = vec_[mask] / djd
+        vec = np.concatenate([vec, vec_])
+        rate = np.concatenate([rate, rate_])
+
+    # replace nans by 0.0
+    vec = np.nan_to_num(vec)
+    rate = np.nan_to_num(rate)
+
+    return vec, rate
 
 def queryMPC(number, kind='asteroid'):
     """Query MPC for information about object 'designation'.

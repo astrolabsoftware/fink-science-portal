@@ -690,7 +690,6 @@ def draw_color(object_data) -> dict:
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
 
     hovertemplate = """
-    <b>%{x}</b><br>
     <b>%{customdata[0]}</b>: %{y:.2f}<br>
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
@@ -716,7 +715,7 @@ def draw_color(object_data) -> dict:
             },
             {
                 'x': [r'$(\Delta\text{g})^{\text{last}}$'],
-                'y': pdf['v:g-r'].values[0:1],
+                'y': pdf['v:dg'].values[0:1],
                 'mode': 'markers',
                 'name': 'Last delta g',
                 'customdata': list(
@@ -733,7 +732,7 @@ def draw_color(object_data) -> dict:
             },
             {
                 'x': [r'$(\Delta\text{r})^{\text{last}}$'],
-                'y': pdf['v:g-r'].values[0:1],
+                'y': pdf['v:dr'].values[0:1],
                 'mode': 'markers',
                 'name': 'Last delta r',
                 'customdata': list(
@@ -747,6 +746,110 @@ def draw_color(object_data) -> dict:
                     'size': 10,
                     'color': '#9467bd',
                     'symbol': 'diamond'}
+            },
+        ],
+        "layout": layout_colors
+    }
+    return figure
+
+@app.callback(
+    Output('colors_rate', 'figure'),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_color_rate(object_data) -> dict:
+    """ Draw color rate
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Results from a HBase client query
+
+    Returns
+    ----------
+    figure: dict
+
+    TODO: memoise me
+    """
+    pdf = pd.read_json(object_data)
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    hovertemplate = """
+    <b>%{customdata[0]}</b>: %{y:.2f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': dates,
+                'y': pdf['v:dg'],
+                'mode': 'markers',
+                'name': r'$\Delta\text{g}$',
+                'customdata': list(
+                    zip(
+                        ['delta g'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#2ca02c',
+                    'symbol': 'circle'}
+            },
+            {
+                'x': dates,
+                'y': pdf['v:dr'],
+                'mode': 'markers',
+                'name': 'delta r',
+                'customdata': list(
+                    zip(
+                        ['dr'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#d62728',
+                    'symbol': 'square'}
+            },
+            {
+                'x': dates,
+                'y': pdf['v:rate(dg)'],
+                'mode': 'markers',
+                'name': r'$\Delta\text{g}/\Delta\text{t}$',
+                'customdata': list(
+                    zip(
+                        ['rate(delta g)'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#2ca02c',
+                    'symbol': 'circle-open'}
+            },
+            {
+                'x': dates,
+                'y': pdf['v:rate(dr)'],
+                'mode': 'markers',
+                'name': r'$\Delta\text{r}/\Delta\text{t}$',
+                'customdata': list(
+                    zip(
+                        ['rate(delta r)'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#d62728',
+                    'symbol': 'square-open'}
             },
         ],
         "layout": layout_colors
