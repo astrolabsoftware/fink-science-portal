@@ -522,8 +522,8 @@ def card_id(pdf):
                 ---
                 ```python
                 # Variability
-                Rate g (last): {} mag/day
-                Rate r (last): {} mag/day
+                Rate g (last): {:.2f} mag/day
+                Rate r (last): {:.2f} mag/day
                 ```
                 ---
                 ```python
