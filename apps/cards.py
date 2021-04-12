@@ -72,9 +72,9 @@ def card_sn_scores() -> dbc.Card:
     color_explanation = dcc.Markdown(
         """
         We show the last color evolution in 3 ways:
-        - `Last g-r`: `(g-r)(i) - (g-r)(i-1)`, where `i` and `i-1` are the last two nights where both g and r measurements are available
-        - `delta(g)^last`: `g(i) - g(i-1)`, where `g(i)` and `g(i-1)` are the last two measurements in the g band
-        - `delta(r)^last`: `r(i) - r(i-1)`, where `r(i)` and `r(i-1)` are the last two measurements in the r band
+        - `Last g-r`: `(g-r)(i) - (g-r)(i-1)`, where `i` and `i-1` are the last two nights where both `g` and `r` measurements are available
+        - `delta(g)^last`: `g(i) - g(i-1)`, where `g(i)` and `g(i-1)` are the last two measurements in the `g` band
+        - `delta(r)^last`: `r(i) - r(i-1)`, where `r(i)` and `r(i-1)` are the last two measurements in the `r` band
         """
     )
     color_rate_explanation = dcc.Markdown(
@@ -82,8 +82,8 @@ def card_sn_scores() -> dbc.Card:
         We show:
         - `delta g` (filled green circle): `(delta g)(i) = g(i) - g(i-1)`, that is the difference along the filter band `g` axis.
         - `delta r` (filled red square): `(delta r)(i) = r(i) - r(i-1)`, that is the difference along the filter band `r` axis.
-        - `rate g` (open green circle): `(rate g)(i) = (g(i) - g(i-1))/(jd(i) - jd(i-1))`, that is magnitude increase rate per day for the `g` band.
-        - `rate r` (open red square): `(rate r)(i) = r(i) - r(i-1)/(jd(i) - jd(i-1))`, that is magnitude increase rate per day for the `r` band.
+        - `rate g` (open green circle): magnitude increase rate per day for the `g` band.
+        - `rate r` (open red square): magnitude increase rate per day for the `r` band.
         """
     )
     msg = dcc.Markdown(
