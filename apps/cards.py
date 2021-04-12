@@ -110,10 +110,10 @@ def card_sn_scores() -> dbc.Card:
                 html.Br(),
                 dbc.Tabs(
                     [
-                        dbc.Tab(graph_scores, label='Score evolution', tab_id='snt0'),
+                        dbc.Tab(graph_scores, label='ML scores', tab_id='snt0'),
                         dbc.Tab([graph_color, html.Br(), color_explanation], label='Color and mag evolution', tab_id='snt1'),
-                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color (rate)', tab_id='snt2'),
-                        dbc.Tab(msg, label='Information', tab_id='snt3'),
+                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color and mag rate', tab_id='snt2'),
+                        dbc.Tab(msg, label='Info', tab_id='snt3'),
                     ]
                 ),
             ]
