@@ -573,7 +573,7 @@ def card_sn_properties(clickData, object_data):
     ra0 = pdf['i:ra'].values[position]
     dec0 = pdf['i:dec'].values[position]
 
-    g_minus_r = pdf['v:g-r'].values[0]
+    g_minus_r = pdf['v:rate(g-r)'].values[0]
     rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
     rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
 
@@ -598,7 +598,7 @@ def card_sn_properties(clickData, object_data):
                 ---
                 ```python
                 # Variability (DC magnitude)
-                g-r (last): {:.2f}
+                Rate g-r (last): {:.2f} mag/day
                 Rate g (last): {:.2f} mag/day
                 Rate r (last): {:.2f} mag/day
                 ```

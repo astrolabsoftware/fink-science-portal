@@ -699,13 +699,13 @@ def draw_color(object_data) -> dict:
     figure = {
         'data': [
             {
-                'x': ['Last g-r'],
+                'x': [r'$(\Delta\text{g-r})^{\text{last}}$'],
                 'y': pdf['v:g-r'].values[0:1],
                 'mode': 'markers',
-                'name': 'g-r',
+                'name': 'delta g-r',
                 'customdata': list(
                     zip(
-                        ['Last g-r'],
+                        ['Last delta g-r'],
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5).values[0:1],
                     )
                 ),
@@ -797,7 +797,7 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m1],
                 'y': pdf['v:dg'][m1],
                 'mode': 'markers',
-                'name': 'delta g',
+                'name': 'delta g (mag)',
                 'customdata': list(
                     zip(
                         ['delta g'] * len(pdf['i:jd'][m1]),
@@ -814,7 +814,7 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m2],
                 'y': pdf['v:dr'][m2],
                 'mode': 'markers',
-                'name': 'delta r',
+                'name': 'delta r (mag)',
                 'customdata': list(
                     zip(
                         ['delta r'] * len(pdf['i:jd'][m2]),
