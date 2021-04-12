@@ -781,8 +781,8 @@ def draw_color_rate(object_data) -> dict:
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
-    m1 = [pdf['i:fid'] == 1]
-    m2 = [pdf['i:fid'] == 2]
+    m1 = pdf['i:fid'] == 1
+    m2 = pdf['i:fid'] == 2
     figure = {
         'data': [
             {
