@@ -182,7 +182,7 @@ layout_colors = dict(
         'automargin': True
     },
     yaxis={
-        'title': 'Color evolution'
+        'title': 'Delta magnitude'
     }
 )
 
@@ -831,7 +831,7 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m1],
                 'y': pdf['v:rate(dg)'][m1],
                 'mode': 'markers',
-                'name': 'rate g',
+                'name': 'rate g (mag/day)',
                 'customdata': list(
                     zip(
                         ['rate(delta g)'] * len(pdf['i:jd'][m1]),
@@ -848,7 +848,7 @@ def draw_color_rate(object_data) -> dict:
                 'x': dates[m2],
                 'y': pdf['v:rate(dr)'][m2],
                 'mode': 'markers',
-                'name': 'rate r',
+                'name': 'rate r (mag/day)',
                 'customdata': list(
                     zip(
                         ['rate(delta r)'] * len(pdf['i:jd'][m2]),
