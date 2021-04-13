@@ -210,7 +210,7 @@ def display_table_results(table):
     schema_list = list(schema.columnNames())
     fink_fields = [i for i in schema_list if i.startswith('d:')]
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
-    fink_additional_fields = ['v:r-g', 'v:rate(r-g)', 'v:classification', 'v:lastdate']
+    fink_additional_fields = ['v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
 
     return [
         html.Br(),

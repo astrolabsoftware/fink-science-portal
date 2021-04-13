@@ -53,12 +53,68 @@ def card_sn_scores() -> dbc.Card:
         },
         config={'displayModeBar': False}
     )
+    graph_color = dcc.Graph(
+        id='colors',
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    graph_color_rate = dcc.Graph(
+        id='colors_rate',
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    color_explanation = dcc.Markdown(
+        """
+        We show the last color evolution in 3 ways:
+        - `delta(g-r)`: `(g-r)(i) - (g-r)(i-1)`, where `i` and `i-1` are the last two nights where both `g` and `r` measurements are available
+        - `delta(g)`: `g(i) - g(i-1)`, where `g(i)` and `g(i-1)` are the last two measurements in the `g` band
+        - `delta(r)`: `r(i) - r(i-1)`, where `r(i)` and `r(i-1)` are the last two measurements in the `r` band
+        """
+    )
+    color_rate_explanation = dcc.Markdown(
+        """
+        We show:
+        - `rate g-r`: color increase rate per day.
+        - `rate g`: magnitude increase rate per day for the `g` band.
+        - `rate r`: magnitude increase rate per day for the `r` band.
+        """
+    )
+    msg = dcc.Markdown(
+        """
+        Fink's machine learning classification scores for Supernovae are derived from:
+        - [SuperNNova](https://github.com/supernnova/SuperNNova) ([Möller & de Boissière 2019](https://academic.oup.com/mnras/article-abstract/491/3/4277/5651173)) to classify SNe at all light-curve epochs (`SN Ia score` & `SNe score`)
+        - Random Forest (Leoni et al. in prep) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
+
+        Note that we then combine these scores, with other criteria,
+        to give a final classification to the alert. An `SN candidate` requires that:
+        - the alert passes the Fink quality cuts
+        - the alert has no known transient association (from catalogues)
+        - the alert has at least one of a SuperNNova model trained to identify SNe Ia or SNe (`SN Ia score` or `SNe score`) with a probability higher than 50% of this alert being a SN.
+
+        In addition, the alert is considered as `Early SN candidate` if it also satisfies:
+        - the alert is relatively new (number of previous detections < 20)
+        - the alert has the Random Forest model trained to select early supernovae (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN.
+        """
+    )
     card = dbc.Card(
         dbc.CardBody(
             [
                 graph_lc,
                 html.Br(),
-                graph_scores
+                dbc.Tabs(
+                    [
+                        dbc.Tab(graph_scores, label='ML scores', tab_id='snt0'),
+                        dbc.Tab([graph_color, html.Br(), color_explanation], label='Color and mag evolution', tab_id='snt1'),
+                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color and mag rate', tab_id='snt2'),
+                        dbc.Tab(msg, label='Info', tab_id='snt3'),
+                    ]
+                ),
             ]
         ),
         className="mt-3"
@@ -426,24 +482,19 @@ def card_id(pdf):
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     distnr = pdf['i:distnr'].values[0]
-    objectidps1 = pdf['i:objectidps1'].values[0]
+    # objectidps1 = pdf['i:objectidps1'].values[0]
+    ssnamenr = pdf['i:ssnamenr'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
 
-    magpsfs = pdf['i:magpsf'].astype(float).values
-    magnrs = pdf['i:magnr'].astype(float).values
-    fids = pdf['i:fid'].values
-
-    if float(distnr) < 2:
-        deltamagref = np.round(magnrs[0] - magpsfs[0], 3)
-    else:
-        deltamagref = None
-
-    mask = fids == fids[0]
-    if np.sum(mask) > 1:
-        deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
-    else:
-        deltamaglatest = None
+    try:
+        rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
+    except IndexError:
+        rate_g = 0.0
+    try:
+        rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
+    except IndexError:
+        rate_r = 0.0
 
     classification = pdf['v:classification'].values[0]
 
@@ -461,15 +512,15 @@ def card_id(pdf):
                 ```
                 ---
                 ```python
-                # Variability
-                Dmag (latest): {}
-                Dmag (reference): {}
+                # Variability (DC magnitude)
+                Rate g (last): {:.2f} mag/day
+                Rate r (last): {:.2f} mag/day
                 ```
                 ---
                 ```python
                 # Neighbourhood
                 SIMBAD: {}
-                PS1: {}
+                MPC: {}
                 Distance (PS1): {:.2f} arcsec
                 Distance (Gaia): {:.2f} arcsec
                 Distance (ZTF): {:.2f} arcsec
@@ -477,8 +528,8 @@ def card_id(pdf):
                 ---
                 """.format(
                     date0, ra0, dec0,
-                    deltamaglatest, deltamagref,
-                    cdsxmatch, objectidps1, float(distpsnr1),
+                    rate_g, rate_r,
+                    cdsxmatch, ssnamenr, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
             dbc.ButtonGroup([
@@ -527,21 +578,18 @@ def card_sn_properties(clickData, object_data):
     ra0 = pdf['i:ra'].values[position]
     dec0 = pdf['i:dec'].values[position]
 
-    distnr = pdf['i:distnr'].values[position]
-    magpsfs = pdf['i:magpsf'].astype(float).values
-    magnrs = pdf['i:magnr'].astype(float).values
-    fids = pdf['i:fid'].values
-
-    if float(distnr) < 2:
-        deltamagref = np.round(magnrs[position] - magpsfs[position], 3)
-    else:
-        deltamagref = None
-
-    mask = fids == fids[position]
-    if np.sum(mask) > 1:
-        deltamaglatest = np.round(magpsfs[mask][0] - magpsfs[mask][1], 3)
-    else:
-        deltamaglatest = None
+    try:
+        g_minus_r = pdf['v:rate(g-r)'].values[0]
+    except IndexError:
+        g_minus_r = 0.0
+    try:
+        rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
+    except IndexError:
+        rate_g = 0.0
+    try:
+        rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
+    except IndexError:
+        rate_r = 0.0
 
     classification = pdf['v:classification'].values[position]
 
@@ -554,7 +602,6 @@ def card_sn_properties(clickData, object_data):
             ),
             dcc.Markdown(
                 """
-                ---
                 ```python
                 # SuperNNova classifiers
                 SN Ia score: {:.2f}
@@ -564,9 +611,10 @@ def card_sn_properties(clickData, object_data):
                 ```
                 ---
                 ```python
-                # Variability
-                Dmag (latest): {}
-                Dmag (reference): {}
+                # Variability (DC magnitude)
+                Rate g-r (last): {:.2f} mag/day
+                Rate g (last): {:.2f} mag/day
+                Rate r (last): {:.2f} mag/day
                 ```
                 ---
                 ```python
@@ -580,8 +628,9 @@ def card_sn_properties(clickData, object_data):
                     float(snn_snia_vs_nonia),
                     float(snn_sn_vs_all),
                     float(rfscore),
-                    deltamaglatest,
-                    deltamagref,
+                    g_minus_r,
+                    rate_g,
+                    rate_r,
                     float(classtar),
                     ndethist,
                     float(drb)
@@ -768,7 +817,6 @@ def download_sso_modal(ssnamenr):
     import requests
     import pandas as pd
 
-    # get data for ZTF19acnjwgm
     r = requests.post(
       'http://134.158.75.151:24000/api/v1/sso',
       json={{

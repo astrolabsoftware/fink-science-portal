@@ -162,6 +162,54 @@ layout_scores = dict(
     }
 )
 
+layout_colors = dict(
+    autosize=True,
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    hoverlabel={
+        'align': "left"
+    },
+    xaxis={
+        'automargin': True
+    },
+    yaxis={
+        'title': 'Delta magnitude'
+    }
+)
+
+layout_colors_rate = dict(
+    autosize=True,
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    hoverlabel={
+        'align': "left"
+    },
+    xaxis={
+        'automargin': True
+    },
+    yaxis={
+        'title': 'Rate (mag/day)'
+    }
+)
+
 layout_sso_lightcurve = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
@@ -638,6 +686,190 @@ def draw_scores(object_data) -> dict:
             }
         ],
         "layout": layout_scores
+    }
+    return figure
+
+@app.callback(
+    Output('colors', 'figure'),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_color(object_data) -> dict:
+    """ Draw color evolution
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Results from a HBase client query
+
+    Returns
+    ----------
+    figure: dict
+
+    TODO: memoise me
+    """
+    pdf = pd.read_json(object_data)
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    hovertemplate = """
+    <b>%{customdata[0]}</b>: %{y:.3f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    m1 = pdf['i:fid'] == 1
+    m2 = pdf['i:fid'] == 2
+    figure = {
+        'data': [
+            {
+                'x': dates,
+                'y': pdf['v:g-r'],
+                'mode': 'markers',
+                'name': 'delta g-r (mag)',
+                'customdata': list(
+                    zip(
+                        ['delta g-r'] * len(pdf['i:jd']),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#2ca02c',
+                    'symbol': 'circle'
+                }
+            },
+            {
+                'x': dates[m1],
+                'y': pdf['v:dg'][m1],
+                'mode': 'markers',
+                'name': 'delta g (mag)',
+                'customdata': list(
+                    zip(
+                        ['delta g'] * len(pdf['i:jd'][m1]),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m1],
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#d62728',
+                    'symbol': 'square'
+                }
+            },
+            {
+                'x': dates[m2],
+                'y': pdf['v:dr'][m2],
+                'mode': 'markers',
+                'name': 'delta r (mag)',
+                'customdata': list(
+                    zip(
+                        ['delta r'] * len(pdf['i:jd'][m2]),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m2],
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 10,
+                    'color': '#9467bd',
+                    'symbol': 'diamond'
+                }
+            }
+        ],
+        "layout": layout_colors
+    }
+    return figure
+
+@app.callback(
+    Output('colors_rate', 'figure'),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_color_rate(object_data) -> dict:
+    """ Draw color rate
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Results from a HBase client query
+
+    Returns
+    ----------
+    figure: dict
+
+    TODO: memoise me
+    """
+    pdf = pd.read_json(object_data)
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    hovertemplate_rate = """
+    <b>%{customdata[0]} in mag/day</b>: %{y:.3f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    m1 = pdf['i:fid'] == 1
+    m2 = pdf['i:fid'] == 2
+    figure = {
+        'data': [
+            {
+                'x': dates,
+                'y': pdf['v:rate(g-r)'],
+                'mode': 'markers',
+                'name': 'rate g-r (mag/day)',
+                'customdata': list(
+                    zip(
+                        ['rate(delta g)'] * len(pdf['i:jd']),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate_rate,
+                'marker': {
+                    'size': 10,
+                    'color': '#2ca02c',
+                    'symbol': 'circle'
+                }
+            },
+            {
+                'x': dates[m1],
+                'y': pdf['v:rate(dg)'][m1],
+                'mode': 'markers',
+                'name': 'rate g (mag/day)',
+                'customdata': list(
+                    zip(
+                        ['rate(delta g)'] * len(pdf['i:jd'][m1]),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m1],
+                    )
+                ),
+                'hovertemplate': hovertemplate_rate,
+                'marker': {
+                    'size': 10,
+                    'color': '#d62728',
+                    'symbol': 'square'
+                }
+            },
+            {
+                'x': dates[m2],
+                'y': pdf['v:rate(dr)'][m2],
+                'mode': 'markers',
+                'name': 'rate r (mag/day)',
+                'customdata': list(
+                    zip(
+                        ['rate(delta r)'] * len(pdf['i:jd'][m2]),
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m2],
+                    )
+                ),
+                'hovertemplate': hovertemplate_rate,
+                'marker': {
+                    'size': 10,
+                    'color': '#9467bd',
+                    'symbol': 'diamond'
+                }
+            },
+        ],
+        "layout": layout_colors_rate
     }
     return figure
 

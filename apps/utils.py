@@ -26,7 +26,7 @@ from astropy.convolution import Box2DKernel
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
 
-import java
+
 
 hbase_type_converter = {
     'integer': int,
@@ -80,8 +80,13 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
         if extract_color:
             # Extract color evolution
             pdfs = pdfs.sort_values('i:objectId')
-            pdfs['v:r-g'] = extract_last_r_minus_g_each_object(pdfs, kind='last')
-            pdfs['v:rate(r-g)'] = extract_last_r_minus_g_each_object(pdfs, kind='rate')
+            pdfs['v:g-r'] = extract_last_g_minus_r_each_object(pdfs, kind='last')
+            pdfs['v:rate(g-r)'] = extract_last_g_minus_r_each_object(pdfs, kind='rate')
+
+            pdfs = pdfs.sort_values('i:jd', ascending=False)
+            pdfs['v:dg'], pdfs['v:rate(dg)'] = extract_delta_color(pdfs, filter_=1)
+            pdfs['v:dr'], pdfs['v:rate(dr)'] = extract_delta_color(pdfs, filter_=2)
+
 
         # Human readable time
         pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
@@ -151,7 +156,7 @@ def validate_query(query, query_type):
 
     return {'flag': True, 'header': 'Good query', 'text': 'Well done'}
 
-def extract_row(key: str, clientresult: java.util.TreeMap) -> dict:
+def extract_row(key: str, clientresult) -> dict:
     """ Extract one row from the client result, and return result as dict
     """
     data = clientresult[key]
@@ -564,7 +569,7 @@ def dc_mag(fid, magpsf, sigmapsf, magnr, sigmagnr, magzpsci, isdiffpos):
 
     return dc_mag, dc_sigmag
 
-def r_minus_g(fid, mag):
+def g_minus_r(fid, mag):
     """ Compute r-g based on vectors of filters and magnitudes
     """
     if len(fid) == 2:
@@ -582,15 +587,19 @@ def r_minus_g(fid, mag):
         sign = np.diff([fid[index_other], last_fid])[0]
         mag = [mag[index_other], mag[-1]]
 
-    return sign * np.diff(mag)[0]
+    return -1 * sign * np.diff(mag)[0]
 
-def extract_last_r_minus_g_each_object(pdf, kind):
-    """ Extract last r-g for each object in a pandas DataFrame
+def extract_last_g_minus_r_each_object(pdf, kind):
+    """ Extract last g-r for each object in a pandas DataFrame
     """
     # extract unique objects
     ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
     ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
-    out_r_minus_g = []
+
+    if kind == 'last':
+        pdf.loc[:, 'v:g-r'] = 0.0
+    elif kind == 'rate':
+        pdf.loc[:, 'v:rate(g-r)'] = 0.0
 
     # loop over objects
     for id_ in ids:
@@ -614,7 +623,7 @@ def extract_last_r_minus_g_each_object(pdf, kind):
         subpdf['i:dcmag'] = mag
 
         # group by night
-        gpdf = subpdf.groupby('i:nid')[['i:dcmag', 'i:fid', 'i:jd']].agg(list)
+        gpdf = subpdf.groupby('i:nid')[['i:dcmag', 'i:fid', 'i:jd', 'i:nid']].agg(list)
 
         # take only nights with at least measurements on 2 different filters
         mask = gpdf['i:fid'].apply(
@@ -623,34 +632,93 @@ def extract_last_r_minus_g_each_object(pdf, kind):
         gpdf_night = gpdf[mask]
 
         # compute r-g for those nights
-        values = [r_minus_g(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
+        values = [g_minus_r(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
+        nid = [nid_ for nid_ in gpdf[mask]['i:nid'].apply(lambda x: x[0]).values]
+        jd = [jd_ for jd_ in gpdf[mask]['i:nid'].apply(lambda x: np.mean(x)).values]
 
         if kind == 'last':
-            if len(values) > 0:
-                val = values[-1]
-            else:
-                val = None
-            out_r_minus_g = np.concatenate(
-                [
-                    out_r_minus_g,
-                    [val] * len(subpdf)
-                ]
-            )
+            vec_ = np.diff(values, prepend=np.nan)
+            for val, nid_ in zip(vec_, nid):
+                pdf['v:g-r'][pdf['i:nid'] == nid_] = val
         elif kind == 'rate':
-            if len(values) > 1:
-                val = values[-1] - values[0]
-                dt = np.mean(gpdf_night['i:jd'].values[-1]) - np.mean(gpdf_night['i:jd'].values[0])
-                rate = val / dt
-            else:
-                rate = None
-            out_r_minus_g = np.concatenate(
-                [
-                    out_r_minus_g,
-                    [rate] * len(subpdf)
-                ]
-            )
+            vec_ = np.diff(values, prepend=np.nan)
+            jd_diff = np.diff(jd, prepend=np.nan)
+            for val, jd_, nid_ in zip(vec_, jd_diff, nid):
+                pdf['v:rate(g-r)'][pdf['i:nid'] == nid_] = val / jd_
 
-    return out_r_minus_g
+    if kind == 'last':
+        return pdf['v:g-r'].replace(0.0, np.nan).values
+    elif kind == 'rate':
+        return pdf['v:rate(g-r)'].replace(0.0, np.nan).values
+
+def extract_delta_color(pdf: pd.DataFrame, filter_: int):
+    """ Extract last g-r for each object in a pandas DataFrame
+
+    Parameters
+    ----------
+    pdf: pandas DataFrame
+        DataFrame containing alert parameters from an API call
+    filter_: int
+        Filter band, as integer. g: 1, r: 2
+
+    Returns
+    ----------
+    vec: np.array
+        Vector containing delta(mag) for the filter `filter_`. Last measurement
+        shown first.
+    rate: np.array
+        Vector containing delta(mag)/delta(time) for the filter `filter_`.
+        Last measurement shown first.
+    """
+    # extract unique objects
+    ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
+    ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
+
+    # loop over objects
+    vec = []
+    rate = []
+    for id_ in ids:
+        maskId = pdf['i:objectId'] == id_
+        subpdf = pdf[maskId]
+
+        subpdf['i:jd'] = subpdf['i:jd'].astype(float)
+        subpdf['i:fid'] = subpdf['i:fid'].astype(int)
+        subpdf = subpdf.sort_values('i:jd', ascending=False)
+
+        # Compute DC mag
+        cols = [
+            'i:fid', 'i:magpsf', 'i:sigmapsf', 'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos',
+        ]
+
+        mag, err = np.array(
+            [
+                dc_mag(int(i[0]), float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), i[6])
+                    for i in zip(*[subpdf[j].values for j in cols])
+            ]
+        ).T
+        subpdf['i:dcmag'] = mag
+
+        vec_ = np.zeros_like(mag)
+        rate_ = np.zeros_like(mag)
+
+        mask = subpdf['i:fid'] == filter_
+
+        # Diff color
+        vec_[mask] = subpdf[mask]['i:dcmag'].diff(periods=-1).values
+
+        # temp diff jd
+        djd = subpdf[mask]['i:jd'].diff(periods=-1).values
+
+        # color rate
+        rate_[mask] = vec_[mask] / djd
+        vec = np.concatenate([vec, vec_])
+        rate = np.concatenate([rate, rate_])
+
+    # replace nans by 0.0
+    vec = np.nan_to_num(vec)
+    rate = np.nan_to_num(rate)
+
+    return vec, rate
 
 def queryMPC(number, kind='asteroid'):
     """Query MPC for information about object 'designation'.
