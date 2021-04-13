@@ -1439,7 +1439,11 @@ def return_sso():
     clientSSO.setLimit(nlimit)
 
     pdf = format_hbase_output(
-        results, schema_client, group_alerts=False, truncated=truncated
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
+        extract_color=False
     )
 
     if output_format == 'json':
