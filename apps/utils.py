@@ -633,18 +633,18 @@ def extract_last_g_minus_r_each_object(pdf, kind):
 
         # compute r-g for those nights
         values = [g_minus_r(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
-        nid = [nid_ for nid_ in gpdf[mask]['i:nid'].apply(lambda x: x[0]).values]
+        nid = [nid_ for nid_ in gpdf[mask]['i:jd'].apply(lambda x: x[0]).values]
         jd = [jd_ for jd_ in gpdf[mask]['i:nid'].apply(lambda x: np.mean(x)).values]
 
         if kind == 'last':
             vec_ = np.diff(values, prepend=np.nan)
             for val, nid_ in zip(vec_, nid):
-                pdf['v:g-r'][pdf['i:nid'] == nid_] = val
+                pdf['v:g-r'][pdf['i:jd'] == nid_] = val
         elif kind == 'rate':
             vec_ = np.diff(values, prepend=np.nan)
             jd_diff = np.diff(jd, prepend=np.nan)
             for val, jd_, nid_ in zip(vec_, jd_diff, nid):
-                pdf['v:rate(g-r)'][pdf['i:nid'] == nid_] = val / jd_
+                pdf['v:rate(g-r)'][pdf['i:jd'] == nid_] = val / jd_
 
     if kind == 'last':
         return pdf['v:g-r'].replace(0.0, np.nan).values
