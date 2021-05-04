@@ -1624,8 +1624,7 @@ def xmatch_user():
         'i:drb',
         'i:classtar',
         'd:knscore',
-        'i:jdstarthist',
-        'v:classification'
+        'i:jdstarthist'
     ]
 
     unique_cols = np.unique(colnames + colnames_added_values).tolist()
@@ -1654,7 +1653,7 @@ def xmatch_user():
     radius = 1.5
 
     count = 0
-    pdfs = pd.DataFrame(columns=unique_cols + [idname])
+    pdfs = pd.DataFrame(columns=unique_cols + [idname] + ['v:classification'])
     for oid, ra, dec in zip(ids, ras, decs):
         vec = hp.ang2vec(
             np.pi / 2.0 - np.pi / 180.0 * dec,
@@ -1697,5 +1696,4 @@ def xmatch_user():
         df,
         on=idname
     )
-
     return join_df.to_json(orient='records')
