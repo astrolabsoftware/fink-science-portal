@@ -26,6 +26,7 @@ from app import client, clientP, clientT, clientS, clientSSO, clientTNS, clientU
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
+from apps.xmatch import parse_contents
 
 import io
 import requests
@@ -924,6 +925,14 @@ args_cutouts = [
     }
 ]
 
+args_xmatch = {
+    {
+        'name': 'catalog',
+        'required': True,
+        'description': 'External catalog'
+    },
+}
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -1589,3 +1598,11 @@ def return_cutouts():
         mimetype='image/png',
         as_attachment=True,
         attachment_filename=filename)
+
+@api_bp.route('/api/v1/xmatch', methods=['POST'])
+def xmatch_user():
+    """ Xmatch with user uploaded catalog
+    """
+    df = parse_contents(request.json['catalog'], 'toto.csv')
+
+    return df.to_json(orient='records')
