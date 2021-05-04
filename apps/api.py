@@ -1624,7 +1624,8 @@ def xmatch_user():
         'i:drb',
         'i:classtar',
         'd:knscore',
-        'i:jdstarthist'
+        'i:jdstarthist',
+        'v:classification'
     ]
 
     unique_cols = np.unique(colnames + colnames_added_values).tolist()
