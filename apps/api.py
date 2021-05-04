@@ -925,13 +925,13 @@ args_cutouts = [
     }
 ]
 
-args_xmatch = {
+args_xmatch = [
     {
         'name': 'catalog',
         'required': True,
         'description': 'External catalog'
     },
-}
+]
 
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
