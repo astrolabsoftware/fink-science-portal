@@ -1603,6 +1603,6 @@ def return_cutouts():
 def xmatch_user():
     """ Xmatch with user uploaded catalog
     """
-    df = parse_contents(request.json['catalog'], 'toto.csv')
+    df = pd.read_csv(io.StringIO(csvfile))
 
     return df.to_json(orient='records')
