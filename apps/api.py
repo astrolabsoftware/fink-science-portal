@@ -1604,5 +1604,97 @@ def xmatch_user():
     """ Xmatch with user uploaded catalog
     """
     df = pd.read_csv(io.StringIO(request.json['catalog']))
+    raname = 'RA'
+    decname = 'Dec'
+    idname = 'ID'
+    # Columns of interest
+    colnames = [
+        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
+    ]
 
-    return df.to_json(orient='records')
+    colnames_added_values = [
+        'd:cdsxmatch',
+        'd:roid',
+        'd:mulens_class_1',
+        'd:mulens_class_2',
+        'd:snn_snia_vs_nonia',
+        'd:snn_sn_vs_all',
+        'd:rfscore',
+        'i:ndethist',
+        'i:drb',
+        'i:classtar',
+        'd:knscore',
+        'i:jdstarthist'
+    ]
+
+    unique_cols = np.unique(colnames + colnames_added_values).tolist()
+
+    # check units
+    ra0 = df[raname].values[0]
+    if 'h' in str(ra0):
+        coords = [
+            SkyCoord(ra, dec, frame='icrs')
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    elif ':' in str(ra0) or ' ' in str(ra0):
+        coords = [
+            SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    else:
+        coords = [
+            SkyCoord(ra, dec, frame='icrs', unit='deg')
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    ras = [coord.ra.deg for coord in coords]
+    decs = [coord.dec.deg for coord in coords]
+    ids = df[idname].values
+
+    radius = 1.5
+
+    count = 0
+    pdfs = pd.DataFrame(columns=unique_cols + [idname])
+    for oid, ra, dec in zip(ids, ras, decs):
+        vec = hp.ang2vec(
+            np.pi / 2.0 - np.pi / 180.0 * dec,
+            np.pi / 180.0 * ra
+        )
+        pixs = hp.query_disc(
+            131072,
+            vec,
+            np.pi / 180 * radius / 3600.,
+            inclusive=True
+        )
+
+        to_search = ",".join(['key:key:{}'.format(i) for i in pixs])
+
+        results = clientP.scan(
+            "",
+            to_search,
+            ",".join(unique_cols),
+            0, True, True
+        )
+
+        # Loop over results and construct the dataframe
+        if not results.isEmpty():
+            schema_client = clientP.schema()
+            pdf = format_hbase_output(
+                results,
+                schema_client,
+                group_alerts=True,
+                extract_color=False
+            )
+            # pdf = pd.DataFrame.from_dict(results, orient='index')[unique_cols]
+            pdf[idname] = [oid] * len(pdf)
+            if 'd:knscore' not in pdf.columns:
+                pdf['d:knscore'] = np.zeros(len(pdf), dtype=float)
+            pdfs = pd.concat((pdfs, pdf), ignore_index=True)
+
+    # Final join
+    join_df = pd.merge(
+        pdfs[['objectId', 'classification', idname]],
+        df,
+        on=idname
+    )
+
+    return join_df.to_json(orient='records')
