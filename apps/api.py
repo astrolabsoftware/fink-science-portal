@@ -25,6 +25,7 @@ from matplotlib import cm
 from app import client, clientP, clientT, clientS, clientSSO, clientTNS, clientU, clientUV, nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
+from apps.utils import get_superpixels
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 from apps.xmatch import parse_contents
 
@@ -1105,45 +1106,72 @@ def query_db():
 
         ra = coord.ra.deg
         dec = coord.dec.deg
-        radius = float(radius) / 3600.
+        radius_deg = float(radius) / 3600.
 
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
 
-        # list of neighbour pixels
-        # pixs = hp.query_disc(131072, vec, np.pi / 180 * radius, inclusive=True)
-        nsides = [128, 4096, 131072]
-        pixs = []
-        for nside in nsides:
-            pixs.append(
-                hp.query_disc(
-                    nside,
-                    vec,
-                    np.pi / 180 * radius,
-                    inclusive=True
-                )
-            )
-
         # Send request
-        if int(radius) <= 60:
+        if int(radius) <= 30:
             # arcsecond scale
+            # arcmin scale
+            # get arcmin scale pixels
+            pixs_arcsec = hp.query_disc(
+                131072,
+                vec,
+                np.pi / 180 * radius_deg,
+                inclusive=True
+            )
+            pixs_am = get_superpixels(pixs_arcsec, 131072, 4096)
+            pixs_degree = get_superpixels(pixs_arcsec, 131072, 128)
+
+            # For each pixel, get its superpixel
+            pixs = [
+                '{}_{}_{}'.format(
+                    p[0],
+                    p[1],
+                    p[2]
+                ) for p in zip(pixs_degree, pixs_am, pixs_arcsec)
+            ]
             to_evaluate = ",".join(
                 [
-                    'key:key:{}_{}_{}'.format(*i) for i in np.transpose(pixs)
+                    'key:key:{}'.format(i) for i in pixs
                 ]
             )
-        elif (int(radius) > 60) & (int(radius) <= 1800):
+        elif (int(radius) > 30) & (int(radius) <= 1800):
             # arcmin scale
+            # get arcmin scale pixels
+            pixs_am = hp.query_disc(
+                4096,
+                vec,
+                np.pi / 180 * radius_deg,
+                inclusive=True
+            )
+            pixs_degree = get_superpixels(pixs_am, 4096, 128)
+
+            # For each pixel, get its superpixel
+            pixs = [
+                '{}_{}'.format(
+                    p[0],
+                    p[1]
+                ) for p in zip(pixs_degree, pixs_am)
+            ]
             to_evaluate = ",".join(
                 [
-                    'key:key:{}_{}'.format(*i) for i in np.transpose(pixs[0:2])
+                    'key:key:{}'.format(i) for i in pixs
                 ]
             )
         else:
             # degree scale
+            pixs = hp.query_disc(
+                128,
+                vec,
+                np.pi / 180 * radius_deg,
+                inclusive=True
+            )
             to_evaluate = ",".join(
                 [
-                    'key:key:{}'.format(i) for i in pixs[0]
+                    'key:key:{}'.format(i) for i in pixs
                 ]
             )
         # to_evaluate = ",".join(['key:key:{}'.format(i) for i in pixs])
