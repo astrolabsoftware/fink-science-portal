@@ -1090,12 +1090,12 @@ def query_db():
         # Interpret user input
         ra, dec = request.json['ra'], request.json['dec']
         radius = request.json['radius']
-        if int(radius) > 60:
-            rep = {
-                'status': 'error',
-                'text': "`radius` cannot be bigger than 60 arcseconds.\n"
-            }
-            return Response(str(rep), 400)
+        # if int(radius) > 60:
+        #     rep = {
+        #         'status': 'error',
+        #         'text': "`radius` cannot be bigger than 60 arcseconds.\n"
+        #     }
+        #     return Response(str(rep), 400)
         if 'h' in ra:
             coord = SkyCoord(ra, dec, frame='icrs')
         elif ':' in ra or ' ' in ra:
@@ -1111,10 +1111,42 @@ def query_db():
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
 
         # list of neighbour pixels
-        pixs = hp.query_disc(131072, vec, np.pi / 180 * radius, inclusive=True)
+        # pixs = hp.query_disc(131072, vec, np.pi / 180 * radius, inclusive=True)
+        nsides = [128, 4096, 131072]
+        pixs = []
+        for nside in nsides:
+            pixs.append(
+                hp.query_disc(
+                    nside,
+                    vec,
+                    np.pi / 180 * radius,
+                    inclusive=True
+                )
+            )
 
         # Send request
-        to_evaluate = ",".join(['key:key:{}'.format(i) for i in pixs])
+        if int(radius) <= 60:
+            # arcsecond scale
+            to_evaluate = ",".join(
+                [
+                    'key:key:{}_{}_{}'.format(*i) for i in np.transpose(pixs)
+                ]
+            )
+        elif (int(radius) > 60) & (int(radius) <= 1800):
+            # arcmin scale
+            to_evaluate = ",".join(
+                [
+                    'key:key:{}_{}'.format(*i) for i in np.transpose(pixs[0:2])
+                ]
+            )
+        else:
+            # degree scale
+            to_evaluate = ",".join(
+                [
+                    'key:key:{}'.format(i) for i in pixs[0]
+                ]
+            )
+        # to_evaluate = ",".join(['key:key:{}'.format(i) for i in pixs])
         results = clientP.scan(
             "",
             to_evaluate,
