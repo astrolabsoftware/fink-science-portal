@@ -308,8 +308,8 @@ def update_output(contents, filename):
                 )
             ).deg
 
-            pdf['v:separation_degree'] = sep
-            pdf = pdf.sort_values('v:separation_degree', ascending=True)
+            pdf['separation_degree'] = sep
+            pdf = pdf.sort_values('separation_degree', ascending=True)
 
             pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
@@ -349,6 +349,10 @@ def update_output(contents, filename):
     colnames_to_display.append(idname)
     dtypes.update({idname: type(df[idname].values[0])})
 
+    colnames.append('separation_degree')
+    colnames_to_display.append('separation_degree')
+    dtypes.update({'separation_degree': type(df['v:separation_degree'].values[0])})
+
     pdfs_fink = pdfs[colnames]
 
     # Make clickable objectId
@@ -371,10 +375,11 @@ def update_output(contents, filename):
 
     # Final join
     join_df = pd.merge(
-        pdfs_fink[['objectId', 'classification', idname]],
+        pdfs_fink[['objectId', idname, 'separation_degree', 'classification']],
         df,
         on=idname
     )
+
     data = join_df.to_dict('records')
     columns = [
         {
