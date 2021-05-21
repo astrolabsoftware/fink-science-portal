@@ -1232,7 +1232,7 @@ def query_db():
         pdfs['v:separation_degree'] = sep
         pdfs = pdfs.sort_values('v:separation_degree', ascending=True)
 
-        mask = pdfs['separation_degree'] > radius_deg
+        mask = pdfs['v:separation_degree'] > radius_deg
         pdfs = pdfs[~mask]
 
     if output_format == 'json':
