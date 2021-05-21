@@ -1091,7 +1091,7 @@ def query_db():
 
         schema_client = client.schema()
     if user_group == 1:
-        clientP.setLimit(1000)
+        clientP.setLimit(10000)
 
         # Interpret user input
         ra, dec = request.json['ra'], request.json['dec']
@@ -1144,7 +1144,7 @@ def query_db():
                     'key:key:{}'.format(i) for i in pixs
                 ]
             )
-        elif (int(radius) > 30) & (int(radius) <= 1800):
+        elif (int(radius) > 30) & (int(radius) <= 1000):
             # arcmin scale
             # get arcmin scale pixels
             pixs_am = hp.query_disc(

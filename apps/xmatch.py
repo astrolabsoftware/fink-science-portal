@@ -197,7 +197,7 @@ def update_output(contents, filename):
     radius_deg = radius / 3600.
 
     # loop over rows
-    #clientP.setLimit(10)
+    clientP.setLimit(10000)
     count = 0
     pdfs = pd.DataFrame(columns=unique_cols + [idname])
     for oid, ra, dec, coord in zip(ids, ras, decs, coords):
@@ -230,7 +230,7 @@ def update_output(contents, filename):
                     'key:key:{}'.format(i) for i in pixs
                 ]
             )
-        elif (int(radius) > 30) & (int(radius) <= 1800):
+        elif (int(radius) > 30) & (int(radius) <= 1000):
             # arcmin scale
             # get arcmin scale pixels
             pixs_am = hp.query_disc(
