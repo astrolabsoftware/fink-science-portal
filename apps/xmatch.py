@@ -363,7 +363,7 @@ def update_output(contents, filename):
     )
 
     # Display only the last alert
-    # pdfs_fink = pdfs_fink.loc[pdfs_fink.groupby('objectId')['last seen'].idxmax()]
+    pdfs_fink = pdfs_fink.loc[pdfs_fink.groupby('objectId')['last seen'].idxmax()]
     pdfs_fink['last seen'] = pdfs_fink['last seen'].apply(convert_jd)
 
     # round numeric values for better display
