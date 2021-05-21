@@ -662,7 +662,12 @@ def results(ns, query, query_type, dropdown_option, results):
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
 
-        data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
+        if query_type == 'Conesearch':
+            data = pdf.sort_values(
+                'v:separation', ascending=False
+            ).to_dict('records')
+        else:
+            data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
 
         columns = [
             {
