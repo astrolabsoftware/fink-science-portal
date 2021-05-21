@@ -810,7 +810,7 @@ args_explorer = [
         'name': 'radius',
         'required': False,
         'group': 1,
-        'description': 'Conesearch radius in arcsec. Maximum is 60 arcseconds.'
+        'description': 'Conesearch radius in arcsec. Maximum is 18,000 arcseconds (5 degrees).'
     },
     {
         'name': 'startdate',
@@ -1213,6 +1213,20 @@ def query_db():
         group_alerts=True,
         extract_color=False
     )
+
+    # For conesearch, sort by distance
+    if user_group == 1:
+        sep = coord.separation(
+            SkyCoord(
+                pdfs['ra'],
+                pdfs['dec'],
+                unit='deg'
+            )
+        ).deg
+
+        pdfs['v:separation_degree'] = sep
+        pdfs = pdfs.sort_values('v:separation_degree', ascending=True)
+
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
