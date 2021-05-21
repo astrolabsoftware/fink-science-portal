@@ -14,6 +14,7 @@
 # limitations under the License.
 import base64
 import io
+import csv
 import dash
 from dash.dependencies import Input, Output, State
 import dash_core_components as dcc
@@ -34,6 +35,7 @@ from app import clientP
 from apps.utils import extract_fink_classification
 from apps.utils import markdownify_objectid
 from apps.utils import convert_jd
+from apps.utils import get_superpixels
 from apps.cards import card_explanation_xmatch
 
 layout = html.Div(
@@ -191,30 +193,102 @@ def update_output(contents, filename):
     decs = [coord.dec.deg for coord in coords]
     ids = df[idname].values
 
-    radius = 1.5
-    #1.5 # arcsec
+    radius_deg = 1.5 / 3600.
+
     # loop over rows
     #clientP.setLimit(10)
     count = 0
     pdfs = pd.DataFrame(columns=unique_cols + [idname])
-    for oid, ra, dec in zip(ids, ras, decs):
-        vec = hp.ang2vec(
-            np.pi / 2.0 - np.pi / 180.0 * dec,
-            np.pi / 180.0 * ra
-        )
-        pixs = hp.query_disc(
-            131072,
-            vec,
-            np.pi / 180 * radius / 3600.,
-            inclusive=True
-        )
+    for oid, ra, dec, coord in zip(ids, ras, decs, coords):
+        # vec = hp.ang2vec(
+        #     np.pi / 2.0 - np.pi / 180.0 * dec,
+        #     np.pi / 180.0 * ra
+        # )
+        # pixs = hp.query_disc(
+        #     131072,
+        #     vec,
+        #     np.pi / 180 * radius / 3600.,
+        #     inclusive=True
+        # )
+        #
+        # to_search = ",".join(['key:key:{}'.format(i) for i in pixs])
+        #
+        # results = clientP.scan(
+        #     "",
+        #     to_search,
+        #     ",".join(unique_cols),
+        #     0, True, True
+        # )
 
-        to_search = ",".join(['key:key:{}'.format(i) for i in pixs])
+        # angle to vec conversion
+        vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
 
+        # Send request
+        if int(radius) <= 30:
+            # arcsecond scale
+            # get arcmin scale pixels
+            pixs_arcsec = hp.query_disc(
+                131072,
+                vec,
+                np.pi / 180 * radius_deg,
+                inclusive=True
+            )
+            pixs_am = get_superpixels(pixs_arcsec, 131072, 4096)
+            pixs_degree = get_superpixels(pixs_arcsec, 131072, 128)
+
+            # For each pixel, get its superpixel
+            pixs = [
+                '{}_{}_{}'.format(
+                    p[0],
+                    p[1],
+                    p[2]
+                ) for p in zip(pixs_degree, pixs_am, pixs_arcsec)
+            ]
+            to_evaluate = ",".join(
+                [
+                    'key:key:{}'.format(i) for i in pixs
+                ]
+            )
+        elif (int(radius) > 30) & (int(radius) <= 1800):
+            # arcmin scale
+            # get arcmin scale pixels
+            pixs_am = hp.query_disc(
+                4096,
+                vec,
+                np.pi / 180 * radius_deg,
+                inclusive=True
+            )
+            pixs_degree = get_superpixels(pixs_am, 4096, 128)
+
+            # For each pixel, get its superpixel
+            pixs = [
+                '{}_{}'.format(
+                    p[0],
+                    p[1]
+                ) for p in zip(pixs_degree, pixs_am)
+            ]
+            to_evaluate = ",".join(
+                [
+                    'key:key:{}'.format(i) for i in pixs
+                ]
+            )
+        else:
+            # degree scale
+            pixs = hp.query_disc(
+                128,
+                vec,
+                np.pi / 180 * radius_deg,
+                inclusive=True
+            )
+            to_evaluate = ",".join(
+                [
+                    'key:key:{}'.format(i) for i in pixs
+                ]
+            )
         results = clientP.scan(
             "",
-            to_search,
-            ",".join(unique_cols),
+            to_evaluate,
+            "*",
             0, True, True
         )
 
@@ -224,6 +298,18 @@ def update_output(contents, filename):
             pdf[idname] = [oid] * len(pdf)
             if 'd:knscore' not in pdf.columns:
                 pdf['d:knscore'] = np.zeros(len(pdf), dtype=float)
+
+            sep = coord.separation(
+                SkyCoord(
+                    pdf['i:ra'],
+                    pdf['i:dec'],
+                    unit='deg'
+                )
+            ).deg
+
+            pdf['v:separation_degree'] = sep
+            pdf = pdf.sort_values('v:separation_degree', ascending=True)
+
             pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
     if pdfs.empty:
@@ -302,3 +388,35 @@ def update_output(contents, filename):
     else:
         msg = "{} objects found in {}".format(len(join_df), filename)
     return data, columns, msg
+
+def generate_csv(s: str, lists: list) -> str:
+    """ Make a string (CSV formatted) given lists of data and header.
+    Parameters
+    ----------
+    s: str
+        String which will contain the data.
+        Should initially contain the CSV header.
+    lists: list of lists
+        List containing data.
+        Length of `lists` must correspond to the header.
+
+    Returns
+    ----------
+    s: str
+        Updated string with one row per line.
+
+    Examples
+    ----------
+    >>> header = "toto,tata\\n"
+    >>> lists = [[1, 2], ["cat", "dog"]]
+    >>> table = generate_csv(header, lists)
+    >>> print(table)
+    toto,tata
+    1,"cat"
+    2,"dog"
+    <BLANKLINE>
+    """
+    output = io.StringIO()
+    writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC)
+    _ = [writer.writerow(row) for row in zip(*lists)]
+    return s + output.getvalue().replace('\r', '')
