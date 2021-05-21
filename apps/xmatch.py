@@ -351,7 +351,7 @@ def update_output(contents, filename):
 
     colnames.append('separation_degree')
     colnames_to_display.append('separation_degree')
-    dtypes.update({'separation_degree': type(pdfs['separation_degree'].values[0])})
+    dtypes.update({'separation_degree': np.float})
 
     pdfs_fink = pdfs[colnames]
 
