@@ -664,7 +664,7 @@ def results(ns, query, query_type, dropdown_option, results):
 
         if query_type == 'Conesearch':
             data = pdf.sort_values(
-                'v:separation_degree', ascending=False
+                'v:separation_degree', ascending=True
             ).to_dict('records')
         else:
             data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
