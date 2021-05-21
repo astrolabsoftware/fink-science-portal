@@ -1218,15 +1218,14 @@ def query_db():
     if user_group == 1:
         sep = coord.separation(
             SkyCoord(
-                pdfs['ra'],
-                pdfs['dec'],
+                pdfs['i:ra'],
+                pdfs['i:dec'],
                 unit='deg'
             )
         ).deg
 
         pdfs['v:separation_degree'] = sep
         pdfs = pdfs.sort_values('v:separation_degree', ascending=True)
-
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
