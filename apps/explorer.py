@@ -44,6 +44,11 @@ The following ways of initializing a conesearch are all equivalent (radius in ar
 * 18 05 33.942, +45 15 16.25, 5
 * 18:05:33.942, 45:15:16.25, 5
 
+Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
+several objects matching, the results will be sorted according to the column
+`v:separation_degree`, which is the angular separation in degree between
+the input (ra, dec) and the objects found.
+
 ##### Date search
 
 Choose a starting date and a time window to see all processed alerts in this period.

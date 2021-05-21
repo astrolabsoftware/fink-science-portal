@@ -323,6 +323,11 @@ r = requests.post(
 pdf = pd.read_json(r.content)
 ```
 
+Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
+several objects matching, the results will be sorted according to the column
+`v:separation_degree`, which is the angular separation in degree between
+the input (ra, dec) and the objects found.
+
 ### Search by Date
 
 Choose a starting date and a time window to see all alerts in this period.
