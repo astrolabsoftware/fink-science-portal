@@ -193,7 +193,8 @@ def update_output(contents, filename):
     decs = [coord.dec.deg for coord in coords]
     ids = df[idname].values
 
-    radius_deg = 1.5 / 3600.
+    radius = 1.5
+    radius_deg = radius / 3600.
 
     # loop over rows
     #clientP.setLimit(10)
