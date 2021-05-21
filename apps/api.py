@@ -1232,6 +1232,9 @@ def query_db():
         pdfs['v:separation_degree'] = sep
         pdfs = pdfs.sort_values('v:separation_degree', ascending=True)
 
+        mask = pdfs['separation_degree'] > radius_deg
+        pdfs = pdfs[~mask]
+
     if output_format == 'json':
         return pdfs.to_json(orient='records')
     elif output_format == 'csv':
@@ -1731,6 +1734,7 @@ def xmatch_user():
     times = df[timename].values
 
     radius = 1.5
+    radius_deg = radius / 3600.
 
     count = 0
     pdfs = pd.DataFrame(columns=unique_cols + [idname] + ['v:classification'])
