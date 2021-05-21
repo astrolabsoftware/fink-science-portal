@@ -201,26 +201,6 @@ def update_output(contents, filename):
     count = 0
     pdfs = pd.DataFrame(columns=unique_cols + [idname])
     for oid, ra, dec, coord in zip(ids, ras, decs, coords):
-        # vec = hp.ang2vec(
-        #     np.pi / 2.0 - np.pi / 180.0 * dec,
-        #     np.pi / 180.0 * ra
-        # )
-        # pixs = hp.query_disc(
-        #     131072,
-        #     vec,
-        #     np.pi / 180 * radius / 3600.,
-        #     inclusive=True
-        # )
-        #
-        # to_search = ",".join(['key:key:{}'.format(i) for i in pixs])
-        #
-        # results = clientP.scan(
-        #     "",
-        #     to_search,
-        #     ",".join(unique_cols),
-        #     0, True, True
-        # )
-
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
 
@@ -310,6 +290,9 @@ def update_output(contents, filename):
 
             pdf['separation_degree'] = sep
             pdf = pdf.sort_values('separation_degree', ascending=True)
+
+            mask = pdf['separation_degree'] > radius_deg
+            pdf = pdf[~mask]
 
             pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
