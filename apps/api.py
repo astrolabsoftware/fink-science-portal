@@ -1091,12 +1091,14 @@ def query_db():
         # Interpret user input
         ra, dec = request.json['ra'], request.json['dec']
         radius = request.json['radius']
-        # if int(radius) > 60:
-        #     rep = {
-        #         'status': 'error',
-        #         'text': "`radius` cannot be bigger than 60 arcseconds.\n"
-        #     }
-        #     return Response(str(rep), 400)
+
+        if int(radius) > 18000:
+            rep = {
+                'status': 'error',
+                'text': "`radius` cannot be bigger than 18,000 arcseconds.\n"
+            }
+            return Response(str(rep), 400)
+
         if 'h' in ra:
             coord = SkyCoord(ra, dec, frame='icrs')
         elif ':' in ra or ' ' in ra:
@@ -1114,7 +1116,6 @@ def query_db():
         # Send request
         if int(radius) <= 30:
             # arcsecond scale
-            # arcmin scale
             # get arcmin scale pixels
             pixs_arcsec = hp.query_disc(
                 131072,
@@ -1174,7 +1175,6 @@ def query_db():
                     'key:key:{}'.format(i) for i in pixs
                 ]
             )
-        # to_evaluate = ",".join(['key:key:{}'.format(i) for i in pixs])
         results = clientP.scan(
             "",
             to_evaluate,
