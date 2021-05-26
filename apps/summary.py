@@ -120,7 +120,7 @@ def tab1_content(pdf):
             dict(
                 xref='x', yref='y',
                 x=xd[0] / 2, y=yd,
-                text=str(xd[0]) + 'alerts',
+                text=str(int(xd[0]/np.sum(xd))) + '%',
                 font=dict(
                     family='Arial', size=14,
                     color='rgb(248, 248, 255)'
@@ -149,7 +149,7 @@ def tab1_content(pdf):
                 dict(
                     xref='x', yref='y',
                     x=space + (xd[i]/2), y=yd,
-                    text=str(xd[i]) + '%',
+                    text=str(int(xd[i]/np.sum(xd))) + '%',
                     font=dict(
                         family='Arial', size=14,
                         color='rgb(248, 248, 255)'
