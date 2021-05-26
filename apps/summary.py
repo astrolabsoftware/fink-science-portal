@@ -90,8 +90,8 @@ def tab1_content(pdf):
             zeroline=False,
         ),
         barmode='stack',
-        paper_bgcolor='rgb(248, 248, 255)',
-        plot_bgcolor='rgb(248, 248, 255)',
+        paper_bgcolor='rgb(248, 248, 255, 0.0)',
+        plot_bgcolor='rgb(248, 248, 255, 0.0)',
         margin=dict(l=50, r=30, b=0, t=0),
         showlegend=False,
     )
@@ -174,6 +174,7 @@ def tab1_content(pdf):
     fig.update_layout(annotations=annotations)
 
     tab1_content_ = html.Div([
+        html.Br(),
         dbc.Row(
             [
                 dbc.Col(
