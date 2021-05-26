@@ -20,6 +20,7 @@ import visdcc
 import plotly.graph_objects as go
 
 import pandas as pd
+import numpy as np
 import requests
 
 from app import app, client, clientU, clientUV, clientSSO
