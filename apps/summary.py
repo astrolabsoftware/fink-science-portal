@@ -62,7 +62,7 @@ def tab1_content(pdf):
     fig = go.Figure()
 
     for i in range(0, len(x_data[0])):
-        for xd, yd, label in zip(x_data, y_data, to_labels):
+        for xd, yd, label in zip(x_data, y_data, top_labels):
             fig.add_trace(
                 go.Bar(
                     x=[xd[i]], y=[yd],
