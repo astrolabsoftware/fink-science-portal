@@ -47,7 +47,7 @@ def tab1_content(pdf):
     """
     top_labels = list(pdf.groupby('v:classification').count()['i:objectId'].to_dict().keys())
     x_data = [list(pdf.groupby('v:classification').count()['i:objectId'].to_dict().values())]
-    y_data = ['Class']
+    y_data = top_labels
     colors = {
         'Early SN candidate': 'red',
         'SN candidate': 'orange',
