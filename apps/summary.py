@@ -92,7 +92,6 @@ def tab1_content(pdf):
         paper_bgcolor='rgb(248, 248, 255)',
         plot_bgcolor='rgb(248, 248, 255)',
         margin=dict(l=50, r=30, b=0, t=0),
-        automargin=True,
         showlegend=False,
     )
 
