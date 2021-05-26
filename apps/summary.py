@@ -17,6 +17,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 import visdcc
+import plotly.graph_objects as go
 
 import pandas as pd
 import requests
@@ -44,7 +45,53 @@ def tab1_content(pdf):
     pdf: pd.DataFrame
         Results from a HBase client query
     """
+    top_labels = pdf.groupby('v:classification').count().to_dict().keys()
+    x_data = [pdf.groupby('v:classification').count().to_dict().values()]
+    y_data = ['Class']
+    colors = [
+        'rgba(38, 24, 74, 0.8)', 'rgba(71, 58, 131, 0.8)',
+        'rgba(122, 120, 168, 0.8)', 'rgba(164, 163, 204, 0.85)',
+        'rgba(190, 192, 213, 1)'
+    ]
+
+    fig = go.Figure()
+
+    for i in range(0, len(x_data[0])):
+        for xd, yd in zip(x_data, y_data):
+            fig.add_trace(
+                go.Bar(
+                    x=[xd[i]], y=[yd],
+                    orientation='h',
+                    marker=dict(
+                        color=colors[i],
+                        line=dict(color='rgb(248, 248, 249)', width=1)
+                    )
+                )
+            )
+
+    fig.update_layout(
+        xaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+            domain=[0.15, 1]
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        barmode='stack',
+        paper_bgcolor='rgb(248, 248, 255)',
+        plot_bgcolor='rgb(248, 248, 255)',
+        margin=dict(l=120, r=10, t=140, b=80),
+        showlegend=False,
+    )
+
     tab1_content_ = html.Div([
+        dbc.Row([dbc.Col(dcc.Graph(figure=fig), width=12)]),
         dbc.Row([
             dbc.Col(card_cutouts(), width=8),
             dbc.Col([
