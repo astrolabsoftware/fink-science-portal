@@ -46,7 +46,7 @@ def tab1_content(pdf):
         Results from a HBase client query
     """
     grouped = pdf.groupby('v:classification').count()
-    grouped = grouped.sort_values('i:objectId', ascending=True)
+    grouped = grouped.sort_values('i:objectId', ascending=False)
     top_labels = list(grouped['i:objectId'].to_dict().keys())
     x_data = [list(grouped['i:objectId'].to_dict().values())]
     y_data = top_labels
@@ -68,7 +68,7 @@ def tab1_content(pdf):
         for xd, yd, label in zip(x_data, y_data, top_labels):
             fig.add_trace(
                 go.Bar(
-                    x=[xd[i]], y=[y_data[0]],
+                    x=[xd[i]], y=[y_data[-1]],
                     orientation='h',
                     marker=dict(
                         color=colors[i],
