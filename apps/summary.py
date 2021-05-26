@@ -45,8 +45,8 @@ def tab1_content(pdf):
     pdf: pd.DataFrame
         Results from a HBase client query
     """
-    top_labels = pdf.groupby('v:classification').count().to_dict().keys()
-    x_data = [pdf.groupby('v:classification').count().to_dict().values()]
+    top_labels = pdf.groupby('v:classification').count()['i:objectId'].to_dict().keys()
+    x_data = [list(pdf.groupby('v:classification').count()['i:objectId'].to_dict().values())]
     y_data = ['Class']
     colors = [
         'rgba(38, 24, 74, 0.8)', 'rgba(71, 58, 131, 0.8)',
