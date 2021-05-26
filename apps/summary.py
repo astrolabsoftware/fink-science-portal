@@ -68,7 +68,7 @@ def tab1_content(pdf):
         for xd, yd, label in zip(x_data, y_data, top_labels):
             fig.add_trace(
                 go.Bar(
-                    x=[xd[i]], y=[y_data[-1]],
+                    x=[xd[i]], y=[yd],
                     orientation='h',
                     marker=dict(
                         color=colors[i],
@@ -120,7 +120,7 @@ def tab1_content(pdf):
             dict(
                 xref='x', yref='y',
                 x=xd[0] / 2, y=yd,
-                text=str(xd[0]) + '%',
+                text=str(xd[0]) + 'alerts',
                 font=dict(
                     family='Arial', size=14,
                     color='rgb(248, 248, 255)'
@@ -184,7 +184,7 @@ def tab1_content(pdf):
                         figure=fig,
                         style={
                             'width': '100%',
-                            'height': '10pc'
+                            'height': '2pc'
                         },
                         config={'displayModeBar': False}
                     ),
