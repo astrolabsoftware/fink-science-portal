@@ -45,8 +45,10 @@ def tab1_content(pdf):
     pdf: pd.DataFrame
         Results from a HBase client query
     """
-    top_labels = list(pdf.groupby('v:classification').count()['i:objectId'].to_dict().keys())
-    x_data = [list(pdf.groupby('v:classification').count()['i:objectId'].to_dict().values())]
+    grouped = pdf.groupby('v:classification').count()
+    grouped = grouped.sort_by('i:objectId', ascending=True)
+    top_labels = list(grouped['i:objectId'].to_dict().keys())
+    x_data = [list(grouped['i:objectId'].to_dict().values())]
     y_data = top_labels
     colors = {
         'Early SN candidate': 'red',
