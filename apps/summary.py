@@ -48,11 +48,16 @@ def tab1_content(pdf):
     top_labels = pdf.groupby('v:classification').count()['i:objectId'].to_dict().keys()
     x_data = [list(pdf.groupby('v:classification').count()['i:objectId'].to_dict().values())]
     y_data = ['Class']
-    colors = [
-        'rgba(38, 24, 74, 0.8)', 'rgba(71, 58, 131, 0.8)',
-        'rgba(122, 120, 168, 0.8)', 'rgba(164, 163, 204, 0.85)',
-        'rgba(190, 192, 213, 1)'
-    ]
+    colors = {
+        'Early SN candidate': 'red',
+        'SN candidate': 'orange',
+        'Kilonova candidate': 'blue',
+        'Microlensing candidate': 'green',
+        'Solar System MPC': 'white',
+        'Solar System candidate': 'grey',
+        'Ambiguous': 'purple',
+        'Unknown': 'yellow'
+    }
 
     fig = go.Figure()
 
@@ -63,7 +68,7 @@ def tab1_content(pdf):
                     x=[xd[i]], y=[yd],
                     orientation='h',
                     marker=dict(
-                        color=colors[i],
+                        color=colors[xd[i]],
                         line=dict(color='rgb(248, 248, 249)', width=1)
                     )
                 )
@@ -86,7 +91,8 @@ def tab1_content(pdf):
         barmode='stack',
         paper_bgcolor='rgb(248, 248, 255)',
         plot_bgcolor='rgb(248, 248, 255)',
-        margin=dict(l=120, r=10, t=140, b=80),
+        margin=dict(l=50, r=30, b=0, t=0),
+        automargin=True,
         showlegend=False,
     )
 
