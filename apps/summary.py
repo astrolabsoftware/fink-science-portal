@@ -174,7 +174,21 @@ def tab1_content(pdf):
     fig.update_layout(annotations=annotations)
 
     tab1_content_ = html.Div([
-        dbc.Row([dbc.Col(dcc.Graph(figure=fig), width=12)]),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Graph(
+                        figure=fig,
+                        style={
+                            'width': '100%',
+                            'height': '5pc'
+                        },
+                        config={'displayModeBar': False}
+                    ),
+                    width=12
+                )
+            ]
+        ),
         dbc.Row([
             dbc.Col(card_cutouts(), width=8),
             dbc.Col([
