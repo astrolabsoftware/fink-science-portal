@@ -58,31 +58,22 @@ def tab1_content(pdf):
         'Ambiguous': 'purple',
         'Unknown': 'yellow'
     }
+    colors = [colors[j] for j in top_labels]
 
     fig = go.Figure()
 
-    # for i in range(0, len(x_data[0])):
-    #     for xd, yd, label in zip(x_data, y_data, top_labels):
-    #         fig.add_trace(
-    #             go.Bar(
-    #                 x=[xd[i]], y=[yd],
-    #                 orientation='h',
-    #                 marker=dict(
-    #                     color=[colors[j] for j in top_labels],
-    #                     line=dict(color='rgb(248, 248, 249)', width=1)
-    #                 )
-    #             )
-    #         )
-    fig.add_trace(
-        go.Bar(
-            x=x_data, y=y_data,
-            orientation='h',
-            marker=dict(
-                color=[colors[j] for j in top_labels],
-                line=dict(color='rgb(248, 248, 249)', width=1)
+    for i in range(0, len(x_data[0])):
+        for xd, yd, label in zip(x_data, y_data, top_labels):
+            fig.add_trace(
+                go.Bar(
+                    x=[xd[i]], y=[yd],
+                    orientation='h',
+                    marker=dict(
+                        color=colors[i],
+                        line=dict(color='rgb(248, 248, 249)', width=1)
+                    )
+                )
             )
-        )
-    )
 
     fig.update_layout(
         xaxis=dict(
