@@ -303,7 +303,7 @@ def display_skymap(validation, data, columns):
                 cat = 'cat_{}'.format(class_.replace(' ', '_'))
                 color = colors[class_]
             if cat not in cats:
-                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ': {}'.format(n_alert_per_class[class_]), color)
+                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ' ({})'.format(n_alert_per_class[class_]), color)
                 cats.append(cat)
             img += """{}.addSources([A.source({}, {}, {{objectId: '{}', mag: {:.2f}, filter: '{}', time: '{}', Classification: '{}'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
 
