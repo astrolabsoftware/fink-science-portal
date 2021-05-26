@@ -181,7 +181,7 @@ def tab1_content(pdf):
                         figure=fig,
                         style={
                             'width': '100%',
-                            'height': '5pc'
+                            'height': '1pc'
                         },
                         config={'displayModeBar': False}
                     ),
