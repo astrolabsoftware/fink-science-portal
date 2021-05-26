@@ -68,7 +68,7 @@ def tab1_content(pdf):
                     x=[xd[i]], y=[yd],
                     orientation='h',
                     marker=dict(
-                        color=colors[label[i]],
+                        color=colors[label],
                         line=dict(color='rgb(248, 248, 249)', width=1)
                     )
                 )
