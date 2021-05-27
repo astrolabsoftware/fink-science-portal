@@ -292,26 +292,26 @@ def plot_classbar(pdf):
     top_labels = pdf['v:classification'].values[::-1]
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
-    # colors = {
-    #     'Early SN candidate': 'red',
-    #     'SN candidate': 'orange',
-    #     'Kilonova candidate': 'blue',
-    #     'Microlensing candidate': 'green',
-    #     'Solar System MPC': 'white',
-    #     'Solar System candidate': 'grey',
-    #     'Ambiguous': 'purple',
-    #     'Unknown': 'yellow'
-    # }
     colors = {
-        'Early SN candidate': colors_[0],
-        'Kilonova candidate': colors_[1],
-        'Microlensing candidate': colors_[2],
-        'Solar System MPC': colors_[3],
-        'SN candidate': colors_[4],
-        'Solar System candidate': colors_[5],
-        'Ambiguous': colors_[6],
+        'Early SN candidate': 'red',
+        'SN candidate': 'orange',
+        'Kilonova candidate': 'blue',
+        'Microlensing candidate': 'green',
+        'Solar System MPC': "rgb(254,224,144)",
+        'Solar System candidate': 'black',
+        'Ambiguous': 'purple',
         'Unknown': '#7f7f7f'
     }
+    # colors = {
+    #     'Early SN candidate': colors_[0],
+    #     'Kilonova candidate': colors_[1],
+    #     'Microlensing candidate': colors_[2],
+    #     'Solar System MPC': colors_[3],
+    #     'SN candidate': colors_[4],
+    #     'Solar System candidate': colors_[5],
+    #     'Ambiguous': colors_[6],
+    #     'Unknown': '#7f7f7f'
+    # }
 
     colors = [colors_[-1] if j not in colors.keys() else colors[j] for j in top_labels]
 
