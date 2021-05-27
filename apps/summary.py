@@ -181,6 +181,7 @@ def tab1_content(pdf):
             space += xd[i]
 
     fig.update_layout(annotations=annotations)
+    fig.update_layout(legend_traceorder="reversed")
 
     tab1_content_ = html.Div([
         dbc.Row(
