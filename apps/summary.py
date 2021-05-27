@@ -46,18 +46,6 @@ def tab1_content(pdf):
     pdf: pd.DataFrame
         Results from a HBase client query
     """
-    radioitems = dbc.FormGroup(
-        [
-            dbc.RadioItems(
-                options=[
-                    {"label": "Summary", "value": 1},
-                    {"label": "Timeline", "value": 2},
-                ],
-                value=1,
-                id="radioitems-input",
-            ),
-        ]
-    )
     tab1_content_ = html.Div([
         dbc.Row(
             [
@@ -70,9 +58,8 @@ def tab1_content(pdf):
                         config={'displayModeBar': False},
                         id='classbar'
                     ),
-                    width=10
+                    width=12
                 ),
-                dbc.Col(radioitems, width=2)
             ], justify='around'
         ),
         dbc.Row([
