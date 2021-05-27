@@ -94,7 +94,7 @@ def tab1_content(pdf):
         ),
         legend=dict(
             x=0.1,
-            y=-0.02,
+            y=1.02,
             bgcolor='rgba(255, 255, 255, 0)',
             bordercolor='rgba(255, 255, 255, 0)',
             orientation="h"
