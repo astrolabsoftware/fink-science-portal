@@ -372,20 +372,26 @@ def plot_classbar(pathname, object_data):
 
     fig = go.Figure()
 
+    is_seen = []
     for i in range(0, len(x_data[0])):
         for xd, yd, label in zip(x_data, y_data, top_labels):
+            if top_labels[i] in is_seen:
+                showlegend = False
+            else:
+                showlegend = True
+            is_seen.append(top_labels[i])
             fig.add_trace(
                 go.Bar(
                     x=[xd[i]], y=[yd],
                     orientation='h',
                     width=0.3,
                     hoverinfo='skip',
-                    showlegend=True,
+                    showlegend=showlegend,
                     legendgroup=top_labels[i],
                     name=top_labels[i],# + ': {}%'.format(np.int(xd[i]/np.sum(xd)*100)),
                     marker=dict(
                         color=colors[i],
-                        line=dict(color='rgb(248, 248, 249)', width=1)
+                        line=dict(color='rgb(248, 248, 249)', width=0.1)
                     )
                 )
             )
