@@ -71,6 +71,9 @@ def tab1_content(pdf):
                 go.Bar(
                     x=[xd[i]], y=[yd],
                     orientation='h',
+                    width=0.3,
+                    hoverinfo='skip',
+                    name=top_labels[i] + ': {}%'.format(np.int(xd[i]/np.sum(xd)*100)),
                     marker=dict(
                         color=colors[i],
                         line=dict(color='rgb(248, 248, 249)', width=1)
@@ -93,95 +96,20 @@ def tab1_content(pdf):
             zeroline=False,
         ),
         legend=dict(
-            # x=0.1,
-            # y=1.02,
             bgcolor='rgba(255, 255, 255, 0)',
             bordercolor='rgba(255, 255, 255, 0)',
-            orientation="h"
+            orientation="h",
+            traceorder="reversed",
+            yanchor='bottom',
+            itemclick=False,
+            itemdoubleclick=False
         ),
         barmode='stack',
+        dragmode=False,
         paper_bgcolor='rgb(248, 248, 255, 0.0)',
         plot_bgcolor='rgb(248, 248, 255, 0.0)',
-        margin=dict(l=30, r=30, b=20, t=20)
+        margin=dict(l=0, r=0, b=0, t=0)
     )
-
-    annotations = []
-
-    for yd, xd in zip(y_data, x_data):
-        # labeling the y-axis
-        annotations.append(
-            dict(
-                xref='paper', yref='y',
-                x=0.14, y=yd,
-                xanchor='right',
-                text=str(yd),
-                font=dict(
-                    family='Arial', size=14,
-                    color='rgb(67, 67, 67)'
-                ),
-                showarrow=False, align='right'
-            )
-        )
-        # labeling the first percentage of each bar (x_axis)
-        annotations.append(
-            dict(
-                xref='x', yref='y',
-                x=xd[0] / 2, y=yd,
-                text=str(int(xd[0]/np.sum(xd)*100)) + '%',
-                font=dict(
-                    family='Arial', size=14,
-                    color='rgb(248, 248, 255)'
-                ),
-                showarrow=False
-            )
-        )
-        # labeling the first Likert scale (on the top)
-        if yd == y_data[-1]:
-            annotations.append(
-                dict(
-                    xref='x', yref='paper',
-                    x=xd[0] / 2, y=1.1,
-                    text=top_labels[0],
-                    font=dict(
-                        family='Arial', size=14,
-                        color='rgb(67, 67, 67)'
-                    ),
-                    showarrow=False
-                )
-            )
-        space = xd[0]
-        for i in range(1, len(xd)):
-            # labeling the rest of percentages for each bar (x_axis)
-            annotations.append(
-                dict(
-                    xref='x', yref='y',
-                    x=space + (xd[i]/2), y=yd,
-                    text=str(int(xd[i]/np.sum(xd)*100)) + '%',
-                    font=dict(
-                        family='Arial', size=14,
-                        color='rgb(248, 248, 255)'
-                    ),
-                    showarrow=False
-                )
-            )
-            # labeling the Likert scale
-            if yd == y_data[-1]:
-                annotations.append(
-                    dict(
-                        xref='x', yref='paper',
-                        x=space + (xd[i]/2), y=1.1,
-                        text=top_labels[i],
-                        font=dict(
-                            family='Arial', size=14,
-                            color='rgb(67, 67, 67)'
-                        ),
-                        showarrow=False
-                    )
-                )
-            space += xd[i]
-
-    fig.update_layout(annotations=annotations)
-    fig.update_layout(legend_traceorder="reversed")
 
     tab1_content_ = html.Div([
         dbc.Row(
@@ -191,13 +119,13 @@ def tab1_content(pdf):
                         figure=fig,
                         style={
                             'width': '100%',
-                            'height': '5pc'
+                            'height': '4pc'
                         },
                         config={'displayModeBar': False}
                     ),
                     width=12
                 )
-            ]
+            ], justify='around'
         ),
         dbc.Row([
             dbc.Col(card_cutouts(), width=8),
