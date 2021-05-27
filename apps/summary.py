@@ -84,7 +84,7 @@ def tab1_content(pdf):
             showline=False,
             showticklabels=False,
             zeroline=False,
-            domain=[0.15, 1]
+            # domain=[0.15, 1]
         ),
         yaxis=dict(
             showgrid=False,
@@ -94,7 +94,7 @@ def tab1_content(pdf):
         ),
         legend=dict(
             x=0.1,
-            y=-1,
+            y=-2,
             bgcolor='rgba(255, 255, 255, 0)',
             bordercolor='rgba(255, 255, 255, 0)',
             orientation="h"
