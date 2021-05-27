@@ -32,6 +32,7 @@ from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
+from apps.plotting import plot_classbar
 
 from apps.utils import format_hbase_output
 from apps.api import APIURL
@@ -51,6 +52,7 @@ def tab1_content(pdf):
             [
                 dbc.Col(
                     dcc.Graph(
+                        figure=plot_classbar(pdf),
                         style={
                             'width': '100%',
                             'height': '4pc'
