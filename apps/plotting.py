@@ -355,7 +355,8 @@ def plot_classbar(pathname, object_data):
     pdf = pd.read_json(object_data)
     # grouped = pdf.groupby('v:classification').count()
     # grouped = grouped.sort_values('i:objectId', ascending=False)
-    top_labels = pdf['v:classification'].values
+    # descending date values
+    top_labels = pdf['v:classification'].values[::-1]
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
     colors = {
