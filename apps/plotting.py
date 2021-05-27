@@ -298,7 +298,7 @@ def plot_classbar(pdf):
         'Kilonova candidate': 'blue',
         'Microlensing candidate': 'green',
         'Solar System MPC': "rgb(254,224,144)",
-        'Solar System candidate': 'black',
+        'Solar System candidate': "rgb(69,117,180)",
         'Ambiguous': 'brown',
         'Unknown': '#7f7f7f'
     }
