@@ -303,7 +303,7 @@ def plot_classbar(pdf):
         'Ambiguous': 'brown',
         'Unknown': '#7f7f7f'
     }
-    colors__ = px.colors.diverging.Portland
+    colors__ = px.colors.diverging.Spectral
     colors = {
         'Early SN candidate': colors__[0],
         'Solar System MPC': colors__[1],
