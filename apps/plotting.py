@@ -302,16 +302,17 @@ def plot_classbar(pdf):
         'Ambiguous': 'brown',
         'Unknown': '#7f7f7f'
     }
-    # colors = {
-    #     'Early SN candidate': colors_[0],
-    #     'Kilonova candidate': colors_[1],
-    #     'Microlensing candidate': colors_[2],
-    #     'Solar System MPC': colors_[3],
-    #     'SN candidate': colors_[4],
-    #     'Solar System candidate': colors_[5],
-    #     'Ambiguous': colors_[6],
-    #     'Unknown': '#7f7f7f'
-    # }
+    colors__ = px.colors.sequential.Plasma
+    colors = {
+        'Early SN candidate': colors__[0],
+        'Solar System MPC': colors__[1],
+        'Microlensing candidate': colors__[2],
+        'Kilonova candidate': colors__[3],
+        'Ambiguous': colors__[4],
+        'Solar System candidate': colors__[5],
+        'SN candidate': colors__[6],
+        'Unknown': '#7f7f7f'
+    }
 
     colors = [colors_[-1] if j not in colors.keys() else colors[j] for j in top_labels]
 
