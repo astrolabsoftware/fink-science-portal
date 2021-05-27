@@ -102,7 +102,7 @@ def tab1_content(pdf):
         barmode='stack',
         paper_bgcolor='rgb(248, 248, 255, 0.0)',
         plot_bgcolor='rgb(248, 248, 255, 0.0)',
-        margin=dict(l=30, r=30, b=20, t=0)
+        margin=dict(l=30, r=30, b=20, t=20)
     )
 
     annotations = []
