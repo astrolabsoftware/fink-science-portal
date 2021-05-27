@@ -392,7 +392,7 @@ def plot_classbar(pathname, object_data):
                     name=top_labels[i],# + ': {}%'.format(np.int(xd[i]/np.sum(xd)*100)),
                     marker=dict(
                         color=colors[i],
-                        line=dict(color='rgb(248, 248, 249)', width=0.1)
+                        # line=dict(color='rgb(248, 248, 249)', width=0.1)
                     )
                 )
             )
