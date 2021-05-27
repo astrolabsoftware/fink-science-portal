@@ -94,7 +94,7 @@ def tab1_content(pdf):
         ),
         legend=dict(
             x=0.1,
-            y=-0.5,
+            y=-1,
             bgcolor='rgba(255, 255, 255, 0)',
             bordercolor='rgba(255, 255, 255, 0)',
             orientation="h"
@@ -183,7 +183,6 @@ def tab1_content(pdf):
     fig.update_layout(annotations=annotations)
 
     tab1_content_ = html.Div([
-        html.Br(),
         dbc.Row(
             [
                 dbc.Col(
