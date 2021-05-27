@@ -361,6 +361,7 @@ def plot_classbar(pdf):
         plot_bgcolor='rgb(248, 248, 255, 0.0)',
         margin=dict(l=0, r=0, b=0, t=0)
     )
+    fig.update_layout(legend_title_text='Alerts classified as')
     return fig
 
 @app.callback(
