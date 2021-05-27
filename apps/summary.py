@@ -73,6 +73,7 @@ def tab1_content(pdf):
                     orientation='h',
                     width=0.3,
                     hoverinfo='skip',
+                    showlegend=True,
                     name=top_labels[i] + ': {}%'.format(np.int(xd[i]/np.sum(xd)*100)),
                     marker=dict(
                         color=colors[i],
@@ -87,7 +88,6 @@ def tab1_content(pdf):
             showline=False,
             showticklabels=False,
             zeroline=False,
-            # domain=[0.15, 1]
         ),
         yaxis=dict(
             showgrid=False,
