@@ -300,18 +300,7 @@ def plot_classbar(pdf):
         'Microlensing candidate': 'green',
         'Solar System MPC': "rgb(254,224,144)",
         'Solar System candidate': "rgb(171,217,233)",
-        'Ambiguous': 'brown',
-        'Unknown': '#7f7f7f'
-    }
-    colors__ = px.colors.diverging.Spectral
-    colors = {
-        'Early SN candidate': colors__[0],
-        'Solar System MPC': colors__[1],
-        'Microlensing candidate': colors__[2],
-        'Kilonova candidate': colors__[3],
-        'Ambiguous': colors__[4],
-        'Solar System candidate': colors__[5],
-        'SN candidate': colors__[6],
+        'Ambiguous': 'rgb(177, 77, 142)',
         'Unknown': '#7f7f7f'
     }
 
