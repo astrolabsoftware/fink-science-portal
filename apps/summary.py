@@ -127,7 +127,7 @@ def tab1_content(pdf):
             dict(
                 xref='x', yref='y',
                 x=xd[0] / 2, y=yd,
-                text=str(int(xd[0]/np.sum(xd))*100) + '%',
+                text=str(int(xd[0]/np.sum(xd)*100)) + '%',
                 font=dict(
                     family='Arial', size=14,
                     color='rgb(248, 248, 255)'
@@ -156,7 +156,7 @@ def tab1_content(pdf):
                 dict(
                     xref='x', yref='y',
                     x=space + (xd[i]/2), y=yd,
-                    text=str(int(xd[i]/np.sum(xd))*100) + '%',
+                    text=str(int(xd[i]/np.sum(xd)*100)) + '%',
                     font=dict(
                         family='Arial', size=14,
                         color='rgb(248, 248, 255)'
