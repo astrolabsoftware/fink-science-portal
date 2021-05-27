@@ -50,7 +50,7 @@ def tab1_content(pdf):
         [
             dbc.Checklist(
                 options=[
-                    {"label": "See timeline", "value": 1}
+                    {"label": "Timeline", "value": 1}
                 ],
                 value=[],
                 id="switches-inline-input",
@@ -73,7 +73,7 @@ def tab1_content(pdf):
                     ),
                     width=10
                 ),
-                dbc.Col(inline_switches, width=2)
+                dbc.Col([html.Br(), inline_switches], width=2)
             ], justify='around'
         ),
         dbc.Row([
