@@ -35,17 +35,30 @@ from pyLIMA.microloutputs import create_the_fake_telescopes
 
 from app import client, app, clientSSO
 
+# colors_ = [
+#     '#1f77b4',  # muted blue
+#     '#ff7f0e',  # safety orange
+#     '#2ca02c',  # cooked asparagus green
+#     '#d62728',  # brick red
+#     '#9467bd',  # muted purple
+#     '#8c564b',  # chestnut brown
+#     '#e377c2',  # raspberry yogurt pink
+#     '#7f7f7f',  # middle gray
+#     '#bcbd22',  # curry yellow-green
+#     '#17becf'   # blue-teal
+# ]
+
 colors_ = [
-    '#1f77b4',  # muted blue
-    '#ff7f0e',  # safety orange
-    '#2ca02c',  # cooked asparagus green
-    '#d62728',  # brick red
-    '#9467bd',  # muted purple
-    '#8c564b',  # chestnut brown
-    '#e377c2',  # raspberry yogurt pink
-    '#7f7f7f',  # middle gray
-    '#bcbd22',  # curry yellow-green
-    '#17becf'   # blue-teal
+    "rgb(165,0,38)",
+    "rgb(215,48,39)",
+    "rgb(244,109,67)",
+    "rgb(253,174,97)",
+    "rgb(254,224,144)",
+    "rgb(224,243,248)",
+    "rgb(171,217,233)",
+    "rgb(116,173,209)",
+    "rgb(69,117,180)",
+    "rgb(49,54,149)"
 ]
 
 all_radio_options = {
