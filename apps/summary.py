@@ -48,7 +48,6 @@ def tab1_content(pdf):
     """
     radioitems = dbc.FormGroup(
         [
-            dbc.Label("Choose one"),
             dbc.RadioItems(
                 options=[
                     {"label": "Summary", "value": 1},
@@ -73,7 +72,7 @@ def tab1_content(pdf):
                     ),
                     width=10
                 ),
-                dbc.Col([html.Br(), radioitems], width=2)
+                dbc.Col(radioitems, width=2)
             ], justify='around'
         ),
         dbc.Row([
