@@ -23,6 +23,7 @@ from astropy.time import Time
 import dash
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
+import plotly.express as px
 import dash_core_components as dcc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
@@ -302,7 +303,7 @@ def plot_classbar(pdf):
         'Ambiguous': 'brown',
         'Unknown': '#7f7f7f'
     }
-    colors__ = px.colors.sequential.Plasma
+    colors__ = px.colors.sequential.Viridis
     colors = {
         'Early SN candidate': colors__[0],
         'Solar System MPC': colors__[1],
