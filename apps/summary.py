@@ -46,16 +46,16 @@ def tab1_content(pdf):
     pdf: pd.DataFrame
         Results from a HBase client query
     """
-    inline_switches = dbc.FormGroup(
+    radioitems = dbc.FormGroup(
         [
-            dbc.Checklist(
+            dbc.Label("Choose one"),
+            dbc.RadioItems(
                 options=[
-                    {"label": "Timeline", "value": 1}
+                    {"label": "Summary", "value": 1},
+                    {"label": "Timeline", "value": 2},
                 ],
-                value=[],
-                id="switches-inline-input",
-                inline=True,
-                switch=True,
+                value=1,
+                id="radioitems-input",
             ),
         ]
     )
@@ -73,7 +73,7 @@ def tab1_content(pdf):
                     ),
                     width=10
                 ),
-                dbc.Col([html.Br(), inline_switches], width=2)
+                dbc.Col([html.Br(), radioitems], width=2)
             ], justify='around'
         ),
         dbc.Row([
