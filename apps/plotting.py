@@ -353,7 +353,8 @@ def plot_classbar(pdf):
             traceorder="reversed",
             yanchor='bottom',
             itemclick=False,
-            itemdoubleclick=False
+            itemdoubleclick=False,
+            x=0.2
         ),
         barmode='stack',
         dragmode=False,
@@ -361,7 +362,10 @@ def plot_classbar(pdf):
         plot_bgcolor='rgb(248, 248, 255, 0.0)',
         margin=dict(l=0, r=0, b=0, t=0)
     )
-    fig.update_layout(legend_title_text='Alerts classified as')
+    fig.update_layout(title_text='Individual alert classification')
+    fig.update_layout(title_y=0.15)
+    fig.update_layout(title_x=0.0)
+    fig.update_layout(title_font_size=12)
     return fig
 
 @app.callback(
