@@ -299,7 +299,7 @@ def plot_classbar(pdf):
         'Microlensing candidate': 'green',
         'Solar System MPC': "rgb(254,224,144)",
         'Solar System candidate': 'black',
-        'Ambiguous': 'purple',
+        'Ambiguous': 'brown',
         'Unknown': '#7f7f7f'
     }
     # colors = {
