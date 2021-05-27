@@ -61,7 +61,7 @@ def tab1_content(pdf):
         'Ambiguous': 'purple',
         'Unknown': 'yellow'
     }
-    colors = [colors[j] for j in top_labels]
+    colors = ['#3C8DFF' if j not in colors.keys() else colors[j] for j in top_labels]
 
     fig = go.Figure()
 
@@ -91,6 +91,12 @@ def tab1_content(pdf):
             showline=False,
             showticklabels=False,
             zeroline=False,
+        ),
+        legend=dict(
+            x=0,
+            y=-0.1,
+            bgcolor='rgba(255, 255, 255, 0)',
+            bordercolor='rgba(255, 255, 255, 0)'
         ),
         barmode='stack',
         paper_bgcolor='rgb(248, 248, 255, 0.0)',
