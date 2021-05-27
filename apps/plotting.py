@@ -272,6 +272,80 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     return pdfs[values]
 
 @app.callback(
+    Output('classbar', 'figure'),
+    [
+        Input('url', 'pathname'),
+        Input('object-data', 'children')
+    ])
+def plot_classbar(object_data):
+    pdf = pd.read_json(object_data)
+    grouped = pdf.groupby('v:classification').count()
+    grouped = grouped.sort_values('i:objectId', ascending=False)
+    top_labels = list(grouped['i:objectId'].to_dict().keys())
+    x_data = [list(grouped['i:objectId'].to_dict().values())]
+    y_data = top_labels
+    colors = {
+        'Early SN candidate': 'red',
+        'SN candidate': 'orange',
+        'Kilonova candidate': 'blue',
+        'Microlensing candidate': 'green',
+        'Solar System MPC': 'white',
+        'Solar System candidate': 'grey',
+        'Ambiguous': 'purple',
+        'Unknown': 'yellow'
+    }
+    colors = ['#3C8DFF' if j not in colors.keys() else colors[j] for j in top_labels]
+
+    fig = go.Figure()
+
+    for i in range(0, len(x_data[0])):
+        for xd, yd, label in zip(x_data, y_data, top_labels):
+            fig.add_trace(
+                go.Bar(
+                    x=[xd[i]], y=[yd],
+                    orientation='h',
+                    width=0.3,
+                    hoverinfo='skip',
+                    showlegend=True,
+                    name=top_labels[i] + ': {}%'.format(np.int(xd[i]/np.sum(xd)*100)),
+                    marker=dict(
+                        color=colors[i],
+                        line=dict(color='rgb(248, 248, 249)', width=1)
+                    )
+                )
+            )
+
+    fig.update_layout(
+        xaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        legend=dict(
+            bgcolor='rgba(255, 255, 255, 0)',
+            bordercolor='rgba(255, 255, 255, 0)',
+            orientation="h",
+            traceorder="reversed",
+            yanchor='bottom',
+            itemclick=False,
+            itemdoubleclick=False
+        ),
+        barmode='stack',
+        dragmode=False,
+        paper_bgcolor='rgb(248, 248, 255, 0.0)',
+        plot_bgcolor='rgb(248, 248, 255, 0.0)',
+        margin=dict(l=0, r=0, b=0, t=0)
+    )
+    return fig
+
+@app.callback(
     Output('lightcurve_cutouts', 'figure'),
     [
         Input('switch-mag-flux', 'value'),
