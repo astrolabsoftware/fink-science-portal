@@ -289,10 +289,10 @@ def display_skymap(validation, data, columns):
             'SN candidate': 'orange',
             'Kilonova candidate': 'blue',
             'Microlensing candidate': 'green',
-            'Solar System MPC': 'white',
-            'Solar System candidate': 'grey',
-            'Ambiguous': 'purple',
-            'Unknown': 'yellow'
+            'Solar System MPC': "rgb(254,224,144)",
+            'Solar System candidate': "rgb(171,217,233)",
+            'Ambiguous': 'rgb(116,196,118)',
+            'Unknown': '#7f7f7f'
         }
         cats = []
         for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
