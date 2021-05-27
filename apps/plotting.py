@@ -304,10 +304,10 @@ def plot_classbar(pdf):
     # }
     colors = {
         'Early SN candidate': colors_[0],
-        'Kilonova candidate': colors_[2],
-        'Microlensing candidate': colors_[3],
-        'Solar System MPC': colors_[4],
-        'SN candidate': colors_[1],
+        'Kilonova candidate': colors_[1],
+        'Microlensing candidate': colors_[2],
+        'Solar System MPC': colors_[3],
+        'SN candidate': colors_[4],
         'Solar System candidate': colors_[5],
         'Ambiguous': colors_[6],
         'Unknown': '#7f7f7f'
