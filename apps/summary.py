@@ -46,6 +46,19 @@ def tab1_content(pdf):
     pdf: pd.DataFrame
         Results from a HBase client query
     """
+    inline_switches = dbc.FormGroup(
+        [
+            dbc.Checklist(
+                options=[
+                    {"label": "See timeline", "value": 1}
+                ],
+                value=[],
+                id="switches-inline-input",
+                inline=True,
+                switch=True,
+            ),
+        ]
+    )
     tab1_content_ = html.Div([
         dbc.Row(
             [
@@ -58,8 +71,9 @@ def tab1_content(pdf):
                         config={'displayModeBar': False},
                         id='classbar'
                     ),
-                    width=12
-                )
+                    width=10
+                ),
+                dbc.Col(inline_switches, width=2)
             ], justify='around'
         ),
         dbc.Row([
