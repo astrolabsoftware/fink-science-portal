@@ -304,13 +304,13 @@ def plot_classbar(pdf):
     # }
     colors = {
         'Early SN candidate': colors_[0],
-        'SN candidate': colors_[1],
         'Kilonova candidate': colors_[2],
         'Microlensing candidate': colors_[3],
         'Solar System MPC': colors_[4],
+        'SN candidate': colors_[1],
         'Solar System candidate': colors_[5],
         'Ambiguous': colors_[6],
-        'Unknown': colors_[7]
+        'Unknown': '#7f7f7f'
     }
 
     colors = [colors_[-1] if j not in colors.keys() else colors[j] for j in top_labels]
