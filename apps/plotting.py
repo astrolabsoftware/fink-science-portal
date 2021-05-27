@@ -277,7 +277,7 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
         Input('url', 'pathname'),
         Input('object-data', 'children')
     ])
-def plot_classbar(object_data):
+def plot_classbar(pathname, object_data):
     pdf = pd.read_json(object_data)
     grouped = pdf.groupby('v:classification').count()
     grouped = grouped.sort_values('i:objectId', ascending=False)
