@@ -94,9 +94,10 @@ def tab1_content(pdf):
         ),
         legend=dict(
             x=0,
-            y=-0.1,
+            y=0,
             bgcolor='rgba(255, 255, 255, 0)',
-            bordercolor='rgba(255, 255, 255, 0)'
+            bordercolor='rgba(255, 255, 255, 0)',
+            orientation="h"
         ),
         barmode='stack',
         paper_bgcolor='rgb(248, 248, 255, 0.0)',
