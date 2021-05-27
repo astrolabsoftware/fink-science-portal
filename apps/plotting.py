@@ -320,7 +320,7 @@ def plot_classbar(pathname, object_data):
                 showlegend = True
             is_seen.append(top_labels[i])
 
-            percent = int(alert_per_class[top_labels[i]] / len(pdf) * 100)
+            percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(int)
             fig.add_trace(
                 go.Bar(
                     x=[xd[i]], y=[yd],
