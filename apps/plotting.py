@@ -353,8 +353,9 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     ])
 def plot_classbar(pathname, object_data):
     pdf = pd.read_json(object_data)
-    # grouped = pdf.groupby('v:classification').count()
-    # grouped = grouped.sort_values('i:objectId', ascending=False)
+    grouped = pdf.groupby('v:classification').count()
+    alert_per_class = grouped['i:objectId'].to_dict()
+
     # descending date values
     top_labels = pdf['v:classification'].values[::-1]
     x_data = [[1] * len(top_labels)]
@@ -381,6 +382,8 @@ def plot_classbar(pathname, object_data):
             else:
                 showlegend = True
             is_seen.append(top_labels[i])
+
+            percent = int(alert_per_class[top_labels[i]] / len(pdf) * 100)
             fig.add_trace(
                 go.Bar(
                     x=[xd[i]], y=[yd],
@@ -389,10 +392,9 @@ def plot_classbar(pathname, object_data):
                     hoverinfo='skip',
                     showlegend=showlegend,
                     legendgroup=top_labels[i],
-                    name=top_labels[i],# + ': {}%'.format(np.int(xd[i]/np.sum(xd)*100)),
+                    name=top_labels[i] + ': {}%'.format(percent),
                     marker=dict(
                         color=colors[i],
-                        # line=dict(color='rgb(248, 248, 249)', width=0.1)
                     )
                 )
             )
