@@ -358,7 +358,7 @@ def extract_fink_classification(
 
     classification.mask(f_mulens.values, 'Microlensing candidate', inplace=True)
     classification.mask(f_sn.values, 'SN candidate', inplace=True)
-    classification.mask(f_sn_early.values, 'Early SN candidate', inplace=True)
+    classification.mask(f_sn_early.values, 'Early SN Ia candidate', inplace=True)
     classification.mask(f_kn.values, 'Kilonova candidate', inplace=True)
     classification.mask(f_roid_2.values, 'Solar System candidate', inplace=True)
     classification.mask(f_roid_3.values, 'Solar System MPC', inplace=True)

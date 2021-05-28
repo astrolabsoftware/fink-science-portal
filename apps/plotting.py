@@ -294,7 +294,7 @@ def plot_classbar(pdf):
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
     colors = {
-        'Early SN candidate': 'red',
+        'Early SN Ia candidate': 'red',
         'SN candidate': 'orange',
         'Kilonova candidate': 'blue',
         'Microlensing candidate': 'green',
