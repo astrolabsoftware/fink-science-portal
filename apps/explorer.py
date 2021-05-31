@@ -285,14 +285,14 @@ def display_skymap(validation, data, columns):
         classes = pdf['v:classification'].values
         n_alert_per_class = pdf.groupby('v:classification').count().to_dict()['i:objectId']
         colors = {
-            'Early SN candidate': 'red',
+            'Early SN Ia candidate': 'red',
             'SN candidate': 'orange',
             'Kilonova candidate': 'blue',
             'Microlensing candidate': 'green',
-            'Solar System MPC': 'white',
-            'Solar System candidate': 'grey',
-            'Ambiguous': 'purple',
-            'Unknown': 'yellow'
+            'Solar System MPC': "rgb(254,224,144)",
+            'Solar System candidate': "rgb(171,217,233)",
+            'Ambiguous': 'rgb(116,196,118)',
+            'Unknown': '#7f7f7f'
         }
         cats = []
         for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
@@ -384,7 +384,7 @@ def input_type(n1, n2, n3, n4, n5):
             {'label': 'All classes', 'value': 'allclasses'},
             {'label': 'Unknown', 'value': 'Unknown'},
             {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
-            {'label': 'Early Supernova candidates', 'value': 'Early SN candidate'},
+            {'label': 'Early Supernova Ia candidates', 'value': 'Early SN candidate'},
             {'label': 'Supernova candidates', 'value': 'SN candidate'},
             {'label': 'Kilonova candidates', 'value': 'Kilonova candidate'},
             {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},

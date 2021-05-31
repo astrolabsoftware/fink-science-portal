@@ -97,9 +97,9 @@ def card_sn_scores() -> dbc.Card:
         - the alert has no known transient association (from catalogues)
         - the alert has at least one of a SuperNNova model trained to identify SNe Ia or SNe (`SN Ia score` or `SNe score`) with a probability higher than 50% of this alert being a SN.
 
-        In addition, the alert is considered as `Early SN candidate` if it also satisfies:
+        In addition, the alert is considered as `Early SN Ia candidate` if it also satisfies:
         - the alert is relatively new (number of previous detections < 20)
-        - the alert has the Random Forest model trained to select early supernovae (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN.
+        - the alert has the Random Forest model trained to select early supernovae Ia (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN.
         """
     )
     card = dbc.Card(
@@ -501,7 +501,7 @@ def card_id(pdf):
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Fink class: {}".format(classification), className="card-subtitle"),
+            html.H6("Last class: {}".format(classification), className="card-subtitle"),
             dcc.Markdown(
                 """
                 ```python
@@ -606,7 +606,7 @@ def card_sn_properties(clickData, object_data):
                 # SuperNNova classifiers
                 SN Ia score: {:.2f}
                 SNe score: {:.2f}
-                # Early SN classifier
+                # Early SN Ia classifier
                 RF score: {:.2f}
                 ```
                 ---
