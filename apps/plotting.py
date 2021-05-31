@@ -291,7 +291,7 @@ def plot_classbar(pdf):
 
     # descending date values
     top_labels = pdf['v:classification'].values[::-1]
-    customdata = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    customdata = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[::-1]
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
     colors = {
@@ -330,6 +330,7 @@ def plot_classbar(pdf):
                     marker=dict(
                         color=colors[i],
                     ),
+                    customdata=[customdata[i]],
                     hovertemplate='<b>Date</b>: %{customdata}'
                 )
             )
