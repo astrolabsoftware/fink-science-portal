@@ -1123,8 +1123,10 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
         xaxis=axis_template,
         yaxis=axis_template,
         showlegend=True,
+        hoverinfo='skip',
         width=150, height=150,
-        autosize=False)
+        autosize=False
+    )
 
     graph = dcc.Graph(
         id='{}-stamps'.format(title),
