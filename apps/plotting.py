@@ -1106,7 +1106,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
 
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, colorscale='Greys_r'
+            z=data, showscale=False, colorscale='Greys_r', hoverinfo='skip'
         )
     )
     # Greys_r
@@ -1123,7 +1123,6 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
         xaxis=axis_template,
         yaxis=axis_template,
         showlegend=True,
-        hoverinfo='skip',
         width=150, height=150,
         autosize=False
     )
