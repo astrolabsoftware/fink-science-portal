@@ -17,8 +17,10 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 import visdcc
+import plotly.graph_objects as go
 
 import pandas as pd
+import numpy as np
 import requests
 
 from app import app, client, clientU, clientUV, clientSSO
@@ -30,6 +32,7 @@ from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
+from apps.plotting import plot_classbar
 
 from apps.utils import format_hbase_output
 from apps.api import APIURL
@@ -45,6 +48,22 @@ def tab1_content(pdf):
         Results from a HBase client query
     """
     tab1_content_ = html.Div([
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Graph(
+                        figure=plot_classbar(pdf),
+                        style={
+                            'width': '100%',
+                            'height': '4pc'
+                        },
+                        config={'displayModeBar': False},
+                        id='classbar'
+                    ),
+                    width=12
+                ),
+            ], justify='around'
+        ),
         dbc.Row([
             dbc.Col(card_cutouts(), width=8),
             dbc.Col([

@@ -300,7 +300,8 @@ def extract_fink_classification(
     ambiguity = pd.Series([0] * len(cdsxmatch))
 
     # Microlensing classification
-    f_mulens = (mulens_class_1 == 'ML') & (mulens_class_2 == 'ML')
+    medium_ndethist = ndethist.astype(int) < 100
+    f_mulens = (mulens_class_1 == 'ML') & (mulens_class_2 == 'ML') & medium_ndethist
 
     # SN Ia
     snn1 = snn_snia_vs_nonia.astype(float) > 0.5
@@ -311,11 +312,17 @@ def extract_fink_classification(
     high_knscore = knscore_.astype(float) > 0.5
 
     # Others
-    low_ndethist = ndethist.astype(int) < 400
+    # Note jdstarthist is not really reliable...
+    # see https://github.com/astrolabsoftware/fink-science-portal/issues/163
+    # KN & SN candidate still affected (not Early SN Ia candidate)
+    # Perhaps something to report to ZTF
+    sn_history = jd.astype(float) - jdstarthist.astype(float) <= 90
+    new_detection = jd.astype(float) - jdstarthist.astype(float) < 20
     high_drb = drb.astype(float) > 0.5
     high_classtar = classtar.astype(float) > 0.4
     early_ndethist = ndethist.astype(int) < 20
-    new_detection = jd.astype(float) - jdstarthist.astype(float) < 20
+    no_mpc = roid.astype(int) != 3
+    no_first_det = ndethist.astype(int) > 1
 
     list_simbad_galaxies = [
         "galaxy",
@@ -338,8 +345,9 @@ def extract_fink_classification(
     keep_cds = \
         ["Unknown", "Candidate_SN*", "SN", "Transient", "Fail"] + list_simbad_galaxies
 
-    f_sn = (snn1 | snn2) & cdsxmatch.isin(keep_cds) & low_ndethist & high_drb & high_classtar
-    f_sn_early = early_ndethist & active_learn & f_sn
+    base_sn = (snn1 | snn2) & cdsxmatch.isin(keep_cds) & high_drb & high_classtar & no_mpc & no_first_det
+    f_sn = base_sn & sn_history
+    f_sn_early = base_sn & early_ndethist & active_learn
 
     # Kilonova
     keep_cds = \
@@ -357,7 +365,7 @@ def extract_fink_classification(
 
     classification.mask(f_mulens.values, 'Microlensing candidate', inplace=True)
     classification.mask(f_sn.values, 'SN candidate', inplace=True)
-    classification.mask(f_sn_early.values, 'Early SN candidate', inplace=True)
+    classification.mask(f_sn_early.values, 'Early SN Ia candidate', inplace=True)
     classification.mask(f_kn.values, 'Kilonova candidate', inplace=True)
     classification.mask(f_roid_2.values, 'Solar System candidate', inplace=True)
     classification.mask(f_roid_3.values, 'Solar System MPC', inplace=True)

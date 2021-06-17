@@ -375,11 +375,11 @@ The list of Fink class can be found at http://134.158.75.151:24000/api/v1/classe
 curl -H "Content-Type: application/json" -X GET http://134.158.75.151:24000/api/v1/classes -o finkclass.json
 ```
 
-To get the last 5 candidates of the class `Early SN candidate`, you would simply use in a unix shell:
+To get the last 5 candidates of the class `Early SN Ia candidate`, you would simply use in a unix shell:
 
 ```bash
-# Get latests 5 Early SN candidates
-curl -H "Content-Type: application/json" -X POST -d '{"class":"Early SN candidate", "n":"5"}' http://134.158.75.151:24000/api/v1/latests -o latest_five_sn_candidates.json
+# Get latests 5 Early SN Ia candidates
+curl -H "Content-Type: application/json" -X POST -d '{"class":"Early SN Ia candidate", "n":"5"}' http://134.158.75.151:24000/api/v1/latests -o latest_five_sn_candidates.json
 ```
 
 In python, you would use
@@ -388,11 +388,11 @@ In python, you would use
 import requests
 import pandas as pd
 
-# Get latests 5 Early SN candidates
+# Get latests 5 Early SN Ia candidates
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/latests',
   json={
-    'class': 'Early SN candidate',
+    'class': 'Early SN Ia candidate',
     'n': '5'
   }
 )

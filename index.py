@@ -64,6 +64,7 @@ navbar = dbc.Navbar(
                     dbc.NavItem(dbc.NavLink('Explorer', href="http://134.158.75.151:24000/explorer")),
                     dbc.NavItem(dbc.NavLink('Xmatch', href="http://134.158.75.151:24000/xmatch")),
                     dbc.NavItem(dbc.NavLink('API', href="http://134.158.75.151:24000/api")),
+                    dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/broker-workshop/tutorials/tree/main/fink")),
                     dropdown
                 ],
                 navbar=True

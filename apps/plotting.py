@@ -23,6 +23,7 @@ from astropy.time import Time
 import dash
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
+import plotly.express as px
 import dash_core_components as dcc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
@@ -35,17 +36,30 @@ from pyLIMA.microloutputs import create_the_fake_telescopes
 
 from app import client, app, clientSSO
 
+# colors_ = [
+#     '#1f77b4',  # muted blue
+#     '#ff7f0e',  # safety orange
+#     '#2ca02c',  # cooked asparagus green
+#     '#d62728',  # brick red
+#     '#9467bd',  # muted purple
+#     '#8c564b',  # chestnut brown
+#     '#e377c2',  # raspberry yogurt pink
+#     '#7f7f7f',  # middle gray
+#     '#bcbd22',  # curry yellow-green
+#     '#17becf'   # blue-teal
+# ]
+
 colors_ = [
-    '#1f77b4',  # muted blue
-    '#ff7f0e',  # safety orange
-    '#2ca02c',  # cooked asparagus green
-    '#d62728',  # brick red
-    '#9467bd',  # muted purple
-    '#8c564b',  # chestnut brown
-    '#e377c2',  # raspberry yogurt pink
-    '#7f7f7f',  # middle gray
-    '#bcbd22',  # curry yellow-green
-    '#17becf'   # blue-teal
+    "rgb(165,0,38)",
+    "rgb(215,48,39)",
+    "rgb(244,109,67)",
+    "rgb(253,174,97)",
+    "rgb(254,224,144)",
+    "rgb(224,243,248)",
+    "rgb(171,217,233)",
+    "rgb(116,173,209)",
+    "rgb(69,117,180)",
+    "rgb(49,54,149)"
 ]
 
 all_radio_options = {
@@ -270,6 +284,91 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     if pdfs.empty:
         return pdfs
     return pdfs[values]
+
+def plot_classbar(pdf):
+    grouped = pdf.groupby('v:classification').count()
+    alert_per_class = grouped['i:objectId'].to_dict()
+
+    # descending date values
+    top_labels = pdf['v:classification'].values[::-1]
+    customdata = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso')).values[::-1]
+    x_data = [[1] * len(top_labels)]
+    y_data = top_labels
+    colors = {
+        'Early SN Ia candidate': 'red',
+        'SN candidate': 'orange',
+        'Kilonova candidate': 'blue',
+        'Microlensing candidate': 'green',
+        'Solar System MPC': "rgb(254,224,144)",
+        'Solar System candidate': "rgb(171,217,233)",
+        'Ambiguous': 'rgb(116,196,118)',
+        'Unknown': '#7f7f7f'
+    }
+
+    colors = [colors_[-1] if j not in colors.keys() else colors[j] for j in top_labels]
+
+    fig = go.Figure()
+
+    is_seen = []
+    for i in range(0, len(x_data[0])):
+        for xd, yd, label in zip(x_data, y_data, top_labels):
+            if top_labels[i] in is_seen:
+                showlegend = False
+            else:
+                showlegend = True
+            is_seen.append(top_labels[i])
+
+            percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(int)
+            fig.add_trace(
+                go.Bar(
+                    x=[xd[i]], y=[yd],
+                    orientation='h',
+                    width=0.3,
+                    showlegend=showlegend,
+                    legendgroup=top_labels[i],
+                    name=top_labels[i] + ': {}%'.format(percent),
+                    marker=dict(
+                        color=colors[i],
+                    ),
+                    customdata=[customdata[i]],
+                    hovertemplate='<b>Date</b>: %{customdata}'
+                )
+            )
+
+    fig.update_layout(
+        xaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        legend=dict(
+            bgcolor='rgba(255, 255, 255, 0)',
+            bordercolor='rgba(255, 255, 255, 0)',
+            orientation="h",
+            traceorder="reversed",
+            yanchor='bottom',
+            itemclick=False,
+            itemdoubleclick=False,
+            x=0.2
+        ),
+        barmode='stack',
+        dragmode=False,
+        paper_bgcolor='rgb(248, 248, 255, 0.0)',
+        plot_bgcolor='rgb(248, 248, 255, 0.0)',
+        margin=dict(l=0, r=0, b=0, t=0)
+    )
+    fig.update_layout(title_text='Individual alert classification')
+    fig.update_layout(title_y=0.15)
+    fig.update_layout(title_x=0.0)
+    fig.update_layout(title_font_size=12)
+    return fig
 
 @app.callback(
     Output('lightcurve_cutouts', 'figure'),
@@ -1007,7 +1106,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
 
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, colorscale='Greys_r'
+            z=data, showscale=False, colorscale='Greys_r', hoverinfo='skip'
         )
     )
     # Greys_r
@@ -1025,7 +1124,8 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
         yaxis=axis_template,
         showlegend=True,
         width=150, height=150,
-        autosize=False)
+        autosize=False
+    )
 
     graph = dcc.Graph(
         id='{}-stamps'.format(title),
