@@ -843,7 +843,7 @@ args_explorer = [
         'name': 'radius',
         'required': True,
         'group': 1,
-        'description': 'Conesearch radius in arcsec. Maximum is 18,000 arcseconds (5 degrees).'
+        'description': 'Conesearch radius in arcsec. Maximum is 36,000 arcseconds (10 degrees).'
     },
     {
         'name': 'startdate_conesearch',
@@ -975,7 +975,22 @@ args_xmatch = [
     {
         'name': 'catalog',
         'required': True,
-        'description': 'External catalog'
+        'description': 'External catalog as CSV'
+    },
+    {
+        'name': 'header',
+        'required': True,
+        'description': 'Comma separated names of columns corresponding to RA, Dec, ID, Time[optional] in the input catalog.'
+    },
+    {
+        'name': 'radius',
+        'required': True,
+        'description': 'Conesearch radius in arcsec. Maximum is 36,000 arcseconds (10 degrees).'
+    },
+    {
+        'name': 'window',
+        'required': False,
+        'description': '[Optional] Time window in days.'
     },
 ]
 
@@ -1183,6 +1198,10 @@ def query_db():
             np.pi / 180 * radius_deg,
             inclusive=True
         )
+
+        # For the future: we could set clientP_.setRangeScan(True)
+        # and pass directly the time boundaries here instead of
+        # grouping by later.
         to_evaluate = ",".join(
             [
                 'key:key:{}'.format(i) for i in pixs
@@ -1726,11 +1745,27 @@ def xmatch_user():
     """ Xmatch with user uploaded catalog
     """
     df = pd.read_csv(io.StringIO(request.json['catalog']))
-    raname = 'RA'
-    decname = 'Dec'
-    idname = 'ID'
-    timename = 'Time'
-    # Columns of interest
+
+    header = request.json['header']
+
+    header = [i.strip() for i in header.split(',')]
+    if len(header) == 3:
+        raname, decname, idname = header
+    elif len(header) == 4:
+        raname, decname, idname, timename = header
+    else:
+        rep = {
+            'status': 'error',
+            'text': "Header should contain 3 or 4 entries from your catalog. E.g. RA,DEC,ID or RA,DEC,ID,Time\n"
+        }
+        return Response(str(rep), 400)
+
+    if 'window' in request.json:
+        window_days = request.json['window']
+    else:
+        window_days = None
+
+    # Fink columns of interest
     colnames = [
         'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
     ]
@@ -1772,60 +1807,43 @@ def xmatch_user():
     ras = [coord.ra.deg for coord in coords]
     decs = [coord.dec.deg for coord in coords]
     ids = df[idname].values
-    times = df[timename].values
 
-    radius = 1.5
+    if len(header) == 4:
+        times = df[timename].values
+    else:
+        times = np.zeros_like(ras)
+
+    radius = float(request.json['radius'])
     radius_deg = radius / 3600.
 
-    count = 0
     pdfs = pd.DataFrame(columns=unique_cols + [idname] + ['v:classification'])
     for oid, ra, dec, time_start in zip(ids, ras, decs, times):
-        jd_start = Time(time_start).jd
-        jd_end = jd_start + 1. / 24
-        vec = hp.ang2vec(
-            np.pi / 2.0 - np.pi / 180.0 * dec,
-            np.pi / 180.0 * ra
+        if len(header) == 4:
+            payload = {
+                'ra': ra,
+                'dec': dec,
+                'radius': radius,
+                'startdate_conesearch': time_start,
+                'window_days_conesearch': window_days
+
+            }
+        else:
+            payload = {
+                'ra': ra,
+                'dec': dec,
+                'radius': radius
+            }
+        results = requests.post(
+           '{}/api/v1/explorer'.format(APIURL),
+           json=payload
         )
-        pixs = hp.query_disc(
-            131072,
-            vec,
-            np.pi / 180 * radius / 3600.,
-            inclusive=True
-        )
-
-        clientP.setRangeScan(True)
-        # to_search = ",".join(['key:key:{}'.format(i) for i in pixs])
-        for pix in pixs:
-            to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jd_start, pix, jd_end)
-            results = clientP.scan(
-                "",
-                to_search,
-                ",".join(unique_cols),
-                0, True, True
-            )
-
-            # to_search = ",".join(['key:key:{}'.format(i) for i in pixs])
-            # results = clientP.scan(
-            #     "",
-            #     to_search,
-            #     ",".join(unique_cols),
-            #     0, True, True
-            # )
-
-            # Loop over results and construct the dataframe
-            if not results.isEmpty():
-                schema_client = clientP.schema()
-                pdf = format_hbase_output(
-                    results,
-                    schema_client,
-                    group_alerts=True,
-                    extract_color=False
-                )
-                # pdf = pd.DataFrame.from_dict(results, orient='index')[unique_cols]
-                pdf[idname] = [oid] * len(pdf)
-                if 'd:knscore' not in pdf.columns:
-                    pdf['d:knscore'] = np.zeros(len(pdf), dtype=float)
-                pdfs = pd.concat((pdfs, pdf), ignore_index=True)
+        pdf = pd.read_json(r.content)
+        # Loop over results and construct the dataframe
+        if not pdf.empty:
+            pdf[idname] = [oid] * len(pdf)
+            if 'd:knscore' not in pdf.columns:
+                pdf['d:knscore'] = np.zeros(len(pdf), dtype=float)
+            pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
     # Final join
     join_df = pd.merge(
