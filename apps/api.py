@@ -823,25 +823,25 @@ args_objects = [
 args_explorer = [
     {
         'name': 'objectId',
-        'required': False,
+        'required': True,
         'group': 0,
         'description': 'ZTF Object ID'
     },
     {
         'name': 'ra',
-        'required': False,
+        'required': True,
         'group': 1,
         'description': 'Right Ascension'
     },
     {
         'name': 'dec',
-        'required': False,
+        'required': True,
         'group': 1,
         'description': 'Declination'
     },
     {
         'name': 'radius',
-        'required': False,
+        'required': True,
         'group': 1,
         'description': 'Conesearch radius in arcsec. Maximum is 18,000 arcseconds (5 degrees).'
     },
@@ -859,13 +859,13 @@ args_explorer = [
     },
     {
         'name': 'startdate',
-        'required': False,
+        'required': True,
         'group': 2,
         'description': 'Starting date in UTC'
     },
     {
         'name': 'window',
-        'required': False,
+        'required': True,
         'group': 2,
         'description': 'Time window in minutes. Maximum is 180 minutes.'
     },
@@ -1105,8 +1105,9 @@ def query_db():
     # Check the user specifies all parameters within a group
     user_group = np.unique(all_groups)[0]
     required_args = [i['name'] for i in args_explorer if i['group'] == user_group]
+    required = [i['required'] for i in args_explorer if i['group'] == user_group]
     for required_arg in required_args:
-        if required_arg not in request.json:
+        if (required_arg not in request.json) and required:
             rep = {
                 'status': 'error',
                 'text': "A value for `{}` is required for group {}. Use GET to check arguments.\n".format(required_arg, user_group)
