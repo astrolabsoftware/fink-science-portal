@@ -25,7 +25,7 @@ from matplotlib import cm
 from app import client
 from app import clientP128, clientP4096, clientP131072
 from app import clientT, clientS
-from app import clientSSO, clientTNS,
+from app import clientSSO, clientTNS
 from app import clientU, clientUV, nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
