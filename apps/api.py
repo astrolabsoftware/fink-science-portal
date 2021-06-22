@@ -1158,7 +1158,7 @@ def query_db():
         if 'window_days_conesearch' in request.json:
             window_days = request.json['window_days_conesearch']
         else:
-            window_days = None
+            window_days = 1.0
 
         if float(radius) > 36000.:
             rep = {
@@ -1202,24 +1202,6 @@ def query_db():
         # For the future: we could set clientP_.setRangeScan(True)
         # and pass directly the time boundaries here instead of
         # grouping by later.
-        to_evaluate = ",".join(
-            [
-                'key:key:{}'.format(i) for i in pixs
-            ]
-        )
-
-        # Get matches in the pixel index table
-        result = clientP_.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
-        )
-
-        # extract objectId and times
-        objectids = [i[1]['i:objectId'] for i in result.items()]
-        times = [float(i[1]['key:key'].split('_')[1]) for i in result.items()]
-        pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
 
         # Filter by time - logic to be improved...
         if startdate is not None:
@@ -1229,6 +1211,40 @@ def query_db():
                 jdstart = Time(startdate, format='jd').jd
             else:
                 jdstart = Time(startdate, format='mjd').jd
+            jdend = jdstart + window_days
+
+            clientP_.setRangeScan(True)
+            results = java.util.TreeMap()
+            for pix in pixs:
+                to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
+                result = clientP_.scan(
+                    "",
+                    to_search,
+                    "*",
+                    0, True, True
+                )
+                results.putAll(result)
+        else:
+            to_evaluate = ",".join(
+                [
+                    'key:key:{}'.format(i) for i in pixs
+                ]
+            )
+            # Get matches in the pixel index table
+            results = clientP_.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, True, True
+            )
+
+        # extract objectId and times
+        objectids = [i[1]['i:objectId'] for i in results.items()]
+        times = [float(i[1]['key:key'].split('_')[1]) for i in results.items()]
+        pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
+
+        # Filter by time - logic to be improved...
+        if startdate is not None:
             pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
 
         # groupby and keep only the last alert per objectId
