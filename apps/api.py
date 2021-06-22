@@ -1206,13 +1206,14 @@ def query_db():
         pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
 
         # Filter by time - logic to be improved...
-        if ':' in str(startdate):
-            jdstart = Time(startdate).jd
-        elif str(startdate).startswith('24'):
-            jdstart = Time(startdate, format='jd').jd
-        else:
-            jdstart = Time(startdate, format='mjd').jd
-        pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
+        if startdate is not None:
+            if ':' in str(startdate):
+                jdstart = Time(startdate).jd
+            elif str(startdate).startswith('24'):
+                jdstart = Time(startdate, format='jd').jd
+            else:
+                jdstart = Time(startdate, format='mjd').jd
+            pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
 
         # Get data from the main table
         results = java.util.TreeMap()
