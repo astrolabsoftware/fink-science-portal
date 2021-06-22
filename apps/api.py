@@ -823,6 +823,18 @@ args_explorer = [
         'description': 'Conesearch radius in arcsec. Maximum is 18,000 arcseconds (5 degrees).'
     },
     {
+        'name': 'startdate_conesearch',
+        'required': False,
+        'group': 1,
+        'description': 'Starting date in UTC for the conesearch query.'
+    },
+    {
+        'name': 'window_days_conesearch',
+        'required': False,
+        'group': 1,
+        'description': 'Time window in days for the conesearch query.'
+    },
+    {
         'name': 'startdate',
         'required': False,
         'group': 2,
@@ -1099,6 +1111,8 @@ def query_db():
         # Interpret user input
         ra, dec = request.json['ra'], request.json['dec']
         radius = request.json['radius']
+        startdate = request.json['startdate_conesearch']
+        window_days = request.json['window_days_conesearch']
 
         if float(radius) > 36000.:
             rep = {
@@ -1107,9 +1121,9 @@ def query_db():
             }
             return Response(str(rep), 400)
 
-        if 'h' in ra:
+        if 'h' in str(ra):
             coord = SkyCoord(ra, dec, frame='icrs')
-        elif ':' in ra or ' ' in ra:
+        elif ':' in str(ra) or ' ' in str(ra):
             coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
         else:
             coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
@@ -1140,7 +1154,7 @@ def query_db():
         )
         to_evaluate = ",".join(
             [
-                 'key:key:{}'.format(i) for i in pixs
+                'key:key:{}'.format(i) for i in pixs
             ]
         )
 
@@ -1161,8 +1175,8 @@ def query_db():
         pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
 
         # Filter by time
-        # jdstart = Time(startdate).jd
-        # pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
+        jdstart = Time(startdate).jd
+        pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
 
         # Get data from the main table
         results = java.util.TreeMap()
