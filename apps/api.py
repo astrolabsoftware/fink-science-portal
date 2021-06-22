@@ -1852,6 +1852,7 @@ def xmatch_user():
     )
 
     # reorganise columns order
-    cols = list(df.columns) + list(pdfs.columns)
+    no_duplicate = np.where(pdfs.columns != idname)[0]
+    cols = list(df.columns) + list(pdfs.columns[no_duplicate])
     join_df = join_df[cols]
     return join_df.to_json(orient='records')
