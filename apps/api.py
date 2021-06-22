@@ -328,10 +328,33 @@ r = requests.post(
 pdf = pd.read_json(r.content)
 ```
 
-Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
+Maximum radius length is 36,000 arcseconds (10 degrees). Note that in case of
 several objects matching, the results will be sorted according to the column
 `v:separation_degree`, which is the angular separation in degree between
 the input (ra, dec) and the objects found.
+
+In addition, you can specify time boundaries:
+
+```python
+import requests
+import pandas as pd
+
+# Get all objects falling within (center, radius) = ((ra, dec), radius)
+# between 2019-11-01 03:16:53.999 (included) and 2019-12-01 03:16:53.999 (excluded)
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/explorer',
+  json={
+    'ra': '271.3914265',
+    'dec': '45.2545134',
+    'radius': '5',
+    'startdate_conesearch': '2019-11-01 03:16:53.999',
+    'window_days_conesearch': 30
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
 
 ### Search by Date
 
@@ -826,13 +849,13 @@ args_explorer = [
         'name': 'startdate_conesearch',
         'required': False,
         'group': 1,
-        'description': 'Starting date in UTC for the conesearch query.'
+        'description': '[Optional] Starting date in UTC for the conesearch query.'
     },
     {
         'name': 'window_days_conesearch',
         'required': False,
         'group': 1,
-        'description': 'Time window in days for the conesearch query.'
+        'description': '[Optional] Time window in days for the conesearch query.'
     },
     {
         'name': 'startdate',
@@ -1111,8 +1134,15 @@ def query_db():
         # Interpret user input
         ra, dec = request.json['ra'], request.json['dec']
         radius = request.json['radius']
-        startdate = request.json['startdate_conesearch']
-        window_days = request.json['window_days_conesearch']
+
+        if 'startdate_conesearch' in request.json:
+            startdate = request.json['startdate_conesearch']
+        else:
+            startdate = None
+        if 'window_days_conesearch' in request.json:
+            window_days = request.json['window_days_conesearch']
+        else:
+            window_days = None
 
         if float(radius) > 36000.:
             rep = {
@@ -1174,7 +1204,7 @@ def query_db():
         # groupby and keep only the last alert per objectId
         pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
 
-        # Filter by time - to be improved
+        # Filter by time - logic to be improved...
         if ':' in str(startdate):
             jdstart = Time(startdate).jd
         elif str(startdate).startswith('24'):
