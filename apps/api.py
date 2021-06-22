@@ -1177,7 +1177,7 @@ def query_db():
         # Filter by time - to be improved
         if ':' in str(startdate):
             jdstart = Time(startdate).jd
-        elif str(startdate).startswith(24):
+        elif str(startdate).startswith('24'):
             jdstart = Time(startdate, format='jd').jd
         else:
             jdstart = Time(startdate, format='mjd').jd
