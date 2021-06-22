@@ -1106,8 +1106,8 @@ def query_db():
     user_group = np.unique(all_groups)[0]
     required_args = [i['name'] for i in args_explorer if i['group'] == user_group]
     required = [i['required'] for i in args_explorer if i['group'] == user_group]
-    for required_arg in required_args:
-        if (required_arg not in request.json) and required:
+    for required_arg, required_ in zip(required_args, required):
+        if (required_arg not in request.json) and required_:
             rep = {
                 'status': 'error',
                 'text': "A value for `{}` is required for group {}. Use GET to check arguments.\n".format(required_arg, user_group)
