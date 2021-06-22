@@ -1202,9 +1202,6 @@ def query_db():
         times = [float(i[1]['key:key'].split('_')[1]) for i in result.items()]
         pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
 
-        # groupby and keep only the last alert per objectId
-        pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
-
         # Filter by time - logic to be improved...
         if startdate is not None:
             if ':' in str(startdate):
@@ -1214,6 +1211,9 @@ def query_db():
             else:
                 jdstart = Time(startdate, format='mjd').jd
             pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
+
+        # groupby and keep only the last alert per objectId
+        pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
 
         # Get data from the main table
         results = java.util.TreeMap()
