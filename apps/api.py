@@ -1176,7 +1176,7 @@ def query_db():
                 0, True, True
             )
             results.putAll(result)
-        schema_client = clientP_.schema()
+        schema_client = client.schema()
     elif user_group == 2:
         if int(request.json['window']) > 180:
             rep = {
