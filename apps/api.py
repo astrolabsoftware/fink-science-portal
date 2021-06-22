@@ -1261,7 +1261,7 @@ def query_db():
     )
 
     # For conesearch, sort by distance
-    if (user_group == 1) and len(pdfs) > 0:
+    if (user_group == 1) and (len(pdfs) > 0):
         sep = coord.separation(
             SkyCoord(
                 pdfs['i:ra'],
