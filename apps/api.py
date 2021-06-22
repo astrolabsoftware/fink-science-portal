@@ -1852,6 +1852,6 @@ def xmatch_user():
     )
 
     # reorganise columns order
-    cols = df.columns + pdfs.columns
+    cols = list(df.columns) + list(pdfs.columns)
     join_df = join_df[cols]
     return join_df.to_json(orient='records')
