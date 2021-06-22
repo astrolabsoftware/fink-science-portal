@@ -1814,7 +1814,6 @@ def xmatch_user():
         times = np.zeros_like(ras)
 
     radius = float(request.json['radius'])
-    radius_deg = radius / 3600.
 
     pdfs = pd.DataFrame(columns=unique_cols + [idname] + ['v:classification'])
     for oid, ra, dec, time_start in zip(ids, ras, decs, times):
@@ -1833,7 +1832,7 @@ def xmatch_user():
                 'dec': dec,
                 'radius': radius
             }
-        results = requests.post(
+        r = requests.post(
            '{}/api/v1/explorer'.format(APIURL),
            json=payload
         )
