@@ -22,7 +22,11 @@ from flask import send_file
 from PIL import Image as im
 from matplotlib import cm
 
-from app import client, clientP, clientT, clientS, clientSSO, clientTNS, clientU, clientUV, nlimit
+from app import client
+from app import clientP128, clientP4096, clientP131072
+from app import clientT, clientS
+from app import clientSSO, clientTNS,
+from app import clientU, clientUV, nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import get_superpixels
@@ -31,6 +35,7 @@ from apps.xmatch import parse_contents
 
 import io
 import requests
+import java
 
 import healpy as hp
 import pandas as pd
@@ -1091,16 +1096,14 @@ def query_db():
 
         schema_client = client.schema()
     if user_group == 1:
-        clientP.setLimit(10000)
-
         # Interpret user input
         ra, dec = request.json['ra'], request.json['dec']
         radius = request.json['radius']
 
-        if int(radius) > 18000:
+        if float(radius) > 36000.:
             rep = {
                 'status': 'error',
-                'text': "`radius` cannot be bigger than 18,000 arcseconds.\n"
+                'text': "`radius` cannot be bigger than 36,000 arcseconds (10 degrees).\n"
             }
             return Response(str(rep), 400)
 
@@ -1119,74 +1122,61 @@ def query_db():
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
 
         # Send request
-        if int(radius) <= 30:
-            # arcsecond scale
-            # get arcmin scale pixels
-            pixs_arcsec = hp.query_disc(
-                131072,
-                vec,
-                np.pi / 180 * radius_deg,
-                inclusive=True
-            )
-            pixs_am = get_superpixels(pixs_arcsec, 131072, 4096)
-            pixs_degree = get_superpixels(pixs_arcsec, 131072, 128)
-
-            # For each pixel, get its superpixel
-            pixs = [
-                '{}_{}_{}'.format(
-                    p[0],
-                    p[1],
-                    p[2]
-                ) for p in zip(pixs_degree, pixs_am, pixs_arcsec)
-            ]
-            to_evaluate = ",".join(
-                [
-                    'key:key:{}'.format(i) for i in pixs
-                ]
-            )
-        elif (int(radius) > 30) & (int(radius) <= 1000):
-            # arcmin scale
-            # get arcmin scale pixels
-            pixs_am = hp.query_disc(
-                4096,
-                vec,
-                np.pi / 180 * radius_deg,
-                inclusive=True
-            )
-            pixs_degree = get_superpixels(pixs_am, 4096, 128)
-
-            # For each pixel, get its superpixel
-            pixs = [
-                '{}_{}'.format(
-                    p[0],
-                    p[1]
-                ) for p in zip(pixs_degree, pixs_am)
-            ]
-            to_evaluate = ",".join(
-                [
-                    'key:key:{}'.format(i) for i in pixs
-                ]
-            )
+        if float(radius) <= 30.:
+            nside = 131072
+            clientP_ = clientP131072
+        elif (float(radius) > 30.) & (float(radius) <= 1000.):
+            nside = 4096
+            clientP_ = clientP4096
         else:
-            # degree scale
-            pixs = hp.query_disc(
-                128,
-                vec,
-                np.pi / 180 * radius_deg,
-                inclusive=True
-            )
-            to_evaluate = ",".join(
-                [
-                    'key:key:{}'.format(i) for i in pixs
-                ]
-            )
-        results = clientP.scan(
+            nside = 128
+            clientP_ = clientP128
+
+        pixs = hp.query_disc(
+            nside,
+            vec,
+            np.pi / 180 * radius_deg,
+            inclusive=True
+        )
+        to_evaluate = ",".join(
+            [
+                 'key:key:{}'.format(i) for i in pixs
+            ]
+        )
+
+        # Get matches in the pixel index table
+        result = clientP_.scan(
             "",
             to_evaluate,
             "*",
             0, True, True
         )
-        schema_client = clientP.schema()
+
+        # extract objectId and times
+        objectids = [i[1]['i:objectId'] for i in result.items()]
+        times = [float(i[1]['key:key'].split('_')[1]) for i in result.items()]
+        pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
+
+        # groupby and keep only the last alert per objectId
+        pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
+
+        # Filter by time
+        # jdstart = Time(startdate).jd
+        # pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
+
+        # Get data from the main table
+        results = java.util.TreeMap()
+        for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
+            to_evaluate = "key:key:{}_{}".format(oid, jd)
+
+            result = client.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, True, True
+            )
+            results.putAll(result)
+        schema_client = clientP_.schema()
     elif user_group == 2:
         if int(request.json['window']) > 180:
             rep = {
