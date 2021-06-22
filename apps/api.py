@@ -1846,7 +1846,7 @@ def xmatch_user():
 
     # Final join
     join_df = pd.merge(
-        pdfs[['i:objectId', 'v:classification', idname]],
+        pdfs[['i:objectId', 'v:classification', 'v:separation_degree', idname]],
         df,
         on=idname
     )
