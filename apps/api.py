@@ -64,7 +64,7 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
+| POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
 """.format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
@@ -328,7 +328,7 @@ r = requests.post(
 pdf = pd.read_json(r.content)
 ```
 
-Maximum radius length is 36,000 arcseconds (10 degrees). Note that in case of
+Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
 several objects matching, the results will be sorted according to the column
 `v:separation_degree`, which is the angular separation in degree between
 the input (ra, dec) and the objects found.
@@ -355,6 +355,15 @@ r = requests.post(
 # Format output in a DataFrame
 pdf = pd.read_json(r.content)
 ```
+
+Here is the current performance of the service for querying a
+single object (1.3TB, about 40 million alerts):
+
+![conesearch](https://user-images.githubusercontent.com/20426972/123047697-e493a500-d3fd-11eb-9f30-216dce9cbf43.png)
+_circle marks with dashed lines are results for a full scan search
+(~2 years of data, 40 million alerts), while the upper triangles with
+dotted lines are results when restraining to 7 days search.
+The numbers close to markers show the number of objects returned by the conesearch._
 
 ### Search by Date
 
@@ -702,6 +711,90 @@ r = requests.post(
 pdf = pd.read_json(r.content)
 array = pdf['b:cutoutScience_stampData'].values[0]
 ```
+
+"""
+
+api_doc_xmatch = """
+## Xmatch with catalogs
+
+The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/xmatch.
+
+Let's assume you have a catalog on disk (CSV format), you would use:
+
+```python
+import requests
+import pandas as pd
+
+r = requests.post(
+   'http://134.158.75.151:24000/api/v1/xmatch',
+   json={
+       'catalog': open('mycatalog.csv').read(),
+       'header': 'RA,Dec,ID',
+       'radius': 1.5, # in arcsecond
+       'window': 7 # in days
+   }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+The crossmatch service is a wrapper around the conesearch service.
+Here is the current performance of the service for querying a
+single object (1.3TB, about 40 million alerts):
+
+![conesearch](https://user-images.githubusercontent.com/20426972/123047697-e493a500-d3fd-11eb-9f30-216dce9cbf43.png)
+_circle marks with dashed lines are results for a full scan search
+(~2 years of data, 40 million alerts), while the upper triangles with
+dotted lines are results when restraining to 7 days search.
+The numbers close to markers show the number of objects returned by the conesearch._
+
+The catalog format must be CSV, and it is assumed that the first line is the header,
+and then each line is an object, e.g.
+
+```
+ID,Time,RA,Dec,otherproperty
+210430A,2021-04-30 10:42:10,57.185,45.080,toto
+210422A,2021-04-22 17:47:10,21.077,42.100,tutu
+210421B,2021-04-21 10:54:44,270.817,56.828,tutu
+210421A,2021-04-21 00:27:30,104.882,4.928,toto
+210420B,2021-04-20 18:34:37,254.313,42.558,foo
+210419C,2021-04-19 23:27:49,212.969,36.011,bar
+AnObjectMatching,2019-11-02 02:51:12.001,271.3914265,45.2545134,foo
+```
+
+The argument `header` is the comma-separated names of the columns matching
+RA, Dec, ID and Time (in this order). So if your catalog header is
+
+```
+aproperty,myID,detection time,RA(J2000),Dec(J2000),otherproperty
+x,210430A,2021-04-30 10:42:10,57.185,45.080,toto
+y,210422A,2021-04-22 17:47:10,21.077,42.100,tutu
+```
+
+You would specify:
+
+```python
+'header': 'RA(J2000),Dec(J2000),myID,detection time'
+```
+
+Note that the `Time` column is optional. You do not need to specify it,
+in which case your header argument will be:
+
+```python
+'header': 'RA(J2000),Dec(J2000),myID'
+```
+
+Note that is is always better to specify the time column as it speeds-up
+the computation (instead of performing a full-scan). If you specify the `Time`
+column, you can specify the time `window` in days around which we should perform
+the cross-match (default is 1 day starting from the time column).
+
+Finally, you can specify the `radius` for the cross-match, in arcsecond. You can
+specify any values, with a maximum of 18,000 arcseconds (5 degrees).
+Note that in case of several objects matching, the results will be sorted
+according to the column `v:separation_degree`, which is the angular separation
+in degree between the input (ra, dec) and the objects found.
 
 """
 
@@ -1160,10 +1253,10 @@ def query_db():
         else:
             window_days = 1.0
 
-        if float(radius) > 36000.:
+        if float(radius) > 18000.:
             rep = {
                 'status': 'error',
-                'text': "`radius` cannot be bigger than 36,000 arcseconds (10 degrees).\n"
+                'text': "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n"
             }
             return Response(str(rep), 400)
 
@@ -1762,6 +1855,14 @@ def xmatch_user():
     """
     df = pd.read_csv(io.StringIO(request.json['catalog']))
 
+    radius = float(request.json['radius'])
+    if radius > 18000.:
+        rep = {
+            'status': 'error',
+            'text': "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n"
+        }
+        return Response(str(rep), 400)
+
     header = request.json['header']
 
     header = [i.strip() for i in header.split(',')]
@@ -1828,8 +1929,6 @@ def xmatch_user():
         times = df[timename].values
     else:
         times = np.zeros_like(ras)
-
-    radius = float(request.json['radius'])
 
     pdfs = pd.DataFrame(columns=unique_cols + [idname] + ['v:classification'])
     for oid, ra, dec, time_start in zip(ids, ras, decs, times):
