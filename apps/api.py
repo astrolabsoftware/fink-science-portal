@@ -874,7 +874,17 @@ layout = html.Div(
                                 ),
                             ], label="Get Image data"
                         ),
-                        dbc.Tab(label="Xmatch", disabled=True),
+                        dbc.Tab(
+                            [
+                                dbc.Card(
+                                    dbc.CardBody(
+                                        dcc.Markdown(api_doc_xmatch)
+                                    ), style={
+                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                    }
+                                ),
+                            ], label="Xmatch"
+                        ),
                     ]
                 )
             ], className="mb-8", fluid=True, style={'width': '80%'}
