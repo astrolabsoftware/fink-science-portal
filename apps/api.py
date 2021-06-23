@@ -1850,7 +1850,7 @@ def return_cutouts():
         attachment_filename=filename)
 
 @api_bp.route('/api/v1/xmatch', methods=['GET'])
-def cutouts_arguments():
+def xmatch_arguments():
     """ Obtain information about the xmatch service
     """
     return jsonify({'args': args_xmatch})
