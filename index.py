@@ -62,7 +62,6 @@ navbar = dbc.Navbar(
                 # right align dropdown menu with ml-auto className
                 [
                     dbc.NavItem(dbc.NavLink('Explorer', href="http://134.158.75.151:24000/explorer")),
-                    dbc.NavItem(dbc.NavLink('Xmatch', href="http://134.158.75.151:24000/xmatch")),
                     dbc.NavItem(dbc.NavLink('API', href="http://134.158.75.151:24000/api")),
                     dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/broker-workshop/tutorials/tree/main/fink")),
                     dropdown
@@ -90,20 +89,14 @@ app.layout = html.Div([
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/explorer':
-        return explorer.layout
-    elif pathname == '/about':
+    if pathname == '/about':
         return about.layout
-    elif pathname == '/grafink':
-        return grafink.layout
-    elif pathname == '/xmatch':
-        return xmatch.layout
     elif pathname == '/api':
         return api.layout
     elif 'ZTF' in pathname:
         return summary.layout(pathname)
     else:
-        return home.layout
+        return explorer.layout
 
 
 # register the API
