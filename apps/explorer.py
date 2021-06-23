@@ -800,7 +800,7 @@ layout = html.Div(
     ],
     className='home',
     style={
-        'background-image': 'linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/assets/background.png)',
+        'background-image': 'linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url(/assets/background.png)',
         'background-size': 'contain'
     }
 )
