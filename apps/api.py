@@ -22,13 +22,20 @@ from flask import send_file
 from PIL import Image as im
 from matplotlib import cm
 
-from app import client, clientP, clientT, clientS, clientSSO, clientTNS, clientU, clientUV, nlimit
+from app import client
+from app import clientP128, clientP4096, clientP131072
+from app import clientT, clientS
+from app import clientSSO, clientTNS
+from app import clientU, clientUV, nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
+from apps.utils import get_superpixels
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
+from apps.xmatch import parse_contents
 
 import io
 import requests
+import java
 
 import healpy as hp
 import pandas as pd
@@ -57,7 +64,7 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x274C; |
+| POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
 """.format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
@@ -320,6 +327,44 @@ r = requests.post(
 # Format output in a DataFrame
 pdf = pd.read_json(r.content)
 ```
+
+Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
+several objects matching, the results will be sorted according to the column
+`v:separation_degree`, which is the angular separation in degree between
+the input (ra, dec) and the objects found.
+
+In addition, you can specify time boundaries:
+
+```python
+import requests
+import pandas as pd
+
+# Get all objects falling within (center, radius) = ((ra, dec), radius)
+# between 2019-11-01 03:16:53.999 (included) and 2019-12-01 03:16:53.999 (excluded)
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/explorer',
+  json={
+    'ra': '271.3914265',
+    'dec': '45.2545134',
+    'radius': '5',
+    'startdate_conesearch': '2019-11-01 03:16:53.999',
+    'window_days_conesearch': 30
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+Here is the current performance of the service for querying a
+single object (1.3TB, about 40 million alerts):
+
+![conesearch](https://user-images.githubusercontent.com/20426972/123047697-e493a500-d3fd-11eb-9f30-216dce9cbf43.png)
+
+_circle marks with dashed lines are results for a full scan search
+(~2 years of data, 40 million alerts), while the upper triangles with
+dotted lines are results when restraining to 7 days search.
+The numbers close to markers show the number of objects returned by the conesearch._
 
 ### Search by Date
 
@@ -670,6 +715,91 @@ array = pdf['b:cutoutScience_stampData'].values[0]
 
 """
 
+api_doc_xmatch = """
+## Xmatch with catalogs
+
+The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/xmatch.
+
+Let's assume you have a catalog on disk (CSV format), you would use:
+
+```python
+import requests
+import pandas as pd
+
+r = requests.post(
+   'http://134.158.75.151:24000/api/v1/xmatch',
+   json={
+       'catalog': open('mycatalog.csv').read(),
+       'header': 'RA,Dec,ID',
+       'radius': 1.5, # in arcsecond
+       'window': 7 # in days
+   }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+The crossmatch service is a wrapper around the conesearch service.
+Here is the current performance of the service for querying a
+single object (1.3TB, about 40 million alerts):
+
+![conesearch](https://user-images.githubusercontent.com/20426972/123047697-e493a500-d3fd-11eb-9f30-216dce9cbf43.png)
+
+_circle marks with dashed lines are results for a full scan search
+(~2 years of data, 40 million alerts), while the upper triangles with
+dotted lines are results when restraining to 7 days search.
+The numbers close to markers show the number of objects returned by the conesearch._
+
+The catalog format must be CSV, and it is assumed that the first line is the header,
+and then each line is an object, e.g.
+
+```
+ID,Time,RA,Dec,otherproperty
+210430A,2021-04-30 10:42:10,57.185,45.080,toto
+210422A,2021-04-22 17:47:10,21.077,42.100,tutu
+210421B,2021-04-21 10:54:44,270.817,56.828,tutu
+210421A,2021-04-21 00:27:30,104.882,4.928,toto
+210420B,2021-04-20 18:34:37,254.313,42.558,foo
+210419C,2021-04-19 23:27:49,212.969,36.011,bar
+AnObjectMatching,2019-11-02 02:51:12.001,271.3914265,45.2545134,foo
+```
+
+The argument `header` is the comma-separated names of the columns matching
+RA, Dec, ID and Time (in this order). So if your catalog header is
+
+```
+aproperty,myID,detection time,RA(J2000),Dec(J2000),otherproperty
+x,210430A,2021-04-30 10:42:10,57.185,45.080,toto
+y,210422A,2021-04-22 17:47:10,21.077,42.100,tutu
+```
+
+You would specify:
+
+```python
+'header': 'RA(J2000),Dec(J2000),myID,detection time'
+```
+
+Note that the `Time` column is optional. You do not need to specify it,
+in which case your header argument will be:
+
+```python
+'header': 'RA(J2000),Dec(J2000),myID'
+```
+
+Note that is is always better to specify the time column as it speeds-up
+the computation (instead of performing a full-scan). If you specify the `Time`
+column, you can specify the time `window` in days around which we should perform
+the cross-match (default is 1 day starting from the time column).
+
+Finally, you can specify the `radius` for the cross-match, in arcsecond. You can
+specify any values, with a maximum of 18,000 arcseconds (5 degrees).
+Note that in case of several objects matching, the results will be sorted
+according to the column `v:separation_degree`, which is the angular separation
+in degree between the input (ra, dec) and the objects found.
+
+"""
+
 layout = html.Div(
     [
         html.Br(),
@@ -746,7 +876,17 @@ layout = html.Div(
                                 ),
                             ], label="Get Image data"
                         ),
-                        dbc.Tab(label="Xmatch", disabled=True),
+                        dbc.Tab(
+                            [
+                                dbc.Card(
+                                    dbc.CardBody(
+                                        dcc.Markdown(api_doc_xmatch)
+                                    ), style={
+                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                    }
+                                ),
+                            ], label="Xmatch"
+                        ),
                     ]
                 )
             ], className="mb-8", fluid=True, style={'width': '80%'}
@@ -788,37 +928,49 @@ args_objects = [
 args_explorer = [
     {
         'name': 'objectId',
-        'required': False,
+        'required': True,
         'group': 0,
         'description': 'ZTF Object ID'
     },
     {
         'name': 'ra',
-        'required': False,
+        'required': True,
         'group': 1,
         'description': 'Right Ascension'
     },
     {
         'name': 'dec',
-        'required': False,
+        'required': True,
         'group': 1,
         'description': 'Declination'
     },
     {
         'name': 'radius',
+        'required': True,
+        'group': 1,
+        'description': 'Conesearch radius in arcsec. Maximum is 36,000 arcseconds (10 degrees).'
+    },
+    {
+        'name': 'startdate_conesearch',
         'required': False,
         'group': 1,
-        'description': 'Conesearch radius in arcsec. Maximum is 60 arcseconds.'
+        'description': '[Optional] Starting date in UTC for the conesearch query.'
+    },
+    {
+        'name': 'window_days_conesearch',
+        'required': False,
+        'group': 1,
+        'description': '[Optional] Time window in days for the conesearch query.'
     },
     {
         'name': 'startdate',
-        'required': False,
+        'required': True,
         'group': 2,
         'description': 'Starting date in UTC'
     },
     {
         'name': 'window',
-        'required': False,
+        'required': True,
         'group': 2,
         'description': 'Time window in minutes. Maximum is 180 minutes.'
     },
@@ -922,6 +1074,29 @@ args_cutouts = [
         'required': False,
         'description': 'Convolve the image with a kernel (gauss or box). Default is None (not specified).'
     }
+]
+
+args_xmatch = [
+    {
+        'name': 'catalog',
+        'required': True,
+        'description': 'External catalog as CSV'
+    },
+    {
+        'name': 'header',
+        'required': True,
+        'description': 'Comma separated names of columns corresponding to RA, Dec, ID, Time[optional] in the input catalog.'
+    },
+    {
+        'name': 'radius',
+        'required': True,
+        'description': 'Conesearch radius in arcsec. Maximum is 18,000 arcseconds (5 degrees).'
+    },
+    {
+        'name': 'window',
+        'required': False,
+        'description': '[Optional] Time window in days.'
+    },
 ]
 
 @api_bp.route('/api/v1/objects', methods=['GET'])
@@ -1050,8 +1225,9 @@ def query_db():
     # Check the user specifies all parameters within a group
     user_group = np.unique(all_groups)[0]
     required_args = [i['name'] for i in args_explorer if i['group'] == user_group]
-    for required_arg in required_args:
-        if required_arg not in request.json:
+    required = [i['required'] for i in args_explorer if i['group'] == user_group]
+    for required_arg, required_ in zip(required_args, required):
+        if (required_arg not in request.json) and required_:
             rep = {
                 'status': 'error',
                 'text': "A value for `{}` is required for group {}. Use GET to check arguments.\n".format(required_arg, user_group)
@@ -1076,43 +1252,122 @@ def query_db():
 
         schema_client = client.schema()
     if user_group == 1:
-        clientP.setLimit(1000)
-
         # Interpret user input
         ra, dec = request.json['ra'], request.json['dec']
         radius = request.json['radius']
-        if int(radius) > 60:
+
+        if 'startdate_conesearch' in request.json:
+            startdate = request.json['startdate_conesearch']
+        else:
+            startdate = None
+        if 'window_days_conesearch' in request.json:
+            window_days = request.json['window_days_conesearch']
+        else:
+            window_days = 1.0
+
+        if float(radius) > 18000.:
             rep = {
                 'status': 'error',
-                'text': "`radius` cannot be bigger than 60 arcseconds.\n"
+                'text': "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n"
             }
             return Response(str(rep), 400)
-        if 'h' in ra:
+
+        if 'h' in str(ra):
             coord = SkyCoord(ra, dec, frame='icrs')
-        elif ':' in ra or ' ' in ra:
+        elif ':' in str(ra) or ' ' in str(ra):
             coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
         else:
             coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
 
         ra = coord.ra.deg
         dec = coord.dec.deg
-        radius = float(radius) / 3600.
+        radius_deg = float(radius) / 3600.
 
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
 
-        # list of neighbour pixels
-        pixs = hp.query_disc(131072, vec, np.pi / 180 * radius, inclusive=True)
-
         # Send request
-        to_evaluate = ",".join(['key:key:{}'.format(i) for i in pixs])
-        results = clientP.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
+        if float(radius) <= 30.:
+            nside = 131072
+            clientP_ = clientP131072
+        elif (float(radius) > 30.) & (float(radius) <= 1000.):
+            nside = 4096
+            clientP_ = clientP4096
+        else:
+            nside = 128
+            clientP_ = clientP128
+
+        pixs = hp.query_disc(
+            nside,
+            vec,
+            np.pi / 180 * radius_deg,
+            inclusive=True
         )
-        schema_client = clientP.schema()
+
+        # For the future: we could set clientP_.setRangeScan(True)
+        # and pass directly the time boundaries here instead of
+        # grouping by later.
+
+        # Filter by time - logic to be improved...
+        if startdate is not None:
+            if ':' in str(startdate):
+                jdstart = Time(startdate).jd
+            elif str(startdate).startswith('24'):
+                jdstart = Time(startdate, format='jd').jd
+            else:
+                jdstart = Time(startdate, format='mjd').jd
+            jdend = jdstart + window_days
+
+            clientP_.setRangeScan(True)
+            results = java.util.TreeMap()
+            for pix in pixs:
+                to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
+                result = clientP_.scan(
+                    "",
+                    to_search,
+                    "*",
+                    0, True, True
+                )
+                results.putAll(result)
+        else:
+            to_evaluate = ",".join(
+                [
+                    'key:key:{}'.format(i) for i in pixs
+                ]
+            )
+            # Get matches in the pixel index table
+            results = clientP_.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, True, True
+            )
+
+        # extract objectId and times
+        objectids = [i[1]['i:objectId'] for i in results.items()]
+        times = [float(i[1]['key:key'].split('_')[1]) for i in results.items()]
+        pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
+
+        # Filter by time - logic to be improved...
+        if startdate is not None:
+            pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
+
+        # groupby and keep only the last alert per objectId
+        pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
+
+        # Get data from the main table
+        results = java.util.TreeMap()
+        for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
+            to_evaluate = "key:key:{}_{}".format(oid, jd)
+
+            result = client.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, True, True
+            )
+            results.putAll(result)
+        schema_client = client.schema()
     elif user_group == 2:
         if int(request.json['window']) > 180:
             rep = {
@@ -1144,6 +1399,22 @@ def query_db():
         group_alerts=True,
         extract_color=False
     )
+
+    # For conesearch, sort by distance
+    if (user_group == 1) and (len(pdfs) > 0):
+        sep = coord.separation(
+            SkyCoord(
+                pdfs['i:ra'],
+                pdfs['i:dec'],
+                unit='deg'
+            )
+        ).deg
+
+        pdfs['v:separation_degree'] = sep
+        pdfs = pdfs.sort_values('v:separation_degree', ascending=True)
+
+        mask = pdfs['v:separation_degree'] > radius_deg
+        pdfs = pdfs[~mask]
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
@@ -1589,3 +1860,132 @@ def return_cutouts():
         mimetype='image/png',
         as_attachment=True,
         attachment_filename=filename)
+
+@api_bp.route('/api/v1/xmatch', methods=['GET'])
+def xmatch_arguments():
+    """ Obtain information about the xmatch service
+    """
+    return jsonify({'args': args_xmatch})
+
+@api_bp.route('/api/v1/xmatch', methods=['POST'])
+def xmatch_user():
+    """ Xmatch with user uploaded catalog
+    """
+    df = pd.read_csv(io.StringIO(request.json['catalog']))
+
+    radius = float(request.json['radius'])
+    if radius > 18000.:
+        rep = {
+            'status': 'error',
+            'text': "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n"
+        }
+        return Response(str(rep), 400)
+
+    header = request.json['header']
+
+    header = [i.strip() for i in header.split(',')]
+    if len(header) == 3:
+        raname, decname, idname = header
+    elif len(header) == 4:
+        raname, decname, idname, timename = header
+    else:
+        rep = {
+            'status': 'error',
+            'text': "Header should contain 3 or 4 entries from your catalog. E.g. RA,DEC,ID or RA,DEC,ID,Time\n"
+        }
+        return Response(str(rep), 400)
+
+    if 'window' in request.json:
+        window_days = request.json['window']
+    else:
+        window_days = None
+
+    # Fink columns of interest
+    colnames = [
+        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
+    ]
+
+    colnames_added_values = [
+        'd:cdsxmatch',
+        'd:roid',
+        'd:mulens_class_1',
+        'd:mulens_class_2',
+        'd:snn_snia_vs_nonia',
+        'd:snn_sn_vs_all',
+        'd:rfscore',
+        'i:ndethist',
+        'i:drb',
+        'i:classtar',
+        'd:knscore',
+        'i:jdstarthist'
+    ]
+
+    unique_cols = np.unique(colnames + colnames_added_values).tolist()
+
+    # check units
+    ra0 = df[raname].values[0]
+    if 'h' in str(ra0):
+        coords = [
+            SkyCoord(ra, dec, frame='icrs')
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    elif ':' in str(ra0) or ' ' in str(ra0):
+        coords = [
+            SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    else:
+        coords = [
+            SkyCoord(ra, dec, frame='icrs', unit='deg')
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    ras = [coord.ra.deg for coord in coords]
+    decs = [coord.dec.deg for coord in coords]
+    ids = df[idname].values
+
+    if len(header) == 4:
+        times = df[timename].values
+    else:
+        times = np.zeros_like(ras)
+
+    pdfs = pd.DataFrame(columns=unique_cols + [idname] + ['v:classification'])
+    for oid, ra, dec, time_start in zip(ids, ras, decs, times):
+        if len(header) == 4:
+            payload = {
+                'ra': ra,
+                'dec': dec,
+                'radius': radius,
+                'startdate_conesearch': time_start,
+                'window_days_conesearch': window_days
+
+            }
+        else:
+            payload = {
+                'ra': ra,
+                'dec': dec,
+                'radius': radius
+            }
+        r = requests.post(
+           '{}/api/v1/explorer'.format(APIURL),
+           json=payload
+        )
+        pdf = pd.read_json(r.content)
+        # Loop over results and construct the dataframe
+        if not pdf.empty:
+            pdf[idname] = [oid] * len(pdf)
+            if 'd:knscore' not in pdf.columns:
+                pdf['d:knscore'] = np.zeros(len(pdf), dtype=float)
+            pdfs = pd.concat((pdfs, pdf), ignore_index=True)
+
+    # Final join
+    join_df = pd.merge(
+        pdfs,
+        df,
+        on=idname
+    )
+
+    # reorganise columns order
+    no_duplicate = np.where(pdfs.columns != idname)[0]
+    cols = list(df.columns) + list(pdfs.columns[no_duplicate])
+    join_df = join_df[cols]
+    return join_df.to_json(orient='records')

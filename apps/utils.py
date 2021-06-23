@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import healpy as hp
 import numpy as np
 import pandas as pd
 import gzip
@@ -25,8 +26,6 @@ from astropy.convolution import Box2DKernel
 
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
-
-
 
 hbase_type_converter = {
     'integer': int,
@@ -775,3 +774,26 @@ def convert_mpc_type(index):
         10: "Distant Objects",
     }
     return dic[index]
+
+def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
+    """ Compute the indices of superpixels that contain a subpixel.
+
+    Note that nside_subpix > nside_superpix
+    """
+    idx = np.array(idx)
+    nside_superpix = np.asarray(nside_superpix)
+    nside_subpix = np.asarray(nside_subpix)
+
+    if not nest:
+        idx = hp.ring2nest(nside_subpix, idx)
+
+    ratio = np.array((nside_subpix // nside_superpix) ** 2, ndmin=1)
+    idx //= ratio
+
+    if not nest:
+        m = idx == -1
+        idx[m] = 0
+        idx = hp.nest2ring(nside_superpix, idx)
+        idx[m] = -1
+
+    return idx
