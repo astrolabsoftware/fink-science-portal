@@ -1261,7 +1261,7 @@ def query_db():
         else:
             startdate = None
         if 'window_days_conesearch' in request.json:
-            window_days = request.json['window_days_conesearch']
+            window_days = float(request.json['window_days_conesearch'])
         else:
             window_days = 1.0
 

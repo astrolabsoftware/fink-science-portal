@@ -59,9 +59,16 @@ The following ways of initializing a conesearch are all equivalent (radius in ar
 * 18:05:33.942, 45:15:16.25, 5
 
 Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
-several objects matching, the results will be sorted according to the column
-`v:separation_degree`, which is the angular separation in degree between
-the input (ra, dec) and the objects found.
+several objects matching, the results will be sorted according to the angular
+separation in degree between the input (ra, dec) and the objects found.
+
+In addition, you can specify a starting date (UTC) and a window (in days) to refine your search.
+Example, to refine your search starting at 2019-11-02 02:51:12.001 for 7 days:
+
+* 271.3914265, 45.2545134, 5, 2019-11-02 02:51:12.001, 7
+* 271.3914265, 45.2545134, 5, 2458789.6188889006, 7
+
+We encourage you to use the `startdate` and `window`, as your query will run much faster.
 
 ##### Date search
 
@@ -449,7 +456,7 @@ def on_button_click(n1, n2, n3, n4, n5, val):
     if button_id == "dropdown-menu-item-1":
         return "Enter a valid ZTF object ID", "objectID", val
     elif button_id == "dropdown-menu-item-2":
-        return "Perform a conesearch around RA, Dec, radius. See Help for the syntax", "Conesearch", val
+        return "Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", "Conesearch", val
     elif button_id == "dropdown-menu-item-3":
         return "Search alerts inside a time window. See Help for the syntax", "Date", val
     elif button_id == "dropdown-menu-item-4":
@@ -637,13 +644,21 @@ def results(ns, query, query_type, dropdown_option, results):
             }
         )
     elif query_type == 'Conesearch':
-        ra, dec, radius = query.split(',')
+        args = [i.strip() for i in query.split(',')]
+        if len(args) == 3:
+            ra, dec, radius = args
+            startdate = None
+            window = None
+        elif len(args) == 5:
+            ra, dec, radius, startdate, window = args
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
                 'ra': ra,
                 'dec': dec,
-                'radius': float(radius)
+                'radius': float(radius),
+                'startdate_conesearch': startdate,
+                'window_days_conesearch': window
             }
         )
     elif query_type == 'Date':
