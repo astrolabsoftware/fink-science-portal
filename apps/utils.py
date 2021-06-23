@@ -139,10 +139,11 @@ def validate_query(query, query_type):
         return {'flag': False, 'header': header, 'text': text}
 
     # bad conesearch
-    bad_conesearch = (query_type == 'Conesearch') and not (len(query.split(',')) == 3)
+    lenquery = len(query.split(','))
+    bad_conesearch = (query_type == 'Conesearch') and not ((lenquery == 3) or (lenquery == 5))
     if bad_conesearch:
         header = "Bad Conesearch formula"
-        text = "Conesearch must contain comma-separated RA, Dec, radius"
+        text = "Conesearch must contain comma-separated RA, Dec, radius or RA, Dec, radius, startdate, window. See Help for more information."
         return {'flag': False, 'header': header, 'text': text}
 
     # bad search date

@@ -63,6 +63,14 @@ several objects matching, the results will be sorted according to the column
 `v:separation_degree`, which is the angular separation in degree between
 the input (ra, dec) and the objects found.
 
+In addition, you can specify a starting date (UTC) and a window (in days) to refine your search.
+Example, to refine your search starting at 2019-11-02 02:51:12.001 for 7 days:
+
+* 271.3914265, 45.2545134, 5, 2019-11-02 02:51:12.001, 7
+* 271.3914265, 45.2545134, 5, 2458789.6188889006, 7
+
+We encourage you to use the `startdate` and `window`, as your query will run much faster.
+
 ##### Date search
 
 Choose a starting date and a time window to see all processed alerts in this period.
@@ -637,13 +645,21 @@ def results(ns, query, query_type, dropdown_option, results):
             }
         )
     elif query_type == 'Conesearch':
-        ra, dec, radius = query.split(',')
+        args = query.split(',')
+        if len(args) == 3:
+            ra, dec, radius = query.split(',')
+            startdate = None
+            window = None
+        elif len(args) == 5:
+            ra, dec, radius, startdate, window = query.split(',')
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
                 'ra': ra,
                 'dec': dec,
-                'radius': float(radius)
+                'radius': float(radius),
+                'startdate_conesearch': startdate,
+                'window_days_conesearch': window
             }
         )
     elif query_type == 'Date':
