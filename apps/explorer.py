@@ -645,13 +645,13 @@ def results(ns, query, query_type, dropdown_option, results):
             }
         )
     elif query_type == 'Conesearch':
-        args = query.split(',')
+        args = [i.strip() for i in query.split(',')]
         if len(args) == 3:
-            ra, dec, radius = query.split(',')
+            ra, dec, radius = args
             startdate = None
             window = None
         elif len(args) == 5:
-            ra, dec, radius, startdate, window = query.split(',')
+            ra, dec, radius, startdate, window = args
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
