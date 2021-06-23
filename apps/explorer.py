@@ -456,7 +456,7 @@ def on_button_click(n1, n2, n3, n4, n5, val):
     if button_id == "dropdown-menu-item-1":
         return "Enter a valid ZTF object ID", "objectID", val
     elif button_id == "dropdown-menu-item-2":
-        return "Conesearch around RA, Dec, radius or RA, Dec, radius, startdate, window. See Help for the syntax", "Conesearch", val
+        return "Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", "Conesearch", val
     elif button_id == "dropdown-menu-item-3":
         return "Search alerts inside a time window. See Help for the syntax", "Date", val
     elif button_id == "dropdown-menu-item-4":
