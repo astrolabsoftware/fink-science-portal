@@ -1078,7 +1078,7 @@ args_xmatch = [
     {
         'name': 'radius',
         'required': True,
-        'description': 'Conesearch radius in arcsec. Maximum is 36,000 arcseconds (10 degrees).'
+        'description': 'Conesearch radius in arcsec. Maximum is 18,000 arcseconds (5 degrees).'
     },
     {
         'name': 'window',
