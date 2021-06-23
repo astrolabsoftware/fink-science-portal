@@ -59,9 +59,8 @@ The following ways of initializing a conesearch are all equivalent (radius in ar
 * 18:05:33.942, 45:15:16.25, 5
 
 Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
-several objects matching, the results will be sorted according to the column
-`v:separation_degree`, which is the angular separation in degree between
-the input (ra, dec) and the objects found.
+several objects matching, the results will be sorted according to the angular
+separation in degree between the input (ra, dec) and the objects found.
 
 In addition, you can specify a starting date (UTC) and a window (in days) to refine your search.
 Example, to refine your search starting at 2019-11-02 02:51:12.001 for 7 days:
@@ -457,7 +456,7 @@ def on_button_click(n1, n2, n3, n4, n5, val):
     if button_id == "dropdown-menu-item-1":
         return "Enter a valid ZTF object ID", "objectID", val
     elif button_id == "dropdown-menu-item-2":
-        return "Perform a conesearch around RA, Dec, radius. See Help for the syntax", "Conesearch", val
+        return "Conesearch around RA, Dec, radius or RA, Dec, radius, startdate, window. See Help for the syntax", "Conesearch", val
     elif button_id == "dropdown-menu-item-3":
         return "Search alerts inside a time window. See Help for the syntax", "Date", val
     elif button_id == "dropdown-menu-item-4":
