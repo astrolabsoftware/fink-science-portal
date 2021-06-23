@@ -198,7 +198,6 @@ fink_search_bar = dbc.InputGroup(
         dbc.Button(
             html.I(className="fas fa-search fa-1x"),
             id="submit",
-            href="/",
             style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
         ),
         modal
@@ -837,7 +836,7 @@ navbar = dbc.Navbar(
                 justify="start",
                 no_gutters=True,
             ),
-            href="/home",
+            href="/",
         ),
         dbc.NavbarToggler(id="navbar-toggler2"),
         dbc.Collapse(
