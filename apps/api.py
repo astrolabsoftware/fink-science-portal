@@ -360,6 +360,7 @@ Here is the current performance of the service for querying a
 single object (1.3TB, about 40 million alerts):
 
 ![conesearch](https://user-images.githubusercontent.com/20426972/123047697-e493a500-d3fd-11eb-9f30-216dce9cbf43.png)
+
 _circle marks with dashed lines are results for a full scan search
 (~2 years of data, 40 million alerts), while the upper triangles with
 dotted lines are results when restraining to 7 days search.
@@ -744,6 +745,7 @@ Here is the current performance of the service for querying a
 single object (1.3TB, about 40 million alerts):
 
 ![conesearch](https://user-images.githubusercontent.com/20426972/123047697-e493a500-d3fd-11eb-9f30-216dce9cbf43.png)
+
 _circle marks with dashed lines are results for a full scan search
 (~2 years of data, 40 million alerts), while the upper triangles with
 dotted lines are results when restraining to 7 days search.
