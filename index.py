@@ -240,7 +240,7 @@ def display_table_results(table):
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
     fink_additional_fields = ['v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
 
-    return [
+    return dbc.Container([
         html.Br(),
         dcc.Dropdown(
             id='field-dropdown2',
@@ -258,7 +258,7 @@ def display_table_results(table):
         ),
         html.Br(),
         table
-    ]
+    ], fluid=True)
 
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
@@ -531,10 +531,12 @@ def populate_result_table(data, columns):
         sort_action="native",
         filter_action="native",
         markdown_options={'link_target': '_blank'},
+        fixed_columns={ 'headers': True, 'data': 1 },
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         },
-        style_cell={'padding': '5px', 'textAlign': 'center'},
+        style_table={'maxWidth': '100%'},
+        style_cell={'padding': '5px', 'textAlign': 'center', 'overflow': 'hidden'},
         style_data_conditional=[
             {
                 'if': {'row_index': 'odd'},
