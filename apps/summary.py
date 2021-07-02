@@ -186,46 +186,71 @@ def store_query(name):
     )
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json()
 
-def layout(name):
-    # even if there is one object ID, this returns  several alerts
-    r = requests.post(
-        '{}/api/v1/objects'.format(APIURL),
-        json={
-            'objectId': name[1:],
-        }
-    )
-    pdf = pd.read_json(r.content)
+def layout(name, is_mobile):
+    if is_mobile:
+        alerts = html.Div(
+            [
+                dbc.Alert("Sorry for the inconvenience, the Web app will be shortly available.", color="info"),
+            ]
+        )
+        layout_ = html.Div(
+            [
+                html.Br(),
+                html.Br(),
+                dbc.Container(
+                    [
+                        html.Br(),
+                        alerts,
+                        html.Br(),
+                    ], id='webinprog', fluid=True, style={'width': '60%'}
+                ),
+            ],
+            className='home',
+            style={
+                'background-image': 'linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/assets/background.png)',
+                'background-size': 'contain'
+            }
+        )
+    else:
+        # even if there is one object ID, this returns  several alerts
+        r = requests.post(
+            '{}/api/v1/objects'.format(APIURL),
+            json={
+                'objectId': name[1:],
+            }
+        )
+        pdf = pd.read_json(r.content)
 
-    layout_ = html.Div(
-        [
-            html.Br(),
-            html.Br(),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [
-                            title(name),
-                            html.Br(),
-                            html.Div(
-                                [visdcc.Run_js(id='aladin-lite-div')],
-                                style={
-                                    'width': '100%',
-                                    'height': '25pc'
-                                }
-                            ),
-                            html.Br(),
-                            *download_object_modal(pdf['i:objectId'].values[0])
-                        ], width={"size": 3},
-                    ),
-                    dbc.Col(tabs(pdf), width=8)
-                ],
-                justify="around", no_gutters=True
-            ),
-            html.Div(id='object-data', style={'display': 'none'}),
-            html.Div(id='object-upper', style={'display': 'none'}),
-            html.Div(id='object-uppervalid', style={'display': 'none'}),
-            html.Div(id='object-sso', style={'display': 'none'}),
-        ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
-    )
+        layout_ = html.Div(
+            [
+                html.Br(),
+                html.Br(),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                title(name),
+                                html.Br(),
+                                html.Div(
+                                    [visdcc.Run_js(id='aladin-lite-div')],
+                                    style={
+                                        'width': '100%',
+                                        'height': '25pc'
+                                    }
+                                ),
+                                html.Br(),
+                                *download_object_modal(pdf['i:objectId'].values[0])
+                            ], width={"size": 3},
+                        ),
+                        dbc.Col(tabs(pdf), width=8)
+                    ],
+                    justify="around", no_gutters=True
+                ),
+                html.Div(id='object-data', style={'display': 'none'}),
+                html.Div(id='object-upper', style={'display': 'none'}),
+                html.Div(id='object-uppervalid', style={'display': 'none'}),
+                html.Div(id='object-sso', style={'display': 'none'}),
+            ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
+        )
 
     return layout_
