@@ -867,22 +867,24 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar,
     html.Div(id='page-content'),
-    html.Div(id='is-mobile', style={'display': 'none'}),
+    html.Div(children=False, id='is-mobile', hidden=True),
 ])
 
 app.clientside_callback(
     """
     function(href) {
-        return ( ( window.innerWidth <= 800 ) && ( window.innerHeight <= 600 ) );
+        var cond1 = ( ( window.innerWidth <= 820 ) && ( window.innerHeight <= 600 ) )
+        var cond2 = ( ( window.innerWidth <= 600 ) && ( window.innerHeight <= 820 ) )
+        return ( ( cond1 ) || ( cond2 ) );
     }
     """,
-    Output('is-mobile', 'value'),
+    Output('is-mobile', 'children'),
     Input('url', 'href')
 )
 
 @app.callback(
     Output('page-content', 'children'),
-    [Input('url', 'pathname'), Input('is-mobile', 'value')]
+    [Input('url', 'pathname'), Input('is-mobile', 'children')]
 )
 def display_page(pathname, is_mobile):
     layout = html.Div(
