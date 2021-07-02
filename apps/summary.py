@@ -186,7 +186,8 @@ def store_query(name):
     )
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json()
 
-def layout(name):
+def layout(name, is_mobile):
+    print("### IS MOBILE ", is_mobile)
     # even if there is one object ID, this returns  several alerts
     r = requests.post(
         '{}/api/v1/objects'.format(APIURL),

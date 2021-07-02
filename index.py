@@ -866,13 +866,25 @@ navbar = dbc.Navbar(
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar,
-    html.Div(id='page-content')
+    html.Div(id='page-content'),
+    html.Div(id='is-mobile', style={'display': 'none'}),
 ])
 
+app.clientside_callback(
+    """
+    function(href) {
+        return ( ( window.innerWidth <= 800 ) && ( window.innerHeight <= 600 ) );
+    }
+    """,
+    Output('is-mobile', 'value'),
+    Input('url', 'href')
+)
 
-@app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')])
-def display_page(pathname):
+@app.callback(
+    Output('page-content', 'children'),
+    [Input('url', 'pathname'), Input('is-mobile', 'value')]
+)
+def display_page(pathname, is_mobile):
     layout = html.Div(
         [
             html.Br(),
@@ -906,7 +918,7 @@ def display_page(pathname):
     elif pathname == '/api':
         return api.layout
     elif 'ZTF' in pathname:
-        return summary.layout(pathname)
+        return summary.layout(pathname, is_mobile)
     else:
         return layout
 
