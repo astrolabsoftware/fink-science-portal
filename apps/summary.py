@@ -163,7 +163,11 @@ def tabs(pdf, is_mobile):
 
 def title(name, is_mobile):
     if is_mobile:
-        header = [html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})]
+        header = [
+            html.Br(),
+            html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'),
+            html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+        ]
     else:
         header = [html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'), html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})]
     title_ = dbc.Card(
@@ -309,7 +313,6 @@ def layout(name, is_mobile):
                                 dbc.Col(title(name, is_mobile), width={"size": 12, "offset": 0},),
                             ]
                         ),
-                        html.Br(),
                         dbc.Row(
                             [
                                 dbc.Col([html.Br(), card_cutouts(is_mobile)], width={"size": 12, "offset": 0},),
