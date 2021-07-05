@@ -470,32 +470,35 @@ def integrate_aladin_lite_mobile(object_data, n3, is_open3):
     alert_id: str
         ID of the alert
     """
-    pdf_ = pd.read_json(object_data)
-    cols = ['i:jd', 'i:ra', 'i:dec']
-    pdf = pdf_.loc[:, cols]
-    pdf = pdf.sort_values('i:jd', ascending=False)
+    if is_open3:
+        pdf_ = pd.read_json(object_data)
+        cols = ['i:jd', 'i:ra', 'i:dec']
+        pdf = pdf_.loc[:, cols]
+        pdf = pdf.sort_values('i:jd', ascending=False)
 
-    # Coordinate of the current alert
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
+        # Coordinate of the current alert
+        ra0 = pdf['i:ra'].values[0]
+        dec0 = pdf['i:dec'].values[0]
 
-    # Javascript. Note the use {{}} for dictionary
-    img = """
-    var aladin = A.aladin('#aladin-lite-div2',
-              {{
-                survey: 'P/PanSTARRS/DR1/color/z/zg/g',
-                fov: 0.025,
-                target: '{} {}',
-                reticleColor: '#ff89ff',
-                reticleSize: 32
-    }});
-    var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
-    var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
-    aladin.addCatalog(hips);
-    """.format(ra0, dec0)
+        # Javascript. Note the use {{}} for dictionary
+        img = """
+        var aladin = A.aladin('#aladin-lite-div2',
+                  {{
+                    survey: 'P/PanSTARRS/DR1/color/z/zg/g',
+                    fov: 0.025,
+                    target: '{} {}',
+                    reticleColor: '#ff89ff',
+                    reticleSize: 32
+        }});
+        var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
+        var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
+        aladin.addCatalog(hips);
+        """.format(ra0, dec0)
 
-    # img cannot be executed directly because of formatting
-    # We split line-by-line and remove comments
-    img_to_show = [i for i in img.split('\n') if '// ' not in i]
+        # img cannot be executed directly because of formatting
+        # We split line-by-line and remove comments
+        img_to_show = [i for i in img.split('\n') if '// ' not in i]
 
-    return " ".join(img_to_show)
+        return " ".join(img_to_show)
+    else:
+        return ''
