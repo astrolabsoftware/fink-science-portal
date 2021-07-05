@@ -121,7 +121,7 @@ def card_sn_scores() -> dbc.Card:
     )
     return card
 
-def card_cutouts():
+def card_cutouts(is_mobile):
     """ Add a card containing cutouts
 
     Returns
@@ -129,46 +129,56 @@ def card_cutouts():
     card: dbc.Card
         Card with the cutouts drawn inside
     """
-    card = dbc.Card(
-        dbc.CardBody(
-            [
-                dbc.Row([
-                    dbc.Col(html.H5(children="Science", className="text-center")),
-                    dbc.Col(html.H5(children="Template", className="text-center")),
-                    dbc.Col(html.H5(children="Difference", className="text-center"))
-                ]),
-                dbc.Row(id='stamps', justify='around', no_gutters=True),
-                html.Br(),
-                html.Br(),
-                dcc.Graph(
-                    id='lightcurve_cutouts',
-                    style={
-                        'width': '100%',
-                        'height': '15pc'
-                    },
-                    config={'displayModeBar': False}
-                ),
-                dbc.Row(
-                    dbc.RadioItems(
-                        options=[{'label': k, 'value': k} for k in all_radio_options.keys()],
-                        value="Difference magnitude",
-                        id="switch-mag-flux",
-                        inline=True
-                    )
-                ),
-                html.Br(),
-                dcc.Markdown(
-                    """
-                    Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
-                    In addition, the _Difference magnitude_ view shows:
-                    - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-                    """
-                ),
-            ]
-        ),
-        className="mt-3"
-    )
+    if not is_mobile:
+        card = dbc.Card(
+            dbc.CardBody(
+                [
+                    dbc.Row([
+                        dbc.Col(html.H5(children="Science", className="text-center")),
+                        dbc.Col(html.H5(children="Template", className="text-center")),
+                        dbc.Col(html.H5(children="Difference", className="text-center"))
+                    ]),
+                    dbc.Row(id='stamps', justify='around', no_gutters=True),
+                    html.Br(),
+                    html.Br(),
+                    dcc.Graph(
+                        id='lightcurve_cutouts',
+                        style={
+                            'width': '100%',
+                            'height': '15pc'
+                        },
+                        config={'displayModeBar': False}
+                    ),
+                    dbc.Row(
+                        dbc.RadioItems(
+                            options=[{'label': k, 'value': k} for k in all_radio_options.keys()],
+                            value="Difference magnitude",
+                            id="switch-mag-flux",
+                            inline=True
+                        )
+                    ),
+                    html.Br(),
+                    dcc.Markdown(
+                        """
+                        Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+                        In addition, the _Difference magnitude_ view shows:
+                        - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                        - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                        """
+                    ),
+                ]
+            ),
+            className="mt-3"
+        )
+    else:
+        card = dbc.Card(
+            dbc.CardBody(
+                [
+                    dbc.Row(id='stamps', justify='around', no_gutters=True),
+                ]
+            ),
+            className="mt-3"
+        )
     return card
 
 def card_variable_plot():

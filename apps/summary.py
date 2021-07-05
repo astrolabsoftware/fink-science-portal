@@ -65,7 +65,7 @@ def tab1_content(pdf):
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_cutouts(), width=8),
+            dbc.Col(card_cutouts(False), width=8),
             dbc.Col([
                 card_id(pdf)
             ], width=4)
@@ -246,6 +246,11 @@ def layout(name, is_mobile):
                         dbc.Row(
                             [
                                 dbc.Col(tabs(pdf, is_mobile), width=12)
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(card_cutouts(is_mobile), width=12)
                             ]
                         ),
                         dbc.Row(
