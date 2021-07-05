@@ -178,7 +178,7 @@ def title(name, is_mobile):
 
 def make_item(i):
     # we use this function to make the example items to avoid code duplication
-    names = ['Lightcurve', 'Properties']
+    names = ['Lightcurve', 'Properties', 'TBD']
 
     # information = []
     # lightcurve = []
