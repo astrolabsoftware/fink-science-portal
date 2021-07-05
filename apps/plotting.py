@@ -1795,6 +1795,7 @@ def alert_properties(object_data):
         sort_action="native",
         filter_action="native",
         markdown_options={'link_target': '_blank'},
+        fixed_columns={'headers': True, 'data': 1},
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         },
