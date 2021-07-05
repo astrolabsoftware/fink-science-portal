@@ -470,7 +470,7 @@ def integrate_aladin_lite_mobile(object_data, n3, is_open3):
     alert_id: str
         ID of the alert
     """
-    if is_open3:
+    if n3:
         pdf_ = pd.read_json(object_data)
         cols = ['i:jd', 'i:ra', 'i:dec']
         pdf = pdf_.loc[:, cols]
