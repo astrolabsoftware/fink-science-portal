@@ -181,7 +181,26 @@ def make_item(i):
     names = ["&#43; Lightcurve", '&#43; Properties', '&#43; Aladin Lite']
 
     information = []
-    lightcurve = []
+    lightcurve = html.Div(
+        [
+            dcc.Graph(
+                id='lightcurve_cutouts',
+                style={
+                    'width': '100%',
+                    'height': '15pc'
+                },
+                config={'displayModeBar': False}
+            ),
+            html.Div(
+                dbc.RadioItems(
+                    options=[{'label': k, 'value': k} for k in all_radio_options.keys()],
+                    value="Difference magnitude",
+                    id="switch-mag-flux",
+                    inline=True
+                ), style={'display': 'none'}
+            )
+        ]
+    )
     aladin = dbc.Col(visdcc.Run_js(id='aladin-lite-div'), width=12, style={'height': '15pc', 'width': '100pc'})
 
     to_display = [lightcurve, information, aladin]
