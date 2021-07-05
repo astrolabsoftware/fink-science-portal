@@ -128,7 +128,7 @@ def tab_mobile_content(pdf):
             [
                 dbc.Col(
                     dcc.Graph(
-                        figure=plot_classbar(pdf),
+                        figure=plot_classbar(pdf, is_mobile=True),
                         style={
                             'width': '100%',
                             'height': '4pc'
@@ -237,25 +237,14 @@ def layout(name, is_mobile):
                 html.Br(),
                 dbc.Container(
                     [
-                        html.Br(),
                         dbc.Row(
                             [
-                                dbc.Col(title(name, is_mobile), width=6),
+                                dbc.Col([html.Br(), card_cutouts(is_mobile)], width={"size": 12, "offset": 0},),
                             ]
                         ),
                         dbc.Row(
                             [
                                 dbc.Col(tabs(pdf, is_mobile), width=12)
-                            ]
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Col(card_cutouts(is_mobile), width=12)
-                            ]
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Col(visdcc.Run_js(id='aladin-lite-div'), width=12, style={'height': '10pc'})
                             ]
                         ),
                         html.Br(),

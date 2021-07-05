@@ -171,14 +171,7 @@ def card_cutouts(is_mobile):
             className="mt-3"
         )
     else:
-        card = dbc.Card(
-            dbc.CardBody(
-                [
-                    dbc.Row(id='stamps_mobile', justify='around', no_gutters=True),
-                ]
-            ),
-            className="mt-3"
-        )
+        card = dbc.Row(id='stamps_mobile', justify='around')
     return card
 
 def card_variable_plot():

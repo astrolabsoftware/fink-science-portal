@@ -285,7 +285,7 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
         return pdfs
     return pdfs[values]
 
-def plot_classbar(pdf):
+def plot_classbar(pdf, is_mobile=False):
     grouped = pdf.groupby('v:classification').count()
     alert_per_class = grouped['i:objectId'].to_dict()
 
@@ -364,7 +364,8 @@ def plot_classbar(pdf):
         plot_bgcolor='rgb(248, 248, 255, 0.0)',
         margin=dict(l=0, r=0, b=0, t=0)
     )
-    fig.update_layout(title_text='Individual alert classification')
+    if not is_mobile:
+        fig.update_layout(title_text='Individual alert classification')
     fig.update_layout(title_y=0.15)
     fig.update_layout(title_x=0.0)
     fig.update_layout(title_font_size=12)
@@ -1041,19 +1042,33 @@ def draw_cutouts(clickData, object_data):
     Output("stamps_mobile", "children"),
     [
         Input('object-data', 'children'),
+        Input('is-mobile', 'children')
     ])
-def draw_cutouts_mobile(object_data):
+def draw_cutouts_mobile(object_data, is_mobile):
     """ Draw cutouts data based on lightcurve data
     """
     figs = []
     for kind in ['science', 'template', 'difference']:
         try:
             data = extract_cutout(object_data, None, kind=kind)
-            figs.append(draw_cutout(data, kind))
+            figs.append(draw_cutout(data, kind, is_mobile=is_mobile))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
     return figs
+
+def create_circular_mask(h, w, center=None, radius=None):
+
+    if center is None: # use the middle of the image
+        center = (int(w/2), int(h/2))
+    if radius is None: # use the smallest distance between the center and image walls
+        radius = min(center[0], center[1], w-center[0], h-center[1])
+
+    Y, X = np.ogrid[:h, :w]
+    dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
+
+    mask = dist_from_center <= radius
+    return mask
 
 def sigmoid(img: list) -> list:
 
@@ -1111,7 +1126,7 @@ def legacy_normalizer(data: list, stretch='asinh', pmin=0.5, pmax=99.5) -> list:
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -1122,9 +1137,18 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
     data = data[::-1]
     data = convolve(data, smooth=1, kernel='gauss')
 
+    if is_mobile:
+        mask = create_circular_mask(len(data), len(data[0]), center=None, radius=None)
+        data[~mask] = np.nan
+
+    if is_mobile:
+        zsmooth = 'fast'
+    else:
+        zsmooth = False
+
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, colorscale='Greys_r', hoverinfo='skip'
+            z=data, showscale=False, hoverinfo='skip', colorscale='Greys_r', zsmooth=zsmooth
         )
     )
     # Greys_r
@@ -1136,21 +1160,25 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
         ticks='')
 
     fig.update_layout(
-        title=title,
+        title='',
         margin=dict(t=0, r=0, b=0, l=0),
         xaxis=axis_template,
         yaxis=axis_template,
         showlegend=True,
-        width=150, height=150,
-        autosize=False
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
     )
+
+    if not is_mobile:
+        fig.update_layout(width=150, height=150)
+        style = {'display': 'inline-block', 'height': '10pc', 'width': '10pc'}
+    else:
+        style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
 
     graph = dcc.Graph(
         id='{}-stamps'.format(title),
         figure=fig,
-        style={
-            'display': 'inline-block',
-        },
+        style=style,
         config={'displayModeBar': False}
     )
     return graph
