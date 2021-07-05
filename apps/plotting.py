@@ -371,9 +371,9 @@ def plot_classbar(pdf, is_mobile=False):
     )
     if not is_mobile:
         fig.update_layout(title_text='Individual alert classification')
-    fig.update_layout(title_y=0.15)
-    fig.update_layout(title_x=0.0)
-    fig.update_layout(title_font_size=12)
+        fig.update_layout(title_y=0.15)
+        fig.update_layout(title_x=0.0)
+        fig.update_layout(title_font_size=12)
     return fig
 
 @app.callback(
