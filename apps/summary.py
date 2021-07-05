@@ -178,30 +178,25 @@ def title(name, is_mobile):
 
 def make_item(i):
     # we use this function to make the example items to avoid code duplication
-    names = ['Lightcurve', 'Properties', 'TBD']
+    names = ["&#43; Lightcurve", '&#43; Properties', '&#43; TBD']
 
     # information = []
     # lightcurve = []
 
-    return dbc.Card(
-        [
-            dbc.CardHeader(
-                html.H2(
-                    dbc.Button(
-                        html.H5(children='{}'.format(names[i-1]), style={'color': '#15284F'}),
-                        color='link',
-                        id=f"group-{i}-toggle",
-                        n_clicks=0,
-                    )
-                )
-            ),
-            dbc.Collapse(
-                dbc.CardBody(f"This is the content of group {i}..."),
-                id=f"collapse-{i}",
-                is_open=False,
-            ),
-        ]
+    header = html.H2(
+        dbc.Button(
+            html.H5(children=dcc.Markdown('{}'.format(names[i - 1])), style={'color': '#15284F'}),
+            color='link',
+            id=f"group-{i}-toggle",
+            n_clicks=0,
+        )
     )
+    coll = dbc.Collapse(
+        dbc.CardBody(f"This is the content of group {i}..."),
+        id=f"collapse-{i}",
+        is_open=False,
+    )
+    return html.Div([header, html.Hr(), coll])
 
 
 accordion = html.Div(
