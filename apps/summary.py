@@ -161,16 +161,15 @@ def tabs(pdf, is_mobile):
 
 def title(name, is_mobile):
     if is_mobile:
-        header = html.H2(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+        header = [html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})]
     else:
-        header = html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+        header = [html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'), html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})]
     title_ = dbc.Card(
         dbc.CardHeader(
             [
-                dbc.Row([
-                    html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='20%', width='20%'),
+                dbc.Row(
                     header
-                ])
+                )
             ]
         ),
     )
@@ -241,17 +240,26 @@ def layout(name, is_mobile):
                         html.Br(),
                         dbc.Row(
                             [
-                                dbc.Col(title(name, is_mobile), width=12)
+                                dbc.Col(title(name, is_mobile), width=6),
                             ]
                         ),
                         dbc.Row(
                             [
-                                dbc.Col(tabs(pdf, is_mobile), width=8)
+                                dbc.Col(tabs(pdf, is_mobile), width=12)
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(visdcc.Run_js(id='aladin-lite-div'), width=12, style={'height': '10pc'})
                             ]
                         ),
                         html.Br(),
                     ], id='webinprog', fluid=True, style={'width': '100%'}
                 ),
+            html.Div(id='object-data', style={'display': 'none'}),
+            html.Div(id='object-upper', style={'display': 'none'}),
+            html.Div(id='object-uppervalid', style={'display': 'none'}),
+            html.Div(id='object-sso', style={'display': 'none'}),
             ],
             className='home',
             style={
