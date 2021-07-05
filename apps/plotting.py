@@ -21,6 +21,7 @@ import copy
 from astropy.time import Time
 
 import dash
+import dash_table
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 import plotly.express as px
@@ -1759,3 +1760,47 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
         config={'displayModeBar': False}
     )
     return graph
+
+@app.callback(
+    Output('alert_table', 'children'),
+    [
+        Input('object-data', 'children')
+    ])
+def alert_properties(object_data):
+    pdf_ = pd.read_json(object_data)
+    pdf = pdf_.head(1).T
+    columns = [
+        {
+            'id': c,
+            'name': c,
+            'type': 'text',
+            # 'hideable': True,
+            'presentation': 'markdown',
+        } for c in pdf.columns
+    ]
+    data = pdf.to_dict('records')
+    table = dash_table.DataTable(
+        data=data,
+        columns=columns,
+        id='result_table_alert',
+        style_as_list_view=True,
+        sort_action="native",
+        filter_action="native",
+        markdown_options={'link_target': '_blank'},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_table={'maxWidth': '100%'},
+        style_cell={'padding': '5px', 'textAlign': 'center', 'overflow': 'hidden'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    )
+    return table
