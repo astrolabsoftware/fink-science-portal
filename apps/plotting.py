@@ -1800,7 +1800,7 @@ def alert_properties(object_data):
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         },
         style_table={'maxWidth': '100%'},
-        style_cell={'padding': '5px', 'textAlign': 'center', 'overflow': 'hidden'},
+        style_cell={'padding': '5px', 'textAlign': 'left', 'overflow': 'hidden'},
         style_data_conditional=[
             {
                 'if': {'row_index': 'odd'},
