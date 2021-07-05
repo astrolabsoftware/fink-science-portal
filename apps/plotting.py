@@ -1769,6 +1769,13 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
 def alert_properties(object_data):
     pdf_ = pd.read_json(object_data)
     pdf = pdf_.head(1)
+    pdf = pdf.drop(
+        [
+            'b:cutoutDifference_stampData',
+            'b:cutoutScience_stampData',
+            'b:cutoutTemplate_stampData'
+        ]
+    )
     pdf = pd.DataFrame({'Name': pdf.columns, 'Value': pdf.values[0]})
     columns = [
         {
