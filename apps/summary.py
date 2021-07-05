@@ -217,6 +217,15 @@ def store_query(name):
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json()
 
 def layout(name, is_mobile):
+    # even if there is one object ID, this returns  several alerts
+    r = requests.post(
+        '{}/api/v1/objects'.format(APIURL),
+        json={
+            'objectId': name[1:],
+        }
+    )
+    pdf = pd.read_json(r.content)
+
     if is_mobile:
         alerts = html.Div(
             [
@@ -251,15 +260,6 @@ def layout(name, is_mobile):
             }
         )
     else:
-        # even if there is one object ID, this returns  several alerts
-        r = requests.post(
-            '{}/api/v1/objects'.format(APIURL),
-            json={
-                'objectId': name[1:],
-            }
-        )
-        pdf = pd.read_json(r.content)
-
         layout_ = html.Div(
             [
                 html.Br(),
