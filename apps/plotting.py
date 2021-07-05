@@ -1021,7 +1021,7 @@ def extract_cutout(object_data, time0, kind):
         Input('object-data', 'children'),
     ])
 def draw_cutouts(clickData, object_data):
-    """ Draw difference cutout data based on lightcurve data
+    """ Draw cutouts data based on lightcurve data
     """
     if clickData is not None:
         jd0 = clickData['points'][0]['x']
@@ -1031,6 +1031,24 @@ def draw_cutouts(clickData, object_data):
     for kind in ['science', 'template', 'difference']:
         try:
             data = extract_cutout(object_data, jd0, kind=kind)
+            figs.append(draw_cutout(data, kind))
+        except OSError:
+            data = dcc.Markdown("Load fail, refresh the page")
+            figs.append(data)
+    return figs
+
+@app.callback(
+    Output("stamps_mobile", "children"),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_cutouts_mobile(object_data):
+    """ Draw cutouts data based on lightcurve data
+    """
+    figs = []
+    for kind in ['science', 'template', 'difference']:
+        try:
+            data = extract_cutout(object_data, None, kind=kind)
             figs.append(draw_cutout(data, kind))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")

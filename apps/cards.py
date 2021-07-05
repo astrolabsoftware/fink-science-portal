@@ -174,7 +174,7 @@ def card_cutouts(is_mobile):
         card = dbc.Card(
             dbc.CardBody(
                 [
-                    dbc.Row(id='stamps', justify='around', no_gutters=True),
+                    dbc.Row(id='stamps_mobile', justify='around', no_gutters=True),
                 ]
             ),
             className="mt-3"
