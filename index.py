@@ -854,6 +854,7 @@ navbar = dbc.Navbar(
             ),
             id="navbar-collapse2",
             navbar=True,
+            style={'background-color': 'rgb(255,250,250)'}
         )
     ],
     color="rgba(255,255,255,0.9)",
