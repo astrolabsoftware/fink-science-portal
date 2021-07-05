@@ -178,10 +178,13 @@ def title(name, is_mobile):
 
 def make_item(i):
     # we use this function to make the example items to avoid code duplication
-    names = ["&#43; Lightcurve", '&#43; Properties', '&#43; TBD']
+    names = ["&#43; Lightcurve", '&#43; Properties', '&#43; Aladin Lite']
 
-    # information = []
-    # lightcurve = []
+    information = []
+    lightcurve = []
+    aladin = dbc.Col(visdcc.Run_js(id='aladin-lite-div'), width=12, style={'height': '10pc'})
+
+    to_display = [lightcurve, information, aladin]
 
     header = html.H2(
         dbc.Button(
@@ -192,7 +195,7 @@ def make_item(i):
         )
     )
     coll = dbc.Collapse(
-        dbc.CardBody(f"This is the content of group {i}..."),
+        to_display[i - 1],
         id=f"collapse-{i}",
         is_open=False,
     )
