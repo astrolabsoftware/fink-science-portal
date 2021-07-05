@@ -191,6 +191,8 @@ def title(name, is_mobile):
     Input('object-data', 'children')
 )
 def create_external_links(object_data):
+    """ Create links to external website. Used in the mobile app.
+    """
     pdf = pd.read_json(object_data)
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
