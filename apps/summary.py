@@ -230,7 +230,16 @@ def layout(name, is_mobile):
                 dbc.Container(
                     [
                         html.Br(),
-                        dbc.Row([dbc.Col(title(name, is_mobile), width=12)]),
+                        dbc.Row(
+                            [
+                                dbc.Col(title(name, is_mobile), width=12)
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(tabs(pdf, is_mobile), width=8)
+                            ]
+                        ),
                         html.Br(),
                     ], id='webinprog', fluid=True, style={'width': '100%'}
                 ),
@@ -272,7 +281,7 @@ def layout(name, is_mobile):
                                 *download_object_modal(pdf['i:objectId'].values[0])
                             ], width={"size": 3},
                         ),
-                        dbc.Col(tabs(pdf), width=8)
+                        dbc.Col(tabs(pdf, is_mobile), width=8)
                     ],
                     justify="around", no_gutters=True
                 ),
