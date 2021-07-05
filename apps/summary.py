@@ -298,17 +298,18 @@ def layout(name, is_mobile):
     pdf = pd.read_json(r.content)
 
     if is_mobile:
-        alerts = html.Div(
-            [
-                dbc.Alert("Sorry for the inconvenience, the Web app will be shortly available.", color="info"),
-            ]
-        )
         layout_ = html.Div(
             [
                 html.Br(),
                 html.Br(),
                 dbc.Container(
                     [
+                        dbc.Row(
+                            [
+                                dbc.Col(title(name, is_mobile), width={"size": 12, "offset": 0},),
+                            ]
+                        ),
+                        html.Br(),
                         dbc.Row(
                             [
                                 dbc.Col([html.Br(), card_cutouts(is_mobile)], width={"size": 12, "offset": 0},),
