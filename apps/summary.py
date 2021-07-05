@@ -133,13 +133,17 @@ def tabs(pdf):
     )
     return tabs_
 
-def title(name):
+def title(name, is_mobile):
+    if is_mobile:
+        header = html.H2(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+    else:
+        header = html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
     title_ = dbc.Card(
         dbc.CardHeader(
             [
                 dbc.Row([
                     html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='20%', width='20%'),
-                    html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+                    header
                 ])
             ]
         ),
@@ -200,9 +204,9 @@ def layout(name, is_mobile):
                 dbc.Container(
                     [
                         html.Br(),
-                        alerts,
+                        dbc.Row([dbc.Col(title(name, is_mobile), width=12)]),
                         html.Br(),
-                    ], id='webinprog', fluid=True, style={'width': '60%'}
+                    ], id='webinprog', fluid=True, style={'width': '100%'}
                 ),
             ],
             className='home',
@@ -229,7 +233,7 @@ def layout(name, is_mobile):
                     [
                         dbc.Col(
                             [
-                                title(name),
+                                title(name, is_mobile),
                                 html.Br(),
                                 html.Div(
                                     [visdcc.Run_js(id='aladin-lite-div')],
