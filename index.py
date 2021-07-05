@@ -265,10 +265,11 @@ def display_table_results(table):
     [
         Input("validate_results", "value"),
         Input("result_table", "data"),
-        Input("result_table", "columns")
+        Input("result_table", "columns"),
+        Input('tabs', 'active_tab')
     ],
 )
-def display_skymap(validation, data, columns):
+def display_skymap(validation, data, columns, activetab):
     """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
@@ -285,10 +286,11 @@ def display_skymap(validation, data, columns):
     """
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    print(button_id, activetab, validation)
     if len(data) > 1000:
         msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
         return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
-    if validation and (button_id == "validate_results"):
+    if validation and (activetab == 't2'):
         pdf = pd.DataFrame(data)
 
         # Coordinate of the first alert

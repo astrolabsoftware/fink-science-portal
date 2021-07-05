@@ -436,16 +436,24 @@ def layout(name, is_mobile):
                 html.Div(id='object-data', style={'display': 'none'}),
                 html.Div(id='object-upper', style={'display': 'none'}),
                 html.Div(id='object-uppervalid', style={'display': 'none'}),
-                html.Div(id='object-sso', style={'display': 'none'}),
+                html.Div(id='object-sso', style={'display': 'none'})
             ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
         )
 
     return layout_
 
 @app.callback(
-    Output('aladin-lite-div2', 'run'), Input('object-data', 'children'))
-def integrate_aladin_lite(object_data):
-    """ Integrate aladin light in the 2nd Tab of the dashboard.
+    Output('aladin-lite-div2', 'run'),
+    [
+        Input('object-data', 'children'),
+        Input(f"group-3-toggle", "n_clicks")
+    ],
+    [
+        State(f"collapse-3", "is_open")
+    ]
+)
+def integrate_aladin_lite_mobile(object_data, n3, is_open3):
+    """ Integrate aladin light in the mobile app.
 
     the default parameters are:
         * PanSTARRS colors
