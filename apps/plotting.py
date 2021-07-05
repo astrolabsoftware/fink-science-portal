@@ -320,6 +320,10 @@ def plot_classbar(pdf, is_mobile=False):
             is_seen.append(top_labels[i])
 
             percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(int)
+            if is_mobile:
+                name_legend = top_labels[i]
+            else:
+                name_legend = top_labels[i] + ': {}%'.format(percent)
             fig.add_trace(
                 go.Bar(
                     x=[xd[i]], y=[yd],
@@ -327,7 +331,7 @@ def plot_classbar(pdf, is_mobile=False):
                     width=0.3,
                     showlegend=showlegend,
                     legendgroup=top_labels[i],
-                    name=top_labels[i] + ': {}%'.format(percent),
+                    name=name_legend,
                     marker=dict(
                         color=colors[i],
                     ),
@@ -374,6 +378,8 @@ def plot_classbar(pdf, is_mobile=False):
         fig.update_layout(title_y=0.15)
         fig.update_layout(title_x=0.0)
         fig.update_layout(title_font_size=12)
+    if is_mobile:
+        fig.update_layout(legend=dict(font=dict(size=10)))
     return fig
 
 @app.callback(
