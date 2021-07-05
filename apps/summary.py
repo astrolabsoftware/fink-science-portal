@@ -34,6 +34,7 @@ from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
 from apps.plotting import plot_classbar
+from apps.plotting import all_radio_options
 
 from apps.utils import format_hbase_output
 from apps.api import APIURL
