@@ -188,7 +188,7 @@ def make_item(i):
             dbc.CardHeader(
                 html.H2(
                     dbc.Button(
-                        html.H5(children='{}'.format(names[i]), style={'color': '#15284F'}),
+                        html.H5(children='{}'.format(names[i-1]), style={'color': '#15284F'}),
                         id=f"group-{i}-toggle",
                         n_clicks=0,
                     )
