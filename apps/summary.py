@@ -181,7 +181,7 @@ def make_item(i):
     # we use this function to make the example items to avoid code duplication
     names = ["&#43; Lightcurve", '&#43; Properties', '&#43; Aladin Lite']
 
-    information = []
+    information = html.Div([], id='alert_table')
     lightcurve = html.Div(
         [
             dcc.Graph(
