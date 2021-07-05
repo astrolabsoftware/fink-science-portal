@@ -178,13 +178,17 @@ def title(name, is_mobile):
 
 def make_item(i):
     # we use this function to make the example items to avoid code duplication
+    names = ['Lightcurve', 'Properties']
+
+    # information = []
+    # lightcurve = []
+
     return dbc.Card(
         [
             dbc.CardHeader(
                 html.H2(
                     dbc.Button(
-                        f"Collapsible group #{i}",
-                        color="link",
+                        html.H5(children='{}'.format(names[i]), style={'color': '#15284F'}),
                         id=f"group-{i}-toggle",
                         n_clicks=0,
                     )
