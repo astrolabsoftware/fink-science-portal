@@ -182,7 +182,7 @@ def make_item(i):
 
     information = []
     lightcurve = []
-    aladin = dbc.Col(visdcc.Run_js(id='aladin-lite-div'), width=12, style={'height': '10pc'})
+    aladin = dbc.Col(visdcc.Run_js(id='aladin-lite-div'), width=12)
 
     to_display = [lightcurve, information, aladin]
 
