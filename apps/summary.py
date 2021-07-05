@@ -120,17 +120,43 @@ def tab5_content(pdf):
     ])
     return tab5_content_
 
-def tabs(pdf):
-    tabs_ = dbc.Tabs(
-        [
-            dbc.Tab(tab1_content(pdf), label="Summary", tab_style={"margin-left": "auto"}),
-            dbc.Tab(tab2_content(pdf), label="Supernovae"),
-            dbc.Tab(tab3_content(pdf), label="Variable stars"),
-            dbc.Tab(tab4_content(pdf), label="Microlensing"),
-            dbc.Tab(tab5_content(pdf), label="Solar System"),
-            dbc.Tab(label="GRB", disabled=True)
-        ]
-    )
+def tab_mobile_content(pdf):
+    """ Content for mobile application
+    """
+    content_ = html.Div([
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Graph(
+                        figure=plot_classbar(pdf),
+                        style={
+                            'width': '100%',
+                            'height': '4pc'
+                        },
+                        config={'displayModeBar': False},
+                        id='classbar'
+                    ),
+                    width=12
+                ),
+            ], justify='around'
+        ),
+    ])
+    return content_
+
+def tabs(pdf, is_mobile):
+    if is_mobile:
+        tabs_ = tab_mobile_content(pdf)
+    else:
+        tabs_ = dbc.Tabs(
+            [
+                dbc.Tab(tab1_content(pdf), label="Summary", tab_style={"margin-left": "auto"}),
+                dbc.Tab(tab2_content(pdf), label="Supernovae"),
+                dbc.Tab(tab3_content(pdf), label="Variable stars"),
+                dbc.Tab(tab4_content(pdf), label="Microlensing"),
+                dbc.Tab(tab5_content(pdf), label="Solar System"),
+                dbc.Tab(label="GRB", disabled=True)
+            ]
+        )
     return tabs_
 
 def title(name, is_mobile):
