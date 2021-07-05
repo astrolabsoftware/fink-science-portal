@@ -188,7 +188,7 @@ def title(name, is_mobile):
 
 def make_item(i):
     # we use this function to make the example items to avoid code duplication
-    names = ["&#43; Lightcurve", '&#43; Properties', '&#43; Aladin Lite']
+    names = ["&#43; Lightcurve", '&#43; Last alert properties', '&#43; Aladin Lite', '&#43; External links']
 
     information = html.Div([], id='alert_table')
     lightcurve = html.Div(
@@ -218,8 +218,33 @@ def make_item(i):
             'height': '25pc'
         }
     )
+    external = dbc.CardBody(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.ButtonGroup([
+                            dbc.Button('TNS', id='TNS', target="_blank", href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0), color='light'),
+                            dbc.Button('OAC', id='OAC', target="_blank", href='https://api.astrocats.space/catalog?ra={}&dec={}&radius=2'.format(ra0, dec0), color='light'),
+                        ]), width=12
+                    )
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.ButtonGroup([
+                            dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0), color="light"),
+                            dbc.Button('NED', id='NED', target="_blank", href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0), color="light"),
+                            dbc.Button('SDSS', id='SDSS', target="_blank", href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0), color="light"),
+                        ]), width=12
+                    )
+                ]
+            ),
+        ]
+    )
 
-    to_display = [lightcurve, information, aladin]
+    to_display = [lightcurve, information, aladin, external]
 
     header = html.H2(
         dbc.Button(
@@ -238,30 +263,32 @@ def make_item(i):
 
 
 accordion = html.Div(
-    [make_item(1), make_item(2), make_item(3)], className="accordion"
+    [make_item(1), make_item(2), make_item(3), make_item(4)], className="accordion"
 )
 
 
 @app.callback(
-    [Output(f"collapse-{i}", "is_open") for i in range(1, 4)],
-    [Input(f"group-{i}-toggle", "n_clicks") for i in range(1, 4)],
-    [State(f"collapse-{i}", "is_open") for i in range(1, 4)],
+    [Output(f"collapse-{i}", "is_open") for i in range(1, 5)],
+    [Input(f"group-{i}-toggle", "n_clicks") for i in range(1, 5)],
+    [State(f"collapse-{i}", "is_open") for i in range(1, 5)],
 )
-def toggle_accordion(n1, n2, n3, is_open1, is_open2, is_open3):
+def toggle_accordion(n1, n2, n3, n4, is_open1, is_open2, is_open3, is_open4):
     ctx = dash.callback_context
 
     if not ctx.triggered:
-        return False, False, False
+        return False, False, False, False
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "group-1-toggle" and n1:
-        return not is_open1, False, False
+        return not is_open1, False, False, False
     elif button_id == "group-2-toggle" and n2:
-        return False, not is_open2, False
+        return False, not is_open2, False, False
     elif button_id == "group-3-toggle" and n3:
-        return False, False, not is_open3
-    return False, False, False
+        return False, False, not is_open3, False
+    elif button_id == "group-4-toggle" and n4:
+        return False, False, False, not is_open4
+    return False, False, False, False
 
 @app.callback(
     [
@@ -340,27 +367,6 @@ def layout(name, is_mobile):
                         dbc.Row(
                             [
                                 dbc.Col(accordion, width=12)
-                            ]
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    dbc.ButtonGroup([
-                                        dbc.Button('TNS', id='TNS', target="_blank", href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0), color='light'),
-                                        dbc.Button('OAC', id='OAC', target="_blank", href='https://api.astrocats.space/catalog?ra={}&dec={}&radius=2'.format(ra0, dec0), color='light'),
-                                    ]), width=12
-                                )
-                            ]
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    dbc.ButtonGroup([
-                                        dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0), color="light"),
-                                        dbc.Button('NED', id='NED', target="_blank", href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0), color="light"),
-                                        dbc.Button('SDSS', id='SDSS', target="_blank", href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0), color="light"),
-                                    ]), width=12
-                                )
                             ]
                         ),
                     ], id='webinprog', fluid=True, style={'width': '100%'}
