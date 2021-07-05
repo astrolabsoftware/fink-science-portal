@@ -164,9 +164,13 @@ def tabs(pdf, is_mobile):
 def title(name, is_mobile):
     if is_mobile:
         header = [
-            html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'),
-            html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'}),
-            html.Hr()
+            html.Hr(),
+            dbc.Row(
+                [
+                    html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'),
+                    html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+                ]
+            ),
         ]
         title_ = html.Div(header)
     else:
@@ -207,7 +211,13 @@ def make_item(i):
             )
         ]
     )
-    aladin = dbc.Col(html.Div(visdcc.Run_js(id='aladin-lite-div')), width=12, style={'height': '15pc', 'width': '100pc'})
+    aladin = html.Div(
+        [visdcc.Run_js(id='aladin-lite-div')],
+        style={
+            'width': '100%',
+            'height': '25pc'
+        }
+    )
 
     to_display = [lightcurve, information, aladin]
 
