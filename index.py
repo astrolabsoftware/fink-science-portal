@@ -899,6 +899,10 @@ app.clientside_callback(
     [Input('url', 'pathname'), Input('is-mobile', 'children')]
 )
 def display_page(pathname, is_mobile):
+    if is_mobile:
+        width = '100%'
+    else:
+        width = '60%'
     layout = html.Div(
         [
             html.Br(),
@@ -916,7 +920,7 @@ def display_page(pathname, is_mobile):
                     ),
                     html.Br(),
                     noresults_toast
-                ], id='trash', fluid=True, style={'width': '60%'}
+                ], id='trash', fluid=True, style={'width': width}
             ),
             dbc.Container(id='results'),
             dbc.Input(id='validate_results', style={'display': 'none'}),
