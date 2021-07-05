@@ -900,7 +900,7 @@ app.clientside_callback(
 )
 def display_page(pathname, is_mobile):
     if is_mobile:
-        width = '100%'
+        width = '95%'
     else:
         width = '60%'
     layout = html.Div(
