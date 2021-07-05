@@ -336,6 +336,10 @@ def plot_classbar(pdf, is_mobile=False):
                 )
             )
 
+    if is_mobile:
+        legend_shift = 0.0
+    else:
+        legend_shift = 0.2
     fig.update_layout(
         xaxis=dict(
             showgrid=False,
@@ -357,7 +361,7 @@ def plot_classbar(pdf, is_mobile=False):
             yanchor='bottom',
             itemclick=False,
             itemdoubleclick=False,
-            x=0.2
+            x=legend_shift
         ),
         barmode='stack',
         dragmode=False,
