@@ -166,19 +166,21 @@ def title(name, is_mobile):
         header = [
             html.Br(),
             html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'),
-            html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+            html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'}),
+            html.Hr()
         ]
+        title_ = html.Div(header)
     else:
         header = [html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'), html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})]
-    title_ = dbc.Card(
-        dbc.CardHeader(
-            [
-                dbc.Row(
-                    header
-                )
-            ]
-        ),
-    )
+        title_ = dbc.Card(
+            dbc.CardHeader(
+                [
+                    dbc.Row(
+                        header
+                    )
+                ]
+            ),
+        )
     return title_
 
 def make_item(i):
