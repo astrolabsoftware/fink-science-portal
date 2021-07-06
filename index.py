@@ -936,7 +936,7 @@ def display_page(pathname, is_mobile):
     if pathname == '/about':
         return about.layout
     elif pathname == '/api':
-        return api.layout
+        return api.layout(is_mobile)
     elif 'ZTF' in pathname:
         return summary.layout(pathname, is_mobile)
     else:
