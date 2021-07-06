@@ -265,10 +265,11 @@ def display_table_results(table):
     [
         Input("validate_results", "value"),
         Input("result_table", "data"),
-        Input("result_table", "columns")
+        Input("result_table", "columns"),
+        Input('tabs', 'active_tab')
     ],
 )
-def display_skymap(validation, data, columns):
+def display_skymap(validation, data, columns, activetab):
     """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
@@ -285,10 +286,11 @@ def display_skymap(validation, data, columns):
     """
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    print(button_id, activetab, validation)
     if len(data) > 1000:
         msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
         return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
-    if validation and (button_id == "validate_results"):
+    if validation and (activetab == 't2'):
         pdf = pd.DataFrame(data)
 
         # Coordinate of the first alert
@@ -854,6 +856,7 @@ navbar = dbc.Navbar(
             ),
             id="navbar-collapse2",
             navbar=True,
+            style={'background-color': 'rgb(255,250,250)'}
         )
     ],
     color="rgba(255,255,255,0.9)",
@@ -861,6 +864,17 @@ navbar = dbc.Navbar(
     className="finknav",
     fixed='top'
 )
+
+# add callback for toggling the collapse on small screens
+@app.callback(
+    Output("navbar-collapse2", "is_open"),
+    [Input("navbar-toggler2", "n_clicks")],
+    [State("navbar-collapse2", "is_open")],
+)
+def toggle_navbar_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 # embedding the navigation bar
 app.layout = html.Div([
@@ -887,6 +901,10 @@ app.clientside_callback(
     [Input('url', 'pathname'), Input('is-mobile', 'children')]
 )
 def display_page(pathname, is_mobile):
+    if is_mobile:
+        width = '95%'
+    else:
+        width = '60%'
     layout = html.Div(
         [
             html.Br(),
@@ -904,7 +922,7 @@ def display_page(pathname, is_mobile):
                     ),
                     html.Br(),
                     noresults_toast
-                ], id='trash', fluid=True, style={'width': '60%'}
+                ], id='trash', fluid=True, style={'width': width}
             ),
             dbc.Container(id='results'),
             dbc.Input(id='validate_results', style={'display': 'none'}),

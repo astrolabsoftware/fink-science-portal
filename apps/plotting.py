@@ -21,6 +21,7 @@ import copy
 from astropy.time import Time
 
 import dash
+import dash_table
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 import plotly.express as px
@@ -285,7 +286,7 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
         return pdfs
     return pdfs[values]
 
-def plot_classbar(pdf):
+def plot_classbar(pdf, is_mobile=False):
     grouped = pdf.groupby('v:classification').count()
     alert_per_class = grouped['i:objectId'].to_dict()
 
@@ -319,6 +320,10 @@ def plot_classbar(pdf):
             is_seen.append(top_labels[i])
 
             percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(int)
+            if is_mobile:
+                name_legend = top_labels[i]
+            else:
+                name_legend = top_labels[i] + ': {}%'.format(percent)
             fig.add_trace(
                 go.Bar(
                     x=[xd[i]], y=[yd],
@@ -326,7 +331,7 @@ def plot_classbar(pdf):
                     width=0.3,
                     showlegend=showlegend,
                     legendgroup=top_labels[i],
-                    name=top_labels[i] + ': {}%'.format(percent),
+                    name=name_legend,
                     marker=dict(
                         color=colors[i],
                     ),
@@ -335,6 +340,10 @@ def plot_classbar(pdf):
                 )
             )
 
+    if is_mobile:
+        legend_shift = 0.0
+    else:
+        legend_shift = 0.2
     fig.update_layout(
         xaxis=dict(
             showgrid=False,
@@ -356,7 +365,7 @@ def plot_classbar(pdf):
             yanchor='bottom',
             itemclick=False,
             itemdoubleclick=False,
-            x=0.2
+            x=legend_shift
         ),
         barmode='stack',
         dragmode=False,
@@ -364,10 +373,13 @@ def plot_classbar(pdf):
         plot_bgcolor='rgb(248, 248, 255, 0.0)',
         margin=dict(l=0, r=0, b=0, t=0)
     )
-    fig.update_layout(title_text='Individual alert classification')
-    fig.update_layout(title_y=0.15)
-    fig.update_layout(title_x=0.0)
-    fig.update_layout(title_font_size=12)
+    if not is_mobile:
+        fig.update_layout(title_text='Individual alert classification')
+        fig.update_layout(title_y=0.15)
+        fig.update_layout(title_x=0.0)
+        fig.update_layout(title_font_size=12)
+    if is_mobile:
+        fig.update_layout(legend=dict(font=dict(size=10)))
     return fig
 
 @app.callback(
@@ -1021,7 +1033,7 @@ def extract_cutout(object_data, time0, kind):
         Input('object-data', 'children'),
     ])
 def draw_cutouts(clickData, object_data):
-    """ Draw difference cutout data based on lightcurve data
+    """ Draw cutouts data based on lightcurve data
     """
     if clickData is not None:
         jd0 = clickData['points'][0]['x']
@@ -1036,6 +1048,38 @@ def draw_cutouts(clickData, object_data):
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
     return figs
+
+@app.callback(
+    Output("stamps_mobile", "children"),
+    [
+        Input('object-data', 'children'),
+        Input('is-mobile', 'children')
+    ])
+def draw_cutouts_mobile(object_data, is_mobile):
+    """ Draw cutouts data based on lightcurve data
+    """
+    figs = []
+    for kind in ['science', 'template', 'difference']:
+        try:
+            data = extract_cutout(object_data, None, kind=kind)
+            figs.append(draw_cutout(data, kind, is_mobile=is_mobile))
+        except OSError:
+            data = dcc.Markdown("Load fail, refresh the page")
+            figs.append(data)
+    return figs
+
+def create_circular_mask(h, w, center=None, radius=None):
+
+    if center is None: # use the middle of the image
+        center = (int(w/2), int(h/2))
+    if radius is None: # use the smallest distance between the center and image walls
+        radius = min(center[0], center[1], w-center[0], h-center[1])
+
+    Y, X = np.ogrid[:h, :w]
+    dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
+
+    mask = dist_from_center <= radius
+    return mask
 
 def sigmoid(img: list) -> list:
 
@@ -1093,7 +1137,7 @@ def legacy_normalizer(data: list, stretch='asinh', pmin=0.5, pmax=99.5) -> list:
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -1104,9 +1148,18 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
     data = data[::-1]
     data = convolve(data, smooth=1, kernel='gauss')
 
+    if is_mobile:
+        mask = create_circular_mask(len(data), len(data[0]), center=None, radius=None)
+        data[~mask] = np.nan
+
+    if is_mobile:
+        zsmooth = 'fast'
+    else:
+        zsmooth = False
+
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, colorscale='Greys_r', hoverinfo='skip'
+            z=data, showscale=False, hoverinfo='skip', colorscale='Greys_r', zsmooth=zsmooth
         )
     )
     # Greys_r
@@ -1118,21 +1171,25 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1):
         ticks='')
 
     fig.update_layout(
-        title=title,
+        title='',
         margin=dict(t=0, r=0, b=0, l=0),
         xaxis=axis_template,
         yaxis=axis_template,
         showlegend=True,
-        width=150, height=150,
-        autosize=False
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
     )
+
+    if not is_mobile:
+        fig.update_layout(width=150, height=150)
+        style = {'display': 'inline-block', 'height': '10pc', 'width': '10pc'}
+    else:
+        style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
 
     graph = dcc.Graph(
         id='{}-stamps'.format(title),
         figure=fig,
-        style={
-            'display': 'inline-block',
-        },
+        style=style,
         config={'displayModeBar': False}
     )
     return graph
@@ -1713,3 +1770,56 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
         config={'displayModeBar': False}
     )
     return graph
+
+@app.callback(
+    Output('alert_table', 'children'),
+    [
+        Input('object-data', 'children')
+    ])
+def alert_properties(object_data):
+    pdf_ = pd.read_json(object_data)
+    pdf = pdf_.head(1)
+    pdf = pdf.drop(
+        columns=[
+            'b:cutoutDifference_stampData',
+            'b:cutoutScience_stampData',
+            'b:cutoutTemplate_stampData'
+        ]
+    )
+    pdf = pd.DataFrame({'Name': pdf.columns, 'Value': pdf.values[0]})
+    columns = [
+        {
+            'id': c,
+            'name': c,
+            'type': 'text',
+            # 'hideable': True,
+            'presentation': 'markdown',
+        } for c in pdf.columns
+    ]
+    data = pdf.to_dict('records')
+    table = dash_table.DataTable(
+        data=data,
+        columns=columns,
+        id='result_table_alert',
+        style_as_list_view=True,
+        sort_action="native",
+        filter_action="native",
+        markdown_options={'link_target': '_blank'},
+        fixed_columns={'headers': True, 'data': 1},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_table={'maxWidth': '100%'},
+        style_cell={'padding': '5px', 'textAlign': 'left', 'overflow': 'hidden'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    )
+    return table
