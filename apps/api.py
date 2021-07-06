@@ -800,12 +800,12 @@ in degree between the input (ra, dec) and the objects found.
 
 """
 
-def api_layout(is_mobile):
+def layout(is_mobile):
     if is_mobile:
         width = '95%'
     else:
         width = '80%'
-    layout = html.Div(
+    layout_ = html.Div(
         [
             html.Br(),
             html.Br(),
@@ -901,7 +901,7 @@ def api_layout(is_mobile):
             'background-size': 'contain'
         }
     )
-    return layout
+    return layout_
 
 
 args_objects = [
