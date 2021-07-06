@@ -800,102 +800,109 @@ in degree between the input (ra, dec) and the objects found.
 
 """
 
-layout = html.Div(
-    [
-        html.Br(),
-        html.Br(),
-        html.Br(),
-        dbc.Container(
-            [
-                dbc.Row(
-                    [
-                        dbc.Card(
-                            dbc.CardBody(
-                                dcc.Markdown(api_doc_summary)
-                            ), style={
-                                'backgroundColor': 'rgb(248, 248, 248, .7)'
-                            }
-                        ),
-                    ]
-                ),
-                html.Br(),
-                dbc.Tabs(
-                    [
-                        dbc.Tab(
-                            [
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        dcc.Markdown(api_doc_object)
-                                    ), style={
-                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                    }
-                                ),
-                            ], label="Retrieve object data"
-                        ),
-                        dbc.Tab(
-                            [
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        dcc.Markdown(api_doc_explorer)
-                                    ), style={
-                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                    }
-                                ),
-                            ], label="Query the database"
-                        ),
-                        dbc.Tab(
-                            [
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        dcc.Markdown(api_doc_latests)
-                                    ), style={
-                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                    }
-                                ),
-                            ], label="Get latest alerts"
-                        ),
-                        dbc.Tab(
-                            [
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        dcc.Markdown(api_doc_sso)
-                                    ), style={
-                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                    }
-                                ),
-                            ], label="Get Solar System Objects"
-                        ),
-                        dbc.Tab(
-                            [
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        dcc.Markdown(api_doc_cutout)
-                                    ), style={
-                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                    }
-                                ),
-                            ], label="Get Image data"
-                        ),
-                        dbc.Tab(
-                            [
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        dcc.Markdown(api_doc_xmatch)
-                                    ), style={
-                                        'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                    }
-                                ),
-                            ], label="Xmatch"
-                        ),
-                    ]
-                )
-            ], className="mb-8", fluid=True, style={'width': '80%'}
-        )
-    ], className='home', style={
-        'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
-        'background-size': 'contain'
-    }
-)
+def api_layout(is_mobile):
+    if is_mobile:
+        width = '95%'
+    else:
+        width = '80%'
+    layout = html.Div(
+        [
+            html.Br(),
+            html.Br(),
+            html.Br(),
+            dbc.Container(
+                [
+                    dbc.Row(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_summary)
+                                ), style={
+                                    'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                }
+                            ),
+                        ]
+                    ),
+                    html.Br(),
+                    dbc.Tabs(
+                        [
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_object)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Retrieve object data"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_explorer)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Query the database"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_latests)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Get latest alerts"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_sso)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Get Solar System Objects"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_cutout)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Get Image data"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_xmatch)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Xmatch"
+                            ),
+                        ]
+                    )
+                ], className="mb-8", fluid=True, style={'width': width}
+            )
+        ], className='home', style={
+            'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
+            'background-size': 'contain'
+        }
+    )
+    return layout
+
 
 args_objects = [
     {
