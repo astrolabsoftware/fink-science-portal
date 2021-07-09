@@ -210,6 +210,15 @@ def create_external_links(object_data):
             [
                 dbc.Col(
                     [
+                        dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5), color='link'),
+                    ], width=6
+                )
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
                         dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0), color="link"),
                     ], width=6
                 )
