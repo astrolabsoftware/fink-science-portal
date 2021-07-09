@@ -210,7 +210,7 @@ def create_external_links(object_data):
             [
                 dbc.Col(
                     [
-                        dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/dr4/search/{}%{}/{}'.format(ra0, dec0, 5), color='link'),
+                        dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/dr4/search/{} {}/{}'.format(ra0, dec0, 5), color='link'),
                     ], width=6
                 )
             ]

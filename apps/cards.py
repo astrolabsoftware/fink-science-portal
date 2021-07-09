@@ -537,7 +537,7 @@ def card_id(pdf):
             ),
             dbc.ButtonGroup([
                 dbc.Button('TNS', id='TNS', target="_blank", href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0), color='light'),
-                dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/dr4/search/{}%{}/{}'.format(ra0, dec0, 5), color='light'),
+                dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/dr4/search/{} {}/{}'.format(ra0, dec0, 5), color='light'),
                 dbc.Button('OAC', id='OAC', target="_blank", href='https://api.astrocats.space/catalog?ra={}&dec={}&radius=2'.format(ra0, dec0), color='light'),
             ]),
             dbc.ButtonGroup([
@@ -643,7 +643,7 @@ def card_sn_properties(clickData, object_data):
             html.Br(),
             dbc.ButtonGroup([
                 dbc.Button('TNS', id='TNS', target="_blank", href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0), color='light'),
-                dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/dr4/search/{}%{}/{}'.format(ra0, dec0, 5), color='link'),
+                dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/dr4/search/{} {}/{}'.format(ra0, dec0, 5), color='link'),
                 dbc.Button('OAC', id='OAC', target="_blank", href='https://api.astrocats.space/catalog?ra={}&dec={}&radius=2'.format(ra0, dec0), color='light'),
             ]),
             dbc.ButtonGroup([
