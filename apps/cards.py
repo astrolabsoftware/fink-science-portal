@@ -276,6 +276,16 @@ def card_variable_button(pdf):
                     target="_blank",
                     href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
                 )
+            ),
+            dbc.Row(
+                dbc.Button(
+                    'Search in SNAD ZTF-DR4',
+                    id='SNAD-var-star',
+                    style={'width': '100%', 'display': 'inline-block'},
+                    block=True,
+                    target="_blank",
+                    href='https://ztf.snad.space/dr4/search/{} {}/{}'.format(ra0, dec0, 5)
+                )
             )
         ],
         className="mt-3", body=True
