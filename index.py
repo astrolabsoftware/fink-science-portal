@@ -214,11 +214,59 @@ def print_msg_info():
     ])
     return h
 
+def simple_card(name):
+    simple_card_ = dbc.Card(
+        [
+            dbc.CardHeader(name),
+            dbc.CardBody(
+                [
+                    html.H4("Card title", className="card-title"),
+                    html.P(
+                        "Some quick example text to build on the card title and "
+                        "make up the bulk of the card's content.",
+                        className="card-text",
+                    ),
+                ]
+            ),
+            dbc.CardFooter(dbc.Button("Go somewhere", color="primary"))
+        ],
+    )
+    return simple_card_
+
+@app.callback(
+    Output('carousel', 'children'),
+    [
+        Input("open_modal_quickview", "n_clicks"),
+        Input('object-data', 'children')
+    ],
+)
+def carousel(nclick, object_data):
+    """
+    """
+    if nclick > 0:
+        pdf = pd.read_json(object_data)
+        names = pdf['i:objectId'].values
+        carousel = dtc.Carousel(
+            [
+                html.Div(dbc.Container(simple_card(name))) for i in names
+            ],
+            slides_to_scroll=1,
+            slides_to_show=1,
+            swipe_to_slide=True,
+            autoplay=False,
+            speed=10,
+            variable_width=False,
+            center_mode=True
+        )
+    else:
+        carousel = html.Div("")
+    return carousel
+
 modal_quickview = html.Div(
     [
         dbc.Button(
             "Open modal",
-            id="open",
+            id="open_modal_quickview",
             n_clicks=0,
             outline=True,
             color="success"
@@ -226,20 +274,33 @@ modal_quickview = html.Div(
         dbc.Modal(
             [
                 dbc.ModalHeader("Header"),
-                # dbc.ModalBody(html.Div(carousel)),
+                dbc.ModalBody(html.Div(id='carousel')),
                 dbc.ModalBody("hello"),
                 dbc.ModalFooter(
                     dbc.Button(
-                        "Close", id="close", className="ml-auto", n_clicks=0
+                        "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
                     )
                 ),
             ],
-            id="modal",
+            id="modal_quickview",
             is_open=False,
             #size="lg",
         ),
     ]
 )
+
+@app.callback(
+    Output("modal_quickview", "is_open"),
+    [
+        Input("open_modal_quickview", "n_clicks"),
+        Input("close_modal_quickview", "n_clicks")
+    ],
+    [State("modal_quickview", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
 
 def display_table_results(table):
     """ Display explorer results in the form of a table with a dropdown
@@ -320,7 +381,6 @@ def display_skymap(validation, data, columns, activetab):
     """
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    print(button_id, activetab, validation)
     if len(data) > 1000:
         msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
         return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
