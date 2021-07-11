@@ -5,6 +5,8 @@ import jpype
 import jpype.imports
 from jpype import JImplements, JOverride, JImplementationFor
 
+APIURL = "http://134.158.75.151:24000"
+
 # bootstrap theme
 # https://bootswatch.com/spacelab/
 external_stylesheets = [

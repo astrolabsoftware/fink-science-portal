@@ -30,7 +30,7 @@ from apps import home, summary, about, api
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid
-from apps.api import APIURL
+from app import APIURL
 from apps.utils import isoify_time, validate_query
 
 import requests

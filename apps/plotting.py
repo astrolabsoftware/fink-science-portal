@@ -30,7 +30,7 @@ import dash_core_components as dcc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-from apps.api import APIURL
+from app import APIURL
 
 from pyLIMA import event
 from pyLIMA import telescopes
