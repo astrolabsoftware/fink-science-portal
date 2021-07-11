@@ -284,11 +284,11 @@ modal_quickview = html.Div(
             [
                 dbc.ModalHeader("10 first alerts"),
                 dbc.ModalBody([dbc.Container(id='carousel'), html.Br()]),
-                # dbc.ModalFooter(
-                #     dbc.Button(
-                #         "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
-                #     )
-                # ),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
+                    )
+                ),
             ],
             id="modal_quickview",
             is_open=False,
@@ -300,12 +300,13 @@ modal_quickview = html.Div(
 @app.callback(
     Output("modal_quickview", "is_open"),
     [
-        Input("open_modal_quickview", "n_clicks")
+        Input("open_modal_quickview", "n_clicks"),
+        Input("close_modal_quickview", "n_clicks")
     ],
     [State("modal_quickview", "is_open")],
 )
-def toggle_modal(n1, is_open):
-    if n1:
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
         return not is_open
     return is_open
 
