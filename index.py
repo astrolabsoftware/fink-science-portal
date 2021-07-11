@@ -237,16 +237,15 @@ def simple_card(name):
     Output('carousel', 'children'),
     [
         Input("open_modal_quickview", "n_clicks"),
-        Input("result_table", "data"),
-        Input("result_table", "columns"),
+        Input("result_table", "data")
     ],
 )
-def carousel(nclick, data, columns):
+def carousel(nclick, data):
     """
     """
     if nclick > 0:
-        print(data)
-        print(columns)
+        pdf = pd.DataFrame(data)
+        names = pdf['i:objectId']
         carousel = dtc.Carousel(
             [
                 html.Div(dbc.Container(simple_card(name))) for i in names
