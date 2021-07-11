@@ -214,6 +214,27 @@ def print_msg_info():
     ])
     return h
 
+modal_quickview = html.Div(
+    [
+        dbc.Button("Open modal", id="open", n_clicks=0),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Header"),
+                # dbc.ModalBody(html.Div(carousel)),
+                dbc.ModalBody("hello"),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close", id="close", className="ml-auto", n_clicks=0
+                    )
+                ),
+            ],
+            id="modal",
+            is_open=False,
+            #size="lg",
+        ),
+    ]
+)
+
 def display_table_results(table):
     """ Display explorer results in the form of a table with a dropdown
     menu on top to insert more data columns.
@@ -242,19 +263,26 @@ def display_table_results(table):
 
     return dbc.Container([
         html.Br(),
-        dcc.Dropdown(
-            id='field-dropdown2',
-            options=[
-                {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
-                *[{'label': field, 'value': field} for field in fink_fields],
-                {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
-                *[{'label': field, 'value': field} for field in fink_additional_fields],
-                {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
-                *[{'label': field, 'value': field} for field in ztf_fields]
-            ],
-            searchable=True,
-            clearable=True,
-            placeholder="Add more fields to the table",
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Dropdown(
+                        id='field-dropdown2',
+                        options=[
+                            {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
+                            *[{'label': field, 'value': field} for field in fink_fields],
+                            {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
+                            *[{'label': field, 'value': field} for field in fink_additional_fields],
+                            {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
+                            *[{'label': field, 'value': field} for field in ztf_fields]
+                        ],
+                        searchable=True,
+                        clearable=True,
+                        placeholder="Add more fields to the table",
+                    ), width=8
+                ),
+                dbc.Col(modal_quickview, width=4)
+            ]
         ),
         html.Br(),
         table
