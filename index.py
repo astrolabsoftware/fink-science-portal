@@ -281,6 +281,7 @@ modal_quickview = html.Div(
         ),
         dbc.Modal(
             [
+                dbc.ModalHeader("10 first alerts"),
                 dbc.ModalBody(html.Div(id='carousel')),
                 dbc.ModalFooter(
                     dbc.Button(
