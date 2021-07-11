@@ -1068,6 +1068,24 @@ def draw_cutouts_mobile(object_data, is_mobile):
             figs.append(data)
     return figs
 
+@app.callback(
+    Output("stamps_quickview", "children"),
+    [
+        Input("result_table", "data")
+    ])
+def draw_cutouts_quickview(object_data):
+    """ Draw cutouts data based on lightcurve data
+    """
+    figs = []
+    for kind in ['science', 'template', 'difference']:
+        try:
+            data = extract_cutout(object_data, None, kind=kind)
+            figs.append(draw_cutout(data, kind, is_mobile=True))
+        except OSError:
+            data = dcc.Markdown("Load fail, refresh the page")
+            figs.append(data)
+    return figs
+
 def create_circular_mask(h, w, center=None, radius=None):
 
     if center is None: # use the middle of the image
