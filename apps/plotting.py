@@ -19,6 +19,7 @@ from gatspy import periodic
 import java
 import copy
 from astropy.time import Time
+import requests
 
 import dash
 import dash_table
@@ -29,6 +30,7 @@ import dash_core_components as dcc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
+from apps.api import APIURL
 
 from pyLIMA import event
 from pyLIMA import telescopes
@@ -1071,17 +1073,19 @@ def draw_cutouts_mobile(object_data, is_mobile):
             figs.append(data)
     return figs
 
-@app.callback(
-    Output("stamps_quickview", "children"),
-    [
-        Input("result_table", "data")
-    ])
-def draw_cutouts_quickview(object_data):
+def draw_cutouts_quickview(name):
     """ Draw cutouts data based on lightcurve data
     """
     figs = []
     for kind in ['science', 'template', 'difference']:
         try:
+            r = requests.post(
+                '{}/api/v1/explorer'.format(APIURL),
+                json={
+                    'objectId': name,
+                }
+            )
+            object_data = r.content
             data = extract_cutout(object_data, None, kind=kind, taken_from='explorer')
             figs.append(draw_cutout(data, kind, is_mobile=True))
         except OSError:

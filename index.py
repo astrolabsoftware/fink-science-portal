@@ -218,7 +218,13 @@ def print_msg_info():
 def simple_card(name):
     simple_card_ = dbc.Card(
         [
-            dbc.CardHeader(dbc.Row(id='stamps_quickview', justify='around')),
+            dbc.CardHeader(
+                dbc.Row(
+                    draw_cutouts_quickview(name),
+                    id='stamps_quickview',
+                    justify='around'
+                )
+            ),
             dbc.CardBody(
                 [
                     html.H4("{}".format(name), className="card-title"),
