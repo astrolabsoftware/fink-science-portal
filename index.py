@@ -32,6 +32,7 @@ from apps import __version__ as portal_version
 from apps.utils import markdownify_objectid
 from app import APIURL
 from apps.utils import isoify_time, validate_query
+from apps.plotting import draw_cutouts_quickview
 
 import requests
 import pandas as pd
