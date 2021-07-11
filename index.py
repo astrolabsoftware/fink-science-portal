@@ -262,7 +262,7 @@ def carousel(nclick, data):
             slides_to_show=1,
             swipe_to_slide=True,
             autoplay=False,
-            speed=100,
+            speed=1000,
             variable_width=False,
             center_mode=False
         )
