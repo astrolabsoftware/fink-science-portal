@@ -1082,7 +1082,7 @@ def draw_cutouts_quickview(object_data):
     figs = []
     for kind in ['science', 'template', 'difference']:
         try:
-            data = extract_cutout(object_data, None, kind=kind)
+            data = extract_cutout(object_data, None, kind=kind, taken_from='explorer')
             figs.append(draw_cutout(data, kind, is_mobile=True))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
