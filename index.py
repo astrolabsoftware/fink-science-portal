@@ -297,18 +297,17 @@ modal_quickview = html.Div(
     ]
 )
 
-# @app.callback(
-#     Output("modal_quickview", "is_open"),
-#     [
-#         Input("open_modal_quickview", "n_clicks"),
-#         Input("close_modal_quickview", "n_clicks")
-#     ],
-#     [State("modal_quickview", "is_open")],
-# )
-# def toggle_modal(n1, n2, is_open):
-#     if n1 or n2:
-#         return not is_open
-#     return is_open
+@app.callback(
+    Output("modal_quickview", "is_open"),
+    [
+        Input("open_modal_quickview", "n_clicks")
+    ],
+    [State("modal_quickview", "is_open")],
+)
+def toggle_modal(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open
 
 def display_table_results(table):
     """ Display explorer results in the form of a table with a dropdown
