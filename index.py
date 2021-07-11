@@ -20,6 +20,7 @@ import dash_bootstrap_components as dbc
 import dash_table
 from dash.exceptions import PreventUpdate
 import visdcc
+import dash_trich_components as dtc
 
 from app import server
 from app import app
