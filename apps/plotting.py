@@ -986,7 +986,7 @@ def draw_color_rate(object_data) -> dict:
     }
     return figure
 
-def extract_cutout(object_data, time0, kind, taken_from='summary'):
+def extract_cutout(object_data, time0, kind):
     """ Extract cutout data from the alert
 
     Parameters
@@ -1008,10 +1008,7 @@ def extract_cutout(object_data, time0, kind, taken_from='summary'):
         'i:fid',
         'b:cutout{}_stampData'.format(kind.capitalize()),
     ]
-    if taken_from == 'summary':
-        pdf_ = pd.read_json(object_data)
-    elif taken_from == 'explorer':
-        pdf_ = pd.DataFrame(object_data)
+    pdf_ = pd.read_json(object_data)
     pdfs = pdf_.loc[:, values]
     pdfs = pdfs.sort_values('i:jd', ascending=False)
 
@@ -1086,7 +1083,7 @@ def draw_cutouts_quickview(name):
                 }
             )
             object_data = r.content
-            data = extract_cutout(object_data, None, kind=kind, taken_from='explorer')
+            data = extract_cutout(object_data, None, kind=kind)
             figs.append(draw_cutout(data, kind, is_mobile=True))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
