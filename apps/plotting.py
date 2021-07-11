@@ -984,7 +984,7 @@ def draw_color_rate(object_data) -> dict:
     }
     return figure
 
-def extract_cutout(object_data, time0, kind):
+def extract_cutout(object_data, time0, kind, taken_from='summary'):
     """ Extract cutout data from the alert
 
     Parameters
@@ -1006,7 +1006,10 @@ def extract_cutout(object_data, time0, kind):
         'i:fid',
         'b:cutout{}_stampData'.format(kind.capitalize()),
     ]
-    pdf_ = pd.read_json(object_data)
+    if taken_from == 'summary':
+        pdf_ = pd.read_json(object_data)
+    elif taken_from == 'explorer':
+        pdf_ = pd.DataFrame(object_data)
     pdfs = pdf_.loc[:, values]
     pdfs = pdfs.sort_values('i:jd', ascending=False)
 
