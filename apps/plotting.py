@@ -1074,7 +1074,7 @@ def draw_cutouts_quickview(name):
     """ Draw cutouts data based on lightcurve data
     """
     figs = []
-    for kind in ['science', 'template', 'difference']:
+    for kind in ['science']:
         try:
             r = requests.post(
                 '{}/api/v1/explorer'.format(APIURL),
