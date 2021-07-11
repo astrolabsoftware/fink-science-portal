@@ -216,7 +216,13 @@ def print_msg_info():
 
 modal_quickview = html.Div(
     [
-        dbc.Button("Open modal", id="open", n_clicks=0),
+        dbc.Button(
+            "Open modal",
+            id="open",
+            n_clicks=0,
+            outline=True,
+            color="success"
+        ),
         dbc.Modal(
             [
                 dbc.ModalHeader("Header"),
@@ -279,9 +285,9 @@ def display_table_results(table):
                         searchable=True,
                         clearable=True,
                         placeholder="Add more fields to the table",
-                    ), width=8
+                    ), width=10
                 ),
-                dbc.Col(modal_quickview, width=4)
+                dbc.Col(modal_quickview, width=2)
             ]
         ),
         html.Br(),
