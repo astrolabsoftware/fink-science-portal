@@ -264,7 +264,8 @@ def carousel(nclick, data):
             autoplay=False,
             speed=800,
             variable_width=False,
-            center_mode=False
+            center_mode=False,
+            dots=True
         )
     else:
         carousel = html.Div("")
