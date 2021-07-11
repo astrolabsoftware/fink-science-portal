@@ -218,10 +218,10 @@ def print_msg_info():
 def simple_card(name):
     simple_card_ = dbc.Card(
         [
-            dbc.CardHeader(name),
+            dbc.CardHeader(dbc.Row(id='stamps_quickview', justify='around')),
             dbc.CardBody(
                 [
-                    html.H4("Card title", className="card-title"),
+                    html.H4("{}".format(name), className="card-title"),
                     html.P(
                         "Some quick example text to build on the card title and "
                         "make up the bulk of the card's content.",
@@ -246,7 +246,7 @@ def carousel(nclick, data):
     """
     if nclick > 0:
         pdf = pd.DataFrame(data)
-        names = pdf['i:objectId']
+        names = pdf['i:objectId'][0:10]
         carousel = dtc.Carousel(
             [
                 html.Div(dbc.Container(simple_card(name))) for name in names
