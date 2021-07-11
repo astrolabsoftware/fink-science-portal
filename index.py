@@ -249,7 +249,7 @@ def carousel(nclick, data):
         names = pdf['i:objectId']
         carousel = dtc.Carousel(
             [
-                html.Div(dbc.Container(simple_card(name))) for i in names
+                html.Div(dbc.Container(simple_card(name))) for name in names
             ],
             slides_to_scroll=1,
             slides_to_show=1,
