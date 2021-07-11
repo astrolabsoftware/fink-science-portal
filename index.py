@@ -274,9 +274,7 @@ modal_quickview = html.Div(
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("Header"),
                 dbc.ModalBody(html.Div(id='carousel')),
-                dbc.ModalBody("hello"),
                 dbc.ModalFooter(
                     dbc.Button(
                         "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
