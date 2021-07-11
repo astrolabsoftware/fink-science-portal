@@ -252,7 +252,7 @@ def carousel(nclick, data):
     """
     if nclick > 0:
         pdf = pd.DataFrame(data)
-        names = pdf['i:objectId'][0:10]
+        names = pdf['i:objectId'].apply(lambda x: x.split('[')[1].split(']')[0]).values[0:10]
         carousel = dtc.Carousel(
             [
                 html.Div(dbc.Container(simple_card(name))) for name in names
