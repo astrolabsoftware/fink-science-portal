@@ -702,6 +702,104 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
     }
     return figure
 
+def draw_lightcurve_preview(name) -> dict:
+    """ Draw object lightcurve with errorbars (SM view - DC mag fixed)
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    r = requests.post(
+      '{}/api/v1/objects'.format(APIURL),
+      json={
+        'objectId': name,
+        'output-format': 'json'
+      }
+    )
+    pdf_ = pd.read_json(r.content)
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:candid'
+    ]
+    pdf = pdf_.loc[:, cols]
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    # shortcuts
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+    # inplace replacement
+    mag, err = np.transpose(
+        [
+            dc_mag(*args) for args in zip(
+                pdf['i:fid'].values,
+                mag.astype(float).values,
+                err.astype(float).values,
+                pdf['i:magnr'].astype(float).values,
+                pdf['i:sigmagnr'].astype(float).values,
+                pdf['i:magzpsci'].astype(float).values,
+                pdf['i:isdiffpos'].values
+            )
+        ]
+    )
+    layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
+    layout_lightcurve['yaxis']['autorange'] = 'reversed'
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': dates[pdf['i:fid'] == 1],
+                'y': mag[pdf['i:fid'] == 1],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 1],
+                    'visible': True,
+                    'color': '#1f77b4'
+                },
+                'mode': 'markers',
+                'name': 'g band',
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            },
+            {
+                'x': dates[pdf['i:fid'] == 2],
+                'y': mag[pdf['i:fid'] == 2],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 2],
+                    'visible': True,
+                    'color': '#ff7f0e'
+                },
+                'mode': 'markers',
+                'name': 'r band',
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#ff7f0e',
+                    'symbol': 'o'}
+            }
+        ],
+        "layout": layout_lightcurve
+    }
+    return figure
+
 @app.callback(
     Output('scores', 'figure'),
     [
