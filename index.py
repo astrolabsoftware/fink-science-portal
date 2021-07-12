@@ -222,11 +222,7 @@ def print_msg_info():
 
 def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, is_mobile):
     dic_band = {1: 'g', 2: 'r'}
-
-    if is_mobile:
-        fontsize = '75%'
-    else:
-        fontsize = '100%'
+    fontsize = '75%'
 
     l1 = html.P(
         [
