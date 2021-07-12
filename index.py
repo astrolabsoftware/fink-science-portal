@@ -219,8 +219,8 @@ def print_msg_info():
 def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
     dic_band = {1: 'g', 2: 'r'}
     l1 = "Last emission date: "
-    l2 = "Apparent magnitude (band {}): ".format(dic_band[fid])
-    l3 = "Time since first detection: "
+    l2 = "Last magnitude (band {}): ".format(dic_band[fid])
+    l3 = "Days since first detection: "
     l4 = "Total number of detections: "
     simple_card_ = dbc.Card(
         [
@@ -236,25 +236,25 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
                     html.H4("{}".format(finkclass), className="card-title"),
                     html.P(
                         [
-                            html.Strong(l1),
+                            html.Strong(l1, style={'font-size': '75%'}),
                             html.P(lastdate)
                         ]
                     ),
                     html.P(
                         [
-                            html.Strong(l2),
+                            html.Strong(l2, style={'font-size': '75%'}),
                             html.P("{:.2f}".format(mag))
                         ]
                     ),
                     html.P(
                         [
-                            html.Strong(l3),
+                            html.Strong(l3, style={'font-size': '75%'}),
                             html.P('{}'.format(int(jd - jdstarthist)))
                         ]
                     ),
                     html.P(
                         [
-                            html.Strong(l4),
+                            html.Strong(l4, style={'font-size': '75%'}),
                             html.P('{}'.format(ndethist))
                         ]
                     ),
@@ -312,7 +312,6 @@ modal_quickview = html.Div(
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("10 first alerts"),
                 dbc.ModalBody(dbc.Container(id='carousel', fluid=True, style={'width': '95%'})),
                 dbc.ModalFooter(
                     dbc.Button(
