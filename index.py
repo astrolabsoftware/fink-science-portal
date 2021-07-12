@@ -222,6 +222,12 @@ def print_msg_info():
 
 def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, is_mobile):
     dic_band = {1: 'g', 2: 'r'}
+
+    if is_mobile:
+        fontsize = '75%'
+    else:
+        fontsize = '100%'
+
     l1 = html.P(
         [
             html.Strong("Last emission date: ", style={'font-size': fontsize}),
@@ -250,7 +256,6 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
     )
 
     if is_mobile:
-        fontsize = '75%'
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
@@ -268,7 +273,6 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
             )
         )
     else:
-        fontsize = '100%'
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
