@@ -129,6 +129,10 @@ By default, the table shows:
 - i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
 
 You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at https://fink-portal.ijclab.in2p3.fr:24000/api/v1/columns.
+
+Finally, you can hit the button `Preview`. This will show you more information
+about the first 10 alerts (science cutout, and basic information). Note you can
+swipe between alerts (or use arrows on a laptop).
 """
 
 modal = html.Div(
