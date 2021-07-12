@@ -362,7 +362,7 @@ def toggle_modal(n1, n2, is_open):
         return not is_open
     return is_open
 
-def display_table_results(table):
+def display_table_results(table, is_mobile):
     """ Display explorer results in the form of a table with a dropdown
     menu on top to insert more data columns.
 
@@ -388,6 +388,12 @@ def display_table_results(table):
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
     fink_additional_fields = ['v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
 
+    if is_mobile:
+        width_dropdown = 8
+        width_preview = 4
+    else:
+        width_dropdown = 10
+        width_preview = 2
     return dbc.Container([
         html.Br(),
         dbc.Row(
@@ -406,9 +412,9 @@ def display_table_results(table):
                         searchable=True,
                         clearable=True,
                         placeholder="Add more fields to the table",
-                    ), width=10
+                    ), width=width_dropdown
                 ),
-                dbc.Col(modal_quickview, width=2)
+                dbc.Col(modal_quickview, width=width_preview)
             ]
         ),
         html.Br(),
@@ -659,14 +665,14 @@ def logo(ns):
     else:
         return logo
 
-def construct_results_layout(table):
+def construct_results_layout(table, is_mobile):
     """ Construct the tabs containing explorer query results
     """
     results_ = [
         dbc.Tabs(
             [
                 dbc.Tab(print_msg_info(), label='Info', tab_id='t0'),
-                dbc.Tab(display_table_results(table), label="Table", tab_id='t1'),
+                dbc.Tab(display_table_results(table, is_mobile), label="Table", tab_id='t1'),
                 dbc.Tab(display_skymap(), label="Sky map", tab_id='t2'),
             ],
             id="tabs",
@@ -755,10 +761,11 @@ def update_table(field_dropdown, data, columns):
         Input("search_bar_input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
+        Input("is_mobile", "value"),
     ],
     State("results", "children")
 )
-def results(ns, query, query_type, dropdown_option, results):
+def results(ns, query, query_type, dropdown_option, results, is_mobile):
     """ Query the database from the search input
 
     Returns
@@ -876,7 +883,7 @@ def results(ns, query, query_type, dropdown_option, results):
         validation = 1
 
     table = populate_result_table(data, columns)
-    return construct_results_layout(table), validation
+    return construct_results_layout(table, is_mobile), validation
 
 
 noresults_toast = html.Div(
