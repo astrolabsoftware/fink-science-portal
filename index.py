@@ -266,7 +266,7 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
                 ]
             ),
             dbc.CardFooter(dbc.Button("Go to {}".format(name), color="primary", outline=True))
-        ],
+        ], style={'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
     )
     return simple_card_
 
