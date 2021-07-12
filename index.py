@@ -392,38 +392,49 @@ def display_table_results(table, is_mobile):
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
     fink_additional_fields = ['v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
 
+    dropdown = dcc.Dropdown(
+        id='field-dropdown2',
+        options=[
+            {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
+            *[{'label': field, 'value': field} for field in fink_fields],
+            {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
+            *[{'label': field, 'value': field} for field in fink_additional_fields],
+            {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
+            *[{'label': field, 'value': field} for field in ztf_fields]
+        ],
+        searchable=True,
+        clearable=True,
+        placeholder="Add more fields to the table",
+    )
+
     if is_mobile:
-        width_dropdown = 6
-        width_preview = 6
+        return dbc.Container([
+            html.Br(),
+            dbc.Row(
+                [
+                    dbc.Col(dropdown)
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(modal_quickview)
+                ]
+            ),
+            html.Br(),
+            table
+        ], fluid=True)
     else:
-        width_dropdown = 10
-        width_preview = 2
-    return dbc.Container([
-        html.Br(),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Dropdown(
-                        id='field-dropdown2',
-                        options=[
-                            {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
-                            *[{'label': field, 'value': field} for field in fink_fields],
-                            {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
-                            *[{'label': field, 'value': field} for field in fink_additional_fields],
-                            {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
-                            *[{'label': field, 'value': field} for field in ztf_fields]
-                        ],
-                        searchable=True,
-                        clearable=True,
-                        placeholder="Add more fields to the table",
-                    ), width=width_dropdown
-                ),
-                dbc.Col(modal_quickview, width=width_preview)
-            ]
-        ),
-        html.Br(),
-        table
-    ], fluid=True)
+        return dbc.Container([
+            html.Br(),
+            dbc.Row(
+                [
+                    dbc.Col(dropdown, width=10),
+                    dbc.Col(modal_quickview, width=2)
+                ]
+            ),
+            html.Br(),
+            table
+        ], fluid=True)
 
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
