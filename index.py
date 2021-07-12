@@ -412,7 +412,7 @@ def display_table_results(table, is_mobile):
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(dropdown)
+                    dbc.Col(dropdown, width=12)
                 ]
             ),
             dbc.Row(
