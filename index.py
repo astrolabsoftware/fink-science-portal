@@ -286,9 +286,9 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
         header = dbc.CardHeader(
             dbc.Row(
                 [
-                    dbc.Col(draw_cutouts_quickview(name), width=3),
-                    dbc.Col([l1, l2], width=4),
-                    dbc.Col([l3, l4], width=4)
+                    dbc.Col(draw_cutouts_quickview(name), width=2),
+                    dbc.Col([l1, l2], width=5),
+                    dbc.Col([l3, l4], width=5)
                 ],
                 id='stamps_quickview',
                 justify='around'
