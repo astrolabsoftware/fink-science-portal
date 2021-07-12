@@ -729,26 +729,19 @@ def draw_lightcurve_preview(name) -> dict:
     ]
     pdf = pdf_.loc[:, cols]
 
+    # Mask upper-limits (but keep measurements with bad quality)
+    mag_ = pdf['i:magpsf']
+    mask = ~np.isnan(mag_)
+    pdf = pdf[mask]
+
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
 
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
-    # inplace replacement
-    # mag, err = np.transpose(
-    #     [
-    #         dc_mag(*args) for args in zip(
-    #             pdf['i:fid'].values,
-    #             mag.astype(float).values,
-    #             err.astype(float).values,
-    #             pdf['i:magnr'].astype(float).values,
-    #             pdf['i:sigmagnr'].astype(float).values,
-    #             pdf['i:magzpsci'].astype(float).values,
-    #             pdf['i:isdiffpos'].values
-    #         )
-    #     ]
-    # )
+
+
     layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
     layout_lightcurve['yaxis']['autorange'] = 'reversed'
 
