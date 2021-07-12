@@ -389,8 +389,8 @@ def display_table_results(table, is_mobile):
     fink_additional_fields = ['v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
 
     if is_mobile:
-        width_dropdown = 8
-        width_preview = 4
+        width_dropdown = 6
+        width_preview = 6
     else:
         width_dropdown = 10
         width_preview = 2
