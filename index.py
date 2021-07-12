@@ -263,7 +263,7 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
-                dcc.Graph(draw_lightcurve_preview(name))
+                dcc.Graph(figure=draw_lightcurve_preview(name))
             ]
         )
 
