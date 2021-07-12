@@ -408,29 +408,23 @@ def display_table_results(table, is_mobile):
     )
 
     if is_mobile:
-        return dbc.Container([
-            html.Br(),
-            dbc.Row(
-                [
-                    dbc.Col(dropdown, width=6),
-                    dbc.Col(modal_quickview, width=6)
-                ]
-            ),
-            html.Br(),
-            table
-        ], fluid=True)
+        width_dropdown = 9
+        width_preview = 3
     else:
-        return dbc.Container([
-            html.Br(),
-            dbc.Row(
-                [
-                    dbc.Col(dropdown, width=10),
-                    dbc.Col(modal_quickview, width=2)
-                ]
-            ),
-            html.Br(),
-            table
-        ], fluid=True)
+        width_dropdown = 10
+        width_preview = 2
+
+    return dbc.Container([
+        html.Br(),
+        dbc.Row(
+            [
+                dbc.Col(dropdown, width=width_dropdown),
+                dbc.Col(modal_quickview, width=width_preview)
+            ]
+        ),
+        html.Br(),
+        table
+    ], fluid=True)
 
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
