@@ -289,7 +289,7 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
                     dbc.Col(draw_cutouts_quickview(name), width=3),
                     dbc.Col([l1, l2], width=4),
                     dbc.Col([l3, l4], width=4)
-                ]
+                ],
                 id='stamps_quickview',
                 justify='around'
             )
