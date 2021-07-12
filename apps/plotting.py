@@ -742,7 +742,7 @@ def draw_lightcurve_preview(name) -> dict:
     err = pdf['i:sigmapsf']
 
 
-    layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
+    layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
     layout_lightcurve['yaxis']['autorange'] = 'reversed'
 
     hovertemplate = r"""
