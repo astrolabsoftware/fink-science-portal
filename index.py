@@ -216,7 +216,13 @@ def print_msg_info():
     ])
     return h
 
-def simple_card(name):
+def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
+    msg = """
+    Last emission date: {}
+    Apparent magnitude (band {}): {}
+    Time since first detection: {} days
+    Total number of detections: {}
+    """.format(lastdate, fid, mag, jd - jdstarthist, ndethist)
     simple_card_ = dbc.Card(
         [
             dbc.CardHeader(
@@ -228,15 +234,11 @@ def simple_card(name):
             ),
             dbc.CardBody(
                 [
-                    html.H4("{}".format(name), className="card-title"),
-                    html.P(
-                        "Some quick example text to build on the card title and "
-                        "make up the bulk of the card's content.",
-                        className="card-text",
-                    ),
+                    html.H4("{}".format(finkclass), className="card-title"),
+                    dcc.Markdown(msg),
                 ]
             ),
-            dbc.CardFooter(dbc.Button("Go somewhere", color="primary"))
+            dbc.CardFooter(dbc.Button("Go to {}".format(name), color="primary", outline=True))
         ],
     )
     return simple_card_
@@ -254,9 +256,16 @@ def carousel(nclick, data):
     if nclick > 0:
         pdf = pd.DataFrame(data)
         names = pdf['i:objectId'].apply(lambda x: x.split('[')[1].split(']')[0]).values[0:10]
+        finkclasses = pdf['v:classification'].values[0:10]
+        lastdates = pdf['v:lastdate'].values[0:10]
+        fids = pdf['i:fid'].values[0:10]
+        mags = pdf['i:magpsf'].values[0:10]
+        jds = pdf['i:jd'].values[0:10]
+        jdstarthists = pdf['i:jdstarthist'].values[0:10]
+        ndethists = pdf['i:ndethist'].values[0:10]
         carousel = dtc.Carousel(
             [
-                html.Div(dbc.Container(simple_card(name))) for name in names
+                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists)
             ],
             slides_to_scroll=1,
             slides_to_show=1,
@@ -273,7 +282,7 @@ def carousel(nclick, data):
 modal_quickview = html.Div(
     [
         dbc.Button(
-            "Open modal",
+            "Preview",
             id="open_modal_quickview",
             n_clicks=0,
             outline=True,
