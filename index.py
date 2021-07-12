@@ -761,7 +761,7 @@ def update_table(field_dropdown, data, columns):
         Input("search_bar_input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
-        Input("is-mobile", "value"),
+        Input("is-mobile", "children"),
     ],
     State("results", "children")
 )
