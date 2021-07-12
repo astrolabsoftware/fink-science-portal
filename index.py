@@ -32,7 +32,7 @@ from apps import __version__ as portal_version
 from apps.utils import markdownify_objectid
 from app import APIURL
 from apps.utils import isoify_time, validate_query
-from apps.plotting import draw_cutouts_quickview
+from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
 import requests
 import pandas as pd
@@ -229,8 +229,44 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
 
     if is_mobile:
         fontsize = '75%'
+        cardbody = dbc.CardBody(
+            [
+                html.H4("{}".format(finkclass), className="card-title"),
+                html.P(
+                    [
+                        html.Strong(l1, style={'font-size': fontsize}),
+                        html.P(lastdate)
+                    ]
+                ),
+                html.P(
+                    [
+                        html.Strong(l2, style={'font-size': fontsize}),
+                        html.P("{:.2f}".format(mag))
+                    ]
+                ),
+                html.P(
+                    [
+                        html.Strong(l3, style={'font-size': fontsize}),
+                        html.P('{}'.format(int(jd - jdstarthist)))
+                    ]
+                ),
+                html.P(
+                    [
+                        html.Strong(l4, style={'font-size': fontsize}),
+                        html.P('{}'.format(ndethist))
+                    ]
+                ),
+            ]
+        )
     else:
         fontsize = '100%'
+        cardbody = dbc.CardBody(
+            [
+                html.H4("{}".format(finkclass), className="card-title"),
+                dcc.Graph(draw_lightcurve_preview(name))
+            ]
+        )
+
     simple_card_ = dbc.Card(
         [
             dbc.CardHeader(
@@ -240,35 +276,7 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
                     justify='around'
                 )
             ),
-            dbc.CardBody(
-                [
-                    html.H4("{}".format(finkclass), className="card-title"),
-                    html.P(
-                        [
-                            html.Strong(l1, style={'font-size': fontsize}),
-                            html.P(lastdate)
-                        ]
-                    ),
-                    html.P(
-                        [
-                            html.Strong(l2, style={'font-size': fontsize}),
-                            html.P("{:.2f}".format(mag))
-                        ]
-                    ),
-                    html.P(
-                        [
-                            html.Strong(l3, style={'font-size': fontsize}),
-                            html.P('{}'.format(int(jd - jdstarthist)))
-                        ]
-                    ),
-                    html.P(
-                        [
-                            html.Strong(l4, style={'font-size': fontsize}),
-                            html.P('{}'.format(ndethist))
-                        ]
-                    ),
-                ]
-            ),
+            cardbody,
             dbc.CardFooter(
                 dbc.Button(
                     "Go to {}".format(name),
