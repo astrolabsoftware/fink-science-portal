@@ -784,7 +784,7 @@ def update_table(field_dropdown, data, columns):
     ],
     State("results", "children")
 )
-def results(ns, query, query_type, dropdown_option, results, is_mobile):
+def results(ns, query, query_type, dropdown_option, is_mobile, results):
     """ Query the database from the search input
 
     Returns
