@@ -408,8 +408,8 @@ def display_table_results(table, is_mobile):
     )
 
     if is_mobile:
-        width_dropdown = 9
-        width_preview = 3
+        width_dropdown = 8
+        width_preview = 4
     else:
         width_dropdown = 10
         width_preview = 2
