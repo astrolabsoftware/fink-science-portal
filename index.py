@@ -217,14 +217,11 @@ def print_msg_info():
     return h
 
 def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
-    msg = """
-    ```python
-    Last emission date: {}
-    Apparent magnitude (band {}): {}
-    Time since first detection: {} days
-    Total number of detections: {}
-    ```
-    """.format(lastdate, fid, mag, jd - jdstarthist, ndethist)
+    dic_band = {1: 'g', 2: 'r'}
+    l1 = "Last emission date: "
+    l2 = "Apparent magnitude (band {}): ".format(dic_band[fid])
+    l3 = "Time since first detection: "
+    l4 = "Total number of detections: "
     simple_card_ = dbc.Card(
         [
             dbc.CardHeader(
@@ -237,7 +234,30 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
             dbc.CardBody(
                 [
                     html.H4("{}".format(finkclass), className="card-title"),
-                    dcc.Markdown(msg),
+                    html.P(
+                        [
+                            html.Strong(l1),
+                            html.P(lastdate)
+                        ]
+                    ),
+                    html.P(
+                        [
+                            html.Strong(l2),
+                            html.P("{:.2f}".format(mag))
+                        ]
+                    ),
+                    html.P(
+                        [
+                            html.Strong(l3),
+                            html.P('{}'.format(int(jd - jdstarthist)))
+                        ]
+                    ),
+                    html.P(
+                        [
+                            html.Strong(l4),
+                            html.P('{}'.format(ndethist))
+                        ]
+                    ),
                 ]
             ),
             dbc.CardFooter(dbc.Button("Go to {}".format(name), color="primary", outline=True))
