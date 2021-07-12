@@ -222,41 +222,50 @@ def print_msg_info():
 
 def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, is_mobile):
     dic_band = {1: 'g', 2: 'r'}
-    l1 = "Last emission date: "
-    l2 = "Last magnitude (band {}): ".format(dic_band[fid])
-    l3 = "Days since first detection: "
-    l4 = "Total number of detections: "
+    l1 = html.P(
+        [
+            html.Strong("Last emission date: ", style={'font-size': fontsize}),
+            html.P(lastdate)
+        ]
+    )
+    l2 = html.P(
+        [
+            html.Strong("Last magnitude (band {}): ".format(dic_band[fid]), style={'font-size': fontsize}),
+            html.P("{:.2f}".format(mag))
+        ]
+    )
+
+    l3 = html.P(
+        [
+            html.Strong("Days since first detection: ", style={'font-size': fontsize}),
+            html.P('{}'.format(int(jd - jdstarthist)))
+        ]
+    )
+
+    l4 = html.P(
+        [
+            html.Strong("Total number of detections: ", style={'font-size': fontsize}),
+            html.P('{}'.format(ndethist))
+        ]
+    )
 
     if is_mobile:
         fontsize = '75%'
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
-                html.P(
-                    [
-                        html.Strong(l1, style={'font-size': fontsize}),
-                        html.P(lastdate)
-                    ]
-                ),
-                html.P(
-                    [
-                        html.Strong(l2, style={'font-size': fontsize}),
-                        html.P("{:.2f}".format(mag))
-                    ]
-                ),
-                html.P(
-                    [
-                        html.Strong(l3, style={'font-size': fontsize}),
-                        html.P('{}'.format(int(jd - jdstarthist)))
-                    ]
-                ),
-                html.P(
-                    [
-                        html.Strong(l4, style={'font-size': fontsize}),
-                        html.P('{}'.format(ndethist))
-                    ]
-                ),
+                l1,
+                l2,
+                l3,
+                l4
             ]
+        )
+        header = dbc.CardHeader(
+            dbc.Row(
+                draw_cutouts_quickview(name),
+                id='stamps_quickview',
+                justify='around'
+            )
         )
     else:
         fontsize = '100%'
@@ -274,15 +283,22 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
             ]
         )
 
+        header = dbc.CardHeader(
+            dbc.Row(
+                [
+                    dbc.Col(draw_cutouts_quickview(name), width=3),
+                    dbc.Col([l1, l2], width=4),
+                    dbc.Col([l3, l4], width=4)
+                ]
+                id='stamps_quickview',
+                justify='around'
+            )
+        )
+
+
     simple_card_ = dbc.Card(
         [
-            dbc.CardHeader(
-                dbc.Row(
-                    draw_cutouts_quickview(name),
-                    id='stamps_quickview',
-                    justify='around'
-                )
-            ),
+            header,
             cardbody,
             dbc.CardFooter(
                 dbc.Button(
