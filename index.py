@@ -216,12 +216,17 @@ def print_msg_info():
     ])
     return h
 
-def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
+def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, is_mobile):
     dic_band = {1: 'g', 2: 'r'}
     l1 = "Last emission date: "
     l2 = "Last magnitude (band {}): ".format(dic_band[fid])
     l3 = "Days since first detection: "
     l4 = "Total number of detections: "
+
+    if is_mobile:
+        fontsize = '75%'
+    else:
+        fontsize = '100%'
     simple_card_ = dbc.Card(
         [
             dbc.CardHeader(
@@ -236,25 +241,25 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
                     html.H4("{}".format(finkclass), className="card-title"),
                     html.P(
                         [
-                            html.Strong(l1, style={'font-size': '75%'}),
+                            html.Strong(l1, style={'font-size': fontsize}),
                             html.P(lastdate)
                         ]
                     ),
                     html.P(
                         [
-                            html.Strong(l2, style={'font-size': '75%'}),
+                            html.Strong(l2, style={'font-size': fontsize}),
                             html.P("{:.2f}".format(mag))
                         ]
                     ),
                     html.P(
                         [
-                            html.Strong(l3, style={'font-size': '75%'}),
+                            html.Strong(l3, style={'font-size': fontsize}),
                             html.P('{}'.format(int(jd - jdstarthist)))
                         ]
                     ),
                     html.P(
                         [
-                            html.Strong(l4, style={'font-size': '75%'}),
+                            html.Strong(l4, style={'font-size': fontsize}),
                             html.P('{}'.format(ndethist))
                         ]
                     ),
@@ -269,10 +274,11 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
     Output('carousel', 'children'),
     [
         Input("open_modal_quickview", "n_clicks"),
-        Input("result_table", "data")
+        Input("result_table", "data"),
+        Input('is-mobile', 'children')
     ],
 )
-def carousel(nclick, data):
+def carousel(nclick, data, is_mobile):
     """
     """
     if nclick > 0:
@@ -285,9 +291,10 @@ def carousel(nclick, data):
         jds = pdf['i:jd'].values[0:10]
         jdstarthists = pdf['i:jdstarthist'].values[0:10]
         ndethists = pdf['i:ndethist'].values[0:10]
+        is_mobiles = [is_mobile] * 10
         carousel = dtc.Carousel(
             [
-                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists)
+                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, is_mobiles)
             ],
             slides_to_scroll=1,
             slides_to_show=1,
