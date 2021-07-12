@@ -324,12 +324,15 @@ modal_quickview = html.Div(
                         id='carousel',
                         fluid=True,
                         style={'width': '95%'}
-                    ), style={'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
+                    ), style={
+                        'background': '#000',
+                        'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+                    }
                 ),
                 dbc.ModalFooter(
                     dbc.Button(
                         "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
-                    )
+                    ), style={'display': 'None'}
                 ),
             ],
             id="modal_quickview",
