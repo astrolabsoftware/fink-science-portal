@@ -218,10 +218,12 @@ def print_msg_info():
 
 def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist):
     msg = """
+    ```python
     Last emission date: {}
     Apparent magnitude (band {}): {}
     Time since first detection: {} days
     Total number of detections: {}
+    ```
     """.format(lastdate, fid, mag, jd - jdstarthist, ndethist)
     simple_card_ = dbc.Card(
         [
