@@ -696,14 +696,18 @@ def construct_results_layout(table, is_mobile):
     ]
     return results_
 
-def populate_result_table(data, columns):
+def populate_result_table(data, columns, is_mobile):
     """ Define options of the results table, and add data and columns
     """
+    if is_mobile:
+        page_size = 5
+    else:
+        page_size = 10
     table = dash_table.DataTable(
         data=data,
         columns=columns,
         id='result_table',
-        page_size=10,
+        page_size=page_size,
         style_as_list_view=True,
         sort_action="native",
         filter_action="native",
@@ -897,7 +901,7 @@ def results(ns, query, query_type, dropdown_option, results, is_mobile):
         ]
         validation = 1
 
-    table = populate_result_table(data, columns)
+    table = populate_result_table(data, columns, is_mobile)
     return construct_results_layout(table, is_mobile), validation
 
 
