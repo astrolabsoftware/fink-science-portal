@@ -412,12 +412,8 @@ def display_table_results(table, is_mobile):
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(dropdown, width=12)
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(modal_quickview)
+                    dbc.Col(dropdown, width=6),
+                    dbc.Col(modal_quickview, width=6)
                 ]
             ),
             html.Br(),
