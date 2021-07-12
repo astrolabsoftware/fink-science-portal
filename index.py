@@ -263,7 +263,14 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
-                dcc.Graph(figure=draw_lightcurve_preview(name))
+                dcc.Graph(
+                    figure=draw_lightcurve_preview(name),
+                    config={'displayModeBar': False},
+                    style={
+                        'width': '100%',
+                        'height': '15pc'
+                    }
+                )
             ]
         )
 
@@ -356,7 +363,7 @@ modal_quickview = html.Div(
             ],
             id="modal_quickview",
             is_open=False,
-            #size="lg",
+            size="lg",
         ),
     ]
 )
