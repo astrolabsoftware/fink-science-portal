@@ -942,10 +942,9 @@ def inspect_object_modal(objectid):
     message = """
     Here are the fields contained in the {} alert. Note you can filter the
     table results using the first row (enter text and hit enter).
-    Legend:
     - Fields starting with `i:` are original fields from ZTF.
     - Fields starting with `d:` are live added values by Fink.
-    - Fields starting with `v:` are a posteriori added values by Fink.
+    - Fields starting with `v:` are added values by Fink (post-processing).
     """.format(objectid)
     modal = [
         dbc.Button(

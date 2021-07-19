@@ -1950,7 +1950,6 @@ def alert_properties(object_data):
         columns=columns,
         id='result_table_alert',
         style_as_list_view=True,
-        sort_action="native",
         filter_action="native",
         markdown_options={'link_target': '_blank'},
         fixed_columns={'headers': True, 'data': 1},
