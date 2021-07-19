@@ -914,7 +914,7 @@ def download_object_modal(objectid):
             "Download",
             id="open-object",
             color='dark', outline=True,
-            size="lg", block=True
+            block=True
         ),
         dbc.Modal(
             [
@@ -922,7 +922,7 @@ def download_object_modal(objectid):
                 dbc.ModalBody(
                     dcc.Markdown(message_download),
                     style={
-                        'background-image': 'linear-gradient(rgba(0,0,0,0.4), rgba(255,255,255,0.6)), url(/assets/background.png)'
+                        'background-image': 'linear-gradient(rgba(0,0,0,0.6), rgba(255,255,255,0.8)), url(/assets/background.png)'
                     }
                 ),
                 dbc.ModalFooter(
@@ -952,7 +952,7 @@ def inspect_object_modal(objectid):
             "Inspect",
             id="open-object-prop",
             color='dark', outline=True,
-            size="lg", block=True
+            block=True
         ),
         dbc.Modal(
             [
