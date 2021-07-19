@@ -28,7 +28,7 @@ from app import app, client, clientU, clientUV, clientSSO
 
 from apps.cards import card_cutouts, card_sn_scores
 from apps.cards import card_id, card_sn_properties
-from apps.cards import download_object_modal
+from apps.cards import download_object_modal, inspect_object_modal
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
@@ -416,6 +416,8 @@ def layout(name, is_mobile):
             }
         )
     else:
+        button_inspect, modal_inspect = inspect_object_modal(pdf['i:objectId'].values[0])
+        button_download, modal_download = download_object_modal(pdf['i:objectId'].values[0])
         layout_ = html.Div(
             [
                 html.Br(),
@@ -435,7 +437,14 @@ def layout(name, is_mobile):
                                     }
                                 ),
                                 html.Br(),
-                                *download_object_modal(pdf['i:objectId'].values[0])
+                                dbc.Row(
+                                    [
+                                        dbc.Col(button_inspect, width=6),
+                                        dbc.Col(button_download, width=6)
+                                    ],
+                                ),
+                                modal_inspect,
+                                modal_download
                             ], width={"size": 3},
                         ),
                         dbc.Col(tabs(pdf, is_mobile), width=8)

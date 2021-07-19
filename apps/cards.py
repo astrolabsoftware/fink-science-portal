@@ -19,7 +19,7 @@ from dash.dependencies import Input, Output, State
 import dash_table
 import visdcc
 
-from app import app
+from app import app, APIURL
 
 from apps.plotting import all_radio_options
 from apps.utils import queryMPC, convert_mpc_type
@@ -823,7 +823,7 @@ def download_sso_modal(ssnamenr):
     ```bash
     curl -H "Content-Type: application/json" -X POST \\
         -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
-        http://134.158.75.151:24000/api/v1/sso -o {}.csv
+        {}/api/v1/sso -o {}.csv
     ```
 
     Or in a python terminal, simply paste:
@@ -833,7 +833,7 @@ def download_sso_modal(ssnamenr):
     import pandas as pd
 
     r = requests.post(
-      'http://134.158.75.151:24000/api/v1/sso',
+      '{}/api/v1/sso',
       json={{
         'n_or_d': '{}',
         'output-format': 'json'
@@ -844,8 +844,15 @@ def download_sso_modal(ssnamenr):
     pdf = pd.read_json(r.content)
     ```
 
-    See http://134.158.75.151:24000/api for more options.
-    """.format(ssnamenr, str(ssnamenr).replace('/', '_'), ssnamenr)
+    See {}/api for more options.
+    """.format(
+        ssnamenr,
+        APIURL,
+        str(ssnamenr).replace('/', '_'),
+        APIURL,
+        ssnamenr,
+        APIURL
+    )
     modal = [
         dbc.Button(
             "Download {} data".format(ssnamenr),
@@ -879,12 +886,13 @@ def toggle_modal_sso(n1, n2, is_open):
 
 def download_object_modal(objectid):
     message_download = """
+    ### {}
     In a terminal, simply paste (CSV):
 
     ```bash
     curl -H "Content-Type: application/json" -X POST \\
         -d '{{"objectId":"{}", "output-format":"csv"}}' \\
-        http://134.158.75.151:24000/api/v1/objects \\
+        {}/api/v1/objects \\
         -o {}.csv
     ```
 
@@ -896,7 +904,7 @@ def download_object_modal(objectid):
 
     # get data for ZTF19acnjwgm
     r = requests.post(
-      'http://134.158.75.151:24000/api/v1/objects',
+      '{}/api/v1/objects',
       json={{
         'objectId': '{}',
         'output-format': 'json'
@@ -907,24 +915,82 @@ def download_object_modal(objectid):
     pdf = pd.read_json(r.content)
     ```
 
-    See http://134.158.75.151:24000/api for more options.
-    """.format(objectid, str(objectid).replace('/', '_'), objectid)
+    See {}/api for more options.
+    """.format(
+        objectid,
+        objectid,
+        APIURL,
+        str(objectid).replace('/', '_'),
+        APIURL,
+        objectid,
+        APIURL
+    )
     modal = [
         dbc.Button(
-            "Download {} data".format(objectid),
+            "Download data",
             id="open-object",
-            color='secondary',
-            size="lg", block=True
+            color='dark', outline=True,
+            block=True
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("Download {} data".format(objectid)),
-                dbc.ModalBody(dcc.Markdown(message_download)),
+                dbc.ModalBody(
+                    dcc.Markdown(message_download),
+                    style={
+                        'background-image': 'linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.4)), url(/assets/background.png)'
+                    }
+                ),
                 dbc.ModalFooter(
-                    dbc.Button("Close", id="close-object", className="ml-auto")
+                    dbc.Button(
+                        "Close",
+                        color='dark', outline=True,
+                        id="close-object", className="ml-auto"
+                    )
                 ),
             ],
             id="modal-object", scrollable=True
+        ),
+    ]
+    return modal
+
+def inspect_object_modal(objectid):
+    message = """
+    ### {}
+    Here are the fields contained in the {} alert. Note you can filter the
+    table results using the first row (enter text and hit enter).
+    - Fields starting with `i:` are original fields from ZTF.
+    - Fields starting with `d:` are live added values by Fink.
+    - Fields starting with `v:` are added values by Fink (post-processing).
+
+    See {}/api/v1/columns for more information.
+    """.format(objectid, objectid, APIURL)
+    modal = [
+        dbc.Button(
+            "Inspect data",
+            id="open-object-prop",
+            color='dark', outline=True,
+            block=True
+        ),
+        dbc.Modal(
+            [
+                dbc.ModalBody(
+                    [
+                        dcc.Markdown(message),
+                        html.Div([], id='alert_table')
+                    ], style={
+                        'background-image': 'linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.6)), url(/assets/background.png)'
+                    }
+                ),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close",
+                        color='dark', outline=True,
+                        id="close-object-prop",
+                        className="ml-auto"
+                    )
+                ),
+            ],
+            id="modal-object-prop", scrollable=True
         ),
     ]
     return modal
@@ -935,6 +1001,18 @@ def download_object_modal(objectid):
     [State("modal-object", "is_open")],
 )
 def toggle_modal_object(n1, n2, is_open):
+    """ Callback for the modal (open/close)
+    """
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output("modal-object-prop", "is_open"),
+    [Input("open-object-prop", "n_clicks"), Input("close-object-prop", "n_clicks")],
+    [State("modal-object-prop", "is_open")],
+)
+def toggle_modal_object_prop(n1, n2, is_open):
     """ Callback for the modal (open/close)
     """
     if n1 or n2:

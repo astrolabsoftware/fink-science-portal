@@ -1950,7 +1950,6 @@ def alert_properties(object_data):
         columns=columns,
         id='result_table_alert',
         style_as_list_view=True,
-        sort_action="native",
         filter_action="native",
         markdown_options={'link_target': '_blank'},
         fixed_columns={'headers': True, 'data': 1},
@@ -1959,6 +1958,7 @@ def alert_properties(object_data):
         },
         style_table={'maxWidth': '100%'},
         style_cell={'padding': '5px', 'textAlign': 'left', 'overflow': 'hidden'},
+        style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
         style_data_conditional=[
             {
                 'if': {'row_index': 'odd'},
