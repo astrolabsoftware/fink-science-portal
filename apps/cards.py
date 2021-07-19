@@ -302,7 +302,7 @@ submit_mulens_button = dbc.Button(
     'Fit data',
     id='submit_mulens',
     style={'width': '100%', 'display': 'inline-block'},
-    block=True
+    block=True, color='dark', outline=True
 )
 
 def card_mulens_button(pdf):
