@@ -220,7 +220,14 @@ def print_msg_info():
     ])
     return h
 
-def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, is_mobile):
+def simple_card(
+        name, finkclass, lastdate, fid,
+        mag, jd, jdstarthist, ndethist, is_mobile):
+    """ Preview card
+
+    The laptop version shows Science cutout + metadata + lightcurve
+    The mobile version shows Science cutout + metadata
+    """
     dic_band = {1: 'g', 2: 'r'}
     fontsize = '75%'
 
@@ -321,7 +328,7 @@ def simple_card(name, finkclass, lastdate, fid, mag, jd, jdstarthist, ndethist, 
     ],
 )
 def carousel(nclick, data, is_mobile):
-    """
+    """ Carousel that shows alert preview
     """
     if nclick > 0:
         pdf = pd.DataFrame(data)
@@ -349,6 +356,7 @@ def carousel(nclick, data, is_mobile):
     else:
         carousel = html.Div("")
     return carousel
+
 
 modal_quickview = html.Div(
     [
@@ -392,7 +400,7 @@ modal_quickview = html.Div(
     ],
     [State("modal_quickview", "is_open")],
 )
-def toggle_modal(n1, n2, is_open):
+def toggle_modal_preview(n1, n2, is_open):
     if n1 or n2:
         return not is_open
     return is_open

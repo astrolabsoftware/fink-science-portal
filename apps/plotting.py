@@ -1168,10 +1168,12 @@ def draw_cutouts_quickview(name):
     figs = []
     for kind in ['science']:
         try:
+            # transfer only necessary columns
             cols = [
                 'i:jd',
                 'b:cutout{}_stampData'.format(kind.capitalize()),
             ]
+            # Transfer cutout name data
             r = requests.post(
                 '{}/api/v1/objects'.format(APIURL),
                 json={
