@@ -97,6 +97,32 @@ layout_lightcurve = dict(
     }
 )
 
+layout_lightcurve_preview = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': 'Observation date',
+        'automargin': True
+    },
+    yaxis={
+        'autorange': 'reversed',
+        'title': 'Magnitude',
+        'automargin': True
+    }
+)
+
 layout_phase = dict(
     autosize=True,
     automargin=True,
@@ -742,9 +768,10 @@ def draw_lightcurve_preview(name) -> dict:
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
 
-
-    layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
-    layout_lightcurve['yaxis']['autorange'] = 'reversed'
+    layout_lightcurve_preview['yaxis']['title'] = 'Difference magnitude'
+    layout_lightcurve_preview['yaxis']['autorange'] = 'reversed'
+    layout_lightcurve_preview['paper_bgcolor'] = 'rgba(0,0,0,0.0)'
+    layout_lightcurve_preview['plot_bgcolor'] = 'rgba(0,0,0,0.2)'
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
@@ -791,7 +818,7 @@ def draw_lightcurve_preview(name) -> dict:
                     'symbol': 'o'}
             }
         ],
-        "layout": layout_lightcurve
+        "layout": layout_lightcurve_preview
     }
     return figure
 

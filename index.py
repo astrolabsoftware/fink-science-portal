@@ -315,7 +315,7 @@ def simple_card(
                     href='{}/{}'.format(APIURL, name)
                 )
             )
-        ], style={'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
+        ], style={'background': '#000', 'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.9)), url(/assets/background.png)'}
     )
     return simple_card_
 
@@ -365,7 +365,7 @@ modal_quickview = html.Div(
             id="open_modal_quickview",
             n_clicks=0,
             outline=True,
-            color="success"
+            color="secondary"
         ),
         dbc.Modal(
             [
@@ -1068,7 +1068,7 @@ navbar = dbc.Navbar(
             id="navbar-collapse2",
             navbar=True,
             style={'background-color': 'rgb(255,250,250)'}
-        )
+        ),
     ],
     color="rgba(255,255,255,0.9)",
     dark=False,
@@ -1114,8 +1114,10 @@ app.clientside_callback(
 def display_page(pathname, is_mobile):
     if is_mobile:
         width = '95%'
+        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
     else:
         width = '60%'
+        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'contain'}
     layout = html.Div(
         [
             html.Br(),
@@ -1139,10 +1141,7 @@ def display_page(pathname, is_mobile):
             dbc.Input(id='validate_results', style={'display': 'none'}),
         ],
         className='home',
-        style={
-            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
-            'background-size': 'contain'
-        }
+        style=style
     )
     if pathname == '/about':
         return about.layout
