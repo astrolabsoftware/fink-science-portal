@@ -1959,6 +1959,7 @@ def alert_properties(object_data):
         },
         style_table={'maxWidth': '100%'},
         style_cell={'padding': '5px', 'textAlign': 'left', 'overflow': 'hidden'},
+        style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
         style_data_conditional=[
             {
                 'if': {'row_index': 'odd'},
