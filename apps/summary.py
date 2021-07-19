@@ -149,13 +149,14 @@ def tabs(pdf, is_mobile):
     if is_mobile:
         tabs_ = tab_mobile_content(pdf)
     else:
+        label_style = {"color": "#000"}
         tabs_ = dbc.Tabs(
             [
-                dbc.Tab(tab1_content(pdf), label="Summary", tab_style={"margin-left": "auto"}),
-                dbc.Tab(tab2_content(pdf), label="Supernovae"),
-                dbc.Tab(tab3_content(pdf), label="Variable stars"),
-                dbc.Tab(tab4_content(pdf), label="Microlensing"),
-                dbc.Tab(tab5_content(pdf), label="Solar System"),
+                dbc.Tab(tab1_content(pdf), label="Summary", tab_style={"margin-left": "auto"}, label_style=label_style),
+                dbc.Tab(tab2_content(pdf), label="Supernovae", label_style=label_style),
+                dbc.Tab(tab3_content(pdf), label="Variable stars", label_style=label_style),
+                dbc.Tab(tab4_content(pdf), label="Microlensing", label_style=label_style),
+                dbc.Tab(tab5_content(pdf), label="Solar System", label_style=label_style),
                 dbc.Tab(label="GRB", disabled=True)
             ]
         )
