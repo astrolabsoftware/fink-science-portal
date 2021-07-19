@@ -1173,7 +1173,7 @@ def draw_cutouts_quickview(name):
                 'b:cutout{}_stampData'.format(kind.capitalize()),
             ]
             r = requests.post(
-                '{}/api/v1/explorer'.format(APIURL),
+                '{}/api/v1/objects'.format(APIURL),
                 json={
                     'objectId': name,
                     'columns': ','.join(cols)
