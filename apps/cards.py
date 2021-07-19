@@ -408,10 +408,7 @@ def card_sso_lightcurve():
     card: dbc.Card
         Card with the SSO lightcurve
     """
-    card = dbc.Card(
-        dbc.CardBody(id='sso_lightcurve'),
-        className="mt-3"
-    )
+    card = html.Div(id='sso_lightcurve')
     return card
 
 def card_sso_radec():
@@ -422,10 +419,7 @@ def card_sso_radec():
     card: dbc.Card
         Card with the SSO radec
     """
-    card = dbc.Card(
-        dbc.CardBody(id='sso_radec'),
-        className="mt-3"
-    )
+    card = html.Div(id='sso_radec')
     return card
 
 def card_sso_skymap():
@@ -908,10 +902,31 @@ def card_sso_mpc_params(ssnamenr):
                     neo
                 )
             ),
-            dbc.ButtonGroup([
-                dbc.Button('MPC', id='MPC', target="_blank", href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_), color='light'),
-                dbc.Button('JPL', id='JPL', target="_blank", href='https://ssd.jpl.nasa.gov/sbdb.cgi', color='light'),
-            ]),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/mpc.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='MPC',
+                            target="_blank",
+                            href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_)
+                        ), width=4),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/nasa.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='JPL',
+                            target="_blank",
+                            href='https://ssd.jpl.nasa.gov/sbdb.cgi'
+                        ), width=4
+                    ),
+                ], justify='around'
+            ),
         ],
         className="mt-3", body=True
     )
@@ -958,14 +973,24 @@ def download_sso_modal(ssnamenr):
         dbc.Button(
             "Download {} data".format(ssnamenr),
             id="open-sso",
-            color='secondary',
+            color='dark', outline=True
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("Download {} data".format(ssnamenr)),
-                dbc.ModalBody(dcc.Markdown(message_download_sso)),
+                dbc.ModalBody(
+                    dcc.Markdown(message_download_sso),
+                    style={
+                        'background-image': 'linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.4)), url(/assets/background.png)'
+                    }
+                ),
                 dbc.ModalFooter(
-                    dbc.Button("Close", id="close-sso", className="ml-auto")
+                    dbc.Button(
+                        "Close",
+                        id="close-sso",
+                        className="ml-auto",
+                        color='dark',
+                        outline=True
+                    )
                 ),
             ],
             id="modal-sso", scrollable=True

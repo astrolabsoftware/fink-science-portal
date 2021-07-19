@@ -1790,9 +1790,9 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
-        ### Not referenced in the Minor Planet Center
+        Object not referenced in the Minor Planet Center
         """
-        return dcc.Markdown(msg)
+        return dbc.Alert(msg, color="danger")
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
@@ -1860,7 +1860,11 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    return graph
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
 
 @app.callback(
     Output('sso_radec', 'children'),
@@ -1883,7 +1887,7 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = ""
-        return dcc.Markdown(msg)
+        return msg
 
     # shortcuts
     ra = pdf['i:ra'].apply(lambda x: float(x))
@@ -1926,7 +1930,11 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    return graph
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
 
 @app.callback(
     Output('alert_table', 'children'),
