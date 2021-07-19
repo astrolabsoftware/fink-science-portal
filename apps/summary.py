@@ -412,8 +412,7 @@ def layout(name, is_mobile):
             ],
             className='home',
             style={
-                'background-image': 'linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/assets/background.png)',
-                'background-size': 'contain'
+                'background-image': 'linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/assets/background.png)'
             }
         )
     else:
