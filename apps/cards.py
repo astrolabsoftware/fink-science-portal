@@ -879,6 +879,7 @@ def toggle_modal_sso(n1, n2, is_open):
 
 def download_object_modal(objectid):
     message_download = """
+    ### {}
     In a terminal, simply paste (CSV):
 
     ```bash
@@ -908,7 +909,7 @@ def download_object_modal(objectid):
     ```
 
     See http://134.158.75.151:24000/api for more options.
-    """.format(objectid, str(objectid).replace('/', '_'), objectid)
+    """.format(objectid, objectid, str(objectid).replace('/', '_'), objectid)
     modal = [
         dbc.Button(
             "Download",
@@ -918,11 +919,10 @@ def download_object_modal(objectid):
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("Download {} data".format(objectid)),
                 dbc.ModalBody(
                     dcc.Markdown(message_download),
                     style={
-                        'background-image': 'linear-gradient(rgba(0,0,0,0.6), rgba(255,255,255,0.8)), url(/assets/background.png)'
+                        'background-image': 'linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.4)), url(/assets/background.png)'
                     }
                 ),
                 dbc.ModalFooter(
@@ -940,12 +940,13 @@ def download_object_modal(objectid):
 
 def inspect_object_modal(objectid):
     message = """
+    ### {}
     Here are the fields contained in the {} alert. Note you can filter the
     table results using the first row (enter text and hit enter).
     - Fields starting with `i:` are original fields from ZTF.
     - Fields starting with `d:` are live added values by Fink.
     - Fields starting with `v:` are added values by Fink (post-processing).
-    """.format(objectid)
+    """.format(objectid, objectid)
     modal = [
         dbc.Button(
             "Inspect",
@@ -960,7 +961,7 @@ def inspect_object_modal(objectid):
                         dcc.Markdown(message),
                         html.Div([], id='alert_table')
                     ], style={
-                        'background-image': 'linear-gradient(rgba(0,0,0,0.4), rgba(255,255,255,0.6)), url(/assets/background.png)'
+                        'background-image': 'linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.6)), url(/assets/background.png)'
                     }
                 ),
                 dbc.ModalFooter(
