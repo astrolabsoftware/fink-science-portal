@@ -927,7 +927,7 @@ def download_object_modal(objectid):
     )
     modal = [
         dbc.Button(
-            "Download",
+            "Download data",
             id="open-object",
             color='dark', outline=True,
             block=True
@@ -966,7 +966,7 @@ def inspect_object_modal(objectid):
     """.format(objectid, objectid, APIURL)
     modal = [
         dbc.Button(
-            "Inspect",
+            "Inspect data",
             id="open-object-prop",
             color='dark', outline=True,
             block=True
