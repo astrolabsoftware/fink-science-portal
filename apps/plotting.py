@@ -19,6 +19,7 @@ from gatspy import periodic
 import java
 import copy
 from astropy.time import Time
+import requests
 
 import dash
 import dash_table
@@ -29,6 +30,7 @@ import dash_core_components as dcc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
+from app import APIURL
 
 from pyLIMA import event
 from pyLIMA import telescopes
@@ -700,6 +702,99 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
     }
     return figure
 
+def draw_lightcurve_preview(name) -> dict:
+    """ Draw object lightcurve with errorbars (SM view - DC mag fixed)
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:candid'
+    ]
+    r = requests.post(
+      '{}/api/v1/objects'.format(APIURL),
+      json={
+        'objectId': name,
+        'withupperlim': 'True',
+        'columns': ",".join(cols),
+        'output-format': 'json'
+      }
+    )
+    pdf_ = pd.read_json(r.content)
+    pdf = pdf_.loc[:, cols]
+
+    # Mask upper-limits (but keep measurements with bad quality)
+    mag_ = pdf['i:magpsf']
+    mask = ~np.isnan(mag_)
+    pdf = pdf[mask]
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    # shortcuts
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+
+
+    layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
+    layout_lightcurve['yaxis']['autorange'] = 'reversed'
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': dates[pdf['i:fid'] == 1],
+                'y': mag[pdf['i:fid'] == 1],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 1],
+                    'visible': True,
+                    'color': '#1f77b4'
+                },
+                'mode': 'markers',
+                'name': 'g band',
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            },
+            {
+                'x': dates[pdf['i:fid'] == 2],
+                'y': mag[pdf['i:fid'] == 2],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 2],
+                    'visible': True,
+                    'color': '#ff7f0e'
+                },
+                'mode': 'markers',
+                'name': 'r band',
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#ff7f0e',
+                    'symbol': 'o'}
+            }
+        ],
+        "layout": layout_lightcurve
+    }
+    return figure
+
 @app.callback(
     Output('scores', 'figure'),
     [
@@ -1003,7 +1098,6 @@ def extract_cutout(object_data, time0, kind):
     """
     values = [
         'i:jd',
-        'i:fid',
         'b:cutout{}_stampData'.format(kind.capitalize()),
     ]
     pdf_ = pd.read_json(object_data)
@@ -1063,6 +1157,33 @@ def draw_cutouts_mobile(object_data, is_mobile):
         try:
             data = extract_cutout(object_data, None, kind=kind)
             figs.append(draw_cutout(data, kind, is_mobile=is_mobile))
+        except OSError:
+            data = dcc.Markdown("Load fail, refresh the page")
+            figs.append(data)
+    return figs
+
+def draw_cutouts_quickview(name):
+    """ Draw Science cutout data for the preview service
+    """
+    figs = []
+    for kind in ['science']:
+        try:
+            # transfer only necessary columns
+            cols = [
+                'i:jd',
+                'b:cutout{}_stampData'.format(kind.capitalize()),
+            ]
+            # Transfer cutout name data
+            r = requests.post(
+                '{}/api/v1/objects'.format(APIURL),
+                json={
+                    'objectId': name,
+                    'columns': ','.join(cols)
+                }
+            )
+            object_data = r.content
+            data = extract_cutout(object_data, None, kind=kind)
+            figs.append(draw_cutout(data, kind, is_mobile=True))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)

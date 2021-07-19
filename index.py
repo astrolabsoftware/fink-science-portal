@@ -20,6 +20,7 @@ import dash_bootstrap_components as dbc
 import dash_table
 from dash.exceptions import PreventUpdate
 import visdcc
+import dash_trich_components as dtc
 
 from app import server
 from app import app
@@ -29,8 +30,9 @@ from apps import home, summary, about, api
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid
-from apps.api import APIURL
+from app import APIURL
 from apps.utils import isoify_time, validate_query
+from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
 import requests
 import pandas as pd
@@ -127,6 +129,10 @@ By default, the table shows:
 - i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
 
 You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at https://fink-portal.ijclab.in2p3.fr:24000/api/v1/columns.
+
+Finally, you can hit the button `Preview`. This will show you more information
+about the first 10 alerts (science cutout, and basic information). Note you can
+swipe between alerts (or use arrows on a laptop).
 """
 
 modal = html.Div(
@@ -214,7 +220,192 @@ def print_msg_info():
     ])
     return h
 
-def display_table_results(table):
+def simple_card(
+        name, finkclass, lastdate, fid,
+        mag, jd, jdstarthist, ndethist, is_mobile):
+    """ Preview card
+
+    The laptop version shows Science cutout + metadata + lightcurve
+    The mobile version shows Science cutout + metadata
+    """
+    dic_band = {1: 'g', 2: 'r'}
+    fontsize = '75%'
+
+    l1 = html.P(
+        [
+            html.Strong("Last emission date: ", style={'font-size': fontsize}),
+            html.P(lastdate)
+        ]
+    )
+    l2 = html.P(
+        [
+            html.Strong("Last magnitude (band {}): ".format(dic_band[fid]), style={'font-size': fontsize}),
+            html.P("{:.2f}".format(mag))
+        ]
+    )
+
+    l3 = html.P(
+        [
+            html.Strong("Days since first detection: ", style={'font-size': fontsize}),
+            html.P('{}'.format(int(jd - jdstarthist)))
+        ]
+    )
+
+    l4 = html.P(
+        [
+            html.Strong("Total number of detections: ", style={'font-size': fontsize}),
+            html.P('{}'.format(ndethist))
+        ]
+    )
+
+    if is_mobile:
+        cardbody = dbc.CardBody(
+            [
+                html.H4("{}".format(finkclass), className="card-title"),
+                l1,
+                l2,
+                l3,
+                l4
+            ]
+        )
+        header = dbc.CardHeader(
+            dbc.Row(
+                draw_cutouts_quickview(name),
+                id='stamps_quickview',
+                justify='around'
+            )
+        )
+    else:
+        cardbody = dbc.CardBody(
+            [
+                html.H4("{}".format(finkclass), className="card-title"),
+                dcc.Graph(
+                    figure=draw_lightcurve_preview(name),
+                    config={'displayModeBar': False},
+                    style={
+                        'width': '100%',
+                        'height': '15pc'
+                    }
+                )
+            ]
+        )
+
+        header = dbc.CardHeader(
+            dbc.Row(
+                [
+                    dbc.Col(draw_cutouts_quickview(name), width=2),
+                    dbc.Col([l1, l2], width=5),
+                    dbc.Col([l3, l4], width=5)
+                ],
+                id='stamps_quickview',
+                justify='around'
+            )
+        )
+
+
+    simple_card_ = dbc.Card(
+        [
+            header,
+            cardbody,
+            dbc.CardFooter(
+                dbc.Button(
+                    "Go to {}".format(name),
+                    color="primary",
+                    outline=True,
+                    href='{}/{}'.format(APIURL, name)
+                )
+            )
+        ], style={'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
+    )
+    return simple_card_
+
+@app.callback(
+    Output('carousel', 'children'),
+    [
+        Input("open_modal_quickview", "n_clicks"),
+        Input("result_table", "data"),
+        Input('is-mobile', 'children')
+    ],
+)
+def carousel(nclick, data, is_mobile):
+    """ Carousel that shows alert preview
+    """
+    if nclick > 0:
+        pdf = pd.DataFrame(data)
+        names = pdf['i:objectId'].apply(lambda x: x.split('[')[1].split(']')[0]).values[0:10]
+        finkclasses = pdf['v:classification'].values[0:10]
+        lastdates = pdf['v:lastdate'].values[0:10]
+        fids = pdf['i:fid'].values[0:10]
+        mags = pdf['i:magpsf'].values[0:10]
+        jds = pdf['i:jd'].values[0:10]
+        jdstarthists = pdf['i:jdstarthist'].values[0:10]
+        ndethists = pdf['i:ndethist'].values[0:10]
+        is_mobiles = [is_mobile] * 10
+        carousel = dtc.Carousel(
+            [
+                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, is_mobiles)
+            ],
+            slides_to_scroll=1,
+            slides_to_show=1,
+            swipe_to_slide=True,
+            autoplay=False,
+            speed=800,
+            variable_width=False,
+            center_mode=False
+        )
+    else:
+        carousel = html.Div("")
+    return carousel
+
+
+modal_quickview = html.Div(
+    [
+        dbc.Button(
+            "Preview",
+            id="open_modal_quickview",
+            n_clicks=0,
+            outline=True,
+            color="success"
+        ),
+        dbc.Modal(
+            [
+                dbc.ModalBody(
+                    dbc.Container(
+                        id='carousel',
+                        fluid=True,
+                        style={'width': '95%'}
+                    ), style={
+                        'background': '#000',
+                        'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+                    }
+                ),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
+                    ), style={'display': 'None'}
+                ),
+            ],
+            id="modal_quickview",
+            is_open=False,
+            size="lg",
+        ),
+    ]
+)
+
+@app.callback(
+    Output("modal_quickview", "is_open"),
+    [
+        Input("open_modal_quickview", "n_clicks"),
+        Input("close_modal_quickview", "n_clicks")
+    ],
+    [State("modal_quickview", "is_open")],
+)
+def toggle_modal_preview(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+def display_table_results(table, is_mobile):
     """ Display explorer results in the form of a table with a dropdown
     menu on top to insert more data columns.
 
@@ -240,21 +431,35 @@ def display_table_results(table):
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
     fink_additional_fields = ['v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
 
+    dropdown = dcc.Dropdown(
+        id='field-dropdown2',
+        options=[
+            {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
+            *[{'label': field, 'value': field} for field in fink_fields],
+            {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
+            *[{'label': field, 'value': field} for field in fink_additional_fields],
+            {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
+            *[{'label': field, 'value': field} for field in ztf_fields]
+        ],
+        searchable=True,
+        clearable=True,
+        placeholder="Add more fields to the table",
+    )
+
+    if is_mobile:
+        width_dropdown = 8
+        width_preview = 4
+    else:
+        width_dropdown = 10
+        width_preview = 2
+
     return dbc.Container([
         html.Br(),
-        dcc.Dropdown(
-            id='field-dropdown2',
-            options=[
-                {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
-                *[{'label': field, 'value': field} for field in fink_fields],
-                {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
-                *[{'label': field, 'value': field} for field in fink_additional_fields],
-                {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
-                *[{'label': field, 'value': field} for field in ztf_fields]
-            ],
-            searchable=True,
-            clearable=True,
-            placeholder="Add more fields to the table",
+        dbc.Row(
+            [
+                dbc.Col(dropdown, width=width_dropdown),
+                dbc.Col(modal_quickview, width=width_preview)
+            ]
         ),
         html.Br(),
         table
@@ -286,7 +491,6 @@ def display_skymap(validation, data, columns, activetab):
     """
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    print(button_id, activetab, validation)
     if len(data) > 1000:
         msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
         return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
@@ -505,14 +709,14 @@ def logo(ns):
     else:
         return logo
 
-def construct_results_layout(table):
+def construct_results_layout(table, is_mobile):
     """ Construct the tabs containing explorer query results
     """
     results_ = [
         dbc.Tabs(
             [
                 dbc.Tab(print_msg_info(), label='Info', tab_id='t0'),
-                dbc.Tab(display_table_results(table), label="Table", tab_id='t1'),
+                dbc.Tab(display_table_results(table, is_mobile), label="Table", tab_id='t1'),
                 dbc.Tab(display_skymap(), label="Sky map", tab_id='t2'),
             ],
             id="tabs",
@@ -521,14 +725,18 @@ def construct_results_layout(table):
     ]
     return results_
 
-def populate_result_table(data, columns):
+def populate_result_table(data, columns, is_mobile):
     """ Define options of the results table, and add data and columns
     """
+    if is_mobile:
+        page_size = 5
+    else:
+        page_size = 10
     table = dash_table.DataTable(
         data=data,
         columns=columns,
         id='result_table',
-        page_size=10,
+        page_size=page_size,
         style_as_list_view=True,
         sort_action="native",
         filter_action="native",
@@ -601,10 +809,11 @@ def update_table(field_dropdown, data, columns):
         Input("search_bar_input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
+        Input("is-mobile", "children"),
     ],
     State("results", "children")
 )
-def results(ns, query, query_type, dropdown_option, results):
+def results(ns, query, query_type, dropdown_option, is_mobile, results):
     """ Query the database from the search input
 
     Returns
@@ -721,8 +930,8 @@ def results(ns, query, query_type, dropdown_option, results):
         ]
         validation = 1
 
-    table = populate_result_table(data, columns)
-    return construct_results_layout(table), validation
+    table = populate_result_table(data, columns, is_mobile)
+    return construct_results_layout(table, is_mobile), validation
 
 
 noresults_toast = html.Div(

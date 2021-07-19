@@ -37,7 +37,7 @@ from apps.plotting import plot_classbar
 from apps.plotting import all_radio_options
 
 from apps.utils import format_hbase_output
-from apps.api import APIURL
+from app import APIURL
 
 dcc.Location(id='url', refresh=False)
 

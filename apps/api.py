@@ -27,6 +27,7 @@ from app import clientP128, clientP4096, clientP131072
 from app import clientT, clientS
 from app import clientSSO, clientTNS
 from app import clientU, clientUV, nlimit
+from app import APIURL
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import get_superpixels
@@ -47,8 +48,6 @@ from astropy.coordinates import SkyCoord
 from astropy.table import Table
 
 from flask import Blueprint
-
-APIURL = "http://134.158.75.151:24000"
 
 api_bp = Blueprint('', __name__)
 
