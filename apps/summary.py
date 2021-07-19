@@ -201,47 +201,63 @@ def create_external_links(object_data):
         dbc.Row(
             [
                 dbc.Col(
-                    [
-                        dbc.Button('TNS', id='TNS', target="_blank", href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0), color='link'),
-                    ], width=6
-                )
-            ]
-        ),
-        dbc.Row(
-            [
+                    dbc.Button(
+                        className='btn btn-default btn-circle btn-lg',
+                        style={'background-image': 'url(/assets/tns_logo.png)', 'background-size': 'cover'},
+                        color='dark',
+                        outline=True,
+                        id='TNS',
+                        target="_blank",
+                        href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
+                    ), width=4),
                 dbc.Col(
-                    [
-                        dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5), color='link'),
-                    ], width=6
-                )
-            ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0), color="link"),
-                    ], width=6
-                )
-            ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        dbc.Button('NED', id='NED', target="_blank", href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0), color="link"),
-                    ], width=6
+                    dbc.Button(
+                        className='btn btn-default btn-circle btn-lg',
+                        style={'background-image': 'url(/assets/simbad.png)', 'background-size': 'cover'},
+                        color='dark',
+                        outline=True,
+                        id='SIMBAD',
+                        target="_blank",
+                        href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
+                    ), width=4
                 ),
-            ]
+                dbc.Col(
+                    dbc.Button(
+                        className='btn btn-default btn-circle btn-lg',
+                        style={'background-image': 'url(/assets/snad.svg)', 'background-size': 'cover'},
+                        color='dark',
+                        outline=True,
+                        id='SNAD',
+                        target="_blank",
+                        href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+                    ), width=4),
+            ], justify='around'
         ),
         dbc.Row(
             [
                 dbc.Col(
-                    [
-                        dbc.Button('SDSS', id='SDSS', target="_blank", href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0), color="link"),
-                    ], width=6
+                    dbc.Button(
+                        className='btn btn-default btn-circle btn-lg',
+                        style={'background-image': 'url(/assets/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                        color='dark',
+                        outline=True,
+                        id='NED',
+                        target="_blank",
+                        href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
+                    ), width=4
+                ),
+                dbc.Col(
+                    dbc.Button(
+                        className='btn btn-default btn-circle btn-lg',
+                        style={'background-image': 'url(/assets/sdssIVlogo.png)', 'background-size': 'cover'},
+                        color='dark',
+                        outline=True,
+                        id='SDSS',
+                        target="_blank",
+                        href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
+                    ), width=4
                 )
-            ]
+            ], justify='center'
         ),
     ]
     return buttons
