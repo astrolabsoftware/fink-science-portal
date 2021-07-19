@@ -27,6 +27,8 @@ from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 import plotly.express as px
 import dash_core_components as dcc
+import dash_bootstrap_components as dbc
+import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
@@ -1501,7 +1503,11 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
             },
             config={'displayModeBar': False}
         )
-        return graph
+        card = dbc.Card(
+            dbc.CardBody(graph),
+            className="mt-3"
+        )
+        return card
 
     # quite referentially opaque...
     return ""
@@ -1696,7 +1702,11 @@ def plot_mulens(n_clicks, object_data):
             err[names['uo']],
             params[-1] / dof
         )
-        return graph, mulens_params
+        card = dbc.Card(
+            dbc.CardBody(graph),
+            className="mt-3"
+        )
+        return card, mulens_params
 
     mulens_params = """
     ```python
@@ -1781,9 +1791,9 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
-        ### Not referenced in the Minor Planet Center
+        Object not referenced in the Minor Planet Center
         """
-        return dcc.Markdown(msg)
+        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
@@ -1851,7 +1861,11 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    return graph
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
 
 @app.callback(
     Output('sso_radec', 'children'),
@@ -1874,7 +1888,7 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = ""
-        return dcc.Markdown(msg)
+        return msg
 
     # shortcuts
     ra = pdf['i:ra'].apply(lambda x: float(x))
@@ -1917,7 +1931,11 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    return graph
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
 
 @app.callback(
     Output('alert_table', 'children'),

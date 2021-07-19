@@ -182,10 +182,7 @@ def card_variable_plot():
     card: dbc.Card
         Card with the variable drawn inside
     """
-    card = dbc.Card(
-        dbc.CardBody(id='variable_plot'),
-        className="mt-3"
-    )
+    card = html.Div(id='variable_plot')
     return card
 
 
@@ -224,7 +221,7 @@ submit_varstar_button = dbc.Button(
     'Fit data',
     id='submit_variable',
     style={'width': '100%', 'display': 'inline-block'},
-    block=True
+    block=True, color='dark', outline=True
 )
 
 def card_variable_button(pdf):
@@ -267,26 +264,31 @@ def card_variable_button(pdf):
             ),
             dbc.Row(nterms_base),
             dbc.Row(submit_varstar_button),
+            html.Div(html.Br()),
             dbc.Row(
-                dbc.Button(
-                    'Search in ASAS-SN Var. Stars',
-                    id='asas-sn',
-                    style={'width': '100%', 'display': 'inline-block'},
-                    block=True,
-                    target="_blank",
-                    href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
-                )
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='asas-sn',
+                            target="_blank",
+                            href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
+                        ), width=4),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='SNAD-var-star',
+                            target="_blank",
+                            href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+                        ), width=4),
+                ], justify='around'
             ),
-            dbc.Row(
-                dbc.Button(
-                    'Search in SNAD',
-                    id='SNAD-var-star',
-                    style={'width': '100%', 'display': 'inline-block'},
-                    block=True,
-                    target="_blank",
-                    href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                )
-            )
         ],
         className="mt-3", body=True
     )
@@ -297,7 +299,7 @@ submit_mulens_button = dbc.Button(
     'Fit data',
     id='submit_mulens',
     style={'width': '100%', 'display': 'inline-block'},
-    block=True
+    block=True, color='dark', outline=True
 )
 
 def card_mulens_button(pdf):
@@ -349,10 +351,7 @@ def card_mulens_plot():
     card: dbc.Card
         Card with the microlensing fit drawn inside
     """
-    card = dbc.Card(
-        dbc.CardBody(id='mulens_plot'),
-        className="mt-3"
-    )
+    card = html.Div(id='mulens_plot')
     return card
 
 def card_explanation_variable():
@@ -409,10 +408,7 @@ def card_sso_lightcurve():
     card: dbc.Card
         Card with the SSO lightcurve
     """
-    card = dbc.Card(
-        dbc.CardBody(id='sso_lightcurve'),
-        className="mt-3"
-    )
+    card = html.Div(id='sso_lightcurve')
     return card
 
 def card_sso_radec():
@@ -423,10 +419,7 @@ def card_sso_radec():
     card: dbc.Card
         Card with the SSO radec
     """
-    card = dbc.Card(
-        dbc.CardBody(id='sso_radec'),
-        className="mt-3"
-    )
+    card = html.Div(id='sso_radec')
     return card
 
 def card_sso_skymap():
@@ -545,16 +538,67 @@ def card_id(pdf):
                     cdsxmatch, ssnamenr, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
-            dbc.ButtonGroup([
-                dbc.Button('TNS', id='TNS', target="_blank", href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0), color='light'),
-                dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5), color='light'),
-                dbc.Button('OAC', id='OAC', target="_blank", href='https://api.astrocats.space/catalog?ra={}&dec={}&radius=2'.format(ra0, dec0), color='light'),
-            ]),
-            dbc.ButtonGroup([
-                dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0), color="light"),
-                dbc.Button('NED', id='NED', target="_blank", href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0), color="light"),
-                dbc.Button('SDSS', id='SDSS', target="_blank", href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0), color="light"),
-            ]),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='TNS',
+                            target="_blank",
+                            href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
+                        ), width=4),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='SIMBAD',
+                            target="_blank",
+                            href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
+                        ), width=4
+                    ),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='SNAD',
+                            target="_blank",
+                            href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+                        ), width=4),
+                ], justify='around'
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='NED',
+                            target="_blank",
+                            href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
+                        ), width=4
+                    ),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='SDSS',
+                            target="_blank",
+                            href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
+                        ), width=4
+                    )
+                ], justify='center'
+            ),
         ],
         className="mt-3", body=True
     )
@@ -651,16 +695,67 @@ def card_sn_properties(clickData, object_data):
                 )
             ),
             html.Br(),
-            dbc.ButtonGroup([
-                dbc.Button('TNS', id='TNS', target="_blank", href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0), color='light'),
-                dbc.Button('SNAD', id='SNAD', target="_blank", href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5), color='light'),
-                dbc.Button('OAC', id='OAC', target="_blank", href='https://api.astrocats.space/catalog?ra={}&dec={}&radius=2'.format(ra0, dec0), color='light'),
-            ]),
-            dbc.ButtonGroup([
-                dbc.Button('SIMBAD', id='SIMBAD', target="_blank", href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0), color="light"),
-                dbc.Button('NED', id='NED', target="_blank", href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0), color="light"),
-                dbc.Button('SDSS', id='SDSS', target="_blank", href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0), color="light"),
-            ]),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='TNS',
+                            target="_blank",
+                            href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
+                        ), width=4),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='SIMBAD',
+                            target="_blank",
+                            href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
+                        ), width=4
+                    ),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='SNAD',
+                            target="_blank",
+                            href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+                        ), width=4),
+                ], justify='around'
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='NED',
+                            target="_blank",
+                            href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
+                        ), width=4
+                    ),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='SDSS',
+                            target="_blank",
+                            href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
+                        ), width=4
+                    )
+                ], justify='center'
+            ),
         ],
         className="mt-3", body=True
     )
@@ -807,10 +902,31 @@ def card_sso_mpc_params(ssnamenr):
                     neo
                 )
             ),
-            dbc.ButtonGroup([
-                dbc.Button('MPC', id='MPC', target="_blank", href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_), color='light'),
-                dbc.Button('JPL', id='JPL', target="_blank", href='https://ssd.jpl.nasa.gov/sbdb.cgi', color='light'),
-            ]),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/mpc.jpg)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='MPC',
+                            target="_blank",
+                            href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_)
+                        ), width=4),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/buttons/nasa.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='JPL',
+                            target="_blank",
+                            href='https://ssd.jpl.nasa.gov/sbdb.cgi'
+                        ), width=4
+                    ),
+                ], justify='around'
+            ),
         ],
         className="mt-3", body=True
     )
@@ -857,14 +973,24 @@ def download_sso_modal(ssnamenr):
         dbc.Button(
             "Download {} data".format(ssnamenr),
             id="open-sso",
-            color='secondary',
+            color='dark', outline=True
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("Download {} data".format(ssnamenr)),
-                dbc.ModalBody(dcc.Markdown(message_download_sso)),
+                dbc.ModalBody(
+                    dcc.Markdown(message_download_sso),
+                    style={
+                        'background-image': 'linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.4)), url(/assets/background.png)'
+                    }
+                ),
                 dbc.ModalFooter(
-                    dbc.Button("Close", id="close-sso", className="ml-auto")
+                    dbc.Button(
+                        "Close",
+                        id="close-sso",
+                        className="ml-auto",
+                        color='dark',
+                        outline=True
+                    )
                 ),
             ],
             id="modal-sso", scrollable=True
@@ -927,7 +1053,7 @@ def download_object_modal(objectid):
     )
     modal = [
         dbc.Button(
-            "Download data",
+            "Get object data",
             id="open-object",
             color='dark', outline=True,
             block=True
@@ -956,7 +1082,7 @@ def download_object_modal(objectid):
 def inspect_object_modal(objectid):
     message = """
     ### {}
-    Here are the fields contained in the {} alert. Note you can filter the
+    Here are the fields contained in the last alert for {}. Note you can filter the
     table results using the first row (enter text and hit enter).
     - Fields starting with `i:` are original fields from ZTF.
     - Fields starting with `d:` are live added values by Fink.
@@ -966,7 +1092,7 @@ def inspect_object_modal(objectid):
     """.format(objectid, objectid, APIURL)
     modal = [
         dbc.Button(
-            "Inspect data",
+            "Inspect alert data",
             id="open-object-prop",
             color='dark', outline=True,
             block=True
