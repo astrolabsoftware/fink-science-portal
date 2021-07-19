@@ -416,6 +416,8 @@ def layout(name, is_mobile):
             }
         )
     else:
+        button_inspect, modal_inspect = inspect_object_modal(pdf['i:objectId'].values[0])
+        button_download, modal_download = download_object_modal(pdf['i:objectId'].values[0])
         layout_ = html.Div(
             [
                 html.Br(),
@@ -437,10 +439,11 @@ def layout(name, is_mobile):
                                 html.Br(),
                                 dbc.ButtonGroup(
                                     [
-                                        *inspect_object_modal(pdf['i:objectId'].values[0]),
-                                        *download_object_modal(pdf['i:objectId'].values[0])
+                                        button_inspect, button_download
                                     ]
-                                )
+                                ),
+                                modal_inspect,
+                                modal_download
                             ], width={"size": 3},
                         ),
                         dbc.Col(tabs(pdf, is_mobile), width=8)
