@@ -19,7 +19,7 @@ from dash.dependencies import Input, Output, State
 import dash_table
 import visdcc
 
-from app import app
+from app import app, APIURL
 
 from apps.plotting import all_radio_options
 from apps.utils import queryMPC, convert_mpc_type
@@ -823,7 +823,7 @@ def download_sso_modal(ssnamenr):
     ```bash
     curl -H "Content-Type: application/json" -X POST \\
         -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
-        http://134.158.75.151:24000/api/v1/sso -o {}.csv
+        {}/api/v1/sso -o {}.csv
     ```
 
     Or in a python terminal, simply paste:
@@ -833,7 +833,7 @@ def download_sso_modal(ssnamenr):
     import pandas as pd
 
     r = requests.post(
-      'http://134.158.75.151:24000/api/v1/sso',
+      '{}/api/v1/sso',
       json={{
         'n_or_d': '{}',
         'output-format': 'json'
@@ -844,8 +844,15 @@ def download_sso_modal(ssnamenr):
     pdf = pd.read_json(r.content)
     ```
 
-    See http://134.158.75.151:24000/api for more options.
-    """.format(ssnamenr, str(ssnamenr).replace('/', '_'), ssnamenr)
+    See {}/api for more options.
+    """.format(
+        ssnamenr,
+        APIURL,
+        str(ssnamenr).replace('/', '_'),
+        APIURL,
+        ssnamenr,
+        APIURL
+    )
     modal = [
         dbc.Button(
             "Download {} data".format(ssnamenr),
@@ -885,7 +892,7 @@ def download_object_modal(objectid):
     ```bash
     curl -H "Content-Type: application/json" -X POST \\
         -d '{{"objectId":"{}", "output-format":"csv"}}' \\
-        http://134.158.75.151:24000/api/v1/objects \\
+        {}/api/v1/objects \\
         -o {}.csv
     ```
 
@@ -897,7 +904,7 @@ def download_object_modal(objectid):
 
     # get data for ZTF19acnjwgm
     r = requests.post(
-      'http://134.158.75.151:24000/api/v1/objects',
+      '{}/api/v1/objects',
       json={{
         'objectId': '{}',
         'output-format': 'json'
@@ -908,8 +915,16 @@ def download_object_modal(objectid):
     pdf = pd.read_json(r.content)
     ```
 
-    See http://134.158.75.151:24000/api for more options.
-    """.format(objectid, objectid, str(objectid).replace('/', '_'), objectid)
+    See {}/api for more options.
+    """.format(
+        objectid,
+        objectid,
+        APIURL,
+        str(objectid).replace('/', '_'),
+        APIURL,
+        objectid,
+        APIURL
+    )
     modal = [
         dbc.Button(
             "Download",
@@ -946,7 +961,9 @@ def inspect_object_modal(objectid):
     - Fields starting with `i:` are original fields from ZTF.
     - Fields starting with `d:` are live added values by Fink.
     - Fields starting with `v:` are added values by Fink (post-processing).
-    """.format(objectid, objectid)
+
+    See {}/api/v1/columns for more information.
+    """.format(objectid, objectid, APIURL)
     modal = [
         dbc.Button(
             "Inspect",
