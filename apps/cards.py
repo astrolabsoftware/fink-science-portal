@@ -182,10 +182,7 @@ def card_variable_plot():
     card: dbc.Card
         Card with the variable drawn inside
     """
-    card = dbc.Card(
-        dbc.CardBody(id='variable_plot'),
-        className="mt-3"
-    )
+    card = html.Div(id='variable_plot')
     return card
 
 

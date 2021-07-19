@@ -1502,7 +1502,11 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
             },
             config={'displayModeBar': False}
         )
-        return graph
+        card = dbc.Card(
+            dbc.CardBody(graph),
+            className="mt-3"
+        )
+        return card
 
     # quite referentially opaque...
     return ""
