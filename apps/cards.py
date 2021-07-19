@@ -270,7 +270,7 @@ def card_variable_button(pdf):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/assassin_logo.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='asas-sn',
@@ -280,7 +280,7 @@ def card_variable_button(pdf):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/snad.svg)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='SNAD-var-star',
@@ -543,7 +543,7 @@ def card_id(pdf):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/tns_logo.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='TNS',
@@ -553,7 +553,7 @@ def card_id(pdf):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/simbad.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='SIMBAD',
@@ -564,7 +564,7 @@ def card_id(pdf):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/snad.svg)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='SNAD',
@@ -578,7 +578,7 @@ def card_id(pdf):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='NED',
@@ -589,7 +589,7 @@ def card_id(pdf):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/sdssIVlogo.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='SDSS',
@@ -700,7 +700,7 @@ def card_sn_properties(clickData, object_data):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/tns_logo.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='TNS',
@@ -710,7 +710,7 @@ def card_sn_properties(clickData, object_data):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/simbad.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='SIMBAD',
@@ -721,7 +721,7 @@ def card_sn_properties(clickData, object_data):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/snad.svg)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='SNAD',
@@ -735,7 +735,7 @@ def card_sn_properties(clickData, object_data):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='NED',
@@ -746,7 +746,7 @@ def card_sn_properties(clickData, object_data):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/sdssIVlogo.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='SDSS',
@@ -907,7 +907,7 @@ def card_sso_mpc_params(ssnamenr):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/mpc.jpg)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/mpc.jpg)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='MPC',
@@ -917,7 +917,7 @@ def card_sso_mpc_params(ssnamenr):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/nasa.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/buttons/nasa.png)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='JPL',

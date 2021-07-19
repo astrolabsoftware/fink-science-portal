@@ -203,7 +203,7 @@ def create_external_links(object_data):
                 dbc.Col(
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/tns_logo.png)', 'background-size': 'cover'},
+                        style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
                         color='dark',
                         outline=True,
                         id='TNS',
@@ -213,7 +213,7 @@ def create_external_links(object_data):
                 dbc.Col(
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/simbad.png)', 'background-size': 'cover'},
+                        style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
                         color='dark',
                         outline=True,
                         id='SIMBAD',
@@ -224,7 +224,7 @@ def create_external_links(object_data):
                 dbc.Col(
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/snad.svg)', 'background-size': 'cover'},
+                        style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
                         color='dark',
                         outline=True,
                         id='SNAD',
@@ -238,7 +238,7 @@ def create_external_links(object_data):
                 dbc.Col(
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                        style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
                         color='dark',
                         outline=True,
                         id='NED',
@@ -249,7 +249,7 @@ def create_external_links(object_data):
                 dbc.Col(
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/sdssIVlogo.png)', 'background-size': 'cover'},
+                        style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
                         color='dark',
                         outline=True,
                         id='SDSS',
