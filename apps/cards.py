@@ -907,7 +907,7 @@ def card_sso_mpc_params(ssnamenr):
                     dbc.Col(
                         dbc.Button(
                             className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/mpc.png)', 'background-size': 'cover'},
+                            style={'background-image': 'url(/assets/mpc.jpg)', 'background-size': 'cover'},
                             color='dark',
                             outline=True,
                             id='MPC',

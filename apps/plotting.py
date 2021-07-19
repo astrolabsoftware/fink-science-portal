@@ -1792,7 +1792,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         msg = """
         Object not referenced in the Minor Planet Center
         """
-        return dbc.Alert(msg, color="danger")
+        return html.div([html.Br(), dbc.Alert(msg, color="danger")])
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
