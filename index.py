@@ -730,8 +730,10 @@ def populate_result_table(data, columns, is_mobile):
     """
     if is_mobile:
         page_size = 5
+        markdown_options = {'link_target': '_self'}
     else:
         page_size = 10
+        markdown_options = {'link_target': '_blank'}
     table = dash_table.DataTable(
         data=data,
         columns=columns,
@@ -740,8 +742,8 @@ def populate_result_table(data, columns, is_mobile):
         style_as_list_view=True,
         sort_action="native",
         filter_action="native",
-        markdown_options={'link_target': '_blank'},
-        fixed_columns={ 'headers': True, 'data': 1 },
+        markdown_options=markdown_options,
+        fixed_columns={'headers': True, 'data': 1},
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         },
