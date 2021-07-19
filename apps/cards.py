@@ -911,17 +911,26 @@ def download_object_modal(objectid):
     """.format(objectid, str(objectid).replace('/', '_'), objectid)
     modal = [
         dbc.Button(
-            "Download {} data".format(objectid),
+            "Download",
             id="open-object",
-            color='secondary',
+            color='dark', outline=True,
             size="lg", block=True
         ),
         dbc.Modal(
             [
                 dbc.ModalHeader("Download {} data".format(objectid)),
-                dbc.ModalBody(dcc.Markdown(message_download)),
+                dbc.ModalBody(
+                    dcc.Markdown(message_download),
+                    style={
+                        'background-image': 'linear-gradient(rgba(0,0,0,0.4), rgba(255,255,255,0.6)), url(/assets/background.png)'
+                    }
+                ),
                 dbc.ModalFooter(
-                    dbc.Button("Close", id="close-object", className="ml-auto")
+                    dbc.Button(
+                        "Close",
+                        color='dark', outline=True,
+                        id="close-object", className="ml-auto"
+                    )
                 ),
             ],
             id="modal-object", scrollable=True
@@ -940,7 +949,7 @@ def inspect_object_modal(objectid):
     """.format(objectid)
     modal = [
         dbc.Button(
-            "Inspect {} data".format(objectid),
+            "Inspect",
             id="open-object-prop",
             color='dark', outline=True,
             size="lg", block=True

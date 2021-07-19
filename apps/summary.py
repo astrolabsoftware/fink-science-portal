@@ -435,8 +435,12 @@ def layout(name, is_mobile):
                                     }
                                 ),
                                 html.Br(),
-                                *inspect_object_modal(pdf['i:objectId'].values[0]),
-                                *download_object_modal(pdf['i:objectId'].values[0])
+                                dbc.ButtonGroup(
+                                    [
+                                        *inspect_object_modal(pdf['i:objectId'].values[0]),
+                                        *download_object_modal(pdf['i:objectId'].values[0])
+                                    ]
+                                )
                             ], width={"size": 3},
                         ),
                         dbc.Col(tabs(pdf, is_mobile), width=8)
