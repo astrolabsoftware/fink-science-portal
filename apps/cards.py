@@ -929,12 +929,56 @@ def download_object_modal(objectid):
     ]
     return modal
 
+def inspect_object_modal(objectid):
+    message = """
+    Legend:
+    - Fields starting with `i:` are original fields from ZTF.
+    - Fields starting with `d:` are live added values by Fink.
+    - Fields starting with `v:` are a posteriori added values by Fink.
+    """
+    modal = [
+        dbc.Button(
+            "Inspect {} data".format(objectid),
+            id="open-object-prop",
+            color='secondary',
+            size="lg", block=True
+        ),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("{} data".format(objectid)),
+                dbc.ModalBody(
+                    [
+                        dcc.Markdown(message),
+                        html.Div([], id='alert_table')
+                    ]
+                ),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close-object-prop", className="ml-auto")
+                ),
+            ],
+            id="modal-object-prop", scrollable=True
+        ),
+    ]
+    return modal
+
 @app.callback(
     Output("modal-object", "is_open"),
     [Input("open-object", "n_clicks"), Input("close-object", "n_clicks")],
     [State("modal-object", "is_open")],
 )
 def toggle_modal_object(n1, n2, is_open):
+    """ Callback for the modal (open/close)
+    """
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output("modal-object-prop", "is_open"),
+    [Input("open-object-prop", "n_clicks"), Input("close-object-prop", "n_clicks")],
+    [State("modal-object-prop", "is_open")],
+)
+def toggle_modal_object_prop(n1, n2, is_open):
     """ Callback for the modal (open/close)
     """
     if n1 or n2:
