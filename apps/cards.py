@@ -956,7 +956,12 @@ def inspect_object_modal(objectid):
                     }
                 ),
                 dbc.ModalFooter(
-                    dbc.Button("Close", id="close-object-prop", className="ml-auto")
+                    dbc.Button(
+                        "Close",
+                        color='dark', outline=True,
+                        id="close-object-prop",
+                        className="ml-auto"
+                    )
                 ),
             ],
             id="modal-object-prop", scrollable=True
