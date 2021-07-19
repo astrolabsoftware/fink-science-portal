@@ -1,0 +1,30 @@
+:root {
+    --bgColor: #fff;
+    --textDefault: #000;
+    --primary: #0B4CFF;
+    --secondary: #FF0B70;
+    --terciary: #00BA5B;
+}
+
+:root[data-theme='dark'] {
+    --bgColor: #000;
+    --textDefault: #000;
+    --primary: #ACC2FF;
+    --secondary: #FFAFD0;
+    --terciary: #86E1B3;
+}
+
+body {
+  background: var(--bgColor);
+  color: var(--textDefault);
+}
+
+h2 {
+	color: var(--primary);
+}
+
+.classNameExample {
+    background: var(--terciary);
+    border: 1px solid var(--secondary);
+}
+
