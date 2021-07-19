@@ -591,7 +591,7 @@ def card_id(pdf):
                             id='NED',
                             target="_blank",
                             href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
-                        ), width=3
+                        ), width=4
                     ),
                     dbc.Col(
                         dbc.Button(
@@ -602,9 +602,9 @@ def card_id(pdf):
                             id='SDSS',
                             target="_blank",
                             href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
-                        ), width=3
+                        ), width=4
                     )
-                ], justify='around'
+                ], justify='center'
             ),
         ],
         className="mt-3", body=True
