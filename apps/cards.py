@@ -224,7 +224,7 @@ submit_varstar_button = dbc.Button(
     'Fit data',
     id='submit_variable',
     style={'width': '100%', 'display': 'inline-block'},
-    block=True
+    block=True, color='dark', outline=True
 )
 
 def card_variable_button(pdf):
@@ -267,26 +267,31 @@ def card_variable_button(pdf):
             ),
             dbc.Row(nterms_base),
             dbc.Row(submit_varstar_button),
+            html.Div(html.Br()),
             dbc.Row(
-                dbc.Button(
-                    'Search in ASAS-SN Var. Stars',
-                    id='asas-sn',
-                    style={'width': '100%', 'display': 'inline-block'},
-                    block=True,
-                    target="_blank",
-                    href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
-                )
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/assassin_logo.png)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='asas-sn',
+                            target="_blank",
+                            href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
+                        ), width=4),
+                    dbc.Col(
+                        dbc.Button(
+                            className='btn btn-default zoom btn-circle btn-lg',
+                            style={'background-image': 'url(/assets/snad.svg)', 'background-size': 'cover'},
+                            color='dark',
+                            outline=True,
+                            id='SNAD-var-star',
+                            target="_blank",
+                            href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+                        ), width=4),
+                ], justify='around'
             ),
-            dbc.Row(
-                dbc.Button(
-                    'Search in SNAD',
-                    id='SNAD-var-star',
-                    style={'width': '100%', 'display': 'inline-block'},
-                    block=True,
-                    target="_blank",
-                    href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                )
-            )
         ],
         className="mt-3", body=True
     )
