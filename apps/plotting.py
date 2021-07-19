@@ -1098,7 +1098,6 @@ def extract_cutout(object_data, time0, kind):
     """
     values = [
         'i:jd',
-        'i:fid',
         'b:cutout{}_stampData'.format(kind.capitalize()),
     ]
     pdf_ = pd.read_json(object_data)
@@ -1164,15 +1163,20 @@ def draw_cutouts_mobile(object_data, is_mobile):
     return figs
 
 def draw_cutouts_quickview(name):
-    """ Draw cutouts data based on lightcurve data
+    """ Draw Science cutout data for the preview service
     """
     figs = []
     for kind in ['science']:
         try:
+            cols = [
+                'i:jd',
+                'b:cutout{}_stampData'.format(kind.capitalize()),
+            ]
             r = requests.post(
                 '{}/api/v1/explorer'.format(APIURL),
                 json={
                     'objectId': name,
+                    'columns': ','.join(cols)
                 }
             )
             object_data = r.content
