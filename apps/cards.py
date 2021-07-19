@@ -945,12 +945,13 @@ def inspect_object_modal(objectid):
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("{} data".format(objectid)),
                 dbc.ModalBody(
                     [
                         dcc.Markdown(message),
                         html.Div([], id='alert_table')
-                    ]
+                    ], style={
+                        'background-image': 'linear-gradient(rgba(0,0,0,0.4), rgba(255,255,255,0.6)), url(/assets/background.png)'
+                    }
                 ),
                 dbc.ModalFooter(
                     dbc.Button("Close", id="close-object-prop", className="ml-auto")
