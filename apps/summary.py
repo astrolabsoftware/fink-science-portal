@@ -437,11 +437,11 @@ def layout(name, is_mobile):
                                     }
                                 ),
                                 html.Br(),
-                                html.Div(
+                                dbc.Row(
                                     [
-                                        button_inspect,
-                                        button_download
-                                    ]
+                                        dbc.Col(button_inspect, width=6),
+                                        dbc.Col(button_download, width=6)
+                                    ],
                                 ),
                                 modal_inspect,
                                 modal_download
