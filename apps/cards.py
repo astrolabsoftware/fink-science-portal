@@ -354,10 +354,11 @@ def card_mulens_plot():
     card: dbc.Card
         Card with the microlensing fit drawn inside
     """
-    card = dbc.Card(
-        dbc.CardBody(id='mulens_plot'),
-        className="mt-3"
-    )
+    # card = dbc.Card(
+    #     dbc.CardBody(id='mulens_plot'),
+    #     className="mt-3"
+    # )
+    card = html.Div(id='mulens_plot')
     return card
 
 def card_explanation_variable():

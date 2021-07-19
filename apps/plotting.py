@@ -1696,7 +1696,11 @@ def plot_mulens(n_clicks, object_data):
             err[names['uo']],
             params[-1] / dof
         )
-        return graph, mulens_params
+        card = dbc.Card(
+            dbc.CardBody(graph),
+            className="mt-3"
+        )
+        return card, mulens_params
 
     mulens_params = """
     ```python
