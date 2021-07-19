@@ -714,19 +714,20 @@ def draw_lightcurve_preview(name) -> dict:
     ----------
     figure: dict
     """
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:candid'
+    ]
     r = requests.post(
       '{}/api/v1/objects'.format(APIURL),
       json={
         'objectId': name,
         'withupperlim': 'True',
+        'columns': ",".join(cols),
         'output-format': 'json'
       }
     )
     pdf_ = pd.read_json(r.content)
-    cols = [
-        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:candid'
-    ]
     pdf = pdf_.loc[:, cols]
 
     # Mask upper-limits (but keep measurements with bad quality)
