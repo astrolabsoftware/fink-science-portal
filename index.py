@@ -715,9 +715,9 @@ def construct_results_layout(table, is_mobile):
     results_ = [
         dbc.Tabs(
             [
-                dbc.Tab(print_msg_info(), label='Info', tab_id='t0'),
-                dbc.Tab(display_table_results(table, is_mobile), label="Table", tab_id='t1'),
-                dbc.Tab(display_skymap(), label="Sky map", tab_id='t2'),
+                dbc.Tab(print_msg_info(), label='Info', tab_id='t0', label_style = {"color": "#000"}),
+                dbc.Tab(display_table_results(table, is_mobile), label="Table", tab_id='t1', label_style = {"color": "#000"}),
+                dbc.Tab(display_skymap(), label="Sky map", tab_id='t2', label_style = {"color": "#000"}),
             ],
             id="tabs",
             active_tab="t1",
