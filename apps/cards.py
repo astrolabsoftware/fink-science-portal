@@ -1053,7 +1053,7 @@ def download_object_modal(objectid):
     )
     modal = [
         dbc.Button(
-            "Download alert data",
+            "Get object data",
             id="open-object",
             color='dark', outline=True,
             block=True
