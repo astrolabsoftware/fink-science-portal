@@ -504,6 +504,8 @@ def card_id(pdf):
 
     classification = pdf['v:classification'].values[0]
 
+    constellation = pdf['v:constellation'].values[0]
+
     card = dbc.Card(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
@@ -525,6 +527,7 @@ def card_id(pdf):
                 ---
                 ```python
                 # Neighbourhood
+                Constellation: {}
                 SIMBAD: {}
                 MPC: {}
                 Distance (PS1): {:.2f} arcsec
@@ -534,7 +537,7 @@ def card_id(pdf):
                 ---
                 """.format(
                     date0, ra0, dec0,
-                    rate_g, rate_r,
+                    rate_g, rate_r, constellation,
                     cdsxmatch, ssnamenr, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
