@@ -258,6 +258,13 @@ def simple_card(
         ]
     )
 
+    l5 = html.P(
+        [
+            html.Strong("Constellation: ", style={'font-size': fontsize}),
+            html.P('{}'.format(constellation))
+        ]
+    )
+
     if is_mobile:
         cardbody = dbc.CardBody(
             [
@@ -266,7 +273,8 @@ def simple_card(
                 l1,
                 l2,
                 l3,
-                l4
+                l4,
+                l5
             ]
         )
         header = dbc.CardHeader(
@@ -280,7 +288,7 @@ def simple_card(
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
-                html.H5("Constellation: {}".format(constellation), className="card-title"),
+                html.P("Constellation: {}".format(constellation), className="card-title"),
                 dcc.Graph(
                     figure=draw_lightcurve_preview(name),
                     config={'displayModeBar': False},
