@@ -222,7 +222,7 @@ def print_msg_info():
 
 def simple_card(
         name, finkclass, lastdate, fid,
-        mag, jd, jdstarthist, ndethist, is_mobile):
+        mag, jd, jdstarthist, ndethist, constellation, is_mobile):
     """ Preview card
 
     The laptop version shows Science cutout + metadata + lightcurve
@@ -262,6 +262,7 @@ def simple_card(
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
+                html.H5("Constellation: {}".format(constellation), className="card-title"),
                 l1,
                 l2,
                 l3,
@@ -279,6 +280,7 @@ def simple_card(
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
+                html.H5("Constellation: {}".format(constellation), className="card-title"),
                 dcc.Graph(
                     figure=draw_lightcurve_preview(name),
                     config={'displayModeBar': False},
@@ -340,10 +342,11 @@ def carousel(nclick, data, is_mobile):
         jds = pdf['i:jd'].values[0:10]
         jdstarthists = pdf['i:jdstarthist'].values[0:10]
         ndethists = pdf['i:ndethist'].values[0:10]
+        constellations = pdf['v:constellation'][0:10]
         is_mobiles = [is_mobile] * 10
         carousel = dtc.Carousel(
             [
-                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, is_mobiles)
+                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, constellations, is_mobiles)
             ],
             slides_to_scroll=1,
             slides_to_show=1,
@@ -429,7 +432,7 @@ def display_table_results(table, is_mobile):
     schema_list = list(schema.columnNames())
     fink_fields = [i for i in schema_list if i.startswith('d:')]
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
-    fink_additional_fields = ['v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
+    fink_additional_fields = ['v:constellation', 'v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
 
     dropdown = dcc.Dropdown(
         id='field-dropdown2',
