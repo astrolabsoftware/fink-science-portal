@@ -24,6 +24,8 @@ from astropy.convolution import convolve as astropy_convolve
 from astropy.convolution import Gaussian2DKernel
 from astropy.convolution import Box2DKernel
 
+from astropy.coordinates import SkyCoord, get_constellation
+
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
 
@@ -36,7 +38,10 @@ hbase_type_converter = {
     'fits/image': str
 }
 
-def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncated: bool = False, extract_color: bool = True):
+def format_hbase_output(
+        hbase_output, schema_client,
+        group_alerts: bool, truncated: bool = False,
+        extract_color: bool = True, with_constellation: bool = True):
     """
     """
     if hbase_output.isEmpty():
@@ -86,9 +91,17 @@ def format_hbase_output(hbase_output, schema_client, group_alerts: bool, truncat
             pdfs['v:dg'], pdfs['v:rate(dg)'] = extract_delta_color(pdfs, filter_=1)
             pdfs['v:dr'], pdfs['v:rate(dr)'] = extract_delta_color(pdfs, filter_=2)
 
-
         # Human readable time
         pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
+
+        if with_constellation:
+            coords = SkyCoord(
+                pdfs['i:ra'],
+                pdfs['i:dec'],
+                unit='deg'
+            )
+            constellations = get_constellation(coords)
+            pdfs['v:constellation'] = constellations
 
     # Display only the last alert
     if group_alerts:

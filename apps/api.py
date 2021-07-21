@@ -1652,6 +1652,7 @@ def columns_arguments():
     # Science modules
     fink_derived = pd.DataFrame(
         [
+            {'name': 'constellation', 'type': 'string', 'doc': 'Name of the constellation an alert on the sky is in'},
             {'name': 'classification', 'type': 'string', 'doc': 'Fink inferred classification. See http://134.158.75.151:24000/api/v1/classes'},
             {'name': 'g-r', 'type': 'double', 'doc': 'Last g-r measurement for this object.'},
             {'name': 'rate(g-r)', 'type': 'double', 'doc': 'g-r rate in mag/day (between last and first available g-r measurements).'},
