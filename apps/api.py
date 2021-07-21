@@ -1403,8 +1403,7 @@ def query_db():
         results,
         schema_client,
         group_alerts=True,
-        extract_color=False,
-        with_constellation=False
+        extract_color=False
     )
 
     # For conesearch, sort by distance
