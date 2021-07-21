@@ -267,7 +267,22 @@ def make_item(i):
     # we use this function to make the example items to avoid code duplication
     names = ["&#43; Lightcurve", '&#43; Last alert properties', '&#43; Aladin Lite', '&#43; External links']
 
-    information = html.Div([], id='alert_table')
+    message = """
+    Here are the fields contained in the last alert. Note you can filter the
+    table results using the first row (enter text and hit enter).
+    - Fields starting with `i:` are original fields from ZTF.
+    - Fields starting with `d:` are live added values by Fink.
+    - Fields starting with `v:` are added values by Fink (post-processing).
+
+    See {}/api/v1/columns for more information.
+    """.format(APIURL)
+
+    information = html.Div(
+        [
+            dcc.Markdown(message),
+            html.Div([], id='alert_table')
+        ]
+    )
     lightcurve = html.Div(
         [
             dcc.Graph(
