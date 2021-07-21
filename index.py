@@ -269,7 +269,6 @@ def simple_card(
         cardbody = dbc.CardBody(
             [
                 html.H4("{}".format(finkclass), className="card-title"),
-                html.H5("Constellation: {}".format(constellation), className="card-title"),
                 l1,
                 l2,
                 l3,
