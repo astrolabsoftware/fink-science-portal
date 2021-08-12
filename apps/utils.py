@@ -53,6 +53,9 @@ def format_hbase_output(
     if 'd:knscore' not in pdfs.columns:
         pdfs['d:knscore'] = np.zeros(len(pdfs), dtype=float)
 
+    if 'd:tracklet' not in pdfs.columns:
+        pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
+
     # Remove hbase specific fields
     if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
         pdfs = pdfs.drop(columns=['key:key', 'key:time'])
@@ -76,7 +79,8 @@ def format_hbase_output(
             pdfs['i:classtar'],
             pdfs['i:jd'],
             pdfs['i:jdstarthist'],
-            pdfs['d:knscore']
+            pdfs['d:knscore'],
+            pdfs['d:tracklet']
         )
 
         pdfs['v:classification'] = classifications
@@ -279,7 +283,8 @@ def extract_fink_classification_single(data):
             'i:classtar',
             'i:jd',
             'i:jdstarthist',
-            'd:knscore'
+            'd:knscore',
+            'd;tracklet'
         ]
     )
     pdf = pdf.sort_values('i:jd', ascending=False)
@@ -297,7 +302,8 @@ def extract_fink_classification_single(data):
         pdf['i:classtar'],
         pdfs['i:jd'],
         pdfs['i:jdstarthist'],
-        pdfs['d:knscore']
+        pdfs['d:knscore'],
+        pdfs['d:tracklet']
     )
 
     return classification[0]
@@ -305,13 +311,16 @@ def extract_fink_classification_single(data):
 def extract_fink_classification(
         cdsxmatch, roid, mulens_class_1, mulens_class_2,
         snn_snia_vs_nonia, snn_sn_vs_all, rfscore,
-        ndethist, drb, classtar, jd, jdstarthist, knscore_):
+        ndethist, drb, classtar, jd, jdstarthist, knscore_, tracklet):
     """ Extract the classification of an alert based on module outputs
 
     See https://arxiv.org/abs/2009.10185 for more information
     """
     classification = pd.Series(['Unknown'] * len(cdsxmatch))
     ambiguity = pd.Series([0] * len(cdsxmatch))
+
+    # Tracklet ID
+    f_tracklet = tracklet.apply(lambda x: x != '')
 
     # Microlensing classification
     medium_ndethist = ndethist.astype(int) < 100
@@ -382,6 +391,7 @@ def extract_fink_classification(
     classification.mask(f_sn_early.values, 'Early SN Ia candidate', inplace=True)
     classification.mask(f_kn.values, 'Kilonova candidate', inplace=True)
     classification.mask(f_roid_2.values, 'Solar System candidate', inplace=True)
+    classification.mask(f_tracklet.values, 'Tracklet', inplace=True)
     classification.mask(f_roid_3.values, 'Solar System MPC', inplace=True)
 
     # If several flags are up, we cannot rely on the classification
