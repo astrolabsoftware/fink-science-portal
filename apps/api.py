@@ -1786,7 +1786,10 @@ def return_tracklet():
         cols = '*'
         truncated = False
 
-    designation = request.json['id']
+    if 'id' in request.json:
+        designation = request.json['id']
+    else:
+        designation = ''
 
     if designation.startswith('TRCK'):
         payload = designation
