@@ -307,6 +307,33 @@ layout_sso_radec = dict(
     }
 )
 
+layout_tracklet_lightcurve = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    yaxis={
+        'autorange': 'reversed',
+        'title': 'Magnitude',
+        'automargin': True
+    },
+    xaxis={
+        'autorange': 'reversed',
+        'title': 'Right Ascension',
+        'automargin': True
+    }
+)
+
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """ Extract SN scores from the data
     """
@@ -1971,8 +1998,8 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
 
-    layout_sso_lightcurve['yaxis']['title'] = 'Difference magnitude'
-    layout_sso_lightcurve['yaxis']['autorange'] = 'reversed'
+    layout_tracklet_lightcurve['yaxis']['title'] = 'Difference magnitude'
+    layout_tracklet_lightcurve['yaxis']['autorange'] = 'reversed'
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
@@ -1983,7 +2010,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     figure = {
         'data': [
             {
-                'x': dates[pdf['i:fid'] == 1],
+                'x': dates[pdf['i:ra'] == 1],
                 'y': mag[pdf['i:fid'] == 1],
                 'error_y': {
                     'type': 'data',
@@ -2001,7 +2028,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                     'symbol': 'o'}
             },
             {
-                'x': dates[pdf['i:fid'] == 2],
+                'x': dates[pdf['i:ra'] == 2],
                 'y': mag[pdf['i:fid'] == 2],
                 'error_y': {
                     'type': 'data',
@@ -2019,7 +2046,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                     'symbol': 'o'}
             }
         ],
-        "layout": layout_sso_lightcurve
+        "layout": layout_tracklet_lightcurve
     }
     graph = dcc.Graph(
         figure=figure,
