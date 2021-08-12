@@ -2002,7 +2002,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
     <b>mjd</b>: %{customdata}
     <extra></extra>
     """
