@@ -1939,6 +1939,173 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
     return card
 
 @app.callback(
+    Output('tracklet_lightcurve', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-tracklet', 'children')
+    ])
+def draw_sso_lightcurve(pathname: str, object_tracklet) -> dict:
+    """ Draw tracklet object lightcurve with errorbars
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_tracklet)
+    if pdf.empty:
+        msg = """
+        Object not associated to a tracklet
+        """
+        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    # shortcuts
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+
+    layout_sso_lightcurve['yaxis']['title'] = 'Difference magnitude'
+    layout_sso_lightcurve['yaxis']['autorange'] = 'reversed'
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': dates[pdf['i:fid'] == 1],
+                'y': mag[pdf['i:fid'] == 1],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 1],
+                    'visible': True,
+                    'color': '#1f77b4'
+                },
+                'mode': 'markers',
+                'name': 'g band',
+                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            },
+            {
+                'x': dates[pdf['i:fid'] == 2],
+                'y': mag[pdf['i:fid'] == 2],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[pdf['i:fid'] == 2],
+                    'visible': True,
+                    'color': '#ff7f0e'
+                },
+                'mode': 'markers',
+                'name': 'r band',
+                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#ff7f0e',
+                    'symbol': 'o'}
+            }
+        ],
+        "layout": layout_sso_lightcurve
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('tracklet_radec', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-tracklet', 'children')
+    ])
+def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
+    """ Draw tracklet object radec
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_tracklet)
+    if pdf.empty:
+        msg = ""
+        return msg
+
+    # shortcuts
+    ra = pdf['i:ra'].apply(lambda x: float(x))
+    dec = pdf['i:dec'].apply(lambda x: float(x))
+
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': ra,
+                'y': dec,
+                'mode': 'markers',
+                'name': 'Observations',
+                'customdata': list(
+                    zip(
+                        pdf['i:objectId'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#d62728',
+                    'symbol': 'circle-open-dot'}
+            }
+        ],
+        "layout": layout_sso_radec
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
     Output('alert_table', 'children'),
     [
         Input('object-data', 'children')

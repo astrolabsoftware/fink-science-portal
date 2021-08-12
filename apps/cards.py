@@ -422,6 +422,28 @@ def card_sso_radec():
     card = html.Div(id='sso_radec')
     return card
 
+def card_tracklet_lightcurve():
+    """ Add a card to display tracklet lightcurve
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the tracklet lightcurve
+    """
+    card = html.Div(id='tracklet_lightcurve')
+    return card
+
+def card_tracklet_radec():
+    """ Add a card to display tracklet radec
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the tracklet radec
+    """
+    card = html.Div(id='tracklet_radec')
+    return card
+
 def card_sso_skymap():
     """ Display the sky map in the explorer tab results (Aladin lite)
 
