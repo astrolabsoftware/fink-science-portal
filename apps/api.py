@@ -25,7 +25,7 @@ from matplotlib import cm
 from app import client
 from app import clientP128, clientP4096, clientP131072
 from app import clientT, clientS
-from app import clientSSO, clientTNS
+from app import clientSSO, clientTNS, clientTRCK
 from app import clientU, clientUV, nlimit
 from app import APIURL
 from apps.utils import format_hbase_output
@@ -62,11 +62,12 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/tracklet | Get tracklet data | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
+""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
 ## Retrieve single object data
@@ -1034,6 +1035,29 @@ args_sso = [
     }
 ]
 
+args_tracklet = [
+    {
+        'name': 'id',
+        'required': False,
+        'description': 'Either a tracklet ID (e.g. TRCK1682_02), or a ZTF night ID (e.g. 1682). Not used if `date` is set.'
+    },
+    {
+        'name': 'date',
+        'required': False,
+        'description': 'A date (astropy format). Not used if `id` is set.'
+    },
+    {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet'
+    }
+]
+
 args_cutouts = [
     {
         'name': 'objectId',
@@ -1715,6 +1739,78 @@ def return_sso():
 
     # reset the limit in case it has been changed above
     clientSSO.setLimit(nlimit)
+
+    pdf = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
+        extract_color=False
+    )
+
+    if output_format == 'json':
+        return pdf.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdf.to_csv(index=False)
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdf.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
+    }
+    return Response(str(rep), 400)
+
+@api_bp.route('/api/v1/tracklet', methods=['GET'])
+def return_tracklet_arguments():
+    """ Obtain information about retrieving Tracklets
+    """
+    return jsonify({'args': args_tracklet})
+
+@api_bp.route('/api/v1/tracklet', methods=['POST'])
+def return_tracklet():
+    """ Retrieve tracklet data from the Fink database
+    """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
+    if 'columns' in request.json:
+        cols = request.json['columns'].replace(" ", "")
+        truncated = True
+    else:
+        cols = '*'
+        truncated = False
+
+    designation = request.json['id']
+
+    if designation.startswith('TRCK'):
+        payload = designation
+    else:
+        # In this case, designation = NID
+        payload = 'TRCK{}'.format(designation)
+
+    # Note the trailing _
+    to_evaluate = "key:key:{}_".format(payload)
+
+    # We do not want to perform full scan if the objectid is a wildcard
+    clientTRCK.setLimit(1000)
+
+    results = clientTRCK.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, True, True
+    )
+
+    schema_client = clientTRCK.schema()
+
+    # reset the limit in case it has been changed above
+    clientTRCK.setLimit(nlimit)
 
     pdf = format_hbase_output(
         results,
