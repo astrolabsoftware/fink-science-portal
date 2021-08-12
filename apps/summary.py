@@ -517,7 +517,8 @@ def layout(name, is_mobile):
                 html.Div(id='object-data', style={'display': 'none'}),
                 html.Div(id='object-upper', style={'display': 'none'}),
                 html.Div(id='object-uppervalid', style={'display': 'none'}),
-                html.Div(id='object-sso', style={'display': 'none'})
+                html.Div(id='object-sso', style={'display': 'none'}),
+                html.Div(id='object-tracklet', style={'display': 'none'}),
             ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
         )
 
