@@ -1798,7 +1798,11 @@ def return_tracklet():
         payload = 'TRCK{}'.format(designation)
     else:
         # date
-        jd_date = Time(request.json['date']).jd
+        date = request.json['date']
+        if date.isdigit():
+            jd_date = Time(float(date)).jd
+        else:
+            jd_date = Time(date).jd
         # conversion: NID=1682 is jd=2459436.5
         jd_ref = Time(2459436.5, format='jd')
 
