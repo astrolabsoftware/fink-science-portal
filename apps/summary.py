@@ -24,7 +24,7 @@ import pandas as pd
 import numpy as np
 import requests
 
-from app import app, client, clientU, clientUV, clientSSO
+from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 
 from apps.cards import card_cutouts, card_sn_scores
 from apps.cards import card_id, card_sn_properties
