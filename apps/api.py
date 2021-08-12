@@ -1044,7 +1044,7 @@ args_tracklet = [
     {
         'name': 'date',
         'required': False,
-        'description': 'A date (astropy format). Not used if `id` is set.'
+        'description': 'A date (format YYYY-MM-DD). Not used if `id` is set.'
     },
     {
         'name': 'columns',
@@ -1798,14 +1798,7 @@ def return_tracklet():
         payload = 'TRCK{}'.format(designation)
     else:
         # date
-        date = request.json['date']
-        # ugly hack...
-        if date.isdigit() and date.startswith('24'):
-            jd_date = Time(float(date), format='jd').jd
-        elif date.isdigit():
-            jd_date = Time(float(date), format='mjd').jd
-        else:
-            jd_date = Time(date).jd
+        jd_date = Time(request.json['date'], format='iso').jd
         # conversion: NID=1682 is jd=2459436.5
         jd_ref = Time(2459436.5, format='jd')
 
