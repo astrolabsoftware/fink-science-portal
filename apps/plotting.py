@@ -1991,7 +1991,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
 
     # shortcuts
@@ -2010,7 +2009,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     figure = {
         'data': [
             {
-                'x': dates[pdf['i:ra'] == 1],
+                'x': pdf['i:ra'][pdf['i:fid'] == 1],
                 'y': mag[pdf['i:fid'] == 1],
                 'error_y': {
                     'type': 'data',
@@ -2028,7 +2027,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                     'symbol': 'o'}
             },
             {
-                'x': dates[pdf['i:ra'] == 2],
+                'x': pdf['i:ra'][pdf['i:fid'] == 2],
                 'y': mag[pdf['i:fid'] == 2],
                 'error_y': {
                     'type': 'data',
