@@ -1790,9 +1790,17 @@ def return_tracklet():
 
     if designation.startswith('TRCK'):
         payload = designation
-    else:
+    elif designation != '':
         # In this case, designation = NID
         payload = 'TRCK{}'.format(designation)
+    else:
+        # date
+        jd_date = Time(request.json['date']).jd
+        # conversion: NID=1682 is jd=2459436.5
+        jd_ref = Time(2459436.5, format='jd')
+
+        NID = 1682 + (jd_date - jd_ref)
+        payload = 'TRCK{}'.format(NID)
 
     # Note the trailing _
     to_evaluate = "key:key:{}_".format(payload)
