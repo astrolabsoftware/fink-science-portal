@@ -632,6 +632,7 @@ def input_type(n1, n2, n3, n4, n5):
             {'label': 'Supernova candidates', 'value': 'SN candidate'},
             {'label': 'Kilonova candidates', 'value': 'Kilonova candidate'},
             {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
+            {'label': 'Tracklet', 'value': 'Tracklet'},
             {'label': 'Solar System (MPC)', 'value': 'Solar System MPC'},
             {'label': 'Solar System (candidates)', 'value': 'Solar System candidate'},
             {'label': 'Ambiguous', 'value': 'Ambiguous'},
