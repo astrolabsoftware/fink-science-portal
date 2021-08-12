@@ -1944,7 +1944,7 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
         Input('url', 'pathname'),
         Input('object-tracklet', 'children')
     ])
-def draw_sso_lightcurve(pathname: str, object_tracklet) -> dict:
+def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     """ Draw tracklet object lightcurve with errorbars
 
     Parameters
