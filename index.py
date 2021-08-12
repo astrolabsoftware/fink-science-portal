@@ -24,7 +24,7 @@ import dash_trich_components as dtc
 
 from app import server
 from app import app
-from app import clientP
+from app import client
 
 from apps import home, summary, about, api
 from apps import __version__ as portal_version
@@ -435,7 +435,7 @@ def display_table_results(table, is_mobile):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    schema = clientP.schema()
+    schema = client.schema()
     schema_list = list(schema.columnNames())
     fink_fields = [i for i in schema_list if i.startswith('d:')]
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
