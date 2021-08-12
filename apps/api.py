@@ -1800,7 +1800,7 @@ def return_tracklet():
         # date
         jd_date = Time(request.json['date'], format='iso').jd
         # conversion: NID=1682 is jd=2459436.5
-        jd_ref = Time(2459436.5, format='jd')
+        jd_ref = Time(2459436.5, format='jd').jd
 
         NID = 1682 + int(jd_date - jd_ref)
         payload = 'TRCK{}'.format(NID)
