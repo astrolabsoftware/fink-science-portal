@@ -1799,14 +1799,17 @@ def return_tracklet():
     else:
         # date
         date = request.json['date']
-        if date.isdigit():
-            jd_date = Time(float(date)).jd
+        # ugly hack...
+        if date.isdigit() and date.startswith('24'):
+            jd_date = Time(float(date), format='jd').jd
+        elif date.isdigit():
+            jd_date = Time(float(date), format='mjd').jd
         else:
             jd_date = Time(date).jd
         # conversion: NID=1682 is jd=2459436.5
         jd_ref = Time(2459436.5, format='jd')
 
-        NID = 1682 + (jd_date - jd_ref)
+        NID = 1682 + int(jd_date - jd_ref)
         payload = 'TRCK{}'.format(NID)
 
     # Note the trailing _
