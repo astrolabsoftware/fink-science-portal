@@ -533,6 +533,7 @@ def display_skymap(validation, data, columns, activetab):
             'SN candidate': 'orange',
             'Kilonova candidate': 'blue',
             'Microlensing candidate': 'green',
+            'Tracklet': "rgb(204,255,204)",
             'Solar System MPC': "rgb(254,224,144)",
             'Solar System candidate': "rgb(171,217,233)",
             'Ambiguous': 'rgb(116,196,118)',
