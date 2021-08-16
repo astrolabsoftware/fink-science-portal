@@ -509,7 +509,7 @@ In python, you would use
 import requests
 import pandas as pd
 
-# get data for ZTF19acnjwgm
+# get data for object 4209
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/sso',
   json={
@@ -557,6 +557,78 @@ r = requests.post(
 ```
 
 Note that the fields should be comma-separated. Unknown field names are ignored.
+"""
+
+api_doc_tracklets = """
+## Retrieve tracklet data
+
+The list of arguments for retrieving tracklet data can be found at http://134.158.75.151:24000/api/v1/tracklet.
+
+Each night there are a lot of fast moving objects seen in single exposures (or a few).
+These objects usually leave discrete tracks (several connected dots), that we call tracklets.
+The magnitude is rather low, and their magnitude can oscillate (e.g. rotating objects).
+This is somehow similar to solar system object, expect that these objects
+seem mainly man-made, they are fast moving, and they typically orbit around the Earth (this
+is also tighted to the detection method we use).
+
+In order to get tracklet data, you have the choice to specify:
+1. a tracklet ID if you know it
+2. a ZTF night ID
+3. a date at the format YYYYMMDD.
+
+Tracklet processing has been added on 2021/08/10, so there won't be data before this date.
+
+In a unix shell, you would simply use
+
+```bash
+# Get tracklet data for the night 20210810
+curl -H "Content-Type: application/json" -X POST -d '{"date":"20210810", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/tracklet -o trck_20210810.csv
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# Get all tracklet data for the night 20210810
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/tracklet',
+  json={
+    'date': '20210810',
+    'output-format': 'json'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+You can also specify a tracklet ID (in the format TRCK<NID>_<number>), or
+a ZTF NID (20210810 has a night ID of 1682 for example):
+
+```python
+import requests
+import pandas as pd
+
+# Get all tracklet data for the night ID 1682
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/tracklet',
+  json={
+    'id': '1682',
+    'output-format': 'json'
+  }
+)
+
+# Get tracklet data TRCK1682_00
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/tracklet',
+  json={
+    'id': 'TRCK1682_00',
+    'output-format': 'json'
+  }
+)
+```
 """
 
 api_doc_cutout = """
@@ -869,6 +941,17 @@ def layout(is_mobile):
                                         }
                                     ),
                                 ], label="Get Solar System Objects"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_tracklets)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Get Tracklet Objects"
                             ),
                             dbc.Tab(
                                 [
