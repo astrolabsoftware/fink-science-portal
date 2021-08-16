@@ -574,15 +574,15 @@ is also tighted to the detection method we use).
 In order to get tracklet data, you have the choice to specify:
 1. a tracklet ID if you know it
 2. a ZTF night ID
-3. a date at the format YYYYMMDD.
+3. a date at the format YYYY-MM-DD.
 
-Tracklet processing has been added on 2021/08/10, so there won't be data before this date.
+Tracklet processing has been added on 2021-08-10, so there won't be data before this date.
 
 In a unix shell, you would simply use
 
 ```bash
-# Get tracklet data for the night 20210810
-curl -H "Content-Type: application/json" -X POST -d '{"date":"20210810", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/tracklet -o trck_20210810.csv
+# Get tracklet data for the night 2021-08-10
+curl -H "Content-Type: application/json" -X POST -d '{"date":"2021-08-10", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/tracklet -o trck_20210810.csv
 ```
 
 In python, you would use
@@ -591,11 +591,11 @@ In python, you would use
 import requests
 import pandas as pd
 
-# Get all tracklet data for the night 20210810
+# Get all tracklet data for the night 2021-08-10
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/tracklet',
   json={
-    'date': '20210810',
+    'date': '2021-08-10',
     'output-format': 'json'
   }
 )
@@ -605,7 +605,7 @@ pdf = pd.read_json(r.content)
 ```
 
 You can also specify a tracklet ID (in the format TRCK<NID>_<number>), or
-a ZTF NID (20210810 has a night ID of 1682 for example):
+a ZTF NID (2021-08-10 has a night ID of 1682 for example):
 
 ```python
 import requests
@@ -620,11 +620,11 @@ r = requests.post(
   }
 )
 
-# Get tracklet data TRCK1682_00
+# Get tracklet data TRCK1682_01
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/tracklet',
   json={
-    'id': 'TRCK1682_00',
+    'id': 'TRCK1682_01',
     'output-format': 'json'
   }
 )

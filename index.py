@@ -116,10 +116,10 @@ Note for designation, you can also use space (2010 JO69 or C/2020 V2).
 ##### Tracklet data
 Search for Tracklet Objects in the Fink database.
 
-Tracklet data is available only from 20210810. You have the choice to specify:
-1. a tracklet ID, e.g. TRCK1682_00
+Tracklet data is available only from 2021-08-10. You have the choice to specify:
+1. a tracklet ID, e.g. TRCK1682_01
 2. a ZTF night ID, e.g. 1682
-3. a date at the format YYYYMMDD, e.g. 20210810
+3. a date at the format YYYY-MM-DD, e.g. 2021-08-10
 """
 
 msg_info = """
@@ -891,15 +891,15 @@ def results(ns, query, query_type, dropdown_option, is_mobile, results):
             payload = {
                 'id': query
             }
-        elif len(query.strip()) == 8:
-            # YYYYMMDD
+        elif len(query.strip()) == 10:
+            # YYYY-MM-DD
             payload = {
                 'date': '{}'.format(query)
             }
         else:
             # In this case, designation = NID
             payload = {
-                'date': 'TRCK{}'.format(query)
+                'id': 'TRCK{}'.format(query)
             }
 
         r = requests.post(
