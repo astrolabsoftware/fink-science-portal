@@ -573,9 +573,9 @@ is also tighted to the detection method we use).
 
 In order to get tracklet data, you have the choice to specify:
 
-1. a tracklet ID if you know it
-2. a ZTF night ID
-3. a date at the format YYYY-MM-DD.
+1. a tracklet ID (format TRCK<night ID>_<XY>, with XY=00,01,02,... e.g. TRCK1682_01)
+2. a ZTF night ID (4 digits, e.g. 1682)
+3. a date at the format YYYY-MM-DD (e.g. 2021-08-10).
 
 Tracklet processing has been added on 2021-08-10, so there won't be data before this date.
 
