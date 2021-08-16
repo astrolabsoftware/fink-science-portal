@@ -572,6 +572,7 @@ seem mainly man-made, they are fast moving, and they typically orbit around the 
 is also tighted to the detection method we use).
 
 In order to get tracklet data, you have the choice to specify:
+
 1. a tracklet ID if you know it
 2. a ZTF night ID
 3. a date at the format YYYY-MM-DD.
