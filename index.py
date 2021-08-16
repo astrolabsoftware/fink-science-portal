@@ -92,7 +92,7 @@ Choose a class of interest using the drop-down menu to see the 100 latest alerts
 
 ##### Solar System Objects (SSO)
 
-Search for Solar System Object in the Fink database.
+Search for Solar System Objects in the Fink database.
 The numbers or designations are taken from the MPC archive.
 When searching for a particular asteroid or comet, it is best to use the IAU number,
 as in 4209 for asteroid "4209 Briggs". You can also try for numbered comet (e.g. 10P),
@@ -112,6 +112,14 @@ Here are some examples of valid queries:
   * C/2020V2, C/2020R2
 
 Note for designation, you can also use space (2010 JO69 or C/2020 V2).
+
+##### Tracklet data
+Search for Tracklet Objects in the Fink database.
+
+Tracklet data is available only from 20210810. You have the choice to specify:
+1. a tracklet ID, e.g. TRCK1682_00
+2. a ZTF night ID, e.g. 1682
+3. a date at the format YYYYMMDD, e.g. 20210810
 """
 
 msg_info = """
@@ -179,7 +187,8 @@ dropdown_menu_items = [
     dbc.DropdownMenuItem("Conesearch", id="dropdown-menu-item-2"),
     dbc.DropdownMenuItem("Date Search", id="dropdown-menu-item-3"),
     dbc.DropdownMenuItem("Class search", id="dropdown-menu-item-4"),
-    dbc.DropdownMenuItem("SSO search", id="dropdown-menu-item-5")
+    dbc.DropdownMenuItem("SSO search", id="dropdown-menu-item-5"),
+    dbc.DropdownMenuItem("Tracklet search", id="dropdown-menu-item-6")
 ]
 
 
@@ -597,10 +606,11 @@ def display_skymap():
         Input("dropdown-menu-item-2", "n_clicks"),
         Input("dropdown-menu-item-3", "n_clicks"),
         Input("dropdown-menu-item-4", "n_clicks"),
-        Input("dropdown-menu-item-5", "n_clicks")
+        Input("dropdown-menu-item-5", "n_clicks"),
+        Input("dropdown-menu-item-6", "n_clicks")
     ]
 )
-def input_type(n1, n2, n3, n4, n5):
+def input_type(n1, n2, n3, n4, n5, n6):
     """ Decide if the dropdown below the search bar should be shown
 
     Only some query types need to have a dropdown (Date & Class search). In
@@ -658,11 +668,12 @@ def input_type(n1, n2, n3, n4, n5):
         Input("dropdown-menu-item-2", "n_clicks"),
         Input("dropdown-menu-item-3", "n_clicks"),
         Input("dropdown-menu-item-4", "n_clicks"),
-        Input("dropdown-menu-item-5", "n_clicks")
+        Input("dropdown-menu-item-5", "n_clicks"),
+        Input("dropdown-menu-item-6", "n_clicks")
     ],
     State("search_bar_input", "value")
 )
-def on_button_click(n1, n2, n3, n4, n5, val):
+def on_button_click(n1, n2, n3, n4, n5, n6, val):
     """ Change the placeholder value of the search bar based on the query type
     """
     ctx = dash.callback_context
@@ -683,6 +694,8 @@ def on_button_click(n1, n2, n3, n4, n5, val):
         return "Show last 100 alerts for a particular class", "Class", val
     elif button_id == "dropdown-menu-item-5":
         return "Enter a valid IAU number. See Help for more information", "SSO", val
+    elif button_id == "dropdown-menu-item-6":
+        return "Enter a valid tracklet number or night ID. See Help for more information", "Tracklet", val
     else:
         return "Valid object ID", "objectID", ""
 
@@ -871,6 +884,27 @@ def results(ns, query, query_type, dropdown_option, is_mobile, results):
             json={
                 'n_or_d': query_
             }
+        )
+    elif query_type == 'Tracklet':
+        # strip from spaces
+        if query.startswith('TRCK'):
+            payload = {
+                'id': query
+            }
+        elif len(query.strip()) == 8:
+            # YYYYMMDD
+            payload = {
+                'date': '{}'.format(query)
+            }
+        else:
+            # In this case, designation = NID
+            payload = {
+                'date': 'TRCK{}'.format(query)
+            }
+
+        r = requests.post(
+            '{}/api/v1/tracklet'.format(APIURL),
+            json=payload
         )
     elif query_type == 'Conesearch':
         args = [i.strip() for i in query.split(',')]
