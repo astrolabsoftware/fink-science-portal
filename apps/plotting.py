@@ -1997,7 +1997,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
 
-    layout_tracklet_lightcurve['title'] = 'Tracklet ID: {}'.format(pdf['d:tracklet'].values[0])
     layout_tracklet_lightcurve['yaxis']['title'] = 'Difference magnitude'
     layout_tracklet_lightcurve['yaxis']['autorange'] = 'reversed'
 
@@ -2055,10 +2054,13 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
+    card = [
+        dbc.Alert("Tracklet ID: {}".format(pdf['d:tracklet'].values[0]), color="info"),
+        dbc.Card(
+            dbc.CardBody(graph),
+            className="mt-3"
+        )
+    ]
     return card
 
 @app.callback(
