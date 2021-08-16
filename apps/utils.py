@@ -319,8 +319,8 @@ def extract_fink_classification(
     classification = pd.Series(['Unknown'] * len(cdsxmatch))
     ambiguity = pd.Series([0] * len(cdsxmatch))
 
-    # Tracklet ID
-    f_tracklet = tracklet.apply(lambda x: (x != '') & (x == x))
+    # Tracklet ID -- automatic casts are painful...
+    f_tracklet = tracklet.apply(lambda x: (x != '') & (x != 'nan'))
 
     # Microlensing classification
     medium_ndethist = ndethist.astype(int) < 100
