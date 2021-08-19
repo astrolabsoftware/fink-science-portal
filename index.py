@@ -1034,6 +1034,9 @@ def open_noresults(n, results, query, query_type, dropdown_option):
         elif query_type == 'SSO':
             header = "Search by Solar System Object ID"
             text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
+        elif query_type == 'Tracklet':
+            header = "Search by Tracklet ID"
+            text = "{} not found".format(query)
         elif query_type == 'Conesearch':
             header = "Conesearch"
             text = "No alerts found for (RA, Dec, radius) = {}".format(
