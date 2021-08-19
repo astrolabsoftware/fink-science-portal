@@ -2103,7 +2103,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     toast = html.Div(
         [
             dbc.Button(
-                "Open toast",
+                "Information",
                 id="simple-toast-toggle",
                 color="secondary",
                 outline=True,
@@ -2117,6 +2117,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 header="This is the header",
                 icon="primary",
                 dismissable=True,
+                is_open=False
             ),
         ]
     )
@@ -2124,9 +2125,12 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     @app.callback(
         Output("simple-toast", "is_open"),
         [Input("simple-toast-toggle", "n_clicks")],
+        [State("simple-toast", "is_open")],
     )
-    def open_toast(n):
-        return True
+    def open_toast(n, is_open):
+        if n:
+            return not is_open
+        return is_open
 
     card = [
         alert,
