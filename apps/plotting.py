@@ -2112,9 +2112,9 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 block=True
             ),
             dbc.Toast(
-                [html.P("This is the content of the toast", className="mb-0")],
+                [dcc.Markdown(msg)],
                 id="simple-toast",
-                header="This is the header",
+                header="Fink tracklets",
                 icon="primary",
                 dismissable=True,
                 is_open=False
@@ -2124,12 +2124,11 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
 
     card = [
         alert,
+        toast,
         dbc.Card(
             dbc.CardBody(graph),
             className="mt-3"
-        ),
-        toast,
-        card_info
+        )
     ]
     return card
 
