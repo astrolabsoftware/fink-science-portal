@@ -2008,7 +2008,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     <extra></extra>
     """
 
-    def generate_plot(filt, marker):
+    def generate_plot(filt, marker, color):
         dic = {
             'x': pdf['i:ra'][pdf['i:fid'] == filt],
             'y': mag[pdf['i:fid'] == filt],
@@ -2016,7 +2016,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 'type': 'data',
                 'array': err[pdf['i:fid'] == filt],
                 'visible': True,
-                'color': '#1f77b4'
+                'color': color
             },
             'mode': 'markers',
             'name': 'g band',
@@ -2029,15 +2029,15 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
             'hovertemplate': hovertemplate,
             'marker': {
                 'size': 12,
-                'color': '#1f77b4',
+                'color': color,
                 'symbol': marker}
         }
         return dic
 
     figure = {
         'data': [
-            generate_plot(1, marker='o'),
-            generate_plot(2, marker='o')
+            generate_plot(1, marker='o', color='#1f77b4'),
+            generate_plot(2, marker='o', color='#ff7f0e')
         ],
         "layout": layout_tracklet_lightcurve
     }
