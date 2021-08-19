@@ -882,16 +882,16 @@ def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per
         single_exposure_time = delta_jd_second + 30.
 
     # Sort data, and integrate the trajectory
-    data = data.sort_values('i:dec')
-    for i in range(len(data[mask_exposure]) - 1):
+    data_small = data[mask_exposure].sort_values('i:dec')
+    for i in range(len(data_small) - 1):
         first = SkyCoord(
-            data['i:ra'][mask_exposure][i],
-            data['i:dec'][mask_exposure][i],
+            data_small['i:ra'].values[i],
+            data_small['i:dec'].values[i],
             unit='deg'
         )
         last = SkyCoord(
-            data['i:ra'][mask_exposure][i+1],
-            data['i:dec'][mask_exposure][i+1],
+            data_small['i:ra'].values[i+1],
+            data_small['i:dec'].values[i+1],
             unit='deg'
         )
         length += first.separation(last).degree
