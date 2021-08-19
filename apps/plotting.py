@@ -2105,9 +2105,11 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
             dbc.Button(
                 "Open toast",
                 id="simple-toast-toggle",
-                color="primary",
+                color="secondary",
+                outline=True,
                 className="mb-3",
                 n_clicks=0,
+                block=True
             ),
             dbc.Toast(
                 [html.P("This is the content of the toast", className="mb-0")],
@@ -2118,17 +2120,21 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
             ),
         ]
     )
+
+    @app.callback(
+        Output("simple-toast", "is_open"),
+        [Input("simple-toast-toggle", "n_clicks")],
+    )
+    def open_toast(n):
+        return True
+
     card = [
-        dbc.Row(
-            [
-                dbc.Col(alert, width=8),
-                dbc.Col(toast)
-            ]
-        ),
+        alert,
         dbc.Card(
             dbc.CardBody(graph),
             className="mt-3"
         ),
+        toast,
         card_info
     ]
     return card

@@ -874,7 +874,7 @@ def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per
 
         # Discard if there are not enough alerts left (we want a total of 5 at least)
         if np.sum(mask_exposure) < 5:
-            return np.nan
+            return np.nan, np.nan
 
         # Compute the time lapse between the start of the first and last exposure (0 if the same exposure)
         delta_jd_second = (
