@@ -76,8 +76,8 @@ The list of arguments for retrieving object data can be found at http://134.158.
 In a unix shell, you would simply use
 
 ```bash
-# Get data for ZTF19acnjwgm and save it in a CSV file
-curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/objects -o ZTF19acnjwgm.csv
+# Get data for ZTF21aaxtctv and save it in a CSV file
+curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF21aaxtctv", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/objects -o ZTF21aaxtctv.csv
 ```
 
 In python, you would use
@@ -86,11 +86,11 @@ In python, you would use
 import requests
 import pandas as pd
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/objects',
   json={
-    'objectId': 'ZTF19acnjwgm',
+    'objectId': 'ZTF21aaxtctv',
     'output-format': 'json'
   }
 )
@@ -102,7 +102,7 @@ pdf = pd.read_json(r.content)
 Note that for `csv` output, you need to use
 
 ```python
-# get data for ZTF19acnjwgm in CSV format...
+# get data for ZTF21aaxtctv in CSV format...
 r = ...
 
 pd.read_csv(io.BytesIO(r.content))
@@ -113,7 +113,7 @@ You can also get a votable using the json output format:
 ```python
 from astropy.table import Table
 
-# get data for ZTF19acnjwgm in JSON format...
+# get data for ZTF21aaxtctv in JSON format...
 r = ...
 
 t = Table(r.json())
@@ -127,7 +127,7 @@ But you can also choose to transfer only a subset of the fields:
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/objects',
   json={
-    'objectId': 'ZTF19acnjwgm',
+    'objectId': 'ZTF21aaxtctv',
     'columns': 'i:jd,i:magpsf'
   }
 )
@@ -151,11 +151,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_context('talk')
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/objects',
   json={
-    'objectId': 'ZTF19acnjwgm',
+    'objectId': 'ZTF21aaxtctv',
     'withupperlim': 'True'
   }
 )
@@ -216,7 +216,7 @@ import matplotlib.pyplot as plt
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/objects',
   json={
-    'objectId': 'ZTF19acnjwgm',
+    'objectId': 'ZTF21aaxtctv',
     'withcutouts': 'True'
   }
 )
@@ -261,13 +261,13 @@ The list of arguments for querying the Fink alert database can be found at http:
 
 Enter a valid object ID to access its data, e.g. try:
 
-* ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf, ZTF18acuajcr
+* ZTF21abfmbix, ZTF21aaxtctv, ZTF21abfaohe, ZTF20aanxcpf, ZTF17aaaabte, ZTF18aafpcwm, ZTF21abujbqa, ZTF21abuipwb, ZTF18acuajcr
 
 In a unix shell, you would simply use
 
 ```bash
-# Get data for ZTF19acnjwgm and save it in a JSON file
-curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF19acnjwgm"}' http://134.158.75.151:24000/api/v1/explorer -o search_ZTF19acnjwgm.json
+# Get data for ZTF21aaxtctv and save it in a JSON file
+curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF21aaxtctv"}' http://134.158.75.151:24000/api/v1/explorer -o search_ZTF21aaxtctv.json
 ```
 
 In python, you would use
@@ -276,11 +276,11 @@ In python, you would use
 import requests
 import pandas as pd
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/explorer',
   json={
-    'objectId': 'ZTF19acnjwgm',
+    'objectId': 'ZTF21aaxtctv',
   }
 )
 
@@ -294,17 +294,17 @@ Perform a conesearch around a position on the sky given by (RA, Dec, radius).
 The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats.
 The following ways of initializing a conesearch are all equivalent (radius in arcsecond):
 
-* 271.3914265, 45.2545134, 5
-* 271d23m29.135s, 45d15m16.25s, 5
-* 18h05m33.942s, +45d15m16.25s, 5
-* 18 05 33.942, +45 15 16.25, 5
-* 18:05:33.942, 45:15:16.25, 5
+* 193.822, 2.89732, 5
+* 193d49m18.267s, 2d53m50.35s, 5
+* 12h55m17.218s, +02d53m50.35s, 5
+* 12 55 17.218, +02 53 50.35, 5
+* 12:55:17.218, 02:53:50.35, 5
 
 In a unix shell, you would simply use
 
 ```bash
 # Get all objects falling within (center, radius) = ((ra, dec), radius)
-curl -H "Content-Type: application/json" -X POST -d '{"ra":"271.3914265", "dec":"45.2545134", "radius":"5"}' http://134.158.75.151:24000/api/v1/explorer -o conesearch.json
+curl -H "Content-Type: application/json" -X POST -d '{"ra":"193.822", "dec":"2.89732", "radius":"5"}' http://134.158.75.151:24000/api/v1/explorer -o conesearch.json
 ```
 
 In python, you would use
@@ -317,8 +317,8 @@ import pandas as pd
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/explorer',
   json={
-    'ra': '271.3914265',
-    'dec': '45.2545134',
+    'ra': '193.822',
+    'dec': '2.89732',
     'radius': '5'
   }
 )
@@ -339,15 +339,15 @@ import requests
 import pandas as pd
 
 # Get all objects falling within (center, radius) = ((ra, dec), radius)
-# between 2019-11-01 03:16:53.999 (included) and 2019-12-01 03:16:53.999 (excluded)
+# between 2021-06-25 05:59:37.000 (included) and 2021-07-01 05:59:37.000 (excluded)
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/explorer',
   json={
-    'ra': '271.3914265',
-    'dec': '45.2545134',
+    'ra': '193.822',
+    'dec': '2.89732',
     'radius': '5',
-    'startdate_conesearch': '2019-11-01 03:16:53.999',
-    'window_days_conesearch': 30
+    'startdate_conesearch': '2021-06-25 05:59:37.000',
+    'window_days_conesearch': 7
   }
 )
 
@@ -355,8 +355,8 @@ r = requests.post(
 pdf = pd.read_json(r.content)
 ```
 
-Here is the current performance of the service for querying a
-single object (1.3TB, about 40 million alerts):
+Here is the performance of the service for querying a
+single object (database of 1.3TB, about 40 million alerts):
 
 ![conesearch](https://user-images.githubusercontent.com/20426972/123047697-e493a500-d3fd-11eb-9f30-216dce9cbf43.png)
 
@@ -371,13 +371,13 @@ Choose a starting date and a time window to see all alerts in this period.
 Dates are in UTC, and the time window in minutes.
 Example of valid search:
 
-* 2019-11-03 02:40:00
+* 2021-07-01 05:59:37.000
 
 In a unix shell, you would simply use
 
 ```bash
-# Get all objects between 2019-11-03 02:40:00 and 2019-11-03 02:50:00 UTC
-curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2019-11-03 02:40:00", "window":"10"}' http://134.158.75.151:24000/api/v1/explorer -o datesearch.json
+# Get all objects between 2021-07-01 05:59:37.000 and 2021-07-01 06:09:37.000 UTC
+curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2021-07-01 05:59:37.000", "window":"10"}' http://134.158.75.151:24000/api/v1/explorer -o datesearch.json
 ```
 
 In python, you would use
@@ -386,11 +386,11 @@ In python, you would use
 import requests
 import pandas as pd
 
-# Get all objects between 2019-11-03 02:40:00 and 2019-11-03 02:50:00 UTC
+# Get all objects between 2021-07-01 05:59:37.000 and 2021-07-01 06:09:37.000 UTC
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/explorer',
   json={
-    'startdate': '2019-11-03 02:40:00',
+    'startdate': '2021-07-01 05:59:37.000',
     'window': '10'
   }
 )
@@ -508,7 +508,7 @@ In python, you would use
 import requests
 import pandas as pd
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
   'http://134.158.75.151:24000/api/v1/sso',
   json={
@@ -570,7 +570,7 @@ In a unix shell, you can retrieve the last cutout of an object by simply using
 ```bash
 curl -H "Content-Type: application/json" \\
     -X POST -d \\
-    '{"objectId":"ZTF19acnjwgm", "kind":"Science"}' \\
+    '{"objectId":"ZTF21aaxtctv", "kind":"Science"}' \\
     http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.png
 ```
 
@@ -582,11 +582,11 @@ import io
 import requests
 from PIL import Image as im
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
     'http://134.158.75.151:24000/api/v1/cutouts',
     json={
-        'objectId': 'ZTF19acnjwgm',
+        'objectId': 'ZTF21aaxtctv',
         'kind': 'Science',
     }
 )
@@ -603,11 +603,11 @@ import io
 import requests
 from PIL import Image as im
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
     'http://134.158.75.151:24000/api/v1/cutouts',
     json={
-        'objectId': 'ZTF19acnjwgm',
+        'objectId': 'ZTF21aaxtctv',
         'kind': 'Science', # Science, Template, Difference
         'stretch': 'sigmoid', # sigmoid[default], linear, sqrt, power, log, asinh
         'colormap': 'viridis', # Valid matplotlib colormap name (see matplotlib.cm). Default is grayscale.
@@ -630,11 +630,11 @@ import requests
 import pandas as pd
 from PIL import Image as im
 
-# Get all candidate ID with JD for ZTF19acnjwgm
+# Get all candidate ID with JD for ZTF21aaxtctv
 r = requests.post(
     'http://134.158.75.151:24000/api/v1/objects',
     json={
-        'objectId': 'ZTF19acnjwgm',
+        'objectId': 'ZTF21aaxtctv',
         'columns': 'i:candid,i:jd'
     }
 )
@@ -643,11 +643,11 @@ pdf_candid = pd.read_json(r.content)
 # Get the first alert
 first_alert = pdf_candid['i:candid'].values[-1]
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
     'http://134.158.75.151:24000/api/v1/cutouts',
     json={
-        'objectId': 'ZTF19acnjwgm',
+        'objectId': 'ZTF21aaxtctv',
         'kind': 'Science',
         'candid': first_alert
     }
@@ -664,7 +664,7 @@ You can also retrieve the original FITS file stored in the alert:
 ```bash
 curl -H "Content-Type: application/json" \\
     -X POST -d \\
-    '{"objectId":"ZTF19acnjwgm", "kind":"Science", "output-format": "FITS"}' \\
+    '{"objectId":"ZTF21aaxtctv", "kind":"Science", "output-format": "FITS"}' \\
     http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.fits
 ```
 
@@ -676,11 +676,11 @@ from astropy.io import fits
 import requests
 import pandas as pd
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
     'http://134.158.75.151:24000/api/v1/cutouts',
     json={
-        'objectId': 'ZTF19acnjwgm',
+        'objectId': 'ZTF21aaxtctv',
         'kind': 'Science',
         'output-format': 'FITS'
     }
@@ -698,11 +698,11 @@ You can also retrieve only the data block stored in the alert:
 import requests
 import pandas as pd
 
-# get data for ZTF19acnjwgm
+# get data for ZTF21aaxtctv
 r = requests.post(
     'http://134.158.75.151:24000/api/v1/cutouts',
     json={
-        'objectId': 'ZTF19acnjwgm',
+        'objectId': 'ZTF21aaxtctv',
         'kind': 'Science',
         'output-format': 'array'
     }
