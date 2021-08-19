@@ -855,16 +855,16 @@ def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per
     length = 0.0
 
     # Get unique exposure
-    jd_unique = np.unique(data['jd'])
+    jd_unique = np.unique(data['i:jd'])
     n_exposure = len(jd_unique)
 
     # Treat the case where tracklets span several exposures
-    mask_exposure = np.ones_like(data['jd'], dtype=bool)
+    mask_exposure = np.ones_like(data['i:jd'], dtype=bool)
 
     if n_exposure > 1:
         # remove exposures with nalert < min_alert_per_exposure
         for k in jd_unique:
-            mask_ = data['jd'] == k
+            mask_ = data['i:jd'] == k
             l = np.sum(mask_)
             if l < min_alert_per_exposure:
                 mask_exposure[mask_] = False
@@ -875,17 +875,25 @@ def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per
 
         # Compute the time lapse between the start of the first and last exposure (0 if the same exposure)
         delta_jd_second = (
-            np.max(data['jd'][mask_exposure]) - np.min(data['jd'][mask_exposure])
+            np.max(data['i:jd'][mask_exposure]) - np.min(data['i:jd'][mask_exposure])
         ) * 24. * 3600.
 
         # add the last exposure time
         single_exposure_time = delta_jd_second + 30.
 
     # Sort data, and integrate the trajectory
-    data = data.sort_values('dec')
+    data = data.sort_values('i:dec')
     for i in range(len(data[mask_exposure]) - 1):
-        first = SkyCoord(data['ra'][mask_exposure][i], data['dec'][mask_exposure][i], unit='deg')
-        last = SkyCoord(data['ra'][mask_exposure][i+1], data['dec'][mask_exposure][i+1], unit='deg')
+        first = SkyCoord(
+            data['i:ra'][mask_exposure][i],
+            data['i:dec'][mask_exposure][i],
+            unit='deg'
+        )
+        last = SkyCoord(
+            data['i:ra'][mask_exposure][i+1],
+            data['i:dec'][mask_exposure][i+1],
+            unit='deg'
+        )
         length += first.separation(last).degree
 
     # return the velocity in deg/hour
