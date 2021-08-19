@@ -2001,9 +2001,10 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     layout_tracklet_lightcurve['yaxis']['autorange'] = 'reversed'
 
     hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>date</b>: %{customdata[0]}
-    <b>objectId</b>: %{customdata[1]}
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>Date</b>: %{customdata[1]}
     <extra></extra>
     """
     figure = {
@@ -2019,7 +2020,12 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'customdata': list(zip(pdf['v:lastdate'][pdf['i:fid'] == 1], pdf['i:objectId'][pdf['i:fid'] == 1])),
+                'customdata': list(
+                    zip(
+                        pdf['i:objectId'][pdf['i:fid'] == 1],
+                        pdf['v:lastdate'][pdf['i:fid'] == 1]
+                    )
+                ),
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
@@ -2037,7 +2043,12 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'customdata': list(zip(pdf['v:lastdate'][pdf['i:fid'] == 2], pdf['i:objectId'][pdf['i:fid'] == 2])),
+                'customdata': list(
+                    zip(
+                        pdf['i:objectId'][pdf['i:fid'] == 2],
+                        pdf['v:lastdate'][pdf['i:fid'] == 2]
+                    )
+                ),
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
@@ -2065,11 +2076,10 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
 
     card = [
         dbc.Alert(
-            [
-                html.P("Tracklet ID: {}".format(pdf['d:tracklet'].values[0])),
-                html.Hr(),
-                html.P("Inferred period: {:.2f} hours".format(period))
-            ],
+            "Tracklet ID: {} -- Inferred period: {:.2f} hours".format(
+                pdf['d:tracklet'].values[0],
+                period
+            ),
             color="info"
         ),
         dbc.Card(
@@ -2110,7 +2120,7 @@ def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
     <b>objectId</b>: %{customdata[0]}<br>
     <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>mjd</b>: %{customdata[1]}
+    <b>Date</b>: %{customdata[1]}
     <extra></extra>
     """
     figure = {
@@ -2123,7 +2133,7 @@ def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
                 'customdata': list(
                     zip(
                         pdf['i:objectId'],
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        pdf['v:lastdate']
                     )
                 ),
                 'hovertemplate': hovertemplate,
