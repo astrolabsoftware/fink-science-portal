@@ -126,25 +126,13 @@ def tab5_content(pdf):
 def tab6_content(pdf):
     """ Tracklet tab
     """
-    msg = """
-    TBD
-    """
-    card_info = dbc.Card(
-        dbc.CardBody(
-            dcc.Markdown(msg)
-        ), style={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        }
-    )
-
     tab6_content_ = html.Div([
         dbc.Row(
             [
                 dbc.Col(
                     [
-                        card_tracklet_lightcurve(),
                         card_tracklet_radec(),
-                        card_info
+                        card_tracklet_lightcurve()
                     ]
                 ),
             ]
