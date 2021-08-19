@@ -2017,7 +2017,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     <extra></extra>
     """
 
-    def generate_plot(mask, filt, marker, color):
+    def generate_plot(mask, filt, marker, color, showlegend):
         if filt == 1:
             name = 'g band'
         else:
@@ -2033,6 +2033,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
             },
             'mode': 'markers',
             'name': name,
+            'showlegend': showlegend,
             'customdata': list(
                 zip(
                     pdf[mask]['i:objectId'][pdf[mask]['i:fid'] == filt],
@@ -2049,10 +2050,10 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
 
     figure = {
         'data': [
-            generate_plot(~mask_bad_id, 1, marker='o', color='#1f77b4'),
-            generate_plot(~mask_bad_id, 2, marker='o', color='#ff7f0e'),
-            generate_plot(mask_bad_id, 1, marker='x', color='#1f77b4'),
-            generate_plot(mask_bad_id, 2, marker='x', color='#ff7f0e')
+            generate_plot(~mask_bad_id, 1, marker='o', color='#1f77b4', showlegend=True),
+            generate_plot(~mask_bad_id, 2, marker='o', color='#ff7f0e', showlegend=True),
+            generate_plot(mask_bad_id, 1, marker='x', color='#1f77b4', showlegend=False),
+            generate_plot(mask_bad_id, 2, marker='x', color='#ff7f0e', showlegend=False)
         ],
         "layout": layout_tracklet_lightcurve
     }
@@ -2091,13 +2092,38 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         }
     )
 
-    card = [
-        dbc.Alert(
-            "Tracklet ID: {} -- Inferred period: {:.1f} hours".format(
-                pdf['d:tracklet'].values[0],
-                period
+    alert = dbc.Alert(
+        "Tracklet ID: {} -- Inferred period: {:.1f} hours".format(
+            pdf['d:tracklet'].values[0],
+            period
+        ),
+        color="info"
+    )
+
+    toast = html.Div(
+        [
+            dbc.Button(
+                "Open toast",
+                id="simple-toast-toggle",
+                color="primary",
+                className="mb-3",
+                n_clicks=0,
             ),
-            color="info"
+            dbc.Toast(
+                [html.P("This is the content of the toast", className="mb-0")],
+                id="simple-toast",
+                header="This is the header",
+                icon="primary",
+                dismissable=True,
+            ),
+        ]
+    )
+    card = [
+        dbc.Row(
+            [
+                dbc.Col(alert, width=8),
+                dbc.Col(toast)
+            ]
         ),
         dbc.Card(
             dbc.CardBody(graph),
