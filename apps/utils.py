@@ -850,6 +850,9 @@ def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per
     ----------
     velocity: float or NaN
         Velocity in deg/hour. Invalid tracklets return NaN.
+    objectid_discarded: list of str
+        List of objectId discarded from the velocity computation because
+        the exposure(s) contained too few alerts
     """
     # Initialise the trajectory
     length = 0.0
@@ -883,6 +886,7 @@ def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per
 
     # Sort data, and integrate the trajectory
     data_small = data[mask_exposure].sort_values('i:dec')
+    objectid_discarded = data['i:objectId'][mask_exposure]
     for i in range(len(data_small) - 1):
         first = SkyCoord(
             data_small['i:ra'].values[i],
@@ -897,4 +901,4 @@ def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per
         length += first.separation(last).degree
 
     # return the velocity in deg/hour
-    return length / (single_exposure_time / 3600.)
+    return length / (single_exposure_time / 3600.), objectid_discarded

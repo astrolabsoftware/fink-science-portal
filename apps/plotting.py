@@ -1990,6 +1990,15 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         """
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
 
+    # Compute period
+    vel, bad_id = get_tracklet_velocity_bystep(pdf, min_alert_per_exposure=5)
+    if ~np.isnan(vel):
+        period = 360. / vel
+    else:
+        period = 'None'
+
+    mask_bad_id = pdf[pdf['i:objectId'].isin(bad_id)]
+
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
 
@@ -2008,22 +2017,26 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     <extra></extra>
     """
 
-    def generate_plot(filt, marker, color):
+    def generate_plot(mask, filt, marker, color):
+        if filt == 1:
+            name = 'g band'
+        else:
+            name = 'r band'
         dic = {
-            'x': pdf['i:ra'][pdf['i:fid'] == filt],
-            'y': mag[pdf['i:fid'] == filt],
+            'x': pdf[mask]['i:ra'][pdf[mask]['i:fid'] == filt],
+            'y': mag[mask][pdf[mask]['i:fid'] == filt],
             'error_y': {
                 'type': 'data',
-                'array': err[pdf['i:fid'] == filt],
+                'array': err[mask][pdf[mask]['i:fid'] == filt],
                 'visible': True,
                 'color': color
             },
             'mode': 'markers',
-            'name': 'g band',
+            'name': name,
             'customdata': list(
                 zip(
-                    pdf['i:objectId'][pdf['i:fid'] == filt],
-                    pdf['v:lastdate'][pdf['i:fid'] == filt]
+                    pdf[mask]['i:objectId'][pdf[mask]['i:fid'] == filt],
+                    pdf[mask]['v:lastdate'][pdf[mask]['i:fid'] == filt]
                 )
             ),
             'hovertemplate': hovertemplate,
@@ -2036,8 +2049,10 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
 
     figure = {
         'data': [
-            generate_plot(1, marker='o', color='#1f77b4'),
-            generate_plot(2, marker='o', color='#ff7f0e')
+            generate_plot(~mask_bad_id, 1, marker='o', color='#1f77b4'),
+            generate_plot(~mask_bad_id, 2, marker='o', color='#ff7f0e'),
+            generate_plot(mask_bad_id, 1, marker='x', color='#1f77b4'),
+            generate_plot(mask_bad_id, 2, marker='x', color='#ff7f0e')
         ],
         "layout": layout_tracklet_lightcurve
     }
@@ -2049,13 +2064,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         },
         config={'displayModeBar': False}
     )
-
-    # Compute period
-    vel = get_tracklet_velocity_bystep(pdf, min_alert_per_exposure=5)
-    if ~np.isnan(vel):
-        period = 360. / vel
-    else:
-        period = 'None'
 
     card = [
         dbc.Alert(
