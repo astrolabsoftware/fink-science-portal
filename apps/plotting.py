@@ -23,7 +23,7 @@ import requests
 
 import dash
 import dash_table
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 import plotly.express as px
 import dash_core_components as dcc
