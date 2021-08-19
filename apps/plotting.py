@@ -2122,16 +2122,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         ]
     )
 
-    @app.callback(
-        Output("simple-toast", "is_open"),
-        [Input("simple-toast-toggle", "n_clicks")],
-        [State("simple-toast", "is_open")],
-    )
-    def open_toast(n, is_open):
-        if n:
-            return not is_open
-        return is_open
-
     card = [
         alert,
         dbc.Card(
@@ -2142,6 +2132,16 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         card_info
     ]
     return card
+
+@app.callback(
+    Output("simple-toast", "is_open"),
+    [Input("simple-toast-toggle", "n_clicks")],
+    [State("simple-toast", "is_open")],
+)
+def open_toast(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 @app.callback(
     Output('tracklet_radec', 'children'),
