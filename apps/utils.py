@@ -886,7 +886,7 @@ def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per
 
     # Sort data, and integrate the trajectory
     data_small = data[mask_exposure].sort_values('i:dec')
-    objectid_discarded = data['i:objectId'][mask_exposure]
+    objectid_discarded = data['i:objectId'][~mask_exposure]
     for i in range(len(data_small) - 1):
         first = SkyCoord(
             data_small['i:ra'].values[i],
