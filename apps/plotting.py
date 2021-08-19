@@ -2019,7 +2019,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'customdata': [t, o for t, o in zip(pdf['v:lastdate'][pdf['i:fid'] == 1], pdf['i:objectId'][pdf['i:fid'] == 1])],
+                'customdata': list(zip(pdf['v:lastdate'][pdf['i:fid'] == 1], pdf['i:objectId'][pdf['i:fid'] == 1])),
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
@@ -2037,7 +2037,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'customdata': [t, o for t, o in zip(pdf['v:lastdate'][pdf['i:fid'] == 2], pdf['i:objectId'][pdf['i:fid'] == 2])],
+                'customdata': list(zip(pdf['v:lastdate'][pdf['i:fid'] == 2], pdf['i:objectId'][pdf['i:fid'] == 2])),
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
