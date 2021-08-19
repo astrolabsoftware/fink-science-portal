@@ -31,7 +31,7 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
-from apps.utils import apparent_flux, dc_mag
+from apps.utils import apparent_flux, dc_mag, get_tracklet_velocity_bystep
 from app import APIURL
 
 from pyLIMA import event
@@ -2054,8 +2054,22 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         },
         config={'displayModeBar': False}
     )
+
+    # Compute period
+    vel = get_tracklet_velocity_bystep(pdf, min_alert_per_exposure=5)
+    if ~np.isnan(vel):
+        period = 360. / vel
+    else:
+        period = 'None'
+
     card = [
-        dbc.Alert("Tracklet ID: {}".format(pdf['d:tracklet'].values[0]), color="info"),
+        dbc.Alert(
+            [
+                html.P("Tracklet ID: {}".format(pdf['d:tracklet'].values[0])),
+                html.P("Inferred period: {:.2f} hours".format(period))
+            ],
+            color="info"
+        ),
         dbc.Card(
             dbc.CardBody(graph),
             className="mt-3"

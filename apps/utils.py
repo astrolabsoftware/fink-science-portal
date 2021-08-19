@@ -821,3 +821,72 @@ def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
         idx[m] = -1
 
     return idx
+
+def get_tracklet_velocity_bystep(data, single_exposure_time = 30., min_alert_per_exposure = 1):
+    """ Estimate the velocity of the tracklet in deg/hour
+
+    If the tracklet spans several exposures, the user can discard exposures
+    with not enough points (min_alert_per_exposure). Exposure with less than 2 points
+    are usually not reliable (even if the entire tracklet has many points). Note that the
+    total tracklet must still have at least 5 alerts to be processed (otherwise it is discarded).
+
+    To compute the velocity, we integrate the distance between subsequent measurements:
+    v = sum_i[x(i+1) - x(i)] / dt, i=alert
+    where dt is the time between jdstart(first exposure) & jdstart(last exposure) + last exposure time
+
+    Parameters
+    ----------
+    data: pd.DataFrame
+        table containing all the data for one tracklet
+    single_exposure_time: float
+        ZTF exposure time. Default is 30 seconds.
+    min_alert_per_exposure: int
+        Minimum alerts per exposure to consider the exposure data as valid. Exposure
+        with less data points will be discarded from the analysis. If the total
+        number of points in the tracklets becomes less than 5, the entire tracklet
+        is discarded.
+
+    Returns
+    ----------
+    velocity: float or NaN
+        Velocity in deg/hour. Invalid tracklets return NaN.
+    """
+    # Initialise the trajectory
+    length = 0.0
+
+    # Get unique exposure
+    jd_unique = np.unique(data['jd'])
+    n_exposure = len(jd_unique)
+
+    # Treat the case where tracklets span several exposures
+    mask_exposure = np.ones_like(data['jd'], dtype=bool)
+
+    if n_exposure > 1:
+        # remove exposures with nalert < min_alert_per_exposure
+        for k in jd_unique:
+            mask_ = data['jd'] == k
+            l = np.sum(mask_)
+            if l < min_alert_per_exposure:
+                mask_exposure[mask_] = False
+
+        # Discard if there are not enough alerts left (we want a total of 5 at least)
+        if np.sum(mask_exposure) < 5:
+            return np.nan
+
+        # Compute the time lapse between the start of the first and last exposure (0 if the same exposure)
+        delta_jd_second = (
+            np.max(data['jd'][mask_exposure]) - np.min(data['jd'][mask_exposure])
+        ) * 24. * 3600.
+
+        # add the last exposure time
+        single_exposure_time = delta_jd_second + 30.
+
+    # Sort data, and integrate the trajectory
+    data = data.sort_values('dec')
+    for i in range(len(data[mask_exposure]) - 1):
+        first = SkyCoord(data['ra'][mask_exposure][i], data['dec'][mask_exposure][i], unit='deg')
+        last = SkyCoord(data['ra'][mask_exposure][i+1], data['dec'][mask_exposure][i+1], unit='deg')
+        length += first.separation(last).degree
+
+    # return the velocity in deg/hour
+    return length / (single_exposure_time / 3600.)
