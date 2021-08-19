@@ -2007,54 +2007,37 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     <b>Date</b>: %{customdata[1]}
     <extra></extra>
     """
+
+    def generate_plot(filt, marker):
+        dic = {
+            'x': pdf['i:ra'][pdf['i:fid'] == filt],
+            'y': mag[pdf['i:fid'] == filt],
+            'error_y': {
+                'type': 'data',
+                'array': err[pdf['i:fid'] == filt],
+                'visible': True,
+                'color': '#1f77b4'
+            },
+            'mode': 'markers',
+            'name': 'g band',
+            'customdata': list(
+                zip(
+                    pdf['i:objectId'][pdf['i:fid'] == filt],
+                    pdf['v:lastdate'][pdf['i:fid'] == filt]
+                )
+            ),
+            'hovertemplate': hovertemplate,
+            'marker': {
+                'size': 12,
+                'color': '#1f77b4',
+                'symbol': marker}
+        }
+        return dic
+
     figure = {
         'data': [
-            {
-                'x': pdf['i:ra'][pdf['i:fid'] == 1],
-                'y': mag[pdf['i:fid'] == 1],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 1],
-                    'visible': True,
-                    'color': '#1f77b4'
-                },
-                'mode': 'markers',
-                'name': 'g band',
-                'customdata': list(
-                    zip(
-                        pdf['i:objectId'][pdf['i:fid'] == 1],
-                        pdf['v:lastdate'][pdf['i:fid'] == 1]
-                    )
-                ),
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': '#1f77b4',
-                    'symbol': 'o'}
-            },
-            {
-                'x': pdf['i:ra'][pdf['i:fid'] == 2],
-                'y': mag[pdf['i:fid'] == 2],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 2],
-                    'visible': True,
-                    'color': '#ff7f0e'
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'customdata': list(
-                    zip(
-                        pdf['i:objectId'][pdf['i:fid'] == 2],
-                        pdf['v:lastdate'][pdf['i:fid'] == 2]
-                    )
-                ),
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': '#ff7f0e',
-                    'symbol': 'o'}
-            }
+            generate_plot(1, marker='o'),
+            generate_plot(2, marker='o')
         ],
         "layout": layout_tracklet_lightcurve
     }
@@ -2068,7 +2051,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     )
 
     # Compute period
-    pdf = pdf.sort_values('i:jd')
     vel = get_tracklet_velocity_bystep(pdf, min_alert_per_exposure=5)
     if ~np.isnan(vel):
         period = 360. / vel
