@@ -131,8 +131,8 @@ def tab6_content(pdf):
             [
                 dbc.Col(
                     [
-                        card_tracklet_radec(),
-                        card_tracklet_lightcurve()
+                        card_tracklet_lightcurve(),
+                        card_tracklet_radec()
                     ]
                 ),
             ]

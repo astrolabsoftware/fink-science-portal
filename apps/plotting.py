@@ -2068,12 +2068,11 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     msg = """
     Tracklets are discrete tracks (several spatially connected dots)
     seen on one or more exposures. This is somehow similar to solar
-    system object, expect that these objects are probably human-made,
+    system objects, expect that these objects are probably human-made,
     they are typically fast moving, and they seem to orbit
     around the Earth (this type of orbit is also tight to
     the detection method we use). The rotation period, in hour, is inferred from the
     velocity estimate of the object assuming a circular orbit.
-
     The velocity is computed by integrating the distance between subsequent measurements:
 
     ```
