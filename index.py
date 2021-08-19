@@ -50,7 +50,7 @@ message_help = """
 
 Enter a valid object ID to access its data, e.g. try:
 
-* ZTF19acmdpyr, ZTF19acnjwgm, ZTF17aaaabte, ZTF20abqehqf, ZTF18acuajcr
+* ZTF21abfmbix, ZTF21aaxtctv, ZTF21abfaohe, ZTF20aanxcpf, ZTF17aaaabte, ZTF18aafpcwm, ZTF21abujbqa, ZTF21abuipwb, ZTF18acuajcr
 
 ##### Conesearch
 
@@ -58,21 +58,21 @@ Perform a conesearch around a position on the sky given by (RA, Dec, radius).
 The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats.
 The following ways of initializing a conesearch are all equivalent (radius in arcsecond):
 
-* 271.3914265, 45.2545134, 5
-* 271d23m29.135s, 45d15m16.25s, 5
-* 18h05m33.942s, +45d15m16.25s, 5
-* 18 05 33.942, +45 15 16.25, 5
-* 18:05:33.942, 45:15:16.25, 5
+* 193.822, 2.89732, 5
+* 193d49m18.267s, 2d53m50.35s, 5
+* 12h55m17.218s, +02d53m50.35s, 5
+* 12 55 17.218, +02 53 50.35, 5
+* 12:55:17.218, 02:53:50.35, 5
 
 Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
 several objects matching, the results will be sorted according to the angular
 separation in degree between the input (ra, dec) and the objects found.
 
 In addition, you can specify a starting date (UTC) and a window (in days) to refine your search.
-Example, to refine your search starting at 2019-11-02 02:51:12.001 for 7 days:
+Example, to refine your search starting at 2021-06-25 05:59:37.000 for 7 days:
 
-* 271.3914265, 45.2545134, 5, 2019-11-02 02:51:12.001, 7
-* 271.3914265, 45.2545134, 5, 2458789.6188889006, 7
+* 193.822, 2.89732, 5, 2021-06-25 05:59:37.000, 7
+* 193.822, 2.89732, 5, 2459391.7497338, 7
 
 We encourage you to use the `startdate` and `window`, as your query will run much faster.
 
@@ -82,9 +82,9 @@ Choose a starting date and a time window to see all processed alerts in this per
 Dates are in UTC, and the time window in minutes.
 Among several, you can choose YYYY-MM-DD hh:mm:ss, Julian Date, or Modified Julian Date. Example of valid search:
 
-* 2019-11-03 02:40:00
-* 2458790.61111
-* 58790.11111
+* 2021-07-01 05:59:37.000
+* 2459396.7497337963
+* 59396.2497337963
 
 ##### Class
 
