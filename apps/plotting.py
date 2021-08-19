@@ -2068,6 +2068,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     )
 
     # Compute period
+    pdf = pdf.sort_values('i:jd')
     vel = get_tracklet_velocity_bystep(pdf, min_alert_per_exposure=5)
     if ~np.isnan(vel):
         period = 360. / vel
@@ -2076,7 +2077,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
 
     card = [
         dbc.Alert(
-            "Tracklet ID: {} -- Inferred period: {:.2f} hours".format(
+            "Tracklet ID: {} -- Inferred period: {:.1f} hours".format(
                 pdf['d:tracklet'].values[0],
                 period
             ),
