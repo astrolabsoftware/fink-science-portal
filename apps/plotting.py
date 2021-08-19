@@ -2002,7 +2002,8 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>mjd</b>: %{customdata}
+    <b>date</b>: %{customdata[0]}
+    <b>objectId</b>: %{customdata[1]}
     <extra></extra>
     """
     figure = {
@@ -2018,7 +2019,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+                'customdata': [t, o for t, o in zip(pdf['v:lastdate'][pdf['i:fid'] == 1], pdf['i:objectId'][pdf['i:fid'] == 1])],
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
@@ -2036,7 +2037,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+                'customdata': [t, o for t, o in zip(pdf['v:lastdate'][pdf['i:fid'] == 2], pdf['i:objectId'][pdf['i:fid'] == 2])],
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
@@ -2066,6 +2067,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         dbc.Alert(
             [
                 html.P("Tracklet ID: {}".format(pdf['d:tracklet'].values[0])),
+                html.Hr(),
                 html.P("Inferred period: {:.2f} hours".format(period))
             ],
             color="info"
