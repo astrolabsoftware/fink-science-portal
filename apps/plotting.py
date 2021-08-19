@@ -1997,7 +1997,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     else:
         period = 'None'
 
-    mask_bad_id = pdf[pdf['i:objectId'].isin(bad_id)]
+    mask_bad_id = pdf['i:objectId'].isin(bad_id)
 
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
