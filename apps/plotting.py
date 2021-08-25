@@ -1995,9 +1995,12 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     if ~np.isnan(vel):
         period = 360. / vel
     else:
-        period = 'None'
+        period = 0.0
 
-    mask_bad_id = pdf['i:objectId'].isin(bad_id)
+    if ~np.isnan(bad_id):
+        mask_bad_id = pdf['i:objectId'].isin(bad_id)
+    else:
+        mask_bad_id = np.ones(len(pdf), dtype=np.bool)
 
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
