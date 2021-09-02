@@ -1997,7 +1997,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     else:
         period = 0.0
 
-    if len(bad_id) > 0 and ~pd.isnull(bad_id):
+    if len(bad_id) > 0:
         mask_bad_id = pdf['i:objectId'].isin(bad_id)
     else:
         mask_bad_id = np.ones(len(pdf), dtype=np.bool)
@@ -2051,13 +2051,18 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         }
         return dic
 
+    data_ = []
+    for filt in np.unique(pdf['i:fid']):
+        if filt == 1:
+            data_.append(generate_plot(~mask_bad_id, 1, marker='o', color='#1f77b4', showlegend=True))
+            if np.sum(mask_bad_id) > 0:
+                data_.append(generate_plot(mask_bad_id, 1, marker='x', color='#1f77b4', showlegend=False))
+        elif filt == 2:
+            data_.append(generate_plot(~mask_bad_id, 2, marker='o', color='#ff7f0e', showlegend=True))
+            if np.sum(mask_bad_id) > 0:
+                data_.append(generate_plot(mask_bad_id, 2, marker='x', color='#ff7f0e', showlegend=False))
     figure = {
-        'data': [
-            generate_plot(~mask_bad_id, 1, marker='o', color='#1f77b4', showlegend=True),
-            generate_plot(~mask_bad_id, 2, marker='o', color='#ff7f0e', showlegend=True),
-            generate_plot(mask_bad_id, 1, marker='x', color='#1f77b4', showlegend=False),
-            generate_plot(mask_bad_id, 2, marker='x', color='#ff7f0e', showlegend=False)
-        ],
+        'data': data_,
         "layout": layout_tracklet_lightcurve
     }
     graph = dcc.Graph(
