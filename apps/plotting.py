@@ -2000,7 +2000,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     if len(bad_id) > 0:
         mask_bad_id = pdf['i:objectId'].isin(bad_id)
     else:
-        mask_bad_id = np.ones(len(pdf), dtype=np.bool)
+        mask_bad_id = np.zeros(len(pdf), dtype=np.bool)
 
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
