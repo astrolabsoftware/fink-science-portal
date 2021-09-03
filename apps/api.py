@@ -37,6 +37,7 @@ from apps.xmatch import parse_contents
 import io
 import requests
 import java
+import gzip
 
 import healpy as hp
 import pandas as pd
@@ -46,6 +47,7 @@ import astropy.units as u
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
+from astropy.io import fits
 
 from flask import Blueprint
 
