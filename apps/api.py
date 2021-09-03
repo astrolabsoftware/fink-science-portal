@@ -1105,6 +1105,19 @@ args_xmatch = [
     },
 ]
 
+args_bayestar = [
+    {
+        'name': 'bayestar',
+        'required': True,
+        'description': 'LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet'
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -1996,3 +2009,117 @@ def xmatch_user():
     cols = list(df.columns) + list(pdfs.columns[no_duplicate])
     join_df = join_df[cols]
     return join_df.to_json(orient='records')
+
+@api_bp.route('/api/v1/bayestar', methods=['GET'])
+def query_bayestar_arguments():
+    """ Obtain information about inspecting a GW localization map
+    """
+    return jsonify({'args': args_bayestar})
+
+@api_bp.route('/api/v1/bayestar', methods=['POST'])
+def query_bayestar():
+    """ Query the Fink database to find alerts inside a GW localization map
+    """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
+    # Interpret user input
+    bayestar_data = request.json['bayestar']
+
+    with gzip.open(io.BytesIO(bayestar_data), 'rb') as f:
+        with fits.open(io.BytesIO(f.read())) as hdul:
+            data = hdul[1].data
+            header = hdul[1].header
+
+    hpx = data['PROB']
+
+    i = np.flipud(np.argsort(hpx))
+    sorted_credible_levels = np.cumsum(hpx[i])
+    credible_levels = np.empty_like(sorted_credible_levels)
+    credible_levels[i] = sorted_credible_levels
+
+    # TODO: use that to define the max skyfrac (in conjunction with level)
+    # npix = len(hpx)
+    # nside = hp.npix2nside(npix)
+    # skyfrac = np.sum(credible_levels <= 0.1) * hp.nside2pixarea(nside, degrees=True)
+
+    credible_levels_128 = hp.ud_grade(credible_levels, 128)
+
+    pixs = np.where(credible_levels_128 <= 0.1)[0]
+
+    # make a condition as well on the number of pixels?
+    # print(len(pixs), pixs)
+
+    # For the future: we could set clientP_.setRangeScan(True)
+    # and pass directly the time boundaries here instead of
+    # grouping by later.
+
+    # 1 day before the event, to 6 days after the event
+    jdstart = Time(header['DATE-OBS']).jd - 1
+    jdend = jdstart + 6
+
+    clientP_.setRangeScan(True)
+    results = java.util.TreeMap()
+    for pix in pixs:
+        to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
+        result = clientP_.scan(
+            "",
+            to_search,
+            "*",
+            0, True, True
+        )
+        results.putAll(result)
+
+    # extract objectId and times
+    objectids = [i[1]['i:objectId'] for i in results.items()]
+    times = [float(i[1]['key:key'].split('_')[1]) for i in results.items()]
+    pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
+
+    # Filter by time - logic to be improved...
+    if startdate is not None:
+        pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
+
+    # groupby and keep only the last alert per objectId
+    pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
+
+    # Get data from the main table
+    results = java.util.TreeMap()
+    for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
+        to_evaluate = "key:key:{}_{}".format(oid, jd)
+
+        result = client.scan(
+            "",
+            to_evaluate,
+            "*",
+            0, True, True
+        )
+        results.putAll(result)
+    schema_client = client.schema()
+
+    # reset the limit in case it has been changed above
+    client.setLimit(nlimit)
+
+    pdfs = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=True,
+        extract_color=False
+    )
+
+    if output_format == 'json':
+        return pdfs.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdfs.to_csv(index=False)
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdfs.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
+    }
+    return Response(str(rep), 400)
