@@ -2028,7 +2028,7 @@ def query_bayestar():
     # Interpret user input
     bayestar_data = request.json['bayestar']
 
-    with gzip.open(io.BytesIO(bayestar_data), 'rb') as f:
+    with gzip.open(io.BytesIO(eval(bayestar_data)), 'rb') as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
             data = hdul[1].data
             header = hdul[1].header
