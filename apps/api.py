@@ -2080,7 +2080,7 @@ def query_bayestar():
     pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
 
     # Filter by time - logic to be improved...
-    pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
+    pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdend)]
 
     # groupby and keep only the last alert per objectId
     pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
