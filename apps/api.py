@@ -2036,6 +2036,8 @@ def query_bayestar():
             header = hdul[1].header
 
     hpx = data['PROB']
+    if header['ORDERING'] == 'NESTED':
+        hpx = hp.reorder(hpx, n2r=True)
 
     i = np.flipud(np.argsort(hpx))
     sorted_credible_levels = np.cumsum(hpx[i])
