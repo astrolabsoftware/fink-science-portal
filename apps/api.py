@@ -1114,6 +1114,11 @@ args_bayestar = [
         'description': 'LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)'
     },
     {
+        'name': 'credible_level',
+        'required': True,
+        'description': 'GW credible region threshold to look for. Note that the values in the resulting credible level map vary inversely with probability density: the most probable pixel is assigned to the credible level 0.0, and the least likely pixel is assigned the credible level 1.0.'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet'
@@ -2029,6 +2034,7 @@ def query_bayestar():
 
     # Interpret user input
     bayestar_data = request.json['bayestar']
+    credible_level_threshold = float(request.json['credible_level'])
 
     with gzip.open(io.BytesIO(eval(bayestar_data)), 'rb') as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
@@ -2051,7 +2057,7 @@ def query_bayestar():
 
     credible_levels_128 = hp.ud_grade(credible_levels, 128)
 
-    pixs = np.where(credible_levels_128 <= 0.1)[0]
+    pixs = np.where(credible_levels_128 <= credible_level_threshold)[0]
 
     # make a condition as well on the number of pixels?
     # print(len(pixs), pixs)
