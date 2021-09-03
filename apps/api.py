@@ -2054,7 +2054,7 @@ def query_bayestar():
     # make a condition as well on the number of pixels?
     # print(len(pixs), pixs)
 
-    # For the future: we could set clientP_.setRangeScan(True)
+    # For the future: we could set clientP128.setRangeScan(True)
     # and pass directly the time boundaries here instead of
     # grouping by later.
 
@@ -2062,11 +2062,11 @@ def query_bayestar():
     jdstart = Time(header['DATE-OBS']).jd - 1
     jdend = jdstart + 6
 
-    clientP_.setRangeScan(True)
+    clientP128.setRangeScan(True)
     results = java.util.TreeMap()
     for pix in pixs:
         to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
-        result = clientP_.scan(
+        result = clientP128.scan(
             "",
             to_search,
             "*",
