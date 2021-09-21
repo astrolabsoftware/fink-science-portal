@@ -802,14 +802,14 @@ in degree between the input (ra, dec) and the objects found.
 """
 
 api_doc_bayestar = """
-## Cross-match with Gravitational Wave sky map
+## Cross-match with LIGO/Virgo sky maps
 
-The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/xmatch.
+The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/bayestar.
 
 Let's assume you want get all alerts falling inside a given LIGO/Virgo credible region sky map
 (retrieved from the GraceDB event page, or distributed via GCN). You would
 simply upload the sky map with a threshold, and Fink returns all alerts emitted
-within [-1 day, +6 day] from the GW event inside the chosen credible region.
+within `[-1 day, +6 day]` from the GW event inside the chosen credible region.
 Concretely on [S200219ac](https://gracedb.ligo.org/superevents/S200219ac/view/):
 
 ```python
@@ -840,11 +840,13 @@ pdf = pd.read_json(r.content)
 You will get a Pandas DataFrame as usual, with all alerts inside the region (within `[-1 day, +6 day]`).
 Here are some statistics on this specific event:
 
+```markdown
 | `credible_level` | Sky area | number of alerts returned | Execution time |
 |-----------|----------|---------------------------|----------------------|
 | 0.2 | 81 deg2 | 121 | 2 to 5 seconds |
 | 0.5 | 317 deg2 | 1137 | 10 to 15 seconds|
 | 0.9 | 1250 deg2 | 2515 | > 60 seconds |
+```
 
 Here is the details of alert classification for a credible level of 0.9:
 
@@ -922,9 +924,7 @@ hp.graticule()
 plt.show()
 ```
 
-
-<img width="1440" alt="Screenshot 2021-09-21 at 15 04 33" src="https://user-images.githubusercontent.com/20426972/134175884-3b190fa9-8051-4a1d-8bf8-cc8b47252494.png">
-
+![gw](https://user-images.githubusercontent.com/20426972/134175884-3b190fa9-8051-4a1d-8bf8-cc8b47252494.png)
 """
 
 def layout(is_mobile):
