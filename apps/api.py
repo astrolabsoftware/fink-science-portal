@@ -801,6 +801,132 @@ in degree between the input (ra, dec) and the objects found.
 
 """
 
+api_doc_bayestar = """
+## Cross-match with Gravitational Wave sky map
+
+The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/xmatch.
+
+Let's assume you want get all alerts falling inside a given LIGO/Virgo credible region sky map
+(retrieved from the GraceDB event page, or distributed via GCN). You would
+simply upload the sky map with a threshold, and Fink returns all alerts emitted
+within [-1 day, +6 day] from the GW event inside the chosen credible region.
+Concretely on [S200219ac]():
+
+```python
+# LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
+# S200219ac on 2020-02-19T09:44:15.197173
+fn = '/Users/julien/Downloads/bayestar.fits.gz'
+
+# GW credible region threshold to look for. Note that the values in the resulting
+# credible level map vary inversely with probability density: the most probable pixel is
+# assigned to the credible level 0.0, and the least likely pixel is assigned the credible level 1.0.
+# Area of the 20% Credible Region:
+credible_level = 0.2
+
+# Query Fink
+data = open(fn, 'rb').read()
+r = requests.post(
+    'http://134.158.75.151:24000/api/v1/bayestar',
+    json={
+        'bayestar': str(data),
+        'credible_level': credible_level,
+        'output-format': 'json'
+    }
+)
+
+pdf = pd.read_json(r.content)
+```
+
+You will get a Pandas DataFrame as usual, with all alerts inside the region (within `[-1 day, +6 day]`).
+Here are some statistics on this specific event:
+
+| `credible_level` | Sky area | number of alerts returned | Execution time |
+|-----------|----------|---------------------------|----------------------|
+| 0.2 | 81 deg2 | 121 | 2 to 5 seconds |
+| 0.5 | 317 deg2 | 1137 | 10 to 15 seconds|
+| 0.9 | 1250 deg2 | 2515 | > 60 seconds |
+
+Here is the details of alert classification for a credible level of 0.9:
+
+```
+5968 alerts found
+v:classification
+Unknown                   2122
+Solar System candidate    2058
+QSO                        703
+SN candidate               259
+RRLyr                      253
+Solar System MPC           172
+Seyfert_1                  118
+EB*                        105
+Ambiguous                   24
+Blue                        19
+Star                        18
+Galaxy                      15
+BLLac                       12
+Radio                       10
+Candidate_RRLyr             10
+SN                           8
+Seyfert_2                    6
+PulsV*delSct                 5
+BClG                         5
+AGN                          5
+LPV*                         4
+EB*Algol                     4
+RadioG                       3
+CataclyV*                    3
+QSO_Candidate                2
+X                            2
+BlueStraggler                2
+Candidate_EB*                2
+LINER                        2
+GravLensSystem               2
+PM*                          2
+GinCl                        1
+EllipVar                     1
+AMHer                        1
+Early SN Ia candidate        1
+HB*                          1
+DwarfNova                    1
+Possible_G                   1
+Candidate_CV*                1
+Nova                         1
+BYDra                        1
+WD*                          1
+Mira                         1
+low-mass*                    1
+```
+Most of the alerts are actually catalogued. Finally, you can overplot alerts on the sky map:
+
+```python
+import healpy as hp
+import matplotlib.pyplot as plt
+
+hpx, header_ = hp.read_map(fn, h=True, field=0)
+header = {i[0]: i[1] for i in header_}
+
+title = 'Probability sky maps for {}'.format(header['OBJECT'])
+hp.mollzoom(hpx, coord='G', title=title)
+
+if len(pdf) > 0:
+    hp.projscatter(
+        pdf['i:ra'],
+        pdf['i:dec'],
+        lonlat=True,
+        marker='x',
+        color='C1',
+        alpha=0.5
+    )
+
+hp.graticule()
+plt.show()
+```
+
+
+<img width="1440" alt="Screenshot 2021-09-21 at 15 04 33" src="https://user-images.githubusercontent.com/20426972/134175884-3b190fa9-8051-4a1d-8bf8-cc8b47252494.png">
+
+"""
+
 def layout(is_mobile):
     if is_mobile:
         width = '95%'
@@ -892,6 +1018,17 @@ def layout(is_mobile):
                                         }
                                     ),
                                 ], label="Xmatch"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_bayestar)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Gravitational Waves"
                             ),
                         ]
                     )
