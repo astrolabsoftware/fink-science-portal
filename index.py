@@ -1073,7 +1073,7 @@ navbar = dbc.Navbar(
                 [
                     dbc.NavItem(dbc.NavLink('Search', href="http://134.158.75.151:24000")),
                     dbc.NavItem(dbc.NavLink('API', href="http://134.158.75.151:24000/api")),
-                    dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/broker-workshop/tutorials/tree/main/fink")),
+                    dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/astrolabsoftware/fink-notebook-template")),
                     dropdown
                 ],
                 navbar=True
