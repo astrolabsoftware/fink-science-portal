@@ -37,6 +37,7 @@ from apps.xmatch import parse_contents
 import io
 import requests
 import java
+import gzip
 
 import healpy as hp
 import pandas as pd
@@ -46,6 +47,7 @@ import astropy.units as u
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
+from astropy.io import fits
 
 from flask import Blueprint
 
@@ -64,6 +66,7 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/bayestar | Cross-match LIGO/Virgo sky map with Fink alert data| &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
 """.format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
@@ -799,6 +802,132 @@ in degree between the input (ra, dec) and the objects found.
 
 """
 
+api_doc_bayestar = """
+## Cross-match with LIGO/Virgo sky maps
+
+The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/bayestar.
+
+Let's assume you want get all alerts falling inside a given LIGO/Virgo credible region sky map
+(retrieved from the GraceDB event page, or distributed via GCN). You would
+simply upload the sky map with a threshold, and Fink returns all alerts emitted
+within `[-1 day, +6 day]` from the GW event inside the chosen credible region.
+Concretely on [S200219ac](https://gracedb.ligo.org/superevents/S200219ac/view/):
+
+```python
+# LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
+# S200219ac on 2020-02-19T09:44:15.197173
+fn = 'bayestar.fits.gz'
+
+# GW credible region threshold to look for. Note that the values in the resulting
+# credible level map vary inversely with probability density: the most probable pixel is
+# assigned to the credible level 0.0, and the least likely pixel is assigned the credible level 1.0.
+# Area of the 20% Credible Region:
+credible_level = 0.2
+
+# Query Fink
+data = open(fn, 'rb').read()
+r = requests.post(
+    'http://134.158.75.151:24000/api/v1/bayestar',
+    json={
+        'bayestar': str(data),
+        'credible_level': credible_level,
+        'output-format': 'json'
+    }
+)
+
+pdf = pd.read_json(r.content)
+```
+
+You will get a Pandas DataFrame as usual, with all alerts inside the region (within `[-1 day, +6 day]`).
+Here are some statistics on this specific event:
+
+```markdown
+| `credible_level` | Sky area | number of alerts returned | Execution time |
+|-----------|----------|---------------------------|----------------------|
+| 0.2 | 81 deg2 | 121 | 2 to 5 seconds |
+| 0.5 | 317 deg2 | 1137 | 10 to 15 seconds|
+| 0.9 | 1250 deg2 | 2515 | > 60 seconds |
+```
+
+Here is the details of alert classification for a credible level of 0.9:
+
+```
+5968 alerts found
+v:classification
+Unknown                   2122
+Solar System candidate    2058
+QSO                        703
+SN candidate               259
+RRLyr                      253
+Solar System MPC           172
+Seyfert_1                  118
+EB*                        105
+Ambiguous                   24
+Blue                        19
+Star                        18
+Galaxy                      15
+BLLac                       12
+Radio                       10
+Candidate_RRLyr             10
+SN                           8
+Seyfert_2                    6
+PulsV*delSct                 5
+BClG                         5
+AGN                          5
+LPV*                         4
+EB*Algol                     4
+RadioG                       3
+CataclyV*                    3
+QSO_Candidate                2
+X                            2
+BlueStraggler                2
+Candidate_EB*                2
+LINER                        2
+GravLensSystem               2
+PM*                          2
+GinCl                        1
+EllipVar                     1
+AMHer                        1
+Early SN Ia candidate        1
+HB*                          1
+DwarfNova                    1
+Possible_G                   1
+Candidate_CV*                1
+Nova                         1
+BYDra                        1
+WD*                          1
+Mira                         1
+low-mass*                    1
+```
+Most of the alerts are actually catalogued. Finally, you can overplot alerts on the sky map:
+
+```python
+import healpy as hp
+import matplotlib.pyplot as plt
+
+hpx, header_ = hp.read_map(fn, h=True, field=0)
+header = {i[0]: i[1] for i in header_}
+
+title = 'Probability sky maps for {}'.format(header['OBJECT'])
+hp.mollzoom(hpx, coord='G', title=title)
+
+if len(pdf) > 0:
+    hp.projscatter(
+        pdf['i:ra'],
+        pdf['i:dec'],
+        lonlat=True,
+        marker='x',
+        color='C1',
+        alpha=0.5
+    )
+
+hp.graticule()
+plt.show()
+```
+
+![gw](https://user-images.githubusercontent.com/20426972/134175884-3b190fa9-8051-4a1d-8bf8-cc8b47252494.png)
+"""
+
 def layout(is_mobile):
     if is_mobile:
         width = '95%'
@@ -890,6 +1019,17 @@ def layout(is_mobile):
                                         }
                                     ),
                                 ], label="Xmatch"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_bayestar)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Gravitational Waves"
                             ),
                         ]
                     )
@@ -1103,6 +1243,24 @@ args_xmatch = [
         'required': False,
         'description': '[Optional] Time window in days.'
     },
+]
+
+args_bayestar = [
+    {
+        'name': 'bayestar',
+        'required': True,
+        'description': 'LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)'
+    },
+    {
+        'name': 'credible_level',
+        'required': True,
+        'description': 'GW credible region threshold to look for. Note that the values in the resulting credible level map vary inversely with probability density: the most probable pixel is assigned to the credible level 0.0, and the least likely pixel is assigned the credible level 1.0.'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet'
+    }
 ]
 
 @api_bp.route('/api/v1/objects', methods=['GET'])
@@ -1996,3 +2154,116 @@ def xmatch_user():
     cols = list(df.columns) + list(pdfs.columns[no_duplicate])
     join_df = join_df[cols]
     return join_df.to_json(orient='records')
+
+@api_bp.route('/api/v1/bayestar', methods=['GET'])
+def query_bayestar_arguments():
+    """ Obtain information about inspecting a GW localization map
+    """
+    return jsonify({'args': args_bayestar})
+
+@api_bp.route('/api/v1/bayestar', methods=['POST'])
+def query_bayestar():
+    """ Query the Fink database to find alerts inside a GW localization map
+    """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
+    # Interpret user input
+    bayestar_data = request.json['bayestar']
+    credible_level_threshold = float(request.json['credible_level'])
+
+    with gzip.open(io.BytesIO(eval(bayestar_data)), 'rb') as f:
+        with fits.open(io.BytesIO(f.read())) as hdul:
+            data = hdul[1].data
+            header = hdul[1].header
+
+    hpx = data['PROB']
+    if header['ORDERING'] == 'NESTED':
+        hpx = hp.reorder(hpx, n2r=True)
+
+    i = np.flipud(np.argsort(hpx))
+    sorted_credible_levels = np.cumsum(hpx[i])
+    credible_levels = np.empty_like(sorted_credible_levels)
+    credible_levels[i] = sorted_credible_levels
+
+    # TODO: use that to define the max skyfrac (in conjunction with level)
+    # npix = len(hpx)
+    # nside = hp.npix2nside(npix)
+    # skyfrac = np.sum(credible_levels <= 0.1) * hp.nside2pixarea(nside, degrees=True)
+
+    credible_levels_128 = hp.ud_grade(credible_levels, 128)
+
+    pixs = np.where(credible_levels_128 <= credible_level_threshold)[0]
+
+    # make a condition as well on the number of pixels?
+    # print(len(pixs), pixs)
+
+    # For the future: we could set clientP128.setRangeScan(True)
+    # and pass directly the time boundaries here instead of
+    # grouping by later.
+
+    # 1 day before the event, to 6 days after the event
+    jdstart = Time(header['DATE-OBS']).jd - 1
+    jdend = jdstart + 6
+
+    clientP128.setRangeScan(True)
+    results = java.util.TreeMap()
+    for pix in pixs:
+        to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
+        result = clientP128.scan(
+            "",
+            to_search,
+            "*",
+            0, True, True
+        )
+        results.putAll(result)
+
+    # extract objectId and times
+    objectids = [i[1]['i:objectId'] for i in results.items()]
+    times = [float(i[1]['key:key'].split('_')[1]) for i in results.items()]
+    pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
+
+    # Filter by time - logic to be improved...
+    pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdend)]
+
+    # groupby and keep only the last alert per objectId
+    pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
+
+    # Get data from the main table
+    results = java.util.TreeMap()
+    for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
+        to_evaluate = "key:key:{}_{}".format(oid, jd)
+
+        result = client.scan(
+            "",
+            to_evaluate,
+            "*",
+            0, True, True
+        )
+        results.putAll(result)
+    schema_client = client.schema()
+
+    pdfs = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=True,
+        extract_color=False
+    )
+
+    if output_format == 'json':
+        return pdfs.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdfs.to_csv(index=False)
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdfs.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
+    }
+    return Response(str(rep), 400)
