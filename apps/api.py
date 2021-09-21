@@ -810,12 +810,12 @@ Let's assume you want get all alerts falling inside a given LIGO/Virgo credible 
 (retrieved from the GraceDB event page, or distributed via GCN). You would
 simply upload the sky map with a threshold, and Fink returns all alerts emitted
 within [-1 day, +6 day] from the GW event inside the chosen credible region.
-Concretely on [S200219ac]():
+Concretely on [S200219ac](https://gracedb.ligo.org/superevents/S200219ac/view/):
 
 ```python
 # LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
 # S200219ac on 2020-02-19T09:44:15.197173
-fn = '/Users/julien/Downloads/bayestar.fits.gz'
+fn = 'bayestar.fits.gz'
 
 # GW credible region threshold to look for. Note that the values in the resulting
 # credible level map vary inversely with probability density: the most probable pixel is
