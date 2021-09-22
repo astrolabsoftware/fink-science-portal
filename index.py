@@ -24,7 +24,7 @@ import dash_trich_components as dtc
 
 from app import server
 from app import app
-from app import clientP
+from app import client
 from app import APIURL
 
 from apps import home, summary, about, api
@@ -435,7 +435,7 @@ def display_table_results(table, is_mobile):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    schema = clientP.schema()
+    schema = client.schema()
     schema_list = list(schema.columnNames())
     fink_fields = [i for i in schema_list if i.startswith('d:')]
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
@@ -988,7 +988,7 @@ def open_noresults(n, results, query, query_type, dropdown_option):
     """
     # Trigger the query only if the submit button is pressed.
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'submit' not in changed_id:
+    if 'submit' not in changed_id or results is None:
         raise PreventUpdate
 
     validation = validate_query(query, query_type)
