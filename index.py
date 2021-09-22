@@ -710,7 +710,7 @@ def logo(ns, searchurl):
         ),
         html.Br()
     ]
-    if not ctx.triggered:
+    if not ctx.triggered and searchurl == '':
         return logo
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
