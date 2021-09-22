@@ -854,7 +854,7 @@ def extract_query_url(search: str):
 
     # if the user forgot to specify the query type
     if 'query_type' not in param_dic:
-        return_empty_query()
+        return return_empty_query()
 
     query_type = param_dic['query_type']
 
@@ -866,4 +866,4 @@ def extract_query_url(search: str):
             dropdown_option = None
             return query, query_type, dropdown_option
         else:
-            return_empty_query()
+            return return_empty_query()
