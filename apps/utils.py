@@ -136,6 +136,14 @@ def markdownify_objectid(objectid):
 def validate_query(query, query_type):
     """ Validate a query. Need to be rewritten in a better way.
     """
+    empty_query_type = (query_type is None) or (query_type == '')
+
+    if empty_query_type:
+        # This can only happen in queries formed from URL parameters
+        header = "Empty query type"
+        text = "You need to specify a query_type in your request (e.g. ?query_type=Conesearch&ra=value&dec=value&radius=value)"
+        return {'flag': False, 'header': header, 'text': text}
+
     empty_query = (query is None) or (query == '')
 
     # no queries
@@ -811,3 +819,51 @@ def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
         idx[m] = -1
 
     return idx
+
+def return_empty_query():
+    """ Wrapper for malformed query from URL
+    """
+    return '', '', None
+
+def extract_query_url(search: str):
+    """ try to infer the query from an URL
+
+    Parameters
+    ----------
+    search: str
+        String returned by `dcc.Location.search` property.
+        Typically starts with ?
+
+    Returns
+    ----------
+    query: str
+        The query formed by the args in the URL
+    query_type: str
+        The type of query (objectID, SSO, Conesearch, etc.)
+    dropdown_option: str
+        Parameter value used in `Date` or `Class` search.
+    """
+    # remove trailing ?
+    search = search[1:]
+
+    # split parameters
+    parameters = search.split('&')
+
+    # Make a dictionary with the parameter keys and values
+    param_dic = {s.split('=')[0]: s.split('=')[1] for s in parameters}
+
+    # if the user forgot to specify the query type
+    if 'query_type' not in param_dic:
+        return_empty_query()
+
+    query_type = param_dic['query_type']
+
+    if query_type == 'objectID':
+        is_valid = 'objectID' in param_dic
+
+        if is_valid:
+            query = param_dic['objectID']
+            dropdown_option = None
+            return query, query_type, dropdown_option
+        else:
+            return_empty_query()

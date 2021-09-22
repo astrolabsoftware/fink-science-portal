@@ -25,13 +25,13 @@ import dash_trich_components as dtc
 from app import server
 from app import app
 from app import clientP
+from app import APIURL
 
 from apps import home, summary, about, api
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid
-from app import APIURL
-from apps.utils import isoify_time, validate_query
+from apps.utils import isoify_time, validate_query, extract_query_url
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
 import requests
@@ -822,10 +822,11 @@ def update_table(field_dropdown, data, columns):
         Input("dropdown-query", "label"),
         Input("select", "value"),
         Input("is-mobile", "children"),
+        Input('url', 'search')
     ],
     State("results", "children")
 )
-def results(ns, query, query_type, dropdown_option, is_mobile, results):
+def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, results):
     """ Query the database from the search input
 
     Returns
@@ -842,8 +843,13 @@ def results(ns, query, query_type, dropdown_option, is_mobile, results):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id != "submit":
+    if button_id != "submit" and searchurl == '':
         raise PreventUpdate
+
+    # catch parameters sent from URL
+    # override any other options
+    if searchurl != '':
+        query, query_type, dropdown_option = extract_query_url(searchurl)
 
     is_ok = validate_query(query, query_type)
     if not is_ok['flag']:
