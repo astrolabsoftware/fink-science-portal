@@ -982,15 +982,21 @@ noresults_toast = html.Div(
         Input("search_bar_input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
+        Input("url", "search")
     ]
 )
-def open_noresults(n, results, query, query_type, dropdown_option):
+def open_noresults(n, results, query, query_type, dropdown_option, searchurl):
     """ Toast to warn the user about the fact that we found no results
     """
     # Trigger the query only if the submit button is pressed.
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'submit' not in changed_id or results is None:
+    if ('submit' not in changed_id and searchurl == '') or results is None:
         raise PreventUpdate
+
+    # catch parameters sent from URL
+    # override any other options
+    if searchurl != '':
+        query, query_type, dropdown_option = extract_query_url(searchurl)
 
     validation = validate_query(query, query_type)
     if not validation['flag']:
