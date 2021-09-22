@@ -687,10 +687,11 @@ def on_button_click(n1, n2, n3, n4, n5, val):
 @app.callback(
     Output("logo", "children"),
     [
-        Input("submit", "n_clicks")
+        Input("submit", "n_clicks"),
+        Input("url", "search")
     ],
 )
-def logo(ns):
+def logo(ns, searchurl):
     """ Show the logo in the start page (and hide it otherwise)
     """
     ctx = dash.callback_context
@@ -714,7 +715,7 @@ def logo(ns):
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id == "submit":
+    if button_id == "submit" or searchurl != '':
         return []
     else:
         return logo
