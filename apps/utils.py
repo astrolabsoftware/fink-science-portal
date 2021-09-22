@@ -825,6 +825,15 @@ def return_empty_query():
     """
     return '', '', None
 
+def extract_parameter_value_from_url(param_dic, key, default):
+    """
+    """
+    if key in param_dic:
+        val = param_dic[key]
+    else:
+        val = default
+    return val
+
 def extract_query_url(search: str):
     """ try to infer the query from an URL
 
@@ -859,11 +868,14 @@ def extract_query_url(search: str):
     query_type = param_dic['query_type']
 
     if query_type == 'objectID':
-        is_valid = 'objectID' in param_dic
+        query = extract_parameter_value_from_url(param_dic, 'objectID', None)
+        dropdown_option = None
+    elif query_type == 'Conesearch':
+        ra = extract_parameter_value_from_url(param_dic, 'ra', '')
+        dec = extract_parameter_value_from_url(param_dic, 'dec', '')
+        radius = extract_parameter_value_from_url(param_dic, 'radius', '')
 
-        if is_valid:
-            query = param_dic['objectID']
-            dropdown_option = None
-            return query, query_type, dropdown_option
-        else:
-            return return_empty_query()
+        query = '{}, {}, {}'.format(ra, dec, radius)
+        dropdown_option = None
+
+    return query, query_type, dropdown_option
