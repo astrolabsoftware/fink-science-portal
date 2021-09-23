@@ -888,4 +888,12 @@ def extract_query_url(search: str):
 
         dropdown_option = None
 
+    elif query_type == 'Date%20Search':
+        startdate = extract_parameter_value_from_url(param_dic, 'startdate', '')
+        window = extract_parameter_value_from_url(param_dic, 'window', '')
+
+        query = '{}'.format(startdate.replace('%20', ' '))
+        dropdown_option = window
+        query_type = query_type.replace('%20', ' ')
+
     return query, query_type, dropdown_option
