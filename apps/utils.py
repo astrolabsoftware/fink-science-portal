@@ -898,8 +898,15 @@ def extract_query_url(search: str):
         query_type = 'Date'
 
     elif query_type == 'Class%20Search':
+        # This one is weird. The Class search has 4 parameters: class, n,
+        # startdate, stopdate.
+        # But from the webpage, the user can only select the class. The other
+        # parameters are fixed (n=100, startdate=2019, stopdate=now).
+        # Of course using the API, one can do whatever, but using the
+        # webpage (or URL query), one can only change the class... to be fixed
         class_ = extract_parameter_value_from_url(param_dic, 'class', '')
 
+        query = ''
         dropdown_option = class_.replace('%20', ' ')
         # conversion... I do not know why this is called Class in index.py
         query_type = 'Class'
