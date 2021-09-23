@@ -874,8 +874,18 @@ def extract_query_url(search: str):
         ra = extract_parameter_value_from_url(param_dic, 'ra', '')
         dec = extract_parameter_value_from_url(param_dic, 'dec', '')
         radius = extract_parameter_value_from_url(param_dic, 'radius', '')
+        startdate = extract_parameter_value_from_url(
+            param_dic, 'startdate_conesearch', ''
+        )
+        window = extract_parameter_value_from_url(
+            param_dic, 'window_days_conesearch', ''
+        )
 
         query = '{}, {}, {}'.format(ra, dec, radius)
+
+        if startdate != '' and window != '':
+            query += ', {}, {}'.format(startdate, window)
+
         dropdown_option = None
 
     return query, query_type, dropdown_option
