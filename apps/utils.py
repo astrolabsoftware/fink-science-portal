@@ -894,6 +894,7 @@ def extract_query_url(search: str):
 
         query = '{}'.format(startdate.replace('%20', ' '))
         dropdown_option = window
-        query_type = query_type.replace('%20', ' ')
+        # conversion... I do not know why this is called Date in index.py
+        query_type = 'Date'
 
     return query, query_type, dropdown_option
