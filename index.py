@@ -665,7 +665,7 @@ def on_button_click(n1, n2, n3, n4, n5, val):
     """
     ctx = dash.callback_context
 
-    default = "Enter a valid object ID or choose another query type"
+    default = "Enter a valid ZTF object ID or choose another query type"
     if not ctx.triggered:
         return default, "objectID", ""
     else:
