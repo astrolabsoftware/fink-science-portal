@@ -884,7 +884,7 @@ def extract_query_url(search: str):
         query = '{}, {}, {}'.format(ra, dec, radius)
 
         if startdate != '' and window != '':
-            query += ', {}, {}'.format(startdate, window)
+            query += ', {}, {}'.format(startdate.replace('%20', ' '), window)
 
         dropdown_option = None
 
