@@ -682,7 +682,7 @@ def on_button_click(n1, n2, n3, n4, n5, val):
     elif button_id == "dropdown-menu-item-5":
         return "Enter a valid IAU number. See Help for more information", "SSO", val
     else:
-        return "Valid object ID", "objectID", ""
+        return "Valid ZTF object ID", "objectID", ""
 
 @app.callback(
     Output("logo", "children"),
