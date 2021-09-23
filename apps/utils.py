@@ -906,7 +906,7 @@ def extract_query_url(search: str):
         # webpage (or URL query), one can only change the class... to be fixed
         class_ = extract_parameter_value_from_url(param_dic, 'class', '')
 
-        query = ''
+        query = class_.replace('%20', ' ')
 
         dropdown_option = class_.replace('%20', ' ')
 
