@@ -899,10 +899,8 @@ def extract_query_url(search: str):
 
     elif query_type == 'Class%20Search':
         class_ = extract_parameter_value_from_url(param_dic, 'class', '')
-        n = extract_parameter_value_from_url(param_dic, 'n', '')
 
-        query = class_.replace('%20', ' ')
-        dropdown_option = n
+        dropdown_option = class_.replace('%20', ' ')
         # conversion... I do not know why this is called Class in index.py
         query_type = 'Class'
 
