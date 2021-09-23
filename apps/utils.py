@@ -917,4 +917,12 @@ def extract_query_url(search: str):
         # conversion... I do not know why this is called Class in index.py
         query_type = 'Class'
 
+    elif query_type == 'SSO%20Search':
+        n_or_d = extract_parameter_value_from_url(param_dic, 'n_or_d', '')
+
+        query = n_or_d.replace('%20', ' ')
+        dropdown_option = None
+        # conversion... I do not know why this is called SSO in index.py
+        query_type = 'SSO'
+
     return query, query_type, dropdown_option
