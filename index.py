@@ -925,11 +925,18 @@ def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, result
     pdf = pd.read_json(r.content)
 
     if pdf.empty:
-        return dash_table.DataTable(
-            data=[],
-            columns=[],
-            id='result_table'
-        ), 0
+        if searchurl != '':
+            return dbc.Alert(
+                "No alerts found using the {} type: {}".format(query_type, query),
+                color="info",
+                dismissable=True
+            ), 0
+        else:
+            return dash_table.DataTable(
+                data=[],
+                columns=[],
+                id='result_table'
+            ), 0
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
