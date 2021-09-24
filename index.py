@@ -24,14 +24,14 @@ import dash_trich_components as dtc
 
 from app import server
 from app import app
-from app import clientP
+from app import client
+from app import APIURL
 
 from apps import home, summary, about, api
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid
-from app import APIURL
-from apps.utils import isoify_time, validate_query
+from apps.utils import isoify_time, validate_query, extract_query_url
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
 import requests
@@ -435,7 +435,7 @@ def display_table_results(table, is_mobile):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    schema = clientP.schema()
+    schema = client.schema()
     schema_list = list(schema.columnNames())
     fink_fields = [i for i in schema_list if i.startswith('d:')]
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
@@ -665,7 +665,7 @@ def on_button_click(n1, n2, n3, n4, n5, val):
     """
     ctx = dash.callback_context
 
-    default = "Enter a valid object ID or choose another query type"
+    default = "Enter a valid ZTF object ID or choose another query type"
     if not ctx.triggered:
         return default, "objectID", ""
     else:
@@ -682,15 +682,16 @@ def on_button_click(n1, n2, n3, n4, n5, val):
     elif button_id == "dropdown-menu-item-5":
         return "Enter a valid IAU number. See Help for more information", "SSO", val
     else:
-        return "Valid object ID", "objectID", ""
+        return "Valid ZTF object ID", "objectID", ""
 
 @app.callback(
     Output("logo", "children"),
     [
-        Input("submit", "n_clicks")
+        Input("submit", "n_clicks"),
+        Input("url", "search")
     ],
 )
-def logo(ns):
+def logo(ns, searchurl):
     """ Show the logo in the start page (and hide it otherwise)
     """
     ctx = dash.callback_context
@@ -709,12 +710,12 @@ def logo(ns):
         ),
         html.Br()
     ]
-    if not ctx.triggered:
+    if not ctx.triggered and searchurl == '':
         return logo
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id == "submit":
+    if button_id == "submit" or searchurl != '':
         return []
     else:
         return logo
@@ -822,10 +823,11 @@ def update_table(field_dropdown, data, columns):
         Input("dropdown-query", "label"),
         Input("select", "value"),
         Input("is-mobile", "children"),
+        Input('url', 'search')
     ],
     State("results", "children")
 )
-def results(ns, query, query_type, dropdown_option, is_mobile, results):
+def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, results):
     """ Query the database from the search input
 
     Returns
@@ -842,8 +844,13 @@ def results(ns, query, query_type, dropdown_option, is_mobile, results):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id != "submit":
+    if button_id != "submit" and searchurl == '':
         raise PreventUpdate
+
+    # catch parameters sent from URL
+    # override any other options
+    if searchurl != '':
+        query, query_type, dropdown_option = extract_query_url(searchurl)
 
     is_ok = validate_query(query, query_type)
     if not is_ok['flag']:
@@ -918,11 +925,18 @@ def results(ns, query, query_type, dropdown_option, is_mobile, results):
     pdf = pd.read_json(r.content)
 
     if pdf.empty:
-        return dash_table.DataTable(
-            data=[],
-            columns=[],
-            id='result_table'
-        ), 0
+        if searchurl != '':
+            return dbc.Alert(
+                "No alerts found using the {} type: {}".format(query_type, query),
+                color="info",
+                dismissable=True
+            ), 0
+        else:
+            return dash_table.DataTable(
+                data=[],
+                columns=[],
+                id='result_table'
+            ), 0
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
@@ -975,15 +989,21 @@ noresults_toast = html.Div(
         Input("search_bar_input", "value"),
         Input("dropdown-query", "label"),
         Input("select", "value"),
+        Input("url", "search")
     ]
 )
-def open_noresults(n, results, query, query_type, dropdown_option):
+def open_noresults(n, results, query, query_type, dropdown_option, searchurl):
     """ Toast to warn the user about the fact that we found no results
     """
     # Trigger the query only if the submit button is pressed.
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'submit' not in changed_id:
+    if ('submit' not in changed_id and searchurl == '') or results is None:
         raise PreventUpdate
+
+    # catch parameters sent from URL
+    # override any other options
+    if searchurl != '':
+        query, query_type, dropdown_option = extract_query_url(searchurl)
 
     validation = validate_query(query, query_type)
     if not validation['flag']:

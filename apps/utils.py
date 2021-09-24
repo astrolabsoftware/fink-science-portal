@@ -136,6 +136,14 @@ def markdownify_objectid(objectid):
 def validate_query(query, query_type):
     """ Validate a query. Need to be rewritten in a better way.
     """
+    empty_query_type = (query_type is None) or (query_type == '')
+
+    if empty_query_type:
+        # This can only happen in queries formed from URL parameters
+        header = "Empty query type"
+        text = "You need to specify a query_type in your request (e.g. ?query_type=Conesearch&ra=value&dec=value&radius=value)"
+        return {'flag': False, 'header': header, 'text': text}
+
     empty_query = (query is None) or (query == '')
 
     # no queries
@@ -811,3 +819,110 @@ def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
         idx[m] = -1
 
     return idx
+
+def return_empty_query():
+    """ Wrapper for malformed query from URL
+    """
+    return '', '', None
+
+def extract_parameter_value_from_url(param_dic, key, default):
+    """
+    """
+    if key in param_dic:
+        val = param_dic[key]
+    else:
+        val = default
+    return val
+
+def extract_query_url(search: str):
+    """ try to infer the query from an URL
+
+    Parameters
+    ----------
+    search: str
+        String returned by `dcc.Location.search` property.
+        Typically starts with ?
+
+    Returns
+    ----------
+    query: str
+        The query formed by the args in the URL
+    query_type: str
+        The type of query (objectID, SSO, Conesearch, etc.)
+    dropdown_option: str
+        Parameter value used in `Date` or `Class` search.
+    """
+    # remove trailing ?
+    search = search[1:]
+
+    # split parameters
+    parameters = search.split('&')
+
+    # Make a dictionary with the parameter keys and values
+    param_dic = {s.split('=')[0]: s.split('=')[1] for s in parameters}
+
+    # if the user forgot to specify the query type
+    if 'query_type' not in param_dic:
+        return return_empty_query()
+
+    query_type = param_dic['query_type']
+
+    if query_type == 'objectID':
+        query = extract_parameter_value_from_url(param_dic, 'objectID', None)
+        dropdown_option = None
+    elif query_type == 'Conesearch':
+        ra = extract_parameter_value_from_url(param_dic, 'ra', '')
+        dec = extract_parameter_value_from_url(param_dic, 'dec', '')
+        radius = extract_parameter_value_from_url(param_dic, 'radius', '')
+        startdate = extract_parameter_value_from_url(
+            param_dic, 'startdate_conesearch', ''
+        )
+        window = extract_parameter_value_from_url(
+            param_dic, 'window_days_conesearch', ''
+        )
+
+        query = '{}, {}, {}'.format(ra, dec, radius)
+
+        if startdate != '' and window != '':
+            query += ', {}, {}'.format(startdate.replace('%20', ' '), window)
+
+        dropdown_option = None
+
+    elif query_type == 'Date%20Search':
+        startdate = extract_parameter_value_from_url(param_dic, 'startdate', '')
+        window = extract_parameter_value_from_url(param_dic, 'window', '')
+
+        query = '{}'.format(startdate.replace('%20', ' '))
+        dropdown_option = window
+        # conversion... I do not know why this is called Date in index.py
+        query_type = 'Date'
+
+    elif query_type == 'Class%20Search':
+        # This one is weird. The Class search has 4 parameters: class, n,
+        # startdate, stopdate.
+        # But from the webpage, the user can only select the class. The other
+        # parameters are fixed (n=100, startdate=2019, stopdate=now).
+        # Of course using the API, one can do whatever, but using the
+        # webpage (or URL query), one can only change the class... to be fixed
+        class_ = extract_parameter_value_from_url(param_dic, 'class', '')
+
+        query = class_.replace('%20', ' ')
+
+        dropdown_option = class_.replace('%20', ' ')
+
+        # I changed the name on the interface, but not on the database...
+        if dropdown_option == 'Early SN Ia candidate':
+            dropdown_option = 'Early SN candidate'
+
+        # conversion... I do not know why this is called Class in index.py
+        query_type = 'Class'
+
+    elif query_type == 'SSO%20Search':
+        n_or_d = extract_parameter_value_from_url(param_dic, 'n_or_d', '')
+
+        query = n_or_d.replace('%20', ' ')
+        dropdown_option = None
+        # conversion... I do not know why this is called SSO in index.py
+        query_type = 'SSO'
+
+    return query, query_type, dropdown_option
