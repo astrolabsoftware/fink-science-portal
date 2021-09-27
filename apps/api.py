@@ -32,7 +32,6 @@ from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import get_superpixels
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
-from apps.xmatch import parse_contents
 
 import io
 import requests
@@ -74,13 +73,13 @@ api_doc_summary = """
 api_doc_object = """
 ## Retrieve single object data
 
-The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/objects.
+The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/objects.
 
 In a unix shell, you would simply use
 
 ```bash
 # Get data for ZTF21aaxtctv and save it in a CSV file
-curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF21aaxtctv", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/objects -o ZTF21aaxtctv.csv
+curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF21aaxtctv", "output-format":"csv"}' https://fink-portal.org/api/v1/objects -o ZTF21aaxtctv.csv
 ```
 
 In python, you would use
@@ -91,7 +90,7 @@ import pandas as pd
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/objects',
+  'https://fink-portal.org/api/v1/objects',
   json={
     'objectId': 'ZTF21aaxtctv',
     'output-format': 'json'
@@ -128,7 +127,7 @@ But you can also choose to transfer only a subset of the fields:
 ```python
 # select only jd, and magpsf
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/objects',
+  'https://fink-portal.org/api/v1/objects',
   json={
     'objectId': 'ZTF21aaxtctv',
     'columns': 'i:jd,i:magpsf'
@@ -156,7 +155,7 @@ sns.set_context('talk')
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/objects',
+  'https://fink-portal.org/api/v1/objects',
   json={
     'objectId': 'ZTF21aaxtctv',
     'withupperlim': 'True'
@@ -217,7 +216,7 @@ import matplotlib.pyplot as plt
 
 # transfer cutout data
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/objects',
+  'https://fink-portal.org/api/v1/objects',
   json={
     'objectId': 'ZTF21aaxtctv',
     'withcutouts': 'True'
@@ -258,7 +257,7 @@ you should use the `Retrieve single object data` service instead.
 Currently, you cannot query using several conditions.
 You must choose among `Search by Object ID` (group 0), `Conesearch` (group 1), or `Search by Date` (group 2).
 In a future release, you will be able to combine searches.
-The list of arguments for querying the Fink alert database can be found at http://134.158.75.151:24000/api/v1/explorer.
+The list of arguments for querying the Fink alert database can be found at https://fink-portal.org/api/v1/explorer.
 
 ### Search by Object ID
 
@@ -270,7 +269,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get data for ZTF21aaxtctv and save it in a JSON file
-curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF21aaxtctv"}' http://134.158.75.151:24000/api/v1/explorer -o search_ZTF21aaxtctv.json
+curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF21aaxtctv"}' https://fink-portal.org/api/v1/explorer -o search_ZTF21aaxtctv.json
 ```
 
 In python, you would use
@@ -281,7 +280,7 @@ import pandas as pd
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/explorer',
+  'https://fink-portal.org/api/v1/explorer',
   json={
     'objectId': 'ZTF21aaxtctv',
   }
@@ -307,7 +306,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get all objects falling within (center, radius) = ((ra, dec), radius)
-curl -H "Content-Type: application/json" -X POST -d '{"ra":"193.822", "dec":"2.89732", "radius":"5"}' http://134.158.75.151:24000/api/v1/explorer -o conesearch.json
+curl -H "Content-Type: application/json" -X POST -d '{"ra":"193.822", "dec":"2.89732", "radius":"5"}' https://fink-portal.org/api/v1/explorer -o conesearch.json
 ```
 
 In python, you would use
@@ -318,7 +317,7 @@ import pandas as pd
 
 # Get all objects falling within (center, radius) = ((ra, dec), radius)
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/explorer',
+  'https://fink-portal.org/api/v1/explorer',
   json={
     'ra': '193.822',
     'dec': '2.89732',
@@ -344,7 +343,7 @@ import pandas as pd
 # Get all objects falling within (center, radius) = ((ra, dec), radius)
 # between 2021-06-25 05:59:37.000 (included) and 2021-07-01 05:59:37.000 (excluded)
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/explorer',
+  'https://fink-portal.org/api/v1/explorer',
   json={
     'ra': '193.822',
     'dec': '2.89732',
@@ -380,7 +379,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get all objects between 2021-07-01 05:59:37.000 and 2021-07-01 06:09:37.000 UTC
-curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2021-07-01 05:59:37.000", "window":"10"}' http://134.158.75.151:24000/api/v1/explorer -o datesearch.json
+curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2021-07-01 05:59:37.000", "window":"10"}' https://fink-portal.org/api/v1/explorer -o datesearch.json
 ```
 
 In python, you would use
@@ -391,7 +390,7 @@ import pandas as pd
 
 # Get all objects between 2021-07-01 05:59:37.000 and 2021-07-01 06:09:37.000 UTC
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/explorer',
+  'https://fink-portal.org/api/v1/explorer',
   json={
     'startdate': '2021-07-01 05:59:37.000',
     'window': '10'
@@ -406,20 +405,20 @@ pdf = pd.read_json(r.content)
 api_doc_latests = """
 ## Get latest alerts by class
 
-The list of arguments for getting latest alerts by class can be found at http://134.158.75.151:24000/api/v1/latests.
+The list of arguments for getting latest alerts by class can be found at https://fink-portal.org/api/v1/latests.
 
-The list of Fink class can be found at http://134.158.75.151:24000/api/v1/classes
+The list of Fink class can be found at https://fink-portal.org/api/v1/classes
 
 ```bash
 # Get list of available class in Fink
-curl -H "Content-Type: application/json" -X GET http://134.158.75.151:24000/api/v1/classes -o finkclass.json
+curl -H "Content-Type: application/json" -X GET https://fink-portal.org/api/v1/classes -o finkclass.json
 ```
 
 To get the last 5 candidates of the class `Early SN Ia candidate`, you would simply use in a unix shell:
 
 ```bash
 # Get latests 5 Early SN Ia candidates
-curl -H "Content-Type: application/json" -X POST -d '{"class":"Early SN Ia candidate", "n":"5"}' http://134.158.75.151:24000/api/v1/latests -o latest_five_sn_candidates.json
+curl -H "Content-Type: application/json" -X POST -d '{"class":"Early SN Ia candidate", "n":"5"}' https://fink-portal.org/api/v1/latests -o latest_five_sn_candidates.json
 ```
 
 In python, you would use
@@ -430,7 +429,7 @@ import pandas as pd
 
 # Get latests 5 Early SN Ia candidates
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/latests',
+  'https://fink-portal.org/api/v1/latests',
   json={
     'class': 'Early SN Ia candidate',
     'n': '5'
@@ -458,7 +457,7 @@ import pandas as pd
 
 # Get all classified SN Ia from TNS between March 1st 2021 and March 5th 2021
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/latests',
+  'https://fink-portal.org/api/v1/latests',
   json={
     'class': '(TNS) SN Ia',
     'n': '100',
@@ -477,7 +476,7 @@ number of alerts retrieve on the server side `n` (current max is 1000).
 api_doc_sso = """
 ## Retrieve Solar System Object data
 
-The list of arguments for retrieving SSO data can be found at http://134.158.75.151:24000/api/v1/sso.
+The list of arguments for retrieving SSO data can be found at https://fink-portal.org/api/v1/sso.
 The numbers or designations are taken from the MPC archive.
 When searching for a particular asteroid or comet, it is best to use the IAU number,
 as in 4209 for asteroid "4209 Briggs". You can also try for numbered comet (e.g. 10P),
@@ -502,7 +501,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get data for the asteroid 4209 and save it in a CSV file
-curl -H "Content-Type: application/json" -X POST -d '{"n_or_d":"4209", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/sso -o 4209.csv
+curl -H "Content-Type: application/json" -X POST -d '{"n_or_d":"4209", "output-format":"csv"}' https://fink-portal.org/api/v1/sso -o 4209.csv
 ```
 
 In python, you would use
@@ -513,7 +512,7 @@ import pandas as pd
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/sso',
+  'https://fink-portal.org/api/v1/sso',
   json={
     'n_or_d': '4209',
     'output-format': 'json'
@@ -550,7 +549,7 @@ But you can also choose to transfer only a subset of the fields:
 ```python
 # select only jd, and magpsf
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/sso',
+  'https://fink-portal.org/api/v1/sso',
   json={
     'n_or_d': '4209',
     'columns': 'i:jd,i:magpsf'
@@ -564,7 +563,7 @@ Note that the fields should be comma-separated. Unknown field names are ignored.
 api_doc_cutout = """
 ## Retrieve cutout data from the Fink database
 
-The list of arguments for retrieving cutout data can be found at http://134.158.75.151:24000/api/v1/cutouts.
+The list of arguments for retrieving cutout data can be found at https://fink-portal.org/api/v1/cutouts.
 
 ### PNG
 
@@ -574,7 +573,7 @@ In a unix shell, you can retrieve the last cutout of an object by simply using
 curl -H "Content-Type: application/json" \\
     -X POST -d \\
     '{"objectId":"ZTF21aaxtctv", "kind":"Science"}' \\
-    http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.png
+    https://fink-portal.org/api/v1/cutouts -o cutoutScience.png
 ```
 
 This will retrieve the `Science` image and save it on `cutoutScience.png`.
@@ -587,7 +586,7 @@ from PIL import Image as im
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-    'http://134.158.75.151:24000/api/v1/cutouts',
+    'https://fink-portal.org/api/v1/cutouts',
     json={
         'objectId': 'ZTF21aaxtctv',
         'kind': 'Science',
@@ -608,7 +607,7 @@ from PIL import Image as im
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-    'http://134.158.75.151:24000/api/v1/cutouts',
+    'https://fink-portal.org/api/v1/cutouts',
     json={
         'objectId': 'ZTF21aaxtctv',
         'kind': 'Science', # Science, Template, Difference
@@ -635,7 +634,7 @@ from PIL import Image as im
 
 # Get all candidate ID with JD for ZTF21aaxtctv
 r = requests.post(
-    'http://134.158.75.151:24000/api/v1/objects',
+    'https://fink-portal.org/api/v1/objects',
     json={
         'objectId': 'ZTF21aaxtctv',
         'columns': 'i:candid,i:jd'
@@ -648,7 +647,7 @@ first_alert = pdf_candid['i:candid'].values[-1]
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-    'http://134.158.75.151:24000/api/v1/cutouts',
+    'https://fink-portal.org/api/v1/cutouts',
     json={
         'objectId': 'ZTF21aaxtctv',
         'kind': 'Science',
@@ -668,7 +667,7 @@ You can also retrieve the original FITS file stored in the alert:
 curl -H "Content-Type: application/json" \\
     -X POST -d \\
     '{"objectId":"ZTF21aaxtctv", "kind":"Science", "output-format": "FITS"}' \\
-    http://134.158.75.151:24000/api/v1/cutouts -o cutoutScience.fits
+    https://fink-portal.org/api/v1/cutouts -o cutoutScience.fits
 ```
 
 or equivalently in Python:
@@ -681,7 +680,7 @@ import pandas as pd
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-    'http://134.158.75.151:24000/api/v1/cutouts',
+    'https://fink-portal.org/api/v1/cutouts',
     json={
         'objectId': 'ZTF21aaxtctv',
         'kind': 'Science',
@@ -703,7 +702,7 @@ import pandas as pd
 
 # get data for ZTF21aaxtctv
 r = requests.post(
-    'http://134.158.75.151:24000/api/v1/cutouts',
+    'https://fink-portal.org/api/v1/cutouts',
     json={
         'objectId': 'ZTF21aaxtctv',
         'kind': 'Science',
@@ -720,7 +719,7 @@ array = pdf['b:cutoutScience_stampData'].values[0]
 api_doc_xmatch = """
 ## Xmatch with catalogs
 
-The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/xmatch.
+The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/xmatch.
 
 Let's assume you have a catalog on disk (CSV format), you would use:
 
@@ -729,7 +728,7 @@ import requests
 import pandas as pd
 
 r = requests.post(
-   'http://134.158.75.151:24000/api/v1/xmatch',
+   'https://fink-portal.org/api/v1/xmatch',
    json={
        'catalog': open('mycatalog.csv').read(),
        'header': 'RA,Dec,ID',
@@ -805,7 +804,7 @@ in degree between the input (ra, dec) and the objects found.
 api_doc_bayestar = """
 ## Cross-match with LIGO/Virgo sky maps
 
-The list of arguments for retrieving object data can be found at http://134.158.75.151:24000/api/v1/bayestar.
+The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/bayestar.
 
 Let's assume you want get all alerts falling inside a given LIGO/Virgo credible region sky map
 (retrieved from the GraceDB event page, or distributed via GCN). You would
@@ -827,7 +826,7 @@ credible_level = 0.2
 # Query Fink
 data = open(fn, 'rb').read()
 r = requests.post(
-    'http://134.158.75.151:24000/api/v1/bayestar',
+    'https://fink-portal.org/api/v1/bayestar',
     json={
         'bayestar': str(data),
         'credible_level': credible_level,
@@ -1796,7 +1795,7 @@ def columns_arguments():
     # Science modules
     fink_science = pd.DataFrame(
         [
-            {'name': 'cdsxmatch', 'type': 'string', 'doc': 'SIMBAD closest counterpart, based on position. See http://134.158.75.151:24000/api/v1/classes'},
+            {'name': 'cdsxmatch', 'type': 'string', 'doc': 'SIMBAD closest counterpart, based on position. See https://fink-portal.org/api/v1/classes'},
             {'name': 'mulens_class_1', 'type': ['string', 'null'], 'doc': 'Predicted class of an alert in band g using LIA (among microlensing ML, variable star VS, cataclysmic event CV, and constant event CONSTANT). Nothing if not classified.'},
             {'name': 'mulens_class_2', 'type': ['string', 'null'], 'doc': 'Predicted class of an alert in band r using LIA (among microlensing ML, variable star VS, cataclysmic event CV, and constant event CONSTANT). Nothing if not classified.'},
             {'name': 'rfscore', 'type': 'double', 'doc': 'Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.'},
@@ -1811,7 +1810,7 @@ def columns_arguments():
     fink_derived = pd.DataFrame(
         [
             {'name': 'constellation', 'type': 'string', 'doc': 'Name of the constellation an alert on the sky is in'},
-            {'name': 'classification', 'type': 'string', 'doc': 'Fink inferred classification. See http://134.158.75.151:24000/api/v1/classes'},
+            {'name': 'classification', 'type': 'string', 'doc': 'Fink inferred classification. See https://fink-portal.org/api/v1/classes'},
             {'name': 'g-r', 'type': 'double', 'doc': 'Last g-r measurement for this object.'},
             {'name': 'rate(g-r)', 'type': 'double', 'doc': 'g-r rate in mag/day (between last and first available g-r measurements).'},
             {'name': 'lastdate', 'type': 'string', 'doc': 'Datetime for the alert (from the i:jd field).'},

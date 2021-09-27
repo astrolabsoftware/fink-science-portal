@@ -1091,8 +1091,8 @@ navbar = dbc.Navbar(
             dbc.Nav(
                 # right align dropdown menu with ml-auto className
                 [
-                    dbc.NavItem(dbc.NavLink('Search', href="http://134.158.75.151:24000")),
-                    dbc.NavItem(dbc.NavLink('API', href="http://134.158.75.151:24000/api")),
+                    dbc.NavItem(dbc.NavLink('Search', href="{}".format(APIURL))),
+                    dbc.NavItem(dbc.NavLink('API', href="{}/api".format(APIURL))),
                     dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/astrolabsoftware/fink-notebook-template")),
                     dropdown
                 ],
