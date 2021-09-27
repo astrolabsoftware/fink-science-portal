@@ -11,11 +11,13 @@ APIURL = "https://fink-portal.org"
 # https://bootswatch.com/spacelab/
 external_stylesheets = [
     dbc.themes.SPACELAB,
-    'http://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css'
+    '//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css',
+    '//use.fontawesome.com/releases/v5.7.2/css/all.css'
 ]
 external_scripts = [
-    'http://code.jquery.com/jquery-1.9.1.min.js',
-    'http://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js'
+    '//code.jquery.com/jquery-1.9.1.min.js',
+    '//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js',
+    '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML'
 ]
 # external_stylesheets = [dbc.themes.LUX]
 # external_stylesheets = [dbc.themes.FLATLY]
