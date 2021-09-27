@@ -5,7 +5,7 @@ import jpype
 import jpype.imports
 from jpype import JImplements, JOverride, JImplementationFor
 
-APIURL = "http://134.158.75.151:24000"
+APIURL = "https://fink-portal.org"
 
 # bootstrap theme
 # https://bootswatch.com/spacelab/
