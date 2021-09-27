@@ -32,7 +32,6 @@ from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import get_superpixels
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
-from apps.xmatch import parse_contents
 
 import io
 import requests
