@@ -1339,6 +1339,10 @@ def return_object():
         pdfU['d:tag'] = 'upperlim'
         pdfUP['d:tag'] = 'badquality'
 
+        # workaround -- see https://github.com/astrolabsoftware/fink-science-portal/issues/216
+        mask = np.array([False if float(i) in pdf['i:jd'].values else True for i in pdfUP['i:jd'].values])
+        pdfUP = pdfUP[mask]
+
         pdf_ = pd.concat((pdf, pdfU, pdfUP), axis=0)
         pdf_['i:jd'] = pdf_['i:jd'].astype(float)
 
