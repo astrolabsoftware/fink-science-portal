@@ -454,7 +454,7 @@ def card_grb():
             dbc.Input(
                 id="grb_trigger_time",
                 autoFocus=True,
-                placeholder='Enter the time of a potential GRB trigger (YYYY-MM-DD hh:mm:ss) to display the alert measurements',
+                placeholder='Enter a trigger time in UTC (YYYY-MM-DD hh:mm:ss) to display the alert measurements. Default is first variability of the alert',
                 type='search',
                 style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
                 className='inputbar'
@@ -467,11 +467,24 @@ def card_grb():
         ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
     )
 
+    msg = """
+    We show GRB lightcurves collected and curated by Damien Turpin.
+
+    Just enter a GRB trigger time in UTC (YYYY-MM-DD hh:mm:ss) to display the alert measurements
+    as a function of the difference between the alert emission time and this trigger (in seconds).
+    By default (i.e. no trigger entered), we compute the time difference
+    with respect to the first variability of the alert (`jdstarthist`).
+
+    Vertical dotted lines show 1 hour, 1 day and 1 week after the trigger.
+    """
+
     card = html.Div(
         [
             html.Br(),
             trigger_time,
-            html.Div(id='grb_lightcurves')
+            html.Div(id='grb_lightcurves'),
+            html.Br(),
+            dcc.Markdown(msg)
         ]
     )
     return card

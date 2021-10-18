@@ -2021,7 +2021,10 @@ def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
     ]
 
     if n_clicks is not None:
-        print(grb_trigger_time)
+        if grb_trigger_time is None or grb_trigger_time == '':
+            dx = pdf['i:jd'] - pdf['i:jdstarthist']
+        else:
+            dx = pdf['i:jd'] - Time(grb_trigger_time, format='iso').jd
         # Overplot ZTF alert data
         colors = {1: '#1f77b4', 2: '#ff7f0e'}
         names = {1: 'g band', 2: 'r band'}
@@ -2029,7 +2032,7 @@ def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
             mask = pdf['i:fid'] == filt
             figure.add_trace(
                 go.Scatter(
-                    x=(pdf['i:jd'] - pdf['i:jdstarthist'])[mask] * 24 * 3600 + 3600,
+                    x=dx[mask] * 24 * 3600,
                     y=pdf[mask]['i:magpsf'],
                     name=names[filt],
                     mode='markers',
