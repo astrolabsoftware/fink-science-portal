@@ -405,8 +405,8 @@ def card_sso_lightcurve():
 
     Returns
     ----------
-    card: dbc.Card
-        Card with the SSO lightcurve
+    out: html.Div
+        Div with the SSO lightcurve
     """
     card = html.Div(id='sso_lightcurve')
     return card
@@ -416,8 +416,8 @@ def card_sso_radec():
 
     Returns
     ----------
-    card: dbc.Card
-        Card with the SSO radec
+    out: html.Div
+        Div with the SSO radec
     """
     card = html.Div(id='sso_radec')
     return card
@@ -440,6 +440,17 @@ def card_sso_skymap():
             'height': '25pc'
         }
     )
+
+def card_grb():
+    """ Overplot photometry on all GRB lightcurves from Damien
+
+    Returns
+    ----------
+    out: html.Div
+        Div with the GRB information
+    """
+    card = html.Div(id='grb_lightcurves')
+    return card
 
 def card_explanation_xmatch():
     """ Explain how xmatch works

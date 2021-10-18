@@ -33,6 +33,7 @@ from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
+from apps.cards import card_grb
 from apps.plotting import plot_classbar
 from apps.plotting import all_radio_options
 
@@ -122,6 +123,18 @@ def tab5_content(pdf):
     ])
     return tab5_content_
 
+def tab6_content(pdf):
+    """ GRB tab
+    """
+    tab6_content_ = html.Div([
+        dbc.Row(
+            [
+                dbc.Col(card_grb()),
+            ]
+        ),
+    ])
+    return tab6_content_
+
 def tab_mobile_content(pdf):
     """ Content for mobile application
     """
@@ -157,7 +170,7 @@ def tabs(pdf, is_mobile):
                 dbc.Tab(tab3_content(pdf), label="Variable stars", label_style=label_style),
                 dbc.Tab(tab4_content(pdf), label="Microlensing", label_style=label_style),
                 dbc.Tab(tab5_content(pdf), label="Solar System", label_style=label_style),
-                dbc.Tab(label="GRB", disabled=True)
+                dbc.Tab(tab6_content(pdf), label="GRB", label_style=label_style)
             ]
         )
     return tabs_

@@ -1938,6 +1938,35 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
     return card
 
 @app.callback(
+    Output('grb_lightcurves', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-data', 'children')
+    ])
+def draw_grb(pathname: str, object_data) -> dict:
+    """ Draw photometry of the object on all GRB lightcurves from Damien
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card containing plots to display
+    """
+    pdf = pd.read_json(object_data)
+    if pdf.empty:
+        msg = ""
+        return msg
+
+    db_path = '../assets/GRBase_lc_raw.json'
+
+    pdf_grb = pd.read_json(db_path)
+    print(pdf_grb)
+
+@app.callback(
     Output('alert_table', 'children'),
     [
         Input('object-data', 'children')
