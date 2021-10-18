@@ -449,7 +449,29 @@ def card_grb():
     out: html.Div
         Div with the GRB information
     """
-    card = html.Div(id='grb_lightcurves')
+    trigger_time = dbc.InputGroup(
+        [
+            dbc.Input(
+                id="grb_trigger_time",
+                autoFocus=True,
+                type='search',
+                style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
+                className='inputbar'
+            ),
+            dbc.Button(
+                html.I(className="fas fa-search fa-1x"),
+                id="submit_trigger_time",
+                style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
+            )
+        ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
+    )
+
+    card = html.Div(
+        [
+            trigger_time,
+            html.Div(id='grb_lightcurves')
+        ]
+    )
     return card
 
 def card_explanation_xmatch():
