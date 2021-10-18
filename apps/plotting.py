@@ -1969,9 +1969,10 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
     [
         Input('url', 'pathname'),
         Input('object-data', 'children'),
-        Input('grb_trigger_time', 'value')
+        Input('grb_trigger_time', 'value'),
+        Input('submit_trigger_time', 'n_clicks')
     ])
-def draw_grb(pathname: str, object_data, grb_trigger_time) -> dict:
+def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
     """ Draw photometry of the object on all GRB lightcurves from Damien
 
     Parameters
@@ -2012,23 +2013,23 @@ def draw_grb(pathname: str, object_data, grb_trigger_time) -> dict:
         ) for midtime, flux in zip(pdf_grb['midtimes'], pdf_grb['flux'])
     ]
 
-    print(grb_trigger_time)
-
-    # Overplot ZTF alert data
-    colors = {1: '#1f77b4', 2: '#ff7f0e'}
-    names = {1: 'g band', 2: 'r band'}
-    for filt in np.unique(pdf['i:fid']):
-        mask = pdf['i:fid'] == filt
-        figure.add_trace(
-            go.Scatter(
-                x=(pdf['i:jd'] - pdf['i:jdstarthist'])[mask] * 24 * 3600 + 3600,
-                y=pdf[mask]['i:magpsf'],
-                name=names[filt],
-                mode='markers',
-                line=dict(color=colors[filt]),
-                marker=dict(size=12)
+    if n_clicks is not None:
+        print(grb_trigger_time)
+        # Overplot ZTF alert data
+        colors = {1: '#1f77b4', 2: '#ff7f0e'}
+        names = {1: 'g band', 2: 'r band'}
+        for filt in np.unique(pdf['i:fid']):
+            mask = pdf['i:fid'] == filt
+            figure.add_trace(
+                go.Scatter(
+                    x=(pdf['i:jd'] - pdf['i:jdstarthist'])[mask] * 24 * 3600 + 3600,
+                    y=pdf[mask]['i:magpsf'],
+                    name=names[filt],
+                    mode='markers',
+                    line=dict(color=colors[filt]),
+                    marker=dict(size=12)
+                )
             )
-        )
 
     # Add lines to help visualising
     figure.add_vline(x=3600., line_width=2, line_dash="dot", line_color="black")
