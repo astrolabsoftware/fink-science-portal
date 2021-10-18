@@ -1042,7 +1042,7 @@ def download_object_modal(objectid):
     import requests
     import pandas as pd
 
-    # get data for ZTF19acnjwgm
+    # get data for {}
     r = requests.post(
       '{}/api/v1/objects',
       json={{
@@ -1061,6 +1061,7 @@ def download_object_modal(objectid):
         objectid,
         APIURL,
         str(objectid).replace('/', '_'),
+        objectid,
         APIURL,
         objectid,
         APIURL
