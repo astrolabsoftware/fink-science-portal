@@ -307,6 +307,32 @@ layout_sso_radec = dict(
     }
 )
 
+layout_grb = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': 'Time from GRB trigger (second)',
+        'automargin': True
+    },
+    yaxis={
+        'autorange': 'reversed',
+        'title': 'Magnitude',
+        'automargin': True
+    }
+)
+
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """ Extract SN scores from the data
     """
@@ -1961,10 +1987,39 @@ def draw_grb(pathname: str, object_data) -> dict:
         msg = ""
         return msg
 
-    db_path = '../assets/GRBase_lc_raw.json'
+    db_path = 'assets/GRBase_lc_raw.json'
 
     pdf_grb = pd.read_json(db_path)
-    print(pdf_grb)
+
+    data = [
+        {
+            'x': midtime,
+            'y': flux,
+            'mode': 'lines',
+            'name': 'Observations',
+            'showlegend': False,
+            'line': {'color': '#808080'}
+        } for midtime, flux in zip(pdf_grb['midtimes'], pdf_grb['flux'])
+    ]
+
+    figure = {
+        'data': data,
+        "layout": layout_grb
+    }
+
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '25pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
 
 @app.callback(
     Output('alert_table', 'children'),
