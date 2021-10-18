@@ -468,6 +468,7 @@ def card_grb():
 
     card = html.Div(
         [
+            html.Br(),
             trigger_time,
             html.Div(id='grb_lightcurves')
         ]
