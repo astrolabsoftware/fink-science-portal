@@ -2025,6 +2025,20 @@ def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
             dx = pdf['i:jd'] - pdf['i:jdstarthist']
         else:
             dx = pdf['i:jd'] - Time(grb_trigger_time, format='iso').jd
+
+        mag_dc, err_dc = np.transpose(
+            [
+                dc_mag(*args) for args in zip(
+                    pdf['i:fid'].astype(int).values,
+                    pdf['i:magpsf'].astype(float).values,
+                    pdf['i:sigmapsf'].astype(float).values,
+                    pdf['i:magnr'].astype(float).values,
+                    pdf['i:sigmagnr'].astype(float).values,
+                    pdf['i:magzpsci'].astype(float).values,
+                    pdf['i:isdiffpos'].values
+                )
+            ]
+        )
         # Overplot ZTF alert data
         colors = {1: '#1f77b4', 2: '#ff7f0e'}
         names = {1: 'g band', 2: 'r band'}
@@ -2033,7 +2047,12 @@ def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
             figure.add_trace(
                 go.Scatter(
                     x=dx[mask] * 24 * 3600,
-                    y=pdf[mask]['i:magpsf'],
+                    y=mag_dc['i:magpsf'],
+                    error_y=dict(
+                        type='data',
+                        array=err_dc[mask],
+                        visible=True
+                    ),
                     name=names[filt],
                     mode='markers',
                     line=dict(color=colors[filt]),
