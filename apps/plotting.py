@@ -2047,7 +2047,7 @@ def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
             figure.add_trace(
                 go.Scatter(
                     x=dx[mask] * 24 * 3600,
-                    y=mag_dc['i:magpsf'],
+                    y=mag_dc[mask],
                     error_y=dict(
                         type='data',
                         array=err_dc[mask],
