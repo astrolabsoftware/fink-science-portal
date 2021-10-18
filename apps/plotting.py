@@ -324,6 +324,7 @@ layout_grb = dict(
     ),
     xaxis={
         'title': 'Time from GRB trigger (second)',
+        'type': 'log',
         'automargin': True
     },
     yaxis={
@@ -1990,6 +1991,13 @@ def draw_grb(pathname: str, object_data) -> dict:
     db_path = 'assets/GRBase_lc_raw.json'
 
     pdf_grb = pd.read_json(db_path)
+
+    pdf_grb = pdf_grb.sort_values('midtimes').groupby('GRB_name').agg(
+        {
+            'midtimes': list,
+            'flux': list
+        }
+    )
 
     data = [
         {
