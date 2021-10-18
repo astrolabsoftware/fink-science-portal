@@ -1985,6 +1985,12 @@ def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
     card: dbc.Card
         Card containing plots to display
     """
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if button_id != "submit_trigger_time":
+        raise PreventUpdate
+
     pdf = pd.read_json(object_data)
     if pdf.empty:
         msg = ""
