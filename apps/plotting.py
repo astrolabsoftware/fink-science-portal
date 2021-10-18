@@ -1968,9 +1968,10 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
     Output('grb_lightcurves', 'children'),
     [
         Input('url', 'pathname'),
-        Input('object-data', 'children')
+        Input('object-data', 'children'),
+        Input('grb_trigger_time', 'value')
     ])
-def draw_grb(pathname: str, object_data) -> dict:
+def draw_grb(pathname: str, object_data, grb_trigger_time) -> dict:
     """ Draw photometry of the object on all GRB lightcurves from Damien
 
     Parameters
@@ -1999,21 +2000,64 @@ def draw_grb(pathname: str, object_data) -> dict:
         }
     )
 
-    data = [
-        {
-            'x': midtime,
-            'y': flux,
-            'mode': 'lines',
-            'name': 'Observations',
-            'showlegend': False,
-            'line': {'color': '#808080'}
-        } for midtime, flux in zip(pdf_grb['midtimes'], pdf_grb['flux'])
+    # plot all GRB ligtcurves
+    figure = go.Figure()
+    [
+        figure.add_trace(
+            go.Scatter(
+                x=midtime, y=flux,
+                mode='lines', hoverinfo='skip',
+                showlegend=False, line=dict(color='rgb(189,189,189)')
+            )
+        ) for midtime, flux in zip(pdf_grb['midtimes'], pdf_grb['flux'])
     ]
 
-    figure = {
-        'data': data,
-        "layout": layout_grb
-    }
+    print(grb_trigger_time)
+
+    # Overplot ZTF alert data
+    colors = {1: '#1f77b4', 2: '#ff7f0e'}
+    names = {1: 'g band', 2: 'r band'}
+    for filt in np.unique(pdf['i:fid']):
+        mask = pdf['i:fid'] == filt
+        figure.add_trace(
+            go.Scatter(
+                x=(pdf['i:jd'] - pdf['i:jdstarthist'])[mask] * 24 * 3600 + 3600,
+                y=pdf[mask]['i:magpsf'],
+                name=names[filt],
+                mode='markers',
+                line=dict(color=colors[filt]),
+                marker=dict(size=12)
+            )
+        )
+
+    # Add lines to help visualising
+    figure.add_vline(x=3600., line_width=2, line_dash="dot", line_color="black")
+    figure.add_vline(x=3600 * 24, line_width=2, line_dash="dot", line_color="black")
+    figure.add_vline(x=3600 * 24 * 7, line_width=2, line_dash="dot", line_color="black")
+
+    figure.add_annotation(x=np.log10(3600.), y=-2, text="1 hour", showarrow=False, xshift=25)
+    figure.add_annotation(x=np.log10(3600. * 24), y=-2, text="1 day", showarrow=False,  xshift=25)
+    figure.add_annotation(x=np.log10(3600. * 24 * 7), y=-2, text="1 week", showarrow=False, xshift=25)
+
+    figure.update_layout(
+        xaxis_title='Time from GRB trigger (second)',
+        yaxis_title='Magnitude',
+        margin=dict(l=50, r=30, b=0, t=0),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+    figure.update_layout(
+        legend=dict(
+            font=dict(size=10),
+            orientation="h",
+            xanchor="right",
+            x=1,
+            y=1.2,
+            bgcolor='rgba(218, 223, 225, 0.3)'
+        ),
+    )
+    figure.update_xaxes(type="log")
+    figure.update_yaxes(autorange='reversed')
 
     graph = dcc.Graph(
         figure=figure,
