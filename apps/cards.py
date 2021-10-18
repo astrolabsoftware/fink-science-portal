@@ -454,6 +454,7 @@ def card_grb():
             dbc.Input(
                 id="grb_trigger_time",
                 autoFocus=True,
+                placeholder='Enter time of GRB trigger (YYYY-MM-DD hh:mm:ss)',
                 type='search',
                 style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
                 className='inputbar'
