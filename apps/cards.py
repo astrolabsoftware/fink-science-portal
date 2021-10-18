@@ -454,7 +454,7 @@ def card_grb():
             dbc.Input(
                 id="grb_trigger_time",
                 autoFocus=True,
-                placeholder='Enter a trigger time in UTC (YYYY-MM-DD hh:mm:ss) to display the alert measurements. Default is first variability of the alert',
+                placeholder='Enter a GRB trigger time in UTC (YYYY-MM-DD hh:mm:ss) to display the alert measurements, and hit search.',
                 type='search',
                 style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
                 className='inputbar'
@@ -478,16 +478,24 @@ def card_grb():
     Vertical dotted lines show 1 hour, 1 day and 1 week after the trigger.
     """
 
-    card = html.Div(
+    card = dbc.Card(
+        dbc.CardBody(
+            dcc.Markdown(msg)
+        ), style={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        }
+    )
+
+    out = html.Div(
         [
             html.Br(),
             trigger_time,
             html.Div(id='grb_lightcurves'),
             html.Br(),
-            dcc.Markdown(msg)
+            card
         ]
     )
-    return card
+    return out
 
 def card_explanation_xmatch():
     """ Explain how xmatch works
