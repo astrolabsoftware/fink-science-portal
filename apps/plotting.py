@@ -2022,7 +2022,7 @@ def plot_heatmap(pathname):
     pdf['date'] = [Time(x[4:8]+'-'+x[8:10]+'-'+x[10:12]).datetime for x in pdf.index.values]
     years = np.unique(pdf['date'].apply(lambda x: x.year)).tolist()
 
-    idx = pd.date_range(Time('2019-01-01').datetime, Time('2021-12-31').datetime)
+    idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
     pdf.index = pd.DatetimeIndex(pdf.date)
     pdf = pdf.reindex(idx, fill_value=0)
     pdf['date'] = pdf.index.values
@@ -2094,18 +2094,17 @@ def plot_stat_evolution(pathname):
     )
     return card
 
-def display_year(z, year: int = None, month_lines: bool = True, fig=None, row: int = None):
+def display_year(data, year: int = None, month_lines: bool = True, fig=None, row: int = None):
     """
     """
     if year is None:
         year = datetime.datetime.now().year
 
-    if year in [2020, 2024, 2028, 2032, 2036]:
-        data = np.ones(366) * np.nan
-    else:
-        data = np.ones(365) * np.nan
-    data[:len(z)] = z
-
+    # if year in [2020, 2024, 2028, 2032, 2036]:
+    #     data = np.ones(366) * np.nan
+    # else:
+    #     data = np.ones(365) * np.nan
+    # data[:len(z)] = z
 
     d1 = datetime.date(year, 1, 1)
     d2 = datetime.date(year, 12, 31)
@@ -2220,6 +2219,6 @@ def display_years(pdf, years):
     for i, year in enumerate(years):
         # data = z[i*365 : (i+1)*365]
         data = pdf[pdf['date'].apply(lambda x: x.year == year)]['basic:sci'].values
-        display_year(data, year=year, fig=fig, row=i)
+        display_year(data, year=year, fig=fig, row=i, month_lines=False)
         fig.update_layout(height=250*len(years))
     return fig
