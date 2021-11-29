@@ -2001,6 +2001,9 @@ def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
 
     pdf_grb = pd.read_json(db_path)
 
+    mask = pdf_grb['midtimes'] > 1
+    pdf_grb = pdf_grb[mask]      
+
     pdf_grb = pdf_grb.sort_values('midtimes').groupby('GRB_name').agg(
         {
             'midtimes': list,
@@ -2065,9 +2068,9 @@ def draw_grb(pathname: str, object_data, grb_trigger_time, n_clicks) -> dict:
     figure.add_vline(x=3600 * 24, line_width=2, line_dash="dot", line_color="black")
     figure.add_vline(x=3600 * 24 * 7, line_width=2, line_dash="dot", line_color="black")
 
-    figure.add_annotation(x=np.log10(3600.), y=-2, text="1 hour", showarrow=False, xshift=25)
-    figure.add_annotation(x=np.log10(3600. * 24), y=-2, text="1 day", showarrow=False,  xshift=25)
-    figure.add_annotation(x=np.log10(3600. * 24 * 7), y=-2, text="1 week", showarrow=False, xshift=25)
+    figure.add_annotation(x=np.log10(3600.), y=5, text="1 hour", showarrow=False, xshift=25)
+    figure.add_annotation(x=np.log10(3600. * 24), y=5, text="1 day", showarrow=False,  xshift=25)
+    figure.add_annotation(x=np.log10(3600. * 24 * 7), y=5, text="1 week", showarrow=False, xshift=25)
 
     figure.update_layout(
         xaxis_title='Time from GRB trigger (second)',
