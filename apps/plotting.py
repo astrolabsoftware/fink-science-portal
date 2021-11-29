@@ -2090,7 +2090,7 @@ def plot_stat_evolution(pathname):
         figure=fig,
         style={
             'width': '100%',
-            'height': '20pc'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )

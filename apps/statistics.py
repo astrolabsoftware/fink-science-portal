@@ -26,7 +26,7 @@ def heatmap_content():
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(id='heatmap_stat', width=12)
+                    dbc.Col(id='heatmap_stat', width=10)
                 ]
             ),
         ],
@@ -42,7 +42,7 @@ def timelines():
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(id='evolution', width=8)
+                    dbc.Col(id='evolution', width=10)
                 ]
             ),
         ],
