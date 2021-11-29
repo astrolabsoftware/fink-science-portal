@@ -2022,7 +2022,7 @@ def plot_heatmap(pathname):
     pdf['date'] = [Time(x[4:8]+'-'+x[8:10]+'-'+x[10:12]).datetime for x in pdf.index.values]
     years = np.unique(pdf['date'].apply(lambda x: x.year)).tolist()
 
-    idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
+    idx = pd.date_range(Time('2019-01-01').datetime, Time('2021-12-31').datetime)
     pdf.index = pd.DatetimeIndex(pdf.date)
     pdf = pdf.reindex(idx, fill_value=0)
     pdf['date'] = pdf.index.values
