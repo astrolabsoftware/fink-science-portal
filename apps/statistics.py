@@ -25,6 +25,15 @@ def heatmap_content():
         [
             html.Br(),
             dbc.Row(
+                dbc.Card(
+                    dbc.CardBody(
+                        dcc.Markdown("Fink activity chart")
+                    ), style={
+                        'backgroundColor': 'rgb(248, 248, 248, .7)'
+                    }
+                ),
+            ),
+            dbc.Row(
                 [
                     dbc.Col(id='heatmap_stat', width=10)
                 ]
@@ -75,10 +84,9 @@ def layout(is_mobile):
                 dbc.Row(
                     [
                         html.Br(),
-                        dbc.Col("", width=2),
                         dbc.Col(tabs_, width=10)
                     ],
-                    justify="around", no_gutters=True
+                    justify="center", no_gutters=True
                 )
             ],
             className='home',
