@@ -2019,7 +2019,7 @@ def plot_stat_evolution(pathname):
     pdf = pd.DataFrame.from_dict(results, orient='index')
     pdf['date'] = pdf.index.values
 
-    fig = px.bar(pdf, y=col, x='date', text='pop')
+    fig = px.bar(pdf, y=col, x='date', text=col)
     fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
     fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
 
