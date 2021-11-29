@@ -2126,7 +2126,9 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
         else 53 for i in dates_in_year
     ] #gives [1,1,1,1,1,1,1,2,2,2,2,2,2,2,…] name is self-explanatory
 
-    weeknumber_of_dates = [1 if (j.month == 1 and i == 53) else i for i,j in zip(weeknumber_of_dates, dates_in_year)]
+    if weeknumber_of_dates[0] == 53:
+        weeknumber_of_dates = [i+1 for i in weeknumber_of_dates]
+        weeknumber_of_dates = [1 if (j.month == 1 and i == 54) else i for i,j in zip(weeknumber_of_dates, dates_in_year)]
     text = [str(i) for i in dates_in_year] #gives something like list of strings like ‘2018-01-25’ for each date. Used in data trace to make good hovertext.
     #4cc417 green #347c17 dark green
     colorscale=[[False, '#eeeeee'], [True, '#76cf63']]
