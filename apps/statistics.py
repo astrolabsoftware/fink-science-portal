@@ -21,15 +21,6 @@ dcc.Location(id='url', refresh=False)
 def layout(is_mobile):
     """
     """
-    graph_evolution = dcc.Graph(
-        style={
-            'width': '100%',
-            'height': '4pc'
-        },
-        config={'displayModeBar': False},
-        id='evolution'
-    )
-
     if is_mobile:
         layout_ = None
     else:
@@ -38,7 +29,7 @@ def layout(is_mobile):
                 dbc.Row(
                     [
                         dbc.Col(dbc.Card(""), width=4),
-                        dbc.Col(graph_evolution, width=8)
+                        dbc.Col(id='evolution', width=8)
                     ]
                 )
             ],
