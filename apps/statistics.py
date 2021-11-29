@@ -59,7 +59,7 @@ def layout(is_mobile):
         label_style = {"color": "#000"}
         tabs_ = dbc.Tabs(
             [
-                dbc.Tab(heatmap_content(), label="Heatmap", tab_style={"margin-left": "auto"}, label_style=label_style),
+                dbc.Tab(heatmap_content(), label="Heatmap", label_style=label_style),
                 dbc.Tab(timelines(), label="Timelines", label_style=label_style),
                 dbc.Tab(label="TNS", disabled=True),
             ]
