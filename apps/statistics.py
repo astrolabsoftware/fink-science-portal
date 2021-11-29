@@ -36,8 +36,10 @@ def layout(is_mobile):
         layout_ = html.Div(
             [
                 dbc.Row(
-                    dbc.Col(dbc.Card(""), width=4),
-                    dbc.Col(graph_evolution, width=8)
+                    [
+                        dbc.Col(dbc.Card(""), width=4),
+                        dbc.Col(graph_evolution, width=8)
+                    ]
                 )
             ],
             className='home',
