@@ -2120,8 +2120,13 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
     dates_in_year = [d1 + datetime.timedelta(i) for i in range(delta.days+1)] #gives me a list with datetimes for each day a year
     weekdays_in_year = [i.weekday() for i in dates_in_year] #gives [0,1,2,3,4,5,6,0,1,2,3,4,5,6,…] (ticktext in xaxis dict translates this to weekdays
 
-    weeknumber_of_dates = [int(i.strftime("%V")) if not (int(i.strftime("%V")) == 1 and i.month == 12) else 53
-                           for i in dates_in_year] #gives [1,1,1,1,1,1,1,2,2,2,2,2,2,2,…] name is self-explanatory
+    weeknumber_of_dates = [
+        int(i.strftime("%V"))
+        if not (int(i.strftime("%V")) == 1 and i.month == 12)
+        else 53 for i in dates_in_year
+    ] #gives [1,1,1,1,1,1,1,2,2,2,2,2,2,2,…] name is self-explanatory
+
+    weeknumber_of_dates = [1 if (j.month == 1 and i == 53) else i for i,j in zip(weeknumber_of_dates, dates_in_year)]
     text = [str(i) for i in dates_in_year] #gives something like list of strings like ‘2018-01-25’ for each date. Used in data trace to make good hovertext.
     #4cc417 green #347c17 dark green
     colorscale=[[False, '#eeeeee'], [True, '#76cf63']]
