@@ -25,18 +25,9 @@ def heatmap_content():
         [
             html.Br(),
             dbc.Row(
-                dbc.Card(
-                    dbc.CardBody(
-                        dcc.Markdown("Fink activity chart")
-                    ), style={
-                        'backgroundColor': 'rgb(248, 248, 248, .7)'
-                    }
-                ),
-            ),
-            dbc.Row(
                 [
                     dbc.Col(id='heatmap_stat', width=10)
-                ]
+                ], justify="center", no_gutters=True
             ),
         ],
     )
@@ -52,7 +43,7 @@ def timelines():
             dbc.Row(
                 [
                     dbc.Col(id='evolution', width=10)
-                ]
+                ], justify="center", no_gutters=True
             ),
         ],
     )
