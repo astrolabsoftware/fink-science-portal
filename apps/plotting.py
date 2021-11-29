@@ -2193,7 +2193,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
 
     layout = go.Layout(
         title='Fink/ZTF activity chart',
-        height=250,
+        height=150,
         yaxis=dict(
             showline=False, showgrid=False, zeroline=False,
             tickmode='array',
@@ -2231,5 +2231,5 @@ def display_years(pdf, years):
         # data = z[i*365 : (i+1)*365]
         data = pdf[pdf['date'].apply(lambda x: x.year == year)]['basic:sci'].values
         display_year(data, year=year, fig=fig, row=i, month_lines=True)
-        fig.update_layout(height=250*len(years))
+        fig.update_layout(height=200*len(years))
     return fig
