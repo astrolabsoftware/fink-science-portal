@@ -2024,7 +2024,7 @@ def plot_heatmap(pathname):
 
     idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
     pdf.index = pd.DatetimeIndex(pdf.date)
-    pdf = pdf.reindex(idx, fill_value=None)
+    pdf = pdf.reindex(idx, fill_value=0)
     pdf['date'] = pdf.index.values
 
     fig = display_years(pdf, years)

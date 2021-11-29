@@ -18,27 +18,59 @@ import dash_bootstrap_components as dbc
 
 dcc.Location(id='url', refresh=False)
 
+def heatmap_content():
+    """
+    """
+    layout_ = html.Div(
+        [
+            html.Br(),
+            dbc.Row(
+                [
+                    dbc.Col(id='heatmap_stat', width=8)
+                ]
+            ),
+        ],
+    )
+
+    return layout_
+
+def timelines():
+    """
+    """
+    layout_ = html.Div(
+        [
+            html.Br(),
+            dbc.Row(
+                [
+                    dbc.Col(id='evolution', width=8)
+                ]
+            ),
+        ],
+    )
+
+    return layout_
+
 def layout(is_mobile):
     """
     """
+    if is_mobile:
+        tabs_ = None
+    else:
+        label_style = {"color": "#000"}
+        tabs_ = dbc.Tabs(
+            [
+                dbc.Tab(heatmap_content(), label="Heatmap", tab_style={"margin-left": "auto"}, label_style=label_style),
+                dbc.Tab(timelines(), label="Timelines", label_style=label_style),
+                dbc.Tab(label="TNS", disabled=True),
+            ]
+        )
+
     if is_mobile:
         layout_ = None
     else:
         layout_ = html.Div(
             [
-                html.Br(),
-                html.Br(),
-                dbc.Row(
-                    [
-                        dbc.Col(dbc.Card(""), width=3),
-                        dbc.Col(id='heatmap_stat', width=8)
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(id='evolution', width=8)
-                    ]
-                )
+                tabs_
             ],
             className='home',
             style={
