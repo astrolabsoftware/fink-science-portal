@@ -2000,9 +2000,8 @@ def alert_properties(object_data):
 )
 def plot_heatmap(pathname):
     """ Plot heatmap
-
-    TODO: connect the callback to a dropdown button to choose the parameter
     """
+    # Query everything from this century
     name = 'ztf_20'
 
     # to change with the callback
@@ -2019,7 +2018,10 @@ def plot_heatmap(pathname):
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
-    pdf['date'] = [Time(x[4:8]+'-'+x[8:10]+'-'+x[10:12]).datetime for x in pdf.index.values]
+    pdf['date'] = [
+        Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
+        for x in pdf.index.values
+    ]
     years = np.unique(pdf['date'].apply(lambda x: x.year)).tolist()
 
     idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
@@ -2054,6 +2056,7 @@ def plot_stat_evolution(pathname):
 
     TODO: connect the callback to a dropdown button to choose the parameter
     """
+    # Query everything from this century
     name = 'ztf_20'
 
     # to change with the callback
@@ -2070,7 +2073,10 @@ def plot_stat_evolution(pathname):
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
-    pdf['date'] = [Time(x[4:8]+'-'+x[8:10]+'-'+x[10:12]).datetime for x in pdf.index.values]
+    pdf['date'] = [
+        Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
+        for x in pdf.index.values
+    ]
 
     newcol = 'Processed alerts'
     pdf = pdf.rename(columns={col: newcol})
@@ -2235,7 +2241,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
                     ]
 
     layout = go.Layout(
-        title='Fink/ZTF activity chart',
+        title='Fink activity chart: number of ZTF alerts processed per night',
         height=150,
         yaxis=dict(
             showline=False, showgrid=False, zeroline=False,
