@@ -2029,7 +2029,13 @@ def plot_heatmap(pathname):
 
     fig = display_years(pdf, years)
 
-    graph = dcc.Graph(figure=fig, config={'displayModeBar': False})
+    graph = dcc.Graph(
+        figure=fig,
+        config={'displayModeBar': False},
+        style={
+            'width': '100%',
+        },
+    )
 
     card = dbc.Card(
         dbc.CardBody(graph),
