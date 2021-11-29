@@ -70,10 +70,12 @@ def layout(is_mobile):
     else:
         layout_ = html.Div(
             [
+                html.Br(),
+                html.Br(),
                 dbc.Row(
                     [
                         html.Br(),
-                        dbc.Col(tabs_, width=8)
+                        dbc.Col(tabs_, width=12)
                     ],
                     justify="around", no_gutters=True
                 )
