@@ -2101,52 +2101,89 @@ def plot_stat_evolution(pathname):
     return card
 
 def display_year(data, year: int = None, month_lines: bool = True, fig=None, row: int = None):
-    """
+    """ Display one year as heatmap
+
+    Parameters
+    ----------
+    data: np.array
+        Number of alerts per day, for ALL days of the year.
+        Should be 0 if no observations
+    year: int
+        Year to plot
+    month_lines: bool
+        If true, make lines to mark months
+    fig: plotly object
+    row: int
+        Number of the row (position) in the final plot
     """
     if year is None:
         year = datetime.datetime.now().year
 
-    # if year in [2020, 2024, 2028, 2032, 2036]:
-    #     data = np.ones(366) * np.nan
-    # else:
-    #     data = np.ones(365) * np.nan
-    # data[:len(z)] = z
-
+    # First and last day
     d1 = datetime.date(year, 1, 1)
     d2 = datetime.date(year, 12, 31)
 
     delta = d2 - d1
 
-    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    month_days =   [31,    28,    31,     30,    31,     30,    31,    31,    30,    31,    30,    31]
+    # should be put elsewhere as constants?
+    month_names = [
+        'Jan', 'Feb', 'Mar',
+        'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep',
+        'Oct', 'Nov', 'Dec'
+    ]
+    month_days = [
+        31, 28, 31,
+        30, 31, 30,
+        31, 31, 30,
+        31, 30, 31
+    ]
+
+    # annees bisextiles
     if year in [2020, 2024, 2028, 2032, 2036]:
         month_days[1] = 29
-    month_positions = (np.cumsum(month_days) - 15)/7
 
-    dates_in_year = [d1 + datetime.timedelta(i) for i in range(delta.days+1)] #gives me a list with datetimes for each day a year
-    weekdays_in_year = [i.weekday() for i in dates_in_year] #gives [0,1,2,3,4,5,6,0,1,2,3,4,5,6,…] (ticktext in xaxis dict translates this to weekdays
+    # black magic
+    month_positions = (np.cumsum(month_days) - 15) / 7
 
+    # Gives a list with datetimes for each day a year
+    dates_in_year = [d1 + datetime.timedelta(i) for i in range(delta.days + 1)]
+
+    # gives [0,1,2,3,4,5,6,0,1,2,3,4,5,6,…]
+    # ticktext in xaxis dict translates this to weekdays
+    weekdays_in_year = [i.weekday() for i in dates_in_year]
+
+    # gives [1,1,1,1,1,1,1,2,2,2,2,2,2,2,…]
     weeknumber_of_dates = [
         int(i.strftime("%V"))
         if not (int(i.strftime("%V")) == 1 and i.month == 12)
         else 53 for i in dates_in_year
-    ] #gives [1,1,1,1,1,1,1,2,2,2,2,2,2,2,…] name is self-explanatory
+    ]
 
+    # Careful, first days of January can belong to week 53...
+    # so to avoid messing up, we set them to 1, and shift all
+    # other weeks by one
     if weeknumber_of_dates[0] == 53:
-        weeknumber_of_dates = [i+1 for i in weeknumber_of_dates]
-        weeknumber_of_dates = [1 if (j.month == 1 and i == 54) else i for i,j in zip(weeknumber_of_dates, dates_in_year)]
-    text = [str(i) for i in dates_in_year] #gives something like list of strings like ‘2018-01-25’ for each date. Used in data trace to make good hovertext.
-    #4cc417 green #347c17 dark green
-    colorscale=[[False, '#eeeeee'], [True, '#76cf63']]
-    colorscale=[[False, '#495a7c'], [True, '#F5622E']]
-    colorscale=[[False, '#15284F'], [True, '#3C8DFF']]
-    colorscale=[[False, '#3C8DFF'], [True, '#15284F']]
-    colorscale=[[False, '#4563a0'], [True, '#F5622E']]
-    colorscale=[[False, '#eeeeee'], [True, '#F5622E']]
+        weeknumber_of_dates = [i + 1 for i in weeknumber_of_dates]
+        weeknumber_of_dates = [
+            1 if (j.month == 1 and i == 54)
+            else i
+            for i, j in zip(weeknumber_of_dates, dates_in_year)
+        ]
+
+    # Gives something like list of strings like ‘2018-01-25’
+    # for each date. Used in data trace to make good hovertext.
+    text = [str(i) for i in dates_in_year]
+
+    # Some examples
+    colorscale = [[False, '#eeeeee'], [True, '#76cf63']]
+    colorscale = [[False, '#495a7c'], [True, '#F5622E']]
+    colorscale = [[False, '#15284F'], [True, '#3C8DFF']]
+    colorscale = [[False, '#3C8DFF'], [True, '#15284F']]
+    colorscale = [[False, '#4563a0'], [True, '#F5622E']]
+    colorscale = [[False, '#eeeeee'], [True, '#F5622E']]
 
     # handle end of year
-
-
     data = [
         go.Heatmap(
             x=weeknumber_of_dates,
@@ -2161,7 +2198,6 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
         )
     ]
 
-
     if month_lines:
         kwargs = dict(
             mode='lines',
@@ -2172,31 +2208,31 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
             hoverinfo='skip'
 
         )
-        for date, dow, wkn in zip(dates_in_year,
-                                  weekdays_in_year,
-                                  weeknumber_of_dates):
+        for date, dow, wkn in zip(
+                dates_in_year,
+                weekdays_in_year,
+                weeknumber_of_dates):
             if date.day == 1:
                 data += [
                     go.Scatter(
-                        x=[wkn-.5, wkn-.5],
-                        y=[dow-.5, 6.5],
+                        x=[wkn - 0.5, wkn - 0.5],
+                        y=[dow - 0.5, 6.5],
                         **kwargs
                     )
                 ]
                 if dow:
                     data += [
-                    go.Scatter(
-                        x=[wkn-.5, wkn+.5],
-                        y=[dow-.5, dow - .5],
-                        **kwargs
-                    ),
-                    go.Scatter(
-                        x=[wkn+.5, wkn+.5],
-                        y=[dow-.5, -.5],
-                        **kwargs
-                    )
-                ]
-
+                        go.Scatter(
+                            x=[wkn - 0.5, wkn + 0.5],
+                            y=[dow - 0.5, dow - 0.5],
+                            **kwargs
+                        ),
+                        go.Scatter(
+                            x=[wkn + 0.5, wkn + 0.5],
+                            y=[dow - 0.5, -0.5],
+                            **kwargs
+                        )
+                    ]
 
     layout = go.Layout(
         title='Fink/ZTF activity chart',
@@ -2214,29 +2250,47 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
             ticktext=month_names,
             tickvals=month_positions
         ),
-        font={'size':10, 'color':'#9e9e9e'},
+        font={'size': 10, 'color': '#9e9e9e'},
         plot_bgcolor=('#fff'),
-        margin = dict(t=40),
+        margin=dict(t=40),
         showlegend=False
     )
 
     if fig is None:
         fig = go.Figure(data=data, layout=layout)
     else:
-        fig.add_traces(data, rows=[(row+1)]*len(data), cols=[1]*len(data))
+        fig.add_traces(data, rows=[(row + 1)] * len(data), cols=[1] * len(data))
         fig.update_layout(layout)
         fig.update_xaxes(layout['xaxis'])
         fig.update_yaxes(layout['yaxis'])
-
 
     return fig
 
 
 def display_years(pdf, years):
+    """ Display all heatmaps stacked
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        DataFrame from the REST API
+    years: list or tuple of int
+        years to display
+
+    Returns
+    ----------
+    fig: plotly figure object
+    """
     fig = make_subplots(rows=len(years), cols=1, subplot_titles=years)
     for i, year in enumerate(years):
-        # data = z[i*365 : (i+1)*365]
-        data = pdf[pdf['date'].apply(lambda x: x.year == year)]['basic:sci'].values
+        # select the data for the year
+        data = pdf[
+            pdf['date'].apply(lambda x: x.year == year)
+        ]['basic:sci'].values
+
+        # Display year
         display_year(data, year=year, fig=fig, row=i, month_lines=True)
-        fig.update_layout(height=200*len(years))
+
+        # Fix the height
+        fig.update_layout(height=200 * len(years))
     return fig
