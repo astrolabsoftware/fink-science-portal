@@ -75,7 +75,7 @@ def layout(is_mobile):
                 dbc.Row(
                     [
                         html.Br(),
-                        dbc.Col("", width=2)
+                        dbc.Col("", width=2),
                         dbc.Col(tabs_, width=10)
                     ],
                     justify="around", no_gutters=True
