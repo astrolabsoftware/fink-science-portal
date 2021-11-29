@@ -2024,9 +2024,9 @@ def plot_heatmap(pathname):
 
     idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
     pdf.index = pd.DatetimeIndex(pdf.date)
-    pdf = pdf.reindex(idx, fill_value=0)
+    pdf = pdf.reindex(idx, fill_value=np.nan)
 
-    fig = display_years(pdf['basic:sci'].values, years)
+    fig = display_years(pdf, years)
 
     graph = dcc.Graph(figure=fig, config={'displayModeBar': False})
 
@@ -2214,10 +2214,11 @@ def display_year(z, year: int = None, month_lines: bool = True, fig=None, row: i
     return fig
 
 
-def display_years(z, years):
+def display_years(pdf, years):
     fig = make_subplots(rows=len(years), cols=1, subplot_titles=years)
     for i, year in enumerate(years):
-        data = z[i*365 : (i+1)*365]
+        # data = z[i*365 : (i+1)*365]
+        data = pdf[pdf['date'].apply(lambda x: x.year == year)]['basic:sci'].values
         display_year(data, year=year, fig=fig, row=i)
         fig.update_layout(height=250*len(years))
     return fig
