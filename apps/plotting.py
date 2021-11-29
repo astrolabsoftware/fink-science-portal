@@ -2179,7 +2179,8 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
 
     # Gives something like list of strings like ‘2018-01-25’
     # for each date. Used in data trace to make good hovertext.
-    text = [str(i) for i in dates_in_year]
+    # text = [str(i) for i in dates_in_year]
+    text = ['{} alerts processed in {}'.format(i, j) for i, j in zip(data, dates_in_year)]
 
     # Some examples
     colorscale = [[False, '#eeeeee'], [True, '#76cf63']]
@@ -2196,7 +2197,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
             y=weekdays_in_year,
             z=data,
             text=text,
-            hoverinfo='text,z',
+            hoverinfo='text',
             xgap=3, # this
             ygap=3, # and this is used to make the grid-like apperance
             showscale=False,
@@ -2241,7 +2242,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
                     ]
 
     layout = go.Layout(
-        title='Fink activity chart: number of ZTF alerts processed per night',
+        title='Fink activity chart: number of ZTF alerts processed per night\n',
         height=150,
         yaxis=dict(
             showline=False, showgrid=False, zeroline=False,
@@ -2269,7 +2270,14 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
         fig.update_layout(layout)
         fig.update_xaxes(layout['xaxis'])
         fig.update_yaxes(layout['yaxis'])
-        fig.update_layout(title_x=0.5)
+        fig.update_layout(
+            title={
+                'y': 0.995,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            }
+        )
 
     return fig
 
