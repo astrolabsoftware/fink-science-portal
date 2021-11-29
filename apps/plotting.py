@@ -2099,7 +2099,10 @@ def display_year(z, year: int = None, month_lines: bool = True, fig=None, row: i
     if year is None:
         year = datetime.datetime.now().year
 
-    data = np.ones(365) * np.nan
+    if year in [2020, 2024, 2028, 2032, 2036]:
+        data = np.ones(366) * np.nan
+    else:
+        data = np.ones(365) * np.nan
     data[:len(z)] = z
 
 
