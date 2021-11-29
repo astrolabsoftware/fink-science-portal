@@ -31,7 +31,7 @@ def layout(is_mobile):
                 dbc.Row(
                     [
                         dbc.Col(dbc.Card(""), width=3),
-                        dbc.Col(id='evolution', width=8)
+                        dbc.Col(id='heatmap_stat', width=8)
                     ]
                 )
             ],
