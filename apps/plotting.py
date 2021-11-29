@@ -2136,6 +2136,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
     colorscale=[[False, '#15284F'], [True, '#3C8DFF']]
     colorscale=[[False, '#3C8DFF'], [True, '#15284F']]
     colorscale=[[False, '#4563a0'], [True, '#F5622E']]
+    colorscale=[[False, '#eeeeee'], [True, '#F5622E']]
 
     # handle end of year
 
