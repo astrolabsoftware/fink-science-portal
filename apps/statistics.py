@@ -70,7 +70,13 @@ def layout(is_mobile):
     else:
         layout_ = html.Div(
             [
-                tabs_
+                dbc.Row(
+                    [
+                        html.Br(),
+                        dbc.Col(tabs_, width=8)
+                    ],
+                    justify="around", no_gutters=True
+                )
             ],
             className='home',
             style={
