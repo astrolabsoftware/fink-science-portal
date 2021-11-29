@@ -33,6 +33,11 @@ def layout(is_mobile):
                         dbc.Col(dbc.Card(""), width=3),
                         dbc.Col(id='heatmap_stat', width=8)
                     ]
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(id='evolution', width=8)
+                    ]
                 )
             ],
             className='home',
