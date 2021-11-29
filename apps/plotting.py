@@ -2269,6 +2269,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
         fig.update_layout(layout)
         fig.update_xaxes(layout['xaxis'])
         fig.update_yaxes(layout['yaxis'])
+        fig.update_layout(title_x=0.5)
 
     return fig
 
