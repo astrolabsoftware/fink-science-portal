@@ -2081,9 +2081,18 @@ def plot_stat_evolution(pathname):
     newcol = 'Processed alerts'
     pdf = pdf.rename(columns={col: newcol})
 
-    fig = px.bar(pdf, y=newcol, x='date', text=newcol)
+    fig = px.bar(
+        pdf,
+        y=newcol,
+        x='date',
+        text=newcol
+    )
     fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-    fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide', showlegend=True)
+    fig.update_layout(
+        uniformtext_minsize=8,
+        uniformtext_mode='hide',
+        showlegend=True
+    )
     fig.update_layout(
         title='',
         margin=dict(t=0, r=0, b=0, l=0),
@@ -2180,7 +2189,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
     # Gives something like list of strings like ‘2018-01-25’
     # for each date. Used in data trace to make good hovertext.
     # text = [str(i) for i in dates_in_year]
-    text = ['{:,} alerts processed in {}'.format(i, j) for i, j in zip(data, dates_in_year)]
+    text = ['{:,} alerts processed in {}'.format(int(i), j) for i, j in zip(data, dates_in_year)]
 
     # Some examples
     colorscale = [[False, '#eeeeee'], [True, '#76cf63']]
