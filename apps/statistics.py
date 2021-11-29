@@ -26,7 +26,7 @@ def heatmap_content():
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(id='heatmap_stat', width=8)
+                    dbc.Col(id='heatmap_stat', width=12)
                 ]
             ),
         ],
