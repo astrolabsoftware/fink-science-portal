@@ -2022,7 +2022,7 @@ def plot_heatmap(pathname):
     pdf['date'] = [Time(x[4:8]+'-'+x[8:10]+'-'+x[10:12]).datetime for x in pdf.index.values]
     years = np.unique(pdf['date'].apply(lambda x: x.year)).tolist()
 
-    idx = pd.date_range(np.min(pdf['date']), np.max(pdf['date']))
+    idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
     pdf.index = pd.DatetimeIndex(pdf.date)
     pdf = pdf.reindex(idx, fill_value=0)
 
@@ -2064,10 +2064,6 @@ def plot_stat_evolution(pathname):
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
     pdf['date'] = [Time(x[4:8]+'-'+x[8:10]+'-'+x[10:12]).datetime for x in pdf.index.values]
-
-    idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
-    pdf.index = pd.DatetimeIndex(pdf.date)
-    pdf = pdf.reindex(idx, fill_value=None)
 
     newcol = 'Processed alerts'
     pdf = pdf.rename(columns={col: newcol})
