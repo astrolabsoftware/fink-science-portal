@@ -2118,6 +2118,8 @@ def plot_stat_evolution(pathname):
 def display_year(data, year: int = None, month_lines: bool = True, fig=None, row: int = None):
     """ Display one year as heatmap
 
+    help from https://community.plotly.com/t/colored-calendar-heatmap-in-dash/10907/17
+
     Parameters
     ----------
     data: np.array
