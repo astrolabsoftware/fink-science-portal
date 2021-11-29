@@ -2017,17 +2017,27 @@ def plot_stat_evolution(pathname):
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
-    pdf['date'] = pdf.index.values
+    pdf['date'] = [Time(x[4:8]+'-'+x[8:10]+'-'+x[10:12]).datetime for x in pdf.index.values]
 
-    fig = px.bar(pdf, y=col, x='date', text=col)
+    newcol = 'Processed alerts'
+    pdf = pdf.rename(columns={col: newcol})
+
+    fig = px.bar(pdf, y=newcol, x='date', text=newcol)
     fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-    fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
+    fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide', showlegend=True)
+    fig.update_layout(
+        title='',
+        margin=dict(t=0, r=0, b=0, l=0),
+        showlegend=True,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
 
     graph = dcc.Graph(
         figure=fig,
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '20pc'
         },
         config={'displayModeBar': False}
     )

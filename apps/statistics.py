@@ -26,9 +26,11 @@ def layout(is_mobile):
     else:
         layout_ = html.Div(
             [
+                html.Br(),
+                html.Br(),
                 dbc.Row(
                     [
-                        dbc.Col(dbc.Card(""), width=4),
+                        dbc.Col(dbc.Card(""), width=3),
                         dbc.Col(id='evolution', width=8)
                     ]
                 )
