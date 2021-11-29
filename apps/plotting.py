@@ -2110,6 +2110,8 @@ def display_year(z, year: int = None, month_lines: bool = True, fig=None, row: i
 
     month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     month_days =   [31,    28,    31,     30,    31,     30,    31,    31,    30,    31,    30,    31]
+    if year in [2020, 2024, 2028, 2032, 2036]:
+        month_days[1] = 29
     month_positions = (np.cumsum(month_days) - 15)/7
 
     dates_in_year = [d1 + datetime.timedelta(i) for i in range(delta.days+1)] #gives me a list with datetimes for each day a year
