@@ -2024,7 +2024,7 @@ def plot_heatmap(pathname):
 
     idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
     pdf.index = pd.DatetimeIndex(pdf.date)
-    pdf = pdf.reindex(idx, fill_value=0)
+    pdf = pdf.reindex(idx, fill_value=None)
     pdf['date'] = pdf.index.values
 
     fig = display_years(pdf, years)
@@ -2132,6 +2132,10 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
     text = [str(i) for i in dates_in_year] #gives something like list of strings like ‘2018-01-25’ for each date. Used in data trace to make good hovertext.
     #4cc417 green #347c17 dark green
     colorscale=[[False, '#eeeeee'], [True, '#76cf63']]
+    colorscale=[[False, '#495a7c'], [True, '#F5622E']]
+    colorscale=[[False, '#15284F'], [True, '#3C8DFF']]
+    colorscale=[[False, '#3C8DFF'], [True, '#15284F']]
+    colorscale=[[False, '#4563a0'], [True, '#F5622E']]
 
     # handle end of year
 
@@ -2188,7 +2192,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
 
 
     layout = go.Layout(
-        title='activity chart',
+        title='Fink/ZTF activity chart',
         height=250,
         yaxis=dict(
             showline=False, showgrid=False, zeroline=False,
