@@ -39,7 +39,7 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
-from app import client, app, clientSSO
+from app import client, app, clientSSO, clientStats
 
 # colors_ = [
 #     '#1f77b4',  # muted blue
@@ -1989,3 +1989,50 @@ def alert_properties(object_data):
         }
     )
     return table
+
+@app.callback(
+    Output('evolution', 'children'),
+    [
+        Input('url', 'pathname')
+    ]
+)
+def plot_stat_evolution(pathname):
+    """ Plot evolution of parameters as a function of time
+
+    TODO: connect the callback to a dropdown button to choose the parameter
+    """
+    name = 'ztf_20'
+
+    # to change with the callback
+    col = 'basic:sci'
+
+    results = clientStats.scan(
+        "",
+        "key:key:{}".format(name),
+        "{},".format(col),
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf['date'] = pdf.index.values
+
+    fig = px.bar(pdf, y=col, x='date', text='pop')
+    fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+    fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
+
+    graph = dcc.Graph(
+        figure=fig,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card

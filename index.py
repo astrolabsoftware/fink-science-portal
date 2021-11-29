@@ -27,7 +27,7 @@ from app import app
 from app import client
 from app import APIURL
 
-from apps import home, summary, about, api
+from apps import home, summary, about, api, statistics
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid
@@ -1180,6 +1180,8 @@ def display_page(pathname, is_mobile):
         return about.layout
     elif pathname == '/api':
         return api.layout(is_mobile)
+    elif pathname == '/stats':
+        return statistics.layout(is_mobile)
     elif 'ZTF' in pathname:
         return summary.layout(pathname, is_mobile)
     else:
