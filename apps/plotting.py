@@ -2180,7 +2180,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
     # Gives something like list of strings like ‘2018-01-25’
     # for each date. Used in data trace to make good hovertext.
     # text = [str(i) for i in dates_in_year]
-    text = ['{} alerts processed in {}'.format(i, j) for i, j in zip(data, dates_in_year)]
+    text = ['{:,} alerts processed in {}'.format(i, j) for i, j in zip(data, dates_in_year)]
 
     # Some examples
     colorscale = [[False, '#eeeeee'], [True, '#76cf63']]
