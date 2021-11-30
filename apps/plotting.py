@@ -2354,7 +2354,7 @@ def make_daily_card(pdf, color, linecolor, title, height='12pc', scale='lin'):
         config={'displayModeBar': False}
     )
     card = dbc.Card(
-        dbc.CardBody(graph),
+        dbc.CardBody([html.H6(title, className="card-subtitle"), graph]),
         className="mt-3"
     )
     return card
