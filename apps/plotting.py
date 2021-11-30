@@ -2067,7 +2067,7 @@ def plot_stat_evolution(pathname, param_name, switch):
     pdf = pdf.rename(columns={param_name: newcol})
 
     if switch == [1]:
-        pdf[newcol] = pdf[newcol].cumsum()
+        pdf[newcol] = pdf[newcol].astype(int).cumsum()
 
     fig = px.bar(
         pdf,
