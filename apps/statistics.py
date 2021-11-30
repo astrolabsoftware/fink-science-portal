@@ -64,7 +64,7 @@ def create_stat_row(object_stats):
         children=[
             html.Br(),
             html.H3(html.B(night)),
-            html.P('Last night')
+            html.P('Last observing night')
         ], width=2
     )
     c1 = dbc.Col(
@@ -133,6 +133,44 @@ def timelines():
 
     return layout_
 
+def daily_stats():
+    """
+    """
+    layout_ = html.Div(
+        [
+            html.Br(),
+            dbc.Row(dbc.Col(id='dropdown_days'))
+            dbc.Row(
+                [
+                    dbc.Col(id='evolution', width=10)
+                ], justify="center", no_gutters=True
+            ),
+        ],
+    )
+
+    return layout_
+
+@app.callback(
+    Output('dropdown_days', 'children'),
+    Input('object-stats', 'children')
+)
+def generate_night_list(object_stats):
+    """
+    """
+    pdf = pd.read_json(object_stats)
+    labels = pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12])
+
+    dropdown = dcc.Dropdown(
+        options=[
+            *[{'label': label, 'value': value} for label, values in zip(values, pdf['key:key'].values)]
+        ],
+        searchable=True,
+        clearable=True,
+        placeholder="Choose a date",
+    )
+
+    return dropdown
+
 def layout(is_mobile):
     """
     """
@@ -143,6 +181,7 @@ def layout(is_mobile):
         tabs_ = dbc.Tabs(
             [
                 dbc.Tab(heatmap_content(), label="Heatmap", label_style=label_style),
+                dbc.Tab(daily_stats(), label="Daily statistics", label_style=label_style),
                 dbc.Tab(timelines(), label="Timelines", label_style=label_style),
                 dbc.Tab(label="TNS", disabled=True),
             ]
