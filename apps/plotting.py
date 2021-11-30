@@ -2489,7 +2489,7 @@ def hist_candidates(pathname, dropdown_days):
     pdf = pdf[pdf.index == dropdown_days]
 
     card = make_daily_card(
-        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', title='Selected candidates'
+        pdf, color='rgb(213, 213, 211)', linecolor='rgb(138, 138, 132)', title='Selected candidates'
     )
 
     return card
