@@ -65,7 +65,7 @@ def create_stat_row(object_stats):
         children=[
             html.Br(),
             html.H3(html.B(night)),
-            html.P('Last observing night')
+            html.P('Last ZTF observing night')
         ], width=2
     )
     c1 = dbc.Col(
