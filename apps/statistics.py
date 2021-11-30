@@ -134,6 +134,7 @@ def layout(is_mobile):
     else:
         layout_ = html.Div(
             [
+                html.Div(id='object-stats', style={'display': 'none'}),
                 html.Br(),
                 html.Br(),
                 dbc.Row(id='stat_row'),
@@ -144,7 +145,6 @@ def layout(is_mobile):
                     ],
                     justify="center", no_gutters=True
                 ),
-                html.Div(id='object-stats', style={'display': 'none'}),
             ],
             className='home',
             style={
