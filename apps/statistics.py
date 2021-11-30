@@ -70,29 +70,34 @@ def create_stat_row(object_stats):
     c1 = dbc.Col(
         children=[
             html.Br(),
-            html.H3(html.B('{:,}'.format(pdf['basic:raw'].values[-1]))),
-            html.P('Alerts received')
+            html.H3(html.B('{:,}'.format(pdf['basic:sci'].values[-1]))),
+            html.P('Alerts processed')
         ], width=2
     )
     c2 = dbc.Col(
         children=[
             html.Br(),
-            html.H3(html.B('{:,}'.format(pdf['basic:sci'].values[-1]))),
-            html.P('Alerts processed')
+            html.H3(html.B('{:,}'.format(np.sum(pdf['basic:sci'].values)))),
+            html.P('Alerts processed since 2019/11/01')
         ], width=2
     )
+
+    n_alert_unclassified = np.sum(pdf['class:Unknown'].values)
+    n_alert_classified = np.sum(pdf['basic:sci'].values) - n_alert_unclassified
+
     c3 = dbc.Col(
         children=[
             html.Br(),
-            html.H3(html.B(pdf['basic:fields'].values[-1])),
-            html.P('Fields visited')
+            html.H3(html.B(n_alert_classified)),
+            html.P('Alerts with classification since 2019/11/01')
         ], width=2
     )
+
     c4 = dbc.Col(
         children=[
             html.Br(),
-            html.H3(html.B(pdf['basic:exposures'].values[-1])),
-            html.P('Exposures taken')
+            html.H3(html.B(n_alert_unclassified)),
+            html.P('Alerts without classification since 2019/11/01')
         ], width=2
     )
 
@@ -141,6 +146,16 @@ def daily_stats():
         [
             html.Br(),
             dbc.Row(dbc.Col(id='dropdown_days_row')),
+            # dbc.Row(
+            #     [
+            #         dbc.Col(id="hist_sci_raw", width=3),
+            #         dbc.Col(id="hist_g_r", width=3),
+            #         dbc.Col(id="fields_exposures", width=3)
+            #     ]
+            # ),
+            # dbc.Row(
+            #     dbc.Col(id="daily_classification")
+            # )
         ],
     )
 
@@ -162,7 +177,7 @@ def generate_night_list(object_stats):
                 {'label': label, 'value': value}
                 for label, value in zip(labels[::-1], pdf['key:key'].values[::-1])]
         ],
-        id='dropdowm_days',
+        id='dropdown_days',
         searchable=True,
         clearable=True,
         placeholder="Choose a date",

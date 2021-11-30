@@ -2050,8 +2050,8 @@ def plot_stat_evolution(pathname, param_name):
         "key:key:ztf_",
         param_name,
         0,
-        True,
-        True
+        False,
+        False
     )
 
     # Construct the dataframe
@@ -2304,3 +2304,15 @@ def display_years(pdf, years):
         # Fix the height
         fig.update_layout(height=200 * len(years))
     return fig
+
+@app.callback(
+    Output('hist_sci_raw', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def hist_sci_raw(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    pass
