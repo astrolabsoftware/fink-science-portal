@@ -79,7 +79,7 @@ def create_stat_row(object_stats):
         children=[
             html.Br(),
             html.H3(html.B('{:,}'.format(np.sum(pdf['basic:sci'].values)))),
-            html.P('Alerts processed since 2019/11/01')
+            html.P('Since 2019/11/01')
         ], width=2
     )
 
@@ -89,16 +89,16 @@ def create_stat_row(object_stats):
     c3 = dbc.Col(
         children=[
             html.Br(),
-            html.H3(html.B(n_alert_classified)),
-            html.P('Alerts with classification since 2019/11/01')
+            html.H3(html.B('{:,}'.format(n_alert_classified))),
+            html.P('With classification')
         ], width=2
     )
 
     c4 = dbc.Col(
         children=[
             html.Br(),
-            html.H3(html.B(n_alert_unclassified)),
-            html.P('Alerts without classification since 2019/11/01')
+            html.H3(html.B('{:,}'.format(n_alert_unclassified))),
+            html.P('Without classification')
         ], width=2
     )
 
