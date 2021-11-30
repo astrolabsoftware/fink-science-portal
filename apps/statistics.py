@@ -50,8 +50,8 @@ def store_stat_query(name):
     return pdf.to_json()
 
 @app.callback(
-    Output('stat_row', 'children'),
-    Input('object-stats', 'children')
+    [Output('stat_row', 'children')],
+    [Input('object-stats', 'children')]
 )
 def create_stat_row(object_stats):
     """ Create links to external website. Used in the mobile app.
