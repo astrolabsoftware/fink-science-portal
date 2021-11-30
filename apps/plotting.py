@@ -2403,44 +2403,14 @@ def hist_catalogued(pathname, dropdown_days):
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
+    pdf = pdf.rename(columns={'class:Solar System MPC': 'MPC', 'class:simbad_tot': 'SIMBAD'})
+
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
     card = make_daily_card(
         pdf, color='rgb(245, 98, 46)', linecolor='rgb(135, 86, 69)'
-    )
-
-    return card
-
-@app.callback(
-    Output('fields_exposures', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('dropdown_days', 'value'),
-    ]
-)
-def fields_exposures(pathname, dropdown_days):
-    """ Make an histogram
-    """
-    results = clientStats.scan(
-        "",
-        "key:key:ztf_",
-        'basic:fields,basic:exposures',
-        0,
-        False,
-        False
-    )
-
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
-
-    if dropdown_days is None or dropdown_days == '':
-        dropdown_days = pdf.index[-1]
-    pdf = pdf[pdf.index == dropdown_days]
-
-    card = make_daily_card(
-        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)'
     )
 
     return card
