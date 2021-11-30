@@ -248,6 +248,7 @@ def layout(is_mobile):
                 dbc.Tab(daily_stats(), label="Daily statistics", label_style=label_style),
                 dbc.Tab(timelines(), label="Timelines", label_style=label_style),
                 dbc.Tab(label="TNS", disabled=True),
+                dbc.Tab(label="Help", disabled=True),
             ]
         )
 
