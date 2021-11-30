@@ -41,7 +41,7 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
-from app import client, app, clientSSO, clientStats
+from app import client, app, clientSSO
 
 # colors_ = [
 #     '#1f77b4',  # muted blue
@@ -1995,29 +1995,14 @@ def alert_properties(object_data):
 @app.callback(
     Output('heatmap_stat', 'children'),
     [
-        Input('url', 'pathname')
+        Input('url', 'pathname'),
+        Input('object-stats', 'children')
     ]
 )
-def plot_heatmap(pathname):
+def plot_heatmap(pathname, object_stats):
     """ Plot heatmap
     """
-    # Query everything from this century
-    name = 'ztf_20'
-
-    # to change with the callback
-    col = 'basic:sci'
-
-    results = clientStats.scan(
-        "",
-        "key:key:{}".format(name),
-        "{},".format(col),
-        0,
-        False,
-        False
-    )
-
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf = pd.read_json(object_stats)
     pdf['date'] = [
         Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
         for x in pdf.index.values
@@ -2048,31 +2033,17 @@ def plot_heatmap(pathname):
 @app.callback(
     Output('evolution', 'children'),
     [
-        Input('url', 'pathname')
+        Input('url', 'pathname'),
+        Input('object-stats', 'children')
     ]
 )
-def plot_stat_evolution(pathname):
+def plot_stat_evolution(pathname, object_stats):
     """ Plot evolution of parameters as a function of time
 
     TODO: connect the callback to a dropdown button to choose the parameter
     """
-    # Query everything from this century
-    name = 'ztf_20'
+    pdf = pd.read_json(object_stats)
 
-    # to change with the callback
-    col = 'basic:sci'
-
-    results = clientStats.scan(
-        "",
-        "key:key:{}".format(name),
-        "{},".format(col),
-        0,
-        False,
-        False
-    )
-
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
     pdf['date'] = [
         Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
         for x in pdf.index.values
