@@ -2466,7 +2466,7 @@ def hist_classified(pathname, dropdown_days):
 
     pdf['classified'] = pdf['basic:sci'] - pdf['class:Unknown']
     pdf = pdf.rename(columns={'class:Unknown': 'unclassified'})
-    pdf = pdf.drop(['basic:sci'])
+    pdf = pdf.drop(colummns=['basic:sci'])
 
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
@@ -2501,7 +2501,7 @@ def fields_exposures(pathname, dropdown_days):
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
     to_drop = [i for i in pdf.columns if i.startswith('basic:')]
-    pdf = pdf.drop(to_drop)
+    pdf = pdf.drop(columns=to_drop)
 
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
