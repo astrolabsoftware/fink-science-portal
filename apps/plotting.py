@@ -2318,7 +2318,7 @@ def hist_sci_raw(pathname, dropdown_days):
     results = clientStats.scan(
         "",
         "key:key:ztf_",
-        'basic:raw,basic:raw',
+        'basic:raw,basic:sci',
         0,
         False,
         False
@@ -2337,25 +2337,25 @@ def hist_sci_raw(pathname, dropdown_days):
         ]
     )
 
-    fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-    fig.update_layout(
-        uniformtext_minsize=8,
-        uniformtext_mode='hide',
-        showlegend=True
-    )
     fig.update_layout(
         title='',
         margin=dict(t=0, r=0, b=0, l=0),
-        showlegend=True,
+        showlegend=False,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
+    )
+
+    fig.update_traces(
+        marker_color='rgb(158,202,225)',
+        marker_line_color='rgb(8,48,107)',
+        marker_line_width=1.5, opacity=0.6
     )
 
     graph = dcc.Graph(
         figure=fig,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '15pc'
         },
         config={'displayModeBar': False}
     )
