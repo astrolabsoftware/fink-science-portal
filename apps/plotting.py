@@ -2035,9 +2035,10 @@ def plot_heatmap(pathname, object_stats):
     [
         Input('url', 'pathname'),
         Input('dropdown_params', 'value'),
+        Input('switch-cumulative', 'value'),
     ]
 )
-def plot_stat_evolution(pathname, param_name):
+def plot_stat_evolution(pathname, param_name, switch):
     """ Plot evolution of parameters as a function of time
 
     TODO: connect the callback to a dropdown button to choose the parameter
@@ -2064,6 +2065,9 @@ def plot_stat_evolution(pathname, param_name):
 
     newcol = 'Processed {}'.format(param_name.split(':')[1])
     pdf = pdf.rename(columns={param_name: newcol})
+
+    if switch == [1]:
+        pdf[newcol] = pdf[newcol].cumsum()
 
     fig = px.bar(
         pdf,
@@ -2528,7 +2532,7 @@ def fields_exposures(pathname, dropdown_days):
     card = make_daily_card(
         pdf,
         color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)',
-        title='Individual classifications (zoom in to see details)',
+        title='Individual classifications (zoom in to see more details)',
         height='20pc', scale='log'
     )
 

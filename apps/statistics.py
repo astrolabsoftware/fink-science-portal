@@ -130,7 +130,7 @@ def timelines():
         [
             dbc.Checklist(
                 options=[
-                    {"label": "Option 1", "value": 1},
+                    {"label": "Cumulative", "value": 1},
                 ],
                 value=[],
                 id="switch-cumulative",
