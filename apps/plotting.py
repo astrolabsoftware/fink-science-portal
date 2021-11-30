@@ -2375,6 +2375,8 @@ def hist_sci_raw(pathname, dropdown_days):
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
+    pdf = pdf.rename(columns={'basic:raw': 'Received', 'basic:sci': 'Processed'})
+
     card = make_daily_card(
         pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)'
     )
@@ -2437,8 +2439,8 @@ def hist_classified(pathname, dropdown_days):
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
-    pdf['classified'] = pdf['basic:sci'].astype(int) - pdf['class:Unknown'].astype(int)
-    pdf = pdf.rename(columns={'class:Unknown': 'unclassified'})
+    pdf['Classified'] = pdf['basic:sci'].astype(int) - pdf['class:Unknown'].astype(int)
+    pdf = pdf.rename(columns={'class:Unknown': 'Unclassified'})
     pdf = pdf.drop(columns=['basic:sci'])
 
     if dropdown_days is None or dropdown_days == '':
