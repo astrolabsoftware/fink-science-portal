@@ -2045,11 +2045,10 @@ def plot_stat_evolution(pathname, param_name):
     if param_name is None or param_name == '':
         param_name = 'basic:sci'
 
-    col = '{}'.format(param_name)
     results = clientStats.scan(
         "",
         "key:key:ztf_",
-        col,
+        param_name,
         0,
         True,
         True
@@ -2063,8 +2062,8 @@ def plot_stat_evolution(pathname, param_name):
         for x in pdf.index.values
     ]
 
-    newcol = 'Processed alerts'
-    pdf = pdf.rename(columns={'basic:sci': newcol})
+    newcol = 'Processed {}'.format(param_name.split(':')[1])
+    pdf = pdf.rename(columns={param_name: newcol})
 
     fig = px.bar(
         pdf,
