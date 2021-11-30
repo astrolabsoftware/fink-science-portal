@@ -150,13 +150,14 @@ def daily_stats():
             dbc.Row(
                 [
                     dbc.Col(id="hist_sci_raw", width=3),
-                    dbc.Col(id="hist_g_r", width=3),
+                    dbc.Col(id="hist_classified", width=3),
+                    # dbc.Col(id="hist_g_r", width=3),
                     dbc.Col(id="fields_exposures", width=3)
-                ]
+                ], justify='around'
             ),
-            # dbc.Row(
-            #     dbc.Col(id="daily_classification")
-            # )
+            dbc.Row(
+                dbc.Col(id="daily_classification", width=10)
+            )
         ],
     )
 
@@ -183,12 +184,13 @@ def generate_night_list():
         options=[
             *[
                 {'label': label, 'value': value}
-                for label, value in zip(labels[::-1], pdf['key:key'].values[::-1])]
+                for label, value in zip(labels[::-1], pdf['key:key'].values[::-1])
+            ]
         ],
         id='dropdown_days',
         searchable=True,
         clearable=True,
-        placeholder="Choose a date",
+        placeholder=labels[-1],
     )
 
     return dropdown

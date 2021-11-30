@@ -2336,7 +2336,7 @@ def make_daily_card(pdf, color, linecolor):
         figure=fig,
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '10pc'
         },
         config={'displayModeBar': False}
     )
@@ -2431,6 +2431,77 @@ def fields_exposures(pathname, dropdown_days):
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)'
+    )
+
+    return card
+
+@app.callback(
+    Output('hist_classified', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def hist_classified(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'basic:sci,class:Unknown',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    pdf['classified'] = pdf['basic:sci'] - pdf['class:Unknown']
+    pdf = pdf.rename(columns={'class:Unknown': 'unclassified'})
+    pdf = pdf.drop(['basic:sci'])
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf, color='rgb(245, 98, 46)', linecolor='rgb(135, 86, 69)'
+    )
+
+    return card
+
+@app.callback(
+    Output('daily_classification', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def fields_exposures(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        '*',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    to_drop = [i for i in pdf.columns if i.startswith('basic:')]
+    pdf = pdf.drop(to_drop)
 
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
