@@ -129,7 +129,18 @@ def timelines():
     layout_ = html.Div(
         [
             html.Br(),
-            dbc.Row(dbc.Col(generate_col_list())),
+            dbc.Row(
+                [
+                    dbc.Col(generate_col_list(), width=10),
+                    dbc.Col(
+                        dbc.Switch(
+                            id="standalone-switch",
+                            label="Cumulative",
+                            value=False,
+                        ), width=2
+                    )
+                ], justify='around'
+            ),
             dbc.Row(
                 [
                     dbc.Col(id='evolution', width=10)
