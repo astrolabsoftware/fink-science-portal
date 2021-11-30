@@ -2309,7 +2309,7 @@ def display_years(pdf, years):
         fig.update_layout(height=200 * len(years))
     return fig
 
-def make_daily_card(pdf, color, linecolor, height='10pc', scale='lin'):
+def make_daily_card(pdf, color, linecolor, height='12pc', scale='lin'):
     """
     """
     fig = go.Figure(
@@ -2382,19 +2382,19 @@ def hist_sci_raw(pathname, dropdown_days):
     return card
 
 @app.callback(
-    Output('hist_g_r', 'children'),
+    Output('hist_catalogued', 'children'),
     [
         Input('url', 'pathname'),
         Input('dropdown_days', 'value'),
     ]
 )
-def hist_g_r(pathname, dropdown_days):
+def hist_catalogued(pathname, dropdown_days):
     """ Make an histogram
     """
     results = clientStats.scan(
         "",
         "key:key:ztf_",
-        'basic:n_g,basic:n_r',
+        'class:Solar System MPC,class:simbad_tot',
         0,
         False,
         False
