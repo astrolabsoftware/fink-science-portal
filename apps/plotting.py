@@ -2050,7 +2050,7 @@ def plot_stat_evolution(pathname, object_stats):
     ]
 
     newcol = 'Processed alerts'
-    pdf = pdf.rename(columns={col: newcol})
+    pdf = pdf.rename(columns={'basic:sci': newcol})
 
     fig = px.bar(
         pdf,
