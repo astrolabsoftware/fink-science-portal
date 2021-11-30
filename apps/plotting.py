@@ -2327,6 +2327,8 @@ def hist_sci_raw(pathname, dropdown_days):
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
     fig = go.Figure(
