@@ -57,15 +57,16 @@ def create_stat_row(object_stats):
     """ Create links to external website. Used in the mobile app.
     """
     pdf = pd.read_json(object_stats)
-    c0 = stat_card(pdf['key:key'].values[0], 'Last night'),
-    c1 = stat_card(pdf['basic:raw'].values[0], 'Alerts received'),
-    c2 = stat_card(pdf['basic:sci'].values[0], 'Alerts processed'),
-    c3 = stat_card(pdf['basic:fields'].values[0], 'Fields visited'),
-    c4 = stat_card(pdf['basic:exposures'].values[0], 'Exposures taken')
+    c0 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['key:key'].values[-1])), html.P('Last night')], width=2)
+    c1 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['basic:raw'].values[-1])), html.P('Alerts received')], width=2)
+    c2 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['basic:sci'].values[-1])), html.P('Alerts processed')], width=2)
+    c3 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['basic:fields'].values[-1])), html.P('Fields visited')], width=2)
+    c4 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['basic:exposures'].values[-1])), html.P('Exposures taken')], width=2)
+
     row = [
         dbc.Col(width=1), c0, c1, c2, c3, c4, dbc.Col(width=1)
     ]
-    return dbc.Row(row)
+    return row
 
 def stat_card(value, title):
     """
@@ -134,7 +135,7 @@ def layout(is_mobile):
             [
                 html.Br(),
                 html.Br(),
-                html.Div(id='stat_row'),
+                dbc.Row(id='stat_row'),
                 dbc.Row(
                     [
                         html.Br(),
