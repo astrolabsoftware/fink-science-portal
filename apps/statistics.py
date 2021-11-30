@@ -173,14 +173,15 @@ def generate_night_list(object_stats):
 def generate_col_list():
     """ Generate the list of available columns
     """
-    pdf = get_data_one_night('ztf_20211125')
-    labels = [i.split(':')[1] for i in pdf.columns]
+    schema = clientStats.schema()
+    schema_list = list(schema.columnNames())
+    labels = [i.split(':')[1] for i in schema_list]
 
     dropdown = dcc.Dropdown(
         options=[
             *[
                 {'label': label, 'value': value}
-                for label, value in zip(labels, pdf.columns)]
+                for label, value in zip(labels, schema_list)]
         ],
         id='dropdown_params',
         searchable=True,
