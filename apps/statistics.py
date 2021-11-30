@@ -24,9 +24,7 @@ import pandas as pd
 dcc.Location(id='url', refresh=False)
 
 @app.callback(
-    [
-        Output('object-stats', 'children')
-    ],
+    Output('object-stats', 'children'),
     [
         Input('url', 'pathname'),
     ])
