@@ -19,6 +19,7 @@ from dash.dependencies import Input, Output
 
 from app import app, clientStats
 
+import numpy as np
 import pandas as pd
 
 dcc.Location(id='url', refresh=False)
