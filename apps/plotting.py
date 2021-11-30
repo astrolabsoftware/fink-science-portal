@@ -2305,6 +2305,43 @@ def display_years(pdf, years):
         fig.update_layout(height=200 * len(years))
     return fig
 
+def make_daily_card(pdf, color, linecolor):
+    """
+    """
+    fig = go.Figure(
+        [
+            go.Bar(x=pdf.columns, y=pdf.values[0])
+        ]
+    )
+
+    fig.update_layout(
+        title='',
+        margin=dict(t=0, r=0, b=0, l=0),
+        showlegend=False,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+
+    fig.update_traces(
+        marker_color=color,
+        marker_line_color=linecolor,
+        marker_line_width=1.5, opacity=0.6
+    )
+
+    graph = dcc.Graph(
+        figure=fig,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
 @app.callback(
     Output('hist_sci_raw', 'children'),
     [
@@ -2331,36 +2368,72 @@ def hist_sci_raw(pathname, dropdown_days):
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
-    fig = go.Figure(
-        [
-            go.Bar(x=pdf.columns, y=pdf.values[0])
-        ]
+    card = make_daily_card(
+        pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)'
     )
 
-    fig.update_layout(
-        title='',
-        margin=dict(t=0, r=0, b=0, l=0),
-        showlegend=False,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
+    return card
+
+@app.callback(
+    Output('hist_g_r', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def hist_g_r(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'basic:n_g,basic:n_r',
+        0,
+        False,
+        False
     )
 
-    fig.update_traces(
-        marker_color='rgb(158,202,225)',
-        marker_line_color='rgb(8,48,107)',
-        marker_line_width=1.5, opacity=0.6
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf, color='rgb(245, 98, 46)', linecolor='rgb(135, 86, 69)'
     )
 
-    graph = dcc.Graph(
-        figure=fig,
-        style={
-            'width': '100%',
-            'height': '15pc'
-        },
-        config={'displayModeBar': False}
+    return card
+
+@app.callback(
+    Output('fields_exposures', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def fields_exposures(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'basic:fields,basic:exposures',
+        0,
+        False,
+        False
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)'
     )
+
     return card
