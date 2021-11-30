@@ -2335,7 +2335,7 @@ def make_daily_card(pdf, color, linecolor, title, height='12pc', scale='lin'):
     fig.update_layout(
         title={
             'text': title,
-            'y': 0.995,
+            'y': 1.0,
             'x': 0.5,
             'xanchor': 'center',
             'yanchor': 'top'
