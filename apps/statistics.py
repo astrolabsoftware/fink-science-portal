@@ -146,7 +146,7 @@ def daily_stats():
     layout_ = html.Div(
         [
             html.Br(),
-            dbc.Row(dbc.Col(id='dropdown_days_row')),
+            dbc.Row(dbc.Col(generate_night_list())),
             dbc.Row(
                 [
                     dbc.Col(id="hist_sci_raw", width=3),
@@ -162,14 +162,21 @@ def daily_stats():
 
     return layout_
 
-@app.callback(
-    Output('dropdown_days_row', 'children'),
-    Input('object-stats', 'children')
-)
-def generate_night_list(object_stats):
+def generate_night_list():
     """ Generate the list of available nights (last night first)
     """
-    pdf = pd.read_json(object_stats)
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        '',
+        0,
+        True,
+        True
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
     labels = pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12])
 
     dropdown = dcc.Dropdown(
