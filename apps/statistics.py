@@ -65,7 +65,7 @@ def create_stat_row(object_stats):
     row = [
         dbc.Col(width=1), c0, c1, c2, c3, c4, dbc.Col(width=1)
     ]
-    return row
+    return [row]
 
 def stat_card(value, title):
     """
