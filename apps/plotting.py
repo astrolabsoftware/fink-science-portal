@@ -2454,6 +2454,47 @@ def hist_classified(pathname, dropdown_days):
     return card
 
 @app.callback(
+    Output('hist_candidates', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def hist_candidates(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'class:Solar System candidate,class:SN candidate,class:Early SN candidate,class:Kilonova candidate',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    pdf = pdf.rename(
+        columns={
+            'class:Solar System candidate': 'SSO',
+            'class:SN candidate': 'SNe',
+            'class:Early SN candidate': 'SN Ia',
+            'class:Kilonova candidate': 'Kilonova'
+        }
+    )
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', title='Candidates'
+    )
+
+    return card
+
+@app.callback(
     Output('daily_classification', 'children'),
     [
         Input('url', 'pathname'),

@@ -151,7 +151,8 @@ def daily_stats():
                 [
                     dbc.Col(id="hist_sci_raw", width=3),
                     dbc.Col(id="hist_classified", width=3),
-                    dbc.Col(id="hist_catalogued", width=3)
+                    dbc.Col(id="hist_catalogued", width=3),
+                    dbc.Col(id="hist_candidates", width=3)
                 ], justify='around'
             ),
             dbc.Row(
