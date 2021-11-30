@@ -2070,9 +2070,12 @@ def plot_stat_evolution(pathname, param_name):
         y=newcol,
         x='date',
         text=newcol,
-        color='rgb(21, 40, 79)'
     )
-    fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+    fig.update_traces(
+        texttemplate='%{text:.2s}',
+        textposition='outside',
+        marker_color='rgb(21, 40, 79)'
+    )
     fig.update_layout(
         uniformtext_minsize=8,
         uniformtext_mode='hide',
