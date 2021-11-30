@@ -59,29 +59,46 @@ def create_stat_row(object_stats):
     pdf = pd.read_json(object_stats)
     n_ = pdf['key:key'].values[-1]
     night = n_[4:8] + '-' + n_[8:10] + '-' + n_[10:12]
-    c0 = dbc.Col(children=[html.Br(), html.H3(html.B(night)), html.P('Last night')], width=2)
-    c1 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['basic:raw'].values[-1])), html.P('Alerts received')], width=2)
-    c2 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['basic:sci'].values[-1])), html.P('Alerts processed')], width=2)
-    c3 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['basic:fields'].values[-1])), html.P('Fields visited')], width=2)
-    c4 = dbc.Col(children=[html.Br(), html.H3(html.B(pdf['basic:exposures'].values[-1])), html.P('Exposures taken')], width=2)
+    c0 = dbc.Col(
+        children=[
+            html.Br(),
+            html.H3(html.B(night)),
+            html.P('Last night')
+        ], width=2
+    )
+    c1 = dbc.Col(
+        children=[
+            html.Br(),
+            html.H3(html.B('{:,}'.format(pdf['basic:raw'].values[-1]))),
+            html.P('Alerts received')
+        ], width=2
+    )
+    c2 = dbc.Col(
+        children=[
+            html.Br(),
+            html.H3(html.B('{:,}'.format(pdf['basic:sci'].values[-1]))),
+            html.P('Alerts processed')
+        ], width=2
+    )
+    c3 = dbc.Col(
+        children=[
+            html.Br(),
+            html.H3(html.B(pdf['basic:fields'].values[-1])),
+            html.P('Fields visited')
+        ], width=2
+    )
+    c4 = dbc.Col(
+        children=[
+            html.Br(),
+            html.H3(html.B(pdf['basic:exposures'].values[-1])),
+            html.P('Exposures taken')
+        ], width=2
+    )
 
     row = [
         dbc.Col(width=1), c0, c1, c2, c3, c4, dbc.Col(width=1)
     ]
     return row
-
-def stat_card(value, title):
-    """
-    """
-    col = dbc.Col(
-        [
-            html.Br(),
-            html.H3(html.B(value)),
-            html.P(title)
-        ], width=2
-    )
-
-    return col
 
 def heatmap_content():
     """
