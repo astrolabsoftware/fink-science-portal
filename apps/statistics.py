@@ -162,7 +162,7 @@ def generate_night_list(object_stats):
 
     dropdown = dcc.Dropdown(
         options=[
-            *[{'label': label, 'value': value} for label, values in zip(values, pdf['key:key'].values)]
+            *[{'label': label, 'value': value} for label, value in zip(labels, pdf['key:key'].values)]
         ],
         searchable=True,
         clearable=True,
