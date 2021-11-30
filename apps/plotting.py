@@ -2309,7 +2309,7 @@ def display_years(pdf, years):
         fig.update_layout(height=200 * len(years))
     return fig
 
-def make_daily_card(pdf, color, linecolor):
+def make_daily_card(pdf, color, linecolor, height='10pc', scale='lin'):
     """
     """
     fig = go.Figure(
@@ -2332,11 +2332,14 @@ def make_daily_card(pdf, color, linecolor):
         marker_line_width=1.5, opacity=0.6
     )
 
+    if scale == 'log':
+        fig.update_yaxes(type='log')
+
     graph = dcc.Graph(
         figure=fig,
         style={
             'width': '100%',
-            'height': '10pc'
+            'height': height
         },
         config={'displayModeBar': False}
     )
@@ -2464,9 +2467,9 @@ def hist_classified(pathname, dropdown_days):
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
-    pdf['classified'] = pdf['basic:sci'] - pdf['class:Unknown']
+    pdf['classified'] = pdf['basic:sci'].astype(int) - pdf['class:Unknown'].astype(int)
     pdf = pdf.rename(columns={'class:Unknown': 'unclassified'})
-    pdf = pdf.drop(colummns=['basic:sci'])
+    pdf = pdf.drop(columns=['basic:sci'])
 
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
@@ -2508,7 +2511,7 @@ def fields_exposures(pathname, dropdown_days):
     pdf = pdf[pdf.index == dropdown_days]
 
     card = make_daily_card(
-        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)'
+        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', height='20pc', scale='log'
     )
 
     return card
