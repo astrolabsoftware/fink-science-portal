@@ -36,7 +36,7 @@ def store_stat_query(name):
     # Query everything from this century
     name = 'ztf_20'
 
-    cols = 'key:key,basic:raw,basic:sci,basic:fields,basic:exposures'
+    cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
     results = clientStats.scan(
         "",
         "key:key:{}".format(name),
