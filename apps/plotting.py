@@ -2441,6 +2441,8 @@ def hist_classified(pathname, dropdown_days):
     pdf = pdf.rename(columns={'class:Unknown': 'unclassified'})
     pdf = pdf.drop(columns=['basic:sci'])
 
+    pdf = pdf.rename(columns={i: i.split(':')[1] for i in pdf.columns})
+
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
