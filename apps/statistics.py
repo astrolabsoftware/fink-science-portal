@@ -123,6 +123,7 @@ def timelines():
     layout_ = html.Div(
         [
             html.Br(),
+            dbc.Row(dbc.Col(generate_col_list())),
             dbc.Row(
                 [
                     dbc.Col(id='evolution', width=10)
@@ -139,37 +140,75 @@ def daily_stats():
     layout_ = html.Div(
         [
             html.Br(),
-            dbc.Row(dbc.Col(id='dropdown_days')),
-            dbc.Row(
-                [
-                    dbc.Col(id='evolution', width=10)
-                ], justify="center", no_gutters=True
-            ),
+            dbc.Row(dbc.Col(id='dropdown_days_row')),
         ],
     )
 
     return layout_
 
 @app.callback(
-    Output('dropdown_days', 'children'),
+    Output('dropdown_days_row', 'children'),
     Input('object-stats', 'children')
 )
 def generate_night_list(object_stats):
-    """
+    """ Generate the list of available nights (last night first)
     """
     pdf = pd.read_json(object_stats)
     labels = pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12])
 
     dropdown = dcc.Dropdown(
         options=[
-            *[{'label': label, 'value': value} for label, value in zip(labels, pdf['key:key'].values)]
+            *[
+                {'label': label, 'value': value}
+                for label, value in zip(labels[::-1], pdf['key:key'].values[::-1])]
         ],
+        id='dropdowm_days',
         searchable=True,
         clearable=True,
         placeholder="Choose a date",
     )
 
     return dropdown
+
+def generate_col_list():
+    """ Generate the list of available columns
+    """
+    pdf = get_data_one_night('ztf_20211125')
+    labels = [i.split(':')[1] for i in pdf.columns]
+
+    dropdown = dcc.Dropdown(
+        options=[
+            *[
+                {'label': label, 'value': value}
+                for label, value in zip(labels, pdf.columns)]
+        ],
+        id='dropdown_params',
+        searchable=True,
+        clearable=True,
+        placeholder="Choose a columns",
+    )
+
+    return dropdown
+
+def get_data_one_night(night):
+    """
+    """
+    # Query everything from this century
+
+    cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
+    results = clientStats.scan(
+        "",
+        "key:key:{}".format(night),
+        "*",
+        0,
+        True,
+        True
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    return pdf
 
 def layout(is_mobile):
     """
