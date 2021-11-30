@@ -2412,7 +2412,7 @@ def hist_catalogued(pathname, dropdown_days):
     pdf = pdf[pdf.index == dropdown_days]
 
     card = make_daily_card(
-        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', title='Catalogs'
+        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', title='External catalogs'
     )
 
     return card
