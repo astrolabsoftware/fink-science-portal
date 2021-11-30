@@ -50,7 +50,7 @@ def store_stat_query(name):
     return pdf.to_json()
 
 @app.callback(
-    [Output('stat_row', 'children')],
+    Output('stat_row', 'children'),
     Input('object-stats', 'children')
 )
 def create_stat_row(object_stats):
@@ -65,7 +65,7 @@ def create_stat_row(object_stats):
     row = [
         dbc.Col(width=1), c0, c1, c2, c3, c4, dbc.Col(width=1)
     ]
-    return [row]
+    return html.Div(row)
 
 def stat_card(value, title):
     """
