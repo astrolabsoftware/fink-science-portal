@@ -50,7 +50,7 @@ def store_stat_query(name):
     return pdf.to_json()
 
 @app.callback(
-    Output('stat_row', 'children'),
+    [Output('stat_row', 'children')],
     Input('object-stats', 'children')
 )
 def create_stat_row(object_stats):
