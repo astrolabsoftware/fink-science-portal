@@ -41,8 +41,8 @@ def store_stat_query(name):
         "key:key:{}".format(name),
         "*",
         0,
-        False,
-        False
+        True,
+        True
     )
 
     # Construct the dataframe
@@ -57,11 +57,11 @@ def create_stat_row(object_stats):
     """ Create links to external website. Used in the mobile app.
     """
     pdf = pd.read_json(object_stats)
-    c0 = stat_card(pdf['basic:night'], 'Last night'),
-    c1 = stat_card(pdf['basic:raw'], 'Alerts received'),
-    c2 = stat_card(pdf['basic:sci'], 'Alerts processed'),
-    c3 = stat_card(pdf['basic:fields'], 'Fields visited'),
-    c4 = stat_card(pdf['basic:exposures'], 'Exposures taken')
+    c0 = stat_card(pdf['key:key'].values[0], 'Last night'),
+    c1 = stat_card(pdf['basic:raw'].values[0], 'Alerts received'),
+    c2 = stat_card(pdf['basic:sci'].values[0], 'Alerts processed'),
+    c3 = stat_card(pdf['basic:fields'].values[0], 'Fields visited'),
+    c4 = stat_card(pdf['basic:exposures'].values[0], 'Exposures taken')
     row = [
         dbc.Col(width=1), c0, c1, c2, c3, c4, dbc.Col(width=1)
     ]
@@ -132,7 +132,6 @@ def layout(is_mobile):
     else:
         layout_ = html.Div(
             [
-                html.Div(id='object-stats', style={'display': 'none'}),
                 html.Br(),
                 html.Br(),
                 dbc.Row(id='stat_row'),
@@ -143,6 +142,7 @@ def layout(is_mobile):
                     ],
                     justify="center", no_gutters=True
                 ),
+                html.Div(id='object-stats', style={'display': 'none'}),
             ],
             className='home',
             style={
