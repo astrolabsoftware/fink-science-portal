@@ -139,7 +139,7 @@ def daily_stats():
     layout_ = html.Div(
         [
             html.Br(),
-            dbc.Row(dbc.Col(id='dropdown_days'))
+            dbc.Row(dbc.Col(id='dropdown_days')),
             dbc.Row(
                 [
                     dbc.Col(id='evolution', width=10)
