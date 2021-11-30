@@ -2332,16 +2332,6 @@ def make_daily_card(pdf, color, linecolor, title, height='12pc', scale='lin'):
         marker_line_width=1.5, opacity=0.6
     )
 
-    fig.update_layout(
-        title={
-            'text': title,
-            'y': 1.0,
-            'x': 0.5,
-            'xanchor': 'center',
-            'yanchor': 'top'
-        }
-    )
-
     if scale == 'log':
         fig.update_yaxes(type='log')
 
