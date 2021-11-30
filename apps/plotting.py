@@ -41,7 +41,7 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
-from app import client, app, clientSSO
+from app import client, app, clientSSO, clientStats
 
 # colors_ = [
 #     '#1f77b4',  # muted blue
@@ -2034,15 +2034,29 @@ def plot_heatmap(pathname, object_stats):
     Output('evolution', 'children'),
     [
         Input('url', 'pathname'),
-        Input('object-stats', 'children')
+        Input('dropdown_params', 'value'),
     ]
 )
-def plot_stat_evolution(pathname, object_stats):
+def plot_stat_evolution(pathname, param_name):
     """ Plot evolution of parameters as a function of time
 
     TODO: connect the callback to a dropdown button to choose the parameter
     """
-    pdf = pd.read_json(object_stats)
+    if param_name is None or param_name == '':
+        param_name = 'basic:sci'
+
+    col = '{}'.format(param_name)
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        col,
+        0,
+        True,
+        True
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
 
     pdf['date'] = [
         Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime

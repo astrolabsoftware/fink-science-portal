@@ -194,8 +194,6 @@ def generate_col_list():
 def get_data_one_night(night):
     """
     """
-    # Query everything from this century
-
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
     results = clientStats.scan(
         "",
