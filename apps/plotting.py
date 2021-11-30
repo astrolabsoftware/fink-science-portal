@@ -2309,7 +2309,7 @@ def display_years(pdf, years):
         fig.update_layout(height=200 * len(years))
     return fig
 
-def make_daily_card(pdf, color, linecolor, height='12pc', scale='lin'):
+def make_daily_card(pdf, color, linecolor, title, height='12pc', scale='lin'):
     """
     """
     fig = go.Figure(
@@ -2330,6 +2330,16 @@ def make_daily_card(pdf, color, linecolor, height='12pc', scale='lin'):
         marker_color=color,
         marker_line_color=linecolor,
         marker_line_width=1.5, opacity=0.6
+    )
+
+    fig.update_layout(
+        title={
+            'text': title,
+            'y': 0.995,
+            'x': 0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+        }
     )
 
     if scale == 'log':
@@ -2378,7 +2388,7 @@ def hist_sci_raw(pathname, dropdown_days):
     pdf = pdf.rename(columns={'basic:raw': 'Received', 'basic:sci': 'Processed'})
 
     card = make_daily_card(
-        pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)'
+        pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)', title='Quality cuts'
     )
 
     return card
@@ -2412,7 +2422,7 @@ def hist_catalogued(pathname, dropdown_days):
     pdf = pdf[pdf.index == dropdown_days]
 
     card = make_daily_card(
-        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)'
+        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', title='Catalogs'
     )
 
     return card
@@ -2448,7 +2458,7 @@ def hist_classified(pathname, dropdown_days):
     pdf = pdf[pdf.index == dropdown_days]
 
     card = make_daily_card(
-        pdf, color='rgb(245, 98, 46)', linecolor='rgb(135, 86, 69)'
+        pdf, color='rgb(245, 98, 46)', linecolor='rgb(135, 86, 69)', title='Classification'
     )
 
     return card
@@ -2485,7 +2495,10 @@ def fields_exposures(pathname, dropdown_days):
     pdf = pdf[pdf.index == dropdown_days]
 
     card = make_daily_card(
-        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', height='20pc', scale='log'
+        pdf,
+        color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)',
+        title='Individual classifications (zoom in to see details)',
+        height='20pc', scale='log'
     )
 
     return card
