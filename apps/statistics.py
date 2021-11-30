@@ -126,19 +126,25 @@ def heatmap_content():
 def timelines():
     """
     """
+    switch = html.Div(
+        [
+            dbc.Checklist(
+                options=[
+                    {"label": "Option 1", "value": 1},
+                ],
+                value=[],
+                id="switch-cumulative",
+                switch=True,
+            ),
+        ]
+    )
     layout_ = html.Div(
         [
             html.Br(),
             dbc.Row(
                 [
                     dbc.Col(generate_col_list(), width=10),
-                    dbc.Col(
-                        dbc.Switch(
-                            id="standalone-switch",
-                            label="Cumulative",
-                            value=False,
-                        ), width=2
-                    )
+                    dbc.Col(switch, width=2)
                 ], justify='around'
             ),
             dbc.Row(
