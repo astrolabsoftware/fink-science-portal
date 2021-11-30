@@ -2315,4 +2315,50 @@ def display_years(pdf, years):
 def hist_sci_raw(pathname, dropdown_days):
     """ Make an histogram
     """
-    pass
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'basic:raw,basic:raw',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    pdf = pdf[pdf.index == dropdown_days]
+
+    fig = go.Figure(
+        [
+            go.Bar(x=pdf.columns, y=pdf.values[0])
+        ]
+    )
+
+    fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+    fig.update_layout(
+        uniformtext_minsize=8,
+        uniformtext_mode='hide',
+        showlegend=True
+    )
+    fig.update_layout(
+        title='',
+        margin=dict(t=0, r=0, b=0, l=0),
+        showlegend=True,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+
+    graph = dcc.Graph(
+        figure=fig,
+        style={
+            'width': '100%',
+            'height': '25pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card

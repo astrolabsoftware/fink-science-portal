@@ -147,13 +147,13 @@ def daily_stats():
         [
             html.Br(),
             dbc.Row(dbc.Col(id='dropdown_days_row')),
-            # dbc.Row(
-            #     [
-            #         dbc.Col(id="hist_sci_raw", width=3),
-            #         dbc.Col(id="hist_g_r", width=3),
-            #         dbc.Col(id="fields_exposures", width=3)
-            #     ]
-            # ),
+            dbc.Row(
+                [
+                    dbc.Col(id="hist_sci_raw", width=3),
+                    # dbc.Col(id="hist_g_r", width=3),
+                    # dbc.Col(id="fields_exposures", width=3)
+                ]
+            ),
             # dbc.Row(
             #     dbc.Col(id="daily_classification")
             # )
