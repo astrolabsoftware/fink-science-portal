@@ -27,11 +27,13 @@ from app import clientP128, clientP4096, clientP131072
 from app import clientT, clientS
 from app import clientSSO, clientTNS
 from app import clientU, clientUV, nlimit
+from app import clientStats
 from app import APIURL
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import get_superpixels
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
+from apps.statistics import dic_names
 
 import io
 import requests
@@ -66,9 +68,10 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/bayestar | Cross-match LIGO/Virgo sky map with Fink alert data| &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/statistics | Statistics concerning Fink alert data| &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
+""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
 ## Retrieve single object data
@@ -927,6 +930,38 @@ plt.show()
 ![gw](https://user-images.githubusercontent.com/20426972/134175884-3b190fa9-8051-4a1d-8bf8-cc8b47252494.png)
 """
 
+api_doc_stats = """
+## Fink data statistics
+
+The [statistics](https://fink-portal.org/stats) page makes use of the REST API.
+If you want to further explore Fink statistics, or create your own dashboard based on Fink data,
+you can do also all of these yourself using the REST API. Here is an example using Python:
+
+```python
+import requests
+import pandas as pd
+
+# get stats for all the year 2021
+r = requests.post(
+  'https://fink-portal.org/api/v1/statistics',
+  json={{
+    'date': '2021',
+    'output-format': 'json'
+  }}
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+Note `date` can be either a given night (YYYYMMDD), month (YYYYMM), year (YYYY), or eveything (empty string).
+The schema of the dataframe is the following:
+
+{}
+
+All other fields starting with `class:` are crossmatch from the SIMBAD database.
+""".format(pd.DataFrame([dic_names]).T.rename(columns={0: 'description'}).to_markdown())
+
 def layout(is_mobile):
     if is_mobile:
         width = '95%'
@@ -1029,6 +1064,17 @@ def layout(is_mobile):
                                         }
                                     ),
                                 ], label="Gravitational Waves"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_stats)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Statistics"
                             ),
                         ]
                     )
@@ -1254,6 +1300,24 @@ args_bayestar = [
         'name': 'credible_level',
         'required': True,
         'description': 'GW credible region threshold to look for. Note that the values in the resulting credible level map vary inversely with probability density: the most probable pixel is assigned to the credible level 0.0, and the least likely pixel is assigned the credible level 1.0.'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet'
+    }
+]
+
+args_stats = [
+    {
+        'name': 'date',
+        'required': True,
+        'description': 'Observing date. This can be either a given night (YYYYMMDD), month (YYYYMM), year (YYYY), or eveything (empty string)'
+    },
+    {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
     },
     {
         'name': 'output-format',
@@ -2274,5 +2338,54 @@ def query_bayestar():
     rep = {
         'status': 'error',
         'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
+    }
+    return Response(str(rep), 400)
+
+@api_bp.route('/api/v1/statistics', methods=['GET'])
+def query_statistics_arguments():
+    """ Obtain information about Fink statistics
+    """
+    return jsonify({'args': args_stats})
+
+@api_bp.route('/api/v1/statistics', methods=['POST'])
+def return_statistics():
+    """ Retrieve statistics about Fink data
+    """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
+    if 'columns' in request.json:
+        cols = request.json['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    payload = request.json['date']
+
+    to_evaluate = "key:key:ztf_{}".format(payload)
+
+    results = clientStats.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, True, True
+    )
+
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    if output_format == 'json':
+        return pdf.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdf.to_csv(index=False)
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdf.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
     }
     return Response(str(rep), 400)

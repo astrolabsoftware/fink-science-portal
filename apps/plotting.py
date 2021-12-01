@@ -16,6 +16,7 @@ import pandas as pd
 import numpy as np
 from gatspy import periodic
 
+import datetime
 import java
 import copy
 from astropy.time import Time
@@ -26,12 +27,14 @@ import dash_table
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 import plotly.express as px
+from plotly.subplots import make_subplots
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
+from apps.statistics import dic_names
 from app import APIURL
 
 from pyLIMA import event
@@ -39,7 +42,7 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
-from app import client, app, clientSSO
+from app import client, app, clientSSO, clientStats
 
 # colors_ = [
 #     '#1f77b4',  # muted blue
@@ -1989,3 +1992,553 @@ def alert_properties(object_data):
         }
     )
     return table
+
+@app.callback(
+    Output('heatmap_stat', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-stats', 'children')
+    ]
+)
+def plot_heatmap(pathname, object_stats):
+    """ Plot heatmap
+    """
+    pdf = pd.read_json(object_stats)
+    pdf['date'] = [
+        Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
+        for x in pdf.index.values
+    ]
+    years = np.unique(pdf['date'].apply(lambda x: x.year)).tolist()
+
+    idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
+    pdf.index = pd.DatetimeIndex(pdf.date)
+    pdf = pdf.reindex(idx, fill_value=0)
+    pdf['date'] = pdf.index.values
+
+    fig = display_years(pdf, years)
+
+    graph = dcc.Graph(
+        figure=fig,
+        config={'displayModeBar': False},
+        style={
+            'width': '100%',
+        },
+    )
+
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('evolution', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_params', 'value'),
+        Input('switch-cumulative', 'value'),
+    ]
+)
+def plot_stat_evolution(pathname, param_name, switch):
+    """ Plot evolution of parameters as a function of time
+
+    TODO: connect the callback to a dropdown button to choose the parameter
+    """
+    if param_name is None or param_name == '':
+        param_name = 'basic:sci'
+
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        param_name,
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    pdf['date'] = [
+        Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
+        for x in pdf.index.values
+    ]
+
+    if param_name in dic_names:
+        newcol = dic_names[param_name]
+    else:
+        newcol = param_name.replace('class', 'SIMBAD')
+
+    pdf = pdf.rename(columns={param_name: newcol})
+
+    if switch == [1]:
+        pdf[newcol] = pdf[newcol].astype(int).cumsum()
+
+    fig = px.bar(
+        pdf,
+        y=newcol,
+        x='date',
+        text=newcol,
+    )
+    fig.update_traces(
+        texttemplate='%{text:.2s}',
+        textposition='outside',
+        marker_color='rgb(21, 40, 79)'
+    )
+    fig.update_layout(
+        uniformtext_minsize=8,
+        uniformtext_mode='hide',
+        showlegend=True
+    )
+    fig.update_layout(
+        title='',
+        margin=dict(t=0, r=0, b=0, l=0),
+        showlegend=True,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+
+    graph = dcc.Graph(
+        figure=fig,
+        style={
+            'width': '100%',
+            'height': '25pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+def display_year(data, year: int = None, month_lines: bool = True, fig=None, row: int = None):
+    """ Display one year as heatmap
+
+    help from https://community.plotly.com/t/colored-calendar-heatmap-in-dash/10907/17
+
+    Parameters
+    ----------
+    data: np.array
+        Number of alerts per day, for ALL days of the year.
+        Should be 0 if no observations
+    year: int
+        Year to plot
+    month_lines: bool
+        If true, make lines to mark months
+    fig: plotly object
+    row: int
+        Number of the row (position) in the final plot
+    """
+    if year is None:
+        year = datetime.datetime.now().year
+
+    # First and last day
+    d1 = datetime.date(year, 1, 1)
+    d2 = datetime.date(year, 12, 31)
+
+    delta = d2 - d1
+
+    # should be put elsewhere as constants?
+    month_names = [
+        'Jan', 'Feb', 'Mar',
+        'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep',
+        'Oct', 'Nov', 'Dec'
+    ]
+    month_days = [
+        31, 28, 31,
+        30, 31, 30,
+        31, 31, 30,
+        31, 30, 31
+    ]
+
+    # annees bisextiles
+    if year in [2020, 2024, 2028, 2032, 2036]:
+        month_days[1] = 29
+
+    # black magic
+    month_positions = (np.cumsum(month_days) - 15) / 7
+
+    # Gives a list with datetimes for each day a year
+    dates_in_year = [d1 + datetime.timedelta(i) for i in range(delta.days + 1)]
+
+    # gives [0,1,2,3,4,5,6,0,1,2,3,4,5,6,…]
+    # ticktext in xaxis dict translates this to weekdays
+    weekdays_in_year = [i.weekday() for i in dates_in_year]
+
+    # gives [1,1,1,1,1,1,1,2,2,2,2,2,2,2,…]
+    weeknumber_of_dates = [
+        int(i.strftime("%V"))
+        if not (int(i.strftime("%V")) == 1 and i.month == 12)
+        else 53 for i in dates_in_year
+    ]
+
+    # Careful, first days of January can belong to week 53...
+    # so to avoid messing up, we set them to 1, and shift all
+    # other weeks by one
+    if weeknumber_of_dates[0] == 53:
+        weeknumber_of_dates = [i + 1 for i in weeknumber_of_dates]
+        weeknumber_of_dates = [
+            1 if (j.month == 1 and i == 54)
+            else i
+            for i, j in zip(weeknumber_of_dates, dates_in_year)
+        ]
+
+    # Gives something like list of strings like ‘2018-01-25’
+    # for each date. Used in data trace to make good hovertext.
+    # text = [str(i) for i in dates_in_year]
+    text = ['{:,} alerts processed in {}'.format(int(i), j) for i, j in zip(data, dates_in_year)]
+
+    # Some examples
+    colorscale = [[False, '#eeeeee'], [True, '#76cf63']]
+    colorscale = [[False, '#495a7c'], [True, '#F5622E']]
+    colorscale = [[False, '#15284F'], [True, '#3C8DFF']]
+    colorscale = [[False, '#3C8DFF'], [True, '#15284F']]
+    colorscale = [[False, '#4563a0'], [True, '#F5622E']]
+    colorscale = [[False, '#eeeeee'], [True, '#F5622E']]
+
+    # handle end of year
+    data = [
+        go.Heatmap(
+            x=weeknumber_of_dates,
+            y=weekdays_in_year,
+            z=data,
+            text=text,
+            hoverinfo='text',
+            xgap=3, # this
+            ygap=3, # and this is used to make the grid-like apperance
+            showscale=False,
+            colorscale=colorscale
+        )
+    ]
+
+    if month_lines:
+        kwargs = dict(
+            mode='lines',
+            line=dict(
+                color='#9e9e9e',
+                width=1
+            ),
+            hoverinfo='skip'
+
+        )
+        for date, dow, wkn in zip(
+                dates_in_year,
+                weekdays_in_year,
+                weeknumber_of_dates):
+            if date.day == 1:
+                data += [
+                    go.Scatter(
+                        x=[wkn - 0.5, wkn - 0.5],
+                        y=[dow - 0.5, 6.5],
+                        **kwargs
+                    )
+                ]
+                if dow:
+                    data += [
+                        go.Scatter(
+                            x=[wkn - 0.5, wkn + 0.5],
+                            y=[dow - 0.5, dow - 0.5],
+                            **kwargs
+                        ),
+                        go.Scatter(
+                            x=[wkn + 0.5, wkn + 0.5],
+                            y=[dow - 0.5, -0.5],
+                            **kwargs
+                        )
+                    ]
+
+    layout = go.Layout(
+        title='Fink activity chart: number of ZTF alerts processed per night\n',
+        height=150,
+        yaxis=dict(
+            showline=False, showgrid=False, zeroline=False,
+            tickmode='array',
+            ticktext=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            tickvals=[0, 1, 2, 3, 4, 5, 6],
+            autorange="reversed"
+        ),
+        xaxis=dict(
+            showline=False, showgrid=False, zeroline=False,
+            tickmode='array',
+            ticktext=month_names,
+            tickvals=month_positions
+        ),
+        font={'size': 10, 'color': '#9e9e9e'},
+        plot_bgcolor=('#fff'),
+        margin=dict(t=40),
+        showlegend=False
+    )
+
+    if fig is None:
+        fig = go.Figure(data=data, layout=layout)
+    else:
+        fig.add_traces(data, rows=[(row + 1)] * len(data), cols=[1] * len(data))
+        fig.update_layout(layout)
+        fig.update_xaxes(layout['xaxis'])
+        fig.update_yaxes(layout['yaxis'])
+        fig.update_layout(
+            title={
+                'y': 0.995,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'
+            }
+        )
+
+    return fig
+
+
+def display_years(pdf, years):
+    """ Display all heatmaps stacked
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        DataFrame from the REST API
+    years: list or tuple of int
+        years to display
+
+    Returns
+    ----------
+    fig: plotly figure object
+    """
+    fig = make_subplots(rows=len(years), cols=1, subplot_titles=years)
+    for i, year in enumerate(years):
+        # select the data for the year
+        data = pdf[
+            pdf['date'].apply(lambda x: x.year == year)
+        ]['basic:sci'].values
+
+        # Display year
+        display_year(data, year=year, fig=fig, row=i, month_lines=True)
+
+        # Fix the height
+        fig.update_layout(height=200 * len(years))
+    return fig
+
+def make_daily_card(pdf, color, linecolor, title, height='12pc', scale='lin'):
+    """
+    """
+    fig = go.Figure(
+        [
+            go.Bar(x=pdf.columns, y=pdf.values[0])
+        ]
+    )
+
+    fig.update_layout(
+        title='',
+        margin=dict(t=0, r=0, b=0, l=0),
+        showlegend=False,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+
+    fig.update_traces(
+        marker_color=color,
+        marker_line_color=linecolor,
+        marker_line_width=1.5, opacity=0.6
+    )
+
+    if scale == 'log':
+        fig.update_yaxes(type='log')
+
+    graph = dcc.Graph(
+        figure=fig,
+        style={
+            'width': '100%',
+            'height': height
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody([html.H6(title, className="card-subtitle"), graph]),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('hist_sci_raw', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def hist_sci_raw(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'basic:raw,basic:sci',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    pdf = pdf.rename(columns={'basic:raw': 'Received', 'basic:sci': 'Processed'})
+
+    card = make_daily_card(
+        pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)', title='Quality cuts'
+    )
+
+    return card
+
+@app.callback(
+    Output('hist_catalogued', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def hist_catalogued(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'class:Solar System MPC,class:simbad_tot',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    pdf = pdf.rename(columns={'class:Solar System MPC': 'MPC', 'class:simbad_tot': 'SIMBAD'})
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', title='External catalogs'
+    )
+
+    return card
+
+@app.callback(
+    Output('hist_classified', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def hist_classified(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'basic:sci,class:Unknown',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    pdf['Classified'] = pdf['basic:sci'].astype(int) - pdf['class:Unknown'].astype(int)
+    pdf = pdf.rename(columns={'class:Unknown': 'Unclassified'})
+    pdf = pdf.drop(columns=['basic:sci'])
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf, color='rgb(245, 98, 46)', linecolor='rgb(135, 86, 69)', title='Classification'
+    )
+
+    return card
+
+@app.callback(
+    Output('hist_candidates', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def hist_candidates(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        'class:Solar System candidate,class:SN candidate,class:Early SN candidate,class:Kilonova candidate',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    pdf = pdf.rename(
+        columns={
+            'class:Solar System candidate': 'SSO',
+            'class:SN candidate': 'SNe',
+            'class:Early SN candidate': 'SN Ia',
+            'class:Kilonova candidate': 'Kilonova'
+        }
+    )
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf, color='rgb(213, 213, 211)', linecolor='rgb(138, 138, 132)', title='Selected candidates'
+    )
+
+    return card
+
+@app.callback(
+    Output('daily_classification', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('dropdown_days', 'value'),
+    ]
+)
+def fields_exposures(pathname, dropdown_days):
+    """ Make an histogram
+    """
+    results = clientStats.scan(
+        "",
+        "key:key:ztf_",
+        '*',
+        0,
+        False,
+        False
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    to_drop = [i for i in pdf.columns if i.startswith('basic:')]
+    pdf = pdf.drop(columns=to_drop)
+
+    pdf = pdf.rename(columns={i: i.split(':')[1] for i in pdf.columns})
+
+    if dropdown_days is None or dropdown_days == '':
+        dropdown_days = pdf.index[-1]
+    pdf = pdf[pdf.index == dropdown_days]
+
+    card = make_daily_card(
+        pdf,
+        color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)',
+        title='Individual classifications (zoom in to see more details)',
+        height='20pc', scale='log'
+    )
+
+    return card
