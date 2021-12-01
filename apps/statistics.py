@@ -31,7 +31,7 @@ Click on the different tabs to explore data.
 
 ## Heatmap
 
-The heatmap shows the number of alerts processed by Fink for each night
+The `Heatmap` tab shows the number of alerts processed by Fink for each night
 since the beginning of our operations (2019/11/01). The graph is color coded,
 dark cells represent a low number of processed alerts, while bright cells represent
 a high number of processed alerts.
@@ -52,7 +52,7 @@ Since there are many labels available, do not hesitate to zoom in to see more de
 
 ## Timelines
 
-This tab shows the evolution of several parameters over time. By default, we show the number of
+The `Timelines` tab shows the evolution of several parameters over time. By default, we show the number of
 processed alerts per night, since the beginning of operations. You can change the parameter to
 show by using the dropdown button. Fields starting with `SIMBAD:` are labels from the SIMBAD database.
 
