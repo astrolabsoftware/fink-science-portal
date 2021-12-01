@@ -42,6 +42,7 @@ dic_names = {
     'class:SN candidate': 'Number of alerts classified as SN by Fink',
     'class:Solar System candidate': 'Number of alerts classified as SSO candidates by Fink',
     'class:Tracklet': 'Number of alerts classified as satelitte glints or space debris by Fink',
+    'class:Unknown': 'Number of alerts without classification'
 }
 
 @app.callback(
