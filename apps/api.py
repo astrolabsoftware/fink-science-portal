@@ -33,6 +33,7 @@ from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import get_superpixels
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
+from apps.statistics import dic_names
 
 import io
 import requests
@@ -943,10 +944,10 @@ import pandas as pd
 # get stats for all the year 2021
 r = requests.post(
   'https://fink-portal.org/api/v1/statistics',
-  json={
+  json={{
     'date': '2021',
     'output-format': 'json'
-  }
+  }}
 )
 
 # Format output in a DataFrame
@@ -954,7 +955,12 @@ pdf = pd.read_json(r.content)
 ```
 
 Note `date` can be either a given night (YYYYMMDD), month (YYYYMM), year (YYYY), or eveything (empty string).
-"""
+The schema of the dataframe is the following:
+
+{}
+
+All other fields starting with `class:` are crossmatch from the SIMBAD database.
+""".format(pd.DataFrame([dic_names]).T.rename(columns={0: 'description'}).to_markdown())
 
 def layout(is_mobile):
     if is_mobile:

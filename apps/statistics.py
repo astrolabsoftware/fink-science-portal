@@ -105,7 +105,9 @@ Note `date` can be either a given night (YYYYMMDD), month (YYYYMM), year (YYYY),
 The schema of the dataframe is the following:
 
 {}
-""".format(pd.DataFrame([dic_names]).T.rename(columns={0:'description'}).to_markdown())
+
+All other fields starting with `class:` are crossmatch from the SIMBAD database.
+""".format(pd.DataFrame([dic_names]).T.rename(columns={0: 'description'}).to_markdown())
 
 @app.callback(
     Output('object-stats', 'children'),
