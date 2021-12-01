@@ -246,6 +246,8 @@ def generate_col_list():
         for i in schema_list
     ]
 
+    labels = np.sort(labels)
+
     dropdown = dcc.Dropdown(
         options=[
             *[
