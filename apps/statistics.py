@@ -364,7 +364,8 @@ def layout(is_mobile):
                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                         }
                     ),
-                    label="Help"
+                    label="Help",
+                    label_style=label_style
                 ),
             ]
         )
