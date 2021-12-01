@@ -2339,7 +2339,7 @@ def query_bayestar():
 def query_statistics_arguments():
     """ Obtain information about Fink statistics
     """
-    return jsonify({'args': args_statistics})
+    return jsonify({'args': args_stats})
 
 @api_bp.route('/api/v1/statistics', methods=['POST'])
 def return_statistics():
