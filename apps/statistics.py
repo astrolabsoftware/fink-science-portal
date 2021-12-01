@@ -24,6 +24,26 @@ import pandas as pd
 
 dcc.Location(id='url', refresh=False)
 
+dic_names = {
+    'basic:night': 'Observation date',
+    'basic:raw': 'Number of alerts received',
+    'basic:sci': 'Number of alerts processed (passing quality cuts)',
+    'basic:n_g': 'Number of measurements in the g band',
+    'basic:n_r': 'Number of measurements in the r band',
+    'basic:exposures': 'Number of exposures (30 seconds)',
+    'basic:fields': 'Number of fields visited',
+    'class:simbad_tot': 'Number of alerts with a counterpart in SIMBAD',
+    'class:simbad_gal': 'Number of alerts with a close-by candidate host-galaxy in SIMBAD',
+    'class:Solar System MPC': 'Number of alerts with a counterpart in MPC (SSO)',
+    'class:SN candidate': 'Number of alerts classified as SN by Fink',
+    'class:Early SN candidate': 'Number of alerts classified as early SN Ia by Fink',
+    'class:Kilonova candidate': 'Number of alerts classified as Kilonova by Fink',
+    'class:Microlensing candidate': 'Number of alerts classified as Microlensing by Fink',
+    'class:SN candidate': 'Number of alerts classified as SN by Fink',
+    'class:Solar System candidate': 'Number of alerts classified as SSO candidates by Fink',
+    'class:Tracklet': 'Number of alerts classified as satelitte glints or space debris by Fink',
+}
+
 @app.callback(
     Output('object-stats', 'children'),
     [
@@ -219,7 +239,12 @@ def generate_col_list():
     """
     schema = clientStats.schema()
     schema_list = list(schema.columnNames())
-    labels = [i.split(':')[1] for i in schema_list]
+    labels = [
+        i.replace('class', 'SIMBAD')
+        if i not in dic_names
+        else dic_names[i]
+        for i in schema_list
+    ]
 
     dropdown = dcc.Dropdown(
         options=[
