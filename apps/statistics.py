@@ -91,10 +91,10 @@ import pandas as pd
 # get stats for all the year 2021
 r = requests.post(
   'https://fink-portal.org/api/v1/statistics',
-  json={
+  json={{
     'date': '2021',
     'output-format': 'json'
-  }
+  }}
 )
 
 # Format output in a DataFrame
@@ -104,7 +104,6 @@ pdf = pd.read_json(r.content)
 Note `date` can be either a given night (YYYYMMDD), month (YYYYMM), year (YYYY), or eveything (empty string).
 The schema of the dataframe is the following:
 
-| field | description |
 {}
 """.format(pd.DataFrame([dic_names]).T.rename(columns={0:'description'}).to_markdown())
 
