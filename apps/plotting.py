@@ -34,6 +34,7 @@ import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
+from apps.statistics import dic_names
 from app import APIURL
 
 from pyLIMA import event
@@ -2063,7 +2064,11 @@ def plot_stat_evolution(pathname, param_name, switch):
         for x in pdf.index.values
     ]
 
-    newcol = 'Processed {}'.format(param_name.split(':')[1])
+    if param_name in dic_names:
+        newcol = dic_names[param_name]
+    else:
+        newcol = param_name.replace('class', 'SIMBAD')
+
     pdf = pdf.rename(columns={param_name: newcol})
 
     if switch == [1]:
