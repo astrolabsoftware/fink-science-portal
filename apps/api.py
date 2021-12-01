@@ -930,6 +930,8 @@ plt.show()
 """
 
 api_doc_stats = """
+## Fink data statistics
+
 The [statistics](https://fink-portal.org/stats) page makes use of the REST API.
 If you want to further explore Fink statistics, or create your own dashboard based on Fink data,
 you can do also all of these yourself using the REST API. Here is an example using Python:
