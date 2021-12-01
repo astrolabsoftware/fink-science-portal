@@ -24,6 +24,27 @@ import pandas as pd
 
 dcc.Location(id='url', refresh=False)
 
+dic_names = {
+    'basic:night': 'Observation date',
+    'basic:raw': 'Number of alerts received',
+    'basic:sci': 'Number of alerts processed (passing quality cuts)',
+    'basic:n_g': 'Number of measurements in the g band',
+    'basic:n_r': 'Number of measurements in the r band',
+    'basic:exposures': 'Number of exposures (30 seconds)',
+    'basic:fields': 'Number of fields visited',
+    'class:simbad_tot': 'Number of alerts with a counterpart in SIMBAD',
+    'class:simbad_gal': 'Number of alerts with a close-by candidate host-galaxy in SIMBAD',
+    'class:Solar System MPC': 'Number of alerts with a counterpart in MPC (SSO)',
+    'class:SN candidate': 'Number of alerts classified as SN by Fink',
+    'class:Early SN candidate': 'Number of alerts classified as early SN Ia by Fink',
+    'class:Kilonova candidate': 'Number of alerts classified as Kilonova by Fink',
+    'class:Microlensing candidate': 'Number of alerts classified as Microlensing by Fink',
+    'class:SN candidate': 'Number of alerts classified as SN by Fink',
+    'class:Solar System candidate': 'Number of alerts classified as SSO candidates by Fink',
+    'class:Tracklet': 'Number of alerts classified as satelitte glints or space debris by Fink',
+    'class:Unknown': 'Number of alerts without classification'
+}
+
 stat_doc = """
 This page shows various statistics concerning Fink processed data.
 These statistics are updated once a day, after the ZTF observing night.
@@ -81,28 +102,11 @@ pdf = pd.read_json(r.content)
 ```
 
 Note `date` can be either a given night (YYYYMMDD), month (YYYYMM), year (YYYY), or eveything (empty string).
-"""
+The schema of the dataframe is the following:
 
-dic_names = {
-    'basic:night': 'Observation date',
-    'basic:raw': 'Number of alerts received',
-    'basic:sci': 'Number of alerts processed (passing quality cuts)',
-    'basic:n_g': 'Number of measurements in the g band',
-    'basic:n_r': 'Number of measurements in the r band',
-    'basic:exposures': 'Number of exposures (30 seconds)',
-    'basic:fields': 'Number of fields visited',
-    'class:simbad_tot': 'Number of alerts with a counterpart in SIMBAD',
-    'class:simbad_gal': 'Number of alerts with a close-by candidate host-galaxy in SIMBAD',
-    'class:Solar System MPC': 'Number of alerts with a counterpart in MPC (SSO)',
-    'class:SN candidate': 'Number of alerts classified as SN by Fink',
-    'class:Early SN candidate': 'Number of alerts classified as early SN Ia by Fink',
-    'class:Kilonova candidate': 'Number of alerts classified as Kilonova by Fink',
-    'class:Microlensing candidate': 'Number of alerts classified as Microlensing by Fink',
-    'class:SN candidate': 'Number of alerts classified as SN by Fink',
-    'class:Solar System candidate': 'Number of alerts classified as SSO candidates by Fink',
-    'class:Tracklet': 'Number of alerts classified as satelitte glints or space debris by Fink',
-    'class:Unknown': 'Number of alerts without classification'
-}
+| field | description |
+{}
+""".format(pd.DataFrame([dic_names]).T.rename(columns={0:'description'}).to_markdown())
 
 @app.callback(
     Output('object-stats', 'children'),
