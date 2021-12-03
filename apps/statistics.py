@@ -148,24 +148,21 @@ def create_stat_row(object_stats):
     night = n_[4:8] + '-' + n_[8:10] + '-' + n_[10:12]
     c0 = dbc.Col(
         children=[
-            html.Br(),
             html.H3(html.B(night)),
-            html.P('Last ZTF observing night')
-        ], width=2
+            html.P('Last ZTF observing night'),
+        ], width=2, style={'border-left': '1px solid #c4c0c0', 'border-bottom': '1px solid #c4c0c0', 'border-radius': '0px 0px 0px 25px', "text-align":"center"}
     )
     c1 = dbc.Col(
         children=[
-            html.Br(),
             html.H3(html.B('{:,}'.format(pdf['basic:sci'].values[-1]))),
-            html.P('Alerts processed')
-        ], width=2
+            html.P('Alerts processed'),
+        ], width=2 , style={'border-bottom': '1px solid #c4c0c0', 'border-right': '1px solid #c4c0c0', 'border-radius': '0px 0px 25px 0px', "text-align":"center"}
     )
     c2 = dbc.Col(
         children=[
-            html.Br(),
             html.H3(html.B('{:,}'.format(np.sum(pdf['basic:sci'].values)))),
             html.P('Since 2019/11/01')
-        ], width=2
+        ], width=2, style={"text-align":"center"}
     )
 
     n_alert_unclassified = np.sum(pdf['class:Unknown'].values)
@@ -173,18 +170,16 @@ def create_stat_row(object_stats):
 
     c3 = dbc.Col(
         children=[
-            html.Br(),
             html.H3(html.B('{:,}'.format(n_alert_classified))),
             html.P('With classification')
-        ], width=2
+        ], width=2, style={"text-align":"center"}
     )
 
     c4 = dbc.Col(
         children=[
-            html.Br(),
             html.H3(html.B('{:,}'.format(n_alert_unclassified))),
             html.P('Without classification')
-        ], width=2
+        ], width=2, style={"text-align":"center"}
     )
 
     row = [
@@ -216,6 +211,7 @@ def timelines():
             dbc.Checklist(
                 options=[
                     {"label": "Cumulative", "value": 1},
+                    {"label": "Percentage", "value": 2},
                 ],
                 value=[],
                 id="switch-cumulative",
@@ -304,6 +300,11 @@ def generate_col_list():
     """
     schema = clientStats.schema()
     schema_list = list(schema.columnNames())
+
+    # Because of a silly mistake, we do not have the information
+    # on basic:raw for historical data. Hence, do not expose it.
+    schema_list.remove('basic:raw')
+
     labels = [
         i.replace('class', 'SIMBAD')
         if i not in dic_names
@@ -383,6 +384,7 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 dbc.Row(id='stat_row'),
+                html.Br(),
                 dbc.Row(
                     [
                         html.Br(),

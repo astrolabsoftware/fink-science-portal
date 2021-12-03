@@ -2047,10 +2047,15 @@ def plot_stat_evolution(pathname, param_name, switch):
     if param_name is None or param_name == '':
         param_name = 'basic:sci'
 
+    if param_name != 'basic:sci':
+        param_name_ = param_name + ',basic:sci'
+    else:
+        param_name_ = param_name
+
     results = clientStats.scan(
         "",
         "key:key:ztf_",
-        param_name,
+        param_name_,
         0,
         False,
         False
@@ -2069,10 +2074,14 @@ def plot_stat_evolution(pathname, param_name, switch):
     else:
         newcol = param_name.replace('class', 'SIMBAD')
 
-    pdf = pdf.rename(columns={param_name: newcol})
+    if 1 in switch:
+        pdf[param_name] = pdf[param_name].fillna(0).astype(int).cumsum()
+        if param_name != 'basic:sci':
+            pdf['basic:sci'] = pdf['basic:sci'].astype(int).cumsum()
+    if 2 in switch:
+        pdf[param_name] = pdf[param_name].astype(int) / pdf['basic:sci'].astype(int) * 100
 
-    if switch == [1]:
-        pdf[newcol] = pdf[newcol].astype(int).cumsum()
+    pdf = pdf.rename(columns={param_name: newcol})
 
     fig = px.bar(
         pdf,
@@ -2318,12 +2327,16 @@ def display_years(pdf, years):
         fig.update_layout(height=200 * len(years))
     return fig
 
-def make_daily_card(pdf, color, linecolor, title, height='12pc', scale='lin'):
+def make_daily_card(pdf, color, linecolor, title, description, height='12pc', scale='lin', withpercent=True, norm=None):
     """
     """
+    if withpercent and norm != 0:
+        text = ['{:.0f}%'.format(int(i) / norm * 100) for i in pdf.values[0]]
+    else:
+        text = pdf.values[0]
     fig = go.Figure(
         [
-            go.Bar(x=pdf.columns, y=pdf.values[0])
+            go.Bar(x=pdf.columns, y=pdf.values[0], text=text, textposition='auto')
         ]
     )
 
@@ -2352,8 +2365,16 @@ def make_daily_card(pdf, color, linecolor, title, height='12pc', scale='lin'):
         },
         config={'displayModeBar': False}
     )
+    myid = '{}_stat'.format(title.split(' ')[0])
     card = dbc.Card(
-        dbc.CardBody([html.H6(title, className="card-subtitle"), graph]),
+        [
+            dbc.CardBody([html.H6([title, '   ', html.I(className="fas fa-question fa-1x", style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'})], id=myid, className="card-subtitle"), graph]),
+            dbc.Popover(
+                [dbc.PopoverBody(description)],
+                target=myid,
+                trigger="hover",
+            ),
+        ],
         className="mt-3"
     )
     return card
@@ -2385,9 +2406,15 @@ def hist_sci_raw(pathname, dropdown_days):
     pdf = pdf[pdf.index == dropdown_days]
 
     pdf = pdf.rename(columns={'basic:raw': 'Received', 'basic:sci': 'Processed'})
+    norm = int(pdf['Received'].values[0])
+
+    description = """
+    Received alerts go through a series of quality cuts defined by Fink.
+    Only alerts passing quality cuts are then further processed by the science pipelines.
+    """
 
     card = make_daily_card(
-        pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)', title='Quality cuts'
+        pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)', title='Quality cuts', description=description, norm=norm
     )
 
     return card
@@ -2405,7 +2432,7 @@ def hist_catalogued(pathname, dropdown_days):
     results = clientStats.scan(
         "",
         "key:key:ztf_",
-        'class:Solar System MPC,class:simbad_tot',
+        'class:Solar System MPC,class:simbad_tot,basic:sci',
         0,
         False,
         False
@@ -2420,8 +2447,16 @@ def hist_catalogued(pathname, dropdown_days):
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
+    norm = int(pdf['basic:sci'].values[0])
+    pdf = pdf.drop(columns=['basic:sci'])
+
+    description = """
+    All alerts passing quality cuts are matched against the SIMBAD database and the Minor Planet Center catalog.
+    Percentages are given with respect to the number of processed alerts (i.e. the ones that pass quality cuts).
+    """
+
     card = make_daily_card(
-        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', title='External catalogs'
+        pdf, color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)', title='Crossmatch to', description=description, norm=norm
     )
 
     return card
@@ -2450,14 +2485,21 @@ def hist_classified(pathname, dropdown_days):
 
     pdf['Classified'] = pdf['basic:sci'].astype(int) - pdf['class:Unknown'].astype(int)
     pdf = pdf.rename(columns={'class:Unknown': 'Unclassified'})
-    pdf = pdf.drop(columns=['basic:sci'])
 
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
+    norm = int(pdf['basic:sci'].values[0])
+    pdf = pdf.drop(columns=['basic:sci'])
+
+    description = """
+    Each alert goes through the Fink science modules, and eventually gets a classification label, either from machine learning based modules or from crossmatch.
+    Percentages are given with respect to the number of processed alerts (i.e. the ones that pass quality cuts).
+    """
+
     card = make_daily_card(
-        pdf, color='rgb(245, 98, 46)', linecolor='rgb(135, 86, 69)', title='Classification'
+        pdf, color='rgb(245, 98, 46)', linecolor='rgb(135, 86, 69)', title='Classification', description=description, norm=norm
     )
 
     return card
@@ -2497,8 +2539,12 @@ def hist_candidates(pathname, dropdown_days):
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
+    description = """
+    Number of alerts for a subset of classes: early type Ia supernova (SN Ia), supernovae or core-collapse (SNe), Kilonova, or Solar System candidates (SSO).
+    """
+
     card = make_daily_card(
-        pdf, color='rgb(213, 213, 211)', linecolor='rgb(138, 138, 132)', title='Selected candidates'
+        pdf, color='rgb(213, 213, 211)', linecolor='rgb(138, 138, 132)', title='Selected Fink candidates', description=description, withpercent=False
     )
 
     return card
@@ -2534,11 +2580,14 @@ def fields_exposures(pathname, dropdown_days):
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
+    description = "Histogram of Fink labels for all processed alerts during the night. For readability the plot displays only a few labels on the x-axis. Select a region to zoom in and discover more labels (alphabetical sort)."
+
     card = make_daily_card(
         pdf,
         color='rgb(21, 40, 79)', linecolor='rgb(4, 14, 33)',
-        title='Individual classifications (zoom in to see more details)',
-        height='20pc', scale='log'
+        title='Individual Fink classifications',
+        description=description,
+        height='20pc', scale='log', withpercent=False
     )
 
     return card
