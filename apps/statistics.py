@@ -213,6 +213,14 @@ def create_stat_row(object_stats):
         rowify(c3_),
         html.Br(),
         rowify(c4_),
+        html.Br(), html.Br(),
+        dbc.Card(
+            dbc.CardBody(
+                dcc.Markdown('_Connect with a bigger screen to explore more statistics_')
+            ), style={
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ),
     ]
 
     return row
