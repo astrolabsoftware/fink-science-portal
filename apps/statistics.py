@@ -194,31 +194,27 @@ def create_stat_row(object_stats):
     pdf = pd.read_json(object_stats)
     c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
 
-    r0 = dbc.Row(
-        children=[dbc.Col(children=[c0_, html.Br()], width=10)],
+    rowify = lambda x: dbc.Row(
+        children=[dbc.Col(children=x, width=10)],
         justify='center',
         style={
-            'border-right': '1px solid #c4c0c0',
-            'border-left': '1px solid #c4c0c0',
-            'border-bottom': '1px solid #c4c0c0',
-            'border-radius': '0px 0px 25px 25px',
             "text-align": "center"
         }
     )
 
-    r1 = dbc.Row(
-        children=[dbc.Col(children=[c1_, html.Br()], width=10)],
-        justify='center',
-        style={
-            'border-right': '1px solid #c4c0c0',
-            'border-left': '1px solid #c4c0c0',
-            'border-bottom': '1px solid #c4c0c0',
-            'border-radius': '0px 0px 25px 25px',
-            "text-align": "center"
-        }
-    )
+    row = [
+        html.Br(), html.Br(),
+        rowify(c0_),
+        html.Br(),
+        rowify(c1_),
+        html.Br(),
+        rowify(c2_),
+        html.Br(),
+        rowify(c3_),
+        html.Br(),
+        rowify(c4_),
+    ]
 
-    row = [dbc.Row(), r0, r1]
     return row
 
 def create_stat_generic(pdf):
