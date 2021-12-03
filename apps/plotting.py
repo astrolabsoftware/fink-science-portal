@@ -2117,7 +2117,10 @@ def plot_stat_evolution(pathname, param_name, switch):
     )
     card = dbc.Card(
         dbc.CardBody(graph),
-        className="mt-3"
+        className="mt-3",
+        style={
+            'backgroundColor': 'rgb(248, 248, 248, .9)'
+        }
     )
     return card
 
@@ -2375,7 +2378,10 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
                 trigger="hover",
             ),
         ],
-        className="mt-3"
+        className="mt-3",
+        style={
+            'backgroundColor': 'rgb(248, 248, 248, .8)'
+        }
     )
     return card
 
