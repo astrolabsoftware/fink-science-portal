@@ -195,7 +195,9 @@ def create_stat_row(object_stats):
     c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
 
     r0 = dbc.Row(
-        children=c0_, style={
+        children=[dbc.Col(c0_, width=10)],
+        justify='center',
+        style={
             'border-right': '1px solid #c4c0c0',
             'border-left': '1px solid #c4c0c0',
             'border-bottom': '1px solid #c4c0c0',
@@ -205,7 +207,9 @@ def create_stat_row(object_stats):
     )
 
     r1 = dbc.Row(
-        children=c1_, style={
+        children=[dbc.Col(c1_, width=10)],
+        justify='center',
+        style={
             'border-right': '1px solid #c4c0c0',
             'border-left': '1px solid #c4c0c0',
             'border-bottom': '1px solid #c4c0c0',
