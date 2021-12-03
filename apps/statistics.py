@@ -141,51 +141,117 @@ def store_stat_query(name):
     Input('object-stats', 'children')
 )
 def create_stat_row(object_stats):
-    """ Create links to external website. Used in the mobile app.
+    """ Show basic stats. Used in the desktop app.
     """
     pdf = pd.read_json(object_stats)
-    n_ = pdf['key:key'].values[-1]
-    night = n_[4:8] + '-' + n_[8:10] + '-' + n_[10:12]
+    c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
+
     c0 = dbc.Col(
-        children=[
-            html.H3(html.B(night)),
-            html.P('Last ZTF observing night'),
-        ], width=2, style={'border-left': '1px solid #c4c0c0', 'border-bottom': '1px solid #c4c0c0', 'border-radius': '0px 0px 0px 25px', "text-align":"center"}
+        children=c0_,
+        width=2,
+        style={
+            'border-left': '1px solid #c4c0c0',
+            'border-bottom': '1px solid #c4c0c0',
+            'border-radius': '0px 0px 0px 25px',
+            "text-align": "center"
+        }
     )
+
     c1 = dbc.Col(
-        children=[
-            html.H3(html.B('{:,}'.format(pdf['basic:sci'].values[-1]))),
-            html.P('Alerts processed'),
-        ], width=2 , style={'border-bottom': '1px solid #c4c0c0', 'border-right': '1px solid #c4c0c0', 'border-radius': '0px 0px 25px 0px', "text-align":"center"}
+        children=c1_,
+        width=2,
+        style={
+            'border-bottom': '1px solid #c4c0c0',
+            'border-right': '1px solid #c4c0c0',
+            'border-radius': '0px 0px 25px 0px',
+            "text-align": "center"
+        }
     )
     c2 = dbc.Col(
-        children=[
-            html.H3(html.B('{:,}'.format(np.sum(pdf['basic:sci'].values)))),
-            html.P('Since 2019/11/01')
-        ], width=2, style={"text-align":"center"}
+        children=c2_, width=2, style={"text-align": "center"}
     )
 
-    n_alert_unclassified = np.sum(pdf['class:Unknown'].values)
-    n_alert_classified = np.sum(pdf['basic:sci'].values) - n_alert_unclassified
-
     c3 = dbc.Col(
-        children=[
-            html.H3(html.B('{:,}'.format(n_alert_classified))),
-            html.P('With classification')
-        ], width=2, style={"text-align":"center"}
+        children=c3_, width=2, style={"text-align": "center"}
     )
 
     c4 = dbc.Col(
-        children=[
-            html.H3(html.B('{:,}'.format(n_alert_unclassified))),
-            html.P('Without classification')
-        ], width=2, style={"text-align":"center"}
+        children=c4_, width=2, style={"text-align": "center"}
     )
 
     row = [
         dbc.Col(width=1), c0, c1, c2, c3, c4, dbc.Col(width=1)
     ]
     return row
+
+@app.callback(
+    Output('stat_row_mobile', 'children'),
+    Input('object-stats', 'children')
+)
+def create_stat_row(object_stats):
+    """ Show basic stats. Used in the mobile app.
+    """
+    pdf = pd.read_json(object_stats)
+    c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
+
+    r0 = dbc.Row(
+        children=c0_, style={
+            'border-right': '1px solid #c4c0c0',
+            'border-left': '1px solid #c4c0c0',
+            'border-bottom': '1px solid #c4c0c0',
+            'border-radius': '0px 0px 25px 25px',
+            "text-align": "center"
+        }
+    )
+
+    r1 = dbc.Row(
+        children=c1_, style={
+            'border-right': '1px solid #c4c0c0',
+            'border-left': '1px solid #c4c0c0',
+            'border-bottom': '1px solid #c4c0c0',
+            'border-radius': '0px 0px 25px 25px',
+            "text-align": "center"
+        }
+    )
+
+    row = [r0, r1]
+    return row
+
+def create_stat_generic(pdf):
+    """ Show basic stats. Used in the mobile app.
+    """
+    n_ = pdf['key:key'].values[-1]
+    night = n_[4:8] + '-' + n_[8:10] + '-' + n_[10:12]
+
+    c0 = [
+        html.H3(html.B(night)),
+        html.P('Last ZTF observing night'),
+    ]
+
+    c1 = [
+        html.H3(html.B('{:,}'.format(pdf['basic:sci'].values[-1]))),
+        html.P('Alerts processed'),
+    ]
+
+    c2 = [
+        html.H3(html.B('{:,}'.format(np.sum(pdf['basic:sci'].values)))),
+        html.P('Since 2019/11/01')
+    ]
+
+    n_alert_unclassified = np.sum(pdf['class:Unknown'].values)
+    n_alert_classified = np.sum(pdf['basic:sci'].values) - n_alert_unclassified
+
+    c3 = [
+        html.H3(html.B('{:,}'.format(n_alert_classified))),
+        html.P('With classification')
+    ]
+
+    c4 = [
+        html.H3(html.B('{:,}'.format(n_alert_unclassified))),
+        html.P('Without classification')
+    ]
+
+    return c0, c1, c2, c3, c4
 
 def heatmap_content():
     """
@@ -352,9 +418,7 @@ def get_data_one_night(night):
 def layout(is_mobile):
     """
     """
-    if is_mobile:
-        tabs_ = None
-    else:
+    if not is_mobile:
         label_style = {"color": "#000"}
         tabs_ = dbc.Tabs(
             [
@@ -377,7 +441,20 @@ def layout(is_mobile):
         )
 
     if is_mobile:
-        layout_ = None
+        layout_ = html.Div(
+            [
+                html.Br(),
+                html.Br(),
+                dbc.Container(id='stat_row_mobile'),
+                html.Br(),
+                html.Div(id='object-stats', style={'display': 'none'}),
+            ],
+            className='home',
+            style={
+                'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
+                'background-size': 'contain'
+            }
+        )
     else:
         layout_ = html.Div(
             [
