@@ -115,7 +115,7 @@ def tab5_content(pdf):
     tab5_content_ = html.Div([
         dbc.Row(
             [
-                dbc.Col([card_sso_lightcurve(), card_sso_radec()]),
+                dbc.Col([card_sso_lightcurve(), card_sso_radec()], width=8),
                 dbc.Col([card_sso_mpc_params(ssnamenr)], width=4)
             ]
         ),
