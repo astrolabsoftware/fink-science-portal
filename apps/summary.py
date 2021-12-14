@@ -122,7 +122,7 @@ def tab5_content(pdf):
     label_style = {"color": "#000"}
     tab5_content_ = dbc.Tabs(
         [
-            dbc.Tab("", label="Lightcurve", tab_style={"margin-left": "auto"}, label_style=label_style),
+            dbc.Tab("", label="Lightcurve", tab_style={"margin-right": "auto"}, label_style=label_style),
             dbc.Tab("", label="Astrometry", label_style=label_style),
             dbc.Tab("", label="Phase curve", label_style=label_style)
         ]
