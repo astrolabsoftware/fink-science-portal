@@ -111,18 +111,18 @@ def tab4_content(pdf):
 def tab5_content(pdf):
     """ SSO tab
     """
-    # tab5_content_ = html.Div([
-    #     dbc.Row(
-    #         [
-    #             dbc.Col([card_sso_lightcurve(), card_sso_radec()], width=8),
-    #             dbc.Col([card_sso_mpc_params(ssnamenr)], width=4)
-    #         ]
-    #     ),
-    # ])
+    tab1 = html.Div([
+        dbc.Row(
+            [
+                dbc.Col([card_sso_lightcurve(), card_sso_radec()], width=8),
+                dbc.Col([card_sso_mpc_params(ssnamenr)], width=4)
+            ]
+        ),
+    ])
     label_style = {"color": "#000"}
     tab5_content_ = dbc.Tabs(
         [
-            dbc.Tab("", label="Lightcurve", label_style=label_style),
+            dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
             dbc.Tab("", label="Astrometry", label_style=label_style),
             dbc.Tab("", label="Phase curve", label_style=label_style)
         ]
