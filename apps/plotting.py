@@ -1945,7 +1945,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
 
     layout_sso_residual = layout_sso_lightcurve.copy()
     layout_sso_residual['yaxis']['title'] = 'Residuals [mag]'
-    layout_sso_residual['xaxis']['title'] = 'Ecliptic longitude ($^o$)'
+    layout_sso_residual['xaxis']['title'] = 'Ecliptic longitude [deg]'
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
