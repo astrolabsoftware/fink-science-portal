@@ -1949,7 +1949,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f<br>
     <b>mjd</b>: %{customdata}
     <extra></extra>
     """
@@ -1964,7 +1964,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         },
         'mode': 'markers',
         'name': 'g band',
-        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'customdata': pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 1],
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -1983,7 +1983,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         },
         'mode': 'markers',
         'name': 'r band',
-        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+        'customdata': pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 2],
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
