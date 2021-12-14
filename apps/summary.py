@@ -33,7 +33,7 @@ from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 from apps.cards import card_sso_lightcurve, card_sso_mpc_params
-from apps.card import card_sso_residual
+from apps.cards import card_sso_residual
 from apps.plotting import plot_classbar
 from apps.plotting import all_radio_options
 
