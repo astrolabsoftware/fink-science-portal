@@ -34,7 +34,7 @@ import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-from apps.utils import get_miriade_data
+from apps.utils import get_miriade_data, sine_fit
 
 from apps.statistics import dic_names
 from app import APIURL
@@ -1947,6 +1947,12 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     layout_sso_residual['yaxis']['title'] = 'Residuals [mag]'
     layout_sso_residual['xaxis']['title'] = 'Ecliptic longitude [deg]'
 
+    diff1 = mag[pdf['i:fid'] == 1] - pdf['SDSS:g'][pdf['i:fid'] == 1]
+    diff2 = mag[pdf['i:fid'] == 2] - pdf['SDSS:r'][pdf['i:fid'] == 2]
+
+    popt1, pcov1 = curve_fit(sine_fit, pdf['Longitude'][pdf['i:fid'] == 1], diff1)
+    popt2, pcov2 = curve_fit(sine_fit, pdf['Longitude'][pdf['i:fid'] == 2], diff2)
+
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x:.2f<br>
@@ -1955,7 +1961,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     """
     gresiduals = {
         'x': pdf['Longitude'][pdf['i:fid'] == 1],
-        'y': mag[pdf['i:fid'] == 1] - pdf['SDSS:g'][pdf['i:fid'] == 1],
+        'y': diff1,
         'error_y': {
             'type': 'data',
             'array': err[pdf['i:fid'] == 1],
@@ -1974,7 +1980,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
 
     rresiduals = {
         'x': pdf['Longitude'][pdf['i:fid'] == 2],
-        'y': mag[pdf['i:fid'] == 2] - pdf['SDSS:r'][pdf['i:fid'] == 2],
+        'y': diff2,
         'error_y': {
             'type': 'data',
             'array': err[pdf['i:fid'] == 2],
@@ -1991,10 +1997,35 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
             'symbol': 'o'}
     }
 
+    longitude_arr = np.linspace(0,360,num=100)
+    gfit = {
+        'x': longitude_arr,
+        'y': sine_fit(longitude_arr, *popt1),
+        'mode': 'lines',
+        'name': 'fit',
+        'showlegend': False,
+        'line': {
+            'color': '#1f77b4',
+        }
+    }
+
+    rfit = {
+        'x': longitude_arr,
+        'y': sine_fit(longitude_arr, *popt2),
+        'mode': 'lines',
+        'name': 'fit',
+        'showlegend': False,
+        'line': {
+            'color': '#ff7f0e',
+        }
+    }
+
     figure = {
         'data': [
             gresiduals,
-            rresiduals
+            gfit,
+            rresiduals,
+            rfit
         ],
         "layout": layout_sso_residual
     }

@@ -1021,3 +1021,12 @@ def get_miriade_data(pdf):
     info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
 
     return info
+
+def sine_fit(x, a, b):
+    """ Sinusoidal function a*sin( 2*(x-b) )
+    :x: float - in degrees
+    :a: float - Amplitude
+    :b: float - Phase offset
+
+    """
+    return a*np.sin( 2*np.radians(x-b) )
