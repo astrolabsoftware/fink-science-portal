@@ -1008,7 +1008,7 @@ def get_miriade_data(pdf):
     eph['Dec'] = sc.dec.value
 
     # Add Ecliptic coordinates
-    eph_ec = query_miriade(ssname, fink['i:jd'], rplane='2')
+    eph_ec = query_miriade(ssnamenr, pdf['i:jd'], rplane='2')
 
     sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
     eph['Longitude'] = sc.ra.value
