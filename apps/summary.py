@@ -111,6 +111,7 @@ def tab4_content(pdf):
 def tab5_content(pdf):
     """ SSO tab
     """
+    ssnamenr = pdf['i:ssnamenr'].values[0]
     tab1 = html.Div([
         dbc.Row(
             [
