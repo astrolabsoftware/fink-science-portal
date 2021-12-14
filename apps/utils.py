@@ -1015,7 +1015,7 @@ def get_miriade_data(pdf):
     eph['Latitude'] = sc.dec.value
 
     # Merge fink & Eph
-    info = pd.concat([eph, pdf], axis=1)
+    info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
 
     # Compute magnitude reduced to unit distance
     info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
