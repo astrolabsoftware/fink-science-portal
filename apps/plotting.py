@@ -1979,15 +1979,15 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 2],
             'visible': True,
-            'color': '#1f77b4'
+            'color': '#ff7f0e'
         },
         'mode': 'markers',
-        'name': 'g band',
+        'name': 'r band',
         'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
-            'color': '#1f77b4',
+            'color': '#ff7f0e',
             'symbol': 'o'}
     }
 
