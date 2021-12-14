@@ -1877,7 +1877,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         'y': pdf['SDSS:r'][pdf['i:fid'] == 2],
         'mode': 'markers',
         'name': 'r (ephem)',
-        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -1894,6 +1894,108 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
             rephem
         ],
         "layout": layout_sso_lightcurve
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('sso_residual', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-sso', 'children')
+    ])
+def draw_sso_residual(pathname: str, object_sso) -> dict:
+    """ Draw SSO residuals (observation - ephemerides)
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf_ = pd.read_json(object_sso)
+    if pdf_.empty:
+        msg = """
+        Object not referenced in the Minor Planet Center
+        """
+        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    pdf = get_miriade_data(pdf_)
+
+    # type conversion
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    # shortcuts
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+
+    layout_sso_residual = np.copy(layout_sso_lightcurve)
+    layout_sso_residual['yaxis']['title'] = 'Residuals [mag]'
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
+    gresiduals = {
+        'x': pdf['Longitude'][pdf['i:fid'] == 1],
+        'y': mag[pdf['i:fid'] == 1] - pdf['SDSS:g'][pdf['i:fid'] == 1],
+        'error_y': {
+            'type': 'data',
+            'array': err[pdf['i:fid'] == 1],
+            'visible': True,
+            'color': '#1f77b4'
+        },
+        'mode': 'markers',
+        'name': 'g band',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': '#1f77b4',
+            'symbol': 'o'}
+    }
+
+    rresiduals = {
+        'x': pdf['Longitude'][pdf['i:fid'] == 2],
+        'y': mag[pdf['i:fid'] == 2] - pdf['SDSS:r'][pdf['i:fid'] == 2],
+        'error_y': {
+            'type': 'data',
+            'array': err[pdf['i:fid'] == 2],
+            'visible': True,
+            'color': '#1f77b4'
+        },
+        'mode': 'markers',
+        'name': 'g band',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': '#1f77b4',
+            'symbol': 'o'}
+    }
+
+    figure = {
+        'data': [
+            gresiduals,
+            rresiduals
+        ],
+        "layout": layout_sso_residual
     }
     graph = dcc.Graph(
         figure=figure,

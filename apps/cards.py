@@ -411,8 +411,8 @@ def card_sso_lightcurve():
     card = html.Div(id='sso_lightcurve')
     return card
 
-def card_sso_residual():
-    """ Add a card to display SSO residuals (observation - ephemerides)
+def card_sso_radec():
+    """ Add a card to display SSO radec
 
     Returns
     ----------
@@ -420,6 +420,17 @@ def card_sso_residual():
         Card with the SSO radec
     """
     card = html.Div(id='sso_radec')
+    return card
+
+def card_sso_residual():
+    """ Add a card to display SSO residuals (observation - ephemerides)
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the SSO residual
+    """
+    card = html.Div(id='sso_residual')
     return card
 
 def card_sso_skymap():
