@@ -411,8 +411,8 @@ def card_sso_lightcurve():
     card = html.Div(id='sso_lightcurve')
     return card
 
-def card_sso_radec():
-    """ Add a card to display SSO radec
+def card_sso_residual():
+    """ Add a card to display SSO residuals (observation - ephemerides)
 
     Returns
     ----------

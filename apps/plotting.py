@@ -34,6 +34,8 @@ import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
+from apps.utils import get_miriade_data
+
 from apps.statistics import dic_names
 from app import APIURL
 
@@ -1780,7 +1782,8 @@ def integrate_aladin_lite(object_data):
         Input('object-sso', 'children')
     ])
 def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
-    """ Draw SSO object lightcurve with errorbars
+    """ Draw SSO object lightcurve with errorbars, and ephemerides on top
+    from the miriade IMCCE service.
 
     Parameters
     ----------
@@ -1791,12 +1794,14 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_sso)
-    if pdf.empty:
+    pdf_ = pd.read_json(object_sso)
+    if pdf_.empty:
         msg = """
         Object not referenced in the Minor Planet Center
         """
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    pdf = get_miriade_data(pdf_)
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
