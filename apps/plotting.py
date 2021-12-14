@@ -1820,44 +1820,78 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     <b>mjd</b>: %{customdata}
     <extra></extra>
     """
+    gobs = {
+        'x': dates[pdf['i:fid'] == 1],
+        'y': mag[pdf['i:fid'] == 1],
+        'error_y': {
+            'type': 'data',
+            'array': err[pdf['i:fid'] == 1],
+            'visible': True,
+            'color': '#1f77b4'
+        },
+        'mode': 'markers',
+        'name': 'g band',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': '#1f77b4',
+            'symbol': 'o'}
+    }
+
+    gephem = {
+        'x': dates[pdf['i:fid'] == 1],
+        'y': pdf['SDSS:g'][pdf['i:fid'] == 1],
+        'mode': 'markers',
+        'name': 'g (ephem)',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': '#1f77b4',
+            'symbol': 'o',
+            'opacity': 0.5}
+    }
+
+    robs = {
+        'x': dates[pdf['i:fid'] == 2],
+        'y': mag[pdf['i:fid'] == 2],
+        'error_y': {
+            'type': 'data',
+            'array': err[pdf['i:fid'] == 2],
+            'visible': True,
+            'color': '#ff7f0e'
+        },
+        'mode': 'markers',
+        'name': 'r band',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': '#ff7f0e',
+            'symbol': 'o'}
+    }
+
+    rephem = {
+        'x': dates[pdf['i:fid'] == 2],
+        'y': pdf['SDSS:r'][pdf['i:fid'] == 2],
+        'mode': 'markers',
+        'name': 'r (ephem)',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': '#ff7f0e',
+            'symbol': 'o',
+            'opacity': 0.5}
+    }
+
     figure = {
         'data': [
-            {
-                'x': dates[pdf['i:fid'] == 1],
-                'y': mag[pdf['i:fid'] == 1],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 1],
-                    'visible': True,
-                    'color': '#1f77b4'
-                },
-                'mode': 'markers',
-                'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': '#1f77b4',
-                    'symbol': 'o'}
-            },
-            {
-                'x': dates[pdf['i:fid'] == 2],
-                'y': mag[pdf['i:fid'] == 2],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 2],
-                    'visible': True,
-                    'color': '#ff7f0e'
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': '#ff7f0e',
-                    'symbol': 'o'}
-            }
+            gobs,
+            gephem,
+            robs,
+            rephem
         ],
         "layout": layout_sso_lightcurve
     }
