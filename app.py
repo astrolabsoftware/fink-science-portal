@@ -5,7 +5,7 @@ import jpype
 import jpype.imports
 from jpype import JImplements, JOverride, JImplementationFor
 
-APIURL = "localhost"
+APIURL = "http://localhost"
 
 # bootstrap theme
 # https://bootswatch.com/spacelab/
@@ -50,7 +50,7 @@ from com.astrolabsoftware.FinkBrowser.Utils import Init
 
 Init.init()
 
-IPADDR = "http://localhost"
+IPADDR = "localhost"
 ZOOPORT = 2181
 SCHEMAVER = "schema_1.3_0.4.8"
 
