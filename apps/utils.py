@@ -1,4 +1,4 @@
-# Copyright 2020 AstroLab Software
+# Copyright 2020-2022 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,8 @@ from astropy.coordinates import SkyCoord, get_constellation
 
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
+
+from fink_filters.classification import extract_fink_classification_
 
 hbase_type_converter = {
     'integer': int,
@@ -63,7 +65,7 @@ def format_hbase_output(
 
     if not truncated:
         # Fink final classification
-        classifications = extract_fink_classification(
+        classifications = extract_fink_classification_(
             pdfs['d:cdsxmatch'],
             pdfs['d:roid'],
             pdfs['d:mulens_class_1'],
@@ -309,100 +311,6 @@ def extract_fink_classification_single(data):
     )
 
     return classification[0]
-
-def extract_fink_classification(
-        cdsxmatch, roid, mulens_class_1, mulens_class_2,
-        snn_snia_vs_nonia, snn_sn_vs_all, rfscore,
-        ndethist, drb, classtar, jd, jdstarthist, knscore_):
-    """ Extract the classification of an alert based on module outputs
-
-    See https://arxiv.org/abs/2009.10185 for more information
-    """
-    classification = pd.Series(['Unknown'] * len(cdsxmatch))
-    ambiguity = pd.Series([0] * len(cdsxmatch))
-
-    # Microlensing classification
-    medium_ndethist = ndethist.astype(int) < 100
-    f_mulens = (mulens_class_1 == 'ML') & (mulens_class_2 == 'ML') & medium_ndethist
-
-    # SN Ia
-    snn1 = snn_snia_vs_nonia.astype(float) > 0.5
-    snn2 = snn_sn_vs_all.astype(float) > 0.5
-    active_learn = rfscore.astype(float) > 0.5
-
-    # KN
-    high_knscore = knscore_.astype(float) > 0.5
-
-    # Others
-    # Note jdstarthist is not really reliable...
-    # see https://github.com/astrolabsoftware/fink-science-portal/issues/163
-    # KN & SN candidate still affected (not Early SN Ia candidate)
-    # Perhaps something to report to ZTF
-    sn_history = jd.astype(float) - jdstarthist.astype(float) <= 90
-    new_detection = jd.astype(float) - jdstarthist.astype(float) < 20
-    high_drb = drb.astype(float) > 0.5
-    high_classtar = classtar.astype(float) > 0.4
-    early_ndethist = ndethist.astype(int) < 20
-    no_mpc = roid.astype(int) != 3
-    no_first_det = ndethist.astype(int) > 1
-
-    list_simbad_galaxies = [
-        "galaxy",
-        "Galaxy",
-        "EmG",
-        "Seyfert",
-        "Seyfert_1",
-        "Seyfert_2",
-        "BlueCompG",
-        "StarburstG",
-        "LSB_G",
-        "HII_G",
-        "High_z_G",
-        "GinPair",
-        "GinGroup",
-        "BClG",
-        "GinCl",
-        "PartofG",
-    ]
-    keep_cds = \
-        ["Unknown", "Candidate_SN*", "SN", "Transient", "Fail"] + list_simbad_galaxies
-
-    base_sn = (snn1 | snn2) & cdsxmatch.isin(keep_cds) & high_drb & high_classtar & no_mpc & no_first_det
-    f_sn = base_sn & sn_history
-    f_sn_early = base_sn & early_ndethist & active_learn
-
-    # Kilonova
-    keep_cds = \
-        ["Unknown", "Transient", "Fail"] + list_simbad_galaxies
-
-    f_kn = high_knscore & high_drb & high_classtar & new_detection
-    f_kn = f_kn & early_ndethist & cdsxmatch.isin(keep_cds)
-
-    # Solar System Objects
-    f_roid_2 = roid.astype(int) == 2
-    f_roid_3 = roid.astype(int) == 3
-
-    # Simbad xmatch
-    f_simbad = ~cdsxmatch.isin(['Unknown', 'Transient', 'Fail'])
-
-    classification.mask(f_mulens.values, 'Microlensing candidate', inplace=True)
-    classification.mask(f_sn.values, 'SN candidate', inplace=True)
-    classification.mask(f_sn_early.values, 'Early SN Ia candidate', inplace=True)
-    classification.mask(f_kn.values, 'Kilonova candidate', inplace=True)
-    classification.mask(f_roid_2.values, 'Solar System candidate', inplace=True)
-    classification.mask(f_roid_3.values, 'Solar System MPC', inplace=True)
-
-    # If several flags are up, we cannot rely on the classification
-    ambiguity[f_mulens.values] += 1
-    ambiguity[f_sn.values] += 1
-    ambiguity[f_roid_2.values] += 1
-    ambiguity[f_roid_3.values] += 1
-    f_ambiguity = ambiguity > 1
-    classification.mask(f_ambiguity.values, 'Ambiguous', inplace=True)
-
-    classification = np.where(f_simbad, cdsxmatch, classification)
-
-    return classification
 
 def convert_jd(jd, to='iso'):
     """ Convert Julian Date into ISO date (UTC).

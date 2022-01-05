@@ -21,3 +21,5 @@ scikit-learn
 iminuit
 pyLIMA
 astroquery
+
+fink-filters
