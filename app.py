@@ -50,7 +50,7 @@ from com.astrolabsoftware.FinkBrowser.Utils import Init
 
 Init.init()
 
-IPADDR = "localhost"
+IPADDR = "http://localhost"
 ZOOPORT = 2181
 SCHEMAVER = "schema_1.3_0.4.8"
 
