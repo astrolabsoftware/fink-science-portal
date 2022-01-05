@@ -21,6 +21,6 @@ wget https://archive.apache.org/dist/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSIO
 tar -zxvf hbase-${HBASE_VERSION}-bin.tar.gz
 rm hbase-${HBASE_VERSION}-bin.tar.gz
 
-cp conf/hbase-site.xml hbase-${HBASE_VERSION}/conf/
+cp bin/hbase-site.xml hbase-${HBASE_VERSION}/conf/
 
 hbase-${HBASE_VERSION}/bin/start-hbase.sh
