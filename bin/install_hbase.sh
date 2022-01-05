@@ -18,7 +18,7 @@ set -e
 HBASE_VERSION=2.2.7
 
 wget https://archive.apache.org/dist/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
-tar -zxvf hbase-${HBASE_VERSION}-bin.tar.gz -C $HOME/hbase-${HBASE_VERSION}
+tar -zxvf hbase-${HBASE_VERSION}-bin.tar.gz -C $HOME/
 rm hbase-${HBASE_VERSION}-bin.tar.gz
 
 cp bin/hbase-site.xml $HOME/hbase-${HBASE_VERSION}/conf/
