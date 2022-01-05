@@ -15,12 +15,11 @@
 # limitations under the License.
 set -e
 
-HBASE_VERSION=2.2.7
+SPARK_VERSION=2.4.7
 
-wget https://archive.apache.org/dist/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
-tar -zxvf hbase-${HBASE_VERSION}-bin.tar.gz
-rm hbase-${HBASE_VERSION}-bin.tar.gz
-
-cp conf/hbase-site.xml hbase-${HBASE_VERSION}/conf/
-
-hbase-${HBASE_VERSION}/bin/start-hbase.sh
+wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop2.7.tgz
+tar -xf spark-${SPARK_VERSION}-bin-hadoop2.7.tgz
+echo "SPARK_HOME=$FSP_HOME/spark-${SPARK_VERSION}-bin-hadoop2.7" >> ~/.bash_profile
+echo "export PATH=$PATH:${SPARK_HOME}/bin:${SPARK_HOME}/sbin" >> ~/.bash_profile
+echo "spark.yarn.jars=${SPARK_HOME}/jars/*.jar" > ${SPARK_HOME}/conf/spark-defaults.conf
+echo "ARROW_PRE_0_15_IPC_FORMAT=1" > ${SPARK_HOME}/conf/spark-env.sh
