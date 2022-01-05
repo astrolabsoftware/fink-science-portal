@@ -4,6 +4,8 @@ source ~/.bash_profile
 
 NIGHT=19881103
 
+mkdir -p logs
+
 echo "science_archival"
 fink start science_archival -c fink.conf.travis --night ${NIGHT} > logs/science_archival_${NIGHT}.log 2>&1
 
