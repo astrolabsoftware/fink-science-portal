@@ -24,6 +24,10 @@ rm spark-${SPARK_VERSION}-bin-hadoop2.7.tgz
 echo "export SPARK_HOME=$HOME/spark-${SPARK_VERSION}-bin-hadoop2.7" >> ~/.bash_profile
 export SPARK_HOME=$HOME/spark-${SPARK_VERSION}-bin-hadoop2.7
 
+echo "export SPARKLIB=${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.7-src.zip" >> ~/.bash_profile
+export SPARKLIB=${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.7-src.zip
+
+echo "export PYTHONPATH=$PYTHONPATH:${SPARKLIB}" >> ~/.bash_profile
 echo "export PATH=$PATH:${SPARK_HOME}/bin:${SPARK_HOME}/sbin" >> ~/.bash_profile
 echo "spark.yarn.jars=${SPARK_HOME}/jars/*.jar" > ${SPARK_HOME}/conf/spark-defaults.conf
 echo "ARROW_PRE_0_15_IPC_FORMAT=1" > ${SPARK_HOME}/conf/spark-env.sh

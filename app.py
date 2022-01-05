@@ -52,10 +52,10 @@ Init.init()
 
 IPADDR = "localhost"
 ZOOPORT = 2181
-SCHEMAVER = "schema_1.1_0.4.8"
+SCHEMAVER = "schema_1.3_0.4.8"
 
 # base
-tablename = 'ztf_season1'
+tablename = 'test_sp'
 
 client = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
 client.connect(tablename, SCHEMAVER)

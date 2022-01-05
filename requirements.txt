@@ -24,3 +24,4 @@ pyLIMA
 astroquery
 
 fink-filters
+tabulate
