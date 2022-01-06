@@ -16,20 +16,7 @@ We developed custom HBase clients to manipulate the data efficiently (Lomikel, F
 
 ### Local deployment
 
-If you want to deploy on your machine for test purposes, you first need to install HBase. Download it from [](), untar, and start HBase with:
-
-```bash
-bin/start-hbase.sh
-```
-
-Then install Spark, and push data to HBase.
-
-```bash
-# debug mode
-python index.py
-```
-
-Note that you need the Java HBase client (the jar is not distributed here), which you can compile from the [FinkBrowser](https://hrivnac.web.cern.ch/hrivnac/Activities/Packages/FinkBrowser/) repository. We also put in place a [Grafana dashboard](https://supervision.lal.in2p3.fr/dashboard/db/fink-web-dashboard?refresh=1m&orgId=1) with some metrics to monitor the service.
+If you want to deploy on your machine for test purposes, you can follow the [tutorial](docs/howto_deploy_locally.md). Note that a Dockerfile should be ready at some point.
 
 ### Production
 
@@ -58,4 +45,4 @@ and the launch is supervised by gunicorn:
 gunicorn index:server -b :24000 --workers=4
 ```
 
-In practice we use a reverse-proxy (nginx).
+In practice we also use a reverse-proxy (nginx).
