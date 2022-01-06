@@ -9,7 +9,10 @@ visdcc
 
 JPype1
 
-astropy
+# for python 3.7, there is a problem in
+# reading the FITS header for astropy>4.2
+# see https://github.com/astropy/astropy/issues/12223
+astropy==4.2
 numpy
 pandas
 PyYAML
