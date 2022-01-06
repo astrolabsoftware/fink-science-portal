@@ -55,6 +55,9 @@ def format_hbase_output(
     if 'd:knscore' not in pdfs.columns:
         pdfs['d:knscore'] = np.zeros(len(pdfs), dtype=float)
 
+    if 'd:tracklet' not in pdfs.columns:
+        pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
+
     # Remove hbase specific fields
     if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
         pdfs = pdfs.drop(columns=['key:key', 'key:time'])
@@ -78,7 +81,8 @@ def format_hbase_output(
             pdfs['i:classtar'],
             pdfs['i:jd'],
             pdfs['i:jdstarthist'],
-            pdfs['d:knscore']
+            pdfs['d:knscore'],
+            pdfs['d:tracklet']
         )
 
         pdfs['v:classification'] = classifications
