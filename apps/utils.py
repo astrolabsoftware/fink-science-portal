@@ -85,7 +85,7 @@ def format_hbase_output(
             pdfs['d:tracklet']
         )
 
-        pdfs['v:classification'] = classifications
+        pdfs['v:classification'] = classifications.values
 
         if extract_color:
             # Extract color evolution
