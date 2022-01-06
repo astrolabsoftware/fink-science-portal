@@ -1,14 +1,18 @@
-dash
+dash==1.20.0
 dash-bootstrap-components
 dash-html-components
 dash-core-components
 dash-table
+dash_trich_components
 
 visdcc
 
 JPype1
 
-astropy
+# for python 3.7, there is a problem in
+# reading the FITS header for astropy>4.2
+# see https://github.com/astropy/astropy/issues/12223
+astropy==4.2
 numpy
 pandas
 PyYAML
@@ -23,3 +27,4 @@ pyLIMA
 astroquery
 
 fink-filters
+tabulate
