@@ -119,8 +119,8 @@ def store_stat_query(name):
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
-    # Query everything from this century
-    name = 'ztf_20'
+    # Query everything
+    name = 'ztf_'
 
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown'
     results = clientStats.scan(
