@@ -36,7 +36,7 @@ dic_names = {
     'class:simbad_gal': 'Number of alerts with a close-by candidate host-galaxy in SIMBAD',
     'class:Solar System MPC': 'Number of alerts with a counterpart in MPC (SSO)',
     'class:SN candidate': 'Number of alerts classified as SN by Fink',
-    'class:Early SN candidate': 'Number of alerts classified as early SN Ia by Fink',
+    'class:Early SN Ia candidate': 'Number of alerts classified as early SN Ia by Fink',
     'class:Kilonova candidate': 'Number of alerts classified as Kilonova by Fink',
     'class:Microlensing candidate': 'Number of alerts classified as Microlensing by Fink',
     'class:SN candidate': 'Number of alerts classified as SN by Fink',

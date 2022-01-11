@@ -2523,7 +2523,7 @@ def hist_candidates(pathname, dropdown_days):
     results = clientStats.scan(
         "",
         "key:key:ztf_",
-        'class:Solar System candidate,class:SN candidate,class:Early SN candidate,class:Kilonova candidate',
+        'class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate',
         0,
         False,
         False
@@ -2536,7 +2536,7 @@ def hist_candidates(pathname, dropdown_days):
         columns={
             'class:Solar System candidate': 'SSO',
             'class:SN candidate': 'SNe',
-            'class:Early SN candidate': 'SN Ia',
+            'class:Early SN Ia candidate': 'SN Ia',
             'class:Kilonova candidate': 'Kilonova'
         }
     )

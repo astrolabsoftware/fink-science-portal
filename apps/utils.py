@@ -776,10 +776,6 @@ def extract_query_url(search: str):
 
         dropdown_option = class_.replace('%20', ' ')
 
-        # I changed the name on the interface, but not on the database...
-        if dropdown_option == 'Early SN Ia candidate':
-            dropdown_option = 'Early SN candidate'
-
         # conversion... I do not know why this is called Class in index.py
         query_type = 'Class'
 

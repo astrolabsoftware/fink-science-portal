@@ -1732,10 +1732,6 @@ def latest_objects():
         else:
             classname = request.json['class']
 
-        if classname == 'Early SN Ia candidate':
-            # ugly fix. In the database,
-            # we made a typo that is not fixed.
-            classname = 'Early SN candidate'
         clientS.setLimit(nalerts)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
