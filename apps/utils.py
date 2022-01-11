@@ -52,8 +52,8 @@ def format_hbase_output(
     # Construct the dataframe
     pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
 
-    if 'd:knscore' not in pdfs.columns:
-        pdfs['d:knscore'] = np.zeros(len(pdfs), dtype=float)
+    if 'd:rf_kn_vs_nonkn' not in pdfs.columns:
+        pdfs['d:rf_kn_vs_nonkn'] = np.zeros(len(pdfs), dtype=float)
 
     if 'd:tracklet' not in pdfs.columns:
         pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
