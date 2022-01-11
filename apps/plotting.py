@@ -313,7 +313,7 @@ layout_sso_radec = dict(
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """ Extract SN scores from the data
     """
-    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all', 'd:rfscore']
+    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all', 'd:rf_snia_vs_nonia']
     pdfs = pd.DataFrame.from_dict(data, orient='index')
     if pdfs.empty:
         return pdfs
@@ -907,7 +907,7 @@ def draw_scores(object_data) -> dict:
             },
             {
                 'x': dates,
-                'y': pdf['d:rfscore'],
+                'y': pdf['d:rf_snia_vs_nonia'],
                 'mode': 'markers',
                 'name': 'Early SN Ia score',
                 'customdata': list(

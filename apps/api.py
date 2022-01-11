@@ -1872,8 +1872,8 @@ def columns_arguments():
             {'name': 'cdsxmatch', 'type': 'string', 'doc': 'SIMBAD closest counterpart, based on position. See https://fink-portal.org/api/v1/classes'},
             {'name': 'mulens_class_1', 'type': ['string', 'null'], 'doc': 'Predicted class of an alert in band g using LIA (among microlensing ML, variable star VS, cataclysmic event CV, and constant event CONSTANT). Nothing if not classified.'},
             {'name': 'mulens_class_2', 'type': ['string', 'null'], 'doc': 'Predicted class of an alert in band r using LIA (among microlensing ML, variable star VS, cataclysmic event CV, and constant event CONSTANT). Nothing if not classified.'},
-            {'name': 'rfscore', 'type': 'double', 'doc': 'Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.'},
-            {'name': 'knscore', 'type': 'double', 'doc': 'Probability of an alert to be a Kilonova using a PCA & Random Forest Classifier (binary classification). Higher is better.'},
+            {'name': 'rf_snia_vs_nonia', 'type': 'double', 'doc': 'Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.'},
+            {'name': 'rf_kn_vs_nonkn', 'type': 'double', 'doc': 'Probability of an alert to be a Kilonova using a PCA & Random Forest Classifier (binary classification). Higher is better.'},
             {'name': 'roid', 'type': 'int', 'doc': 'Determine if the alert is a potential Solar System object (experimental). See https://github.com/astrolabsoftware/fink-science/blob/db57c40cd9be10502e34c5117c6bf3793eb34718/fink_science/asteroids/processor.py#L26'},
             {'name': 'snn_sn_vs_all', 'type': 'double', 'doc': 'The probability of an alert to be a SNe vs. anything else (variable stars and other categories in the training) using SuperNNova'},
             {'name': 'snn_snia_vs_nonia', 'type': 'double', 'doc': 'The probability of an alert to be a SN Ia vs. core-collapse SNe using SuperNNova'},
@@ -2150,11 +2150,11 @@ def xmatch_user():
         'd:mulens_class_2',
         'd:snn_snia_vs_nonia',
         'd:snn_sn_vs_all',
-        'd:rfscore',
+        'd:rf_snia_vs_nonia',
         'i:ndethist',
         'i:drb',
         'i:classtar',
-        'd:knscore',
+        'd:rf_kn_vs_nonkn',
         'i:jdstarthist'
     ]
 
@@ -2211,8 +2211,8 @@ def xmatch_user():
         # Loop over results and construct the dataframe
         if not pdf.empty:
             pdf[idname] = [oid] * len(pdf)
-            if 'd:knscore' not in pdf.columns:
-                pdf['d:knscore'] = np.zeros(len(pdf), dtype=float)
+            if 'd:rf_kn_vs_nonkn' not in pdf.columns:
+                pdf['d:rf_kn_vs_nonkn'] = np.zeros(len(pdf), dtype=float)
             pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
     # Final join
