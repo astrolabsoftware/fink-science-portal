@@ -631,7 +631,7 @@ def card_sn_properties(clickData, object_data):
     id0 = pdf['i:objectId'].values[position]
     snn_snia_vs_nonia = pdf['d:snn_snia_vs_nonia'].values[position]
     snn_sn_vs_all = pdf['d:snn_sn_vs_all'].values[position]
-    rfscore = pdf['d:rfscore'].values[position]
+    rf_snia_vs_nonia = pdf['d:rf_snia_vs_nonia'].values[position]
     classtar = pdf['i:classtar'].values[position]
     ndethist = pdf['i:ndethist'].values[position]
     drb = pdf['i:drb'].values[position]
@@ -688,7 +688,7 @@ def card_sn_properties(clickData, object_data):
                 """.format(
                     float(snn_snia_vs_nonia),
                     float(snn_sn_vs_all),
-                    float(rfscore),
+                    float(rf_snia_vs_nonia),
                     g_minus_r,
                     rate_g,
                     rate_r,
