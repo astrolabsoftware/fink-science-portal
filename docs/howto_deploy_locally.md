@@ -1,6 +1,7 @@
 # Deploy and test the portal locally
 
-For test purposes, we summarise here the steps to deploy the portal locally. This has been tested on a machine with Centos 7 (os.8) on the cloud at VirtualData.
+> PURPOSE:
+> we summarise here the steps to deploy the portal locally. This has been tested on a machine with Centos 7 (os.8) on the cloud at VirtualData.
 
 ## Basic environment
 
