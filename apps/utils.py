@@ -152,13 +152,13 @@ def validate_query(query, query_type):
     empty_query = (query is None) or (query == '')
 
     # no queries
-    if empty_query and ((query_type == 'objectID') or (query_type == 'Conesearch') or (query_type == 'Date')):
+    if empty_query and ((query_type == 'objectId') or (query_type == 'Conesearch') or (query_type == 'Date Search')):
         header = "Empty query"
         text = "You need to choose a query type and fill the search bar"
         return {'flag': False, 'header': header, 'text': text}
 
     # bad objectId
-    bad_objectid = (query_type == 'objectID') and not (query.startswith('ZTF'))
+    bad_objectid = (query_type == 'objectId') and not (query.startswith('ZTF'))
     if bad_objectid:
         header = "Bad ZTF object ID"
         text = "ZTF object ID must start with `ZTF`"
@@ -173,7 +173,7 @@ def validate_query(query, query_type):
         return {'flag': False, 'header': header, 'text': text}
 
     # bad search date
-    if query_type == 'Date':
+    if query_type == 'Date Search':
         try:
             _ = isoify_time(query)
         except (ValueError, TypeError) as e:
