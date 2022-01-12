@@ -733,8 +733,8 @@ def extract_query_url(search: str):
 
     query_type = param_dic['query_type']
 
-    if query_type == 'objectID':
-        query = extract_parameter_value_from_url(param_dic, 'objectID', None)
+    if query_type == 'objectId':
+        query = extract_parameter_value_from_url(param_dic, 'objectId', None)
         dropdown_option = None
     elif query_type == 'Conesearch':
         ra = extract_parameter_value_from_url(param_dic, 'ra', '')
@@ -760,8 +760,6 @@ def extract_query_url(search: str):
 
         query = '{}'.format(startdate.replace('%20', ' '))
         dropdown_option = window
-        # conversion... I do not know why this is called Date in index.py
-        query_type = 'Date'
 
     elif query_type == 'Class%20Search':
         # This one is weird. The Class search has 4 parameters: class, n,
@@ -776,15 +774,10 @@ def extract_query_url(search: str):
 
         dropdown_option = class_.replace('%20', ' ')
 
-        # conversion... I do not know why this is called Class in index.py
-        query_type = 'Class'
-
     elif query_type == 'SSO%20Search':
         n_or_d = extract_parameter_value_from_url(param_dic, 'n_or_d', '')
 
         query = n_or_d.replace('%20', ' ')
         dropdown_option = None
-        # conversion... I do not know why this is called SSO in index.py
-        query_type = 'SSO'
 
     return query, query_type, dropdown_option
