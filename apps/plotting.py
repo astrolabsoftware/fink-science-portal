@@ -313,7 +313,7 @@ layout_sso_radec = dict(
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """ Extract SN scores from the data
     """
-    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all', 'd:rfscore']
+    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all', 'd:rf_snia_vs_nonia']
     pdfs = pd.DataFrame.from_dict(data, orient='index')
     if pdfs.empty:
         return pdfs
@@ -907,7 +907,7 @@ def draw_scores(object_data) -> dict:
             },
             {
                 'x': dates,
-                'y': pdf['d:rfscore'],
+                'y': pdf['d:rf_snia_vs_nonia'],
                 'mode': 'markers',
                 'name': 'Early SN Ia score',
                 'customdata': list(
@@ -2010,7 +2010,7 @@ def plot_heatmap(pathname, object_stats):
     ]
     years = np.unique(pdf['date'].apply(lambda x: x.year)).tolist()
 
-    idx = pd.date_range(Time('2019-01-01').datetime, np.max(pdf['date']))
+    idx = pd.date_range(Time('{}-01-01'.format(np.min(years))).datetime, np.max(pdf['date']))
     pdf.index = pd.DatetimeIndex(pdf.date)
     pdf = pdf.reindex(idx, fill_value=0)
     pdf['date'] = pdf.index.values
@@ -2523,7 +2523,7 @@ def hist_candidates(pathname, dropdown_days):
     results = clientStats.scan(
         "",
         "key:key:ztf_",
-        'class:Solar System candidate,class:SN candidate,class:Early SN candidate,class:Kilonova candidate',
+        'class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate',
         0,
         False,
         False
@@ -2536,7 +2536,7 @@ def hist_candidates(pathname, dropdown_days):
         columns={
             'class:Solar System candidate': 'SSO',
             'class:SN candidate': 'SNe',
-            'class:Early SN candidate': 'SN Ia',
+            'class:Early SN Ia candidate': 'SN Ia',
             'class:Kilonova candidate': 'Kilonova'
         }
     )

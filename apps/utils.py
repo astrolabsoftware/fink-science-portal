@@ -52,8 +52,8 @@ def format_hbase_output(
     # Construct the dataframe
     pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
 
-    if 'd:knscore' not in pdfs.columns:
-        pdfs['d:knscore'] = np.zeros(len(pdfs), dtype=float)
+    if 'd:rf_kn_vs_nonkn' not in pdfs.columns:
+        pdfs['d:rf_kn_vs_nonkn'] = np.zeros(len(pdfs), dtype=float)
 
     if 'd:tracklet' not in pdfs.columns:
         pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
@@ -71,17 +71,16 @@ def format_hbase_output(
         classifications = extract_fink_classification_(
             pdfs['d:cdsxmatch'],
             pdfs['d:roid'],
-            pdfs['d:mulens_class_1'],
-            pdfs['d:mulens_class_2'],
+            pdfs['d:mulens'],
             pdfs['d:snn_snia_vs_nonia'],
             pdfs['d:snn_sn_vs_all'],
-            pdfs['d:rfscore'],
+            pdfs['d:rf_snia_vs_nonia'],
             pdfs['i:ndethist'],
             pdfs['i:drb'],
             pdfs['i:classtar'],
             pdfs['i:jd'],
             pdfs['i:jdstarthist'],
-            pdfs['d:knscore'],
+            pdfs['d:rf_kn_vs_nonkn'],
             pdfs['d:tracklet']
         )
 
@@ -270,51 +269,6 @@ def extract_properties(data: str, fieldnames: list):
         return pdfs[fieldnames]
     else:
         return pdfs
-
-def extract_fink_classification_single(data):
-    """
-    """
-    if data is None:
-        return 'Error'
-
-    pdf = extract_properties(
-        data,
-        [
-            'i:jd',
-            'd:cdsxmatch',
-            'd:mulens_class_1',
-            'd:mulens_class_2',
-            'd:roid',
-            'd:snn_sn_vs_all',
-            'd:snn_snia_vs_nonia',
-            'd:rfscore',
-            'i:ndethist',
-            'i:drb',
-            'i:classtar',
-            'i:jd',
-            'i:jdstarthist',
-            'd:knscore'
-        ]
-    )
-    pdf = pdf.sort_values('i:jd', ascending=False)
-
-    classification = extract_fink_classification(
-        pdf['d:cdsxmatch'],
-        pdf['d:roid'],
-        pdf['d:mulens_class_1'],
-        pdf['d:mulens_class_2'],
-        pdf['d:snn_snia_vs_nonia'],
-        pdf['d:snn_sn_vs_all'],
-        pdf['d:rfscore'],
-        pdf['i:ndethist'],
-        pdf['i:drb'],
-        pdf['i:classtar'],
-        pdfs['i:jd'],
-        pdfs['i:jdstarthist'],
-        pdfs['d:knscore']
-    )
-
-    return classification[0]
 
 def convert_jd(jd, to='iso'):
     """ Convert Julian Date into ISO date (UTC).
@@ -821,10 +775,6 @@ def extract_query_url(search: str):
         query = class_.replace('%20', ' ')
 
         dropdown_option = class_.replace('%20', ' ')
-
-        # I changed the name on the interface, but not on the database...
-        if dropdown_option == 'Early SN Ia candidate':
-            dropdown_option = 'Early SN candidate'
 
         # conversion... I do not know why this is called Class in index.py
         query_type = 'Class'
