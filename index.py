@@ -176,26 +176,8 @@ def toggle_modal(n1, n2, is_open):
     return is_open
 
 
-# dropdown_menu_items = [
-#     dbc.DropdownMenuItem("ZTF Object ID", id="dropdown-menu-item-1"),
-#     dbc.DropdownMenuItem("Conesearch", id="dropdown-menu-item-2"),
-#     dbc.DropdownMenuItem("Date Search", id="dropdown-menu-item-3"),
-#     dbc.DropdownMenuItem("Class search", id="dropdown-menu-item-4"),
-#     dbc.DropdownMenuItem("SSO search", id="dropdown-menu-item-5")
-# ]
-
-
 fink_search_bar = dbc.InputGroup(
     [
-        # dbc.DropdownMenu(
-        #     dropdown_menu_items,
-        #     addon_type="append",
-        #     id='dropdown-query',
-        #     label="objectID",
-        #     color='light',
-        #     className='rcorners3',
-        #     toggle_style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
-        # ),
         dbc.Input(
             id="search_bar_input",
             autoFocus=True,
@@ -594,14 +576,10 @@ def display_skymap():
         Output("select", "placeholder"),
     ],
     [
-        Input("dropdown-menu-item-1", "n_clicks"),
-        Input("dropdown-menu-item-2", "n_clicks"),
-        Input("dropdown-menu-item-3", "n_clicks"),
-        Input("dropdown-menu-item-4", "n_clicks"),
-        Input("dropdown-menu-item-5", "n_clicks")
+        Input("dropdown-query", "value"),
     ]
 )
-def input_type(n1, n2, n3, n4, n5):
+def input_type(chip_value):
     """ Decide if the dropdown below the search bar should be shown
 
     Only some query types need to have a dropdown (Date & Class search). In
@@ -610,14 +588,7 @@ def input_type(n1, n2, n3, n4, n5):
     In the case of class search, the options are derived from the
     Fink classification, and the SIMBAD labels.
     """
-    ctx = dash.callback_context
-
-    if not ctx.triggered:
-        return {'display': 'none'}, [], ''
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if button_id == "dropdown-menu-item-3":
+    if chip_value == "Date Search":
         options = [
             {'label': '1 minute', 'value': 1},
             {'label': '10 minutes', 'value': 10},
@@ -625,7 +596,7 @@ def input_type(n1, n2, n3, n4, n5):
         ]
         placeholder = "Choose a time window (default is 1 minute)"
         return {}, options, placeholder
-    elif button_id == "dropdown-menu-item-4":
+    elif chip_value == "Class Search":
         options = [
             {'label': 'All classes', 'value': 'allclasses'},
             {'label': 'Unknown', 'value': 'Unknown'},
@@ -1151,6 +1122,7 @@ def display_page(pathname, is_mobile):
             dbc.Container(
                 [
                     html.Div(id='logo'),
+                    html.Br(),
                     dmc.Chips(
                         data=[
                             {"value": "objectId", "label": "objectId"},
