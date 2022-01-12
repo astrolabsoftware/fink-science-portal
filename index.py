@@ -632,18 +632,18 @@ def chips_values(chip_value, val):
     """ Change the placeholder value of the search bar based on the query type
     """
 
-    default = "Enter a valid ZTF object ID or choose another query type"
+    default = "    Enter a valid ZTF object ID or choose another query type"
 
     if chip_value == "objectId":
-        return "Enter a valid ZTF object ID", val
+        return default, val
     elif chip_value == "Conesearch":
-        return "Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", val
+        return "    Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", val
     elif chip_value == "Date Search":
-        return "Search alerts inside a time window. See Help for the syntax", val
+        return "    Search alerts inside a time window. See Help for the syntax", val
     elif chip_value == "Class Search":
-        return "Show last 100 alerts for a particular class", val
+        return "    Show last 100 alerts for a particular class", val
     elif chip_value == "SSO":
-        return "Enter a valid IAU number. See Help for more information", val
+        return "    Enter a valid IAU number. See Help for more information", val
     else:
         return default, ""
 
