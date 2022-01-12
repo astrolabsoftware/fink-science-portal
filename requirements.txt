@@ -4,6 +4,7 @@ dash-html-components
 dash-core-components
 dash-table
 dash_trich_components
+dash-mantine-components
 
 visdcc
 

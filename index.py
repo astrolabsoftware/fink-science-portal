@@ -22,6 +22,8 @@ from dash.exceptions import PreventUpdate
 import visdcc
 import dash_trich_components as dtc
 
+import dash_mantine_components as dmc
+
 from app import server
 from app import app
 from app import client
@@ -174,26 +176,8 @@ def toggle_modal(n1, n2, is_open):
     return is_open
 
 
-dropdown_menu_items = [
-    dbc.DropdownMenuItem("ZTF Object ID", id="dropdown-menu-item-1"),
-    dbc.DropdownMenuItem("Conesearch", id="dropdown-menu-item-2"),
-    dbc.DropdownMenuItem("Date Search", id="dropdown-menu-item-3"),
-    dbc.DropdownMenuItem("Class search", id="dropdown-menu-item-4"),
-    dbc.DropdownMenuItem("SSO search", id="dropdown-menu-item-5")
-]
-
-
 fink_search_bar = dbc.InputGroup(
     [
-        dbc.DropdownMenu(
-            dropdown_menu_items,
-            addon_type="append",
-            id='dropdown-query',
-            label="objectID",
-            color='light',
-            className='rcorners3',
-            toggle_style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'}
-        ),
         dbc.Input(
             id="search_bar_input",
             autoFocus=True,
@@ -592,14 +576,10 @@ def display_skymap():
         Output("select", "placeholder"),
     ],
     [
-        Input("dropdown-menu-item-1", "n_clicks"),
-        Input("dropdown-menu-item-2", "n_clicks"),
-        Input("dropdown-menu-item-3", "n_clicks"),
-        Input("dropdown-menu-item-4", "n_clicks"),
-        Input("dropdown-menu-item-5", "n_clicks")
+        Input("dropdown-query", "value"),
     ]
 )
-def input_type(n1, n2, n3, n4, n5):
+def input_type(chip_value):
     """ Decide if the dropdown below the search bar should be shown
 
     Only some query types need to have a dropdown (Date & Class search). In
@@ -608,14 +588,7 @@ def input_type(n1, n2, n3, n4, n5):
     In the case of class search, the options are derived from the
     Fink classification, and the SIMBAD labels.
     """
-    ctx = dash.callback_context
-
-    if not ctx.triggered:
-        return {'display': 'none'}, [], ''
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if button_id == "dropdown-menu-item-3":
+    if chip_value == "Date Search":
         options = [
             {'label': '1 minute', 'value': 1},
             {'label': '10 minutes', 'value': 10},
@@ -623,7 +596,7 @@ def input_type(n1, n2, n3, n4, n5):
         ]
         placeholder = "Choose a time window (default is 1 minute)"
         return {}, options, placeholder
-    elif button_id == "dropdown-menu-item-4":
+    elif chip_value == "Class Search":
         options = [
             {'label': 'All classes', 'value': 'allclasses'},
             {'label': 'Unknown', 'value': 'Unknown'},
@@ -648,41 +621,31 @@ def input_type(n1, n2, n3, n4, n5):
 @app.callback(
     [
         Output("search_bar_input", "placeholder"),
-        Output("dropdown-query", "label"),
         Output("search_bar_input", "value")
     ],
     [
-        Input("dropdown-menu-item-1", "n_clicks"),
-        Input("dropdown-menu-item-2", "n_clicks"),
-        Input("dropdown-menu-item-3", "n_clicks"),
-        Input("dropdown-menu-item-4", "n_clicks"),
-        Input("dropdown-menu-item-5", "n_clicks")
+        Input("dropdown-query", "value")
     ],
     State("search_bar_input", "value")
 )
-def on_button_click(n1, n2, n3, n4, n5, val):
+def chips_values(chip_value, val):
     """ Change the placeholder value of the search bar based on the query type
     """
-    ctx = dash.callback_context
 
-    default = "Enter a valid ZTF object ID or choose another query type"
-    if not ctx.triggered:
-        return default, "objectID", ""
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    default = "    Enter a valid ZTF object ID or choose another query type"
 
-    if button_id == "dropdown-menu-item-1":
-        return "Enter a valid ZTF object ID", "objectID", val
-    elif button_id == "dropdown-menu-item-2":
-        return "Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", "Conesearch", val
-    elif button_id == "dropdown-menu-item-3":
-        return "Search alerts inside a time window. See Help for the syntax", "Date", val
-    elif button_id == "dropdown-menu-item-4":
-        return "Show last 100 alerts for a particular class", "Class", val
-    elif button_id == "dropdown-menu-item-5":
-        return "Enter a valid IAU number. See Help for more information", "SSO", val
+    if chip_value == "objectId":
+        return default, val
+    elif chip_value == "Conesearch":
+        return "    Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", val
+    elif chip_value == "Date Search":
+        return "    Search alerts inside a time window. See Help for the syntax", val
+    elif chip_value == "Class Search":
+        return "    Show last 100 alerts for a particular class", val
+    elif chip_value == "SSO":
+        return "    Enter a valid IAU number. See Help for more information", val
     else:
-        return "Valid ZTF object ID", "objectID", ""
+        return default, ""
 
 @app.callback(
     Output("logo", "children"),
@@ -820,7 +783,7 @@ def update_table(field_dropdown, data, columns):
     [
         Input("submit", "n_clicks"),
         Input("search_bar_input", "value"),
-        Input("dropdown-query", "label"),
+        Input("dropdown-query", "value"),
         Input("select", "value"),
         Input("is-mobile", "children"),
         Input('url', 'search')
@@ -860,7 +823,7 @@ def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, result
             id='result_table'
         ), 0
 
-    if query_type == 'objectID':
+    if query_type == 'objectId':
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
@@ -895,7 +858,7 @@ def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, result
                 'window_days_conesearch': window
             }
         )
-    elif query_type == 'Date':
+    elif query_type == 'Date Search':
         startdate = isoify_time(query)
         if dropdown_option is None:
             window = 1
@@ -908,7 +871,7 @@ def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, result
                 'window': window
             }
         )
-    elif query_type == 'Class':
+    elif query_type == 'Class Search':
         if dropdown_option is None:
             alert_class = 'allclasses'
         else:
@@ -987,7 +950,7 @@ noresults_toast = html.Div(
         Input("submit", "n_clicks"),
         Input("validate_results", "value"),
         Input("search_bar_input", "value"),
-        Input("dropdown-query", "label"),
+        Input("dropdown-query", "value"),
         Input("select", "value"),
         Input("url", "search")
     ]
@@ -1012,7 +975,7 @@ def open_noresults(n, results, query, query_type, dropdown_option, searchurl):
     # Good query, but no results
     # ugly hack
     if n and int(results) == 0:
-        if query_type == 'objectID':
+        if query_type == 'objectId':
             header = "Search by Object ID"
             text = "{} not found".format(query)
         elif query_type == 'SSO':
@@ -1023,7 +986,7 @@ def open_noresults(n, results, query, query_type, dropdown_option, searchurl):
             text = "No alerts found for (RA, Dec, radius) = {}".format(
                 query
             )
-        elif query_type == 'Date':
+        elif query_type == 'Date Search':
             header = "Search by Date"
             if dropdown_option is None:
                 window = 1
@@ -1036,7 +999,7 @@ def open_noresults(n, results, query, query_type, dropdown_option, searchurl):
                 Time(jd_start, format='jd').iso,
                 Time(jd_end, format='jd').iso
             )
-        elif query_type == 'Class':
+        elif query_type == 'Class Search':
             header = "Get latest 100 alerts by class"
             if dropdown_option is None:
                 alert_class = 'allclasses'
@@ -1159,6 +1122,25 @@ def display_page(pathname, is_mobile):
             dbc.Container(
                 [
                     html.Div(id='logo'),
+                    html.Br(),
+                    dmc.Chips(
+                        data=[
+                            {"value": "objectId", "label": "objectId"},
+                            {"value": "Conesearch", "label": "Conesearch"},
+                            {"value": "Date Search", "label": "Date Search"},
+                            {"value": "Class Search", "label": "Class Search"},
+                            {"value": "SSO", "label": "SSO"},
+                        ],
+                        id="dropdown-query",
+                        value='objectId',
+                        color="orange",
+                        radius="xl",
+                        size="sm",
+                        spacing="xl",
+                        variant="outline",
+                        position='center',
+                        multiple=False,
+                    ),
                     html.Br(),
                     dbc.Row(fink_search_bar),
                     html.Br(),
