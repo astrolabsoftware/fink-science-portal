@@ -2063,6 +2063,7 @@ def plot_stat_evolution(pathname, param_name, switch):
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf = pdf.fillna(0).astype(int)
 
     pdf['date'] = [
         Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
@@ -2337,6 +2338,8 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
         text = ['{:.0f}%'.format(int(i) / norm * 100) for i in pdf.values[0]]
     else:
         text = pdf.values[0]
+
+    pdf = pdf.fillna(0).astype(int)
     fig = go.Figure(
         [
             go.Bar(x=pdf.columns, y=pdf.values[0], text=text, textposition='auto')
