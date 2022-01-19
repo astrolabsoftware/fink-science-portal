@@ -94,7 +94,7 @@ Choose a class of interest using the drop-down menu to see the 100 latest alerts
 
 ##### Solar System Objects (SSO)
 
-Search for Solar System Object in the Fink database.
+Search for Solar System Objects in the Fink database.
 The numbers or designations are taken from the MPC archive.
 When searching for a particular asteroid or comet, it is best to use the IAU number,
 as in 4209 for asteroid "4209 Briggs". You can also try for numbered comet (e.g. 10P),
@@ -114,6 +114,14 @@ Here are some examples of valid queries:
   * C/2020V2, C/2020R2
 
 Note for designation, you can also use space (2010 JO69 or C/2020 V2).
+
+
+##### Tracklet data
+
+Search for Tracklet Objects in the Fink database.
+
+You have the choice to specify the date in the format `YYYY-MM-DD hh:mm:ss` or
+any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`.
 """
 
 msg_info = """
@@ -644,6 +652,8 @@ def chips_values(chip_value, val):
         return "    Show last 100 alerts for a particular class", val
     elif chip_value == "SSO":
         return "    Enter a valid IAU number. See Help for more information", val
+    elif chip_value == "Tracklet":
+        return "    Enter a date to get satellite glints or debris. See Help for more information", val
     else:
         return default, ""
 
@@ -840,6 +850,16 @@ def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, result
                 'n_or_d': query_
             }
         )
+    elif query_type == 'Tracklet':
+        # strip from spaces
+        payload = {
+            'date': query
+        }
+
+        r = requests.post(
+            '{}/api/v1/tracklet'.format(APIURL),
+            json=payload
+        )
     elif query_type == 'Conesearch':
         args = [i.strip() for i in query.split(',')]
         if len(args) == 3:
@@ -981,6 +1001,9 @@ def open_noresults(n, results, query, query_type, dropdown_option, searchurl):
         elif query_type == 'SSO':
             header = "Search by Solar System Object ID"
             text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
+        elif query_type == 'Tracklet':
+            header = "Search by Tracklet ID"
+            text = "{} not found".format(query)
         elif query_type == 'Conesearch':
             header = "Conesearch"
             text = "No alerts found for (RA, Dec, radius) = {}".format(
@@ -1130,6 +1153,7 @@ def display_page(pathname, is_mobile):
                             {"value": "Date Search", "label": "Date Search"},
                             {"value": "Class Search", "label": "Class Search"},
                             {"value": "SSO", "label": "SSO"},
+                            {"value": "Tracklet", "label": "Tracklet"},
                         ],
                         id="dropdown-query",
                         value='objectId',
