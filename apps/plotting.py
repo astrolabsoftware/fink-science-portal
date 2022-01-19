@@ -2069,29 +2069,13 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     seen on one or more exposures. This is somehow similar to solar
     system objects, expect that these objects are probably human-made,
     they are typically fast moving, and they seem to orbit
-    around the Earth (this type of orbit is also tight to
-    the detection method we use). The rotation period, in hour, is inferred from the
-    velocity estimate of the object assuming a circular orbit.
-    The velocity is computed by integrating the distance between subsequent measurements:
-    ```
-    v = sum_i[x(i+1) - x(i)] / dt, i=alert
-    ```
-    If the tracklet spans several exposures, we discard exposures with less than 5 alerts.
-    Discarded alerts are shown with cross markers, while alerts used to estimate the period are
-    shown with circle markers.
+    around the Earth. Satelitte glints and space debris would typically produce
+    such signals.
     """
-    card_info = dbc.Card(
-        dbc.CardBody(
-            dcc.Markdown(msg)
-        ), style={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        }
-    )
 
     alert = dbc.Alert(
-        "Tracklet ID: {} -- Inferred period: {:.1f} hours".format(
+        "Tracklet ID: {}".format(
             pdf['d:tracklet'].values[0],
-            period
         ),
         color="info"
     )
