@@ -2091,9 +2091,13 @@ def return_tracklet():
     if 'date' in request.json:
         designation = request.json['date']
     else:
-        designation = ''
+        rep = {
+            'status': 'error',
+            'text': "You need tp specify a date at the format YYYY-MM-DD hh:mm:ss\n"
+        }
+        return Response(str(rep), 400)
 
-    designation = 'TRCK_' + designation.replace('-', '').replace(' ', '_')
+    designation = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
 
     # Note the trailing _
     to_evaluate = "key:key:{}".format(payload)
