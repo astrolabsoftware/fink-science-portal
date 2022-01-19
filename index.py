@@ -127,6 +127,7 @@ any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`. E.g. try:
 
 - 2020-08-10
 - 2021-10-22 09:19
+- 2020-07-16 04:58:48
 """
 
 msg_info = """
