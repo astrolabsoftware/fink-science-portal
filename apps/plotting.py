@@ -2064,15 +2064,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         config={'displayModeBar': False}
     )
 
-    msg = """
-    Tracklets are discrete tracks (several spatially connected dots)
-    seen on one or more exposures. This is somehow similar to solar
-    system objects, expect that these objects are probably human-made,
-    they are typically fast moving, and they seem to orbit
-    around the Earth. Satelitte glints and space debris would typically produce
-    such signals.
-    """
-
     alert = dbc.Alert(
         "Tracklet ID: {}".format(
             pdf['d:tracklet'].values[0],
@@ -2080,47 +2071,14 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         color="info"
     )
 
-    info = dbc.Row(
-        [
-            dbc.Col(alert, width=8),
-            dbc.Col(dbc.Button(
-                "Information",
-                id="simple-toast-toggle",
-                color="secondary",
-                outline=True,
-                className="mb-3",
-                n_clicks=0,
-                block=True
-            ), width=4),
-        ]
-    )
-
     card = [
-        info,
-        dbc.Toast(
-            [dcc.Markdown(msg)],
-            id="simple-toast",
-            header="Fink tracklets",
-            icon="primary",
-            dismissable=True,
-            is_open=False
-        ),
+        alert,
         dbc.Card(
             dbc.CardBody(graph),
             className="mt-3"
         )
     ]
     return card
-
-@app.callback(
-    Output("simple-toast", "is_open"),
-    [Input("simple-toast-toggle", "n_clicks")],
-    [State("simple-toast", "is_open")],
-)
-def open_toast(n, is_open):
-    if n:
-        return not is_open
-    return is_open
 
 @app.callback(
     Output('tracklet_radec', 'children'),
