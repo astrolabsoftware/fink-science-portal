@@ -118,10 +118,15 @@ Note for designation, you can also use space (2010 JO69 or C/2020 V2).
 
 ##### Tracklet data
 
-Search for Tracklet Objects in the Fink database.
+Search for Tracklet Objects in the Fink database. Tracklets are fast
+moving objects, typically orbiting around the Earth. They are most likely
+produced by satellite glints or space debris.
 
 You have the choice to specify the date in the format `YYYY-MM-DD hh:mm:ss` or
-any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`.
+any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`. E.g. try:
+
+- 2020-10-08
+- 2021-10-22 09:19
 """
 
 msg_info = """
@@ -525,6 +530,7 @@ def display_skymap(validation, data, columns, activetab):
             'SN candidate': 'orange',
             'Kilonova candidate': 'blue',
             'Microlensing candidate': 'green',
+            'Tracklet': "rgb(204,255,204)",
             'Solar System MPC': "rgb(254,224,144)",
             'Solar System candidate': "rgb(171,217,233)",
             'Ambiguous': 'rgb(116,196,118)',
