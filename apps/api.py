@@ -2097,7 +2097,7 @@ def return_tracklet():
         }
         return Response(str(rep), 400)
 
-    designation = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
+    payload = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
 
     # Note the trailing _
     to_evaluate = "key:key:{}".format(payload)
