@@ -24,7 +24,7 @@ import requests
 
 import dash
 import dash_table
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -310,6 +310,33 @@ layout_sso_radec = dict(
     }
 )
 
+layout_tracklet_lightcurve = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    yaxis={
+        'autorange': 'reversed',
+        'title': 'Magnitude',
+        'automargin': True
+    },
+    xaxis={
+        'autorange': 'reversed',
+        'title': 'Right Ascension',
+        'automargin': True
+    }
+)
+
 def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
     """ Extract SN scores from the data
     """
@@ -333,6 +360,7 @@ def plot_classbar(pdf, is_mobile=False):
         'SN candidate': 'orange',
         'Kilonova candidate': 'blue',
         'Microlensing candidate': 'green',
+        'Tracklet': "rgb(204,255,204)",
         'Solar System MPC': "rgb(254,224,144)",
         'Solar System candidate': "rgb(171,217,233)",
         'Ambiguous': 'rgb(116,196,118)',
@@ -1915,6 +1943,244 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
                     zip(
                         pdf['i:objectId'],
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 12,
+                    'color': '#d62728',
+                    'symbol': 'circle-open-dot'}
+            }
+        ],
+        "layout": layout_sso_radec
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('tracklet_lightcurve', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-tracklet', 'children')
+    ])
+def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
+    """ Draw tracklet object lightcurve with errorbars
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+
+    """
+    pdf = pd.read_json(object_tracklet)
+    if pdf.empty:
+        msg = """
+        Object not associated to a tracklet
+        """
+        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    # type conversion
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    # shortcuts
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+
+    layout_tracklet_lightcurve['yaxis']['title'] = 'Difference magnitude'
+    layout_tracklet_lightcurve['yaxis']['autorange'] = 'reversed'
+
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>Date</b>: %{customdata[1]}
+    <extra></extra>
+    """
+
+    def generate_plot(filt, marker, color, showlegend):
+        if filt == 1:
+            name = 'g band'
+        else:
+            name = 'r band'
+        dic = {
+            'x': pdf['i:ra'][pdf['i:fid'] == filt],
+            'y': mag[pdf['i:fid'] == filt],
+            'error_y': {
+                'type': 'data',
+                'array': err[pdf['i:fid'] == filt],
+                'visible': True,
+                'color': color
+            },
+            'mode': 'markers',
+            'name': name,
+            'showlegend': showlegend,
+            'customdata': list(
+                zip(
+                    pdf['i:objectId'][pdf['i:fid'] == filt],
+                    pdf['v:lastdate'][pdf['i:fid'] == filt]
+                )
+            ),
+            'hovertemplate': hovertemplate,
+            'marker': {
+                'size': 12,
+                'color': color,
+                'symbol': marker}
+        }
+        return dic
+
+    data_ = []
+    for filt in np.unique(pdf['i:fid']):
+        if filt == 1:
+            data_.append(generate_plot(1, marker='o', color='#1f77b4', showlegend=True))
+        elif filt == 2:
+            data_.append(generate_plot(2, marker='o', color='#ff7f0e', showlegend=True))
+
+    figure = {
+        'data': data_,
+        "layout": layout_tracklet_lightcurve
+    }
+
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+
+    msg = """
+    Tracklets are discrete tracks (several spatially connected dots)
+    seen on one or more exposures. This is somehow similar to solar
+    system objects, expect that these objects are probably human-made,
+    they are typically fast moving, and they seem to orbit
+    around the Earth (this type of orbit is also tight to
+    the detection method we use). The rotation period, in hour, is inferred from the
+    velocity estimate of the object assuming a circular orbit.
+    The velocity is computed by integrating the distance between subsequent measurements:
+    ```
+    v = sum_i[x(i+1) - x(i)] / dt, i=alert
+    ```
+    If the tracklet spans several exposures, we discard exposures with less than 5 alerts.
+    Discarded alerts are shown with cross markers, while alerts used to estimate the period are
+    shown with circle markers.
+    """
+    card_info = dbc.Card(
+        dbc.CardBody(
+            dcc.Markdown(msg)
+        ), style={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        }
+    )
+
+    alert = dbc.Alert(
+        "Tracklet ID: {} -- Inferred period: {:.1f} hours".format(
+            pdf['d:tracklet'].values[0],
+            period
+        ),
+        color="info"
+    )
+
+    toast = html.Div(
+        [
+            dbc.Button(
+                "Information",
+                id="simple-toast-toggle",
+                color="secondary",
+                outline=True,
+                className="mb-3",
+                n_clicks=0,
+                block=True
+            ),
+            dbc.Toast(
+                [dcc.Markdown(msg)],
+                id="simple-toast",
+                header="Fink tracklets",
+                icon="primary",
+                dismissable=True,
+                is_open=False
+            ),
+        ]
+    )
+
+    card = [
+        alert,
+        toast,
+        dbc.Card(
+            dbc.CardBody(graph),
+            className="mt-3"
+        )
+    ]
+    return card
+
+@app.callback(
+    Output("simple-toast", "is_open"),
+    [Input("simple-toast-toggle", "n_clicks")],
+    [State("simple-toast", "is_open")],
+)
+def open_toast(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output('tracklet_radec', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-tracklet', 'children')
+    ])
+def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
+    """ Draw tracklet object radec
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_tracklet)
+    if pdf.empty:
+        msg = ""
+        return msg
+
+    # shortcuts
+    ra = pdf['i:ra'].apply(lambda x: float(x))
+    dec = pdf['i:dec'].apply(lambda x: float(x))
+
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>Date</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    figure = {
+        'data': [
+            {
+                'x': ra,
+                'y': dec,
+                'mode': 'markers',
+                'name': 'Observations',
+                'customdata': list(
+                    zip(
+                        pdf['i:objectId'],
+                        pdf['v:lastdate']
                     )
                 ),
                 'hovertemplate': hovertemplate,
