@@ -125,7 +125,7 @@ produced by satellite glints or space debris.
 You have the choice to specify the date in the format `YYYY-MM-DD hh:mm:ss` or
 any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`. E.g. try:
 
-- 2020-10-08
+- 2020-08-10
 - 2021-10-22 09:19
 """
 
