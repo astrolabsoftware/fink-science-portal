@@ -621,6 +621,7 @@ def input_type(chip_value):
             {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
             {'label': 'Solar System (MPC)', 'value': 'Solar System MPC'},
             {'label': 'Solar System (candidates)', 'value': 'Solar System candidate'},
+            {'label': 'Tracklet (space debris & satellite glints)', 'value': 'Tracklet'},
             {'label': 'Ambiguous', 'value': 'Ambiguous'},
             {'label': 'TNS classified data', 'disabled': True, 'value': 'None'},
             *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
