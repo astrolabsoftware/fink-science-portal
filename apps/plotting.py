@@ -2080,9 +2080,10 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         color="info"
     )
 
-    toast = html.Div(
+    info = dbc.Row(
         [
-            dbc.Button(
+            dbc.Col(alert, width=8),
+            dbc.Col(dbc.Button(
                 "Information",
                 id="simple-toast-toggle",
                 color="secondary",
@@ -2090,21 +2091,20 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
                 className="mb-3",
                 n_clicks=0,
                 block=True
-            ),
-            dbc.Toast(
-                [dcc.Markdown(msg)],
-                id="simple-toast",
-                header="Fink tracklets",
-                icon="primary",
-                dismissable=True,
-                is_open=False
-            ),
+            ), width=4),
         ]
     )
 
     card = [
-        alert,
-        toast,
+        info,
+        dbc.Toast(
+            [dcc.Markdown(msg)],
+            id="simple-toast",
+            header="Fink tracklets",
+            icon="primary",
+            dismissable=True,
+            is_open=False
+        ),
         dbc.Card(
             dbc.CardBody(graph),
             className="mt-3"
