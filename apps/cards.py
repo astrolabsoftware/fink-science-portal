@@ -453,7 +453,7 @@ def card_explanation_mulens():
     described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract).
     We use a simple PSPL model to fit the data.
     """
-    dmc.Accordion(
+    card = dmc.Accordion(
         children=[
             dmc.AccordionItem(
                 dcc.Markdown(msg),
