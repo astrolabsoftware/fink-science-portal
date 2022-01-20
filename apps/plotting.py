@@ -1993,7 +1993,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
 
-    layout_sso_residual = layout_sso_lightcurve.copy()
+    layout_sso_residual = copy.deepcopy(layout_sso_lightcurve)
     layout_sso_residual['yaxis']['title'] = 'Residuals [mag]'
     layout_sso_residual['xaxis']['title'] = 'Ecliptic longitude [deg]'
 
@@ -2190,15 +2190,7 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
-
-    # hovertemplate = r"""
-    # <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    # <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    # <b>mjd</b>: %{customdata}
-    # <extra></extra>
-    # """
 
     deltaRAcosDEC = (pdf['i:ra'] - pdf.RA) * np.cos(np.radians(pdf['i:dec'])) * 3600
     deltaDEC = (pdf['i:dec'] - pdf.Dec) * 3600

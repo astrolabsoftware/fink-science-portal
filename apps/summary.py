@@ -120,12 +120,30 @@ def tab5_content(pdf):
     """
     ssnamenr = pdf['i:ssnamenr'].values[0]
 
+    msg = """
+    **Top:** lightcurve from ZTF, with ephemerides provided by the
+    [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).
+
+    **Bottom:** residuals between observed and predicted magnitude
+    as a function of the ecliptic longitude. The variations are most-likely due
+    to the difference of aspect angle: the objets is not a perfect sphere, and we
+    are seeing its oblateness here. The solid lines are sinusoidal fits to the residuals.
+    """
     tab1 = dbc.Row(
         [
             dbc.Col(
                 [
                     card_sso_lightcurve(),
-                    card_sso_residual()
+                    card_sso_residual(),
+                    dmc.Accordion(
+                        children=[
+                            dmc.AccordionItem(
+                                dcc.Markdown(msg),
+                                label="Information",
+                                description="What am I seeing?",
+                            ),
+                        ],
+                    )
                 ]
             ),
         ]
@@ -141,7 +159,7 @@ def tab5_content(pdf):
                             dmc.AccordionItem(
                                 dcc.Markdown("Residuals between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
                                 label="Information",
-                                description="Description about the plot",
+                                description="How are computed residuals?",
                             ),
                         ],
                     )
