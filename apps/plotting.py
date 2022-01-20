@@ -2296,7 +2296,7 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
 
     # Disctionary for filters
     filters = {1: 'g', 2: 'R', 3: 'i'}
-    filts = pdf['i:fid'].unique()
+    filts = np.unique(pdf['i:fid'].values)
 
     colors = ['#1f77b4', '#ff7f0e']
 
