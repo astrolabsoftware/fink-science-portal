@@ -149,7 +149,7 @@ def card_cutouts(is_mobile):
                                     color="orange",
                                     radius="lg",
                                     size="sm",
-                                    compact=False,
+                                    compact=True,
                                     loading=False,
                                 )
                             ),
@@ -160,7 +160,7 @@ def card_cutouts(is_mobile):
                                     color="orange",
                                     radius="lg",
                                     size="sm",
-                                    compact=False,
+                                    compact=True,
                                     loading=False,
                                 )
                             ),
@@ -171,7 +171,7 @@ def card_cutouts(is_mobile):
                                     color="orange",
                                     radius="lg",
                                     size="sm",
-                                    compact=False,
+                                    compact=True,
                                     loading=False,
                                 )
                             )
