@@ -151,6 +151,7 @@ def card_cutouts(is_mobile):
                                     size="sm",
                                     compact=True,
                                     loading=False,
+                                    fullWidth=True
                                 )
                             ),
                             dbc.Col(
@@ -162,6 +163,7 @@ def card_cutouts(is_mobile):
                                     size="sm",
                                     compact=True,
                                     loading=False,
+                                    fullWidth=True
                                 )
                             ),
                             dbc.Col(
@@ -173,6 +175,7 @@ def card_cutouts(is_mobile):
                                     size="sm",
                                     compact=True,
                                     loading=False,
+                                    fullWidth=True
                                 )
                             )
                         ], justify='around', no_gutters=True
