@@ -2315,7 +2315,7 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
             Vmag,
             np.deg2rad(pdf.loc[cond, 'Phase']),
             ydata,
-            p0=[ydata[0], 1, 1]
+            p0=[ydata.values[0], 1, 1]
         )
         # perr = np.sqrt(np.diag(pcov))
 
