@@ -1399,7 +1399,8 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
         id='{}-stamps'.format(title),
         figure=fig,
         style=style,
-        config={'displayModeBar': False}
+        config={'displayModeBar': False},
+        className='roundimg zoom'
     )
     return graph
 
@@ -1981,10 +1982,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     """
     pdf = pd.read_json(object_sso)
     if pdf.empty:
-        msg = """
-        Object not referenced in the Minor Planet Center
-        """
-        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+        return html.Div()
 
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))

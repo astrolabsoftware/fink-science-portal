@@ -16,6 +16,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
+import dash_mantine_components as dmc
 import dash_table
 import visdcc
 
@@ -89,7 +90,7 @@ def card_sn_scores() -> dbc.Card:
         """
         Fink's machine learning classification scores for Supernovae are derived from:
         - [SuperNNova](https://github.com/supernnova/SuperNNova) ([Möller & de Boissière 2019](https://academic.oup.com/mnras/article-abstract/491/3/4277/5651173)) to classify SNe at all light-curve epochs (`SN Ia score` & `SNe score`)
-        - Random Forest (Leoni et al. in prep) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
+        - Random Forest ([Leoni et al. 2021](https://arxiv.org/abs/2111.11438)) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
 
         Note that we then combine these scores, with other criteria,
         to give a final classification to the alert. An `SN candidate` requires that:
@@ -99,9 +100,10 @@ def card_sn_scores() -> dbc.Card:
 
         In addition, the alert is considered as `Early SN Ia candidate` if it also satisfies:
         - the alert is relatively new (number of previous detections < 20)
-        - the alert has the Random Forest model trained to select early supernovae Ia (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN.
+        - the alert has the Random Forest model trained to select early supernovae Ia (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN Ia.
         """
     )
+    label_style = {"color": "#000"}
     card = dbc.Card(
         dbc.CardBody(
             [
@@ -109,10 +111,10 @@ def card_sn_scores() -> dbc.Card:
                 html.Br(),
                 dbc.Tabs(
                     [
-                        dbc.Tab(graph_scores, label='ML scores', tab_id='snt0'),
-                        dbc.Tab([graph_color, html.Br(), color_explanation], label='Color and mag evolution', tab_id='snt1'),
-                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color and mag rate', tab_id='snt2'),
-                        dbc.Tab(msg, label='Info', tab_id='snt3'),
+                        dbc.Tab(graph_scores, label='ML scores', tab_id='snt0', label_style=label_style),
+                        dbc.Tab([graph_color, html.Br(), color_explanation], label='Color and mag evolution', tab_id='snt1', label_style=label_style),
+                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color and mag rate', tab_id='snt2', label_style=label_style),
+                        dbc.Tab(msg, label='Info', tab_id='snt3', label_style=label_style),
                     ]
                 ),
             ]
@@ -133,13 +135,47 @@ def card_cutouts(is_mobile):
         card = dbc.Card(
             dbc.CardBody(
                 [
-                    dbc.Row([
-                        dbc.Col(html.H5(children="Science", className="text-center")),
-                        dbc.Col(html.H5(children="Template", className="text-center")),
-                        dbc.Col(html.H5(children="Difference", className="text-center"))
-                    ]),
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                dmc.Button(
+                                    "Science",
+                                    variant="white",
+                                    color="gray",
+                                    radius="lg",
+                                    size="sm",
+                                    compact=True,
+                                    loading=False,
+                                    fullWidth=True
+                                )
+                            ),
+                            dbc.Col(
+                                dmc.Button(
+                                    "Template",
+                                    variant="white",
+                                    color="gray",
+                                    radius="lg",
+                                    size="sm",
+                                    compact=True,
+                                    loading=False,
+                                    fullWidth=True
+                                )
+                            ),
+                            dbc.Col(
+                                dmc.Button(
+                                    "Difference",
+                                    variant="white",
+                                    color="gray",
+                                    radius="lg",
+                                    size="sm",
+                                    compact=True,
+                                    loading=False,
+                                    fullWidth=True
+                                )
+                            )
+                        ], justify='around', no_gutters=True
+                    ),
                     dbc.Row(id='stamps', justify='around', no_gutters=True),
-                    html.Br(),
                     html.Br(),
                     dcc.Graph(
                         id='lightcurve_cutouts',
@@ -150,22 +186,39 @@ def card_cutouts(is_mobile):
                         config={'displayModeBar': False}
                     ),
                     dbc.Row(
-                        dbc.RadioItems(
-                            options=[{'label': k, 'value': k} for k in all_radio_options.keys()],
-                            value="Difference magnitude",
-                            id="switch-mag-flux",
-                            inline=True
+                        dbc.Col(
+                            dmc.Chips(
+                                data=[
+                                    {'label': k, 'value': k} for k in all_radio_options.keys()
+                                ],
+                                id="switch-mag-flux",
+                                value="Difference magnitude",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                                spacing="xl",
+                                variant="outline",
+                                position='center',
+                                multiple=False,
+                            )
                         )
                     ),
-                    html.Br(),
-                    dcc.Markdown(
-                        """
-                        Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
-                        In addition, the _Difference magnitude_ view shows:
-                        - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                        - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-                        """
-                    ),
+                    dmc.Accordion(
+                        children=[
+                            dmc.AccordionItem(
+                                dcc.Markdown(
+                                    """
+                                    Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+                                    In addition, the _Difference magnitude_ view shows:
+                                    - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                                    """
+                                ),
+                                label="Information",
+                                description="What am I seeing?",
+                            ),
+                        ],
+                    )
                 ]
             ),
             className="mt-3"
@@ -372,12 +425,14 @@ def card_explanation_variable():
     The title of the plot will give you the fitted period, and a score for the fit.
     The score is between 0 (poor fit) and 1 (excellent fit).
     """
-    card = dbc.Card(
-        dbc.CardBody(
-            dcc.Markdown(msg)
-        ), style={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        }
+    card = dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                dcc.Markdown(msg),
+                label="Information",
+                description="How to make a fit?",
+            ),
+        ],
     )
     return card
 
@@ -391,12 +446,14 @@ def card_explanation_mulens():
     described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract).
     We use a simple PSPL model to fit the data.
     """
-    card = dbc.Card(
-        dbc.CardBody(
-            dcc.Markdown(msg)
-        ), style={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        }
+    card = dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                dcc.Markdown(msg),
+                label="Information",
+                description="How to make a fit?",
+            ),
+        ],
     )
     return card
 
