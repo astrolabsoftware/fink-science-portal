@@ -416,17 +416,20 @@ def store_query(name):
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
 
     payload = pdfs['i:ssnamenr'].values[0]
-    results = clientSSO.scan(
-        "",
-        "key:key:{}_".format(payload),
-        "*",
-        0, True, True
-    )
-    schema_client_sso = clientSSO.schema()
-    pdfsso = format_hbase_output(
-        results, schema_client_sso,
-        group_alerts=False, truncated=False, extract_color=False
-    )
+    if str(payload) != '':
+        results = clientSSO.scan(
+            "",
+            "key:key:{}_".format(payload),
+            "*",
+            0, True, True
+        )
+        schema_client_sso = clientSSO.schema()
+        pdfsso = format_hbase_output(
+            results, schema_client_sso,
+            group_alerts=False, truncated=False, extract_color=False
+        )
+    else:
+        pdfsso = pd.DataFrame()
 
     payload = pdfs['d:tracklet'].values[0]
 
