@@ -47,9 +47,11 @@ from pyLIMA.microloutputs import create_the_fake_telescopes
 
 from app import client, app, clientSSO, clientStats
 
+COLORS_ZTF = ['#15284F', '#F5622E']
+
 # colors_ = [
-#     '#1f77b4',  # muted blue
-#     '#ff7f0e',  # safety orange
+#     COLORS_ZTF[0],  # muted blue
+#     COLORS_ZTF[1],  # safety orange
 #     '#2ca02c',  # cooked asparagus green
 #     '#d62728',  # brick red
 #     '#9467bd',  # muted purple
@@ -589,7 +591,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 1],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
@@ -597,7 +599,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             },
             {
@@ -607,7 +609,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 2],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
@@ -615,7 +617,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
         ],
@@ -641,7 +643,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 1],
                     'hovertemplate': hovertemplate_upper,
                     'marker': {
-                        'color': '#1f77b4',
+                        'color': COLORS_ZTF[0],
                         'symbol': 'triangle-down-open'
                     },
                     'showlegend': False
@@ -655,7 +657,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 2],
                     'hovertemplate': hovertemplate_upper,
                     'marker': {
-                        'color': '#ff7f0e',
+                        'color': COLORS_ZTF[1],
                         'symbol': 'triangle-down-open'
                     },
                     'showlegend': False
@@ -682,13 +684,13 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                         'type': 'data',
                         'array': pdf_upperv['i:sigmapsf'][pdf_upperv['i:fid'] == 1],
                         'visible': True,
-                        'color': '#1f77b4'
+                        'color': COLORS_ZTF[0]
                     },
                     'mode': 'markers',
                     'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 1],
                     'hovertemplate': hovertemplate_upperv,
                     'marker': {
-                        'color': '#1f77b4',
+                        'color': COLORS_ZTF[0],
                         'symbol': 'triangle-up'
                     },
                     'showlegend': False
@@ -702,13 +704,13 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                         'type': 'data',
                         'array': pdf_upperv['i:sigmapsf'][pdf_upperv['i:fid'] == 2],
                         'visible': True,
-                        'color': '#ff7f0e'
+                        'color': COLORS_ZTF[1]
                     },
                     'mode': 'markers',
                     'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 2],
                     'hovertemplate': hovertemplate_upperv,
                     'marker': {
-                        'color': '#ff7f0e',
+                        'color': COLORS_ZTF[1],
                         'symbol': 'triangle-up'
                     },
                     'showlegend': False
@@ -781,7 +783,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 1],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
@@ -789,7 +791,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             },
             {
@@ -799,7 +801,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 2],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
@@ -807,7 +809,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
         ],
@@ -875,7 +877,7 @@ def draw_lightcurve_preview(name) -> dict:
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 1],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
@@ -883,7 +885,7 @@ def draw_lightcurve_preview(name) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             },
             {
@@ -893,7 +895,7 @@ def draw_lightcurve_preview(name) -> dict:
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 2],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
@@ -901,7 +903,7 @@ def draw_lightcurve_preview(name) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
         ],
@@ -1306,12 +1308,12 @@ def draw_cutouts_quickview(name):
 def create_circular_mask(h, w, center=None, radius=None):
 
     if center is None: # use the middle of the image
-        center = (int(w/2), int(h/2))
+        center = (int(w / 2), int(h / 2))
     if radius is None: # use the smallest distance between the center and image walls
-        radius = min(center[0], center[1], w-center[0], h-center[1])
+        radius = min(center[0], center[1], w - center[0], h - center[1])
 
     Y, X = np.ogrid[:h, :w]
-    dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
+    dist_from_center = np.sqrt((X - center[0])**2 + (Y - center[1])**2)
 
     mask = dist_from_center <= radius
     return mask
@@ -1516,14 +1518,14 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                     'type': 'data',
                     'array': err_dc[pdf['i:fid'] == '1'],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
                 'text': phase[pdf['i:fid'] == '1'],
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             }
             fit_filt1 = {
@@ -1533,7 +1535,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                 'name': 'fit g band',
                 'showlegend': False,
                 'line': {
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                 }
             }
         else:
@@ -1548,14 +1550,14 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                     'type': 'data',
                     'array': err_dc[pdf['i:fid'] == '2'],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
                 'text': phase[pdf['i:fid'] == '2'],
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
             fit_filt2 = {
@@ -1565,7 +1567,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                 'name': 'fit r band',
                 'showlegend': False,
                 'line': {
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                 }
             }
         else:
@@ -1694,14 +1696,14 @@ def plot_mulens(n_clicks, object_data):
                     'type': 'data',
                     'array': normalised_lightcurves[0][:, 2],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
                 'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:, 0]],
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             }
         else:
@@ -1720,14 +1722,14 @@ def plot_mulens(n_clicks, object_data):
                     'type': 'data',
                     'array': normalised_lightcurves[index][:, 2],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
                 'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
         else:
@@ -1906,7 +1908,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 1],
             'visible': True,
-            'color': '#1f77b4'
+            'color': COLORS_ZTF[0]
         },
         'mode': 'markers',
         'name': 'g band',
@@ -1914,7 +1916,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
-            'color': '#1f77b4',
+            'color': COLORS_ZTF[0],
             'symbol': 'o'}
     }
 
@@ -1927,7 +1929,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
-            'color': '#1f77b4',
+            'color': COLORS_ZTF[0],
             'symbol': 'o',
             'opacity': 0.5}
     }
@@ -1939,7 +1941,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 2],
             'visible': True,
-            'color': '#ff7f0e'
+            'color': COLORS_ZTF[1]
         },
         'mode': 'markers',
         'name': 'r band',
@@ -1947,7 +1949,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
-            'color': '#ff7f0e',
+            'color': COLORS_ZTF[1],
             'symbol': 'o'}
     }
 
@@ -1960,7 +1962,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
-            'color': '#ff7f0e',
+            'color': COLORS_ZTF[1],
             'symbol': 'o',
             'opacity': 0.5}
     }
@@ -2040,7 +2042,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 1],
             'visible': True,
-            'color': '#1f77b4'
+            'color': COLORS_ZTF[0]
         },
         'mode': 'markers',
         'name': 'g band',
@@ -2048,7 +2050,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
-            'color': '#1f77b4',
+            'color': COLORS_ZTF[0],
             'symbol': 'o'}
     }
 
@@ -2059,7 +2061,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 2],
             'visible': True,
-            'color': '#ff7f0e'
+            'color': COLORS_ZTF[1]
         },
         'mode': 'markers',
         'name': 'r band',
@@ -2067,7 +2069,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
-            'color': '#ff7f0e',
+            'color': COLORS_ZTF[1],
             'symbol': 'o'}
     }
 
@@ -2079,7 +2081,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         'name': 'fit',
         'showlegend': False,
         'line': {
-            'color': '#1f77b4',
+            'color': COLORS_ZTF[0],
         }
     }
 
@@ -2090,7 +2092,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         'name': 'fit',
         'showlegend': False,
         'line': {
-            'color': '#ff7f0e',
+            'color': COLORS_ZTF[1],
         }
     }
 
@@ -2226,7 +2228,7 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         'name': 'g band',
         'marker': {
             'size': 6,
-            'color': '#1f77b4',
+            'color': COLORS_ZTF[0],
             'symbol': 'o'}
     }
 
@@ -2237,7 +2239,7 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         'name': 'r band',
         'marker': {
             'size': 6,
-            'color': '#ff7f0e',
+            'color': COLORS_ZTF[1],
             'symbol': 'o'}
     }
 
@@ -2298,8 +2300,6 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
     filters = {1: 'g', 2: 'R', 3: 'i'}
     filts = np.unique(pdf['i:fid'].values)
 
-    colors = ['#1f77b4', '#ff7f0e']
-
     figs = []
     for i, f in enumerate(filts):
         cond = pdf['i:fid'] == f
@@ -2327,13 +2327,13 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
                     'type': 'data',
                     'array': pdf.loc[cond, 'i:sigmapsf'].values,
                     'visible': True,
-                    'color': colors[i]
+                    'color': COLORS_ZTF[i]
                 },
                 'mode': 'markers',
                 'name': '{:} -> V_obs'.format(filters[f]),
                 'marker': {
                     'size': 6,
-                    'color': colors[i],
+                    'color': COLORS_ZTF[i],
                     'symbol': 'o'}
             }
         )
@@ -2346,7 +2346,7 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
                 'name': 'H={:.2f}, G1={:.2f}, G2={:.2f}'.format(*popt),
                 'showlegend': False,
                 'line': {
-                    'color': colors[i],
+                    'color': COLORS_ZTF[i],
                 }
             }
         )
@@ -2447,9 +2447,9 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     data_ = []
     for filt in np.unique(pdf['i:fid']):
         if filt == 1:
-            data_.append(generate_plot(1, marker='o', color='#1f77b4', showlegend=True))
+            data_.append(generate_plot(1, marker='o', color=COLORS_ZTF[0], showlegend=True))
         elif filt == 2:
-            data_.append(generate_plot(2, marker='o', color='#ff7f0e', showlegend=True))
+            data_.append(generate_plot(2, marker='o', color=COLORS_ZTF[1], showlegend=True))
 
     figure = {
         'data': data_,
