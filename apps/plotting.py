@@ -2303,7 +2303,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
 
     figs = []
 
-    if swith == 'per-band':
+    if switch == 'per-band':
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
 
