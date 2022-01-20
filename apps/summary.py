@@ -173,6 +173,7 @@ def tab5_content(pdf):
             dbc.Col(
                 [
                     card_sso_phasecurve(),
+                    html.Br(),
                     dbc.Row(
                         dbc.Col(
                             dmc.Chips(
