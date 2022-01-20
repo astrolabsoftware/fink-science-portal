@@ -2364,21 +2364,21 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
             else:
                 color_sso[cond] = V_minus_r - V_minus_g
 
-        ydata = pdf.loc['i:magpsf_red'] + color_sso
+        ydata = pdf['i:magpsf_red'] + color_sso
         popt, pcov = curve_fit(
             Vmag,
-            np.deg2rad(pdf.loc['Phase'].values),
+            np.deg2rad(pdf['Phase'].values),
             ydata.values,
             p0=[ydata.values[0] - 2.5, 0, 0]
         )
 
         figs.append(
             {
-                'x': pdf.loc['Phase'].values,
+                'x': pdf['Phase'].values,
                 'y': ydata.values,
                 'error_y': {
                     'type': 'data',
-                    'array': pdf.loc['i:sigmapsf'].values,
+                    'array': pdf['i:sigmapsf'].values,
                     'visible': True,
                     'color': COLORS_ZTF[0]
                 },
@@ -2393,8 +2393,8 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
 
         figs.append(
             {
-                'x': pdf.loc['Phase'].values,
-                'y': Vmag(np.deg2rad(pdf.loc['Phase'].values), *popt),
+                'x': pdf['Phase'].values,
+                'y': Vmag(np.deg2rad(pdf['Phase'].values), *popt),
                 'mode': 'lines',
                 'name': 'H={:.2f}, G1={:.2f}, G2={:.2f}'.format(*popt),
                 'showlegend': False,
