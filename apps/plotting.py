@@ -303,11 +303,11 @@ layout_sso_astrometry = dict(
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
-        'title': r'$\Delta\text{RA} (^{\prime\prime})$',
+        'title': '&#916;RA (\'\')',
         'automargin': True
     },
     yaxis={
-        'title': r'$\Delta\text{DEC} (^{\prime\prime})$',
+        'title': '&#916;Dec (\'\')',
         'automargin': True
     }
 )
