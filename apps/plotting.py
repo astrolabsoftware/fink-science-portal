@@ -35,7 +35,7 @@ import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-from apps.utils import get_miriade_data, sine_fit
+from apps.utils import sine_fit
 
 from apps.statistics import dic_names
 from app import APIURL
@@ -1823,14 +1823,12 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf_ = pd.read_json(object_sso)
-    if pdf_.empty:
+    pdf = pd.read_json(object_sso)
+    if pdf.empty:
         msg = """
         Object not referenced in the Minor Planet Center
         """
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
-
-    pdf = get_miriade_data(pdf_)
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
@@ -1956,14 +1954,12 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf_ = pd.read_json(object_sso)
-    if pdf_.empty:
+    pdf = pd.read_json(object_sso)
+    if pdf.empty:
         msg = """
         Object not referenced in the Minor Planet Center
         """
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
-
-    pdf = get_miriade_data(pdf_)
 
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))

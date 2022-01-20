@@ -41,6 +41,8 @@ from apps.plotting import plot_classbar
 from apps.plotting import all_radio_options
 
 from apps.utils import format_hbase_output
+from apps.utils import get_miriade_data
+
 from app import APIURL
 
 dcc.Location(id='url', refresh=False)
@@ -428,6 +430,9 @@ def store_query(name):
             results, schema_client_sso,
             group_alerts=False, truncated=False, extract_color=False
         )
+
+        # Extract miriade information as well
+        pdfsso = get_miriade_data(pdfsso)
     else:
         pdfsso = pd.DataFrame()
 
