@@ -303,11 +303,11 @@ layout_sso_astrometry = dict(
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
-        'title': r'$\Delta$RA ($^{\prime\prime}$)',
+        'title': r'$\Delta$\textrm{RA} ($^{\prime\prime}$)',
         'automargin': True
     },
     yaxis={
-        'title': r'$\Delta$DEC ($^{\prime\prime}$)',
+        'title': r'$\Delta$\textrm{DEC} ($^{\prime\prime}$)',
         'automargin': True
     }
 )
@@ -2207,7 +2207,7 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         'x': deltaRAcosDEC[pdf['i:fid'] == 1],
         'y': deltaDEC[pdf['i:fid'] == 1],
         'mode': 'markers',
-        'name': 'Difference',
+        'name': 'g band',
         'marker': {
             'size': 6,
             'color': '#1f77b4',
@@ -2218,7 +2218,7 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         'x': deltaRAcosDEC[pdf['i:fid'] == 2],
         'y': deltaDEC[pdf['i:fid'] == 2],
         'mode': 'markers',
-        'name': 'Difference',
+        'name': 'r band',
         'marker': {
             'size': 6,
             'color': '#ff7f0e',
