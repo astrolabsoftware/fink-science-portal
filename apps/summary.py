@@ -126,7 +126,7 @@ def tab5_content(pdf):
 
     **Bottom:** residuals between observed and predicted magnitude
     as a function of the ecliptic longitude. The variations are most-likely due
-    to the difference of aspect angle: the objets is not a perfect sphere, and we
+    to the difference of aspect angle: the object is not a perfect sphere, and we
     are seeing its oblateness here. The solid lines are sinusoidal fits to the residuals.
     """
     tab1 = dbc.Row(
@@ -157,9 +157,9 @@ def tab5_content(pdf):
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                dcc.Markdown("Residuals between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
+                                dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
                                 label="Information",
-                                description="How are computed residuals?",
+                                description="How are computed the residuals?",
                             ),
                         ],
                     )
