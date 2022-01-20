@@ -135,11 +135,48 @@ def card_cutouts(is_mobile):
         card = dbc.Card(
             dbc.CardBody(
                 [
-                    dbc.Row([
-                        dbc.Col(html.H5(children="Science", className="text-center")),
-                        dbc.Col(html.H5(children="Template", className="text-center")),
-                        dbc.Col(html.H5(children="Difference", className="text-center"))
-                    ]),
+                    # dbc.Row([
+                    #     dbc.Col(html.H5(children="Science", className="text-center")),
+                    #     dbc.Col(html.H5(children="Template", className="text-center")),
+                    #     dbc.Col(html.H5(children="Difference", className="text-center"))
+                    # ]),
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                dmc.Button(
+                                    "Science",
+                                    variant="outline",
+                                    color="orange",
+                                    radius="lg",
+                                    size="sm",
+                                    compact=False,
+                                    loading=False,
+                                )
+                            ),
+                            dbc.Col(
+                                dmc.Button(
+                                    "Template",
+                                    variant="outline",
+                                    color="orange",
+                                    radius="lg",
+                                    size="sm",
+                                    compact=False,
+                                    loading=False,
+                                )
+                            ),
+                            dbc.Col(
+                                dmc.Button(
+                                    "Difference",
+                                    variant="outline",
+                                    color="orange",
+                                    radius="lg",
+                                    size="sm",
+                                    compact=False,
+                                    loading=False,
+                                )
+                            )
+                        ]
+                    ),
                     dbc.Row(id='stamps', justify='around', no_gutters=True),
                     html.Br(),
                     html.Br(),
