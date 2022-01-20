@@ -332,6 +332,7 @@ layout_sso_phasecurve = dict(
         'automargin': True
     },
     yaxis={
+        'autorange': 'reversed',
         'title': 'observed V [mag]',
         'automargin': True
     }
@@ -2326,7 +2327,7 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
                 'name': '{:} -> V_obs'.format(filters[f]),
                 'marker': {
                     'size': 6,
-                    'color': '#1f77b4',
+                    'color': colors[i],
                     'symbol': 'o'}
             }
         )
