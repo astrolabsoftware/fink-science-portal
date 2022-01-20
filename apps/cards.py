@@ -145,7 +145,7 @@ def card_cutouts(is_mobile):
                             dbc.Col(
                                 dmc.Button(
                                     "Science",
-                                    variant="outline",
+                                    variant="white",
                                     color="gray",
                                     radius="lg",
                                     size="sm",
@@ -157,7 +157,7 @@ def card_cutouts(is_mobile):
                             dbc.Col(
                                 dmc.Button(
                                     "Template",
-                                    variant="outline",
+                                    variant="white",
                                     color="gray",
                                     radius="lg",
                                     size="sm",
@@ -169,7 +169,7 @@ def card_cutouts(is_mobile):
                             dbc.Col(
                                 dmc.Button(
                                     "Difference",
-                                    variant="outline",
+                                    variant="white",
                                     color="gray",
                                     radius="lg",
                                     size="sm",
@@ -181,7 +181,6 @@ def card_cutouts(is_mobile):
                         ], justify='around', no_gutters=True
                     ),
                     dbc.Row(id='stamps', justify='around', no_gutters=True),
-                    html.Br(),
                     html.Br(),
                     dcc.Graph(
                         id='lightcurve_cutouts',

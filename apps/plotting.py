@@ -1399,7 +1399,8 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
         id='{}-stamps'.format(title),
         figure=fig,
         style=style,
-        config={'displayModeBar': False}
+        config={'displayModeBar': False},
+        className='roundimg zoom'
     )
     return graph
 
