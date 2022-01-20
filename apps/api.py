@@ -1,4 +1,4 @@
-# Copyright 2020-2021 AstroLab Software
+# Copyright 2020-2022 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ from matplotlib import cm
 from app import client
 from app import clientP128, clientP4096, clientP131072
 from app import clientT, clientS
-from app import clientSSO, clientTNS
+from app import clientSSO, clientTNS, clientTRCK
 from app import clientU, clientUV, nlimit
 from app import clientStats
 from app import APIURL
@@ -65,13 +65,14 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/tracklet | Get tracklet data | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/bayestar | Cross-match LIGO/Virgo sky map with Fink alert data| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/statistics | Statistics concerning Fink alert data| &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
+""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
 ## Retrieve single object data
@@ -513,7 +514,7 @@ In python, you would use
 import requests
 import pandas as pd
 
-# get data for ZTF21aaxtctv
+# get data for object 4209
 r = requests.post(
   'https://fink-portal.org/api/v1/sso',
   json={
@@ -561,6 +562,76 @@ r = requests.post(
 ```
 
 Note that the fields should be comma-separated. Unknown field names are ignored.
+"""
+
+api_doc_tracklets = """
+## Retrieve tracklet data
+
+The list of arguments for retrieving tracklet data can be found at https://fink-portal.org/api/v1/tracklet.
+
+Each night there are a lot of fast moving objects seen in single exposures (or a few).
+These objects usually leave discrete tracks (several connected dots), that we call tracklets.
+The magnitude is rather low, and their magnitude can oscillate (e.g. rotating objects).
+This is somehow similar to solar system object, expect that these objects
+seem mainly man-made, they are fast moving, and they typically orbit around the Earth (this
+is also tighted to the detection method we use).
+
+In order to get tracklet data, you need to specify the date in the format `YYYY-MM-DD hh:mm:ss`.
+Note you can also specify bigger interval, e.g. `YYYY-MM-DD` to get all tracklets for one day,
+or `YYYY-MM-DD hh` to get all tracklets for one hour.
+
+In a unix shell, you would simply use
+
+```bash
+# Get tracklet data for the night 2021-08-10
+curl -H "Content-Type: application/json" -X POST -d '{"date":"2021-08-10", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/tracklet -o trck_20210810.csv
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+# Get all tracklet data for the night 2021-08-10
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/tracklet',
+  json={
+    'date': '2021-08-10',
+    'output-format': 'json'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+You can also specify up to the second if you know the exposure time:
+
+```python
+# Get tracklet data TRCK_20211022_091949
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/tracklet',
+  json={
+    'id': '2021-10-22 09:19:49',
+    'output-format': 'json'
+  }
+)
+```
+
+Finally if there are several tracklets in one exposure, you can select the one you want:
+
+```python
+# Get first tracklet TRCK_20211022_091949_00
+r = requests.post(
+  'http://134.158.75.151:24000/api/v1/tracklet',
+  json={
+    'id': '2021-10-22 09:19:49 00',
+    'output-format': 'json'
+  }
+)
+```
+
+They are ordered by two digits 00, 01, 02, ...
 """
 
 api_doc_cutout = """
@@ -1036,6 +1107,17 @@ def layout(is_mobile):
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
+                                            dcc.Markdown(api_doc_tracklets)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Get Tracklet Objects"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
                                             dcc.Markdown(api_doc_cutout)
                                         ), style={
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
@@ -1206,6 +1288,24 @@ args_sso = [
         'name': 'n_or_d',
         'required': False,
         'description': 'IAU number of the object, or designation of the object IF the number does not exist yet. Example for numbers: 4209 (asteroid) or 10P (comet). Example for designations: 2010JO69 (asteroid) or C/2020V2 (comet).'
+    },
+    {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet'
+    }
+]
+
+args_tracklet = [
+    {
+        'name': 'date',
+        'required': False,
+        'description': 'A date. Format: YYYY-MM-DD hh:mm:dd. You can use short versions like YYYY-MM-DD only, or YYYY-MM-DD hh.'
     },
     {
         'name': 'columns',
@@ -1732,10 +1832,6 @@ def latest_objects():
         else:
             classname = request.json['class']
 
-        if classname == 'Early SN Ia candidate':
-            # ugly fix. In the database,
-            # we made a typo that is not fixed.
-            classname = 'Early SN candidate'
         clientS.setLimit(nalerts)
         clientS.setRangeScan(True)
         clientS.setReversed(True)
@@ -1870,10 +1966,9 @@ def columns_arguments():
     fink_science = pd.DataFrame(
         [
             {'name': 'cdsxmatch', 'type': 'string', 'doc': 'SIMBAD closest counterpart, based on position. See https://fink-portal.org/api/v1/classes'},
-            {'name': 'mulens_class_1', 'type': ['string', 'null'], 'doc': 'Predicted class of an alert in band g using LIA (among microlensing ML, variable star VS, cataclysmic event CV, and constant event CONSTANT). Nothing if not classified.'},
-            {'name': 'mulens_class_2', 'type': ['string', 'null'], 'doc': 'Predicted class of an alert in band r using LIA (among microlensing ML, variable star VS, cataclysmic event CV, and constant event CONSTANT). Nothing if not classified.'},
-            {'name': 'rfscore', 'type': 'double', 'doc': 'Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.'},
-            {'name': 'knscore', 'type': 'double', 'doc': 'Probability of an alert to be a Kilonova using a PCA & Random Forest Classifier (binary classification). Higher is better.'},
+            {'name': 'mulens', 'type': 'double', 'doc': 'Probability score of an alert to be a microlensing event by [LIA](https://github.com/dgodinez77/LIA).'},
+            {'name': 'rf_snia_vs_nonia', 'type': 'double', 'doc': 'Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.'},
+            {'name': 'rf_kn_vs_nonkn', 'type': 'double', 'doc': 'Probability of an alert to be a Kilonova using a PCA & Random Forest Classifier (binary classification). Higher is better.'},
             {'name': 'roid', 'type': 'int', 'doc': 'Determine if the alert is a potential Solar System object (experimental). See https://github.com/astrolabsoftware/fink-science/blob/db57c40cd9be10502e34c5117c6bf3793eb34718/fink_science/asteroids/processor.py#L26'},
             {'name': 'snn_sn_vs_all', 'type': 'double', 'doc': 'The probability of an alert to be a SNe vs. anything else (variable stars and other categories in the training) using SuperNNova'},
             {'name': 'snn_snia_vs_nonia', 'type': 'double', 'doc': 'The probability of an alert to be a SN Ia vs. core-collapse SNe using SuperNNova'},
@@ -1946,6 +2041,81 @@ def return_sso():
 
     # reset the limit in case it has been changed above
     clientSSO.setLimit(nlimit)
+
+    pdf = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
+        extract_color=False
+    )
+
+    if output_format == 'json':
+        return pdf.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdf.to_csv(index=False)
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdf.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
+    }
+    return Response(str(rep), 400)
+
+@api_bp.route('/api/v1/tracklet', methods=['GET'])
+def return_tracklet_arguments():
+    """ Obtain information about retrieving Tracklets
+    """
+    return jsonify({'args': args_tracklet})
+
+@api_bp.route('/api/v1/tracklet', methods=['POST'])
+def return_tracklet():
+    """ Retrieve tracklet data from the Fink database
+    """
+    if 'output-format' in request.json:
+        output_format = request.json['output-format']
+    else:
+        output_format = 'json'
+
+    if 'columns' in request.json:
+        cols = request.json['columns'].replace(" ", "")
+        truncated = True
+    else:
+        cols = '*'
+        truncated = False
+
+    if 'date' in request.json:
+        designation = request.json['date']
+    else:
+        rep = {
+            'status': 'error',
+            'text': "You need tp specify a date at the format YYYY-MM-DD hh:mm:ss\n"
+        }
+        return Response(str(rep), 400)
+
+    payload = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
+
+    # Note the trailing _
+    to_evaluate = "key:key:{}".format(payload)
+
+    # We do not want to perform full scan if the objectid is a wildcard
+    clientTRCK.setLimit(1000)
+
+    results = clientTRCK.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, True, True
+    )
+
+    schema_client = clientTRCK.schema()
+
+    # reset the limit in case it has been changed above
+    clientTRCK.setLimit(nlimit)
 
     pdf = format_hbase_output(
         results,
@@ -2150,11 +2320,11 @@ def xmatch_user():
         'd:mulens_class_2',
         'd:snn_snia_vs_nonia',
         'd:snn_sn_vs_all',
-        'd:rfscore',
+        'd:rf_snia_vs_nonia',
         'i:ndethist',
         'i:drb',
         'i:classtar',
-        'd:knscore',
+        'd:rf_kn_vs_nonkn',
         'i:jdstarthist'
     ]
 
@@ -2211,8 +2381,8 @@ def xmatch_user():
         # Loop over results and construct the dataframe
         if not pdf.empty:
             pdf[idname] = [oid] * len(pdf)
-            if 'd:knscore' not in pdf.columns:
-                pdf['d:knscore'] = np.zeros(len(pdf), dtype=float)
+            if 'd:rf_kn_vs_nonkn' not in pdf.columns:
+                pdf['d:rf_kn_vs_nonkn'] = np.zeros(len(pdf), dtype=float)
             pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
     # Final join

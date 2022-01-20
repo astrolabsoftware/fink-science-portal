@@ -1,4 +1,4 @@
-# Copyright 2021 AstroLab Software
+# Copyright 2021-2022 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ dic_names = {
     'class:simbad_gal': 'Number of alerts with a close-by candidate host-galaxy in SIMBAD',
     'class:Solar System MPC': 'Number of alerts with a counterpart in MPC (SSO)',
     'class:SN candidate': 'Number of alerts classified as SN by Fink',
-    'class:Early SN candidate': 'Number of alerts classified as early SN Ia by Fink',
+    'class:Early SN Ia candidate': 'Number of alerts classified as early SN Ia by Fink',
     'class:Kilonova candidate': 'Number of alerts classified as Kilonova by Fink',
     'class:Microlensing candidate': 'Number of alerts classified as Microlensing by Fink',
     'class:SN candidate': 'Number of alerts classified as SN by Fink',
@@ -119,8 +119,8 @@ def store_stat_query(name):
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
-    # Query everything from this century
-    name = 'ztf_20'
+    # Query everything
+    name = 'ztf_'
 
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown'
     results = clientStats.scan(

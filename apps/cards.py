@@ -1,4 +1,4 @@
-# Copyright 2020-2021 AstroLab Software
+# Copyright 2020-2022 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -433,6 +433,27 @@ def card_sso_residual():
     card = html.Div(id='sso_residual')
     return card
 
+def card_tracklet_lightcurve():
+    """ Add a card to display tracklet lightcurve
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the tracklet lightcurve
+    """
+    card = html.Div(id='tracklet_lightcurve')
+    return card
+
+def card_tracklet_radec():
+    """ Add a card to display tracklet radec
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the tracklet radec
+    """
+    card = html.Div(id='tracklet_radec')
+
+    return card
+
 def card_sso_skymap():
     """ Display the sky map in the explorer tab results (Aladin lite)
 
@@ -642,7 +663,7 @@ def card_sn_properties(clickData, object_data):
     id0 = pdf['i:objectId'].values[position]
     snn_snia_vs_nonia = pdf['d:snn_snia_vs_nonia'].values[position]
     snn_sn_vs_all = pdf['d:snn_sn_vs_all'].values[position]
-    rfscore = pdf['d:rfscore'].values[position]
+    rf_snia_vs_nonia = pdf['d:rf_snia_vs_nonia'].values[position]
     classtar = pdf['i:classtar'].values[position]
     ndethist = pdf['i:ndethist'].values[position]
     drb = pdf['i:drb'].values[position]
@@ -699,7 +720,7 @@ def card_sn_properties(clickData, object_data):
                 """.format(
                     float(snn_snia_vs_nonia),
                     float(snn_sn_vs_all),
-                    float(rfscore),
+                    float(rf_snia_vs_nonia),
                     g_minus_r,
                     rate_g,
                     rate_r,
