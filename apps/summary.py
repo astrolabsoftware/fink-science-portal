@@ -19,6 +19,7 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import visdcc
 import plotly.graph_objects as go
+import dash_mantine_components as dmc
 
 import pandas as pd
 import numpy as np
@@ -134,7 +135,16 @@ def tab5_content(pdf):
         [
             dbc.Col(
                 [
-                    card_sso_astrometry()
+                    card_sso_astrometry(),
+                    dmc.Accordion(
+                        children=[
+                            dmc.AccordionItem(
+                                "Residuals between the alert positions and the positions returned by the Miriade ephemeride service (https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).",
+                                label="Information",
+                                description="Description about the plot",
+                            ),
+                        ],
+                    )
                 ]
             ),
         ]
