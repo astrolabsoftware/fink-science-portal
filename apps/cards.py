@@ -158,20 +158,22 @@ def card_cutouts(is_mobile):
                         #     id="switch-mag-flux",
                         #     inline=True
                         # )
-                        dmc.Chips(
-                            data=[
-                                {'label': k, 'value': k} for k in all_radio_options.keys()
-                            ],
-                            id="switch-mag-flux",
-                            value="Difference magnitude",
-                            color="orange",
-                            radius="xl",
-                            size="sm",
-                            spacing="xl",
-                            variant="outline",
-                            position='center',
-                            multiple=False,
-                        ),
+                        dbc.Col(
+                            dmc.Chips(
+                                data=[
+                                    {'label': k, 'value': k} for k in all_radio_options.keys()
+                                ],
+                                id="switch-mag-flux",
+                                value="Difference magnitude",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                                spacing="xl",
+                                variant="outline",
+                                position='center',
+                                multiple=False,
+                            )
+                        )
                     ),
                     html.Br(),
                     dmc.Accordion(
