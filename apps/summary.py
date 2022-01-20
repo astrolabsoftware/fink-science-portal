@@ -416,7 +416,7 @@ def store_query(name):
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
 
     payload = pdfs['i:ssnamenr'].values[0]
-    if str(payload) != '':
+    if str(payload) != 'null':
         results = clientSSO.scan(
             "",
             "key:key:{}_".format(payload),
