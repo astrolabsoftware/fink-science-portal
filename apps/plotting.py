@@ -2316,12 +2316,15 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                 color_sso = V_minus_r
 
             ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
-            popt, pcov = curve_fit(
-                Vmag,
-                np.deg2rad(pdf.loc[cond, 'Phase'].values),
-                ydata.values,
-                p0=[ydata.values[0] - 2.5, 0, 0]
-            )
+            try:
+                popt, pcov = curve_fit(
+                    Vmag,
+                    np.deg2rad(pdf.loc[cond, 'Phase'].values),
+                    ydata.values,
+                    p0=[ydata.values[0] - 2.5, 0, 0]
+                )
+            except RuntimeError as e:
+                return dbc.Alert("The fitting procedure could not converge.")
             # perr = np.sqrt(np.diag(pcov))
 
             figs.append(
@@ -2367,12 +2370,16 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                 color_sso[cond] = V_minus_r - V_minus_g
 
         ydata = pdf['i:magpsf_red'] + color_sso
-        popt, pcov = curve_fit(
-            Vmag,
-            np.deg2rad(pdf['Phase'].values),
-            ydata.values,
-            p0=[ydata.values[0] - 2.5, 0, 0]
-        )
+
+        try:
+            popt, pcov = curve_fit(
+                Vmag,
+                np.deg2rad(pdf['Phase'].values),
+                ydata.values,
+                p0=[ydata.values[0] - 2.5, 0, 0]
+            )
+        except RuntimeError as e:
+            return dbc.Alert("The fitting procedure could not converge.")
 
         figs.append(
             {
