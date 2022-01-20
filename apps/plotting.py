@@ -2290,6 +2290,8 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         """
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
 
+    pdf = pdf.sort_values('i:jd')
+
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
 
