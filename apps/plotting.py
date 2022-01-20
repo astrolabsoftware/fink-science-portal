@@ -1982,10 +1982,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     """
     pdf = pd.read_json(object_sso)
     if pdf.empty:
-        msg = """
-        Object not referenced in the Minor Planet Center
-        """
-        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+        return html.Div()
 
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
