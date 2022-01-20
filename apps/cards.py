@@ -135,11 +135,6 @@ def card_cutouts(is_mobile):
         card = dbc.Card(
             dbc.CardBody(
                 [
-                    # dbc.Row([
-                    #     dbc.Col(html.H5(children="Science", className="text-center")),
-                    #     dbc.Col(html.H5(children="Template", className="text-center")),
-                    #     dbc.Col(html.H5(children="Difference", className="text-center"))
-                    # ]),
                     dbc.Row(
                         [
                             dbc.Col(
@@ -190,7 +185,6 @@ def card_cutouts(is_mobile):
                         },
                         config={'displayModeBar': False}
                     ),
-                    html.Br(),
                     dbc.Row(
                         dbc.Col(
                             dmc.Chips(
