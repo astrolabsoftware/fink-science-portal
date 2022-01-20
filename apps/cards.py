@@ -146,7 +146,7 @@ def card_cutouts(is_mobile):
                                 dmc.Button(
                                     "Science",
                                     variant="outline",
-                                    color="orange",
+                                    color="gray",
                                     radius="lg",
                                     size="sm",
                                     compact=True,
@@ -157,7 +157,7 @@ def card_cutouts(is_mobile):
                                 dmc.Button(
                                     "Template",
                                     variant="outline",
-                                    color="orange",
+                                    color="gray",
                                     radius="lg",
                                     size="sm",
                                     compact=True,
@@ -168,14 +168,14 @@ def card_cutouts(is_mobile):
                                 dmc.Button(
                                     "Difference",
                                     variant="outline",
-                                    color="orange",
+                                    color="gray",
                                     radius="lg",
                                     size="sm",
                                     compact=True,
                                     loading=False,
                                 )
                             )
-                        ]
+                        ], justify='around', no_gutters=True
                     ),
                     dbc.Row(id='stamps', justify='around', no_gutters=True),
                     html.Br(),
