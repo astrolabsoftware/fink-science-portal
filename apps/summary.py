@@ -119,20 +119,34 @@ def tab5_content(pdf):
     """
     ssnamenr = pdf['i:ssnamenr'].values[0]
 
-    tab1 = html.Div([
-        dbc.Row(
-            [
-                dbc.Col([card_sso_lightcurve(), card_sso_residual()], width=8),
-                dbc.Col([card_sso_mpc_params(ssnamenr)], width=4)
-            ]
-        ),
-    ])
-    label_style = {"color": "#000"}
-    tab5_content_ = dbc.Tabs(
+    tab1 = dbc.Row(
         [
-            dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
-            dbc.Tab("", label="Astrometry", label_style=label_style),
-            dbc.Tab("", label="Phase curve", label_style=label_style)
+            dbc.Col(
+                [
+                    card_sso_lightcurve(),
+                    card_sso_residual()
+                ]
+            ),
+        ]
+    )
+
+    label_style = {"color": "#000"}
+    tab5_content_ = dbc.Row(
+        [
+            dbc.Col(
+                dbc.Tabs(
+                    [
+                        dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
+                        dbc.Tab("", label="Astrometry", label_style=label_style),
+                        dbc.Tab("", label="Phase curve", label_style=label_style)
+                    ]
+                ), width=8
+            ),
+            dbc.Col(
+                [
+                    card_sso_mpc_params(ssnamenr)
+                ], width=4
+            )
         ]
     )
     return tab5_content_
