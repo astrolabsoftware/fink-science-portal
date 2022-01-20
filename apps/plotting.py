@@ -2313,19 +2313,19 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
         ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
         popt, pcov = curve_fit(
             Vmag,
-            np.deg2rad(pdf.loc[cond, 'Phase']),
-            ydata,
-            p0=[ydata.values[0], 1, 1]
+            np.deg2rad(pdf.loc[cond, 'Phase'].values),
+            ydata.values,
+            p0=[ydata.values[0] - 2.5, 0, 0]
         )
         # perr = np.sqrt(np.diag(pcov))
 
         figs.append(
             {
-                'x': pdf.loc[cond, 'Phase'],
-                'y': ydata,
+                'x': pdf.loc[cond, 'Phase'].values,
+                'y': ydata.values,
                 'error_y': {
                     'type': 'data',
-                    'array': pdf.loc[cond, 'i:sigmapsf'],
+                    'array': pdf.loc[cond, 'i:sigmapsf'].values,
                     'visible': True,
                     'color': colors[i]
                 },
@@ -2340,8 +2340,8 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
 
         figs.append(
             {
-                'x': pdf.loc[cond, 'Phase'],
-                'y': Vmag(np.deg2rad(pdf.loc[cond, 'Phase']), *popt),
+                'x': pdf.loc[cond, 'Phase'].values,
+                'y': Vmag(np.deg2rad(pdf.loc[cond, 'Phase'].values), *popt),
                 'mode': 'lines',
                 'name': 'H={:.2f}, G1={:.2f}, G2={:.2f}'.format(*popt),
                 'showlegend': False,
