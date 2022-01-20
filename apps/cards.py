@@ -16,6 +16,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
+import dash_mantine_components as dmc
 import dash_table
 import visdcc
 
@@ -102,6 +103,7 @@ def card_sn_scores() -> dbc.Card:
         - the alert has the Random Forest model trained to select early supernovae Ia (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN.
         """
     )
+    label_style = {"color": "#000"}
     card = dbc.Card(
         dbc.CardBody(
             [
@@ -109,10 +111,10 @@ def card_sn_scores() -> dbc.Card:
                 html.Br(),
                 dbc.Tabs(
                     [
-                        dbc.Tab(graph_scores, label='ML scores', tab_id='snt0'),
-                        dbc.Tab([graph_color, html.Br(), color_explanation], label='Color and mag evolution', tab_id='snt1'),
-                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color and mag rate', tab_id='snt2'),
-                        dbc.Tab(msg, label='Info', tab_id='snt3'),
+                        dbc.Tab(graph_scores, label='ML scores', tab_id='snt0', label_style=label_style),
+                        dbc.Tab([graph_color, html.Br(), color_explanation], label='Color and mag evolution', tab_id='snt1', label_style=label_style),
+                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color and mag rate', tab_id='snt2', label_style=label_style),
+                        dbc.Tab(msg, label='Info', tab_id='snt3', label_style=label_style),
                     ]
                 ),
             ]
@@ -158,14 +160,22 @@ def card_cutouts(is_mobile):
                         )
                     ),
                     html.Br(),
-                    dcc.Markdown(
-                        """
-                        Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
-                        In addition, the _Difference magnitude_ view shows:
-                        - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                        - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-                        """
-                    ),
+                    dmc.Accordion(
+                        children=[
+                            dmc.AccordionItem(
+                                dcc.Markdown(
+                                    """
+                                    Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+                                    In addition, the _Difference magnitude_ view shows:
+                                    - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                                    """
+                                ),
+                                label="Information",
+                                description="What am I seeing?",
+                            ),
+                        ],
+                    )
                 ]
             ),
             className="mt-3"
