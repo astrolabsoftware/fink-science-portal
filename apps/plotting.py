@@ -2268,9 +2268,10 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
     Output('sso_phasecurve', 'children'),
     [
         Input('url', 'pathname'),
+        Input("switch-phase-curve", "value"),
         Input('object-sso', 'children')
     ])
-def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
+def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
     """ Draw SSO object phase curve
 
     Parameters
@@ -2301,52 +2302,104 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
     filts = np.unique(pdf['i:fid'].values)
 
     figs = []
-    for i, f in enumerate(filts):
-        cond = pdf['i:fid'] == f
 
-        # Color conversion
-        if filters[f] == 'g':
-            color_sso = V_minus_g
-        else:
-            color_sso = V_minus_r
+    if swith == 'per-band':
+        for i, f in enumerate(filts):
+            cond = pdf['i:fid'] == f
 
-        ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
+            # Color conversion
+            if filters[f] == 'g':
+                color_sso = V_minus_g
+            else:
+                color_sso = V_minus_r
+
+            ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
+            popt, pcov = curve_fit(
+                Vmag,
+                np.deg2rad(pdf.loc[cond, 'Phase'].values),
+                ydata.values,
+                p0=[ydata.values[0] - 2.5, 0, 0]
+            )
+            # perr = np.sqrt(np.diag(pcov))
+
+            figs.append(
+                {
+                    'x': pdf.loc[cond, 'Phase'].values,
+                    'y': ydata.values,
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf.loc[cond, 'i:sigmapsf'].values,
+                        'visible': True,
+                        'color': COLORS_ZTF[i]
+                    },
+                    'mode': 'markers',
+                    'name': '{:}'.format(filters[f]),
+                    'marker': {
+                        'size': 6,
+                        'color': COLORS_ZTF[i],
+                        'symbol': 'o'}
+                }
+            )
+
+            figs.append(
+                {
+                    'x': pdf.loc[cond, 'Phase'].values,
+                    'y': Vmag(np.deg2rad(pdf.loc[cond, 'Phase'].values), *popt),
+                    'mode': 'lines',
+                    'name': 'H={:.2f}, G1={:.2f}, G2={:.2f}'.format(*popt),
+                    'showlegend': False,
+                    'line': {
+                        'color': COLORS_ZTF[i],
+                    }
+                }
+            )
+    elif switch == 'combined':
+        # Conversion
+        color_sso = np.ones_like(pdf['i:magpsf'])
+        for i, f in enumerate(filts):
+            cond = pdf['i:fid'] == f
+
+            if filters[f] == 'g':
+                color_sso[cond] = V_minus_g
+            else:
+                color_sso[cond] = V_minus_r - V_minus_g
+
+        ydata = pdf.loc['i:magpsf_red'] + color_sso
         popt, pcov = curve_fit(
             Vmag,
-            np.deg2rad(pdf.loc[cond, 'Phase'].values),
+            np.deg2rad(pdf.loc['Phase'].values),
             ydata.values,
             p0=[ydata.values[0] - 2.5, 0, 0]
         )
-        # perr = np.sqrt(np.diag(pcov))
 
         figs.append(
             {
-                'x': pdf.loc[cond, 'Phase'].values,
+                'x': pdf.loc['Phase'].values,
                 'y': ydata.values,
                 'error_y': {
                     'type': 'data',
-                    'array': pdf.loc[cond, 'i:sigmapsf'].values,
+                    'array': pdf.loc['i:sigmapsf'].values,
                     'visible': True,
-                    'color': COLORS_ZTF[i]
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
-                'name': '{:} -> V_obs'.format(filters[f]),
+                'name': 'combined (g & r)'.format(filters[f]),
                 'marker': {
                     'size': 6,
-                    'color': COLORS_ZTF[i],
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             }
         )
 
         figs.append(
             {
-                'x': pdf.loc[cond, 'Phase'].values,
-                'y': Vmag(np.deg2rad(pdf.loc[cond, 'Phase'].values), *popt),
+                'x': pdf.loc['Phase'].values,
+                'y': Vmag(np.deg2rad(pdf.loc['Phase'].values), *popt),
                 'mode': 'lines',
                 'name': 'H={:.2f}, G1={:.2f}, G2={:.2f}'.format(*popt),
                 'showlegend': False,
                 'line': {
-                    'color': COLORS_ZTF[i],
+                    'color': COLORS_ZTF[0],
                 }
             }
         )

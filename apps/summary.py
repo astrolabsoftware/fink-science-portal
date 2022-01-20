@@ -173,6 +173,25 @@ def tab5_content(pdf):
             dbc.Col(
                 [
                     card_sso_phasecurve(),
+                    dbc.Row(
+                        dbc.Col(
+                            dmc.Chips(
+                                data=[
+                                    {'label': 'per-band', 'value': 'per-band'},
+                                    {'label': 'combined', 'value': 'combined'}
+                                ],
+                                id="switch-phase-curve",
+                                value="per-band",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                                spacing="xl",
+                                variant="outline",
+                                position='center',
+                                multiple=False,
+                            )
+                        )
+                    ),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
