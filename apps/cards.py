@@ -203,7 +203,6 @@ def card_cutouts(is_mobile):
                             )
                         )
                     ),
-                    html.Br(),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
