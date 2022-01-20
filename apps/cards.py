@@ -432,12 +432,14 @@ def card_explanation_variable():
     The title of the plot will give you the fitted period, and a score for the fit.
     The score is between 0 (poor fit) and 1 (excellent fit).
     """
-    card = dbc.Card(
-        dbc.CardBody(
-            dcc.Markdown(msg)
-        ), style={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        }
+    card = dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                dcc.Markdown(msg),
+                label="Information",
+                description="How to make a fit?",
+            ),
+        ],
     )
     return card
 
@@ -451,12 +453,14 @@ def card_explanation_mulens():
     described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract).
     We use a simple PSPL model to fit the data.
     """
-    card = dbc.Card(
-        dbc.CardBody(
-            dcc.Markdown(msg)
-        ), style={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        }
+    dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                dcc.Markdown(msg),
+                label="Information",
+                description="How to make a fit?",
+            ),
+        ],
     )
     return card
 
