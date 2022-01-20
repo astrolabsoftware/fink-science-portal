@@ -2310,13 +2310,19 @@ def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
         else:
             color_sso = V_minus_r
 
-        popt, pcov = curve_fit(Vmag, np.deg2rad(pdf.loc[cond, 'Phase']), pdf.loc[cond, 'i:magpsf_red'] + color_sso)
+        ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
+        popt, pcov = curve_fit(
+            Vmag,
+            np.deg2rad(pdf.loc[cond, 'Phase']),
+            ydata,
+            p0=[ydata[0], 1, 1]
+        )
         # perr = np.sqrt(np.diag(pcov))
 
         figs.append(
             {
                 'x': pdf.loc[cond, 'Phase'],
-                'y': pdf.loc[cond, 'i:magpsf_red'] + color_sso,
+                'y': ydata,
                 'error_y': {
                     'type': 'data',
                     'array': pdf.loc[cond, 'i:sigmapsf'],
