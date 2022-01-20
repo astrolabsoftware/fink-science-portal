@@ -417,17 +417,21 @@ def store_query(name):
     )
 
     payload = pdfs['d:tracklet'].values[0]
-    results = clientTRCK.scan(
-        "",
-        "key:key:{}".format(payload),
-        "*",
-        0, True, True
-    )
-    schema_client_tracklet = clientTRCK.schema()
-    pdftracklet = format_hbase_output(
-        results, schema_client_tracklet,
-        group_alerts=False, truncated=False, extract_color=False
-    )
+
+    if str(payload).startswith('TRCK'):
+        results = clientTRCK.scan(
+            "",
+            "key:key:{}".format(payload),
+            "*",
+            0, True, True
+        )
+        schema_client_tracklet = clientTRCK.schema()
+        pdftracklet = format_hbase_output(
+            results, schema_client_tracklet,
+            group_alerts=False, truncated=False, extract_color=False
+        )
+    else:
+        pdftracklet = pd.DataFrame()
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json(), pdftracklet.to_json()
 
 def layout(name, is_mobile):
