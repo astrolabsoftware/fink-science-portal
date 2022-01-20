@@ -871,6 +871,9 @@ def get_miriade_data(pdf):
     # Merge fink & Eph
     info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
 
+    # index has been duplicated obviously
+    info = info.loc[:,~info.columns.duplicated()]
+
     # Compute magnitude reduced to unit distance
     info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
 
