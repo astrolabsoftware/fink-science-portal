@@ -433,6 +433,17 @@ def card_sso_residual():
     card = html.Div(id='sso_residual')
     return card
 
+def card_sso_astrometry():
+    """ Add a card to display SSO astrometry
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the SSO astrometry
+    """
+    card = html.Div(id='sso_astrometry')
+    return card
+
 def card_tracklet_lightcurve():
     """ Add a card to display tracklet lightcurve
     Returns

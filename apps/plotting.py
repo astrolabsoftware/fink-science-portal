@@ -287,6 +287,31 @@ layout_sso_lightcurve = dict(
     }
 )
 
+layout_sso_astrometry = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': r'$\Delta$RA ($^{\prime\prime}$)',
+        'automargin': True
+    },
+    yaxis={
+        'title': r'$\Delta$DEC ($^{\prime\prime}$)',
+        'automargin': True
+    }
+)
+
 layout_sso_radec = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
@@ -2129,6 +2154,89 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
         style={
             'width': '100%',
             'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('sso_astrometry', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-sso', 'children')
+    ])
+def draw_sso_astrometry(pathname: str, object_sso) -> dict:
+    """ Draw SSO object astrometry, that is difference position wrt ephemerides
+    from the miriade IMCCE service.
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_sso)
+    if pdf.empty:
+        msg = """
+        Object not referenced in the Minor Planet Center
+        """
+        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    # type conversion
+    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    # hovertemplate = r"""
+    # <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    # <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    # <b>mjd</b>: %{customdata}
+    # <extra></extra>
+    # """
+
+    deltaRAcosDEC = (pdf['i:ra'] - pdf.RA) * np.cos(np.radians(pdf['i:dec'])) * 3600
+    deltaDEC = (pdf['i:dec'] - pdf.Dec) * 3600
+
+    diff_g = {
+        'x': deltaRAcosDEC[pdf['i:fid'] == 1],
+        'y': deltaDEC[pdf['i:fid'] == 1],
+        'mode': 'markers',
+        'name': 'Difference',
+        'marker': {
+            'size': 6,
+            'color': '#1f77b4',
+            'symbol': 'o'}
+    }
+
+    diff_r = {
+        'x': deltaRAcosDEC[pdf['i:fid'] == 2],
+        'y': deltaDEC[pdf['i:fid'] == 2],
+        'mode': 'markers',
+        'name': 'Difference',
+        'marker': {
+            'size': 6,
+            'color': '#ff7f0e',
+            'symbol': 'o'}
+    }
+
+    figure = {
+        'data': [
+            diff_g,
+            diff_r,
+        ],
+        "layout": layout_sso_astrometry
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '100%'
         },
         config={'displayModeBar': False}
     )
