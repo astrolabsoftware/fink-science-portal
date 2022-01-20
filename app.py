@@ -84,6 +84,9 @@ clientUV.connect(tablename + ".uppervalid", SCHEMAVER)
 clientSSO = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
 clientSSO.connect(tablename + ".ssnamenr", SCHEMAVER)
 
+clientTRCK = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
+clientTRCK.connect(tablename + ".tracklet", SCHEMAVER)
+
 clientTNS = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
 clientTNS.connect(tablename + ".tns", SCHEMAVER)
 
