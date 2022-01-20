@@ -501,6 +501,17 @@ def card_sso_astrometry():
     card = html.Div(id='sso_astrometry')
     return card
 
+def card_sso_phasecurve():
+    """ Add a card to display SSO phase curve
+
+    Returns
+    ----------
+    card: dbc.Card
+        Card with the SSO phase curve
+    """
+    card = html.Div(id='sso_phasecurve')
+    return card
+
 def card_tracklet_lightcurve():
     """ Add a card to display tracklet lightcurve
     Returns

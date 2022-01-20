@@ -872,7 +872,7 @@ def get_miriade_data(pdf):
     info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
 
     # index has been duplicated obviously
-    info = info.loc[:,~info.columns.duplicated()]
+    info = info.loc[:, ~info.columns.duplicated()]
 
     # Compute magnitude reduced to unit distance
     info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
@@ -886,4 +886,24 @@ def sine_fit(x, a, b):
     :b: float - Phase offset
 
     """
-    return a*np.sin( 2*np.radians(x-b) )
+    return a * np.sin(2 * np.radians(x - b))
+
+def phi1(alpha):
+    """ simple form only
+    """
+    return 1 - 6 * alpha / np.pi
+
+def phi2(alpha):
+    """ simple form only
+    """
+    return 1 - 9 * alpha / (5 * np.pi)
+
+def phi3(alpha):
+    """ simple form only
+    """
+    return 1 - np.exp(-4 * np.pi * np.tan(alpha / 2)**(2./3))
+
+def Vmag(alpha, H, G1, G2):
+    """ Only phase part
+    """
+    return H - 2.5 * np.log10(G1 * phi1(alpha) + G2 * phi2(alpha) + (1 - G1 - G2) * phi3(alpha))

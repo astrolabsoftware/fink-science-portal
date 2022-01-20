@@ -34,7 +34,7 @@ from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 
-from apps.cards import card_sso_residual, card_sso_astrometry
+from apps.cards import card_sso_residual, card_sso_astrometry, card_sso_phasecurve
 from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
 from apps.cards import card_tracklet_lightcurve, card_tracklet_radec
 
@@ -168,6 +168,25 @@ def tab5_content(pdf):
         ]
     )
 
+    tab3 = dbc.Row(
+        [
+            dbc.Col(
+                [
+                    card_sso_phasecurve(),
+                    dmc.Accordion(
+                        children=[
+                            dmc.AccordionItem(
+                                dcc.Markdown("TBD"),
+                                label="Information",
+                                description="How are computed the phase curve?",
+                            ),
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+
     label_style = {"color": "#000"}
     tab5_content_ = dbc.Row(
         [
@@ -176,7 +195,7 @@ def tab5_content(pdf):
                     [
                         dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
                         dbc.Tab(tab2, label="Astrometry", label_style=label_style),
-                        dbc.Tab("", label="Phase curve", label_style=label_style)
+                        dbc.Tab(tab3, label="Phase curve", label_style=label_style)
                     ]
                 ), width=8
             ),

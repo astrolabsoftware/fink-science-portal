@@ -35,7 +35,7 @@ import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-from apps.utils import sine_fit
+from apps.utils import sine_fit, Vmag
 
 from apps.statistics import dic_names
 from app import APIURL
@@ -308,6 +308,31 @@ layout_sso_astrometry = dict(
     },
     yaxis={
         'title': '&#916;Dec (\'\')',
+        'automargin': True
+    }
+)
+
+layout_sso_phasecurve = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': 'Phase angle [degree]',
+        'automargin': True
+    },
+    yaxis={
+        'title': 'observed V [mag]',
         'automargin': True
     }
 )
@@ -2227,6 +2252,107 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         style={
             'width': '100%',
             'height': '100%'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('sso_phasecurve', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-sso', 'children')
+    ])
+def draw_sso_phasecurve(pathname: str, object_sso) -> dict:
+    """ Draw SSO object phase curve
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_sso)
+    if pdf.empty:
+        msg = """
+        Object not referenced in the Minor Planet Center
+        """
+        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    # type conversion
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    # SSO Color index
+    V_minus_g = -0.32
+    V_minus_r = 0.13
+
+    # Disctionary for filters
+    filters = {1: 'g', 2: 'R', 3: 'i'}
+    filts = pdf['i:fid'].unique()
+
+    colors = ['#1f77b4', '#ff7f0e']
+
+    figs = []
+    for i, f in enumerate(filts):
+        cond = pdf['i:fid'] == f
+
+        # Color conversion
+        if filters[f] == 'g':
+            color_sso = V_minus_g
+        else:
+            color_sso = V_minus_r
+
+        popt, pcov = curve_fit(Vmag, np.deg2rad(pdf.loc[cond, 'Phase']), pdf.loc[cond, 'i:magpsf_red'] + color_sso)
+        # perr = np.sqrt(np.diag(pcov))
+
+        figs.append(
+            {
+                'x': pdf.loc[cond, 'Phase'],
+                'y': pdf.loc[cond, 'i:magpsf_red'] + color_sso,
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf.loc[cond, 'i:sigmapsf'],
+                    'visible': True,
+                    'color': colors[i]
+                },
+                'mode': 'markers',
+                'name': '{:} -> V_obs'.format(filters[f]),
+                'marker': {
+                    'size': 6,
+                    'color': '#1f77b4',
+                    'symbol': 'o'}
+            }
+        )
+
+        figs.append(
+            {
+                'x': pdf.loc[cond, 'Phase'],
+                'y': Vmag(np.deg2rad(pdf.loc[cond, 'Phase']), *popt),
+                'mode': 'lines',
+                'name': 'H={:.2f}, G1={:.2f}, G2={:.2f}'.format(*popt),
+                'showlegend': False,
+                'line': {
+                    'color': colors[i],
+                }
+            }
+        )
+
+    figure = {
+        'data': figs,
+        "layout": layout_sso_phasecurve
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
         },
         config={'displayModeBar': False}
     )
