@@ -2324,7 +2324,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                     p0=[ydata.values[0] - 2.5, 0, 0]
                 )
             except RuntimeError as e:
-                return dbc.Alert("The fitting procedure could not converge.")
+                return dbc.Alert("The fitting procedure could not converge.", color='danger')
             # perr = np.sqrt(np.diag(pcov))
 
             figs.append(
@@ -2379,7 +2379,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                 p0=[ydata.values[0] - 2.5, 0, 0]
             )
         except RuntimeError as e:
-            return dbc.Alert("The fitting procedure could not converge.")
+            return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
         figs.append(
             {
