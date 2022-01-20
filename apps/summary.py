@@ -139,7 +139,7 @@ def tab5_content(pdf):
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                "Residuals between the alert positions and the positions returned by the Miriade ephemeride service (https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).",
+                                dcc.Markdown("Residuals between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
                                 label="Information",
                                 description="Description about the plot",
                             ),
