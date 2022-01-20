@@ -151,13 +151,8 @@ def card_cutouts(is_mobile):
                         },
                         config={'displayModeBar': False}
                     ),
+                    html.Br(),
                     dbc.Row(
-                        # dbc.RadioItems(
-                        #     options=[{'label': k, 'value': k} for k in all_radio_options.keys()],
-                        #     value="Difference magnitude",
-                        #     id="switch-mag-flux",
-                        #     inline=True
-                        # )
                         dbc.Col(
                             dmc.Chips(
                                 data=[
