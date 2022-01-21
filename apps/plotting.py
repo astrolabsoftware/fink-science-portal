@@ -2376,9 +2376,9 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
             perr = np.sqrt(np.diag(pcov))
 
-            df_table['H'][df_table['H'].index == filters[f]] = '{} &plusmn; {}'.format(popt[0], perr[0])
-            df_table['G1'][df_table['G1'].index == filters[f]] = '{} &plusmn; {}'.format(popt[1], perr[1])
-            df_table['G2'][df_table['G2'].index == filters[f]] = '{} &plusmn; {}'.format(popt[2], perr[2])
+            df_table['H'][df_table['H'].index == filters[f]] = r'{:.2f} $\pm$ {:.2f}'.format(popt[0], perr[0])
+            df_table['G1'][df_table['G1'].index == filters[f]] = r'{:.2f} $\pm$ {:.2f}'.format(popt[1], perr[1])
+            df_table['G2'][df_table['G2'].index == filters[f]] = r'{:.2f} $\pm$ {:.2f}'.format(popt[2], perr[2])
 
             figs.append(
                 {
