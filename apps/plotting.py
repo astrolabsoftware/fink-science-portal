@@ -2422,7 +2422,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
             figs.append(
                 {
                     'x': pdf.loc[cond, 'Phase'].values,
-                    'y': model_hg1g2.to_mag(pdf.loc[cond, 'Phase'].values, unit=u.deg).to_value(),
+                    'y': model_hg1g2.to_mag(pdf.loc[cond, 'Phase'].values * u.deg, unit=u.deg).to_value(),
                     'mode': 'lines',
                     'name': 'fit {:}'.format(filters[f]),
                     'showlegend': False,
@@ -2499,7 +2499,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         figs.append(
             {
                 'x': pdf['Phase'].values,
-                'y': model_hg1g2.to_mag(pdf['Phase'].values, unit=u.deg).to_value(),
+                'y': model_hg1g2.to_mag(pdf['Phase'].values * u.deg, unit=u.deg).to_value(),
                 'mode': 'lines',
                 'name': 'fit combined',
                 'showlegend': False,
