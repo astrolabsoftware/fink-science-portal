@@ -2489,6 +2489,26 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         id='phasecurve_table',
         columns=[{"name": i, "id": i} for i in df_table.columns],
         data=df_table.to_dict('records'),
+        style_as_list_view=True,
+        filter_action="native",
+        markdown_options={'link_target': '_blank'},
+        fixed_columns={'headers': True, 'data': 1},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_table={'maxWidth': '100%'},
+        style_cell={'padding': '5px', 'textAlign': 'left', 'overflow': 'hidden'},
+        style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
     )
 
     graph = dcc.Graph(
