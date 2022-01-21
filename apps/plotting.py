@@ -2350,8 +2350,11 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
-
     if switch == 'per-band':
+        df_table = pd.DataFrame(
+            {'H': [0] * 2, 'G1': [0] * 2, 'G2': [0 * 2]},
+            index=['g', 'r']
+        )
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
 
@@ -2371,7 +2374,11 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                 )
             except RuntimeError as e:
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
-            # perr = np.sqrt(np.diag(pcov))
+            perr = np.sqrt(np.diag(pcov))
+
+            df['H'][df['H'].index == filters[f]] = '{} &plusmn; {}'.format(popt[0], perr[0])
+            df['G1'][df['G1'].index == filters[f]] = '{} &plusmn; {}'.format(popt[1], perr[1])
+            df['G2'][df['G2'].index == filters[f]] = '{} &plusmn; {}'.format(popt[2], perr[2])
 
             figs.append(
                 {
@@ -2477,6 +2484,13 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         'data': figs,
         "layout": layout_sso_phasecurve
     }
+
+    table = dash_table.DataTable(
+        id='phasecurve_table',
+        columns=[{"name": i, "id": i} for i in df_table.columns],
+        data=df_table.to_dict('records'),
+    )
+
     graph = dcc.Graph(
         figure=figure,
         style={
@@ -2485,9 +2499,12 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
+    card = html.Div(
+        dbc.Card(
+            dbc.CardBody(graph),
+            className="mt-3"
+        ),
+        table
     )
     return card
 
