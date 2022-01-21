@@ -45,6 +45,11 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
+from sbpy.photometry import HG1G2
+from astropy.modeling.fitting import LevMarLSQFitter
+import astropy.units as u
+from sbpy.data import Obs
+
 from app import client, app, clientSSO, clientStats
 
 COLORS_ZTF = ['#15284F', '#F5622E']
@@ -2350,6 +2355,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
+    fitter = LevMarLSQFitter(calc_uncertainties=True)
     if switch == 'per-band':
         df_table = pd.DataFrame(
             {'': [filters[f] + ' band' for f in filts], 'H': [''] * 2, 'G1': [''] * 2, 'G2': [''] * 2},
@@ -2366,19 +2372,26 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
 
             ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
             try:
-                popt, pcov = curve_fit(
-                    Vmag,
-                    np.deg2rad(pdf.loc[cond, 'Phase'].values),
-                    ydata.values,
-                    p0=[ydata.values[0] - 2.5, 0, 0]
+                obs = Obs.from_dict(
+                    {
+                        'alpha': pdf.loc[cond, 'Phase'].values * u.deg,
+                        'mag': ydata.values * u.mag
+                    }
+                )
+                model_hg1g2 = HG1G2.from_obs(
+                    obs,
+                    fitter,
+                    'mag',
+                    weights=pdf.loc[cond, 'i:sigmapsf'] * u.mag
                 )
             except RuntimeError as e:
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
-            perr = np.sqrt(np.diag(pcov))
 
-            df_table['H'][df_table['H'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(popt[0], perr[0])
-            df_table['G1'][df_table['G1'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(popt[1], perr[1])
-            df_table['G2'][df_table['G2'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(popt[2], perr[2])
+            perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+
+            df_table['H'][df_table['H'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H, perr[0])
+            df_table['G1'][df_table['G1'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1, perr[1])
+            df_table['G2'][df_table['G2'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2, perr[2])
 
             figs.append(
                 {
@@ -2409,9 +2422,9 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
             figs.append(
                 {
                     'x': pdf.loc[cond, 'Phase'].values,
-                    'y': Vmag(np.deg2rad(pdf.loc[cond, 'Phase'].values), *popt),
+                    'y': model_hg1g2.to_mag(pdf.loc[cond, 'Phase'].values, unit=u.deg).to_value(),
                     'mode': 'lines',
-                    'name': 'H={:.2f}, G1={:.2f}, G2={:.2f}'.format(*popt),
+                    'name': 'fit {:}'.format(filters[f]),
                     'showlegend': False,
                     'line': {
                         'color': COLORS_ZTF[i],
@@ -2436,20 +2449,26 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         ydata = pdf['i:magpsf_red'] + color_sso
 
         try:
-            popt, pcov = curve_fit(
-                Vmag,
-                np.deg2rad(pdf['Phase'].values),
-                ydata.values,
-                p0=[ydata.values[0] - 2.5, 0, 0]
+            obs = Obs.from_dict(
+                {
+                    'alpha': pdf['Phase'].values * u.deg,
+                    'mag': ydata.values * u.mag
+                }
+            )
+            model_hg1g2 = HG1G2.from_obs(
+                obs,
+                fitter,
+                'mag',
+                weights=pdf['i:sigmapsf'] * u.mag
             )
         except RuntimeError as e:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-        perr = np.sqrt(np.diag(pcov))
+        perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
 
-        df_table['H'] = '{:.2f} &plusmn; {:.2f}'.format(popt[0], perr[0])
-        df_table['G1'] = '{:.2f} &plusmn; {:.2f}'.format(popt[1], perr[1])
-        df_table['G2'] = '{:.2f} &plusmn; {:.2f}'.format(popt[2], perr[2])
+        df_table['H'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H, perr[0])
+        df_table['G1'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1, perr[1])
+        df_table['G2'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2, perr[2])
 
         figs.append(
             {
@@ -2480,9 +2499,9 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         figs.append(
             {
                 'x': pdf['Phase'].values,
-                'y': Vmag(np.deg2rad(pdf['Phase'].values), *popt),
+                'y': model_hg1g2.to_mag(pdf['Phase'].values, unit=u.deg).to_value(),
                 'mode': 'lines',
-                'name': 'H={:.2f}, G1={:.2f}, G2={:.2f}'.format(*popt),
+                'name': 'fit combined',
                 'showlegend': False,
                 'line': {
                     'color': COLORS_ZTF[0],
