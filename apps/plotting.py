@@ -2353,7 +2353,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
     if switch == 'per-band':
         df_table = pd.DataFrame(
             {'H': [0] * 2, 'G1': [0] * 2, 'G2': [0 * 2]},
-            index=['g', 'r']
+            index=[filters[f] for f in filts]
         )
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
@@ -2500,11 +2500,13 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         config={'displayModeBar': False}
     )
     card = html.Div(
-        dbc.Card(
-            dbc.CardBody(graph),
-            className="mt-3"
-        ),
-        table
+        [
+            dbc.Card(
+                dbc.CardBody(graph),
+                className="mt-3"
+            ),
+            table
+        ]
     )
     return card
 
