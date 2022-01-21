@@ -205,7 +205,7 @@ def tab5_content(pdf):
                             dmc.AccordionItem(
                                 dcc.Markdown(msg_phase),
                                 label="Information",
-                                description="How is computed the phase curve?",
+                                description="How is modeled the phase curve?",
                             ),
                         ],
                     )
