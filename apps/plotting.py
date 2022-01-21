@@ -1901,6 +1901,12 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     <b>mjd</b>: %{customdata}
     <extra></extra>
     """
+    hovertemplate_ephem = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
     gobs = {
         'x': dates[pdf['i:fid'] == 1],
         'y': mag[pdf['i:fid'] == 1],
@@ -1926,7 +1932,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         'mode': 'markers',
         'name': 'g (ephem)',
         'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
-        'hovertemplate': hovertemplate,
+        'hovertemplate': hovertemplate_ephem,
         'marker': {
             'size': 6,
             'color': COLORS_ZTF[0],
@@ -1959,7 +1965,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         'mode': 'markers',
         'name': 'r (ephem)',
         'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
-        'hovertemplate': hovertemplate,
+        'hovertemplate': hovertemplate_ephem,
         'marker': {
             'size': 6,
             'color': COLORS_ZTF[1],
@@ -2030,9 +2036,10 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     popt2, pcov2 = curve_fit(sine_fit, pdf['Longitude'][pdf['i:fid'] == 2], diff2)
 
     hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f<br>
-    <b>mjd</b>: %{customdata}
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>date</b>: %{customdata[1]}
     <extra></extra>
     """
     gresiduals = {
@@ -2046,7 +2053,12 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         },
         'mode': 'markers',
         'name': 'g band',
-        'customdata': pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 1],
+        'customdata': list(
+            zip(
+                pdf['i:objectId'][pdf['i:fid'] == 1],
+                pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 1],
+            )
+        ),
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -2065,7 +2077,12 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         },
         'mode': 'markers',
         'name': 'r band',
-        'customdata': pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 2],
+        'customdata': list(
+            zip(
+                pdf['i:objectId'][pdf['i:fid'] == 2],
+                pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 2],
+            )
+        ),
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -2326,6 +2343,14 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
 
     figs = []
 
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+
     if switch == 'per-band':
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
@@ -2360,6 +2385,13 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                     },
                     'mode': 'markers',
                     'name': '{:}'.format(filters[f]),
+                    'customdata': list(
+                        zip(
+                            pdf.loc[cond, 'i:objectId'],
+                            pdf.loc[cond, 'i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        )
+                    ),
+                    'hovertemplate': hovertemplate,
                     'marker': {
                         'size': 6,
                         'color': COLORS_ZTF[i],
