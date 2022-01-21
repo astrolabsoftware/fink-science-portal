@@ -2345,7 +2345,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
