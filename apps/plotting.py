@@ -2389,9 +2389,9 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
 
             perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
 
-            df_table['H'][df_table['H'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H, perr[0])
-            df_table['G1'][df_table['G1'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1, perr[1])
-            df_table['G2'][df_table['G2'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2, perr[2])
+            df_table['H'][df_table['H'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H.value, perr[0])
+            df_table['G1'][df_table['G1'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1.value, perr[1])
+            df_table['G2'][df_table['G2'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2.value, perr[2])
 
             figs.append(
                 {
@@ -2466,9 +2466,9 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
 
         perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
 
-        df_table['H'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H, perr[0])
-        df_table['G1'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1, perr[1])
-        df_table['G2'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2, perr[2])
+        df_table['H'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H.value, perr[0])
+        df_table['G1'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1.value, perr[1])
+        df_table['G2'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2.value, perr[2])
 
         figs.append(
             {
