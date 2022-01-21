@@ -2446,6 +2446,13 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'combined (g & r)'.format(filters[f]),
+                'customdata': list(
+                    zip(
+                        pdf['i:objectId'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 6,
                     'color': COLORS_ZTF[0],
