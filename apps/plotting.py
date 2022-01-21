@@ -15,6 +15,7 @@
 import pandas as pd
 import numpy as np
 from gatspy import periodic
+from scipy.optimize import curve_fit
 
 import datetime
 import java
@@ -34,6 +35,8 @@ import dash_html_components as html
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
+from apps.utils import sine_fit, Vmag
+
 from apps.statistics import dic_names
 from app import APIURL
 
@@ -42,11 +45,18 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
+from sbpy.photometry import HG1G2
+from astropy.modeling.fitting import LevMarLSQFitter
+import astropy.units as u
+from sbpy.data import Obs
+
 from app import client, app, clientSSO, clientStats
 
+COLORS_ZTF = ['#15284F', '#F5622E']
+
 # colors_ = [
-#     '#1f77b4',  # muted blue
-#     '#ff7f0e',  # safety orange
+#     COLORS_ZTF[0],  # muted blue
+#     COLORS_ZTF[1],  # safety orange
 #     '#2ca02c',  # cooked asparagus green
 #     '#d62728',  # brick red
 #     '#9467bd',  # muted purple
@@ -280,6 +290,57 @@ layout_sso_lightcurve = dict(
     yaxis={
         'autorange': 'reversed',
         'title': 'Magnitude',
+        'automargin': True
+    }
+)
+
+layout_sso_astrometry = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': '&#916;RA (\'\')',
+        'automargin': True
+    },
+    yaxis={
+        'title': '&#916;Dec (\'\')',
+        'automargin': True
+    }
+)
+
+layout_sso_phasecurve = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': 'Phase angle [degree]',
+        'automargin': True
+    },
+    yaxis={
+        'autorange': 'reversed',
+        'title': 'observed V [mag]',
         'automargin': True
     }
 )
@@ -535,7 +596,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 1],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
@@ -543,7 +604,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             },
             {
@@ -553,7 +614,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 2],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
@@ -561,7 +622,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
         ],
@@ -587,7 +648,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 1],
                     'hovertemplate': hovertemplate_upper,
                     'marker': {
-                        'color': '#1f77b4',
+                        'color': COLORS_ZTF[0],
                         'symbol': 'triangle-down-open'
                     },
                     'showlegend': False
@@ -601,7 +662,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 2],
                     'hovertemplate': hovertemplate_upper,
                     'marker': {
-                        'color': '#ff7f0e',
+                        'color': COLORS_ZTF[1],
                         'symbol': 'triangle-down-open'
                     },
                     'showlegend': False
@@ -628,13 +689,13 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                         'type': 'data',
                         'array': pdf_upperv['i:sigmapsf'][pdf_upperv['i:fid'] == 1],
                         'visible': True,
-                        'color': '#1f77b4'
+                        'color': COLORS_ZTF[0]
                     },
                     'mode': 'markers',
                     'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 1],
                     'hovertemplate': hovertemplate_upperv,
                     'marker': {
-                        'color': '#1f77b4',
+                        'color': COLORS_ZTF[0],
                         'symbol': 'triangle-up'
                     },
                     'showlegend': False
@@ -648,13 +709,13 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                         'type': 'data',
                         'array': pdf_upperv['i:sigmapsf'][pdf_upperv['i:fid'] == 2],
                         'visible': True,
-                        'color': '#ff7f0e'
+                        'color': COLORS_ZTF[1]
                     },
                     'mode': 'markers',
                     'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 2],
                     'hovertemplate': hovertemplate_upperv,
                     'marker': {
-                        'color': '#ff7f0e',
+                        'color': COLORS_ZTF[1],
                         'symbol': 'triangle-up'
                     },
                     'showlegend': False
@@ -727,7 +788,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 1],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
@@ -735,7 +796,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             },
             {
@@ -745,7 +806,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 2],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
@@ -753,7 +814,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
         ],
@@ -821,7 +882,7 @@ def draw_lightcurve_preview(name) -> dict:
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 1],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
@@ -829,7 +890,7 @@ def draw_lightcurve_preview(name) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             },
             {
@@ -839,7 +900,7 @@ def draw_lightcurve_preview(name) -> dict:
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 2],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
@@ -847,7 +908,7 @@ def draw_lightcurve_preview(name) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
         ],
@@ -1252,12 +1313,12 @@ def draw_cutouts_quickview(name):
 def create_circular_mask(h, w, center=None, radius=None):
 
     if center is None: # use the middle of the image
-        center = (int(w/2), int(h/2))
+        center = (int(w / 2), int(h / 2))
     if radius is None: # use the smallest distance between the center and image walls
-        radius = min(center[0], center[1], w-center[0], h-center[1])
+        radius = min(center[0], center[1], w - center[0], h - center[1])
 
     Y, X = np.ogrid[:h, :w]
-    dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
+    dist_from_center = np.sqrt((X - center[0])**2 + (Y - center[1])**2)
 
     mask = dist_from_center <= radius
     return mask
@@ -1371,7 +1432,8 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
         id='{}-stamps'.format(title),
         figure=fig,
         style=style,
-        config={'displayModeBar': False}
+        config={'displayModeBar': False},
+        className='roundimg zoom'
     )
     return graph
 
@@ -1461,14 +1523,14 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                     'type': 'data',
                     'array': err_dc[pdf['i:fid'] == '1'],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
                 'text': phase[pdf['i:fid'] == '1'],
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             }
             fit_filt1 = {
@@ -1478,7 +1540,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                 'name': 'fit g band',
                 'showlegend': False,
                 'line': {
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                 }
             }
         else:
@@ -1493,14 +1555,14 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                     'type': 'data',
                     'array': err_dc[pdf['i:fid'] == '2'],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
                 'text': phase[pdf['i:fid'] == '2'],
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
             fit_filt2 = {
@@ -1510,7 +1572,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                 'name': 'fit r band',
                 'showlegend': False,
                 'line': {
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                 }
             }
         else:
@@ -1639,14 +1701,14 @@ def plot_mulens(n_clicks, object_data):
                     'type': 'data',
                     'array': normalised_lightcurves[0][:, 2],
                     'visible': True,
-                    'color': '#1f77b4'
+                    'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
                 'name': 'g band',
                 'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:, 0]],
                 'marker': {
                     'size': 12,
-                    'color': '#1f77b4',
+                    'color': COLORS_ZTF[0],
                     'symbol': 'o'}
             }
         else:
@@ -1665,14 +1727,14 @@ def plot_mulens(n_clicks, object_data):
                     'type': 'data',
                     'array': normalised_lightcurves[index][:, 2],
                     'visible': True,
-                    'color': '#ff7f0e'
+                    'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
                 'name': 'r band',
                 'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
                 'marker': {
                     'size': 12,
-                    'color': '#ff7f0e',
+                    'color': COLORS_ZTF[1],
                     'symbol': 'o'}
             }
         else:
@@ -1808,7 +1870,8 @@ def integrate_aladin_lite(object_data):
         Input('object-sso', 'children')
     ])
 def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
-    """ Draw SSO object lightcurve with errorbars
+    """ Draw SSO object lightcurve with errorbars, and ephemerides on top
+    from the miriade IMCCE service.
 
     Parameters
     ----------
@@ -1843,46 +1906,226 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     <b>mjd</b>: %{customdata}
     <extra></extra>
     """
+    hovertemplate_ephem = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
+    gobs = {
+        'x': dates[pdf['i:fid'] == 1],
+        'y': mag[pdf['i:fid'] == 1],
+        'error_y': {
+            'type': 'data',
+            'array': err[pdf['i:fid'] == 1],
+            'visible': True,
+            'color': COLORS_ZTF[0]
+        },
+        'mode': 'markers',
+        'name': 'g band',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[0],
+            'symbol': 'o'}
+    }
+
+    gephem = {
+        'x': dates[pdf['i:fid'] == 1],
+        'y': pdf['SDSS:g'][pdf['i:fid'] == 1],
+        'mode': 'markers',
+        'name': 'g (ephem)',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'hovertemplate': hovertemplate_ephem,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[0],
+            'symbol': 'o',
+            'opacity': 0.5}
+    }
+
+    robs = {
+        'x': dates[pdf['i:fid'] == 2],
+        'y': mag[pdf['i:fid'] == 2],
+        'error_y': {
+            'type': 'data',
+            'array': err[pdf['i:fid'] == 2],
+            'visible': True,
+            'color': COLORS_ZTF[1]
+        },
+        'mode': 'markers',
+        'name': 'r band',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[1],
+            'symbol': 'o'}
+    }
+
+    rephem = {
+        'x': dates[pdf['i:fid'] == 2],
+        'y': pdf['SDSS:r'][pdf['i:fid'] == 2],
+        'mode': 'markers',
+        'name': 'r (ephem)',
+        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+        'hovertemplate': hovertemplate_ephem,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[1],
+            'symbol': 'o',
+            'opacity': 0.5}
+    }
+
     figure = {
         'data': [
-            {
-                'x': dates[pdf['i:fid'] == 1],
-                'y': mag[pdf['i:fid'] == 1],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 1],
-                    'visible': True,
-                    'color': '#1f77b4'
-                },
-                'mode': 'markers',
-                'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': '#1f77b4',
-                    'symbol': 'o'}
-            },
-            {
-                'x': dates[pdf['i:fid'] == 2],
-                'y': mag[pdf['i:fid'] == 2],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 2],
-                    'visible': True,
-                    'color': '#ff7f0e'
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': '#ff7f0e',
-                    'symbol': 'o'}
-            }
+            gobs,
+            gephem,
+            robs,
+            rephem
         ],
         "layout": layout_sso_lightcurve
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('sso_residual', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-sso', 'children')
+    ])
+def draw_sso_residual(pathname: str, object_sso) -> dict:
+    """ Draw SSO residuals (observation - ephemerides)
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_sso)
+    if pdf.empty:
+        return html.Div()
+
+    # type conversion
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    # shortcuts
+    mag = pdf['i:magpsf']
+    err = pdf['i:sigmapsf']
+
+    layout_sso_residual = copy.deepcopy(layout_sso_lightcurve)
+    layout_sso_residual['yaxis']['title'] = 'Residuals [mag]'
+    layout_sso_residual['xaxis']['title'] = 'Ecliptic longitude [deg]'
+
+    diff1 = mag[pdf['i:fid'] == 1] - pdf['SDSS:g'][pdf['i:fid'] == 1]
+    diff2 = mag[pdf['i:fid'] == 2] - pdf['SDSS:r'][pdf['i:fid'] == 2]
+
+    popt1, pcov1 = curve_fit(sine_fit, pdf['Longitude'][pdf['i:fid'] == 1], diff1)
+    popt2, pcov2 = curve_fit(sine_fit, pdf['Longitude'][pdf['i:fid'] == 2], diff2)
+
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>date</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    gresiduals = {
+        'x': pdf['Longitude'][pdf['i:fid'] == 1],
+        'y': diff1,
+        'error_y': {
+            'type': 'data',
+            'array': err[pdf['i:fid'] == 1],
+            'visible': True,
+            'color': COLORS_ZTF[0]
+        },
+        'mode': 'markers',
+        'name': 'g band',
+        'customdata': list(
+            zip(
+                pdf['i:objectId'][pdf['i:fid'] == 1],
+                pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 1],
+            )
+        ),
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[0],
+            'symbol': 'o'}
+    }
+
+    rresiduals = {
+        'x': pdf['Longitude'][pdf['i:fid'] == 2],
+        'y': diff2,
+        'error_y': {
+            'type': 'data',
+            'array': err[pdf['i:fid'] == 2],
+            'visible': True,
+            'color': COLORS_ZTF[1]
+        },
+        'mode': 'markers',
+        'name': 'r band',
+        'customdata': list(
+            zip(
+                pdf['i:objectId'][pdf['i:fid'] == 2],
+                pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 2],
+            )
+        ),
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[1],
+            'symbol': 'o'}
+    }
+
+    longitude_arr = np.linspace(0,360,num=100)
+    gfit = {
+        'x': longitude_arr,
+        'y': sine_fit(longitude_arr, *popt1),
+        'mode': 'lines',
+        'name': 'fit',
+        'showlegend': False,
+        'line': {
+            'color': COLORS_ZTF[0],
+        }
+    }
+
+    rfit = {
+        'x': longitude_arr,
+        'y': sine_fit(longitude_arr, *popt2),
+        'mode': 'lines',
+        'name': 'fit',
+        'showlegend': False,
+        'line': {
+            'color': COLORS_ZTF[1],
+        }
+    }
+
+    figure = {
+        'data': [
+            gresiduals,
+            gfit,
+            rresiduals,
+            rfit
+        ],
+        "layout": layout_sso_residual
     }
     graph = dcc.Graph(
         figure=figure,
@@ -1969,6 +2212,366 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
     return card
 
 @app.callback(
+    Output('sso_astrometry', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input('object-sso', 'children')
+    ])
+def draw_sso_astrometry(pathname: str, object_sso) -> dict:
+    """ Draw SSO object astrometry, that is difference position wrt ephemerides
+    from the miriade IMCCE service.
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_sso)
+    if pdf.empty:
+        msg = """
+        Object not referenced in the Minor Planet Center
+        """
+        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    # type conversion
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    deltaRAcosDEC = (pdf['i:ra'] - pdf.RA) * np.cos(np.radians(pdf['i:dec'])) * 3600
+    deltaDEC = (pdf['i:dec'] - pdf.Dec) * 3600
+
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    diff_g = {
+        'x': deltaRAcosDEC[pdf['i:fid'] == 1],
+        'y': deltaDEC[pdf['i:fid'] == 1],
+        'mode': 'markers',
+        'name': 'g band',
+        'customdata': list(
+            zip(
+                pdf['i:objectId'][pdf['i:fid'] == 1],
+                pdf['i:jd'][pdf['i:fid'] == 1].apply(lambda x: float(x) - 2400000.5),
+            )
+        ),
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[0],
+            'symbol': 'o'}
+    }
+
+    diff_r = {
+        'x': deltaRAcosDEC[pdf['i:fid'] == 2],
+        'y': deltaDEC[pdf['i:fid'] == 2],
+        'mode': 'markers',
+        'name': 'r band',
+        'customdata': list(
+            zip(
+                pdf['i:objectId'][pdf['i:fid'] == 2],
+                pdf['i:jd'][pdf['i:fid'] == 2].apply(lambda x: float(x) - 2400000.5),
+            )
+        ),
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[1],
+            'symbol': 'o'}
+    }
+
+    figure = {
+        'data': [
+            diff_g,
+            diff_r,
+        ],
+        "layout": layout_sso_astrometry
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '100%'
+        },
+        config={'displayModeBar': False}
+    )
+    card = dbc.Card(
+        dbc.CardBody(graph),
+        className="mt-3"
+    )
+    return card
+
+@app.callback(
+    Output('sso_phasecurve', 'children'),
+    [
+        Input('url', 'pathname'),
+        Input("switch-phase-curve", "value"),
+        Input('object-sso', 'children')
+    ])
+def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
+    """ Draw SSO object phase curve
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_sso)
+    if pdf.empty:
+        msg = """
+        Object not referenced in the Minor Planet Center
+        """
+        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    pdf = pdf.sort_values('Phase')
+
+    # type conversion
+    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+
+    # SSO Color index
+    V_minus_g = -0.32
+    V_minus_r = 0.13
+
+    # Disctionary for filters
+    filters = {1: 'g', 2: 'R', 3: 'i'}
+    filts = np.unique(pdf['i:fid'].values)
+
+    figs = []
+
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
+    fitter = LevMarLSQFitter(calc_uncertainties=True)
+    if switch == 'per-band':
+        df_table = pd.DataFrame(
+            {'': [filters[f] + ' band' for f in filts], 'H': [''] * 2, 'G1': [''] * 2, 'G2': [''] * 2},
+            index=[filters[f] for f in filts]
+        )
+        for i, f in enumerate(filts):
+            cond = pdf['i:fid'] == f
+
+            # Color conversion
+            if filters[f] == 'g':
+                color_sso = V_minus_g
+            else:
+                color_sso = V_minus_r
+
+            ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
+            try:
+                obs = Obs.from_dict(
+                    {
+                        'alpha': pdf.loc[cond, 'Phase'].values * u.deg,
+                        'mag': ydata.values * u.mag
+                    }
+                )
+                model_hg1g2 = HG1G2.from_obs(
+                    obs,
+                    fitter,
+                    'mag',
+                    weights=pdf.loc[cond, 'i:sigmapsf'] * u.mag
+                )
+            except RuntimeError as e:
+                return dbc.Alert("The fitting procedure could not converge.", color='danger')
+
+            if model_hg1g2.cov_matrix is not None:
+                perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+            else:
+                perr = [np.nan, np.nan, np.nan]
+
+            df_table['H'][df_table['H'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H.value, perr[0])
+            df_table['G1'][df_table['G1'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1.value, perr[1])
+            df_table['G2'][df_table['G2'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2.value, perr[2])
+
+            figs.append(
+                {
+                    'x': pdf.loc[cond, 'Phase'].values,
+                    'y': ydata.values,
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf.loc[cond, 'i:sigmapsf'].values,
+                        'visible': True,
+                        'color': COLORS_ZTF[i]
+                    },
+                    'mode': 'markers',
+                    'name': '{:}'.format(filters[f]),
+                    'customdata': list(
+                        zip(
+                            pdf.loc[cond, 'i:objectId'],
+                            pdf.loc[cond, 'i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        )
+                    ),
+                    'hovertemplate': hovertemplate,
+                    'marker': {
+                        'size': 6,
+                        'color': COLORS_ZTF[i],
+                        'symbol': 'o'}
+                }
+            )
+
+            figs.append(
+                {
+                    'x': pdf.loc[cond, 'Phase'].values,
+                    'y': model_hg1g2.to_mag(pdf.loc[cond, 'Phase'].values * u.deg, unit=u.deg).to_value(),
+                    'mode': 'lines',
+                    'name': 'fit {:}'.format(filters[f]),
+                    'showlegend': False,
+                    'line': {
+                        'color': COLORS_ZTF[i],
+                    }
+                }
+            )
+    elif switch == 'combined':
+        df_table = pd.DataFrame(
+            {'': ['Combined'], 'H': [''], 'G1': [''], 'G2': ['']},
+            index=['Combined']
+        )
+        # Conversion
+        color_sso = np.ones_like(pdf['i:magpsf'])
+        for i, f in enumerate(filts):
+            cond = pdf['i:fid'] == f
+
+            if filters[f] == 'g':
+                color_sso[cond] = V_minus_g
+            else:
+                color_sso[cond] = V_minus_r - V_minus_g
+
+        ydata = pdf['i:magpsf_red'] + color_sso
+
+        try:
+            obs = Obs.from_dict(
+                {
+                    'alpha': pdf['Phase'].values * u.deg,
+                    'mag': ydata.values * u.mag
+                }
+            )
+            model_hg1g2 = HG1G2.from_obs(
+                obs,
+                fitter,
+                'mag',
+                weights=pdf['i:sigmapsf'] * u.mag
+            )
+        except RuntimeError as e:
+            return dbc.Alert("The fitting procedure could not converge.", color='danger')
+
+        if model_hg1g2.cov_matrix is not None:
+            perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+        else:
+            perr = [np.nan, np.nan, np.nan]
+
+        df_table['H'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H.value, perr[0])
+        df_table['G1'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1.value, perr[1])
+        df_table['G2'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2.value, perr[2])
+
+        figs.append(
+            {
+                'x': pdf['Phase'].values,
+                'y': ydata.values,
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['i:sigmapsf'].values,
+                    'visible': True,
+                    'color': COLORS_ZTF[0]
+                },
+                'mode': 'markers',
+                'name': 'combined (g & r)'.format(filters[f]),
+                'customdata': list(
+                    zip(
+                        pdf['i:objectId'],
+                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                    )
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': 6,
+                    'color': COLORS_ZTF[0],
+                    'symbol': 'o'}
+            }
+        )
+
+        figs.append(
+            {
+                'x': pdf['Phase'].values,
+                'y': model_hg1g2.to_mag(pdf['Phase'].values * u.deg, unit=u.deg).to_value(),
+                'mode': 'lines',
+                'name': 'fit combined',
+                'showlegend': False,
+                'line': {
+                    'color': COLORS_ZTF[0],
+                }
+            }
+        )
+
+    figure = {
+        'data': figs,
+        "layout": layout_sso_phasecurve
+    }
+    columns = [
+        {
+            'id': c,
+            'name': c,
+            'type': 'text',
+            # 'hideable': True,
+            'presentation': 'markdown',
+        } for c in df_table.columns
+    ]
+
+    table = dash_table.DataTable(
+        id='phasecurve_table',
+        columns=columns,
+        data=df_table.to_dict('records'),
+        style_as_list_view=True,
+        fixed_columns={'headers': True, 'data': 1},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_table={'maxWidth': '100%'},
+        style_cell={
+            'padding': '5px',
+            'textAlign': 'left',
+            'overflow': 'hidden',
+            'border': '0px solid grey'
+        },
+        style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    )
+
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card = html.Div(
+        [
+            dbc.Card(
+                dbc.CardBody(graph),
+                className="mt-3"
+            ),
+            table
+        ]
+    )
+    return card
+
+@app.callback(
     Output('tracklet_lightcurve', 'children'),
     [
         Input('url', 'pathname'),
@@ -2046,9 +2649,9 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     data_ = []
     for filt in np.unique(pdf['i:fid']):
         if filt == 1:
-            data_.append(generate_plot(1, marker='o', color='#1f77b4', showlegend=True))
+            data_.append(generate_plot(1, marker='o', color=COLORS_ZTF[0], showlegend=True))
         elif filt == 2:
-            data_.append(generate_plot(2, marker='o', color='#ff7f0e', showlegend=True))
+            data_.append(generate_plot(2, marker='o', color=COLORS_ZTF[1], showlegend=True))
 
     figure = {
         'data': data_,

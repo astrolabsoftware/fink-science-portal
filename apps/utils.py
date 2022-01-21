@@ -17,6 +17,8 @@ import numpy as np
 import pandas as pd
 import gzip
 import io
+import requests
+
 from astropy.io import fits
 from astroquery.mpc import MPC
 
@@ -25,6 +27,7 @@ from astropy.convolution import Gaussian2DKernel
 from astropy.convolution import Box2DKernel
 
 from astropy.coordinates import SkyCoord, get_constellation
+import astropy.units as u
 
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
@@ -780,3 +783,127 @@ def extract_query_url(search: str):
         dropdown_option = None
 
     return query, query_type, dropdown_option
+
+def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
+    """ Gets asteroid ephemerides from IMCCE Miriade for a suite of JD for a single SSO
+    Original function by M. Mahlke
+
+    Parameters
+    ----------
+    ident: int, float, str
+        asteroid identifier
+    jd: array
+        dates to query
+    observer: str
+        IAU Obs code - default to ZTF: https://minorplanetcenter.net//iau/lists/ObsCodesF.html
+    rplane: str
+        Reference plane: equator ('1'), ecliptic ('2').
+        If rplane = '2', then tcoor is automatically set to 1 (spherical)
+    tcoor: int
+        See https://ssp.imcce.fr/webservices/miriade/api/ephemcc/
+        Default is 5 (dedicated to observation)
+
+    Returns
+    ----------
+    pd.DataFrame
+        Input dataframe with ephemerides columns
+        appended False if query failed somehow
+    """
+    # Miriade URL
+    url = 'https://ssp.imcce.fr/webservices/miriade/api/ephemcc.php'
+
+    if rplane == '2':
+        tcoor = '1'
+
+    # Query parameters
+    params = {
+        '-name': f'a:{ident}',
+        '-mime': 'json',
+        '-rplane': rplane,
+        '-tcoor': tcoor,
+        '-output': '--jd,--colors(SDSS:r,SDSS:g)',
+        '-observer': observer,
+        '-tscale': 'UTC'
+    }
+
+    # Pass sorted list of epochs to speed up query
+    files = {
+        'epochs': ('epochs', '\n'.join(['%.6f' % epoch for epoch in jd]))
+    }
+
+    # Execute query
+    try:
+        r = requests.post(url, params=params, files=files, timeout=2000)
+    except requests.exceptions.ReadTimeout:
+        return False
+
+    j = r.json()
+
+    # Read JSON response
+    try:
+        ephem = pd.DataFrame.from_dict(j['data'])
+    except KeyError:
+        return False
+
+    return ephem
+
+def get_miriade_data(pdf):
+    """
+    """
+    ssnamenr = pdf['i:ssnamenr'].values[0]
+    ztf_code = 'I41'
+
+    eph = query_miriade(ssnamenr, pdf['i:jd'], observer=ztf_code)
+
+    sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
+
+    eph = eph.drop(columns=['RA', 'DEC'])
+    eph['RA'] = sc.ra.value * 15
+    eph['Dec'] = sc.dec.value
+
+    # Add Ecliptic coordinates
+    eph_ec = query_miriade(ssnamenr, pdf['i:jd'], rplane='2')
+
+    sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
+    eph['Longitude'] = sc.ra.value
+    eph['Latitude'] = sc.dec.value
+
+    # Merge fink & Eph
+    info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
+
+    # index has been duplicated obviously
+    info = info.loc[:, ~info.columns.duplicated()]
+
+    # Compute magnitude reduced to unit distance
+    info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
+
+    return info
+
+def sine_fit(x, a, b):
+    """ Sinusoidal function a*sin( 2*(x-b) )
+    :x: float - in degrees
+    :a: float - Amplitude
+    :b: float - Phase offset
+
+    """
+    return a * np.sin(2 * np.radians(x - b))
+
+def phi1(alpha):
+    """ simple form only
+    """
+    return 1 - 6 * alpha / np.pi
+
+def phi2(alpha):
+    """ simple form only
+    """
+    return 1 - 9 * alpha / (5 * np.pi)
+
+def phi3(alpha):
+    """ simple form only
+    """
+    return 1 - np.exp(-4 * np.pi * np.tan(alpha / 2)**(2./3))
+
+def Vmag(alpha, H, G1, G2):
+    """ Only phase part
+    """
+    return H - 2.5 * np.log10(G1 * phi1(alpha) + G2 * phi2(alpha) + (1 - G1 - G2) * phi3(alpha))

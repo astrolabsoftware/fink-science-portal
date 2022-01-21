@@ -19,6 +19,7 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import visdcc
 import plotly.graph_objects as go
+import dash_mantine_components as dmc
 
 import pandas as pd
 import numpy as np
@@ -32,12 +33,17 @@ from apps.cards import download_object_modal, inspect_object_modal
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
 from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
+
+from apps.cards import card_sso_residual, card_sso_astrometry, card_sso_phasecurve
 from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
 from apps.cards import card_tracklet_lightcurve, card_tracklet_radec
+
 from apps.plotting import plot_classbar
 from apps.plotting import all_radio_options
 
 from apps.utils import format_hbase_output
+from apps.utils import get_miriade_data
+
 from app import APIURL
 
 dcc.Location(id='url', refresh=False)
@@ -113,14 +119,120 @@ def tab5_content(pdf):
     """ SSO tab
     """
     ssnamenr = pdf['i:ssnamenr'].values[0]
-    tab5_content_ = html.Div([
-        dbc.Row(
-            [
-                dbc.Col([card_sso_lightcurve(), card_sso_radec()], width=8),
-                dbc.Col([card_sso_mpc_params(ssnamenr)], width=4)
-            ]
-        ),
-    ])
+
+    msg = """
+    **Top:** lightcurve from ZTF, with ephemerides provided by the
+    [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).
+
+    **Bottom:** residuals between observed and predicted magnitude
+    as a function of the ecliptic longitude. The variations are most-likely due
+    to the difference of aspect angle: the object is not a perfect sphere, and we
+    are seeing its oblateness here. The solid lines are sinusoidal fits to the residuals.
+    """
+    tab1 = dbc.Row(
+        [
+            dbc.Col(
+                [
+                    card_sso_lightcurve(),
+                    card_sso_residual(),
+                    dmc.Accordion(
+                        children=[
+                            dmc.AccordionItem(
+                                dcc.Markdown(msg),
+                                label="Information",
+                                description="What am I seeing?",
+                            ),
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+
+    tab2 = dbc.Row(
+        [
+            dbc.Col(
+                [
+                    card_sso_astrometry(),
+                    dmc.Accordion(
+                        children=[
+                            dmc.AccordionItem(
+                                dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
+                                label="Information",
+                                description="How are computed the residuals?",
+                            ),
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+
+    msg_phase = """
+    The data is modeled after the three-parameter H, G1, G2 magnitude phase function for asteroids
+    from [Muinonen et al. 2010](https://doi.org/10.1016/j.icarus.2010.04.003).
+    We use the implementation in [sbpy](https://sbpy.readthedocs.io/en/latest/sbpy/photometry.html#disk-integrated-phase-function-models) to fit the data.
+    We propose two implementations, one fitting bands separately, and the other fitting both bands simultaneously (rescaled).
+    """
+
+    tab3 = dbc.Row(
+        [
+            dbc.Col(
+                [
+                    card_sso_phasecurve(),
+                    html.Br(),
+                    dbc.Row(
+                        dbc.Col(
+                            dmc.Chips(
+                                data=[
+                                    {'label': 'per-band', 'value': 'per-band'},
+                                    {'label': 'combined', 'value': 'combined'}
+                                ],
+                                id="switch-phase-curve",
+                                value="per-band",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                                spacing="xl",
+                                variant="outline",
+                                position='center',
+                                multiple=False,
+                            )
+                        )
+                    ),
+                    dmc.Accordion(
+                        children=[
+                            dmc.AccordionItem(
+                                dcc.Markdown(msg_phase),
+                                label="Information",
+                                description="How is modeled the phase curve?",
+                            ),
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+
+    label_style = {"color": "#000"}
+    tab5_content_ = dbc.Row(
+        [
+            dbc.Col(
+                dbc.Tabs(
+                    [
+                        dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
+                        dbc.Tab(tab2, label="Astrometry", label_style=label_style),
+                        dbc.Tab(tab3, label="Phase curve", label_style=label_style)
+                    ]
+                ), width=8
+            ),
+            dbc.Col(
+                [
+                    card_sso_mpc_params(ssnamenr)
+                ], width=4
+            )
+        ]
+    )
     return tab5_content_
 
 def tab6_content(pdf):
@@ -404,17 +516,23 @@ def store_query(name):
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
 
     payload = pdfs['i:ssnamenr'].values[0]
-    results = clientSSO.scan(
-        "",
-        "key:key:{}_".format(payload),
-        "*",
-        0, True, True
-    )
-    schema_client_sso = clientSSO.schema()
-    pdfsso = format_hbase_output(
-        results, schema_client_sso,
-        group_alerts=False, truncated=False, extract_color=False
-    )
+    if str(payload) != 'null':
+        results = clientSSO.scan(
+            "",
+            "key:key:{}_".format(payload),
+            "*",
+            0, True, True
+        )
+        schema_client_sso = clientSSO.schema()
+        pdfsso = format_hbase_output(
+            results, schema_client_sso,
+            group_alerts=False, truncated=False, extract_color=False
+        )
+
+        # Extract miriade information as well
+        pdfsso = get_miriade_data(pdfsso)
+    else:
+        pdfsso = pd.DataFrame()
 
     payload = pdfs['d:tracklet'].values[0]
 
