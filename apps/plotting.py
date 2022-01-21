@@ -2352,7 +2352,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
     """
     if switch == 'per-band':
         df_table = pd.DataFrame(
-            {'H': [0] * 2, 'G1': [0] * 2, 'G2': [0 * 2]},
+            {'Filter': [filters[f] for f in filts], 'H': [0] * 2, 'G1': [0] * 2, 'G2': [0] * 2},
             index=[filters[f] for f in filts]
         )
         for i, f in enumerate(filts):
@@ -2419,6 +2419,10 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                 }
             )
     elif switch == 'combined':
+        df_table = pd.DataFrame(
+            {'Filter': ['Combined'], 'H': [0], 'G1': [0], 'G2': [0]},
+            index=['Combined']
+        )
         # Conversion
         color_sso = np.ones_like(pdf['i:magpsf'])
         for i, f in enumerate(filts):
@@ -2440,6 +2444,12 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
             )
         except RuntimeError as e:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
+
+        perr = np.sqrt(np.diag(pcov))
+
+        df_table['H'] = '{:.2f} &plusmn; {:.2f}'.format(popt[0], perr[0])
+        df_table['G1'] = '{:.2f} &plusmn; {:.2f}'.format(popt[1], perr[1])
+        df_table['G2'] = '{:.2f} &plusmn; {:.2f}'.format(popt[2], perr[2])
 
         figs.append(
             {
