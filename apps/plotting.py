@@ -2508,9 +2508,6 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         id='phasecurve_table',
         columns=columns,
         data=df_table.to_dict('records'),
-        style_as_list_view=True,
-        markdown_options={'link_target': '_blank'},
-        fixed_columns={'headers': True, 'data': 1},
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         },
