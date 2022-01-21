@@ -2511,6 +2511,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         style_as_list_view=True,
         markdown_options={'link_target': '_blank'},
         fixed_columns={'headers': True, 'data': 1},
+        css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         },
