@@ -2387,7 +2387,10 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
             except RuntimeError as e:
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-            perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+            if model_hg1g2.cov_matrix is not None:
+                perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+            else:
+                perr = [np.nan, np.nan, np.nan]
 
             df_table['H'][df_table['H'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H.value, perr[0])
             df_table['G1'][df_table['G1'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1.value, perr[1])
@@ -2464,7 +2467,10 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         except RuntimeError as e:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-        perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+        if model_hg1g2.cov_matrix is not None:
+            perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+        else:
+            perr = [np.nan, np.nan, np.nan]
 
         df_table['H'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H.value, perr[0])
         df_table['G1'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1.value, perr[1])
