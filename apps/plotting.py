@@ -2352,7 +2352,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
     """
     if switch == 'per-band':
         df_table = pd.DataFrame(
-            {'Filter': [filters[f] for f in filts], 'H': [0] * 2, 'G1': [0] * 2, 'G2': [0] * 2},
+            {'Filter': [filters[f] for f in filts], 'H': [''] * 2, 'G1': [''] * 2, 'G2': [''] * 2},
             index=[filters[f] for f in filts]
         )
         for i, f in enumerate(filts):
@@ -2420,7 +2420,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
             )
     elif switch == 'combined':
         df_table = pd.DataFrame(
-            {'Filter': ['Combined'], 'H': [0], 'G1': [0], 'G2': [0]},
+            {'Filter': ['Combined'], 'H': [''], 'G1': [''], 'G2': ['']},
             index=['Combined']
         )
         # Conversion
