@@ -2517,8 +2517,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         style_table={'maxWidth': '100%'},
         style_cell={
             'padding': '5px',
-            'textAlign': 'left',
-            'width': '{}%'.format(len(columns)),
+            'textAlign': 'left'
         },
         style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
         style_header={
