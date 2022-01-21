@@ -1036,7 +1036,7 @@ def card_sso_mpc_params(ssnamenr):
                             outline=True,
                             id='JPL',
                             target="_blank",
-                            href='https://ssd.jpl.nasa.gov/sbdb.cgi'
+                            href='https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={}'.format(ssnamenr_),
                         ), width=4
                     ),
                 ], justify='around'
