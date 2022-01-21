@@ -2221,11 +2221,25 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
     deltaRAcosDEC = (pdf['i:ra'] - pdf.RA) * np.cos(np.radians(pdf['i:dec'])) * 3600
     deltaDEC = (pdf['i:dec'] - pdf.Dec) * 3600
 
+    hovertemplate = r"""
+    <b>objectId</b>: %{customdata[0]}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>mjd</b>: %{customdata[1]}
+    <extra></extra>
+    """
     diff_g = {
         'x': deltaRAcosDEC[pdf['i:fid'] == 1],
         'y': deltaDEC[pdf['i:fid'] == 1],
         'mode': 'markers',
         'name': 'g band',
+        'customdata': list(
+            zip(
+                pdf['i:objectId'][pdf['i:fid'] == 1],
+                pdf['i:jd'][pdf['i:fid'] == 1].apply(lambda x: float(x) - 2400000.5),
+            )
+        ),
+        'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
             'color': COLORS_ZTF[0],
@@ -2237,6 +2251,13 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         'y': deltaDEC[pdf['i:fid'] == 2],
         'mode': 'markers',
         'name': 'r band',
+        'customdata': list(
+            zip(
+                pdf['i:objectId'][pdf['i:fid'] == 2],
+                pdf['i:jd'][pdf['i:fid'] == 2].apply(lambda x: float(x) - 2400000.5),
+            )
+        ),
+        'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
             'color': COLORS_ZTF[1],
