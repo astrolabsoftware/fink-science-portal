@@ -97,12 +97,12 @@ Choose a class of interest using the drop-down menu to see the 100 latest alerts
 Search for Solar System Objects in the Fink database.
 The numbers or designations are taken from the MPC archive.
 When searching for a particular asteroid or comet, it is best to use the IAU number,
-as in 4209 for asteroid "4209 Briggs". You can also try for numbered comet (e.g. 10P),
+as in 8467 for asteroid "8467 Benoitcarry". You can also try for numbered comet (e.g. 10P),
 or interstellar object (none so far...). If the number does not yet exist, you can search for designation.
 Here are some examples of valid queries:
 
 * Asteroids by number (default)
-  * Asteroids (Main Belt): 4209, 1922
+  * Asteroids (Main Belt): 8467, 1922
   * Asteroids (Hungarians): 18582, 77799
   * Asteroids (Jupiter Trojans): 4501, 1583
   * Asteroids (Mars Crossers): 302530
