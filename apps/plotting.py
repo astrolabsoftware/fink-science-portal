@@ -45,7 +45,7 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
-from sbpy.photometry import HG1G2
+from sbpy.photometry import HG1G2, HG12, HG
 from astropy.modeling.fitting import LevMarLSQFitter
 import astropy.units as u
 from sbpy.data import Obs
@@ -2311,10 +2311,11 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
     Output('sso_phasecurve', 'children'),
     [
         Input('url', 'pathname'),
-        Input("switch-phase-curve", "value"),
+        Input("switch-phase-curve-band", "value"),
+        Input("switch-phase-curve-func", "value"),
         Input('object-sso', 'children')
     ])
-def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
+def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, object_sso) -> dict:
     """ Draw SSO object phase curve
 
     Parameters
@@ -2355,10 +2356,22 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
+    if switch_func == 'HG1G2':
+        fitfunc = HG1G2
+        params = ['H', 'G1', 'G2']
+    elif switch_func == 'HG12':
+        fitfunc = HG12
+        params = ['H', 'G12']
+    elif switch_func == 'HG':
+        fitfunc = HG
+        params = ['H', 'G']
+
     fitter = LevMarLSQFitter(calc_uncertainties=True)
-    if switch == 'per-band':
+    if switch_band == 'per-band':
+        dd = {'': [filters[f] + ' band' for f in filts]}
+        dd.update({i: [''] * len(filts) for i in params})
         df_table = pd.DataFrame(
-            {'': [filters[f] + ' band' for f in filts], 'H': [''] * 2, 'G1': [''] * 2, 'G2': [''] * 2},
+            dd,
             index=[filters[f] for f in filts]
         )
         for i, f in enumerate(filts):
@@ -2378,7 +2391,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                         'mag': ydata.values * u.mag
                     }
                 )
-                model_hg1g2 = HG1G2.from_obs(
+                model_func = fitfunc.from_obs(
                     obs,
                     fitter,
                     'mag',
@@ -2387,14 +2400,13 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
             except RuntimeError as e:
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-            if model_hg1g2.cov_matrix is not None:
-                perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+            if model_func.cov_matrix is not None:
+                perr = np.sqrt(np.diag(model_func.cov_matrix.cov_matrix))
             else:
-                perr = [np.nan, np.nan, np.nan]
+                perr = [np.nan] * len(params)
 
-            df_table['H'][df_table['H'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H.value, perr[0])
-            df_table['G1'][df_table['G1'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1.value, perr[1])
-            df_table['G2'][df_table['G2'].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2.value, perr[2])
+            for pindex, param in enumerate(params):
+                df_table[param][df_table[param].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_func.parameters[pindex], perr[pindex])
 
             figs.append(
                 {
@@ -2425,7 +2437,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
             figs.append(
                 {
                     'x': pdf.loc[cond, 'Phase'].values,
-                    'y': model_hg1g2.to_mag(pdf.loc[cond, 'Phase'].values * u.deg, unit=u.deg).to_value(),
+                    'y': model_func.to_mag(pdf.loc[cond, 'Phase'].values * u.deg, unit=u.deg).to_value(),
                     'mode': 'lines',
                     'name': 'fit {:}'.format(filters[f]),
                     'showlegend': False,
@@ -2434,11 +2446,14 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                     }
                 }
             )
-    elif switch == 'combined':
+    elif switch_band == 'combined':
+        dd = {'': ['Combined']}
+        dd.update({i: [''] for i in params})
         df_table = pd.DataFrame(
-            {'': ['Combined'], 'H': [''], 'G1': [''], 'G2': ['']},
-            index=['Combined']
+            dd,
+            index=[filters[f] for f in filts]
         )
+
         # Conversion
         color_sso = np.ones_like(pdf['i:magpsf'])
         for i, f in enumerate(filts):
@@ -2458,7 +2473,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
                     'mag': ydata.values * u.mag
                 }
             )
-            model_hg1g2 = HG1G2.from_obs(
+            model_func = fitfunc.from_obs(
                 obs,
                 fitter,
                 'mag',
@@ -2467,14 +2482,13 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         except RuntimeError as e:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-        if model_hg1g2.cov_matrix is not None:
-            perr = np.sqrt(np.diag(model_hg1g2.cov_matrix.cov_matrix))
+        if model_func.cov_matrix is not None:
+            perr = np.sqrt(np.diag(model_func.cov_matrix.cov_matrix))
         else:
-            perr = [np.nan, np.nan, np.nan]
+            perr = [np.nan] * len(params)
 
-        df_table['H'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.H.value, perr[0])
-        df_table['G1'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G1.value, perr[1])
-        df_table['G2'] = '{:.2f} &plusmn; {:.2f}'.format(model_hg1g2.G2.value, perr[2])
+        for pindex, param in enumerate(params):
+            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(model_func.parameters[pindex], perr[pindex])
 
         figs.append(
             {
@@ -2505,7 +2519,7 @@ def draw_sso_phasecurve(pathname: str, switch: str, object_sso) -> dict:
         figs.append(
             {
                 'x': pdf['Phase'].values,
-                'y': model_hg1g2.to_mag(pdf['Phase'].values * u.deg, unit=u.deg).to_value(),
+                'y': model_func.to_mag(pdf['Phase'].values * u.deg, unit=u.deg).to_value(),
                 'mode': 'lines',
                 'name': 'fit combined',
                 'showlegend': False,

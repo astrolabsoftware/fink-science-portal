@@ -188,8 +188,28 @@ def tab5_content(pdf):
                                     {'label': 'per-band', 'value': 'per-band'},
                                     {'label': 'combined', 'value': 'combined'}
                                 ],
-                                id="switch-phase-curve",
+                                id="switch-phase-curve-band",
                                 value="per-band",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                                spacing="xl",
+                                variant="outline",
+                                position='center',
+                                multiple=False,
+                            )
+                        )
+                    ),
+                    dbc.Row(
+                        dbc.Col(
+                            dmc.Chips(
+                                data=[
+                                    {'label': 'HG1G2', 'value': 'HG1G2'},
+                                    {'label': 'HG1G2', 'value': 'HG12'},
+                                    {'label': 'HG1G2', 'value': 'HG'},
+                                ],
+                                id="switch-phase-curve-func",
+                                value="HG1G2",
                                 color="orange",
                                 radius="xl",
                                 size="sm",
