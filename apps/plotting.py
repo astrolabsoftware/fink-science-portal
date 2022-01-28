@@ -2368,7 +2368,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
 
     fitter = LevMarLSQFitter(calc_uncertainties=True)
     if switch_band == 'per-band':
-        dd = {'': [filters[f] + ' band' for f in filts]}
+        dd = {'toto': [filters[f] + ' band' for f in filts]}
         dd.update({i: [''] * len(filts) for i in params})
         df_table = pd.DataFrame(
             dd,
@@ -2447,7 +2447,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 }
             )
     elif switch_band == 'combined':
-        dd = {'': ['Combined']}
+        dd = {'toto': ['Combined']}
         dd.update({i: [''] for i in params})
         df_table = pd.DataFrame(
             dd,
