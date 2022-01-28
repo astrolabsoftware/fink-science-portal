@@ -969,7 +969,7 @@ def card_sso_mpc_params(ssnamenr):
                 html.H5("Name: None", className="card-title"),
                 html.H6("Orbit type: None", className="card-subtitle"),
                 dcc.Markdown(
-                    template.format(*([None] * 13))
+                    template.format(*([None] * 14))
                 )
             ],
             className="mt-3", body=True
