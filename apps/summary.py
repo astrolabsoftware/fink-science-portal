@@ -169,10 +169,14 @@ def tab5_content(pdf):
     )
 
     msg_phase = """
-    The data is modeled after the three-parameter H, G1, G2 magnitude phase function for asteroids
+    By default, the data is modeled after the three-parameter H, G1, G2 magnitude phase function for asteroids
     from [Muinonen et al. 2010](https://doi.org/10.1016/j.icarus.2010.04.003).
     We use the implementation in [sbpy](https://sbpy.readthedocs.io/en/latest/sbpy/photometry.html#disk-integrated-phase-function-models) to fit the data.
-    We propose two implementations, one fitting bands separately, and the other fitting both bands simultaneously (rescaled).
+
+    We propose two cases, one fitting bands separately, and
+    the other fitting both bands simultaneously (rescaled). We
+    also propose different phase curve modeling using the HG12 and HG models.
+    Hit buttons to see the fitted values!
     """
 
     tab3 = dbc.Row(
@@ -188,8 +192,28 @@ def tab5_content(pdf):
                                     {'label': 'per-band', 'value': 'per-band'},
                                     {'label': 'combined', 'value': 'combined'}
                                 ],
-                                id="switch-phase-curve",
+                                id="switch-phase-curve-band",
                                 value="per-band",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                                spacing="xl",
+                                variant="outline",
+                                position='center',
+                                multiple=False,
+                            )
+                        )
+                    ),
+                    dbc.Row(
+                        dbc.Col(
+                            dmc.Chips(
+                                data=[
+                                    {'label': 'HG1G2', 'value': 'HG1G2'},
+                                    {'label': 'HG12', 'value': 'HG12'},
+                                    {'label': 'HG', 'value': 'HG'},
+                                ],
+                                id="switch-phase-curve-func",
+                                value="HG1G2",
                                 color="orange",
                                 radius="xl",
                                 size="sm",

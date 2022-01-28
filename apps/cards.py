@@ -945,7 +945,8 @@ def card_sso_mpc_params(ssnamenr):
     tPeri (MJD): {}
     meanAnomaly (deg): {}
     epoch (MJD): {}
-    g: {}
+    H: {}
+    G: {}
     neo: {}
     ```
     ---
@@ -979,6 +980,7 @@ def card_sso_mpc_params(ssnamenr):
             html.H5("Name: {}".format(data['n_or_d']), className="card-title"),
             html.H6("Orbit type: Comet", className="card-subtitle"),
         ]
+        abs_mag = None
         phase_slope = None
         neo = 0
     elif kind == 'asteroid':
@@ -991,6 +993,7 @@ def card_sso_mpc_params(ssnamenr):
             html.H5("Name: {}".format(name), className="card-title"),
             html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
         ]
+        abs_mag = data['absolute_magnitude']
         phase_slope = data['phase_slope']
         neo = int(data['neo'])
 
@@ -1012,6 +1015,7 @@ def card_sso_mpc_params(ssnamenr):
                     float(data['perihelion_date_jd']) - 2400000.5,
                     data['mean_anomaly'],
                     float(data['epoch_jd']) - 2400000.5,
+                    abs_mag,
                     phase_slope,
                     neo
                 )
