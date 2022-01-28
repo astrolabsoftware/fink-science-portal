@@ -32,6 +32,7 @@ from app import APIURL
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import get_superpixels
+from apps.utils import get_miriade_data
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 from apps.statistics import dic_names
 
@@ -547,6 +548,27 @@ r = ...
 t = Table(r.json())
 ```
 
+You can also attach the ephemerides provided by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/):
+
+```python
+import requests
+import pandas as pd
+
+# get data for object 4209
+r = requests.post(
+  'https://fink-portal.org/api/v1/sso',
+  json={
+    'n_or_d': '4209',
+    'withEphem': True,
+    'output-format': 'json'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+print(pdf.columns)
+```
+
 By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
 But you can also choose to transfer only a subset of the fields:
 
@@ -584,7 +606,7 @@ In a unix shell, you would simply use
 
 ```bash
 # Get tracklet data for the night 2021-08-10
-curl -H "Content-Type: application/json" -X POST -d '{"date":"2021-08-10", "output-format":"csv"}' http://134.158.75.151:24000/api/v1/tracklet -o trck_20210810.csv
+curl -H "Content-Type: application/json" -X POST -d '{"date":"2021-08-10", "output-format":"csv"}' https://fink-portal.org/api/v1/tracklet -o trck_20210810.csv
 ```
 
 In python, you would use
@@ -595,7 +617,7 @@ import pandas as pd
 
 # Get all tracklet data for the night 2021-08-10
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/tracklet',
+  'https://fink-portal.org/api/v1/tracklet',
   json={
     'date': '2021-08-10',
     'output-format': 'json'
@@ -610,7 +632,7 @@ You can also specify up to the second if you know the exposure time:
 ```python
 # Get tracklet data TRCK_20211022_091949
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/tracklet',
+  'https://fink-portal.org/api/v1/tracklet',
   json={
     'id': '2021-10-22 09:19:49',
     'output-format': 'json'
@@ -623,7 +645,7 @@ Finally if there are several tracklets in one exposure, you can select the one y
 ```python
 # Get first tracklet TRCK_20211022_091949_00
 r = requests.post(
-  'http://134.158.75.151:24000/api/v1/tracklet',
+  'https://fink-portal.org/api/v1/tracklet',
   json={
     'id': '2021-10-22 09:19:49 00',
     'output-format': 'json'
@@ -1288,6 +1310,11 @@ args_sso = [
         'name': 'n_or_d',
         'required': False,
         'description': 'IAU number of the object, or designation of the object IF the number does not exist yet. Example for numbers: 4209 (asteroid) or 10P (comet). Example for designations: 2010JO69 (asteroid) or C/2020V2 (comet).'
+    },
+    {
+        'name': 'withEphem',
+        'required': False,
+        'description': 'Attach ephemerides provided by the Miriade service (https://ssp.imcce.fr/webservices/miriade/api/ephemcc/), as extra columns in the results.'
     },
     {
         'name': 'columns',
@@ -2049,6 +2076,10 @@ def return_sso():
         truncated=truncated,
         extract_color=False
     )
+
+    if 'withEphem' in request.json:
+        if request.json['withEphem'] == 'True' or request.json['withEphem'] is True:
+            pdf = get_miriade_data(pdf)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
