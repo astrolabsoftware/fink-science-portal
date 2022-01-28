@@ -484,12 +484,12 @@ api_doc_sso = """
 The list of arguments for retrieving SSO data can be found at https://fink-portal.org/api/v1/sso.
 The numbers or designations are taken from the MPC archive.
 When searching for a particular asteroid or comet, it is best to use the IAU number,
-as in 4209 for asteroid "4209 Briggs". You can also try for numbered comet (e.g. 10P),
+as in 8467 for asteroid "8467 Benoitcarry". You can also try for numbered comet (e.g. 10P),
 or interstellar object (none so far...). If the number does not yet exist, you can search for designation.
 Here are some examples of valid queries:
 
 * Asteroids by number (default)
-  * Asteroids (Main Belt): 4209, 1922
+  * Asteroids (Main Belt): 8467, 1922
   * Asteroids (Hungarians): 18582, 77799
   * Asteroids (Jupiter Trojans): 4501, 1583
   * Asteroids (Mars Crossers): 302530
@@ -505,8 +505,8 @@ Note for designation, you can also use space (2010 JO69 or C/2020 V2).
 In a unix shell, you would simply use
 
 ```bash
-# Get data for the asteroid 4209 and save it in a CSV file
-curl -H "Content-Type: application/json" -X POST -d '{"n_or_d":"4209", "output-format":"csv"}' https://fink-portal.org/api/v1/sso -o 4209.csv
+# Get data for the asteroid 8467 and save it in a CSV file
+curl -H "Content-Type: application/json" -X POST -d '{"n_or_d":"8467", "output-format":"csv"}' https://fink-portal.org/api/v1/sso -o 8467.csv
 ```
 
 In python, you would use
@@ -515,11 +515,11 @@ In python, you would use
 import requests
 import pandas as pd
 
-# get data for object 4209
+# get data for object 8467
 r = requests.post(
   'https://fink-portal.org/api/v1/sso',
   json={
-    'n_or_d': '4209',
+    'n_or_d': '8467',
     'output-format': 'json'
   }
 )
@@ -531,7 +531,7 @@ pdf = pd.read_json(r.content)
 Note that for `csv` output, you need to use
 
 ```python
-# get data for asteroid 4209 in CSV format...
+# get data for asteroid 8467 in CSV format...
 r = ...
 
 pd.read_csv(io.BytesIO(r.content))
@@ -542,7 +542,7 @@ You can also get a votable using the json output format:
 ```python
 from astropy.table import Table
 
-# get data for asteroid 4209 in JSON format...
+# get data for asteroid 8467 in JSON format...
 r = ...
 
 t = Table(r.json())
@@ -554,11 +554,11 @@ You can also attach the ephemerides provided by the [Miriade ephemeride service]
 import requests
 import pandas as pd
 
-# get data for object 4209
+# get data for object 8467
 r = requests.post(
   'https://fink-portal.org/api/v1/sso',
   json={
-    'n_or_d': '4209',
+    'n_or_d': '8467',
     'withEphem': True,
     'output-format': 'json'
   }
@@ -583,7 +583,8 @@ Index(['index', 'Date', 'LAST', 'HA', 'Az', 'H', 'Dobs', 'Dhelio', 'VMag',
       dtype='object')
 ```
 
-Where first columns are fields returned from Miriade. By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
+Where first columns are fields returned from Miriade (beware it adds few seconds delay).
+By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
 But you can also choose to transfer only a subset of the fields:
 
 ```python
@@ -591,7 +592,7 @@ But you can also choose to transfer only a subset of the fields:
 r = requests.post(
   'https://fink-portal.org/api/v1/sso',
   json={
-    'n_or_d': '4209',
+    'n_or_d': '8467',
     'columns': 'i:jd,i:magpsf'
   }
 )
@@ -1323,7 +1324,7 @@ args_sso = [
     {
         'name': 'n_or_d',
         'required': False,
-        'description': 'IAU number of the object, or designation of the object IF the number does not exist yet. Example for numbers: 4209 (asteroid) or 10P (comet). Example for designations: 2010JO69 (asteroid) or C/2020V2 (comet).'
+        'description': 'IAU number of the object, or designation of the object IF the number does not exist yet. Example for numbers: 8467 (asteroid) or 10P (comet). Example for designations: 2010JO69 (asteroid) or C/2020V2 (comet).'
     },
     {
         'name': 'withEphem',
