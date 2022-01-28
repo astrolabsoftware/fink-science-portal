@@ -567,9 +567,23 @@ r = requests.post(
 # Format output in a DataFrame
 pdf = pd.read_json(r.content)
 print(pdf.columns)
+Index(['index', 'Date', 'LAST', 'HA', 'Az', 'H', 'Dobs', 'Dhelio', 'VMag',
+       'SDSS:g', 'SDSS:r', 'Phase', 'Elong.', 'AM', 'dRAcosDEC', 'dDEC', 'RV',
+       'RA', 'Dec', 'Longitude', 'Latitude', 'd:cdsxmatch', 'd:mulens',
+       'd:rf_kn_vs_nonkn', 'd:rf_snia_vs_nonia', 'd:roid', 'd:snn_sn_vs_all',
+       'd:snn_snia_vs_nonia', 'i:candid', 'i:chipsf', 'i:classtar', 'i:dec',
+       'i:diffmaglim', 'i:distnr', 'i:distpsnr1', 'i:drb', 'i:fid', 'i:field',
+       'i:isdiffpos', 'i:jd', 'i:jdendhist', 'i:jdstarthist', 'i:maggaia',
+       'i:magnr', 'i:magpsf', 'i:magzpsci', 'i:ndethist', 'i:neargaia',
+       'i:nid', 'i:nmtchps', 'i:objectId', 'i:publisher', 'i:ra', 'i:rb',
+       'i:rcid', 'i:sgscore1', 'i:sigmagnr', 'i:sigmapsf', 'i:ssdistnr',
+       'i:ssmagnr', 'i:ssnamenr', 'i:tooflag', 'i:xpos', 'i:ypos',
+       'd:tracklet', 'v:classification', 'v:lastdate', 'v:constellation',
+       'i:magpsf_red'],
+      dtype='object')
 ```
 
-By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
+Where first columns are fields returned from Miriade. By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
 But you can also choose to transfer only a subset of the fields:
 
 ```python
@@ -2079,6 +2093,7 @@ def return_sso():
 
     if 'withEphem' in request.json:
         if request.json['withEphem'] == 'True' or request.json['withEphem'] is True:
+            # We should probably add a timeout and try/except in case of miriade shutdown
             pdf = get_miriade_data(pdf)
 
     if output_format == 'json':
