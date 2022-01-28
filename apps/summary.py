@@ -209,8 +209,8 @@ def tab5_content(pdf):
                             dmc.Chips(
                                 data=[
                                     {'label': 'HG1G2', 'value': 'HG1G2'},
-                                    {'label': 'HG1G2', 'value': 'HG12'},
-                                    {'label': 'HG1G2', 'value': 'HG'},
+                                    {'label': 'HG12', 'value': 'HG12'},
+                                    {'label': 'HG', 'value': 'HG'},
                                 ],
                                 id="switch-phase-curve-func",
                                 value="HG1G2",
