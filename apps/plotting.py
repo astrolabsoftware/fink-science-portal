@@ -2552,11 +2552,10 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         },
-        style_table={'maxWidth': '100%', 'overflowX': 'auto'},
+        style_table={'maxWidth': '100%'},
         style_cell={
             'padding': '5px',
             'textAlign': 'left',
-            'overflow': 'hidden',
             'border': '0px solid grey'
         },
         style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
