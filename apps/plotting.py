@@ -2548,7 +2548,6 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         columns=columns,
         data=df_table.to_dict('records'),
         style_as_list_view=True,
-        fixed_columns={'headers': True, 'data': 1},
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, .7)'
         },
@@ -2556,7 +2555,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         style_cell={
             'padding': '5px',
             'textAlign': 'left',
-            'border': '1px solid grey'
+            'border': '0.5px solid grey'
         },
         style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
         style_header={
