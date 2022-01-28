@@ -2451,7 +2451,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         dd.update({i: [''] for i in params})
         df_table = pd.DataFrame(
             dd,
-            index=[filters[f] for f in filts]
+            index=['Combined']
         )
 
         # Conversion
