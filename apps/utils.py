@@ -785,13 +785,17 @@ def extract_query_url(search: str):
     return query, query_type, dropdown_option
 
 def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
-    """ Gets asteroid ephemerides from IMCCE Miriade for a suite of JD for a single SSO
+    """ Gets asteroid or comet ephemerides from IMCCE Miriade for a suite of JD for a single SSO
     Original function by M. Mahlke
+
+    Limitations:
+        - Color ephemerides are returned only for asteroids
+        - Temporary designations (C/... or YYYY...) do not have ephemerides available
 
     Parameters
     ----------
     ident: int, float, str
-        asteroid identifier
+        asteroid or comet identifier
     jd: array
         dates to query
     observer: str
@@ -816,8 +820,12 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
         tcoor = '1'
 
     # Query parameters
+    if ident.endswith('P') or ident.startswith('C/'):
+        otype = 'c'
+    else:
+        otype = 'a'
     params = {
-        '-name': f'a:{ident}',
+        '-name': f'{otype}:{ident}',
         '-mime': 'json',
         '-rplane': rplane,
         '-tcoor': tcoor,
@@ -843,7 +851,7 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
     try:
         ephem = pd.DataFrame.from_dict(j['data'])
     except KeyError:
-        return False
+        return pd.DataFrame()
 
     return ephem
 
@@ -855,27 +863,30 @@ def get_miriade_data(pdf):
 
     eph = query_miriade(ssnamenr, pdf['i:jd'], observer=ztf_code)
 
-    sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
+    if not eph.empty:
+        sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
 
-    eph = eph.drop(columns=['RA', 'DEC'])
-    eph['RA'] = sc.ra.value * 15
-    eph['Dec'] = sc.dec.value
+        eph = eph.drop(columns=['RA', 'DEC'])
+        eph['RA'] = sc.ra.value * 15
+        eph['Dec'] = sc.dec.value
 
-    # Add Ecliptic coordinates
-    eph_ec = query_miriade(ssnamenr, pdf['i:jd'], rplane='2')
+        # Add Ecliptic coordinates
+        eph_ec = query_miriade(ssnamenr, pdf['i:jd'], rplane='2')
 
-    sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
-    eph['Longitude'] = sc.ra.value
-    eph['Latitude'] = sc.dec.value
+        sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
+        eph['Longitude'] = sc.ra.value
+        eph['Latitude'] = sc.dec.value
 
-    # Merge fink & Eph
-    info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
+        # Merge fink & Eph
+        info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
 
-    # index has been duplicated obviously
-    info = info.loc[:, ~info.columns.duplicated()]
+        # index has been duplicated obviously
+        info = info.loc[:, ~info.columns.duplicated()]
 
-    # Compute magnitude reduced to unit distance
-    info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
+        # Compute magnitude reduced to unit distance
+        info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
+    else:
+        info = pdf
 
     return info
 
