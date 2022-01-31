@@ -847,7 +847,7 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
     try:
         ephem = pd.DataFrame.from_dict(j['data'])
     except KeyError:
-        return False
+        return pd.DataFrame()
 
     return ephem
 
@@ -859,16 +859,16 @@ def get_miriade_data(pdf):
 
     eph = query_miriade(ssnamenr, pdf['i:jd'], observer=ztf_code)
 
-    sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
+    if not eph.empty:
+        sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
 
-    eph = eph.drop(columns=['RA', 'DEC'])
-    eph['RA'] = sc.ra.value * 15
-    eph['Dec'] = sc.dec.value
+        eph = eph.drop(columns=['RA', 'DEC'])
+        eph['RA'] = sc.ra.value * 15
+        eph['Dec'] = sc.dec.value
 
-    # Add Ecliptic coordinates
-    eph_ec = query_miriade(ssnamenr, pdf['i:jd'], rplane='2')
+        # Add Ecliptic coordinates
+        eph_ec = query_miriade(ssnamenr, pdf['i:jd'], rplane='2')
 
-    if eph_ec is not False:
         sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
         eph['Longitude'] = sc.ra.value
         eph['Latitude'] = sc.dec.value
