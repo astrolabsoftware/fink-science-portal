@@ -1912,6 +1912,9 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     <b>mjd</b>: %{customdata}
     <extra></extra>
     """
+
+    to_plot = []
+
     gobs = {
         'x': dates[pdf['i:fid'] == 1],
         'y': mag[pdf['i:fid'] == 1],
@@ -1930,20 +1933,23 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
             'color': COLORS_ZTF[0],
             'symbol': 'o'}
     }
+    to_plot.append(gobs)
 
-    gephem = {
-        'x': dates[pdf['i:fid'] == 1],
-        'y': pdf['SDSS:g'][pdf['i:fid'] == 1],
-        'mode': 'markers',
-        'name': 'g (ephem)',
-        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
-        'hovertemplate': hovertemplate_ephem,
-        'marker': {
-            'size': 6,
-            'color': COLORS_ZTF[0],
-            'symbol': 'o',
-            'opacity': 0.5}
-    }
+    if 'SDSS:g' in pdf.columns:
+        gephem = {
+            'x': dates[pdf['i:fid'] == 1],
+            'y': pdf['SDSS:g'][pdf['i:fid'] == 1],
+            'mode': 'markers',
+            'name': 'g (ephem)',
+            'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+            'hovertemplate': hovertemplate_ephem,
+            'marker': {
+                'size': 6,
+                'color': COLORS_ZTF[0],
+                'symbol': 'o',
+                'opacity': 0.5}
+        }
+        to_plot.append(gephem)
 
     robs = {
         'x': dates[pdf['i:fid'] == 2],
@@ -1963,28 +1969,26 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
             'color': COLORS_ZTF[1],
             'symbol': 'o'}
     }
+    to_plot.append(robs)
 
-    rephem = {
-        'x': dates[pdf['i:fid'] == 2],
-        'y': pdf['SDSS:r'][pdf['i:fid'] == 2],
-        'mode': 'markers',
-        'name': 'r (ephem)',
-        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
-        'hovertemplate': hovertemplate_ephem,
-        'marker': {
-            'size': 6,
-            'color': COLORS_ZTF[1],
-            'symbol': 'o',
-            'opacity': 0.5}
-    }
+    if 'SDSS:r' in pdf.columns:
+        rephem = {
+            'x': dates[pdf['i:fid'] == 2],
+            'y': pdf['SDSS:r'][pdf['i:fid'] == 2],
+            'mode': 'markers',
+            'name': 'r (ephem)',
+            'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+            'hovertemplate': hovertemplate_ephem,
+            'marker': {
+                'size': 6,
+                'color': COLORS_ZTF[1],
+                'symbol': 'o',
+                'opacity': 0.5}
+        }
+        to_plot.append(rephem)
 
     figure = {
-        'data': [
-            gobs,
-            gephem,
-            robs,
-            rephem
-        ],
+        'data': to_plot,
         "layout": layout_sso_lightcurve
     }
     graph = dcc.Graph(
@@ -2022,6 +2026,12 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         return html.Div()
+
+    if 'SDSS:g' in pdf.columns:
+        return dbc.Alert(
+            'No ephemerides available for {}'.format(pdf['i:ssnamenr'].values[0]),
+            color='danger'
+        )
 
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
