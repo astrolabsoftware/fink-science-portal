@@ -816,8 +816,12 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
         tcoor = '1'
 
     # Query parameters
+    if ident.endswith('P') or ident.startswith('C/'):
+        otype = 'c'
+    else:
+        otype = 'a'
     params = {
-        '-name': f'a:{ident}',
+        '-name': f'{otype}:{ident}',
         '-mime': 'json',
         '-rplane': rplane,
         '-tcoor': tcoor,
