@@ -2029,7 +2029,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
 
     if 'SDSS:g' not in pdf.columns:
         return dbc.Alert(
-            'No ephemerides available for {}'.format(pdf['i:ssnamenr'].values[0]),
+            'No colors available from ephemerides for {}'.format(pdf['i:ssnamenr'].values[0]),
             color='danger'
         )
 
@@ -2247,6 +2247,12 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         """
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
 
+    if 'RA' not in pdf.columns:
+        return dbc.Alert(
+            'No ephemerides available for {}'.format(pdf['i:ssnamenr'].values[0]),
+            color='danger'
+        )
+
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
 
@@ -2343,6 +2349,12 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         Object not referenced in the Minor Planet Center
         """
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+
+    if 'i:magpsf_red' not in pdf.columns:
+        return dbc.Alert(
+            'No ephemerides available for {}'.format(pdf['i:ssnamenr'].values[0]),
+            color='danger'
+        )
 
     pdf = pdf.sort_values('Phase')
 

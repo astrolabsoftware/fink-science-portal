@@ -868,18 +868,21 @@ def get_miriade_data(pdf):
     # Add Ecliptic coordinates
     eph_ec = query_miriade(ssnamenr, pdf['i:jd'], rplane='2')
 
-    sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
-    eph['Longitude'] = sc.ra.value
-    eph['Latitude'] = sc.dec.value
+    if eph_ec is not False:
+        sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
+        eph['Longitude'] = sc.ra.value
+        eph['Latitude'] = sc.dec.value
 
-    # Merge fink & Eph
-    info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
+        # Merge fink & Eph
+        info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
 
-    # index has been duplicated obviously
-    info = info.loc[:, ~info.columns.duplicated()]
+        # index has been duplicated obviously
+        info = info.loc[:, ~info.columns.duplicated()]
 
-    # Compute magnitude reduced to unit distance
-    info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
+        # Compute magnitude reduced to unit distance
+        info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
+    else:
+        info = pdf
 
     return info
 
