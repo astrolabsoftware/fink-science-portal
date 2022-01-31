@@ -584,6 +584,11 @@ Index(['index', 'Date', 'LAST', 'HA', 'Az', 'H', 'Dobs', 'Dhelio', 'VMag',
 ```
 
 Where first columns are fields returned from Miriade (beware it adds few seconds delay).
+There are some limitations:
+
+    - Color ephemerides are returned only for asteroids
+    - Temporary designations (C/... or YYYY...) do not have ephemerides available
+
 By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
 But you can also choose to transfer only a subset of the fields:
 

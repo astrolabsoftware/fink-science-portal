@@ -785,13 +785,17 @@ def extract_query_url(search: str):
     return query, query_type, dropdown_option
 
 def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
-    """ Gets asteroid ephemerides from IMCCE Miriade for a suite of JD for a single SSO
+    """ Gets asteroid or comet ephemerides from IMCCE Miriade for a suite of JD for a single SSO
     Original function by M. Mahlke
+
+    Limitations:
+        - Color ephemerides are returned only for asteroids
+        - Temporary designations (C/... or YYYY...) do not have ephemerides available
 
     Parameters
     ----------
     ident: int, float, str
-        asteroid identifier
+        asteroid or comet identifier
     jd: array
         dates to query
     observer: str
