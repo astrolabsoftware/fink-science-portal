@@ -2027,7 +2027,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     if pdf.empty:
         return html.Div()
 
-    if 'SDSS:g' in pdf.columns:
+    if 'SDSS:g' not in pdf.columns:
         return dbc.Alert(
             'No ephemerides available for {}'.format(pdf['i:ssnamenr'].values[0]),
             color='danger'
