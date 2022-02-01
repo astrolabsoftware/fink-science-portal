@@ -55,12 +55,6 @@ def format_hbase_output(
     # Construct the dataframe
     pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
 
-    if 'd:rf_kn_vs_nonkn' not in pdfs.columns:
-        pdfs['d:rf_kn_vs_nonkn'] = np.zeros(len(pdfs), dtype=float)
-
-    if 'd:tracklet' not in pdfs.columns:
-        pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
-
     # Remove hbase specific fields
     if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
         pdfs = pdfs.drop(columns=['key:key', 'key:time'])
