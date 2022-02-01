@@ -1525,7 +1525,7 @@ def return_object():
         results, schema_client, group_alerts=False, truncated=truncated
     )
 
-    if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
+    if 'withcutouts' in request.json and str(request.json['withcutouts']) == 'True':
         pdf = extract_cutouts(pdf, client)
 
     if 'withupperlim' in request.json and str(request.json['withupperlim']) == 'True':
