@@ -1738,7 +1738,7 @@ def query_db():
         # results = java.util.TreeMap()
         to_evaluate = ""
         for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
-            to_evaluate = "key:key:{}_{},".format(oid, jd)
+            to_evaluate += "key:key:{}_{},".format(oid, jd)
 
         results = client.scan(
             "",
