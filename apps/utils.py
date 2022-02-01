@@ -776,7 +776,7 @@ def extract_query_url(search: str):
 
         dropdown_option = class_.replace('%20', ' ')
 
-    elif query_type == 'SSO%20Search':
+    elif query_type == 'SSO':
         n_or_d = extract_parameter_value_from_url(param_dic, 'n_or_d', '')
 
         query = n_or_d.replace('%20', ' ')
