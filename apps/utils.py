@@ -782,7 +782,7 @@ def extract_query_url(search: str):
         query = n_or_d.replace('%20', ' ')
         dropdown_option = None
 
-    return query, query_type, dropdown_option
+    return query, query_type.replace('%20', ' '), dropdown_option
 
 def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
     """ Gets asteroid or comet ephemerides from IMCCE Miriade for a suite of JD for a single SSO
