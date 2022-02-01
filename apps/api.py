@@ -1528,7 +1528,7 @@ def return_object():
     if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
         pdf = extract_cutouts(pdf, client)
 
-    if 'withupperlim' in request.json and request.json['withupperlim'] == 'True':
+    if 'withupperlim' in request.json and str(request.json['withupperlim']) == 'True':
         # upper limits
         resultsU = clientU.scan(
             "",
