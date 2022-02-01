@@ -57,7 +57,7 @@ def format_hbase_output(
 
     # Tracklet cell contains null if there is nothing
     # and so HBase won't transfer data -- ignoring the column
-    if 'd:tracklet' not in pdfs.columns:
+    if 'd:tracklet' not in pdfs.columns and not truncated:
         pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
 
     # Remove hbase specific fields
