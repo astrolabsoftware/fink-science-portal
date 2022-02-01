@@ -1663,7 +1663,13 @@ def query_db():
         radius_deg = float(radius) / 3600.
 
         # angle to vec conversion
-        vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
+        # vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
+        vec = hp.ang2vec(
+            nside,
+            np.pi / 2.0 - np.pi / 180.0 * dec,
+            np.pi / 180.0 * ra,
+            lonlat=True
+        )
 
         # Send request
         if float(radius) <= 30.:
