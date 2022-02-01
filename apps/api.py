@@ -1735,17 +1735,18 @@ def query_db():
         pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
 
         # Get data from the main table
-        results = java.util.TreeMap()
+        # results = java.util.TreeMap()
+        to_evaluate = ""
         for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
-            to_evaluate = "key:key:{}_{}".format(oid, jd)
+            to_evaluate = "key:key:{}_{},".format(oid, jd)
 
-            result = client.scan(
-                "",
-                to_evaluate,
-                "*",
-                0, True, True
-            )
-            results.putAll(result)
+        results = client.scan(
+            "",
+            to_evaluate,
+            "*",
+            0, True, True
+        )
+            # results.putAll(result)
         schema_client = client.schema()
     elif user_group == 2:
         if int(request.json['window']) > 180:
