@@ -1708,6 +1708,7 @@ def query_db():
                     0, True, True
                 )
                 results.putAll(result)
+            clientP_.setRangeScan(False)
         else:
             to_evaluate = ",".join(
                 [
