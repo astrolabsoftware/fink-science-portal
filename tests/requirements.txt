@@ -1,4 +1,4 @@
-PIL
+pillow
 requests
 pandas
 numpy
