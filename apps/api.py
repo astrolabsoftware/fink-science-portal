@@ -1651,12 +1651,19 @@ def query_db():
             }
             return Response(str(rep), 400)
 
-        if 'h' in str(ra):
-            coord = SkyCoord(ra, dec, frame='icrs')
-        elif ':' in str(ra) or ' ' in str(ra):
-            coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
-        else:
-            coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
+        try:
+            if 'h' in str(ra):
+                coord = SkyCoord(ra, dec, frame='icrs')
+            elif ':' in str(ra) or ' ' in str(ra):
+                coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
+            else:
+                coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
+        except ValueError as e:
+            rep = {
+                'status': 'error',
+                'text': e
+            }
+            return Response(str(rep), 400)
 
         ra = coord.ra.deg
         dec = coord.dec.deg
