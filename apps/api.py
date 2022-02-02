@@ -727,7 +727,7 @@ r = requests.post(
     json={
         'objectId': 'ZTF21aaxtctv',
         'kind': 'Science', # Science, Template, Difference
-        'stretch': 'sigmoid', # sigmoid[default], linear, sqrt, power, log, asinh
+        'stretch': 'sigmoid', # sigmoid[default], linear, sqrt, power, log
         'colormap': 'viridis', # Valid matplotlib colormap name (see matplotlib.cm). Default is grayscale.
         'pmin': 0.5, # The percentile value used to determine the pixel value of minimum cut level. Default is 0.5. No effect for sigmoid.
         'pmax': 99.5, # The percentile value used to determine the pixel value of maximum cut level. Default is 99.5. No effect for sigmoid.
@@ -804,7 +804,7 @@ r = requests.post(
     }
 )
 
-data = fits.open(io.BytesIO(r.content))
+data = fits.open(io.BytesIO(r.content), ignore_missing_simple=True)
 data.writeto('cutoutScience.fits')
 ```
 
@@ -1390,7 +1390,7 @@ args_cutouts = [
     {
         'name': 'stretch',
         'required': False,
-        'description': 'Stretch function to be applied. Available: sigmoid[default], linear, sqrt, power, log, asinh.'
+        'description': 'Stretch function to be applied. Available: sigmoid[default], linear, sqrt, power, log.'
     },
     {
         'name': 'colormap',
@@ -1525,10 +1525,10 @@ def return_object():
         results, schema_client, group_alerts=False, truncated=truncated
     )
 
-    if 'withcutouts' in request.json and request.json['withcutouts'] == 'True':
+    if 'withcutouts' in request.json and str(request.json['withcutouts']) == 'True':
         pdf = extract_cutouts(pdf, client)
 
-    if 'withupperlim' in request.json and request.json['withupperlim'] == 'True':
+    if 'withupperlim' in request.json and str(request.json['withupperlim']) == 'True':
         # upper limits
         resultsU = clientU.scan(
             "",
@@ -1651,12 +1651,19 @@ def query_db():
             }
             return Response(str(rep), 400)
 
-        if 'h' in str(ra):
-            coord = SkyCoord(ra, dec, frame='icrs')
-        elif ':' in str(ra) or ' ' in str(ra):
-            coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
-        else:
-            coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
+        try:
+            if 'h' in str(ra):
+                coord = SkyCoord(ra, dec, frame='icrs')
+            elif ':' in str(ra) or ' ' in str(ra):
+                coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
+            else:
+                coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
+        except ValueError as e:
+            rep = {
+                'status': 'error',
+                'text': e
+            }
+            return Response(str(rep), 400)
 
         ra = coord.ra.deg
         dec = coord.dec.deg
@@ -1708,6 +1715,7 @@ def query_db():
                     0, True, True
                 )
                 results.putAll(result)
+            clientP_.setRangeScan(False)
         else:
             to_evaluate = ",".join(
                 [

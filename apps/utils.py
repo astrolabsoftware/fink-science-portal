@@ -55,10 +55,9 @@ def format_hbase_output(
     # Construct the dataframe
     pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
 
-    if 'd:rf_kn_vs_nonkn' not in pdfs.columns:
-        pdfs['d:rf_kn_vs_nonkn'] = np.zeros(len(pdfs), dtype=float)
-
-    if 'd:tracklet' not in pdfs.columns:
+    # Tracklet cell contains null if there is nothing
+    # and so HBase won't transfer data -- ignoring the column
+    if 'd:tracklet' not in pdfs.columns and not truncated:
         pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
 
     # Remove hbase specific fields
