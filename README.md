@@ -24,6 +24,8 @@ You can test the REST API using:
 ./run_tests.sh --url https://fink-portal.org
 ```
 
+The folder `tests` contain many example on how to use the REST API.
+
 ## Deployment
 
 ### Local deployment
