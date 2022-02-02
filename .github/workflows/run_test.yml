@@ -23,6 +23,7 @@ jobs:
         cd tests/
         pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt
+        cd ..
     - name: Run test suites
       run: |
         ./run_tests.sh --url ${{ secrets.APIURLDEV }}
