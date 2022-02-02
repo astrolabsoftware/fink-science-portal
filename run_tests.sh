@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2019 AstroLab Software
+# Copyright 2022 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-## Script to launch the python test suite and measure the coverage.
-## Must be launched as fink_test
 set -e
 message_help="""
 Run the test suite of the modules\n\n

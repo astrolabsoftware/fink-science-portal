@@ -30,9 +30,8 @@ def statstest(date='2021', columns='*', output_format='json'):
         'output-format': output_format,
     }
 
-    # get data for ZTF21aaxtctv
     r = requests.post(
-        'https://fink-portal.org/api/v1/statistics',
+        '{}/api/v1/statistics'.format(APIURL),
         json=payload
     )
 

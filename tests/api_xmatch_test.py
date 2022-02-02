@@ -31,9 +31,8 @@ def xmatchtest(catalog='mycatalog.csv', header='RA,Dec,ID,Time', radius=1.5, win
         'window': window # in days
     }
 
-    # get data for ZTF21aaxtctv
     r = requests.post(
-        'https://fink-portal.org/api/v1/xmatch',
+        '{}/api/v1/xmatch'.format(APIURL),
         json=payload
     )
 

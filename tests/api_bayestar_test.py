@@ -31,9 +31,8 @@ def bayestartest(bayestar='bayestar.fits.gz', credible_level=0.1, output_format=
         'output_format': output_format
     }
 
-    # get data for ZTF21aaxtctv
     r = requests.post(
-        'https://fink-portal.org/api/v1/bayestar',
+        '{}/api/v1/bayestar'.format(APIURL),
         json=payload
     )
 

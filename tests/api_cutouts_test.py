@@ -45,9 +45,8 @@ def cutouttest(objectId='ZTF21aaxtctv', kind='Science', stretch='sigmoid', color
     if convolution_kernel is not None:
         payload.update({'convolution_kernel': convolution_kernel})
 
-    # get data for ZTF21aaxtctv
     r = requests.post(
-        'https://fink-portal.org/api/v1/cutouts',
+        '{}/api/v1/cutouts'.format(APIURL),
         json=payload
     )
 
