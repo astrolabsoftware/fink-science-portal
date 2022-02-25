@@ -2939,7 +2939,6 @@ def plot_stat_evolution(pathname, param_name, switch):
         text=newcol,
     )
     fig.update_traces(
-        texttemplate='%{text:.2s}',
         textposition='outside',
         marker_color='rgb(21, 40, 79)'
     )
