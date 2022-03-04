@@ -1919,7 +1919,13 @@ def latest_objects():
         group_alerts = False
 
     # We want to return alerts
-    pdfs = format_hbase_output(results, schema_client, group_alerts=group_alerts)
+    # color computation is disabled
+    pdfs = format_hbase_output(
+        results, schema_client,
+        group_alerts=group_alerts,
+        extract_color=False,
+        with_constellation=True
+    )
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
@@ -2249,7 +2255,9 @@ def return_cutouts():
     # Format the results
     schema_client = client.schema()
     pdf = format_hbase_output(
-        results, schema_client, group_alerts=False, truncated=truncated
+        results, schema_client,
+        group_alerts=False, truncated=truncated,
+        extract_color=False
     )
 
     # Extract only the alert of interest
