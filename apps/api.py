@@ -1923,7 +1923,8 @@ def latest_objects():
     pdfs = format_hbase_output(
         results, schema_client,
         group_alerts=group_alerts,
-        extract_color=False
+        extract_color=False,
+        with_constellation=False
     )
 
     if output_format == 'json':
