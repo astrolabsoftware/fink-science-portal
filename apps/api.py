@@ -1924,7 +1924,7 @@ def latest_objects():
         results, schema_client,
         group_alerts=group_alerts,
         extract_color=False,
-        with_constellation=False
+        with_constellation=True
     )
 
     if output_format == 'json':
