@@ -1319,6 +1319,11 @@ args_latest = [
         'description': 'Stopping date in UTC (iso, jd, or MJD). Default is now.'
     },
     {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet'
@@ -1860,6 +1865,13 @@ def latest_objects():
     else:
         jd_stop = Time(request.json['stopdate']).jd
 
+    if 'columns' in request.json:
+        cols = request.json['columns'].replace(" ", "")
+        truncated = True
+    else:
+        cols = '*'
+        truncated = False
+
     # Search for latest alerts for a specific class
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
     is_tns = request.json['class'].startswith('(TNS)') and (request.json['class'].split('(TNS) ')[1] in tns_classes)
@@ -1877,7 +1889,7 @@ def latest_objects():
                 classname,
                 jd_stop
             ),
-            "*", 0, True, True
+            cols, 0, True, True
         )
         schema_client = clientTNS.schema()
         group_alerts = True
@@ -1899,7 +1911,7 @@ def latest_objects():
                 classname,
                 jd_stop
             ),
-            "*", 0, False, False
+            cols, 0, False, False
         )
         schema_client = clientS.schema()
         group_alerts = False
@@ -1912,7 +1924,7 @@ def latest_objects():
         results = clientT.scan(
             "",
             to_evaluate,
-            "*",
+            cols,
             0, True, True
         )
         schema_client = clientT.schema()
@@ -1924,6 +1936,7 @@ def latest_objects():
         results, schema_client,
         group_alerts=group_alerts,
         extract_color=False,
+        truncated=truncated,
         with_constellation=True
     )
 
