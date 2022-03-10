@@ -21,7 +21,7 @@ import sys
 
 APIURL = sys.argv[1]
 
-def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=None, output_format='json'):
+def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=None, output_format='json', cols=None):
     """ Perform a class search in the Science Portal using the Fink REST API
     """
     payload = {
@@ -37,6 +37,9 @@ def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=
                 'stopdate': stopdate
             }
         )
+
+    if cols is not None:
+        payload.update({'columns': cols})
 
     r = requests.post(
         '{}/api/v1/latests'.format(APIURL),
@@ -115,6 +118,22 @@ def test_classsearch_and_date() -> None:
     assert np.alltrue(pdf['v:lastdate'].values < '2021-12-01')
 
     assert np.alltrue(pdf['v:lastdate'].values >= '2021-11-01')
+
+def test_classsearch_and_cols() -> None:
+    """
+    Examples
+    ---------
+    >>> test_classsearch_and_cols()
+    """
+    pdf = classsearch(cols='i:jd,i:objectId')
+
+    assert not pdf.empty
+
+    assert len(pdf.columns) == 2, len(pdf.columns)
+
+    assert 'i:jd' in pdf.columns
+    assert 'i:objectId' in pdf.columns
+    assert 'v:classifation' not in pdf.columns
 
 
 if __name__ == "__main__":
