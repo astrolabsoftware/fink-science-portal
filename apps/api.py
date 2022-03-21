@@ -76,7 +76,7 @@ api_doc_summary = """
 """.format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
-## Retrieve single object data
+## Retrieve object data
 
 The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/objects.
 
@@ -98,6 +98,24 @@ r = requests.post(
   'https://fink-portal.org/api/v1/objects',
   json={
     'objectId': 'ZTF21aaxtctv',
+    'output-format': 'json'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+You can retrieve the data for several objects at once:
+
+```python
+mylist = ['ZTF21aaxtctv', 'ZTF21abfmbix', 'ZTF21abfaohe']
+
+# get data for many objects
+r = requests.post(
+  'https://fink-portal.org/api/v1/objects',
+  json={
+    'objectId': ','.join(mylist),
     'output-format': 'json'
   }
 )
@@ -1216,7 +1234,7 @@ args_objects = [
     {
         'name': 'objectId',
         'required': True,
-        'description': 'ZTF Object ID'
+        'description': 'single ZTF Object ID, or a comma-separated list of object names, e.g. "ZTF19acmdpyr,ZTF21aaxtctv"'
     },
     {
         'name': 'withupperlim',
@@ -1511,22 +1529,15 @@ def return_object():
         truncated = False
 
     if ',' in request.json['objectId']:
+        # multi-objects search
         splitids = request.json['objectId'].split(',')
         ids = ['key:key:{}'.format(i.strip()) for i in splitids]
-        # to_evaluate = ','.join(ids)
     else:
-        # to_evaluate = "key:key:{}".format(request.json['objectId'])
+        # single object search
         ids = ["key:key:{}".format(request.json['objectId'])]
 
     # We do not want to perform full scan if the objectid is a wildcard
     client.setLimit(1000)
-
-    # results = client.scan(
-    #     "",
-    #     to_evaluate,
-    #     cols,
-    #     0, True, True
-    # )
 
     # Get data from the main table
     results = java.util.TreeMap()
@@ -1553,13 +1564,6 @@ def return_object():
 
     if 'withupperlim' in request.json and str(request.json['withupperlim']) == 'True':
         # upper limits
-        # resultsU = clientU.scan(
-        #     "",
-        #     "{}".format(to_evaluate),
-        #     "*", 0, False, False
-        # )
-
-        # upper limits
         resultsU = java.util.TreeMap()
         for to_evaluate in ids:
             resultU = clientU.scan(
@@ -1571,11 +1575,6 @@ def return_object():
             resultsU.putAll(resultU)
 
         # bad quality
-        # resultsUP = clientUV.scan(
-        #     "",
-        #     "{}".format(to_evaluate),
-        #     "*", 0, False, False
-        # )
         resultsUP = java.util.TreeMap()
         for to_evaluate in ids:
             resultUP = clientUV.scan(
