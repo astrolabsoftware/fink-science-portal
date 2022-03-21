@@ -1513,19 +1513,31 @@ def return_object():
     if ',' in request.json['objectId']:
         splitids = request.json['objectId'].split(',')
         ids = ['key:key:{}'.format(i.strip()) for i in splitids]
-        to_evaluate = ','.join(ids)
+        # to_evaluate = ','.join(ids)
     else:
-        to_evaluate = "key:key:{}".format(request.json['objectId'])
+        # to_evaluate = "key:key:{}".format(request.json['objectId'])
+        ids = ["key:key:{}".format(request.json['objectId'])]
 
     # We do not want to perform full scan if the objectid is a wildcard
     client.setLimit(1000)
 
-    results = client.scan(
-        "",
-        to_evaluate,
-        cols,
-        0, True, True
-    )
+    # results = client.scan(
+    #     "",
+    #     to_evaluate,
+    #     cols,
+    #     0, True, True
+    # )
+
+    # Get data from the main table
+    results = java.util.TreeMap()
+    for to_evaluate in ids:
+        result = client.scan(
+            "",
+            to_evaluate,
+            cols,
+            0, True, True
+        )
+        results.putAll(result)
 
     schema_client = client.schema()
 
@@ -1541,18 +1553,38 @@ def return_object():
 
     if 'withupperlim' in request.json and str(request.json['withupperlim']) == 'True':
         # upper limits
-        resultsU = clientU.scan(
-            "",
-            "{}".format(to_evaluate),
-            "*", 0, False, False
-        )
+        # resultsU = clientU.scan(
+        #     "",
+        #     "{}".format(to_evaluate),
+        #     "*", 0, False, False
+        # )
+
+        # upper limits
+        resultsU = java.util.TreeMap()
+        for to_evaluate in ids:
+            resultU = clientU.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, False, False
+            )
+            resultsU.putAll(resultU)
 
         # bad quality
-        resultsUP = clientUV.scan(
-            "",
-            "{}".format(to_evaluate),
-            "*", 0, False, False
-        )
+        # resultsUP = clientUV.scan(
+        #     "",
+        #     "{}".format(to_evaluate),
+        #     "*", 0, False, False
+        # )
+        resultsUP = java.util.TreeMap()
+        for to_evaluate in ids:
+            resultUP = clientUV.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, False, False
+            )
+            resultsUP.putAll(resultUP)
 
         pdfU = pd.DataFrame.from_dict(resultsU, orient='index')
         pdfUP = pd.DataFrame.from_dict(resultsUP, orient='index')
