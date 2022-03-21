@@ -151,6 +151,30 @@ def test_bad_request() -> None:
 
     assert pdf.empty
 
+def test_multiple_objects() -> None:
+    """
+    Examples
+    ---------
+    >>> test_multiple_objects()
+    """
+    OIDS_ = ['ZTF21abfmbix', 'ZTF21aaxtctv', 'ZTF21abfaohe']
+    OIDS = ','.join(OIDS_)
+    pdf = get_an_object(oid=OIDS)
+
+    n_oids = len(np.unique(pdf.groupby('i:objectId').count()['i:ra']))
+    assert n_oids == 3
+
+    n_oids_single = 0
+    len_object = 0
+    for oid in OIDS_:
+        pdf_ = get_an_object(oid=oid)
+        n_oid = len(np.unique(pdf_.groupby('i:objectId').count()['i:ra']))
+        n_oids_single += n_oid
+        len_object += len(pdf_)
+
+    assert n_oids == n_oids_single, '{} is not equal to {}'.format(n_oids, n_oids_single)
+    assert len_object == len(pdf), '{} is not equal to {}'.format(len_object, len(pdf))
+
 
 if __name__ == "__main__":
     """ Execute the test suite """
