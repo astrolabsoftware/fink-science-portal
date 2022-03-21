@@ -1510,7 +1510,7 @@ def return_object():
         cols = '*'
         truncated = False
 
-    if request.json['objectId'].contains(','):
+    if ',' in request.json['objectId']:
         splitids = request.json['objectId'].split(',')
         ids = ['key:key:{}'.format(i.strip()) for i in splitids]
         to_evaluate = ','.join(ids)
