@@ -1509,7 +1509,13 @@ def return_object():
     else:
         cols = '*'
         truncated = False
-    to_evaluate = "key:key:{}".format(request.json['objectId'])
+
+    if request.json['objectId'].contains(','):
+        splitids = request.json['objectId'].split(',')
+        ids = ['key:key:{}'.format(i.strip()) for i in splitids]
+        to_evaluate = ','.join(ids)
+    else:
+        to_evaluate = "key:key:{}".format(request.json['objectId'])
 
     # We do not want to perform full scan if the objectid is a wildcard
     client.setLimit(1000)
