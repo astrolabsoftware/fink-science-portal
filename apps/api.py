@@ -1496,6 +1496,83 @@ args_stats = [
     }
 ]
 
+def return_object_pdf(objectids, withupperlim=False, withcutouts=False, columns='*'):
+    """
+    """
+    if cols == '*':
+        truncated = False
+    else:
+        truncated = True
+
+    # Get data from the main table
+    results = java.util.TreeMap()
+    for to_evaluate in objectids:
+        result = client.scan(
+            "",
+            to_evaluate,
+            cols,
+            0, True, True
+        )
+        results.putAll(result)
+
+    schema_client = client.schema()
+
+    # reset the limit in case it has been changed above
+    client.setLimit(nlimit)
+
+    pdf = format_hbase_output(
+        results, schema_client, group_alerts=False, truncated=truncated
+    )
+
+    if withcutouts:
+        pdf = extract_cutouts(pdf, client)
+
+    if withupperlim:
+        # upper limits
+        resultsU = java.util.TreeMap()
+        for to_evaluate in objectids:
+            resultU = clientU.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, False, False
+            )
+            resultsU.putAll(resultU)
+
+        # bad quality
+        resultsUP = java.util.TreeMap()
+        for to_evaluate in objectids:
+            resultUP = clientUV.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, False, False
+            )
+            resultsUP.putAll(resultUP)
+
+        pdfU = pd.DataFrame.from_dict(resultsU, orient='index')
+        pdfUP = pd.DataFrame.from_dict(resultsUP, orient='index')
+
+        pdf['d:tag'] = 'valid'
+        pdfU['d:tag'] = 'upperlim'
+        pdfUP['d:tag'] = 'badquality'
+
+        if 'i:jd' in pdfUP.columns:
+            # workaround -- see https://github.com/astrolabsoftware/fink-science-portal/issues/216
+            mask = np.array([False if float(i) in pdf['i:jd'].values else True for i in pdfUP['i:jd'].values])
+            pdfUP = pdfUP[mask]
+
+        pdf_ = pd.concat((pdf, pdfU, pdfUP), axis=0)
+
+        # replace
+        if 'i:jd' in pdf_.columns:
+            pdf_['i:jd'] = pdf_['i:jd'].astype(float)
+            pdf = pdf_.sort_values('i:jd', ascending=False)
+        else:
+            pdf = pdf_
+
+        return pdf
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -1523,10 +1600,8 @@ def return_object():
 
     if 'columns' in request.json:
         cols = request.json['columns'].replace(" ", "")
-        truncated = True
     else:
         cols = '*'
-        truncated = False
 
     if ',' in request.json['objectId']:
         # multi-objects search
@@ -1536,72 +1611,19 @@ def return_object():
         # single object search
         ids = ["key:key:{}".format(request.json['objectId'])]
 
-    # We do not want to perform full scan if the objectid is a wildcard
-    client.setLimit(1000)
-
-    # Get data from the main table
-    results = java.util.TreeMap()
-    for to_evaluate in ids:
-        result = client.scan(
-            "",
-            to_evaluate,
-            cols,
-            0, True, True
-        )
-        results.putAll(result)
-
-    schema_client = client.schema()
-
-    # reset the limit in case it has been changed above
-    client.setLimit(nlimit)
-
-    pdf = format_hbase_output(
-        results, schema_client, group_alerts=False, truncated=truncated
-    )
-
     if 'withcutouts' in request.json and str(request.json['withcutouts']) == 'True':
-        pdf = extract_cutouts(pdf, client)
+        withcutouts = True
+    else:
+        withcutouts = False
 
     if 'withupperlim' in request.json and str(request.json['withupperlim']) == 'True':
-        # upper limits
-        resultsU = java.util.TreeMap()
-        for to_evaluate in ids:
-            resultU = clientU.scan(
-                "",
-                to_evaluate,
-                "*",
-                0, False, False
-            )
-            resultsU.putAll(resultU)
+        withupperlim = True
+    else:
+        withupperlim = False
 
-        # bad quality
-        resultsUP = java.util.TreeMap()
-        for to_evaluate in ids:
-            resultUP = clientUV.scan(
-                "",
-                to_evaluate,
-                "*",
-                0, False, False
-            )
-            resultsUP.putAll(resultUP)
-
-        pdfU = pd.DataFrame.from_dict(resultsU, orient='index')
-        pdfUP = pd.DataFrame.from_dict(resultsUP, orient='index')
-
-        pdf['d:tag'] = 'valid'
-        pdfU['d:tag'] = 'upperlim'
-        pdfUP['d:tag'] = 'badquality'
-
-        if 'i:jd' in pdfUP.columns:
-            # workaround -- see https://github.com/astrolabsoftware/fink-science-portal/issues/216
-            mask = np.array([False if float(i) in pdf['i:jd'].values else True for i in pdfUP['i:jd'].values])
-            pdfUP = pdfUP[mask]
-
-        pdf_ = pd.concat((pdf, pdfU, pdfUP), axis=0)
-        pdf_['i:jd'] = pdf_['i:jd'].astype(float)
-
-        # replace
-        pdf = pdf_.sort_values('i:jd', ascending=False)
+    pdf = return_object_pdf(
+        ids, withupperlim=withupperlim, withcutouts=withcutouts, columns=cols
+    )
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
