@@ -119,11 +119,11 @@ def test_classsearch_and_date() -> None:
 
     assert np.alltrue(pdf['v:lastdate'].values >= '2021-11-01')
 
-def test_classsearch_and_cols() -> None:
+def test_classsearch_and_cols_with_sort() -> None:
     """
     Examples
     ---------
-    >>> test_classsearch_and_cols()
+    >>> test_classsearch_and_cols_with_sort()
     """
     pdf = classsearch(cols='i:jd,i:objectId')
 
@@ -134,6 +134,20 @@ def test_classsearch_and_cols() -> None:
     assert 'i:jd' in pdf.columns
     assert 'i:objectId' in pdf.columns
     assert 'v:classifation' not in pdf.columns
+
+def test_classsearch_and_cols_without_sort() -> None:
+    """
+    Examples
+    ---------
+    >>> test_classsearch_and_cols_without_sort()
+    """
+    pdf = classsearch(cols='i:objectId')
+
+    assert not pdf.empty
+
+    assert len(pdf.columns) == 1, len(pdf.columns)
+
+    assert 'i:objectId' in pdf.columns
 
 
 if __name__ == "__main__":
