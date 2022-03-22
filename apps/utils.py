@@ -111,12 +111,13 @@ def format_hbase_output(
             pdfs['v:constellation'] = constellations
 
     # Display only the last alert
-    if group_alerts:
+    if group_alerts and ('i:jd' in pdfs.columns) and ('i:objectId' in pdfs.columns):
         pdfs['i:jd'] = pdfs['i:jd'].astype(float)
         pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
 
     # sort values by time
-    pdfs = pdfs.sort_values('i:jd', ascending=False)
+    if 'i:jd' in pdfs.columns:
+        pdfs = pdfs.sort_values('i:jd', ascending=False)
 
     return pdfs
 
