@@ -1496,7 +1496,7 @@ args_stats = [
     }
 ]
 
-def return_object_pdf(objectids, withupperlim=False, withcutouts=False, columns='*'):
+def return_object_pdf(objectids, withupperlim=False, withcutouts=False, cols='*'):
     """
     """
     if cols == '*':
@@ -1622,7 +1622,7 @@ def return_object():
         withupperlim = False
 
     pdf = return_object_pdf(
-        ids, withupperlim=withupperlim, withcutouts=withcutouts, columns=cols
+        ids, withupperlim=withupperlim, withcutouts=withcutouts, cols=cols
     )
 
     if output_format == 'json':
