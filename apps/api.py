@@ -1571,7 +1571,7 @@ def return_object_pdf(objectids, withupperlim=False, withcutouts=False, columns=
         else:
             pdf = pdf_
 
-        return pdf
+    return pdf
 
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
