@@ -28,7 +28,7 @@ def classsearch(myclass='Solar System MPC', n=100000, startdate='2022-03-03', st
     payload = {
         'class': myclass,
         'n': n,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     if startdate is not None:

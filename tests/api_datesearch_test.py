@@ -27,7 +27,7 @@ def datesearch(startdate='2021-07-01 05:59:37.000', window='1', output_format='j
     payload = {
         'startdate': startdate,
         'window': window,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     r = requests.post(

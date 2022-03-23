@@ -24,10 +24,11 @@ import healpy as hp
 from PIL import Image as im
 from matplotlib import cm
 
+import astropy.units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time, TimeDelta
-from astropy.io import fits
-import astropy.units as u
+from astropy.io import fits, votable
+from astropy.table import Table
 
 from app import client
 from app import clientU, clientUV
@@ -601,10 +602,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'output-format' in payload:
-        output_format = payload['output-format']
-    else:
-        output_format = 'PNG'
+    output_format = payload.get('output-format', 'PNG')
 
     # default stretch is sigmoid
     if 'stretch' in payload:

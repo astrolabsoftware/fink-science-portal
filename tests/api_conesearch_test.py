@@ -30,7 +30,7 @@ def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate_conesear
         'ra': ra,
         'dec': dec,
         'radius': radius,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     if startdate_conesearch is not None:

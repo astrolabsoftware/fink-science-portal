@@ -28,7 +28,7 @@ def bayestartest(bayestar='bayestar.fits.gz', credible_level=0.1, output_format=
     payload = {
         'bayestar': str(data),
         'credible_level': credible_level,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     r = requests.post(

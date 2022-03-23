@@ -16,6 +16,8 @@ import requests
 import pandas as pd
 import numpy as np
 
+from astropy.io import votable
+
 import io
 import sys
 
@@ -53,6 +55,9 @@ def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=
         pdf = pd.read_csv(io.BytesIO(r.content))
     elif output_format == 'parquet':
         pdf = pd.read_parquet(io.BytesIO(r.content))
+    elif output_format == 'votable':
+        vt = votable.parse(io.BytesIO(r.content))
+        pdf = vt.get_first_table().to_table().to_pandas()
 
     return pdf
 
@@ -161,12 +166,19 @@ def test_query_url() -> None:
     r = requests.get(url)
     pdf2 = pd.read_json(r.content)
 
-    assert pdf1.values == pdf2.values
+    assert pdf1.equals(pdf2)
 
-# def csv_output() -> None:
-#     """
-#     """
+def test_various_outputs() -> None:
+    """
+    Examples
+    ---------
+    >>> test_various_outputs()
+    """
+    pdf1 = classsearch(output_format='json')
 
+    for fmt in ['csv', 'parquet', 'votable']:
+        pdf2 = classsearch(output_format='csv')
+        assert pdf1.equals(pdf2)
 
 
 if __name__ == "__main__":
