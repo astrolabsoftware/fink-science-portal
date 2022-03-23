@@ -41,7 +41,7 @@ from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar, api_d
 
 from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
-from apps.api.utils import return_tracklet_pdf
+from apps.api.utils import return_tracklet_pdf, format_and_send_cutout
 
 import io
 import requests
@@ -849,131 +849,23 @@ def return_tracklet(payload=None):
 def cutouts_arguments():
     """ Obtain information about cutouts service
     """
-    return jsonify({'args': args_cutouts})
+    if request.args is not None:
+        # POST from query URL
+        return return_cutouts(payload=request.args)
+    else:
+        return jsonify({'args': args_cutouts})
 
 @api_bp.route('/api/v1/cutouts', methods=['POST'])
-def return_cutouts():
+def return_cutouts(payload=None):
     """ Retrieve cutout data from the Fink database
     """
-    assert request.json['kind'] in ['Science', 'Template', 'Difference']
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
 
-    if 'output-format' in request.json:
-        output_format = request.json['output-format']
-    else:
-        output_format = 'PNG'
+    assert payload['kind'] in ['Science', 'Template', 'Difference']
 
-    # default stretch is sigmoid
-    if 'stretch' in request.json:
-        stretch = request.json['stretch']
-    else:
-        stretch = 'sigmoid'
-
-    # default name based on parameters
-    filename = '{}_{}'.format(
-        request.json['objectId'],
-        request.json['kind']
-    )
-
-    if output_format == 'PNG':
-        filename = filename + '.png'
-    elif output_format == 'JPEG':
-        filename = filename + '.jpg'
-    elif output_format == 'FITS':
-        filename = filename + '.fits'
-
-    # Query the Database (object query)
-    results = client.scan(
-        "",
-        "key:key:{}".format(request.json['objectId']),
-        "b:cutout{}_stampData,i:jd,i:candid".format(request.json['kind']),
-        0, True, True
-    )
-    truncated = True
-
-    # Format the results
-    schema_client = client.schema()
-    pdf = format_hbase_output(
-        results, schema_client,
-        group_alerts=False, truncated=truncated,
-        extract_color=False
-    )
-
-    # Extract only the alert of interest
-    if 'candid' in request.json:
-        pdf = pdf[pdf['i:candid'].astype(str) == str(request.json['candid'])]
-    else:
-        # pdf has been sorted in `format_hbase_output`
-        pdf = pdf.iloc[0:1]
-
-    if pdf.empty:
-        return send_file(
-            io.BytesIO(),
-            mimetype='image/png',
-            as_attachment=True,
-            attachment_filename=filename
-        )
-    # Extract cutouts
-    if output_format == 'FITS':
-        pdf = extract_cutouts(
-            pdf,
-            client,
-            col='b:cutout{}_stampData'.format(request.json['kind']),
-            return_type='FITS'
-        )
-    else:
-        pdf = extract_cutouts(
-            pdf,
-            client,
-            col='b:cutout{}_stampData'.format(request.json['kind']),
-            return_type='array'
-        )
-
-    array = pdf['b:cutout{}_stampData'.format(request.json['kind'])].values[0]
-
-    # send the FITS file
-    if output_format == 'FITS':
-        return send_file(
-            array,
-            mimetype='application/octet-stream',
-            as_attachment=True,
-            attachment_filename=filename
-        )
-    # send the array
-    elif output_format == 'array':
-        return pdf[['b:cutout{}_stampData'.format(request.json['kind'])]].to_json(orient='records')
-
-    if stretch == 'sigmoid':
-        array = sigmoid_normalizer(array, 0, 1)
-    else:
-        pmin = 0.5
-        if 'pmin' in request.json:
-            pmin = float(request.json['pmin'])
-        pmax = 99.5
-        if 'pmax' in request.json:
-            pmax = float(request.json['pmax'])
-        array = legacy_normalizer(array, stretch=stretch, pmin=pmin, pmax=pmax)
-
-    if 'convolution_kernel' in request.json:
-        assert request.json['convolution_kernel'] in ['gauss', 'box']
-        array = convolve(array, smooth=1, kernel=request.json['convolution_kernel'])
-
-    # colormap
-    if "colormap" in request.json:
-        colormap = getattr(cm, request.json['colormap'])
-    else:
-        colormap = lambda x: x
-    array = np.uint8(colormap(array) * 255)
-
-    # Convert to PNG
-    data = im.fromarray(array)
-    datab = io.BytesIO()
-    data.save(datab, format='PNG')
-    datab.seek(0)
-    return send_file(
-        datab,
-        mimetype='image/png',
-        as_attachment=True,
-        attachment_filename=filename)
+    return format_and_send_cutout(payload)
 
 @api_bp.route('/api/v1/xmatch', methods=['GET'])
 def xmatch_arguments():

@@ -12,11 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import java
 
 import pandas as pd
 import numpy as np
 import healpy as hp
+
+from PIL import Image as im
+from matplotlib import cm
 
 from astropy.coordinates import SkyCoord
 from astropy.time import Time, TimeDelta
@@ -32,7 +36,10 @@ from apps.utils import get_miriade_data
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 
+from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
+
 from flask import Response
+from flask import send_file
 
 def return_object_pdf(payload: dict) -> pd.DataFrame:
     """ Extract data returned by HBase and format it in a Pandas dataframe
@@ -459,7 +466,18 @@ def return_latests_pdf(payload: dict) -> pd.DataFrame:
     return pdfs
 
 def return_sso_pdf(payload: dict) -> pd.DataFrame:
-    """
+    """ Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/sso
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/sso
+
+    Return
+    ----------
+    out: pandas dataframe
     """
     if 'columns' in payload:
         cols = payload['columns'].replace(" ", "")
@@ -505,7 +523,18 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     return pdf
 
 def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
-    """
+    """ Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/tracklet
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/tracklet
+
+    Return
+    ----------
+    out: pandas dataframe
     """
     if 'columns' in payload:
         cols = payload['columns'].replace(" ", "")
@@ -552,3 +581,135 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
     )
 
     return pdf
+
+def format_and_send_cutout(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and jsonify it
+
+    Data is from /api/v1/cutouts
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/cutouts
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    if 'output-format' in payload:
+        output_format = payload['output-format']
+    else:
+        output_format = 'PNG'
+
+    # default stretch is sigmoid
+    if 'stretch' in payload:
+        stretch = payload['stretch']
+    else:
+        stretch = 'sigmoid'
+
+    # default name based on parameters
+    filename = '{}_{}'.format(
+        payload['objectId'],
+        payload['kind']
+    )
+
+    if output_format == 'PNG':
+        filename = filename + '.png'
+    elif output_format == 'JPEG':
+        filename = filename + '.jpg'
+    elif output_format == 'FITS':
+        filename = filename + '.fits'
+
+    # Query the Database (object query)
+    results = client.scan(
+        "",
+        "key:key:{}".format(payload['objectId']),
+        "b:cutout{}_stampData,i:jd,i:candid".format(payload['kind']),
+        0, True, True
+    )
+
+    # Format the results
+    schema_client = client.schema()
+    pdf = format_hbase_output(
+        results, schema_client,
+        group_alerts=False,
+        truncated=True,
+        extract_color=False
+    )
+
+    # Extract only the alert of interest
+    if 'candid' in payload:
+        pdf = pdf[pdf['i:candid'].astype(str) == str(payload['candid'])]
+    else:
+        # pdf has been sorted in `format_hbase_output`
+        pdf = pdf.iloc[0:1]
+
+    if pdf.empty:
+        return send_file(
+            io.BytesIO(),
+            mimetype='image/png',
+            as_attachment=True,
+            attachment_filename=filename
+        )
+    # Extract cutouts
+    if output_format == 'FITS':
+        pdf = extract_cutouts(
+            pdf,
+            client,
+            col='b:cutout{}_stampData'.format(payload['kind']),
+            return_type='FITS'
+        )
+    else:
+        pdf = extract_cutouts(
+            pdf,
+            client,
+            col='b:cutout{}_stampData'.format(payload['kind']),
+            return_type='array'
+        )
+
+    array = pdf['b:cutout{}_stampData'.format(payload['kind'])].values[0]
+
+    # send the FITS file
+    if output_format == 'FITS':
+        return send_file(
+            array,
+            mimetype='application/octet-stream',
+            as_attachment=True,
+            attachment_filename=filename
+        )
+    # send the array
+    elif output_format == 'array':
+        return pdf[['b:cutout{}_stampData'.format(payload['kind'])]].to_json(orient='records')
+
+    if stretch == 'sigmoid':
+        array = sigmoid_normalizer(array, 0, 1)
+    else:
+        pmin = 0.5
+        if 'pmin' in payload:
+            pmin = float(payload['pmin'])
+        pmax = 99.5
+        if 'pmax' in payload:
+            pmax = float(payload['pmax'])
+        array = legacy_normalizer(array, stretch=stretch, pmin=pmin, pmax=pmax)
+
+    if 'convolution_kernel' in payload:
+        assert payload['convolution_kernel'] in ['gauss', 'box']
+        array = convolve(array, smooth=1, kernel=payload['convolution_kernel'])
+
+    # colormap
+    if "colormap" in payload:
+        colormap = getattr(cm, payload['colormap'])
+    else:
+        colormap = lambda x: x
+    array = np.uint8(colormap(array) * 255)
+
+    # Convert to PNG
+    data = im.fromarray(array)
+    datab = io.BytesIO()
+    data.save(datab, format='PNG')
+    datab.seek(0)
+    return send_file(
+        datab,
+        mimetype='image/png',
+        as_attachment=True,
+        attachment_filename=filename)
