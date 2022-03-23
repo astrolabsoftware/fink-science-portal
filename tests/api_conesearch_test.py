@@ -197,9 +197,10 @@ def test_various_outputs() -> None:
     for fmt in ['csv', 'parquet', 'votable']:
         pdf2 = conesearch(output_format=fmt)
 
-        # subset of cols to avoid rounding issues
-        cols = ['i:objectId', 'i:ra', 'i:dec']
-        assert pdf1[cols].equals(pdf2[cols]), fmt
+        # subset of cols to avoid type issues
+        cols = ['i:ra', 'i:dec']
+        isclose = np.isclose(pdf1[cols], pdf2[cols])
+        assert np.alltrue(isclose), fmt
 
 
 if __name__ == "__main__":
