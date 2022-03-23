@@ -226,7 +226,7 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') ->
     Parameters
     ----------
     pdf: Pandas DataFrame
-        DataFrame returned by `format_hbase_output` (see api.py)
+        DataFrame returned by `format_hbase_output` (see api/api.py)
     client: com.Lomikel.HBaser.HBaseClient
         HBase client used to query the database
     col: str
