@@ -467,46 +467,54 @@ args_stats = [
 def return_object_arguments():
     """ Obtain information about retrieving object data
     """
-    return jsonify({'args': args_objects})
+    if request.data is not None:
+        # POST from query URL
+        return return_object(payload=request.data)
+    else:
+        return jsonify({'args': args_objects})
 
 @api_bp.route('/api/v1/objects', methods=['POST'])
-def return_object():
+def return_object(payload=None):
     """ Retrieve object data from the Fink database
     """
-    if 'output-format' in request.json:
-        output_format = request.json['output-format']
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    if 'output-format' in payload:
+        output_format = payload['output-format']
     else:
         output_format = 'json'
 
     # Check all required args are here
     required_args = [i['name'] for i in args_objects if i['required'] is True]
     for required_arg in required_args:
-        if required_arg not in request.json:
+        if required_arg not in payload:
             rep = {
                 'status': 'error',
                 'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
             }
             return Response(str(rep), 400)
 
-    if 'columns' in request.json:
-        cols = request.json['columns'].replace(" ", "")
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
     else:
         cols = '*'
 
-    if ',' in request.json['objectId']:
+    if ',' in payload['objectId']:
         # multi-objects search
-        splitids = request.json['objectId'].split(',')
+        splitids = payload['objectId'].split(',')
         ids = ['key:key:{}'.format(i.strip()) for i in splitids]
     else:
         # single object search
-        ids = ["key:key:{}".format(request.json['objectId'])]
+        ids = ["key:key:{}".format(payload['objectId'])]
 
-    if 'withcutouts' in request.json and str(request.json['withcutouts']) == 'True':
+    if 'withcutouts' in payload and str(payload['withcutouts']) == 'True':
         withcutouts = True
     else:
         withcutouts = False
 
-    if 'withupperlim' in request.json and str(request.json['withupperlim']) == 'True':
+    if 'withupperlim' in payload and str(payload['withupperlim']) == 'True':
         withupperlim = True
     else:
         withupperlim = False
