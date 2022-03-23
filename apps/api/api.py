@@ -558,7 +558,7 @@ def query_db(payload=None):
             }
             return Response(str(rep), 400)
 
-    pdfs = return_explorer_pdf(payload)
+    pdfs = return_explorer_pdf(payload, user_group)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')

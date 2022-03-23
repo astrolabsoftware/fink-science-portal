@@ -143,7 +143,7 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
 
     return pdf
 
-def return_explorer_pdf(payload: dict) -> pd.DataFrame:
+def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     """ Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/explorer
