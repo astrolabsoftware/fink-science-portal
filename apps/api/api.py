@@ -32,18 +32,12 @@ from apps.api.utils import return_statistics_pdf
 
 import io
 import requests
-import java
-import gzip
 
-import healpy as hp
 import pandas as pd
 import numpy as np
 
-import astropy.units as u
-from astropy.time import Time, TimeDelta
-from astropy.coordinates import SkyCoord
 from astropy.table import Table
-from astropy.io import fits
+from astropy.io import fits, votable
 
 from flask import Blueprint
 
@@ -495,6 +489,13 @@ def return_object(payload=None):
         return pdf.to_json(orient='records')
     elif output_format == 'csv':
         return pdf.to_csv(index=False)
+    elif output_format == 'votable':
+        f = io.BytesIO()
+        table = Table.from_pandas(pdf)
+        vt = votable.from_table(table)
+        votable.writeto(vt, f)
+        f.seek(0)
+        return f.read()
     elif output_format == 'parquet':
         f = io.BytesIO()
         pdf.to_parquet(f)
