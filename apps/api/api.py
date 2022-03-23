@@ -28,7 +28,7 @@ from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
 from apps.api.utils import return_tracklet_pdf, format_and_send_cutout
 from apps.api.utils import perform_xmatch, return_bayestar_pdf
-from apps.api.utils import return_statistics_pdf
+from apps.api.utils import return_statistics_pdf, send_data
 
 import io
 import requests
@@ -204,7 +204,7 @@ args_objects = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, parquet, votable'
     }
 ]
 
