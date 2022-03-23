@@ -467,9 +467,9 @@ args_stats = [
 def return_object_arguments():
     """ Obtain information about retrieving object data
     """
-    if request.data is not None:
+    if request.args is not None:
         # POST from query URL
-        return return_object(payload=request.data)
+        return return_object(payload=request.args)
     else:
         return jsonify({'args': args_objects})
 
