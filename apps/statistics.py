@@ -402,7 +402,7 @@ def generate_col_list():
     return dropdown
 
 def get_data_one_night(night):
-    """
+    """ Get the statistics for one night
     """
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
     results = clientStats.scan(
