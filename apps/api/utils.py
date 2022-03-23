@@ -985,3 +985,29 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
     return pdf
+
+def send_data(pdf, output_format):
+    """
+    """
+    if output_format == 'json':
+        return pdf.to_json(orient='records')
+    elif output_format == 'csv':
+        return pdf.to_csv(index=False)
+    elif output_format == 'votable':
+        f = io.BytesIO()
+        table = Table.from_pandas(pdf)
+        vt = votable.from_table(table)
+        votable.writeto(vt, f)
+        f.seek(0)
+        return f.read()
+    elif output_format == 'parquet':
+        f = io.BytesIO()
+        pdf.to_parquet(f)
+        f.seek(0)
+        return f.read()
+
+    rep = {
+        'status': 'error',
+        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
+    }
+    return Response(str(rep), 400)

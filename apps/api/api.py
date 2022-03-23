@@ -464,11 +464,6 @@ def return_object(payload=None):
     if payload is None:
         payload = request.json
 
-    if 'output-format' in payload:
-        output_format = payload['output-format']
-    else:
-        output_format = 'json'
-
     # Check all required args are here
     required_args = [i['name'] for i in args_objects if i['required'] is True]
     for required_arg in required_args:
@@ -485,28 +480,8 @@ def return_object(payload=None):
     if isinstance(pdf, Response):
         return pdf
 
-    if output_format == 'json':
-        return pdf.to_json(orient='records')
-    elif output_format == 'csv':
-        return pdf.to_csv(index=False)
-    elif output_format == 'votable':
-        f = io.BytesIO()
-        table = Table.from_pandas(pdf)
-        vt = votable.from_table(table)
-        votable.writeto(vt, f)
-        f.seek(0)
-        return f.read()
-    elif output_format == 'parquet':
-        f = io.BytesIO()
-        pdf.to_parquet(f)
-        f.seek(0)
-        return f.read()
-
-    rep = {
-        'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
-    }
-    return Response(str(rep), 400)
+    output_format = payload.get('output-format', 'json')
+    return send_data(output_format, pdf)
 
 @api_bp.route('/api/v1/explorer', methods=['GET'])
 def query_db_arguments():
@@ -525,11 +500,6 @@ def query_db(payload=None):
     # get payload from the JSON
     if payload is None:
         payload = request.json
-
-    if 'output-format' in payload:
-        output_format = payload['output-format']
-    else:
-        output_format = 'json'
 
     # Check the user specifies only one group
     all_groups = [i['group'] for i in args_explorer if i['group'] is not None and i['name'] in payload]
@@ -558,21 +528,8 @@ def query_db(payload=None):
     if isinstance(pdfs, Response):
         return pdfs
 
-    if output_format == 'json':
-        return pdfs.to_json(orient='records')
-    elif output_format == 'csv':
-        return pdfs.to_csv(index=False)
-    elif output_format == 'parquet':
-        f = io.BytesIO()
-        pdfs.to_parquet(f)
-        f.seek(0)
-        return f.read()
-
-    rep = {
-        'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
-    }
-    return Response(str(rep), 400)
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdfs, output_format)
 
 @api_bp.route('/api/v1/latests', methods=['GET'])
 def latest_objects_arguments():
@@ -592,11 +549,6 @@ def latest_objects(payload=None):
     if payload is None:
         payload = request.json
 
-    if 'output-format' in payload:
-        output_format = payload['output-format']
-    else:
-        output_format = 'json'
-
     # Check all required args are here
     required_args = [i['name'] for i in args_latest if i['required'] is True]
     for required_arg in required_args:
@@ -613,21 +565,8 @@ def latest_objects(payload=None):
     if isinstance(pdfs, Response):
         return pdfs
 
-    if output_format == 'json':
-        return pdfs.to_json(orient='records')
-    elif output_format == 'csv':
-        return pdfs.to_csv(index=False)
-    elif output_format == 'parquet':
-        f = io.BytesIO()
-        pdfs.to_parquet(f)
-        f.seek(0)
-        return f.read()
-
-    rep = {
-        'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
-    }
-    return Response(str(rep), 400)
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdfs, output_format)
 
 @api_bp.route('/api/v1/classes', methods=['GET'])
 def class_arguments():
@@ -765,28 +704,10 @@ def return_sso(payload=None):
     if payload is None:
         payload = request.json
 
-    if 'output-format' in payload:
-        output_format = payload['output-format']
-    else:
-        output_format = 'json'
-
     pdf = return_sso_pdf(payload)
 
-    if output_format == 'json':
-        return pdf.to_json(orient='records')
-    elif output_format == 'csv':
-        return pdf.to_csv(index=False)
-    elif output_format == 'parquet':
-        f = io.BytesIO()
-        pdf.to_parquet(f)
-        f.seek(0)
-        return f.read()
-
-    rep = {
-        'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
-    }
-    return Response(str(rep), 400)
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdf, output_format)
 
 @api_bp.route('/api/v1/tracklet', methods=['GET'])
 def return_tracklet_arguments():
@@ -806,32 +727,14 @@ def return_tracklet(payload=None):
     if payload is None:
         payload = request.json
 
-    if 'output-format' in payload:
-        output_format = payload['output-format']
-    else:
-        output_format = 'json'
-
     pdf = return_tracklet_pdf(payload)
 
     # Error propagation
     if isinstance(pdf, Response):
         return pdf
 
-    if output_format == 'json':
-        return pdf.to_json(orient='records')
-    elif output_format == 'csv':
-        return pdf.to_csv(index=False)
-    elif output_format == 'parquet':
-        f = io.BytesIO()
-        pdf.to_parquet(f)
-        f.seek(0)
-        return f.read()
-
-    rep = {
-        'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
-    }
-    return Response(str(rep), 400)
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdf, output_format)
 
 @api_bp.route('/api/v1/cutouts', methods=['GET'])
 def cutouts_arguments():
@@ -893,32 +796,14 @@ def query_bayestar(payload=None):
     if payload is None:
         payload = request.json
 
-    if 'output-format' in payload:
-        output_format = payload['output-format']
-    else:
-        output_format = 'json'
-
     pdfs = return_bayestar_pdf(payload)
 
     # Error propagation
     if isinstance(pdfs, Response):
         return pdfs
 
-    if output_format == 'json':
-        return pdfs.to_json(orient='records')
-    elif output_format == 'csv':
-        return pdfs.to_csv(index=False)
-    elif output_format == 'parquet':
-        f = io.BytesIO()
-        pdfs.to_parquet(f)
-        f.seek(0)
-        return f.read()
-
-    rep = {
-        'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(request.json['output-format'])
-    }
-    return Response(str(rep), 400)
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdfs, output_format)
 
 @api_bp.route('/api/v1/statistics', methods=['GET'])
 def query_statistics_arguments():
@@ -938,25 +823,7 @@ def return_statistics(payload=None):
     if payload is None:
         payload = request.json
 
-    if 'output-format' in payload:
-        output_format = payload['output-format']
-    else:
-        output_format = 'json'
-
     pdf = return_statistics_pdf(payload)
 
-    if output_format == 'json':
-        return pdf.to_json(orient='records')
-    elif output_format == 'csv':
-        return pdf.to_csv(index=False)
-    elif output_format == 'parquet':
-        f = io.BytesIO()
-        pdf.to_parquet(f)
-        f.seek(0)
-        return f.read()
-
-    rep = {
-        'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
-    }
-    return Response(str(rep), 400)
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdf, output_format)
