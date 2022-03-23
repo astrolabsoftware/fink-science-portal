@@ -25,9 +25,10 @@ import astropy.units as u
 from app import client
 from app import clientU, clientUV
 from app import clientP128, clientP4096, clientP131072
-from app import clientT, clientTNS, clientS
+from app import clientT, clientTNS, clientS, clientSSO
 from app import nlimit
 
+from apps.utils import get_miriade_data
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 
@@ -456,3 +457,49 @@ def return_latests_pdf(payload: dict) -> pd.DataFrame:
     )
 
     return pdfs
+
+def return_sso_pdf(payload: dict) -> pd.DataFrame:
+    """
+    """
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    if cols == '*':
+        truncated = False
+    else:
+        truncated = True
+
+    payload_name = payload['n_or_d'].replace(' ', '')
+
+    # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
+    to_evaluate = "key:key:{}_".format(payload_name)
+
+    results = clientSSO.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, True, True
+    )
+
+    schema_client = clientSSO.schema()
+
+    # reset the limit in case it has been changed above
+    clientSSO.setLimit(nlimit)
+
+    pdf = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
+        extract_color=False
+    )
+
+    if 'withEphem' in payload:
+        if payload['withEphem'] == 'True' or payload['withEphem'] is True:
+            # We should probably add a timeout
+            # and try/except in case of miriade shutdown
+            pdf = get_miriade_data(pdf)
+
+    return pdf

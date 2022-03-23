@@ -40,7 +40,7 @@ from apps.api.doc import api_doc_latests, api_doc_sso, api_doc_tracklets
 from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar, api_doc_stats
 
 from apps.api.utils import return_object_pdf, return_explorer_pdf
-from apps.api.utils import return_latests_pdf
+from apps.api.utils import return_latests_pdf, return_sso_pdf
 
 
 import io
@@ -763,56 +763,26 @@ def columns_arguments():
 def return_sso_arguments():
     """ Obtain information about retrieving Solar System Object data
     """
-    return jsonify({'args': args_sso})
+    if request.args is not None:
+        # POST from query URL
+        return return_sso(payload=request.args)
+    else:
+        return jsonify({'args': args_sso})
 
 @api_bp.route('/api/v1/sso', methods=['POST'])
-def return_sso():
+def return_sso(payload=None):
     """ Retrieve Solar System Object data from the Fink database
     """
-    if 'output-format' in request.json:
-        output_format = request.json['output-format']
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    if 'output-format' in payload:
+        output_format = payload['output-format']
     else:
         output_format = 'json'
 
-    if 'columns' in request.json:
-        cols = request.json['columns'].replace(" ", "")
-        truncated = True
-    else:
-        cols = '*'
-        truncated = False
-
-    payload = request.json['n_or_d'].replace(' ', '')
-
-    # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-    to_evaluate = "key:key:{}_".format(payload)
-
-    # We do not want to perform full scan if the objectid is a wildcard
-    clientSSO.setLimit(1000)
-
-    results = clientSSO.scan(
-        "",
-        to_evaluate,
-        cols,
-        0, True, True
-    )
-
-    schema_client = clientSSO.schema()
-
-    # reset the limit in case it has been changed above
-    clientSSO.setLimit(nlimit)
-
-    pdf = format_hbase_output(
-        results,
-        schema_client,
-        group_alerts=False,
-        truncated=truncated,
-        extract_color=False
-    )
-
-    if 'withEphem' in request.json:
-        if request.json['withEphem'] == 'True' or request.json['withEphem'] is True:
-            # We should probably add a timeout and try/except in case of miriade shutdown
-            pdf = get_miriade_data(pdf)
+    pdf = return_sso_pdf(payload)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
