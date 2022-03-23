@@ -161,7 +161,12 @@ def test_query_url() -> None:
     r = requests.get(url)
     pdf2 = pd.read_json(r.content)
 
-    assert pdf1 == pdf2
+    assert pdf1.values == pdf2.values
+
+# def csv_output() -> None:
+#     """
+#     """
+
 
 
 if __name__ == "__main__":
