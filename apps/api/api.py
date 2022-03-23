@@ -42,7 +42,7 @@ from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar, api_d
 from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
 from apps.api.utils import return_tracklet_pdf, format_and_send_cutout
-from apps.api.utils import perform_xmatch
+from apps.api.utils import perform_xmatch, return_bayestar_pdf
 
 import io
 import requests
@@ -892,98 +892,30 @@ def xmatch_user(payload=None):
 def query_bayestar_arguments():
     """ Obtain information about inspecting a GW localization map
     """
-    return jsonify({'args': args_bayestar})
+    if request.args is not None:
+        # POST from query URL
+        return query_bayestar(payload=request.args)
+    else:
+        return jsonify({'args': args_bayestar})
 
 @api_bp.route('/api/v1/bayestar', methods=['POST'])
-def query_bayestar():
+def query_bayestar(payload=None):
     """ Query the Fink database to find alerts inside a GW localization map
     """
-    if 'output-format' in request.json:
-        output_format = request.json['output-format']
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    if 'output-format' in payload:
+        output_format = payload['output-format']
     else:
         output_format = 'json'
 
-    # Interpret user input
-    bayestar_data = request.json['bayestar']
-    credible_level_threshold = float(request.json['credible_level'])
+    pdfs = return_bayestar_pdf(payload)
 
-    with gzip.open(io.BytesIO(eval(bayestar_data)), 'rb') as f:
-        with fits.open(io.BytesIO(f.read())) as hdul:
-            data = hdul[1].data
-            header = hdul[1].header
-
-    hpx = data['PROB']
-    if header['ORDERING'] == 'NESTED':
-        hpx = hp.reorder(hpx, n2r=True)
-
-    i = np.flipud(np.argsort(hpx))
-    sorted_credible_levels = np.cumsum(hpx[i])
-    credible_levels = np.empty_like(sorted_credible_levels)
-    credible_levels[i] = sorted_credible_levels
-
-    # TODO: use that to define the max skyfrac (in conjunction with level)
-    # npix = len(hpx)
-    # nside = hp.npix2nside(npix)
-    # skyfrac = np.sum(credible_levels <= 0.1) * hp.nside2pixarea(nside, degrees=True)
-
-    credible_levels_128 = hp.ud_grade(credible_levels, 128)
-
-    pixs = np.where(credible_levels_128 <= credible_level_threshold)[0]
-
-    # make a condition as well on the number of pixels?
-    # print(len(pixs), pixs)
-
-    # For the future: we could set clientP128.setRangeScan(True)
-    # and pass directly the time boundaries here instead of
-    # grouping by later.
-
-    # 1 day before the event, to 6 days after the event
-    jdstart = Time(header['DATE-OBS']).jd - 1
-    jdend = jdstart + 6
-
-    clientP128.setRangeScan(True)
-    results = java.util.TreeMap()
-    for pix in pixs:
-        to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
-        result = clientP128.scan(
-            "",
-            to_search,
-            "*",
-            0, True, True
-        )
-        results.putAll(result)
-
-    # extract objectId and times
-    objectids = [i[1]['i:objectId'] for i in results.items()]
-    times = [float(i[1]['key:key'].split('_')[1]) for i in results.items()]
-    pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
-
-    # Filter by time - logic to be improved...
-    pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdend)]
-
-    # groupby and keep only the last alert per objectId
-    pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
-
-    # Get data from the main table
-    results = java.util.TreeMap()
-    for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
-        to_evaluate = "key:key:{}_{}".format(oid, jd)
-
-        result = client.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
-        )
-        results.putAll(result)
-    schema_client = client.schema()
-
-    pdfs = format_hbase_output(
-        results,
-        schema_client,
-        group_alerts=True,
-        extract_color=False
-    )
+    # Error propagation
+    if isinstance(pdfs, Response):
+        return pdfs
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')

@@ -14,6 +14,8 @@
 # limitations under the License.
 import io
 import java
+import gzip
+import requests
 
 import pandas as pd
 import numpy as np
@@ -24,6 +26,7 @@ from matplotlib import cm
 
 from astropy.coordinates import SkyCoord
 from astropy.time import Time, TimeDelta
+from astropy.io import fits
 import astropy.units as u
 
 from app import client
@@ -848,3 +851,101 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
     join_df = join_df[cols]
 
     return join_df.to_json(orient='records')
+
+def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and jsonify it
+
+    Data is from /api/v1/bayestar
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/bayestar
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    # Interpret user input
+    bayestar_data = payload['bayestar']
+    credible_level_threshold = float(payload['credible_level'])
+
+    with gzip.open(io.BytesIO(eval(bayestar_data)), 'rb') as f:
+        with fits.open(io.BytesIO(f.read())) as hdul:
+            data = hdul[1].data
+            header = hdul[1].header
+
+    hpx = data['PROB']
+    if header['ORDERING'] == 'NESTED':
+        hpx = hp.reorder(hpx, n2r=True)
+
+    i = np.flipud(np.argsort(hpx))
+    sorted_credible_levels = np.cumsum(hpx[i])
+    credible_levels = np.empty_like(sorted_credible_levels)
+    credible_levels[i] = sorted_credible_levels
+
+    # TODO: use that to define the max skyfrac (in conjunction with level)
+    # npix = len(hpx)
+    # nside = hp.npix2nside(npix)
+    # skyfrac = np.sum(credible_levels <= 0.1) * hp.nside2pixarea(nside, degrees=True)
+
+    credible_levels_128 = hp.ud_grade(credible_levels, 128)
+
+    pixs = np.where(credible_levels_128 <= credible_level_threshold)[0]
+
+    # make a condition as well on the number of pixels?
+    # print(len(pixs), pixs)
+
+    # For the future: we could set clientP128.setRangeScan(True)
+    # and pass directly the time boundaries here instead of
+    # grouping by later.
+
+    # 1 day before the event, to 6 days after the event
+    jdstart = Time(header['DATE-OBS']).jd - 1
+    jdend = jdstart + 6
+
+    clientP128.setRangeScan(True)
+    results = java.util.TreeMap()
+    for pix in pixs:
+        to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
+        result = clientP128.scan(
+            "",
+            to_search,
+            "*",
+            0, True, True
+        )
+        results.putAll(result)
+
+    # extract objectId and times
+    objectids = [i[1]['i:objectId'] for i in results.items()]
+    times = [float(i[1]['key:key'].split('_')[1]) for i in results.items()]
+    pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
+
+    # Filter by time - logic to be improved...
+    pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdend)]
+
+    # groupby and keep only the last alert per objectId
+    pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
+
+    # Get data from the main table
+    results = java.util.TreeMap()
+    for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
+        to_evaluate = "key:key:{}_{}".format(oid, jd)
+
+        result = client.scan(
+            "",
+            to_evaluate,
+            "*",
+            0, True, True
+        )
+        results.putAll(result)
+    schema_client = client.schema()
+
+    pdfs = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=True,
+        extract_color=False
+    )
+
+    return pdfs
