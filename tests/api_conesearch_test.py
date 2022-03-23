@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 
 from astropy.coordinates import SkyCoord
+from astropy.io import votable
 
 import io
 import sys
@@ -30,7 +31,7 @@ def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate_conesear
         'ra': ra,
         'dec': dec,
         'radius': radius,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     if startdate_conesearch is not None:
@@ -53,6 +54,9 @@ def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate_conesear
         pdf = pd.read_csv(io.BytesIO(r.content))
     elif output_format == 'parquet':
         pdf = pd.read_parquet(io.BytesIO(r.content))
+    elif output_format == 'votable':
+        vt = votable.parse(io.BytesIO(r.content))
+        pdf = vt.get_first_table().to_table().to_pandas()
 
     return pdf
 
@@ -185,6 +189,26 @@ def test_bad_request() -> None:
         'text': ValueError("Invalid character at col 0 in angle 'kfdlkj'")
     }
     assert r.text == str(msg), r.text
+
+def test_various_outputs() -> None:
+    """
+    Examples
+    ---------
+    >>> test_various_outputs()
+    """
+    pdf1 = conesearch(output_format='json')
+
+    for fmt in ['csv', 'parquet', 'votable']:
+        pdf2 = conesearch(output_format=fmt)
+
+        # subset of cols to avoid type issues
+        cols1 = ['i:ra', 'i:dec']
+
+        # https://docs.astropy.org/en/stable/io/votable/api_exceptions.html#w02-x-attribute-y-is-invalid-must-be-a-standard-xml-id
+        cols2 = cols1 if fmt != 'votable' else ['i_ra', 'i_dec']
+
+        isclose = np.isclose(pdf1[cols1], pdf2[cols2])
+        assert np.alltrue(isclose), fmt
 
 
 if __name__ == "__main__":

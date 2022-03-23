@@ -16,6 +16,8 @@ import requests
 import pandas as pd
 import numpy as np
 
+from astropy.io import votable
+
 import io
 import sys
 
@@ -27,7 +29,7 @@ def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=
     payload = {
         'class': myclass,
         'n': n,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     if startdate is not None:
@@ -53,6 +55,9 @@ def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=
         pdf = pd.read_csv(io.BytesIO(r.content))
     elif output_format == 'parquet':
         pdf = pd.read_parquet(io.BytesIO(r.content))
+    elif output_format == 'votable':
+        vt = votable.parse(io.BytesIO(r.content))
+        pdf = vt.get_first_table().to_table().to_pandas()
 
     return pdf
 
@@ -148,6 +153,44 @@ def test_classsearch_and_cols_without_sort() -> None:
     assert len(pdf.columns) == 1, len(pdf.columns)
 
     assert 'i:objectId' in pdf.columns
+
+def test_query_url() -> None:
+    """
+    Examples
+    ---------
+    >>> test_query_url()
+    """
+    pdf1 = classsearch()
+
+    url = "{}/api/v1/latests?class=Early SN Ia candidate&n=10&output-format=json".format(APIURL)
+    r = requests.get(url)
+    pdf2 = pd.read_json(r.content)
+
+    # subset of cols to avoid type issues
+    cols = ['i:ra', 'i:dec']
+
+    isclose = np.isclose(pdf1[cols], pdf2[cols])
+    assert np.alltrue(isclose)
+
+def test_various_outputs() -> None:
+    """
+    Examples
+    ---------
+    >>> test_various_outputs()
+    """
+    pdf1 = classsearch(output_format='json')
+
+    for fmt in ['csv', 'parquet', 'votable']:
+        pdf2 = classsearch(output_format=fmt)
+
+        # subset of cols to avoid type issues
+        cols1 = ['i:ra', 'i:dec']
+
+        # https://docs.astropy.org/en/stable/io/votable/api_exceptions.html#w02-x-attribute-y-is-invalid-must-be-a-standard-xml-id
+        cols2 = cols1 if fmt != 'votable' else ['i_ra', 'i_dec']
+
+        isclose = np.isclose(pdf1[cols1], pdf2[cols2])
+        assert np.alltrue(isclose), fmt
 
 
 if __name__ == "__main__":

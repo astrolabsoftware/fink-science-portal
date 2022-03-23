@@ -28,7 +28,7 @@ def ssosearch(n_or_d='8467', withEphem=False, columns='*', output_format='json')
         'n_or_d': n_or_d,
         'withEphem': withEphem,
         'columns': columns,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     r = requests.post(

@@ -29,7 +29,7 @@ def trackletsearch(date='2021-08-10', columns='*', output_format='json'):
     payload = {
         'date': date,
         'columns': columns,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     r = requests.post(

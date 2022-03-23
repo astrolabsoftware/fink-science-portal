@@ -29,7 +29,8 @@ from app import app
 from app import client
 from app import APIURL
 
-from apps import home, summary, about, api, statistics
+from apps import home, summary, about, statistics
+from apps.api import api
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid
@@ -1205,7 +1206,7 @@ def display_page(pathname, is_mobile):
 
 # register the API
 try:
-    from apps.api import api_bp
+    from apps.api.api import api_bp
     server.register_blueprint(api_bp, url_prefix='/')
     server.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
     server.config['JSON_SORT_KEYS'] = False
