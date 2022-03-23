@@ -600,15 +600,19 @@ def latest_objects_arguments():
 def latest_objects(payload=None):
     """ Get latest objects by class
     """
-    if 'output-format' in request.json:
-        output_format = request.json['output-format']
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    if 'output-format' in payload:
+        output_format = payload['output-format']
     else:
         output_format = 'json'
 
     # Check all required args are here
     required_args = [i['name'] for i in args_latest if i['required'] is True]
     for required_arg in required_args:
-        if required_arg not in request.json:
+        if required_arg not in payload:
             rep = {
                 'status': 'error',
                 'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
@@ -616,6 +620,10 @@ def latest_objects(payload=None):
             return Response(str(rep), 400)
 
     pdfs = return_latests_pdf(payload)
+
+    # Error propagation
+    if isinstance(pdfs, Response):
+        return pdfs
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
