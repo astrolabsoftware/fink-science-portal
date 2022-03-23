@@ -923,7 +923,7 @@ def query_bayestar(payload=None):
 def query_statistics_arguments():
     """ Obtain information about Fink statistics
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return return_statistics(payload=request.args)
     else:
