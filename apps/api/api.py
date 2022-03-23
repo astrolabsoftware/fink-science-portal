@@ -456,7 +456,7 @@ args_stats = [
 def return_object_arguments():
     """ Obtain information about retrieving object data
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return return_object(payload=request.args)
     else:
@@ -511,7 +511,7 @@ def return_object(payload=None):
 def query_db_arguments():
     """ Obtain information about querying the Fink database
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return query_db(payload=request.args)
     else:
@@ -577,7 +577,7 @@ def query_db(payload=None):
 def latest_objects_arguments():
     """ Obtain information about latest objects
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return latest_objects(payload=request.args)
     else:
@@ -750,7 +750,7 @@ def columns_arguments():
 def return_sso_arguments():
     """ Obtain information about retrieving Solar System Object data
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return return_sso(payload=request.args)
     else:
@@ -791,7 +791,7 @@ def return_sso(payload=None):
 def return_tracklet_arguments():
     """ Obtain information about retrieving Tracklets
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return return_tracklet(payload=request.args)
     else:
@@ -836,7 +836,7 @@ def return_tracklet(payload=None):
 def cutouts_arguments():
     """ Obtain information about cutouts service
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return return_cutouts(payload=request.args)
     else:
@@ -858,7 +858,7 @@ def return_cutouts(payload=None):
 def xmatch_arguments():
     """ Obtain information about the xmatch service
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return xmatch_user(payload=request.args)
     else:
@@ -878,7 +878,7 @@ def xmatch_user(payload=None):
 def query_bayestar_arguments():
     """ Obtain information about inspecting a GW localization map
     """
-    if request.args is not None:
+    if len(request.args) > 0:
         # POST from query URL
         return query_bayestar(payload=request.args)
     else:
