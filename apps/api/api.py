@@ -43,6 +43,7 @@ from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
 from apps.api.utils import return_tracklet_pdf, format_and_send_cutout
 from apps.api.utils import perform_xmatch, return_bayestar_pdf
+from apps.api.utils import return_statistics_pdf
 
 import io
 import requests
@@ -937,34 +938,26 @@ def query_bayestar(payload=None):
 def query_statistics_arguments():
     """ Obtain information about Fink statistics
     """
-    return jsonify({'args': args_stats})
+    if request.args is not None:
+        # POST from query URL
+        return return_statistics(payload=request.args)
+    else:
+        return jsonify({'args': args_stats})
 
 @api_bp.route('/api/v1/statistics', methods=['POST'])
-def return_statistics():
+def return_statistics(payload=None):
     """ Retrieve statistics about Fink data
     """
-    if 'output-format' in request.json:
-        output_format = request.json['output-format']
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    if 'output-format' in payload:
+        output_format = payload['output-format']
     else:
         output_format = 'json'
 
-    if 'columns' in request.json:
-        cols = request.json['columns'].replace(" ", "")
-    else:
-        cols = '*'
-
-    payload = request.json['date']
-
-    to_evaluate = "key:key:ztf_{}".format(payload)
-
-    results = clientStats.scan(
-        "",
-        to_evaluate,
-        cols,
-        0, True, True
-    )
-
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf = return_statistics_pdf(payload)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')

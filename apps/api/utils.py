@@ -949,3 +949,37 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     )
 
     return pdfs
+
+def return_statistics_pdf(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and jsonify it
+
+    Data is from /api/v1/statistics
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/statistics
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    payload_date = payload['date']
+
+    to_evaluate = "key:key:ztf_{}".format(payload_date)
+
+    results = clientStats.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, True, True
+    )
+
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    return pdf
