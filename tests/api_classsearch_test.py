@@ -157,7 +157,7 @@ def test_query_url() -> None:
     """
     pdf1 = classsearch()
 
-    url = "{}?class=Early SN Ia candidate&n=10&output-format=json".format(APIURL)
+    url = "{}/api/v1/latests?class=Early SN Ia candidate&n=10&output-format=json".format(APIURL)
     r = requests.get(url)
     pdf2 = pd.read_json(r.content)
 
