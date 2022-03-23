@@ -375,10 +375,6 @@ def generate_col_list():
     schema = clientStats.schema()
     schema_list = list(schema.columnNames())
 
-    # Because of a silly mistake, we do not have the information
-    # on basic:raw for historical data. Hence, do not expose it.
-    # schema_list.remove('basic:raw')
-
     labels = [
         i.replace('class', 'SIMBAD')
         if i not in dic_names
