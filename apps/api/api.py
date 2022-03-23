@@ -481,7 +481,7 @@ def return_object(payload=None):
         return pdf
 
     output_format = payload.get('output-format', 'json')
-    return send_data(output_format, pdf)
+    return send_data(pdf, output_format)
 
 @api_bp.route('/api/v1/explorer', methods=['GET'])
 def query_db_arguments():

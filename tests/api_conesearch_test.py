@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 
 from astropy.coordinates import SkyCoord
+from astropy.io import votable
 
 import io
 import sys
@@ -53,6 +54,9 @@ def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate_conesear
         pdf = pd.read_csv(io.BytesIO(r.content))
     elif output_format == 'parquet':
         pdf = pd.read_parquet(io.BytesIO(r.content))
+    elif output_format == 'votable':
+        vt = votable.parse(io.BytesIO(r.content))
+        pdf = vt.get_first_table().to_table().to_pandas()
 
     return pdf
 
