@@ -167,13 +167,10 @@ def test_query_url() -> None:
     pdf2 = pd.read_json(r.content)
 
     # subset of cols to avoid type issues
-    cols1 = ['i:ra', 'i:dec']
+    cols = ['i:ra', 'i:dec']
 
-    # https://docs.astropy.org/en/stable/io/votable/api_exceptions.html#w02-x-attribute-y-is-invalid-must-be-a-standard-xml-id
-    cols2 = cols1 if fmt != 'votable' else ['i_ra', 'i_dec']
-
-    isclose = np.isclose(pdf1[cols1], pdf2[cols2])
-    assert np.alltrue(isclose), fmt
+    isclose = np.isclose(pdf1[cols], pdf2[cols])
+    assert np.alltrue(isclose)
 
 def test_various_outputs() -> None:
     """
