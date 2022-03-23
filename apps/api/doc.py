@@ -48,6 +48,9 @@ In a unix shell, you would simply use
 ```bash
 # Get data for ZTF21aaxtctv and save it in a CSV file
 curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF21aaxtctv", "output-format":"csv"}' https://fink-portal.org/api/v1/objects -o ZTF21aaxtctv.csv
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/objects?objectId=ZTF21aaxtctv&output-format=json" -O ZTF21aaxtctv.json
 ```
 
 In python, you would use
@@ -256,6 +259,9 @@ In a unix shell, you would simply use
 ```bash
 # Get data for ZTF21aaxtctv and save it in a JSON file
 curl -H "Content-Type: application/json" -X POST -d '{"objectId":"ZTF21aaxtctv"}' https://fink-portal.org/api/v1/explorer -o search_ZTF21aaxtctv.json
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/explorer?objectId=ZTF21aaxtctv&output-format=json" -O ZTF21aaxtctv.json
 ```
 
 In python, you would use
@@ -293,6 +299,9 @@ In a unix shell, you would simply use
 ```bash
 # Get all objects falling within (center, radius) = ((ra, dec), radius)
 curl -H "Content-Type: application/json" -X POST -d '{"ra":"193.822", "dec":"2.89732", "radius":"5"}' https://fink-portal.org/api/v1/explorer -o conesearch.json
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/explorer?ra=193.822&dec=2.89732&radius=5&startdate_conesearch=2021-06-25 05:59:37.000&window_days_conesearch=7&output-format=json" -O conesearch.json
 ```
 
 In python, you would use
@@ -366,6 +375,9 @@ In a unix shell, you would simply use
 ```bash
 # Get all objects between 2021-07-01 05:59:37.000 and 2021-07-01 06:09:37.000 UTC
 curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2021-07-01 05:59:37.000", "window":"10"}' https://fink-portal.org/api/v1/explorer -o datesearch.json
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/explorer?startdate=2021-07-01 05:59:37.000&window=10&output-format=json" -O datesearch.json
 ```
 
 In python, you would use
@@ -405,6 +417,9 @@ To get the last 5 candidates of the class `Early SN Ia candidate`, you would sim
 ```bash
 # Get latests 5 Early SN Ia candidates
 curl -H "Content-Type: application/json" -X POST -d '{"class":"Early SN Ia candidate", "n":"5"}' https://fink-portal.org/api/v1/latests -o latest_five_sn_candidates.json
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/latests?class=Early SN Ia candidate&n=5&output-format=json" -O latest_five_sn_candidates.json
 ```
 
 In python, you would use
@@ -488,6 +503,9 @@ In a unix shell, you would simply use
 ```bash
 # Get data for the asteroid 8467 and save it in a CSV file
 curl -H "Content-Type: application/json" -X POST -d '{"n_or_d":"8467", "output-format":"csv"}' https://fink-portal.org/api/v1/sso -o 8467.csv
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/sso?n_or_d=8467&output-format=json" -O 8467.json
 ```
 
 In python, you would use
@@ -608,6 +626,9 @@ In a unix shell, you would simply use
 ```bash
 # Get tracklet data for the night 2021-08-10
 curl -H "Content-Type: application/json" -X POST -d '{"date":"2021-08-10", "output-format":"csv"}' https://fink-portal.org/api/v1/tracklet -o trck_20210810.csv
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/tracklet?date=2021-08-10&output-format=json" -O trck_20210810.json
 ```
 
 In python, you would use
@@ -671,6 +692,9 @@ curl -H "Content-Type: application/json" \\
     -X POST -d \\
     '{"objectId":"ZTF21aaxtctv", "kind":"Science"}' \\
     https://fink-portal.org/api/v1/cutouts -o cutoutScience.png
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/cutouts?objectId=ZTF21aaxtctv&kind=Science" -O ZTF21aaxtctv_Science.png
 ```
 
 This will retrieve the `Science` image and save it on `cutoutScience.png`.
