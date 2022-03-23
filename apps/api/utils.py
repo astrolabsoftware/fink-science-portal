@@ -24,7 +24,7 @@ from app import nlimit
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 
-def return_object_pdf(objectids, withupperlim=False, withcutouts=False, cols='*'):
+def return_object_pdf(payload: dict) -> pd.DataFrame:
     """ Make a query in HBase and format it in a Pandas dataframe
 
     Parameters
@@ -43,6 +43,29 @@ def return_object_pdf(objectids, withupperlim=False, withcutouts=False, cols='*'
     ----------
     out: pandas dataframe
     """
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    if ',' in payload['objectId']:
+        # multi-objects search
+        splitids = payload['objectId'].split(',')
+        objectids = ['key:key:{}'.format(i.strip()) for i in splitids]
+    else:
+        # single object search
+        objectids = ["key:key:{}".format(payload['objectId'])]
+
+    if 'withcutouts' in payload and str(payload['withcutouts']) == 'True':
+        withcutouts = True
+    else:
+        withcutouts = False
+
+    if 'withupperlim' in payload and str(payload['withupperlim']) == 'True':
+        withupperlim = True
+    else:
+        withupperlim = False
+
     if cols == '*':
         truncated = False
     else:

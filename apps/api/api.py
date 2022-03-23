@@ -496,32 +496,7 @@ def return_object(payload=None):
             }
             return Response(str(rep), 400)
 
-    if 'columns' in payload:
-        cols = payload['columns'].replace(" ", "")
-    else:
-        cols = '*'
-
-    if ',' in payload['objectId']:
-        # multi-objects search
-        splitids = payload['objectId'].split(',')
-        ids = ['key:key:{}'.format(i.strip()) for i in splitids]
-    else:
-        # single object search
-        ids = ["key:key:{}".format(payload['objectId'])]
-
-    if 'withcutouts' in payload and str(payload['withcutouts']) == 'True':
-        withcutouts = True
-    else:
-        withcutouts = False
-
-    if 'withupperlim' in payload and str(payload['withupperlim']) == 'True':
-        withupperlim = True
-    else:
-        withupperlim = False
-
-    pdf = return_object_pdf(
-        ids, withupperlim=withupperlim, withcutouts=withcutouts, cols=cols
-    )
+    pdf = return_object_pdf(payload)
 
     if output_format == 'json':
         return pdf.to_json(orient='records')
