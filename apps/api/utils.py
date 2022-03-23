@@ -20,11 +20,12 @@ import healpy as hp
 
 from astropy.coordinates import SkyCoord
 from astropy.time import Time, TimeDelta
+import astropy.units as u
 
 from app import client
 from app import clientU, clientUV
 from app import clientP128, clientP4096, clientP131072
-from app import clientT
+from app import clientT, clientTNS, clientS
 from app import nlimit
 
 from apps.utils import format_hbase_output
@@ -343,5 +344,115 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
 
         mask = pdfs['v:separation_degree'] > radius_deg
         pdfs = pdfs[~mask]
+
+    return pdfs
+
+def return_latests_pdf(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/latests
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/latests
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    if 'n' not in payload:
+        nalerts = 10
+    else:
+        nalerts = int(payload['n'])
+
+    if 'startdate' not in payload:
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+    else:
+        jd_start = Time(payload['startdate']).jd
+
+    if 'stopdate' not in payload:
+        jd_stop = Time.now().jd
+    else:
+        jd_stop = Time(payload['stopdate']).jd
+
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    if cols == '*':
+        truncated = False
+    else:
+        truncated = True
+
+    # Search for latest alerts for a specific class
+    tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
+    is_tns = payload['class'].startswith('(TNS)') and (payload['class'].split('(TNS) ')[1] in tns_classes)
+    if is_tns:
+        classname = payload['class'].split('(TNS) ')[1]
+        clientTNS.setLimit(nalerts)
+        clientTNS.setRangeScan(True)
+        clientTNS.setReversed(True)
+
+        results = clientTNS.scan(
+            "",
+            "key:key:{}_{},key:key:{}_{}".format(
+                classname,
+                jd_start,
+                classname,
+                jd_stop
+            ),
+            cols, 0, True, True
+        )
+        schema_client = clientTNS.schema()
+        group_alerts = True
+    elif payload['class'].startswith('(SIMBAD)') or payload['class'] != 'allclasses':
+        if payload['class'].startswith('(SIMBAD)'):
+            classname = payload['class'].split('(SIMBAD) ')[1]
+        else:
+            classname = payload['class']
+
+        clientS.setLimit(nalerts)
+        clientS.setRangeScan(True)
+        clientS.setReversed(True)
+
+        results = clientS.scan(
+            "",
+            "key:key:{}_{},key:key:{}_{}".format(
+                classname,
+                jd_start,
+                classname,
+                jd_stop
+            ),
+            cols, 0, False, False
+        )
+        schema_client = clientS.schema()
+        group_alerts = False
+    elif payload['class'] == 'allclasses':
+        clientT.setLimit(nalerts)
+        clientT.setRangeScan(True)
+        clientT.setReversed(True)
+
+        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
+        results = clientT.scan(
+            "",
+            to_evaluate,
+            cols,
+            0, True, True
+        )
+        schema_client = clientT.schema()
+        group_alerts = False
+
+    # We want to return alerts
+    # color computation is disabled
+    pdfs = format_hbase_output(
+        results, schema_client,
+        group_alerts=group_alerts,
+        extract_color=False,
+        truncated=truncated,
+        with_constellation=True
+    )
 
     return pdfs

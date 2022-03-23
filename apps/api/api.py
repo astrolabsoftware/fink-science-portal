@@ -40,6 +40,8 @@ from apps.api.doc import api_doc_latests, api_doc_sso, api_doc_tracklets
 from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar, api_doc_stats
 
 from apps.api.utils import return_object_pdf, return_explorer_pdf
+from apps.api.utils import return_latests_pdf
+
 
 import io
 import requests
@@ -588,10 +590,14 @@ def query_db(payload=None):
 def latest_objects_arguments():
     """ Obtain information about latest objects
     """
-    return jsonify({'args': args_latest})
+    if request.args is not None:
+        # POST from query URL
+        return latest_objects(payload=request.args)
+    else:
+        return jsonify({'args': args_latest})
 
 @api_bp.route('/api/v1/latests', methods=['POST'])
-def latest_objects():
+def latest_objects(payload=None):
     """ Get latest objects by class
     """
     if 'output-format' in request.json:
@@ -609,96 +615,7 @@ def latest_objects():
             }
             return Response(str(rep), 400)
 
-    if 'n' not in request.json:
-        nalerts = 10
-    else:
-        nalerts = int(request.json['n'])
-
-    if 'startdate' not in request.json:
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-    else:
-        jd_start = Time(request.json['startdate']).jd
-
-    if 'stopdate' not in request.json:
-        jd_stop = Time.now().jd
-    else:
-        jd_stop = Time(request.json['stopdate']).jd
-
-    if 'columns' in request.json:
-        cols = request.json['columns'].replace(" ", "")
-        truncated = True
-    else:
-        cols = '*'
-        truncated = False
-
-    # Search for latest alerts for a specific class
-    tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
-    is_tns = request.json['class'].startswith('(TNS)') and (request.json['class'].split('(TNS) ')[1] in tns_classes)
-    if is_tns:
-        classname = request.json['class'].split('(TNS) ')[1]
-        clientTNS.setLimit(nalerts)
-        clientTNS.setRangeScan(True)
-        clientTNS.setReversed(True)
-
-        results = clientTNS.scan(
-            "",
-            "key:key:{}_{},key:key:{}_{}".format(
-                classname,
-                jd_start,
-                classname,
-                jd_stop
-            ),
-            cols, 0, True, True
-        )
-        schema_client = clientTNS.schema()
-        group_alerts = True
-    elif request.json['class'].startswith('(SIMBAD)') or request.json['class'] != 'allclasses':
-        if request.json['class'].startswith('(SIMBAD)'):
-            classname = request.json['class'].split('(SIMBAD) ')[1]
-        else:
-            classname = request.json['class']
-
-        clientS.setLimit(nalerts)
-        clientS.setRangeScan(True)
-        clientS.setReversed(True)
-
-        results = clientS.scan(
-            "",
-            "key:key:{}_{},key:key:{}_{}".format(
-                classname,
-                jd_start,
-                classname,
-                jd_stop
-            ),
-            cols, 0, False, False
-        )
-        schema_client = clientS.schema()
-        group_alerts = False
-    elif request.json['class'] == 'allclasses':
-        clientT.setLimit(nalerts)
-        clientT.setRangeScan(True)
-        clientT.setReversed(True)
-
-        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
-        results = clientT.scan(
-            "",
-            to_evaluate,
-            cols,
-            0, True, True
-        )
-        schema_client = clientT.schema()
-        group_alerts = False
-
-    # We want to return alerts
-    # color computation is disabled
-    pdfs = format_hbase_output(
-        results, schema_client,
-        group_alerts=group_alerts,
-        extract_color=False,
-        truncated=truncated,
-        with_constellation=True
-    )
+    pdfs = return_latests_pdf(payload)
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
