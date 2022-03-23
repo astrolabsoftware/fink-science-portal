@@ -17,23 +17,8 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from flask import request, jsonify, Response
-from flask import send_file
 
-from PIL import Image as im
-from matplotlib import cm
-
-from app import client
-from app import clientP128, clientP4096, clientP131072
-from app import clientT, clientS
-from app import clientSSO, clientTNS, clientTRCK
-from app import clientU, clientUV, nlimit
-from app import clientStats
 from app import APIURL
-from apps.utils import format_hbase_output
-from apps.utils import extract_cutouts
-from apps.utils import get_superpixels
-from apps.utils import get_miriade_data
-from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
 from apps.api.doc import api_doc_summary, api_doc_object, api_doc_explorer
 from apps.api.doc import api_doc_latests, api_doc_sso, api_doc_tracklets
