@@ -41,7 +41,7 @@ from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar, api_d
 
 from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
-
+from apps.api.utils import return_tracklet_pdf
 
 import io
 import requests
@@ -804,60 +804,30 @@ def return_sso(payload=None):
 def return_tracklet_arguments():
     """ Obtain information about retrieving Tracklets
     """
-    return jsonify({'args': args_tracklet})
+    if request.args is not None:
+        # POST from query URL
+        return return_tracklet(payload=request.args)
+    else:
+        return jsonify({'args': args_tracklet})
 
 @api_bp.route('/api/v1/tracklet', methods=['POST'])
-def return_tracklet():
+def return_tracklet(payload=None):
     """ Retrieve tracklet data from the Fink database
     """
-    if 'output-format' in request.json:
-        output_format = request.json['output-format']
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    if 'output-format' in payload:
+        output_format = payload['output-format']
     else:
         output_format = 'json'
 
-    if 'columns' in request.json:
-        cols = request.json['columns'].replace(" ", "")
-        truncated = True
-    else:
-        cols = '*'
-        truncated = False
+    pdf = return_tracklet_pdf(payload)
 
-    if 'date' in request.json:
-        designation = request.json['date']
-    else:
-        rep = {
-            'status': 'error',
-            'text': "You need tp specify a date at the format YYYY-MM-DD hh:mm:ss\n"
-        }
-        return Response(str(rep), 400)
-
-    payload = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
-
-    # Note the trailing _
-    to_evaluate = "key:key:{}".format(payload)
-
-    # We do not want to perform full scan if the objectid is a wildcard
-    clientTRCK.setLimit(1000)
-
-    results = clientTRCK.scan(
-        "",
-        to_evaluate,
-        cols,
-        0, True, True
-    )
-
-    schema_client = clientTRCK.schema()
-
-    # reset the limit in case it has been changed above
-    clientTRCK.setLimit(nlimit)
-
-    pdf = format_hbase_output(
-        results,
-        schema_client,
-        group_alerts=False,
-        truncated=truncated,
-        extract_color=False
-    )
+    # Error propagation
+    if isinstance(pdf, Response):
+        return pdf
 
     if output_format == 'json':
         return pdf.to_json(orient='records')

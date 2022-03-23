@@ -25,7 +25,7 @@ import astropy.units as u
 from app import client
 from app import clientU, clientUV
 from app import clientP128, clientP4096, clientP131072
-from app import clientT, clientTNS, clientS, clientSSO
+from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
 from app import nlimit
 
 from apps.utils import get_miriade_data
@@ -501,5 +501,54 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             # We should probably add a timeout
             # and try/except in case of miriade shutdown
             pdf = get_miriade_data(pdf)
+
+    return pdf
+
+def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
+    """
+    """
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    if cols == '*':
+        truncated = False
+    else:
+        truncated = True
+
+    if 'date' in payload:
+        designation = payload['date']
+    else:
+        rep = {
+            'status': 'error',
+            'text': "You need tp specify a date at the format YYYY-MM-DD hh:mm:ss\n"
+        }
+        return Response(str(rep), 400)
+
+    payload_name = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
+
+    # Note the trailing _
+    to_evaluate = "key:key:{}".format(payload_name)
+
+    results = clientTRCK.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, True, True
+    )
+
+    schema_client = clientTRCK.schema()
+
+    # reset the limit in case it has been changed above
+    clientTRCK.setLimit(nlimit)
+
+    pdf = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
+        extract_color=False
+    )
 
     return pdf
