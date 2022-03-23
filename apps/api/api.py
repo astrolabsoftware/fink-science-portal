@@ -498,6 +498,10 @@ def return_object(payload=None):
 
     pdf = return_object_pdf(payload)
 
+    # Error propagation
+    if isinstance(pdf, Response):
+        return pdf
+
     if output_format == 'json':
         return pdf.to_json(orient='records')
     elif output_format == 'csv':
@@ -559,6 +563,10 @@ def query_db(payload=None):
             return Response(str(rep), 400)
 
     pdfs = return_explorer_pdf(payload, user_group)
+
+    # Error propagation
+    if isinstance(pdfs, Response):
+        return pdfs
 
     if output_format == 'json':
         return pdfs.to_json(orient='records')
