@@ -713,3 +713,138 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         mimetype='image/png',
         as_attachment=True,
         attachment_filename=filename)
+
+def perform_xmatch(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and jsonify it
+
+    Data is from /api/v1/xmatch
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/xmatch
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    df = pd.read_csv(io.StringIO(payload['catalog']))
+
+    radius = float(payload['radius'])
+    if radius > 18000.:
+        rep = {
+            'status': 'error',
+            'text': "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n"
+        }
+        return Response(str(rep), 400)
+
+    header = payload['header']
+
+    header = [i.strip() for i in header.split(',')]
+    if len(header) == 3:
+        raname, decname, idname = header
+    elif len(header) == 4:
+        raname, decname, idname, timename = header
+    else:
+        rep = {
+            'status': 'error',
+            'text': "Header should contain 3 or 4 entries from your catalog. E.g. RA,DEC,ID or RA,DEC,ID,Time\n"
+        }
+        return Response(str(rep), 400)
+
+    if 'window' in payload:
+        window_days = payload['window']
+    else:
+        window_days = None
+
+    # Fink columns of interest
+    colnames = [
+        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
+    ]
+
+    colnames_added_values = [
+        'd:cdsxmatch',
+        'd:roid',
+        'd:mulens_class_1',
+        'd:mulens_class_2',
+        'd:snn_snia_vs_nonia',
+        'd:snn_sn_vs_all',
+        'd:rf_snia_vs_nonia',
+        'i:ndethist',
+        'i:drb',
+        'i:classtar',
+        'd:rf_kn_vs_nonkn',
+        'i:jdstarthist'
+    ]
+
+    unique_cols = np.unique(colnames + colnames_added_values).tolist()
+
+    # check units
+    ra0 = df[raname].values[0]
+    if 'h' in str(ra0):
+        coords = [
+            SkyCoord(ra, dec, frame='icrs')
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    elif ':' in str(ra0) or ' ' in str(ra0):
+        coords = [
+            SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    else:
+        coords = [
+            SkyCoord(ra, dec, frame='icrs', unit='deg')
+            for ra, dec in zip(df[raname].values, df[decname].values)
+        ]
+    ras = [coord.ra.deg for coord in coords]
+    decs = [coord.dec.deg for coord in coords]
+    ids = df[idname].values
+
+    if len(header) == 4:
+        times = df[timename].values
+    else:
+        times = np.zeros_like(ras)
+
+    pdfs = pd.DataFrame(columns=unique_cols + [idname] + ['v:classification'])
+    for oid, ra, dec, time_start in zip(ids, ras, decs, times):
+        if len(header) == 4:
+            payload_data = {
+                'ra': ra,
+                'dec': dec,
+                'radius': radius,
+                'startdate_conesearch': time_start,
+                'window_days_conesearch': window_days
+
+            }
+        else:
+            payload_data = {
+                'ra': ra,
+                'dec': dec,
+                'radius': radius
+            }
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json=payload_data
+        )
+        pdf = pd.read_json(r.content)
+
+        # Loop over results and construct the dataframe
+        if not pdf.empty:
+            pdf[idname] = [oid] * len(pdf)
+            if 'd:rf_kn_vs_nonkn' not in pdf.columns:
+                pdf['d:rf_kn_vs_nonkn'] = np.zeros(len(pdf), dtype=float)
+            pdfs = pd.concat((pdfs, pdf), ignore_index=True)
+
+    # Final join
+    join_df = pd.merge(
+        pdfs,
+        df,
+        on=idname
+    )
+
+    # reorganise columns order
+    no_duplicate = np.where(pdfs.columns != idname)[0]
+    cols = list(df.columns) + list(pdfs.columns[no_duplicate])
+    join_df = join_df[cols]
+
+    return join_df.to_json(orient='records')
