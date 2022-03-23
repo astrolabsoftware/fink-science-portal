@@ -177,8 +177,8 @@ def test_various_outputs() -> None:
     pdf1 = classsearch(output_format='json')
 
     for fmt in ['csv', 'parquet', 'votable']:
-        pdf2 = classsearch(output_format='csv')
-        assert pdf1.equals(pdf2)
+        pdf2 = classsearch(output_format=fmt)
+        assert pdf1.equals(pdf2), fmt
 
 
 if __name__ == "__main__":

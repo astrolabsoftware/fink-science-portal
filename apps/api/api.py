@@ -261,7 +261,7 @@ args_explorer = [
         'name': 'output-format',
         'required': False,
         'group': None,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, parquet, votable'
     }
 ]
 
@@ -294,7 +294,7 @@ args_latest = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, parquet, votable'
     }
 ]
 
@@ -317,7 +317,7 @@ args_sso = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, parquet, votable'
     }
 ]
 
@@ -335,7 +335,7 @@ args_tracklet = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, parquet, votable'
     }
 ]
 
@@ -442,7 +442,7 @@ args_stats = [
     {
         'name': 'output-format',
         'required': False,
-        'description': 'Output format among json[default], csv, parquet'
+        'description': 'Output format among json[default], csv, parquet, votable'
     }
 ]
 

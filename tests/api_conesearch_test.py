@@ -186,6 +186,18 @@ def test_bad_request() -> None:
     }
     assert r.text == str(msg), r.text
 
+def test_various_outputs() -> None:
+    """
+    Examples
+    ---------
+    >>> test_various_outputs()
+    """
+    pdf1 = conesearch(output_format='json')
+
+    for fmt in ['csv', 'parquet', 'votable']:
+        pdf2 = conesearch(output_format=fmt)
+        assert pdf1.equals(pdf2)
+
 
 if __name__ == "__main__":
     """ Execute the test suite """
