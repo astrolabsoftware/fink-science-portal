@@ -99,15 +99,16 @@ r = ...
 pd.read_csv(io.BytesIO(r.content))
 ```
 
-You can also get a votable using the json output format:
+You can also get a votable:
 
 ```python
-from astropy.table import Table
+import io
+from astropy.io import votable
 
 # get data for ZTF21aaxtctv in JSON format...
 r = ...
 
-t = Table(r.json())
+vt = votable.parse(io.BytesIO(r.content))
 ```
 
 By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
