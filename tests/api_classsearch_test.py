@@ -27,7 +27,7 @@ def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=
     payload = {
         'class': myclass,
         'n': n,
-        'output_format': output_format
+        'output-format': output_format
     }
 
     if startdate is not None:
@@ -148,6 +148,20 @@ def test_classsearch_and_cols_without_sort() -> None:
     assert len(pdf.columns) == 1, len(pdf.columns)
 
     assert 'i:objectId' in pdf.columns
+
+def test_query_url() -> None:
+    """
+    Examples
+    ---------
+    >>> test_query_url()
+    """
+    pdf1 = classsearch()
+
+    url = "{}?class=Early SN Ia candidate&n=10&output-format=json"
+    r = requests.get(url)
+    pdf2 = pd.read_json(r.content)
+
+    assert pdf1 == pdf2
 
 
 if __name__ == "__main__":
