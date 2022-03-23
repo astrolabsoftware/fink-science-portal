@@ -202,8 +202,12 @@ def test_various_outputs() -> None:
         pdf2 = conesearch(output_format=fmt)
 
         # subset of cols to avoid type issues
-        cols = ['i:ra', 'i:dec']
-        isclose = np.isclose(pdf1[cols], pdf2[cols])
+        cols1 = ['i:ra', 'i:dec']
+
+        # https://docs.astropy.org/en/stable/io/votable/api_exceptions.html#w02-x-attribute-y-is-invalid-must-be-a-standard-xml-id
+        cols2 = cols1 if fmt != 'votable' else ['i_ra', 'i_dec']
+
+        isclose = np.isclose(pdf1[cols1], pdf2[cols2])
         assert np.alltrue(isclose), fmt
 
 
