@@ -1096,7 +1096,7 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
     )
 
     pdf = format_hbase_output(
-        results, schema_client, group_alerts=False, truncated=truncated
+        results, client.schema(), group_alerts=False, truncated=truncated
     )
 
     clientT.setLimit(nlimit)
