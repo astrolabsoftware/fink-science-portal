@@ -870,7 +870,7 @@ def return_random(payload=None):
         payload = request.json
 
     # Check all required args are here
-    required_args = [i['name'] for i in args_objects if i['required'] is True]
+    required_args = [i['name'] for i in args_random if i['required'] is True]
     for required_arg in required_args:
         if required_arg not in payload:
             rep = {
