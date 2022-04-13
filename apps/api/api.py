@@ -437,7 +437,30 @@ args_stats = [
     {
         'name': 'columns',
         'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns.'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
+    }
+]
+
+args_random = [
+    {
+        'name': 'n',
+        'required': True,
+        'description': 'Number of objects to return. Maximum is 16 for performance.'
+    },
+    {
+        'name': 'columns',
+        'required': False,
         'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
+        'name': 'class',
+        'required': False,
+        'description': 'Fink derived class. Default is empty string, namely all classes are considered. See {}/api/v1/classes for more information'.format(APIURL)
     },
     {
         'name': 'output-format',
@@ -824,6 +847,43 @@ def return_statistics(payload=None):
         payload = request.json
 
     pdf = return_statistics_pdf(payload)
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdf, output_format)
+
+@api_bp.route('/api/v1/random', methods=['GET'])
+def return_random_arguments():
+    """ Obtain information about retrieving random object data
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return return_random(payload=request.args)
+    else:
+        return jsonify({'args': args_random})
+
+@api_bp.route('/api/v1/random', methods=['POST'])
+def return_random(payload=None):
+    """ Retrieve random object data from the Fink database
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i['name'] for i in args_objects if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    pdf = return_random_pdf(payload)
+
+    # Error propagation
+    if isinstance(pdf, Response):
+        return pdf
 
     output_format = payload.get('output-format', 'json')
     return send_data(pdf, output_format)

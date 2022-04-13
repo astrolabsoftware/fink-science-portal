@@ -361,7 +361,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
 
     return pdfs
 
-def return_latests_pdf(payload: dict) -> pd.DataFrame:
+def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     """ Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/latests
@@ -370,6 +370,8 @@ def return_latests_pdf(payload: dict) -> pd.DataFrame:
     ----------
     payload: dict
         See https://fink-portal.org/api/v1/latests
+    return_raw: bool
+        If True, return the HBase output, else pandas DataFrame. Default is False.
 
     Return
     ----------
@@ -458,6 +460,9 @@ def return_latests_pdf(payload: dict) -> pd.DataFrame:
         )
         schema_client = clientT.schema()
         group_alerts = False
+
+    if return_raw:
+        return results
 
     # We want to return alerts
     # color computation is disabled
@@ -1009,3 +1014,92 @@ def send_data(pdf, output_format):
         'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
     }
     return Response(str(rep), 400)
+
+def return_random_pdf(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/random
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/random
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    if 'class' in payload and str(payload['class']) != "":
+        classsearch = True
+    else:
+        classsearch = False
+
+    if cols == '*':
+        truncated = False
+    else:
+        truncated = True
+
+    if int(payload['n']) > 16:
+        number = 16
+    else:
+        number = int(payload['n'])
+
+    # logic
+    results = []
+    clientT.setLimit(number)
+    clientT.setRangeScan(True)
+
+    jd_low = Time('2019-11-02 03:00:00.0').jd
+    jd_high = Time.now().jd
+
+    # 2 hours
+    delta_min = 120
+    delta_jd = TimeDelta(delta_min * 60, format='sec').jd
+    while len(results) == 0:
+        jdstart = np.random.uniform(jd_low, jd_high)
+
+        if classsearch:
+            payload_data = {
+                'class': payload['class'],
+                'n': number,
+                'startdate': jdstart,
+                'stopdate': jdstop,
+                'columns': "",
+                'output-format': 'json'
+            }
+            results = return_latests_pdf(payload_data, return_raw=True)
+        else:
+            jdstop = jdstart + delta_jd
+            results = clientT.scan(
+                "",
+                "key:key:{},key:key:{}".format(jdstart, jdstop),
+                "", 0, False, False
+            )
+
+    oids = list(dict(results).keys())
+    oids = [i.split('_')[1] for i in oids]
+
+    index_oid = np.random.randint(0, len(oids))
+    oid = oids[index_oid]
+
+    client.setLimit(2000)
+    results = client.scan(
+        "",
+        "key:key:{}".format(oid),
+        "{}".format(cols),
+        0, False, False
+    )
+
+    pdf = format_hbase_output(
+        results, schema_client, group_alerts=False, truncated=truncated
+    )
+
+    clientT.setLimit(nlimit)
+    client.setLimit(nlimit)
+
+    return pdf
