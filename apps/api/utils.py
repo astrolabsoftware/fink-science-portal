@@ -1082,7 +1082,7 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             )
 
     oids = list(dict(results).keys())
-    oids = [i.split('_')[1] for i in oids]
+    oids = [i.split('_')[-1] for i in oids]
 
     index_oid = np.random.randint(0, len(oids))
     oid = oids[index_oid]
