@@ -29,6 +29,7 @@ from apps.api.utils import return_latests_pdf, return_sso_pdf
 from apps.api.utils import return_tracklet_pdf, format_and_send_cutout
 from apps.api.utils import perform_xmatch, return_bayestar_pdf
 from apps.api.utils import return_statistics_pdf, send_data
+from apps.api.utils import return_random_pdf
 
 import io
 import requests
