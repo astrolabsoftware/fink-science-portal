@@ -1068,8 +1068,8 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             payload_data = {
                 'class': payload['class'],
                 'n': number,
-                'startdate': jdstart,
-                'stopdate': jdstop,
+                'startdate': Time(jdstart, format='jd').iso,
+                'stopdate': Time(jdstop, format='jd').iso,
                 'columns': "",
                 'output-format': 'json'
             }
