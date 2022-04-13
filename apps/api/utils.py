@@ -1057,8 +1057,8 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
     jd_low = Time('2019-11-02 03:00:00.0').jd
     jd_high = Time.now().jd
 
-    # 2 hours
-    delta_min = 120
+    # 1 month
+    delta_min = 43200
     delta_jd = TimeDelta(delta_min * 60, format='sec').jd
     while len(results) == 0:
         jdstart = np.random.uniform(jd_low, jd_high)
@@ -1082,18 +1082,25 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             )
 
     oids = list(dict(results).keys())
-    oids = [i.split('_')[-1] for i in oids]
+    oids = np.array([i.split('_')[-1] for i in oids])
 
-    index_oid = np.random.randint(0, len(oids))
+    index_oid = np.random.randint(0, len(oids), number)
     oid = oids[index_oid]
 
+    if number == 1:
+        oid = [oid]
+
     client.setLimit(2000)
-    results = client.scan(
-        "",
-        "key:key:{}".format(oid),
-        "{}".format(cols),
-        0, False, False
-    )
+    # Get data from the main table
+    results = java.util.TreeMap()
+    for oid_ in oid:
+        result = client.scan(
+            "",
+            "key:key:{}".format(oid_),
+            "{}".format(cols),
+            0, False, False
+        )
+        results.putAll(result)
 
     pdf = format_hbase_output(
         results, client.schema(), group_alerts=False, truncated=truncated
