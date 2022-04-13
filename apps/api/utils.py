@@ -1087,9 +1087,6 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
     index_oid = np.random.randint(0, len(oids), number)
     oid = oids[index_oid]
 
-    if number == 1:
-        oid = [oid]
-
     client.setLimit(2000)
     # Get data from the main table
     results = java.util.TreeMap()
