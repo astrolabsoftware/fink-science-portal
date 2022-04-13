@@ -1062,6 +1062,7 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
     delta_jd = TimeDelta(delta_min * 60, format='sec').jd
     while len(results) == 0:
         jdstart = np.random.uniform(jd_low, jd_high)
+        jdstop = jdstart + delta_jd
 
         if classsearch:
             payload_data = {
@@ -1074,7 +1075,6 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             }
             results = return_latests_pdf(payload_data, return_raw=True)
         else:
-            jdstop = jdstart + delta_jd
             results = clientT.scan(
                 "",
                 "key:key:{},key:key:{}".format(jdstart, jdstop),
