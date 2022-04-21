@@ -21,9 +21,6 @@ import sys
 
 APIURL = sys.argv[1]
 
-# Implement random name generator
-OID = 'ZTF21abfmbix'
-
 def get_an_object(number=1, output_format='json', columns='*', object_class="", seed=None):
     """ Query an object from the Science Portal using the Fink REST API
     """
