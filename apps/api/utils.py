@@ -1049,9 +1049,13 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
     else:
         number = int(payload['n'])
 
+    seed = payload.get('seed', None)
+    if seed is not None:
+        np.random.seed(int(payload['seed']))
+
     # logic
     results = []
-    clientT.setLimit(number)
+    clientT.setLimit(1000)
     clientT.setRangeScan(True)
 
     jd_low = Time('2019-11-02 03:00:00.0').jd
