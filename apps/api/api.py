@@ -464,6 +464,11 @@ args_random = [
         'description': 'Fink derived class. Default is empty string, namely all classes are considered. See {}/api/v1/classes for more information'.format(APIURL)
     },
     {
+        'name': 'seed',
+        'required': False,
+        'description': 'Seed number for random number generator. By default, the seed is not fixed.'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet, votable'
