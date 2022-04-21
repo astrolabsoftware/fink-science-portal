@@ -33,7 +33,7 @@ def get_an_object(number=1, output_format='json', columns='*', object_class="", 
         'output-format': output_format,
     }
 
-    if class != "":
+    if object_class != "":
         payload.update({'class': object_class})
 
     if seed is not None:
