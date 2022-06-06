@@ -23,7 +23,7 @@ import base64
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
-from qrcode.image.styles.colormasks import SolidFillColorMask
+from qrcode.image.styles.colormasks import RadialGradiantColorMask
 
 from astropy.io import fits
 from astroquery.mpc import MPC
@@ -969,10 +969,7 @@ def generate_qr(data):
         image_factory=StyledPilImage,
         module_drawer=RoundedModuleDrawer(),
         eye_drawer=RoundedModuleDrawer(),
-        color_mask=SolidFillColorMask(
-            back_color=(255, 255, 255),
-            front_color=(255, 0, 0)
-        ),
+        color_mask=RadialGradiantColorMask(edge_color=(245, 98, 46))
     )
 
     return img
