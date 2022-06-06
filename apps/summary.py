@@ -628,8 +628,8 @@ def layout(name, is_mobile):
                         html.Br(),
                         dbc.Row(
                             [
-                                html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg)),
-                            ]
+                                html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='50%', width='50%'),
+                            ], justify="center"
                         ),
                     ], id='webinprog', fluid=True, style={'width': '100%'}
                 ),
