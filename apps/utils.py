@@ -23,6 +23,7 @@ import base64
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
+from qrcode.image.styles.colormasks import SolidFillColorMask
 
 from astropy.io import fits
 from astroquery.mpc import MPC
