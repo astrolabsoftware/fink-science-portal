@@ -594,6 +594,9 @@ def layout(name, is_mobile):
     )
     pdf = pd.read_json(r.content)
 
+    qrdata = "https://fink-portal.org/{}".format(name[1:])
+    qrimg = generate_qr(qrdata)
+
     if is_mobile:
         layout_ = html.Div(
             [
@@ -620,6 +623,12 @@ def layout(name, is_mobile):
                         dbc.Row(
                             [
                                 dbc.Col(accordion, width=12)
+                            ]
+                        ),
+                        html.Br(),
+                        dbc.Row(
+                            [
+                                html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg)),
                             ]
                         ),
                     ], id='webinprog', fluid=True, style={'width': '100%'}
