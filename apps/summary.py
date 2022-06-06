@@ -336,7 +336,7 @@ def title(name, is_mobile):
         title_ = html.Div(header)
     else:
         header = [
-            html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), , height='20%', width='20%'),
+            html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%', width='20%'),
             html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
         ]
         title_ = dbc.Card(
