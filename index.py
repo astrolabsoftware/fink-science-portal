@@ -198,7 +198,8 @@ fink_search_bar = dbc.InputGroup(
             autoFocus=True,
             type='search',
             style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
-            className='inputbar'
+            className='inputbar',
+            debounce=True
         ),
         dbc.Button(
             html.I(className="fas fa-search fa-1x"),
@@ -670,10 +671,11 @@ def chips_values(chip_value, val):
     Output("logo", "children"),
     [
         Input("submit", "n_clicks"),
+        Input("search_bar_input", "n_submit"),
         Input("url", "search")
     ],
 )
-def logo(ns, searchurl):
+def logo(ns, nss, searchurl):
     """ Show the logo in the start page (and hide it otherwise)
     """
     ctx = dash.callback_context
@@ -692,12 +694,12 @@ def logo(ns, searchurl):
         ),
         html.Br()
     ]
-    if not ctx.triggered and searchurl == '':
+    if nss is None and (not ctx.triggered) and (searchurl == ''):
         return logo
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id == "submit" or searchurl != '':
+    if button_id in ["submit", "search_bar_input"] or searchurl != '':
         return []
     else:
         return logo
@@ -800,7 +802,6 @@ def update_table(field_dropdown, data, columns):
         Output("validate_results", "value"),
     ],
     [
-        Input("submit", "n_clicks"),
         Input("search_bar_input", "value"),
         Input("dropdown-query", "value"),
         Input("select", "value"),
@@ -809,7 +810,7 @@ def update_table(field_dropdown, data, columns):
     ],
     State("results", "children")
 )
-def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, results):
+def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     """ Query the database from the search input
 
     Returns
@@ -826,8 +827,8 @@ def results(ns, query, query_type, dropdown_option, is_mobile, searchurl, result
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id != "submit" and searchurl == '':
-        raise PreventUpdate
+    #if button_id != "submit" and searchurl == '':
+    #    raise PreventUpdate
 
     # catch parameters sent from URL
     # override any other options
@@ -979,12 +980,13 @@ noresults_toast = html.Div(
         Input("submit", "n_clicks"),
         Input("validate_results", "value"),
         Input("search_bar_input", "value"),
+        Input("search_bar_input", "n_submit"),
         Input("dropdown-query", "value"),
         Input("select", "value"),
         Input("url", "search")
     ]
 )
-def open_noresults(n, results, query, query_type, dropdown_option, searchurl):
+def open_noresults(n, results, query, ns, query_type, dropdown_option, searchurl):
     """ Toast to warn the user about the fact that we found no results
     """
     # Trigger the query only if the submit button is pressed.
