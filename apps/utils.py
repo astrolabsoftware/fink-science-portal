@@ -18,6 +18,11 @@ import pandas as pd
 import gzip
 import io
 import requests
+import base64
+
+import qrcode
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 
 from astropy.io import fits
 from astroquery.mpc import MPC
@@ -918,3 +923,55 @@ def Vmag(alpha, H, G1, G2):
     """ Only phase part
     """
     return H - 2.5 * np.log10(G1 * phi1(alpha) + G2 * phi2(alpha) + (1 - G1 - G2) * phi3(alpha))
+
+def pil_to_b64(im, enc_format="png", **kwargs):
+    """ Converts a PIL Image into base64 string for HTML displaying
+
+    Parameters
+    ----------
+    im: PIL Image object
+        PIL Image object
+    enc_format: str
+        The image format for displaying.
+
+    Returns
+    -----------
+    base64 encoding
+    """
+
+    buff = io.BytesIO()
+    im.save(buff, format=enc_format, **kwargs)
+    encoded = base64.b64encode(buff.getvalue()).decode("utf-8")
+
+    return encoded
+
+def generate_qr(data):
+    """ Generate a QR code from the data
+
+    To check the generated QR code, simply use:
+    >>> img = generate_qr("https://fink-broker.org")
+    >>> img.get_image().show()
+
+    Parameters
+    ----------
+    data: str
+        Typically an URL
+
+    Returns
+    ----------
+    PIL image
+    """
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L)
+    qr.add_data(data)
+
+    img = qr.make_image(
+        image_factory=StyledPilImage,
+        module_drawer=RoundedModuleDrawer(),
+        eye_drawer=RoundedModuleDrawer(),
+        color_mask=SolidFillColorMask(
+            back_color=(255, 255, 255),
+            front_color=(255, 0, 0)
+        ),
+    )
+
+    return img
