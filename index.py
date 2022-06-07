@@ -500,6 +500,7 @@ def display_table_results(table, is_mobile):
                         [dbc.PopoverBody(switch_description)],
                         target="alert-object-switch",
                         trigger="hover",
+                        placement="top"
                     ),
                 ], justify='between'
             ),
