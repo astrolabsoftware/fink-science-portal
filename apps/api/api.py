@@ -668,7 +668,9 @@ def columns_arguments():
             {'name': 'classification', 'type': 'string', 'doc': 'Fink inferred classification. See https://fink-portal.org/api/v1/classes'},
             {'name': 'g-r', 'type': 'double', 'doc': 'Last g-r measurement for this object.'},
             {'name': 'rate(g-r)', 'type': 'double', 'doc': 'g-r rate in mag/day (between last and first available g-r measurements).'},
-            {'name': 'lastdate', 'type': 'string', 'doc': 'Datetime for the alert (from the i:jd field).'},
+            {'name': 'lastdate', 'type': 'string', 'doc': 'Human readable datetime for the alert (from the i:jd field).'},
+            {'name': 'firstdate', 'type': 'string', 'doc': 'Human readable datetime for the first detection of the object (from the i:jdstarthist field).'},
+            {'name': 'lapse', 'type': 'string', 'doc': 'Number of days between first and last detection.'},
         ]
     )
 

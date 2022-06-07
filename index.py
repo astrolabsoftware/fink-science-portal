@@ -439,7 +439,11 @@ def display_table_results(table, is_mobile):
     schema_list = list(schema.columnNames())
     fink_fields = [i for i in schema_list if i.startswith('d:')]
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
-    fink_additional_fields = ['v:constellation', 'v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
+    fink_additional_fields = [
+        'v:constellation', 'v:g-r', 'v:rate(g-r)',
+        'v:classification',
+        'v:lastdate', 'v:firstdate', 'v:lapse'
+    ]
 
     dropdown = dcc.Dropdown(
         id='field-dropdown2',
@@ -456,6 +460,16 @@ def display_table_results(table, is_mobile):
         placeholder="Add more fields to the table",
     )
 
+    switch = dmc.Switch(
+        size="md",
+        radius="xl",
+        label="Unique objects",
+        color="orange",
+        checked=False,
+        id="alert-object-switch"
+    )
+    switch_description = "Toggle the switch to list each object only once. Only the latest alert will be displayed."
+
     if is_mobile:
         width_dropdown = 8
         width_preview = 4
@@ -471,7 +485,17 @@ def display_table_results(table, is_mobile):
                 dbc.Col(modal_quickview, width=width_preview)
             ]
         ),
-        html.Br(),
+        dbc.Row(
+            [
+                dbc.Col(switch, width=width_preview),
+                dbc.Popover(
+                    [dbc.PopoverBody(switch_description)],
+                    target="alert-object-switch",
+                    trigger="hover",
+                    placement="top"
+                ),
+            ], justify='between'
+        ),
         table
     ], fluid=True)
 
@@ -631,7 +655,7 @@ def input_type(chip_value):
             {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
             *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
         ]
-        placeholder = "Start typing or choose a class. We will display the last 100 alerts for this class."
+        placeholder = "All classes"
         return {}, options, placeholder
     else:
         return {'display': 'none'}, [], ''
@@ -659,7 +683,7 @@ def chips_values(chip_value, val):
     elif chip_value == "Date Search":
         return "    Search alerts inside a time window. See Help for the syntax", val
     elif chip_value == "Class Search":
-        return "    Show last 100 alerts for a particular class", val
+        return "    Choose a class below. We will display the last 100 alerts for this class.", val
     elif chip_value == "SSO":
         return "    Enter a valid IAU number. See Help for more information", val
     elif chip_value == "Tracklet":
@@ -672,10 +696,11 @@ def chips_values(chip_value, val):
     [
         Input("submit", "n_clicks"),
         Input("search_bar_input", "n_submit"),
+        Input("select", "options"),
         Input("url", "search")
     ],
 )
-def logo(ns, nss, searchurl):
+def logo(ns, nss, options, searchurl):
     """ Show the logo in the start page (and hide it otherwise)
     """
     ctx = dash.callback_context
@@ -699,7 +724,7 @@ def logo(ns, nss, searchurl):
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id in ["submit", "search_bar_input"] or searchurl != '':
+    if (button_id in ["submit", "search_bar_input"]) or (searchurl != '') or (options != []):
         return []
     else:
         return logo
@@ -763,14 +788,15 @@ def populate_result_table(data, columns, is_mobile):
         Output("result_table", "columns"),
     ],
     [
-        Input('field-dropdown2', 'value')
+        Input('field-dropdown2', 'value'),
+        Input('alert-object-switch', 'checked')
     ],
     [
         State("result_table", "data"),
         State("result_table", "columns"),
     ]
 )
-def update_table(field_dropdown, data, columns):
+def update_table(field_dropdown, groupby, data, columns):
     """ Update table by adding new columns (no server call)
     """
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
@@ -792,6 +818,11 @@ def update_table(field_dropdown, data, columns):
             # 'hideable': True,
         })
 
+        return data, columns
+    elif groupby is True:
+        pdf = pd.DataFrame.from_dict(data)
+        pdf = pdf.drop_duplicates(subset='i:objectId', keep="first")
+        data = pdf.to_dict('records')
         return data, columns
     else:
         raise PreventUpdate
@@ -821,14 +852,10 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         0: not results found, 1: results found
     """
     colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
+        'i:objectId', 'i:ra', 'i:dec',
+        'v:lastdate', 'v:classification', 'i:ndethist',
+        'v:lapse'
     ]
-
-    ctx = dash.callback_context
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    #if button_id != "submit" and searchurl == '':
-    #    raise PreventUpdate
 
     # catch parameters sent from URL
     # override any other options
