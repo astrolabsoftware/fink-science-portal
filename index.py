@@ -459,7 +459,7 @@ def display_table_results(table, is_mobile):
     switch = dmc.Switch(
         size="md",
         radius="xl",
-        label="Objects",
+        label="Unique objects",
         color="orange",
         checked=False
     )
