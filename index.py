@@ -456,17 +456,19 @@ def display_table_results(table, is_mobile):
         placeholder="Add more fields to the table",
     )
 
-    switch = html.Div(
-        [
-            dbc.Checklist(
-                options=[
-                    {"label": "Object view", "value": 1},
-                ],
-                value=0,
-                id="alert-object-switch",
-                switch=True,
-            ),
-        ]
+    switch = dmc.Chips(
+        data=[
+            {"value": "object", "label": "object"},
+        ],
+        id="alert-object-switch",
+        value='alert',
+        color="orange",
+        radius="xl",
+        size="sm",
+        spacing="xl",
+        variant="outline",
+        position='center',
+        multiple=True,
     )
 
     if is_mobile:
