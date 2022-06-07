@@ -817,7 +817,7 @@ def update_table(field_dropdown, groupby, data, columns):
         return data, columns
     elif groupby is True:
         pdf = pd.DataFrame.from_dict(data)
-        pdf.drop_duplicates(subset='i:objectId', keep="first")
+        pdf = pdf.drop_duplicates(subset='i:objectId', keep="first")
         data = pdf.to_dict('records')
         return data, columns
     else:
