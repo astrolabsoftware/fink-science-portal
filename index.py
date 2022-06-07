@@ -485,13 +485,13 @@ def display_table_results(table, is_mobile):
 
         return dbc.Container([
             html.Br(),
+            dbc.Row(dbc.Col(switch)),
             dbc.Row(
                 [
                     dbc.Col(dropdown, width=width_dropdown),
                     dbc.Col(modal_quickview, width=width_preview)
                 ]
             ),
-            dbc.Row(dbc.Col(switch)),
             html.Br(),
             table
         ], fluid=True)
