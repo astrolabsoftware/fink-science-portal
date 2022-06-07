@@ -456,24 +456,44 @@ def display_table_results(table, is_mobile):
         placeholder="Add more fields to the table",
     )
 
+    switch = dbc.Switch(
+        id="alert-object-switch",
+        label="Object view",
+        value=False,
+    ),
+
     if is_mobile:
         width_dropdown = 8
         width_preview = 4
+
+        return dbc.Container([
+            html.Br(),
+            dbc.Row(
+                [
+                    dbc.Col(dropdown, width=width_dropdown),
+                    dbc.Col(modal_quickview, width=width_preview)
+                ]
+            ),
+            html.Br(),
+            table
+        ], fluid=True)
     else:
-        width_dropdown = 10
+        width_dropdown = 8
+        width_switch = 2
         width_preview = 2
 
-    return dbc.Container([
-        html.Br(),
-        dbc.Row(
-            [
-                dbc.Col(dropdown, width=width_dropdown),
-                dbc.Col(modal_quickview, width=width_preview)
-            ]
-        ),
-        html.Br(),
-        table
-    ], fluid=True)
+        return dbc.Container([
+            html.Br(),
+            dbc.Row(
+                [
+                    dbc.Col(dropdown, width=width_dropdown),
+                    dbc.Col(switch, width=width_switch),
+                    dbc.Col(modal_quickview, width=width_preview)
+                ]
+            ),
+            html.Br(),
+            table
+        ], fluid=True)
 
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
