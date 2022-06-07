@@ -22,13 +22,15 @@ from app import APIURL
 
 from apps.api.doc import api_doc_summary, api_doc_object, api_doc_explorer
 from apps.api.doc import api_doc_latests, api_doc_sso, api_doc_tracklets
-from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar, api_doc_stats
+from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar
+from apps.api.doc import api_doc_stats, api_doc_random
 
 from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
 from apps.api.utils import return_tracklet_pdf, format_and_send_cutout
 from apps.api.utils import perform_xmatch, return_bayestar_pdf
 from apps.api.utils import return_statistics_pdf, send_data
+from apps.api.utils import return_random_pdf
 
 import io
 import requests
@@ -167,6 +169,17 @@ def layout(is_mobile):
                                         }
                                     ),
                                 ], label="Statistics"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_random)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Random objects"
                             ),
                         ]
                     )
@@ -437,7 +450,35 @@ args_stats = [
     {
         'name': 'columns',
         'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns.'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
+    }
+]
+
+args_random = [
+    {
+        'name': 'n',
+        'required': True,
+        'description': 'Number of objects to return. Maximum is 16 for performance.'
+    },
+    {
+        'name': 'columns',
+        'required': False,
         'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
+        'name': 'class',
+        'required': False,
+        'description': 'Fink derived class. Default is empty string, namely all classes are considered. See {}/api/v1/classes for more information'.format(APIURL)
+    },
+    {
+        'name': 'seed',
+        'required': False,
+        'description': 'Seed number for random number generator. By default, the seed is not fixed.'
     },
     {
         'name': 'output-format',
@@ -826,6 +867,43 @@ def return_statistics(payload=None):
         payload = request.json
 
     pdf = return_statistics_pdf(payload)
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdf, output_format)
+
+@api_bp.route('/api/v1/random', methods=['GET'])
+def return_random_arguments():
+    """ Obtain information about retrieving random object data
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return return_random(payload=request.args)
+    else:
+        return jsonify({'args': args_random})
+
+@api_bp.route('/api/v1/random', methods=['POST'])
+def return_random(payload=None):
+    """ Retrieve random object data from the Fink database
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i['name'] for i in args_random if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    pdf = return_random_pdf(payload)
+
+    # Error propagation
+    if isinstance(pdf, Response):
+        return pdf
 
     output_format = payload.get('output-format', 'json')
     return send_data(pdf, output_format)
