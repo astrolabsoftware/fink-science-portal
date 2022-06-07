@@ -489,10 +489,10 @@ def display_table_results(table, is_mobile):
             dbc.Row(
                 [
                     dbc.Col(dropdown, width=width_dropdown),
-                    dbc.Col(switch, width=width_switch),
                     dbc.Col(modal_quickview, width=width_preview)
                 ]
             ),
+            dbc.Row(dbc.Col(switch, width=width_switch)),
             html.Br(),
             table
         ], fluid=True)
