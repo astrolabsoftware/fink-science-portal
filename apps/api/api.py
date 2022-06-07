@@ -22,7 +22,8 @@ from app import APIURL
 
 from apps.api.doc import api_doc_summary, api_doc_object, api_doc_explorer
 from apps.api.doc import api_doc_latests, api_doc_sso, api_doc_tracklets
-from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar, api_doc_stats
+from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar
+from apps.api.doc import api_doc_stats, api_doc_random
 
 from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
@@ -168,6 +169,17 @@ def layout(is_mobile):
                                         }
                                     ),
                                 ], label="Statistics"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_random)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Random"
                             ),
                         ]
                     )

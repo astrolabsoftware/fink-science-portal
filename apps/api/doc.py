@@ -1080,3 +1080,64 @@ The schema of the dataframe is the following:
 
 All other fields starting with `class:` are crossmatch from the SIMBAD database.
 """.format(pd.DataFrame([dic_names]).T.rename(columns={0: 'description'}).to_markdown())
+
+api_doc_random = """
+## Retrieve object data
+
+The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/random.
+
+In a unix shell, you would simply use
+
+```bash
+# Get the data for 8 *objects* randomly drawn from the +120 million alerts in Fink
+curl -H "Content-Type: application/json" -X POST -d '{"n":8, "output-format":"csv"}' https://fink-portal.org/api/v1/random -o random.csv
+
+# you can also specify parameters in the URL, e.g. with wget:
+wget "https://fink-portal.org/api/v1/random?n=8&output-format=json" -O random.json
+```
+
+In python, you would use
+
+```python
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/random',
+  json={
+    'n': integer, # Number of random objects to get
+    'class': classname, # Optional, specify a Fink class.
+    'seed': integer, # Optional, the seed for reproducibility
+    'columns': str, # Optional, comma-separated column names
+    'output-format': output_format, # Optional [json[default], csv, parquet, votable]
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
+```
+
+As this service is experimental, the number of random objects returned for a single
+call cannot be greater than 16. Concerning the classname, see https://fink-portal.org/api/v1/classes.
+If you do not specify the parameter `class`, you will get random objects from all classes.
+For better performances, we advice to choose a classname, and limit colunms to transfer, e.g.:
+
+```
+# random Early SN Ia candidate
+r = requests.post(
+  'https://fink-portal.org/api/v1/random',
+  json={
+    'n': 16, # Number of random objects to get
+    'class': 'Early SN Ia candidate', # Optional, specify a Fink class.
+    'seed': 0, # Optional, the seed for reproducibility
+    'columns': 'i:objectId,i:jd,i:magpsf,i:fid', # Optional, comma-separated column names
+  }
+)
+```
+
+Note that this returns data for *objects* (and not just alerts).
+
+Note also that the `seed` is used to fix the date boundaries, hence it is valid only over a small period of time as the database is updated everyday, and more dates are added...
+So consider your seed valid over 24h (this might change in the future).
+
+"""
