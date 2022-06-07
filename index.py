@@ -784,14 +784,15 @@ def populate_result_table(data, columns, is_mobile):
         Output("result_table", "columns"),
     ],
     [
-        Input('field-dropdown2', 'value')
+        Input('field-dropdown2', 'value'),
+        Input('alert-object-switch', 'checked')
     ],
     [
         State("result_table", "data"),
         State("result_table", "columns"),
     ]
 )
-def update_table(field_dropdown, data, columns):
+def update_table(field_dropdown, groupby, data, columns):
     """ Update table by adding new columns (no server call)
     """
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
@@ -813,6 +814,11 @@ def update_table(field_dropdown, data, columns):
             # 'hideable': True,
         })
 
+        return data, columns
+    elif groupby is True:
+        pdf = pd.DataFrame.from_dict(data)
+        pdf.drop_duplicates(subset='i:objectId', keep="first")
+        data = pdf.to_dict('records')
         return data, columns
     else:
         raise PreventUpdate
