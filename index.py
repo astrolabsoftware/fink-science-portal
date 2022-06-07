@@ -487,16 +487,15 @@ def display_table_results(table, is_mobile):
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(dropdown, width=12),
+                    dbc.Col(dropdown, width=width_dropdown),
+                    dbc.Col(modal_quickview, width=width_preview)
                 ]
             ),
             dbc.Row(
                 [
                     dbc.Col(switch, width=width_preview),
-                    dbc.Col(modal_quickview, width=width_preview)
                 ], justify='between'
             ),
-            html.Br(),
             table
         ], fluid=True)
 
