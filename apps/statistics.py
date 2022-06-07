@@ -25,7 +25,7 @@ import pandas as pd
 dcc.Location(id='url', refresh=False)
 
 dic_names = {
-    'basic:night': 'Observation date',
+    'key:key': 'Observation date in the form ztf_YYYYMMDD',
     'basic:raw': 'Number of alerts received',
     'basic:sci': 'Number of alerts processed (passing quality cuts)',
     'basic:n_g': 'Number of measurements in the g band',
