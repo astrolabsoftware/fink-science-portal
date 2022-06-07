@@ -179,7 +179,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Random"
+                                ], label="Random objects"
                             ),
                         ]
                     )
