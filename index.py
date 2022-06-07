@@ -469,43 +469,31 @@ def display_table_results(table, is_mobile):
     if is_mobile:
         width_dropdown = 8
         width_preview = 4
-
-        return dbc.Container([
-            html.Br(),
-            dbc.Row(
-                [
-                    dbc.Col(dropdown, width=width_dropdown),
-                    dbc.Col(modal_quickview, width=width_preview)
-                ]
-            ),
-            html.Br(),
-            table
-        ], fluid=True)
     else:
         width_dropdown = 10
         width_preview = 2
 
-        return dbc.Container([
-            html.Br(),
-            dbc.Row(
-                [
-                    dbc.Col(dropdown, width=width_dropdown),
-                    dbc.Col(modal_quickview, width=width_preview)
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(switch, width=width_preview),
-                    dbc.Popover(
-                        [dbc.PopoverBody(switch_description)],
-                        target="alert-object-switch",
-                        trigger="hover",
-                        placement="top"
-                    ),
-                ], justify='between'
-            ),
-            table
-        ], fluid=True)
+    return dbc.Container([
+        html.Br(),
+        dbc.Row(
+            [
+                dbc.Col(dropdown, width=width_dropdown),
+                dbc.Col(modal_quickview, width=width_preview)
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(switch, width=width_preview),
+                dbc.Popover(
+                    [dbc.PopoverBody(switch_description)],
+                    target="alert-object-switch",
+                    trigger="hover",
+                    placement="top"
+                ),
+            ], justify='between'
+        ),
+        table
+    ], fluid=True)
 
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
