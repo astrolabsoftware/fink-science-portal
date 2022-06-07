@@ -692,10 +692,11 @@ def chips_values(chip_value, val):
     [
         Input("submit", "n_clicks"),
         Input("search_bar_input", "n_submit"),
+        Input("select", "options"),
         Input("url", "search")
     ],
 )
-def logo(ns, nss, searchurl):
+def logo(ns, nss, options, searchurl):
     """ Show the logo in the start page (and hide it otherwise)
     """
     ctx = dash.callback_context
@@ -719,7 +720,7 @@ def logo(ns, nss, searchurl):
     else:
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if button_id in ["submit", "search_bar_input"] or searchurl != '':
+    if (button_id in ["submit", "search_bar_input"]) or (searchurl != '') or (options != []):
         return []
     else:
         return logo
@@ -843,12 +844,6 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
     ]
-
-    ctx = dash.callback_context
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    #if button_id != "submit" and searchurl == '':
-    #    raise PreventUpdate
 
     # catch parameters sent from URL
     # override any other options
