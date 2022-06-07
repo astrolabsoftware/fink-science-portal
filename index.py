@@ -486,6 +486,7 @@ def display_table_results(table, is_mobile):
         return dbc.Container([
             html.Br(),
             dbc.Row(dbc.Col(switch)),
+            html.Br(),
             dbc.Row(
                 [
                     dbc.Col(dropdown, width=width_dropdown),
