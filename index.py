@@ -492,8 +492,8 @@ def display_table_results(table, is_mobile):
             ),
             dbc.Row(
                 [
-                    dbc.Col(switch),
-                    dbc.Col(modal_quickview)
+                    dbc.Col(switch, width=width_preview),
+                    dbc.Col(modal_quickview, width=width_preview)
                 ], justify='between'
             ),
             html.Br(),
