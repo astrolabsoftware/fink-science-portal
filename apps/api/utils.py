@@ -424,6 +424,7 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
         )
         schema_client = clientTNS.schema()
         group_alerts = True
+        clientTNS.setLimit(nlimit)
     elif payload['class'].startswith('(SIMBAD)') or payload['class'] != 'allclasses':
         if payload['class'].startswith('(SIMBAD)'):
             classname = payload['class'].split('(SIMBAD) ')[1]
@@ -446,6 +447,7 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
         )
         schema_client = clientS.schema()
         group_alerts = False
+        clientS.setLimit(nlimit)
     elif payload['class'] == 'allclasses':
         clientT.setLimit(nalerts)
         clientT.setRangeScan(True)
@@ -460,6 +462,9 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
         )
         schema_client = clientT.schema()
         group_alerts = False
+
+        # Restore default limits
+        clientT.setLimit(nlimit)
 
     if return_raw:
         return results

@@ -48,13 +48,13 @@ def test_bayestar() -> None:
     """
     pdf = bayestartest()
 
-    assert len(pdf) == 49, len(pdf)
+    assert len(pdf) == 59, len(pdf)
 
     a = pdf.groupby('v:classification').count()\
         .sort_values('i:objectId', ascending=False)['i:objectId']\
         .to_dict()
 
-    assert a['QSO'] == 16, a
+    assert a['QSO'] == 18, a
 
 
 if __name__ == "__main__":

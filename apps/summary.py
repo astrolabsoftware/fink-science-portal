@@ -43,6 +43,8 @@ from apps.plotting import all_radio_options
 
 from apps.utils import format_hbase_output
 from apps.utils import get_miriade_data
+from apps.utils import pil_to_b64
+from apps.utils import generate_qr
 
 from app import APIURL
 
@@ -318,6 +320,9 @@ def tabs(pdf, is_mobile):
     return tabs_
 
 def title(name, is_mobile):
+    qrdata = "https://fink-portal.org/{}".format(name[1:])
+    qrimg = generate_qr(qrdata)
+
     if is_mobile:
         header = [
             html.Hr(),
@@ -330,7 +335,10 @@ def title(name, is_mobile):
         ]
         title_ = html.Div(header)
     else:
-        header = [html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='20%', width='20%'), html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})]
+        header = [
+            html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='15%', width='15%'),
+            html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+        ]
         title_ = dbc.Card(
             dbc.CardHeader(
                 [
@@ -540,7 +548,8 @@ def store_query(name):
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
 
     payload = pdfs['i:ssnamenr'].values[0]
-    if str(payload) != 'null':
+    is_sso = np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values])
+    if str(payload) != 'null' and is_sso:
         results = clientSSO.scan(
             "",
             "key:key:{}_".format(payload),
@@ -586,6 +595,9 @@ def layout(name, is_mobile):
     )
     pdf = pd.read_json(r.content)
 
+    qrdata = "https://fink-portal.org/{}".format(name[1:])
+    qrimg = generate_qr(qrdata)
+
     if is_mobile:
         layout_ = html.Div(
             [
@@ -613,6 +625,12 @@ def layout(name, is_mobile):
                             [
                                 dbc.Col(accordion, width=12)
                             ]
+                        ),
+                        html.Br(),
+                        dbc.Row(
+                            [
+                                html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='50%', width='50%'),
+                            ], justify="center"
                         ),
                     ], id='webinprog', fluid=True, style={'width': '100%'}
                 ),

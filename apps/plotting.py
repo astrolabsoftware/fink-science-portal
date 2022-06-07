@@ -3186,6 +3186,7 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
     else:
         text = pdf.values[0]
 
+    pdf = pdf.replace('', 0)
     pdf = pdf.fillna(0).astype(int)
     fig = go.Figure(
         [
