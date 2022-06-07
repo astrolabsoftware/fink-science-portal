@@ -442,7 +442,7 @@ def display_table_results(table, is_mobile):
     fink_additional_fields = [
         'v:constellation', 'v:g-r', 'v:rate(g-r)',
         'v:classification',
-        'v:lastdate', 'v:firstdate'
+        'v:lastdate', 'v:firstdate', 'v:lapse'
     ]
 
     dropdown = dcc.Dropdown(
