@@ -459,6 +459,9 @@ def return_latests_pdf(payload: dict) -> pd.DataFrame:
         schema_client = clientT.schema()
         group_alerts = False
 
+        # Restore default limits
+        clientT.setLimit(nlimit)
+
     # We want to return alerts
     # color computation is disabled
     pdfs = format_hbase_output(

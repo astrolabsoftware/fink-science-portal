@@ -852,7 +852,9 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         0: not results found, 1: results found
     """
     colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec', 'v:lastdate', 'v:classification', 'i:ndethist'
+        'i:objectId', 'i:ra', 'i:dec',
+        'v:lastdate', 'v:classification', 'i:ndethist',
+        'v:lapse'
     ]
 
     # catch parameters sent from URL
