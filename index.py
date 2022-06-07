@@ -456,19 +456,12 @@ def display_table_results(table, is_mobile):
         placeholder="Add more fields to the table",
     )
 
-    switch = dmc.Chips(
-        data=[
-            {"value": "object", "label": "object"},
-        ],
-        id="alert-object-switch",
-        value='alert',
+    switch = dmc.Switch(
+        size="lg",
+        radius="sm",
+        label="Enable this option",
         color="orange",
-        radius="xl",
-        size="sm",
-        spacing="xl",
-        variant="outline",
-        position='center',
-        multiple=True,
+        checked=True
     )
 
     if is_mobile:
