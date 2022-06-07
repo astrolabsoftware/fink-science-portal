@@ -456,11 +456,18 @@ def display_table_results(table, is_mobile):
         placeholder="Add more fields to the table",
     )
 
-    switch = dbc.Switch(
-        id="alert-object-switch",
-        label="Object view",
-        value=False,
-    ),
+    switch = html.Div(
+        [
+            dbc.Checklist(
+                options=[
+                    {"label": "Object view", "value": 1},
+                ],
+                value=0,
+                id="alert-object-switch",
+                switch=True,
+            ),
+        ]
+    )
 
     if is_mobile:
         width_dropdown = 8
