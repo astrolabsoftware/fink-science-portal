@@ -480,8 +480,7 @@ def display_table_results(table, is_mobile):
             table
         ], fluid=True)
     else:
-        width_dropdown = 8
-        width_switch = 2
+        width_dropdown = 10
         width_preview = 2
 
         return dbc.Container([
@@ -492,7 +491,7 @@ def display_table_results(table, is_mobile):
                     dbc.Col(modal_quickview, width=width_preview)
                 ]
             ),
-            dbc.Row(dbc.Col(switch, width=width_switch)),
+            dbc.Row(dbc.Col(switch)),
             html.Br(),
             table
         ], fluid=True)
