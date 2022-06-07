@@ -459,9 +459,9 @@ def display_table_results(table, is_mobile):
     switch = dmc.Switch(
         size="md",
         radius="xl",
-        label="Enable this option",
+        label="Objects",
         color="orange",
-        checked=True
+        checked=False
     )
 
     if is_mobile:
