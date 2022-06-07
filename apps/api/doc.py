@@ -1082,7 +1082,9 @@ All other fields starting with `class:` are crossmatch from the SIMBAD database.
 """.format(pd.DataFrame([dic_names]).T.rename(columns={0: 'description'}).to_markdown())
 
 api_doc_random = """
-## Retrieve object data
+## Draw random objects
+
+This service lets you draw random objects (full lightcurve) from the Fink database (120+ million alerts). This is still largely experimental.
 
 The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/random.
 
