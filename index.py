@@ -651,7 +651,7 @@ def input_type(chip_value):
             {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
             *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
         ]
-        placeholder = "Start typing or choose a class. We will display the last 100 alerts for this class."
+        placeholder = "All classes"
         return {}, options, placeholder
     else:
         return {'display': 'none'}, [], ''
@@ -679,7 +679,7 @@ def chips_values(chip_value, val):
     elif chip_value == "Date Search":
         return "    Search alerts inside a time window. See Help for the syntax", val
     elif chip_value == "Class Search":
-        return "    Show last 100 alerts for a particular class", val
+        return "    Choose a class below. We will display the last 100 alerts for this class.", val
     elif chip_value == "SSO":
         return "    Enter a valid IAU number. See Help for more information", val
     elif chip_value == "Tracklet":
