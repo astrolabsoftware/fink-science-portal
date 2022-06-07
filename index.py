@@ -461,8 +461,10 @@ def display_table_results(table, is_mobile):
         radius="xl",
         label="Unique objects",
         color="orange",
-        checked=False
+        checked=False,
+        id="alert-object-switch"
     )
+    switch_description = "Toggle the switch to list each object only once. Only the latest alert will be displayed."
 
     if is_mobile:
         width_dropdown = 8
@@ -494,6 +496,11 @@ def display_table_results(table, is_mobile):
             dbc.Row(
                 [
                     dbc.Col(switch, width=width_preview),
+                    dbc.Popover(
+                        [dbc.PopoverBody(switch_description)],
+                        target="alert-object-switch",
+                        trigger="hover",
+                    ),
                 ], justify='between'
             ),
             table
