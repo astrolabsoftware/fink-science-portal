@@ -106,6 +106,7 @@ def format_hbase_output(
 
         # Human readable time
         pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
+        pdfs['v:firstdate'] = pdfs['i:jdstarthist'].apply(convert_jd)
 
         if with_constellation:
             coords = SkyCoord(

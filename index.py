@@ -439,7 +439,11 @@ def display_table_results(table, is_mobile):
     schema_list = list(schema.columnNames())
     fink_fields = [i for i in schema_list if i.startswith('d:')]
     ztf_fields = [i for i in schema_list if i.startswith('i:')]
-    fink_additional_fields = ['v:constellation', 'v:g-r', 'v:rate(g-r)', 'v:classification', 'v:lastdate']
+    fink_additional_fields = [
+        'v:constellation', 'v:g-r', 'v:rate(g-r)',
+        'v:classification',
+        'v:lastdate', 'v:firstdate'
+    ]
 
     dropdown = dcc.Dropdown(
         id='field-dropdown2',
