@@ -471,6 +471,26 @@ def display_table_results(table, is_mobile):
     )
     switch_description = "Toggle the switch to list each object only once. Only the latest alert will be displayed."
 
+    switch_sso = dmc.Switch(
+        size="md",
+        radius="xl",
+        label="Unique Solar System objects",
+        color="orange",
+        checked=False,
+        id="alert-sso-switch"
+    )
+    switch_sso_description = "Toggle the switch to list each Solar System Object only once. Only the latest alert will be displayed."
+
+    switch_tracklet = dmc.Switch(
+        size="md",
+        radius="xl",
+        label="Unique tracklets",
+        color="orange",
+        checked=False,
+        id="alert-tracklet-switch"
+    )
+    switch_tracklet_description = "Toggle the switch to list each Tracklet only once (fast moving objects). Only the latest alert will be displayed."
+
     if is_mobile:
         width_dropdown = 8
         width_preview = 4
@@ -492,6 +512,20 @@ def display_table_results(table, is_mobile):
                 dbc.Popover(
                     [dbc.PopoverBody(switch_description)],
                     target="alert-object-switch",
+                    trigger="hover",
+                    placement="top"
+                ),
+                dbc.Col(switch_sso, width=width_preview),
+                dbc.Popover(
+                    [dbc.PopoverBody(switch_sso_description)],
+                    target="alert-sso-switch",
+                    trigger="hover",
+                    placement="top"
+                ),
+                dbc.Col(switch_tracklet, width=width_preview),
+                dbc.Popover(
+                    [dbc.PopoverBody(switch_tracklet_description)],
+                    target="alert-tracklet-switch",
                     trigger="hover",
                     placement="top"
                 ),
@@ -790,14 +824,16 @@ def populate_result_table(data, columns, is_mobile):
     ],
     [
         Input('field-dropdown2', 'value'),
-        Input('alert-object-switch', 'checked')
+        Input('alert-object-switch', 'checked'),
+        Input('alert-sso-switch', 'checked'),
+        Input('alert-tracklet-switch', 'checked')
     ],
     [
         State("result_table", "data"),
         State("result_table", "columns"),
     ]
 )
-def update_table(field_dropdown, groupby, data, columns):
+def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
     """ Update table by adding new columns (no server call)
     """
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
@@ -820,9 +856,19 @@ def update_table(field_dropdown, groupby, data, columns):
         })
 
         return data, columns
-    elif groupby is True:
+    elif groupby1 is True:
         pdf = pd.DataFrame.from_dict(data)
         pdf = pdf.drop_duplicates(subset='i:objectId', keep="first")
+        data = pdf.to_dict('records')
+        return data, columns
+    elif groupby2 is True:
+        mask = ~pdf.duplicated(subset='i:ssnamenr') | (pdf['i:ssnamenr'].isnull())
+        pdf = pdf[mask]
+        data = pdf.to_dict('records')
+        return data, columns
+    elif groupby3 is True:
+        mask = ~pdf.duplicated(subset='d:tracklet') | (pdf['d:tracklet'].isnull())
+        pdf = pdf[mask]
         data = pdf.to_dict('records')
         return data, columns
     else:
