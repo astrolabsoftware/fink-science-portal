@@ -494,9 +494,11 @@ def display_table_results(table, is_mobile):
     if is_mobile:
         width_dropdown = 8
         width_preview = 4
+        width_button = 4
     else:
         width_dropdown = 10
         width_preview = 2
+        width_button = 4
 
     return dbc.Container([
         html.Br(),
@@ -508,21 +510,21 @@ def display_table_results(table, is_mobile):
         ),
         dbc.Row(
             [
-                dbc.Col(switch, width=width_preview),
+                dbc.Col(switch, width=width_button),
                 dbc.Popover(
                     [dbc.PopoverBody(switch_description)],
                     target="alert-object-switch",
                     trigger="hover",
                     placement="top"
                 ),
-                dbc.Col(switch_sso, width=width_preview),
+                dbc.Col(switch_sso, width=width_button),
                 dbc.Popover(
                     [dbc.PopoverBody(switch_sso_description)],
                     target="alert-sso-switch",
                     trigger="hover",
                     placement="top"
                 ),
-                dbc.Col(switch_tracklet, width=width_preview),
+                dbc.Col(switch_tracklet, width=width_button),
                 dbc.Popover(
                     [dbc.PopoverBody(switch_tracklet_description)],
                     target="alert-tracklet-switch",
@@ -864,14 +866,14 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
     elif groupby2 is True:
         pdf = pd.DataFrame.from_dict(data)
         if not np.alltrue(pdf['i:ssnamenr'] == 'null'):
-            mask = ~pdf.duplicated(subset='i:ssnamenr') | (pdf['i:ssnamenr'].isnull())
+            mask = ~pdf.duplicated(subset='i:ssnamenr') | (pdf['i:ssnamenr'] == 'null')
             pdf = pdf[mask]
             data = pdf.to_dict('records')
         return data, columns
     elif groupby3 is True:
         pdf = pd.DataFrame.from_dict(data)
         if not np.alltrue(pdf['d:tracklet'] == ''):
-            mask = ~pdf.duplicated(subset='d:tracklet') | (pdf['d:tracklet'].isnull())
+            mask = ~pdf.duplicated(subset='d:tracklet') | (pdf['d:tracklet'] == '')
             pdf = pdf[mask]
             data = pdf.to_dict('records')
         return data, columns
