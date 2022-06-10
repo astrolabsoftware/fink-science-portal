@@ -863,15 +863,17 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         return data, columns
     elif groupby2 is True:
         pdf = pd.DataFrame.from_dict(data)
-        mask = ~pdf.duplicated(subset='i:ssnamenr') | (pdf['i:ssnamenr'].isnull())
-        pdf = pdf[mask]
-        data = pdf.to_dict('records')
+        if not np.alltrue(pdf['i:ssnamenr'] == 'null'):
+            mask = ~pdf.duplicated(subset='i:ssnamenr') | (pdf['i:ssnamenr'].isnull())
+            pdf = pdf[mask]
+            data = pdf.to_dict('records')
         return data, columns
     elif groupby3 is True:
         pdf = pd.DataFrame.from_dict(data)
-        mask = ~pdf.duplicated(subset='d:tracklet') | (pdf['d:tracklet'].isnull())
-        pdf = pdf[mask]
-        data = pdf.to_dict('records')
+        if not np.alltrue(pdf['d:tracklet'] == ''):
+            mask = ~pdf.duplicated(subset='d:tracklet') | (pdf['d:tracklet'].isnull())
+            pdf = pdf[mask]
+            data = pdf.to_dict('records')
         return data, columns
     else:
         raise PreventUpdate
