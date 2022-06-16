@@ -589,7 +589,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         "",
         to_evaluate,
         '*',
-        0, True, True
+        0, False, False
     )
 
     schema_client = gen_client.schema()
