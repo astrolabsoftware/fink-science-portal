@@ -487,6 +487,34 @@ args_random = [
     }
 ]
 
+args_ssocand = [
+    {
+        'name': 'kind',
+        'required': True,
+        'description': 'Choose to return orbital parameters (orbParams), or lightcurves (lightcurves)'
+    },
+    {
+        'name': 'orbit_number',
+        'required': False,
+        'description': '[Optional] Orbit number if you know it. Otherwise do not specify to return all.'
+    },
+    {
+        'name': 'start_date',
+        'required': False,
+        'description': '[Optional] Start date in UTC YYYY-MM-DD. Default is 2019-11-01.'
+    },
+    {
+        'name': 'stop_date',
+        'required': False,
+        'description': '[Optional] Stop date in UTC YYYY-MM-DD. Default is today.'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -748,6 +776,39 @@ def return_sso(payload=None):
         payload = request.json
 
     pdf = return_sso_pdf(payload)
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdf, output_format)
+
+@api_bp.route('/api/v1/ssocand', methods=['GET'])
+def return_ssocand_arguments():
+    """ Obtain information about retrieving candidate Solar System Object data
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return return_ssocand(payload=request.args)
+    else:
+        return jsonify({'args': args_ssocand})
+
+@api_bp.route('/api/v1/ssocand', methods=['POST'])
+def return_ssocand(payload=None):
+    """ Retrieve candidate Solar System Object data from the Fink database
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i['name'] for i in args_ssocand if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    pdf = return_ssocand_pdf(payload)
 
     output_format = payload.get('output-format', 'json')
     return send_data(pdf, output_format)

@@ -93,4 +93,10 @@ clientTNS.connect(tablename + ".tns", SCHEMAVER)
 clientStats = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
 clientStats.connect('statistics_class', SCHEMAVER)
 
+clientSSOCAND = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
+clientSSOCAND.connect(tablename + ".sso_cand", SCHEMAVER)
+
+clientSSOORB = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
+clientSSOORB.connect(tablename + ".sso_orb", SCHEMAVER)
+
 client.setLimit(nlimit);
