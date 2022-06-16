@@ -554,10 +554,10 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'orbit_number' in payload:
-        orbit_number = int(payload['orbit_number'])
+    if 'trajectory_id' in payload:
+        trajectory_id = int(payload['trajectory_id'])
     else:
-        orbit_number = None
+        trajectory_id = None
 
     if 'start_date' in payload:
         start_date = Time(payload['start_date'], format='iso').jd
@@ -578,8 +578,8 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
 
     gen_client.setRangeScan(True)
 
-    if orbit_number is not None:
-        gen_client.setEvaluation("trajectory_id == {}".format(orbit_number))
+    if trajectory_id is not None:
+        gen_client.setEvaluation("trajectory_id == {}".format(trajectory_id))
 
     to_evaluate = "key:key:{}_,key:key:{}_".format(start_date, stop_date)
 

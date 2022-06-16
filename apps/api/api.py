@@ -495,9 +495,9 @@ args_ssocand = [
         'description': 'Choose to return orbital parameters (orbParams), or lightcurves (lightcurves)'
     },
     {
-        'name': 'orbit_number',
+        'name': 'trajectory_id',
         'required': False,
-        'description': '[Optional] Orbit number if you know it. Otherwise do not specify to return all.'
+        'description': '[Optional] Trajectory ID if you know it. Otherwise do not specify to return all.'
     },
     {
         'name': 'start_date',
