@@ -579,11 +579,9 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     gen_client.setRangeScan(True)
 
     if orbit_number is not None:
-        to_evaluate = "key:key:{}_{},key:key:{}_{}".format(
-            start_date, orbit_number, stop_date, orbit_number
-        )
-    else:
-        to_evaluate = "key:key:{}_,key:key:{}_".format(start_date, stop_date)
+        gen_client.setEvaluation("trajectory_id == {}".format(orbit_number))
+
+    to_evaluate = "key:key:{}_,key:key:{}_".format(start_date, stop_date)
 
     results = gen_client.scan(
         "",
@@ -596,6 +594,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
 
     # reset the limit in case it has been changed above
     gen_client.setLimit(nlimit)
+    gen_client.setEvaluation("")
 
     if results.isEmpty():
         return pd.DataFrame({})
