@@ -502,12 +502,12 @@ args_ssocand = [
     {
         'name': 'start_date',
         'required': False,
-        'description': '[Optional] Start date in UTC YYYY-MM-DD. Default is 2019-11-01.'
+        'description': '[Optional] Start date in UTC YYYY-MM-DD. Only used for `kind=lightcurves`. Default is 2019-11-01.'
     },
     {
         'name': 'stop_date',
         'required': False,
-        'description': '[Optional] Stop date in UTC YYYY-MM-DD. Default is today.'
+        'description': '[Optional] Stop date in UTC YYYY-MM-DD. Only used for `kind=lightcurves`. Default is today.'
     },
     {
         'name': 'output-format',

@@ -559,29 +559,34 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     else:
         trajectory_id = None
 
-    if 'start_date' in payload:
-        start_date = Time(payload['start_date'], format='iso').jd
-    else:
-        start_date = Time('2019-11-01', format='iso').jd
-
-    if 'stop_date' in payload:
-        stop_date = Time(payload['stop_date'], format='iso').jd
-    else:
-        stop_date = Time.now().jd
-
     payload_name = payload['kind']
 
     if payload_name == 'orbParams':
         gen_client = clientSSOORB
+
+        if trajectory_id is not None:
+            to_evaluate = "key:key:cand_{}".format(trajectory_id)
+        else:
+            to_evaluate = "key:key:cand_"
     elif payload_name == 'lightcurves':
         gen_client = clientSSOCAND
 
-    gen_client.setRangeScan(True)
+        if 'start_date' in payload:
+            start_date = Time(payload['start_date'], format='iso').jd
+        else:
+            start_date = Time('2019-11-01', format='iso').jd
 
-    if trajectory_id is not None:
-        gen_client.setEvaluation("trajectory_id == {}".format(trajectory_id))
+        if 'stop_date' in payload:
+            stop_date = Time(payload['stop_date'], format='iso').jd
+        else:
+            stop_date = Time.now().jd
 
-    to_evaluate = "key:key:{}_,key:key:{}_".format(start_date, stop_date)
+        gen_client.setRangeScan(True)
+
+        if trajectory_id is not None:
+            gen_client.setEvaluation("trajectory_id == {}".format(trajectory_id))
+
+        to_evaluate = "key:key:{}_,key:key:{}_".format(start_date, stop_date)
 
     results = gen_client.scan(
         "",
