@@ -34,6 +34,7 @@ from app import client
 from app import clientU, clientUV
 from app import clientP128, clientP4096, clientP131072
 from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
+from app import clientSSOCAND, clientSSOORB
 from app import clientStats
 from app import nlimit
 from app import APIURL
