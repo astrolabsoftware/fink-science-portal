@@ -94,9 +94,9 @@ clientStats = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
 clientStats.connect('statistics_class', SCHEMAVER)
 
 clientSSOCAND = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientSSOCAND.connect(tablename + ".orb_cand", SCHEMAVER)
+clientSSOCAND.connect(tablename + ".sso_cand", SCHEMAVER)
 
 clientSSOORB = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientSSOORB.connect(tablename + ".sso_cand", SCHEMAVER)
+clientSSOORB.connect(tablename + ".orb_cand", SCHEMAVER)
 
 client.setLimit(nlimit);
