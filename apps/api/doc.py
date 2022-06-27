@@ -1144,3 +1144,37 @@ Note also that the `seed` is used to fix the date boundaries, hence it is valid 
 So consider your seed valid over 24h (this might change in the future).
 
 """
+
+api_doc_ssocand = """
+## Explore Solar System object orbit candidates
+
+This service lets you query the information about new Solar System objects found by [fink-fat](https://github.com/FusRoman/fink-fat).
+
+The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/ssocand.
+
+In python, you would use
+
+```python
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/ssocand',
+  json={
+    'kind': str, # Mandatory, `orbParams` or `lightcurves`
+    'trajectory_id': int, # optional, if you know a trajectory ID. Otherwise returns all.
+    'start_date': str, # optional. Only for lightcurves. Default is 2019-11-01
+    'stop_date': str, # optional. Only for lightcurves. Default is today.
+    'output-format': str
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+Depending on `kind`, you would get information on:
+- `lightcurves`: photometry of objects related to candidate orbits
+- `orbParams`: orbital parameters for orbit candidates
+"""

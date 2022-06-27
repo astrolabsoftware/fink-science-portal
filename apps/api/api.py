@@ -114,7 +114,18 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Get Solar System Objects"
+                                ], label="Solar System objects from MPC"
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_ssocand)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Candidate Solar System objects"
                             ),
                             dbc.Tab(
                                 [
