@@ -34,6 +34,7 @@ from app import client
 from app import clientU, clientUV
 from app import clientP128, clientP4096, clientP131072
 from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
+from app import clientSSOCAND, clientSSOORB
 from app import clientStats
 from app import nlimit
 from app import APIURL
@@ -41,6 +42,7 @@ from app import APIURL
 from apps.utils import get_miriade_data
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
+from apps.utils import hbase_type_converter
 
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
@@ -535,6 +537,80 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             # We should probably add a timeout
             # and try/except in case of miriade shutdown
             pdf = get_miriade_data(pdf)
+
+    return pdf
+
+def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/ssocand
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/ssocand
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    if 'trajectory_id' in payload:
+        trajectory_id = int(payload['trajectory_id'])
+    else:
+        trajectory_id = None
+
+    payload_name = payload['kind']
+
+    if payload_name == 'orbParams':
+        gen_client = clientSSOORB
+
+        if trajectory_id is not None:
+            to_evaluate = "key:key:cand_{}".format(trajectory_id)
+        else:
+            to_evaluate = "key:key:cand_"
+    elif payload_name == 'lightcurves':
+        gen_client = clientSSOCAND
+
+        if 'start_date' in payload:
+            start_date = Time(payload['start_date'], format='iso').jd
+        else:
+            start_date = Time('2019-11-01', format='iso').jd
+
+        if 'stop_date' in payload:
+            stop_date = Time(payload['stop_date'], format='iso').jd
+        else:
+            stop_date = Time.now().jd
+
+        gen_client.setRangeScan(True)
+
+        if trajectory_id is not None:
+            gen_client.setEvaluation("trajectory_id == {}".format(trajectory_id))
+
+        to_evaluate = "key:key:{}_,key:key:{}_".format(start_date, stop_date)
+
+    results = gen_client.scan(
+        "",
+        to_evaluate,
+        '*',
+        0, False, False
+    )
+
+    schema_client = gen_client.schema()
+
+    # reset the limit in case it has been changed above
+    gen_client.setLimit(nlimit)
+    gen_client.setEvaluation("")
+
+    if results.isEmpty():
+        return pd.DataFrame({})
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    # Type conversion
+    pdf = pdf.astype(
+        {i: hbase_type_converter[schema_client.type(i)] for i in pdf.columns}
+    )
 
     return pdf
 
