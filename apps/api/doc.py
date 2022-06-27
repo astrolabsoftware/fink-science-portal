@@ -28,7 +28,8 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/sso | Get Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/sso | Get confirmed Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {}/api/v1/ssocand | Get candidate Solar System Object data | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/tracklet | Get tracklet data | &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
@@ -37,7 +38,7 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/random | Draw random objects from the Fink database| &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
+""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
 
 api_doc_object = """
 ## Retrieve object data
