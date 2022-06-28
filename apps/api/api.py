@@ -33,6 +33,8 @@ from apps.api.utils import perform_xmatch, return_bayestar_pdf
 from apps.api.utils import return_statistics_pdf, send_data
 from apps.api.utils import return_random_pdf
 
+from fink_utils.xmatch.simbad import get_simbad_labels
+
 import io
 import requests
 
@@ -659,7 +661,7 @@ def class_arguments():
     tns_types = ['(TNS) ' + x for x in tns_types]
 
     # SIMBAD
-    simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
+    simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
     simbad_types = ['(SIMBAD) ' + x for x in simbad_types]
 
