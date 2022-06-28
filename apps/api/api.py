@@ -23,7 +23,7 @@ from app import APIURL
 from apps.api.doc import api_doc_summary, api_doc_object, api_doc_explorer
 from apps.api.doc import api_doc_latests, api_doc_sso, api_doc_tracklets
 from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar
-from apps.api.doc import api_doc_stats, api_doc_random
+from apps.api.doc import api_doc_stats, api_doc_random, api_doc_ssocand
 
 from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
@@ -32,6 +32,8 @@ from apps.api.utils import return_tracklet_pdf, format_and_send_cutout
 from apps.api.utils import perform_xmatch, return_bayestar_pdf
 from apps.api.utils import return_statistics_pdf, send_data
 from apps.api.utils import return_random_pdf
+
+from fink_utils.xmatch.simbad import get_simbad_labels
 
 import io
 import requests
@@ -659,7 +661,7 @@ def class_arguments():
     tns_types = ['(TNS) ' + x for x in tns_types]
 
     # SIMBAD
-    simbad_types = pd.read_csv('assets/simbad_types.csv', header=None)[0].values
+    simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
     simbad_types = ['(SIMBAD) ' + x for x in simbad_types]
 
