@@ -128,6 +128,30 @@ def test_multiple_ssosearch() -> None:
 
     assert len(pdf.groupby('i:ssnamenr').count()) == 2
 
+def test_with_ephem_multiple_ssosearch() -> None:
+    """
+    Examples
+    ---------
+    >>> test_with_ephem_multiple_ssosearch()
+    """
+    pdf = ssosearch(n_or_d='8467,1922', withEphem=True)
+
+    assert len(pdf.groupby('i:ssnamenr').count()) == 2
+
+    assert 8467 in np.unique(pdf['i:ssnamenr'].values)
+    assert 1922 in np.unique(pdf['i:ssnamenr'].values)
+
+    pdf1 = ssosearch(n_or_d='8467', withEphem=True)
+    pdf2 = ssosearch(n_or_d='1922', withEphem=True)
+
+    assert len(pdf) == len(pdf1) + len(pdf2)
+
+    m1 = pdf['i:ssnamenr'] == 8467
+    assert np.alltrue(pdf[m1].values == pdf1.values), (pdf[m1].values, pdf1.values)
+
+    m2 = pdf['i:ssnamenr'] == 1922
+    assert np.alltrue(pdf[m2].values == pdf2.values), (pdf[m2].values, pdf2.values)
+
 
 if __name__ == "__main__":
     """ Execute the test suite """

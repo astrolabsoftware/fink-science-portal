@@ -527,7 +527,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 Note that for `csv` output, you need to use
@@ -590,6 +590,28 @@ There are some limitations:
 
     - Color ephemerides are returned only for asteroids
     - Temporary designations (C/... or YYYY...) do not have ephemerides available
+
+You can also query several objects at the same time:
+
+```python
+import requests
+import pandas as pd
+
+# get data for object 8467 and 1922
+r = requests.post(
+  'https://fink-portal.org/api/v1/sso',
+  json={
+    'n_or_d': '8467,1922',
+    'output-format': 'json'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+Note that you can mix asteroid and comet names, unless you specify `withEphem=True`, in which
+case you must give only a list of asteroid names or list of comet names (schemas for ephemerides are not the same).
 
 By default, we transfer all available data fields (original ZTF fields and Fink science module outputs).
 But you can also choose to transfer only a subset of the fields:
