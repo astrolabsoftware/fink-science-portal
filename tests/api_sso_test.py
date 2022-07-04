@@ -60,6 +60,8 @@ def test_simple_ssosearch() -> None:
 
     assert np.alltrue(pdf['d:roid'].values == 3)
 
+    assert len(pdf.groupby('i:ssnamenr').count()) == 1
+
 def test_ephem() -> None:
     """
     Examples
@@ -113,6 +115,18 @@ def test_bad_request() -> None:
     pdf = ssosearch(n_or_d='kdflsjffld')
 
     assert pdf.empty
+
+def test_multiple_ssosearch() -> None:
+    """
+    Examples
+    ---------
+    >>> test_multiple_ssosearch()
+    """
+    pdf = ssosearch(n_or_d='8467,10P')
+
+    assert not pdf.empty
+
+    assert len(pdf.groupby('i:ssnamenr').count()) == 2
 
 
 if __name__ == "__main__":
