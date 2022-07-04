@@ -562,8 +562,13 @@ def store_query(name):
             group_alerts=False, truncated=False, extract_color=False
         )
 
-        # Extract miriade information as well
-        pdfsso = get_miriade_data(pdfsso)
+        if pdfsso.empty:
+            # This can happen for SSO candidate with a ssnamenr
+            # e.g. ZTF21abatnkh
+            pdfsso = pd.DataFrame()
+        else:
+            # Extract miriade information as well
+            pdfsso = get_miriade_data(pdfsso)
     else:
         pdfsso = pd.DataFrame()
 
