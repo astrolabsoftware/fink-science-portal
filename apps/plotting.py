@@ -2346,7 +2346,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
-        Object not referenced in the Minor Planet Center
+        Object not referenced in the Minor Planet Center, or name not found in Fink.
+        It may be a SSO candidate.
         """
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
 
