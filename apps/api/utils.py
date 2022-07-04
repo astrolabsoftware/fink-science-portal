@@ -498,7 +498,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     out: pandas dataframe
     """
     if 'columns' in payload:
-        cols = payload['columns'].replace(" ", "")
+        cols = payload['columns']
     else:
         cols = '*'
 
