@@ -871,7 +871,7 @@ def get_miriade_data(pdf):
 
     infos = []
     for ssnamenr in ssnamenrs:
-        mask = pdf[pdf['i:ssnamenr'] == ssnamenr]
+        mask = pdf['i:ssnamenr'] == ssnamenr
         pdf_sub = pdf[mask]
 
         eph = query_miriade(ssnamenr, pdf_sub['i:jd'], observer=ztf_code)
