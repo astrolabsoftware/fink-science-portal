@@ -73,6 +73,18 @@ def test_a_day() -> None:
 
     assert pdf['basic:raw'].values[0] == 346644
 
+def test_cols() -> None:
+    """
+    Examples
+    ---------
+    >>> test_cols()
+    """
+    pdf = statstest(columns='basic:exposures,class:Solar System MPC')
+
+    assert not pdf.empty
+
+    assert len(pdf.columns) == 2 + 2, pdf.columns
+
 
 if __name__ == "__main__":
     """ Execute the test suite """
