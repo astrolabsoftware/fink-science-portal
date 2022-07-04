@@ -507,17 +507,27 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     else:
         truncated = True
 
-    payload_name = payload['n_or_d'].replace(' ', '')
+    if ',' in payload['n_or_d']:
+        # multi-objects search
+        splitids = payload['n_or_d'].replace(' ', '').split(',')
 
-    # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-    to_evaluate = "key:key:{}_".format(payload_name)
+        # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
+        names = ['key:key:{}_'.format(i.strip()) for i in splitids]
+    else:
+        # single object search
+        # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
+        names = ["key:key:{}_".format(payload['n_or_d'].replace(' ', ''))]
 
-    results = clientSSO.scan(
-        "",
-        to_evaluate,
-        cols,
-        0, True, True
-    )
+    # Get data from the main table
+    results = java.util.TreeMap()
+    for to_evaluate in names:
+        result = clientSSO.scan(
+            "",
+            to_evaluate,
+            cols,
+            0, True, True
+        )
+        results.putAll(result)
 
     schema_client = clientSSO.schema()
 

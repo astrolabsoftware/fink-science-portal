@@ -866,37 +866,48 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
 def get_miriade_data(pdf):
     """
     """
-    ssnamenr = pdf['i:ssnamenr'].values[0]
+    ssnamenrs = np.unique(pdf['i:ssnamenr'].values)
     ztf_code = 'I41'
 
-    eph = query_miriade(ssnamenr, pdf['i:jd'], observer=ztf_code)
+    infos = []
+    for ssnamenr in ssnamenrs:
+        mask = pdf['i:ssnamenr'] == ssnamenr
+        pdf_sub = pdf[mask]
 
-    if not eph.empty:
-        sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
+        eph = query_miriade(ssnamenr, pdf_sub['i:jd'], observer=ztf_code)
 
-        eph = eph.drop(columns=['RA', 'DEC'])
-        eph['RA'] = sc.ra.value * 15
-        eph['Dec'] = sc.dec.value
+        if not eph.empty:
+            sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
 
-        # Add Ecliptic coordinates
-        eph_ec = query_miriade(ssnamenr, pdf['i:jd'], rplane='2')
+            eph = eph.drop(columns=['RA', 'DEC'])
+            eph['RA'] = sc.ra.value * 15
+            eph['Dec'] = sc.dec.value
 
-        sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
-        eph['Longitude'] = sc.ra.value
-        eph['Latitude'] = sc.dec.value
+            # Add Ecliptic coordinates
+            eph_ec = query_miriade(ssnamenr, pdf_sub['i:jd'], rplane='2')
 
-        # Merge fink & Eph
-        info = pd.concat([eph.reset_index(), pdf.reset_index()], axis=1)
+            sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
+            eph['Longitude'] = sc.ra.value
+            eph['Latitude'] = sc.dec.value
 
-        # index has been duplicated obviously
-        info = info.loc[:, ~info.columns.duplicated()]
+            # Merge fink & Eph
+            info = pd.concat([eph.reset_index(), pdf_sub.reset_index()], axis=1)
 
-        # Compute magnitude reduced to unit distance
-        info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
+            # index has been duplicated obviously
+            info = info.loc[:, ~info.columns.duplicated()]
+
+            # Compute magnitude reduced to unit distance
+            info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
+            infos.append(info)
+        else:
+            infos.append(pdf_sub)
+
+    if len(infos) > 1:
+        info_out = pd.concat(infos)
     else:
-        info = pdf
+        info_out = infos[0]
 
-    return info
+    return info_out
 
 def sine_fit(x, a, b):
     """ Sinusoidal function a*sin( 2*(x-b) )
