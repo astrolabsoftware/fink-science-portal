@@ -902,7 +902,10 @@ def get_miriade_data(pdf):
         else:
             infos.append(pdf_sub)
 
-    info_out = pd.concat(infos)
+    if len(infos) > 1:
+        info_out = pd.concat(infos)
+    else:
+        info_out = infos[0]
 
     return info_out
 
