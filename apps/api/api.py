@@ -734,11 +734,16 @@ def columns_arguments():
     # Science modules
     fink_science = pd.DataFrame(
         [
-            {'name': 'cdsxmatch', 'type': 'string', 'doc': 'SIMBAD closest counterpart, based on position. See https://fink-portal.org/api/v1/classes'},
+            {'name': 'cdsxmatch', 'type': 'string', 'doc': 'Object type of the closest source from SIMBAD database; if exists within 1 arcsec. See https://fink-portal.org/api/v1/classes'},
+            {'name': 'gcvs', 'type': 'string', 'doc': 'Object type of the closest source from GCVS catalog; if exists within 1 arcsec.'},
+            {'name': 'vsx', 'type': 'string', 'doc': 'Object type of the closest source from VSX catalog; if exists within 1 arcsec.'},
+            {'name': 'Plx', 'type': 'double', 'doc': 'Absolute stellar parallax (in milli-arcsecond) of the closest source from Gaia catalog; if exists within 1 arcsec.'},
+            {'name': 'e_Plx', 'type': 'double', 'doc': 'Standard error of the stellar parallax (in milli-arcsecond) of the closest source from Gaia catalog; if exists within 1 arcsec.'},
+            {'name': 'DR3Name', 'type': 'string', 'doc': 'Unique source designation of closest source from Gaia catalog; if exists within 1 arcsec.'},
             {'name': 'mulens', 'type': 'double', 'doc': 'Probability score of an alert to be a microlensing event by [LIA](https://github.com/dgodinez77/LIA).'},
             {'name': 'rf_snia_vs_nonia', 'type': 'double', 'doc': 'Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.'},
             {'name': 'rf_kn_vs_nonkn', 'type': 'double', 'doc': 'Probability of an alert to be a Kilonova using a PCA & Random Forest Classifier (binary classification). Higher is better.'},
-            {'name': 'roid', 'type': 'int', 'doc': 'Determine if the alert is a potential Solar System object (experimental). See https://github.com/astrolabsoftware/fink-science/blob/db57c40cd9be10502e34c5117c6bf3793eb34718/fink_science/asteroids/processor.py#L26'},
+            {'name': 'roid', 'type': 'int', 'doc': 'Determine if the alert is a potential Solar System object (experimental). 0: likely not SSO, 1: first appearance but likely not SSO, 2: candidate SSO, 3: found in MPC.'},
             {'name': 'snn_sn_vs_all', 'type': 'double', 'doc': 'The probability of an alert to be a SNe vs. anything else (variable stars and other categories in the training) using SuperNNova'},
             {'name': 'snn_snia_vs_nonia', 'type': 'double', 'doc': 'The probability of an alert to be a SN Ia vs. core-collapse SNe using SuperNNova'},
         ]
