@@ -843,8 +843,10 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
     }
 
     # Pass sorted list of epochs to speed up query
+    # Add 15 seconds, which is half of the exposure time for ZTF
+    shift = 15.0 / 24 / 3600
     files = {
-        'epochs': ('epochs', '\n'.join(['%.6f' % epoch for epoch in jd]))
+        'epochs': ('epochs', '\n'.join(['{:.6f}'.format(epoch + shift) for epoch in jd]))
     }
 
     # Execute query
@@ -864,7 +866,17 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
     return ephem
 
 def get_miriade_data(pdf):
-    """
+    """ Add ephemerides information from Miriade to a Pandas DataFrame with SSO lightcurve
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Pandas DataFrame containing Fink alert data for a (or several) SSO
+
+    Returns
+    ----------
+    out: pd.DataFrame
+        DataFrame of the same length, but with new columns from the ephemerides service.
     """
     ssnamenrs = np.unique(pdf['i:ssnamenr'].values)
     ztf_code = 'I41'
