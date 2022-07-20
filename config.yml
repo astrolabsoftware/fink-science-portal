@@ -1,0 +1,6 @@
+WEBURL: http://localhost
+PORT: 24000
+HBASEIP: localhost
+ZOOPORT: 2181
+SCHEMAVER: schema_2.2_2.0.0
+tablename: test_sp

@@ -5,7 +5,11 @@ import jpype
 import jpype.imports
 from jpype import JImplements, JOverride, JImplementationFor
 
-APIURL = "http://localhost"
+import yaml
+
+args = yaml.load(open('config.yml'), yaml.Loader)
+
+APIURL = args['WEBURL']
 
 # bootstrap theme
 # https://bootswatch.com/spacelab/
@@ -50,53 +54,46 @@ from com.astrolabsoftware.FinkBrowser.Utils import Init
 
 Init.init()
 
-IPADDR = "localhost"
-ZOOPORT = 2181
-SCHEMAVER = "schema_1.3_0.4.8"
+client = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+client.connect(args['tablename'], args['SCHEMAVER'])
 
-# base
-tablename = 'test_sp'
+clientT = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientT.connect(args['tablename'] + ".jd", args['SCHEMAVER'])
 
-client = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-client.connect(tablename, SCHEMAVER)
+clientP128 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientP128.connect(args['tablename'] + ".pixel128", args['SCHEMAVER'])
 
-clientT = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientT.connect(tablename + ".jd", SCHEMAVER)
+clientP4096 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientP4096.connect(args['tablename'] + ".pixel4096", args['SCHEMAVER'])
 
-clientP128 = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientP128.connect(tablename + ".pixel128", SCHEMAVER)
+clientP131072 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientP131072.connect(args['tablename'] + ".pixel131072", args['SCHEMAVER'])
 
-clientP4096 = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientP4096.connect(tablename + ".pixel4096", SCHEMAVER)
+clientS = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientS.connect(args['tablename'] + ".class", args['SCHEMAVER'])
 
-clientP131072 = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientP131072.connect(tablename + ".pixel131072", SCHEMAVER)
+clientU = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientU.connect(args['tablename'] + ".upper", args['SCHEMAVER'])
 
-clientS = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientS.connect(tablename + ".class", SCHEMAVER)
+clientUV = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientUV.connect(args['tablename'] + ".uppervalid", args['SCHEMAVER'])
 
-clientU = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientU.connect(tablename + ".upper", SCHEMAVER)
+clientSSO = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientSSO.connect(args['tablename'] + ".ssnamenr", args['SCHEMAVER'])
 
-clientUV = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientUV.connect(tablename + ".uppervalid", SCHEMAVER)
+clientTRCK = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientTRCK.connect(args['tablename'] + ".tracklet", args['SCHEMAVER'])
 
-clientSSO = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientSSO.connect(tablename + ".ssnamenr", SCHEMAVER)
+clientTNS = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientTNS.connect(args['tablename'] + ".tns", args['SCHEMAVER'])
 
-clientTRCK = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientTRCK.connect(tablename + ".tracklet", SCHEMAVER)
+clientStats = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientStats.connect('statistics_class', args['SCHEMAVER'])
 
-clientTNS = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientTNS.connect(tablename + ".tns", SCHEMAVER)
+clientSSOCAND = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientSSOCAND.connect(args['tablename'] + ".sso_cand", args['SCHEMAVER'])
 
-clientStats = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientStats.connect('statistics_class', SCHEMAVER)
-
-clientSSOCAND = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientSSOCAND.connect(tablename + ".sso_cand", SCHEMAVER)
-
-clientSSOORB = com.Lomikel.HBaser.HBaseClient(IPADDR, ZOOPORT);
-clientSSOORB.connect(tablename + ".orb_cand", SCHEMAVER)
+clientSSOORB = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientSSOORB.connect(args['tablename'] + ".orb_cand", args['SCHEMAVER'])
 
 client.setLimit(nlimit);
