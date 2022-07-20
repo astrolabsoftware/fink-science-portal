@@ -607,9 +607,14 @@ def display_skymap(validation, data, columns, activetab):
             if class_ in simbad_types:
                 cat = 'cat_{}'.format(simbad_types.index(class_))
                 color = '#3C8DFF'
-            else:
+            elif class_ in colors.keys():
                 cat = 'cat_{}'.format(class_.replace(' ', '_'))
                 color = colors[class_]
+            else:
+                # Sometimes SIMBAD mess up names :-)
+                cat = 'cat_Undefined'
+                color = 'white'
+
             if cat not in cats:
                 img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ' ({})'.format(n_alert_per_class[class_]), color)
                 cats.append(cat)
