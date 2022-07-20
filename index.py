@@ -1299,4 +1299,6 @@ except ImportError as e:
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=24000)
+    import yaml
+    input_args = yaml.load(open('config.yml'), yaml.Loader)
+    app.run_server(input_args['IP'], debug=True, port=input_args['PORT'])
