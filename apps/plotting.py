@@ -45,7 +45,6 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
-from sbpy.photometry import HG1G2, HG12, HG
 from astropy.modeling.fitting import LevMarLSQFitter
 import astropy.units as u
 from sbpy.data import Obs
@@ -2343,6 +2342,9 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     ----------
     figure: dict
     """
+    # import here due to crash at the top level
+    from sbpy.photometry import HG1G2, HG12, HG
+
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
