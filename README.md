@@ -28,6 +28,8 @@ The folder [tests](tests) contain many example on how to use the REST API.
 
 ## Deployment
 
+The portal has been tested on Python 3.7. Other versions might work.
+
 ### Local deployment
 
 If you want to deploy on your machine for test purposes, you can follow the [tutorial](docs/howto_deploy_locally.md). Note that a Dockerfile should be ready at some point.
