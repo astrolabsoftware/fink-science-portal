@@ -612,7 +612,7 @@ def display_skymap(validation, data, columns, activetab):
                 color = colors[class_]
             else:
                 # Sometimes SIMBAD mess up names :-)
-                cat = 'cat_Undefined'
+                cat = 'cat_{}'.format(class_)
                 color = 'white'
 
             if cat not in cats:
