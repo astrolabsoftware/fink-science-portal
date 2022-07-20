@@ -1301,4 +1301,4 @@ except ImportError as e:
 if __name__ == '__main__':
     import yaml
     input_args = yaml.load(open('config.yml'), yaml.Loader)
-    app.run_server(input_args['WEBURL'], debug=True, port=input_args['PORT'])
+    app.run_server(input_args['IP'], debug=True, port=input_args['PORT'])

@@ -1,4 +1,5 @@
-WEBURL: http://localhost
+APIURL: http://localhost
+IP: http://localhost
 PORT: 24000
 HBASEIP: localhost
 ZOOPORT: 2181

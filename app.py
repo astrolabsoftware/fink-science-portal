@@ -9,7 +9,7 @@ import yaml
 
 args = yaml.load(open('config.yml'), yaml.Loader)
 
-APIURL = args['WEBURL']
+APIURL = args['APIURL']
 
 # bootstrap theme
 # https://bootswatch.com/spacelab/
