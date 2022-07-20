@@ -10,7 +10,7 @@ The backend is using [Apache HBase](https://hbase.apache.org/), a distributed no
 
 ## Backend structure
 
-After each observation night, the data is aggregated and pushed into Apache HBase tables. The main table contains all alert data processed by Fink since 2019-11-01. This represents more than 120 million alerts collected (4 TB), and about 75 million processed (3 TB) as of 12/2021. The main table data is indexed along the `objectId` of alerts, and the emission date `jd`.
+After each observation night, the data is aggregated and pushed into Apache HBase tables. The main table contains all alert data processed by Fink since 2019-11-01. This represents more than 140 million alerts collected (5 TB), and about 95 million processed (4 TB) as of 07/2022. The main table data is indexed along the `objectId` of alerts, and the emission date `jd`.
 
 In order to allow multi-indexing with HBase, we create _index tables_. These tables are indexed along different properties (time, sky position, classification, ...). They contain the same number of rows than the main table but fewer columns. These index tables are used to perform fast search along arbitrary properties and isolate interesting candidates, while the main table is used to display final data.
 
@@ -36,23 +36,16 @@ If you want to deploy on your machine for test purposes, you can follow the [tut
 
 ### Production
 
-The frontend is host at the VirtualData cloud at Université Paris-Saclay, France. To deploy it, just edit `app.py` with the following parameters:
+The frontend is host at the VirtualData cloud at Université Paris-Saclay, France. To deploy it, just edit `config.yml`.
 
 ```python
-APIURL = "https://fink-portal.org"
-
-# ...
-
-IPADDR = "hbase-1.lal.in2p3.fr"
-ZOOPORT = 2183
-SCHEMAVER = "schema_1.1_0.4.8"
-```
-
-and `index.py` with:
-
-```python
-if __name__ == '__main__':
-  app.run_server('fink-portal.org', 24000, debug=True, ssl_context='adhoc')
+APIURL: https://fink-portal.org
+IP: fink-portal.org
+PORT: 24000
+HBASEIP: hbase-1.lal.in2p3.fr
+ZOOPORT: 2183
+SCHEMAVER: "schema_2.2_2.0.0"
+tablename: ztf
 ```
 
 and the launch is supervised by gunicorn:
