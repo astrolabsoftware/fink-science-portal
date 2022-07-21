@@ -13,11 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Input, Output, State
-import dash_bootstrap_components as dbc
-import dash_table
+from dash import html, dcc, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
 import visdcc
 import dash_trich_components as dtc
