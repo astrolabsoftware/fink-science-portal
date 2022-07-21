@@ -239,38 +239,32 @@ def card_variable_plot():
 nterms_base = dbc.Row(
     [
         dbc.Label("Number of base terms"),
-        dbc.Col(
-            dbc.Input(
-                placeholder="1",
-                value=1,
-                type="number",
-                id='nterms_base',
-                debounce=True,
-                min=0, max=4
-            ), width=12, style={'width': '100%', 'display': 'inline-block'}
+        dbc.Input(
+            placeholder="1",
+            value=1,
+            type="number",
+            id='nterms_base',
+            debounce=True,
+            min=0, max=4
         ),
         dbc.Label("Number of band terms"),
-        dbc.Col(
-            dbc.Input(
-                placeholder="1",
-                value=1,
-                type="number",
-                id='nterms_band',
-                debounce=True,
-                min=0, max=4
-            ), width=12, style={'width': '100%', 'display': 'inline-block'}
+        dbc.Input(
+            placeholder="1",
+            value=1,
+            type="number",
+            id='nterms_band',
+            debounce=True,
+            min=0, max=4
         ),
         dbc.Label("Set manually the period (days)"),
-        dbc.Col(
-            dbc.Input(
-                placeholder="Optional",
-                value=None,
-                type="number",
-                id='manual_period',
-                debounce=True
-            ), width=12, style={'width': '100%', 'display': 'inline-block'}
+        dbc.Input(
+            placeholder="Optional",
+            value=None,
+            type="number",
+            id='manual_period',
+            debounce=True
         )
-    ], style={'width': '100%', 'display': 'inline-block'}
+    ], className='mb-3', style={'width': '100%', 'display': 'inline-block'}
 )
 
 submit_varstar_button = dbc.Button(
