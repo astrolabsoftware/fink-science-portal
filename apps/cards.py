@@ -170,9 +170,9 @@ def card_cutouts(is_mobile):
                                     fullWidth=True
                                 )
                             )
-                        ], justify='around', no_gutters=True
+                        ], justify='around', className="g-0"
                     ),
-                    dbc.Row(id='stamps', justify='around', no_gutters=True),
+                    dbc.Row(id='stamps', justify='around', className="g-0"),
                     html.Br(),
                     dcc.Graph(
                         id='lightcurve_cutouts',
