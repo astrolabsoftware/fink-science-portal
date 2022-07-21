@@ -1180,7 +1180,7 @@ def download_object_modal(objectid):
                 "Get object data",
                 id="open-object",
                 color='dark', outline=True,
-            ), className='d-grid gap-2'
+            ), className='d-grid gap-2', style={'width': '100%', 'display': 'inline-block'}
         ),
         dbc.Modal(
             [
@@ -1220,7 +1220,7 @@ def inspect_object_modal(objectid):
                 "Inspect alert data",
                 id="open-object-prop",
                 color='dark', outline=True
-            ), className='d-grid gap-2'
+            ), className='d-grid gap-2', style={'width': '100%', 'display': 'inline-block'}
         ),
         dbc.Modal(
             [
