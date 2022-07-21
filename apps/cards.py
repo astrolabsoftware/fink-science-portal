@@ -312,7 +312,7 @@ def card_variable_button(pdf):
                     cdsxmatch, objectidps1, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
-            dbc.Row(nterms_base),
+            nterms_base,
             dbc.Row(submit_varstar_button),
             html.Div(html.Br()),
             dbc.Row(
