@@ -247,7 +247,7 @@ nterms_base = dbc.Row(
                 id='nterms_base',
                 debounce=True,
                 min=0, max=4
-            ), width=10
+            ), width=12, style={'width': '100%', 'display': 'inline-block'}
         ),
         dbc.Label("Number of band terms"),
         dbc.Col(
@@ -258,7 +258,7 @@ nterms_base = dbc.Row(
                 id='nterms_band',
                 debounce=True,
                 min=0, max=4
-            ), width=10
+            ), width=12, style={'width': '100%', 'display': 'inline-block'}
         ),
         dbc.Label("Set manually the period (days)"),
         dbc.Col(
@@ -268,7 +268,7 @@ nterms_base = dbc.Row(
                 type="number",
                 id='manual_period',
                 debounce=True
-            ), width=6
+            ), width=12, style={'width': '100%', 'display': 'inline-block'}
         )
     ], style={'width': '100%', 'display': 'inline-block'}
 )
