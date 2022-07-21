@@ -1164,7 +1164,7 @@ navbar = dbc.Navbar(
                     ),
                 ],
                 justify="start",
-                no_gutters=True,
+                className="g-0",
             ),
             href="/",
         ),

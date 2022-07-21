@@ -682,7 +682,7 @@ def layout(name, is_mobile):
                         ),
                         dbc.Col(tabs(pdf, is_mobile), width=8)
                     ],
-                    justify="around", no_gutters=True
+                    justify="around", className="g-0"
                 ),
                 html.Div(id='object-data', style={'display': 'none'}),
                 html.Div(id='object-upper', style={'display': 'none'}),

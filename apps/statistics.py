@@ -268,7 +268,7 @@ def heatmap_content():
             dbc.Row(
                 [
                     dbc.Col(id='heatmap_stat', width=10)
-                ], justify="center", no_gutters=True
+                ], justify="center", className="g-0"
             ),
         ],
     )
@@ -303,7 +303,7 @@ def timelines():
             dbc.Row(
                 [
                     dbc.Col(id='evolution', width=10)
-                ], justify="center", no_gutters=True
+                ], justify="center", className="g-0"
             ),
         ],
     )
@@ -469,7 +469,7 @@ def layout(is_mobile):
                         html.Br(),
                         dbc.Col(tabs_, width=10)
                     ],
-                    justify="center", no_gutters=True
+                    justify="center", className="g-0"
                 ),
                 html.Div(id='object-stats', style={'display': 'none'}),
             ],
