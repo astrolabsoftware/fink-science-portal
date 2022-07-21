@@ -357,7 +357,7 @@ submit_mulens_button = html.Div(
         id='submit_mulens',
         style={'width': '100%', 'display': 'inline-block'},
         color='dark', outline=True
-    ), className='d-grid gap-2'
+    ), className='d-grid gap-2', style={'width': '100%', 'display': 'inline-block'}
 )
 
 def card_mulens_button(pdf):
