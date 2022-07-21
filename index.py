@@ -27,7 +27,7 @@ from app import app
 from app import client
 from app import APIURL
 
-from apps import home, summary, about, statistics
+from apps import summary, about, statistics
 from apps.api import api
 from apps import __version__ as portal_version
 

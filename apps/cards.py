@@ -236,33 +236,39 @@ def card_variable_plot():
     return card
 
 
-nterms_base = dbc.FormGroup(
+nterms_base = dbc.Row(
     [
         dbc.Label("Number of base terms"),
-        dbc.Input(
-            placeholder="1",
-            value=1,
-            type="number",
-            id='nterms_base',
-            debounce=True,
-            min=0, max=4
+        dbc.Col(
+            dbc.Input(
+                placeholder="1",
+                value=1,
+                type="number",
+                id='nterms_base',
+                debounce=True,
+                min=0, max=4
+            ), width=10
         ),
         dbc.Label("Number of band terms"),
-        dbc.Input(
-            placeholder="1",
-            value=1,
-            type="number",
-            id='nterms_band',
-            debounce=True,
-            min=0, max=4
+        dbc.Col(
+            dbc.Input(
+                placeholder="1",
+                value=1,
+                type="number",
+                id='nterms_band',
+                debounce=True,
+                min=0, max=4
+            ), width=10
         ),
         dbc.Label("Set manually the period (days)"),
-        dbc.Input(
-            placeholder="Optional",
-            value=None,
-            type="number",
-            id='manual_period',
-            debounce=True
+        dbc.Col(
+            dbc.Input(
+                placeholder="Optional",
+                value=None,
+                type="number",
+                id='manual_period',
+                debounce=True
+            ), width=6
         )
     ], style={'width': '100%', 'display': 'inline-block'}
 )
