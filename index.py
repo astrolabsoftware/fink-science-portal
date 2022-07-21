@@ -15,6 +15,8 @@
 import dash
 from dash import html, dcc, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
+
+import dash_bootstrap_components as dbc
 import visdcc
 import dash_trich_components as dtc
 
