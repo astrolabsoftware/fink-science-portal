@@ -12,9 +12,8 @@ args = yaml.load(open('config.yml'), yaml.Loader)
 APIURL = args['APIURL']
 
 # bootstrap theme
-# https://bootswatch.com/spacelab/
 external_stylesheets = [
-    dbc.themes.SPACELAB,
+    dbc.themes.ZEPHYR,
     '//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css',
     '//use.fontawesome.com/releases/v5.7.2/css/all.css',
 ]
