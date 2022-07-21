@@ -351,11 +351,13 @@ def card_variable_button(pdf):
     return card
 
 
-submit_mulens_button = dbc.Button(
-    'Fit data',
-    id='submit_mulens',
-    style={'width': '100%', 'display': 'inline-block'},
-    block=True, color='dark', outline=True
+submit_mulens_button = html.Div(
+    dbc.Button(
+        'Fit data',
+        id='submit_mulens',
+        style={'width': '100%', 'display': 'inline-block'},
+        block=True, color='dark', outline=True
+    ), className='d-grid gap-2'
 )
 
 def card_mulens_button(pdf):
@@ -1173,12 +1175,14 @@ def download_object_modal(objectid):
         APIURL
     )
     modal = [
-        dbc.Button(
-            "Get object data",
-            id="open-object",
-            color='dark', outline=True,
-            block=True
-        ),
+        html.Div(
+            dbc.Button(
+                "Get object data",
+                id="open-object",
+                color='dark', outline=True,
+                block=True
+            ), className='d-grid gap-2'
+        )
         dbc.Modal(
             [
                 dbc.ModalBody(
@@ -1212,12 +1216,14 @@ def inspect_object_modal(objectid):
     See {}/api/v1/columns for more information.
     """.format(objectid, objectid, APIURL)
     modal = [
-        dbc.Button(
-            "Inspect alert data",
-            id="open-object-prop",
-            color='dark', outline=True,
-            block=True
-        ),
+        html.Div(
+            dbc.Button(
+                "Inspect alert data",
+                id="open-object-prop",
+                color='dark', outline=True,
+                block=True
+            ), className='d-grid gap-2'
+        )
         dbc.Modal(
             [
                 dbc.ModalBody(
