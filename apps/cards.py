@@ -277,7 +277,7 @@ submit_varstar_button = dbc.Button(
     'Fit data',
     id='submit_variable',
     style={'width': '100%', 'display': 'inline-block'},
-    block=True, color='dark', outline=True
+    color='dark', outline=True
 )
 
 def card_variable_button(pdf):
@@ -356,7 +356,7 @@ submit_mulens_button = html.Div(
         'Fit data',
         id='submit_mulens',
         style={'width': '100%', 'display': 'inline-block'},
-        block=True, color='dark', outline=True
+        color='dark', outline=True
     ), className='d-grid gap-2'
 )
 
@@ -1180,9 +1180,8 @@ def download_object_modal(objectid):
                 "Get object data",
                 id="open-object",
                 color='dark', outline=True,
-                block=True
             ), className='d-grid gap-2'
-        )
+        ),
         dbc.Modal(
             [
                 dbc.ModalBody(
@@ -1220,10 +1219,9 @@ def inspect_object_modal(objectid):
             dbc.Button(
                 "Inspect alert data",
                 id="open-object-prop",
-                color='dark', outline=True,
-                block=True
+                color='dark', outline=True
             ), className='d-grid gap-2'
-        )
+        ),
         dbc.Modal(
             [
                 dbc.ModalBody(
