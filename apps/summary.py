@@ -98,7 +98,7 @@ def tab3_content(pdf):
     """
     tab3_content_ = html.Div([
         dbc.Row([
-            dbc.Col([card_variable_plot(), html.Br(), card_explanation_variable()], width=8),
+            dbc.Col([dmc.LoadingOverlay(card_variable_plot()), html.Br(), card_explanation_variable()], width=8),
             dbc.Col([card_variable_button(pdf)], width=4)
         ]),
     ])

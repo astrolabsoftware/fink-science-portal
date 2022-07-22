@@ -274,7 +274,7 @@ def card_variable_button(pdf):
                     float(neargaia), float(distnr))
             ),
             nterms_base,
-            dmc.LoadingOverlay(dbc.Row(submit_varstar_button)),
+            dbc.Row(submit_varstar_button),
             html.Div(html.Br()),
             dbc.Row(
                 [
