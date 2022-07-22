@@ -138,8 +138,8 @@ def tab5_content(pdf):
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                state={'0': True},
                                 dcc.Markdown(msg),
+                                state={'0': True},
                                 label="Information",
                             ),
                         ],
