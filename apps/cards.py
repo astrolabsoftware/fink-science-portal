@@ -130,8 +130,7 @@ def card_cutouts(pdf, is_mobile):
         Card with the cutouts drawn inside
     """
     if not is_mobile:
-        card1 = card_id1(pdf)
-        card2 = dbc.Card(
+        card = dbc.Card(
             dbc.CardBody(
                 [
                     dcc.Graph(
@@ -179,8 +178,6 @@ def card_cutouts(pdf, is_mobile):
             ),
             className="mt-3"
         )
-
-        card = [dbc.Row([dbc.Col(card1), dbc.Col(card1)]), card2]
     else:
         card = dbc.Row(id='stamps_mobile', justify='around')
     return card
@@ -558,7 +555,10 @@ def card_id(pdf):
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
     constellation = pdf['v:constellation'].values[0]
-    gaianame = pdf['d:DR3Name'].values[0]
+    if 'd:DR3Name' in pdf.columns:
+        gaianame = pdf['d:DR3Name'].values[0]
+    else:
+        gaianame = None
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     card = dmc.Accordion(

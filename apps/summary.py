@@ -654,8 +654,6 @@ def layout(name, is_mobile):
             }
         )
     else:
-        # button_inspect, modal_inspect = inspect_object_modal(pdf['i:objectId'].values[0])
-        # button_download, modal_download = download_object_modal(pdf['i:objectId'].values[0])
         layout_ = html.Div(
             [
                 html.Br(),
@@ -667,6 +665,8 @@ def layout(name, is_mobile):
                                 html.Br(),
                                 title(name, is_mobile),
                                 html.Br(),
+                                card_id1(pdf),
+                                html.Br(),
                                 html.Div(
                                     [visdcc.Run_js(id='aladin-lite-div')],
                                     style={
@@ -675,14 +675,6 @@ def layout(name, is_mobile):
                                     }
                                 ),
                                 html.Br(),
-                                # dbc.Row(
-                                #     [
-                                #         dbc.Col(button_inspect, width=6),
-                                #         dbc.Col(button_download, width=6)
-                                #     ],
-                                # ),
-                                # modal_inspect,
-                                # modal_download
                             ], width={"size": 3},
                         ),
                         dbc.Col(tabs(pdf, is_mobile), width=8)
