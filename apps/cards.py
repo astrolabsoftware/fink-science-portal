@@ -639,7 +639,7 @@ def card_id(pdf):
                             )
                         ], justify='center'
                     ),
-                ]
+                ],
                 label="Neighbourhood",
                 icon=[
                     DashIconify(
