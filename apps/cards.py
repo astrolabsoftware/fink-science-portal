@@ -743,22 +743,19 @@ def card_id1(pdf):
     classification = pdf['v:classification'].values[0]
 
     card = dmc.Paper(
-        dbc.Card(
-            [
-                html.H5("Last alert class: {}".format(classification), className="card-subtitle"),
-                dcc.Markdown(
-                    """
-                    ```python
-                    Discovery date: {}
-                    Last detection: {}
-                    Number of detections: {}
-                    ```
-                    """.format(
-                        discovery_date, date_end, ndet)
-                ),
-            ],
-            className="mt-3", body=True
-        ), radius='xl', p='md', shadow='xl', withBorder=True
+        [
+            html.H5("Last alert class: {}".format(classification), className="card-subtitle"),
+            dcc.Markdown(
+                """
+                ```python
+                Discovery date: {}
+                Last detection: {}
+                Number of detections: {}
+                ```
+                """.format(
+                    discovery_date, date_end, ndet)
+            ),
+        ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return card
 
