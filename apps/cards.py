@@ -571,6 +571,7 @@ def card_id(pdf):
                 dbc.Card(
                     dbc.CardBody(
                         [
+                            dcc.Markdown("Click on a measurements on the lightcurve to update the cutouts"),
                             dbc.Row(id='stamps', justify='around', className="g-0"),
                         ]
                     ),
