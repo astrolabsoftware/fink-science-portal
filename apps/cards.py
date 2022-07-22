@@ -772,12 +772,11 @@ def card_id1(pdf):
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
                 ], justify='start', align="center"
             ),
-            dbc.Row(
-                dmc.Badge(
-                    classification,
-                    color='gray',
-                    variant="dot"
-                ), justify='start', style={'color': color}
+            dmc.Badge(
+                classification,
+                color='gray',
+                variant="dot",
+                style={'color': color}
             ),
             dcc.Markdown(
                 """
