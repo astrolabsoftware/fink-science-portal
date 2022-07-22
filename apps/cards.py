@@ -746,7 +746,7 @@ curl -H "Content-Type: application/json" -X POST \\
     qrdata = "https://fink-portal.org/{}".format(objectid)
     qrimg = generate_qr(qrdata)
 
-    qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='s70%', style={'min-width': '50px'})
+    qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='30%', style={'min-width': '50px'})
     return html.Div([card, qrcode])
 
 def card_id1(pdf):
