@@ -413,7 +413,9 @@ def plot_classbar(pdf, is_mobile=False):
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
 
-    colors = [colors_[-1] if j not in class_colors.keys() else class_colors[j] for j in top_labels]
+    palette = dmc.theme.DEFAULT_COLORS
+
+    colors = [palette[class_colors['Simbad']][6] if j not in class_colors.keys() else palette[class_colors[j]][6] for j in top_labels]
 
     fig = go.Figure()
 
