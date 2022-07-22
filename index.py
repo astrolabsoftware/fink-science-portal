@@ -369,7 +369,7 @@ def carousel(nclick, data, is_mobile):
     return carousel
 
 
-modal_quickview = dmc.LoadingOverlay(
+modal_quickview = html.Div(
     [
         dbc.Button(
             "Preview",
@@ -400,7 +400,7 @@ modal_quickview = dmc.LoadingOverlay(
             is_open=False,
             size="lg",
         ),
-    ], loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
+    ]
 )
 
 @app.callback(
