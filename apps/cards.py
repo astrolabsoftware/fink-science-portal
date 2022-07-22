@@ -783,7 +783,7 @@ def card_id1(pdf):
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
                 ], justify='start', align="center"
             ),
-            badges,
+            dbc.Row(badges),
             dcc.Markdown(
                 """
                 ```python
