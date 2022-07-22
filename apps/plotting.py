@@ -2804,7 +2804,7 @@ def alert_properties(object_data):
         data=data,
         columns=columns,
         id='result_table_alert',
-        page_size=10,
+        page_size=5,
         style_as_list_view=True,
         filter_action="native",
         markdown_options={'link_target': '_blank'},
