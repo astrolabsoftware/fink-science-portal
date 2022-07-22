@@ -45,6 +45,16 @@ html, body {
   clip-path: none;
 }
 
+.nozoom {
+  padding: 2px;
+  transition: transform .2s; /* Animation */
+  margin: 0 auto;
+}
+
+.nozoom:hover {
+  clip-path: none;
+}
+
 .home {
   overflow: auto;
   position:absolute;

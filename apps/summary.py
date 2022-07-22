@@ -662,8 +662,7 @@ def layout(name, is_mobile):
                                     style={
                                         'width': '100%',
                                         'height': '25pc',
-                                        'border-radius': '15px'
-                                    }
+                                    }, className='roundimg nozoom'
                                 ),
                                 html.Br(),
                             ], width={"size": 3},
