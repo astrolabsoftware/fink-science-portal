@@ -761,7 +761,7 @@ def card_id1(pdf):
         if c in simbad_types:
             color = '#3C8DFF'
         elif c in colors.keys():
-            color = colors[classification]
+            color = colors[c]
         else:
             # Sometimes SIMBAD mess up names :-)
             color = 'white'
@@ -783,7 +783,7 @@ def card_id1(pdf):
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
                 ], justify='start', align="center"
             ),
-            dbc.Row(badges),
+            html.Div(badges),
             dcc.Markdown(
                 """
                 ```python
