@@ -578,7 +578,7 @@ def card_id(pdf):
                         ),
                         className="mt-3"
                     ),
-                ]
+                ],
                 label="Last alert cutouts",
                 icon=[
                     DashIconify(
