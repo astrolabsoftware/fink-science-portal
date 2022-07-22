@@ -568,15 +568,17 @@ def card_id(pdf):
         disableIconRotation=True,
         children=[
             dmc.AccordionItem(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            dcc.Markdown("Click on a measurements on the lightcurve to update the cutouts"),
-                            dbc.Row(id='stamps', justify='around', className="g-0"),
-                        ]
+                [
+                    dcc.Markdown("Click on a measurements on the lightcurve to update the cutouts"),
+                    dbc.Card(
+                        dbc.CardBody(
+                            [
+                                dbc.Row(id='stamps', justify='around', className="g-0"),
+                            ]
+                        ),
+                        className="mt-3"
                     ),
-                    className="mt-3"
-                ),
+                ]
                 label="Last alert cutouts",
                 icon=[
                     DashIconify(
