@@ -569,7 +569,6 @@ def card_id(pdf):
         children=[
             dmc.AccordionItem(
                 [
-                    dcc.Markdown("Click on a measurements on the lightcurve to update the cutouts"),
                     dbc.Card(
                         dbc.CardBody(
                             [
@@ -582,8 +581,8 @@ def card_id(pdf):
                 label="Last alert cutouts",
                 icon=[
                     DashIconify(
-                        icon="tabler:user",
-                        color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                        icon="tabler:flare",
+                        color=dmc.theme.DEFAULT_COLORS["black"][6],
                         width=20,
                     )
                 ],
@@ -593,7 +592,7 @@ def card_id(pdf):
                 label="Last alert content",
                 icon=[
                     DashIconify(
-                        icon="tabler:user",
+                        icon="tabler:file-description",
                         color=dmc.theme.DEFAULT_COLORS["blue"][6],
                         width=20,
                     )
@@ -603,7 +602,7 @@ def card_id(pdf):
                 label="Download data",
                 icon=[
                     DashIconify(
-                        icon="tabler:map-pin",
+                        icon="tabler:database-export",
                         color=dmc.theme.DEFAULT_COLORS["red"][6],
                         width=20,
                     )
@@ -700,7 +699,7 @@ def card_id(pdf):
                 label="Neighbourhood",
                 icon=[
                     DashIconify(
-                        icon="tabler:circle-check",
+                        icon="tabler:atom-2",
                         color=dmc.theme.DEFAULT_COLORS["green"][6],
                         width=20,
                     )
