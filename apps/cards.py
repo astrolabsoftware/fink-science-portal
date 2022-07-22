@@ -22,6 +22,8 @@ from app import app, APIURL
 
 from apps.plotting import all_radio_options
 from apps.utils import queryMPC, convert_mpc_type
+from apps.utils import pil_to_b64
+from apps.utils import generate_qr
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -741,7 +743,11 @@ curl -H "Content-Type: application/json" -X POST \\
         ],
     )
 
-    return card
+    qrdata = "https://fink-portal.org/{}".format(name[1:])
+    qrimg = generate_qr(qrdata)
+
+    qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='90%', style={'min-width': '50px'})
+    return [card, qrcode]
 
 def card_id1(pdf):
     """ Add a card containing basic alert data
