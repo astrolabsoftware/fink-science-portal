@@ -628,7 +628,7 @@ pdf = pd.read_json(r.content)""".format(
             ),
             dmc.AccordionItem(
                 [
-                    dbc.Card(
+                    dmc.Paper(
                         [
                             dcc.Markdown(
                                 """
@@ -649,7 +649,7 @@ pdf = pd.read_json(r.content)""".format(
                                 )
                             ),
                         ],
-                        className="mt-3", body=True
+                        radius='xl', p='md', shadow='xl', withBorder=True
                     ),
                     html.Br(),
                     dbc.Row(
