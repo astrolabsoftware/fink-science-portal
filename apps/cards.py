@@ -15,6 +15,7 @@
 from dash import html, dcc, dash_table, Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 import visdcc
 
 from app import app, APIURL
@@ -552,137 +553,172 @@ def card_explanation_xmatch():
 def card_id(pdf):
     """ Add a card containing basic alert data
     """
-    id0 = pdf['i:objectId'].values[0]
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
-    date0 = pdf['v:lastdate'].values[0]
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
-
-    distnr = pdf['i:distnr'].values[0]
-    # objectidps1 = pdf['i:objectidps1'].values[0]
-    ssnamenr = pdf['i:ssnamenr'].values[0]
-    distpsnr1 = pdf['i:distpsnr1'].values[0]
-    neargaia = pdf['i:neargaia'].values[0]
-
-    try:
-        rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
-    except IndexError:
-        rate_g = 0.0
-    try:
-        rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
-    except IndexError:
-        rate_r = 0.0
-
-    classification = pdf['v:classification'].values[0]
-
-    constellation = pdf['v:constellation'].values[0]
-
-    card = dbc.Card(
-        [
-            html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Last class: {}".format(classification), className="card-subtitle"),
-            dcc.Markdown(
-                """
-                ```python
-                # General properties
-                Date: {}
-                RA: {} deg
-                Dec: {} deg
-                ```
-                ---
-                ```python
-                # Variability (DC magnitude)
-                Rate g (last): {:.2f} mag/day
-                Rate r (last): {:.2f} mag/day
-                ```
-                ---
-                ```python
-                # Neighbourhood
-                Constellation: {}
-                SIMBAD: {}
-                MPC: {}
-                Distance (PS1): {:.2f} arcsec
-                Distance (Gaia): {:.2f} arcsec
-                Distance (ZTF): {:.2f} arcsec
-                ```
-                ---
-                """.format(
-                    date0, ra0, dec0,
-                    rate_g, rate_r, constellation,
-                    cdsxmatch, ssnamenr, float(distpsnr1),
-                    float(neargaia), float(distnr))
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.Button(
-                            className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
-                            color='dark',
-                            outline=True,
-                            id='TNS',
-                            target="_blank",
-                            href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
-                        ), width=4),
-                    dbc.Col(
-                        dbc.Button(
-                            className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
-                            color='dark',
-                            outline=True,
-                            id='SIMBAD',
-                            target="_blank",
-                            href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
-                        ), width=4
-                    ),
-                    dbc.Col(
-                        dbc.Button(
-                            className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
-                            color='dark',
-                            outline=True,
-                            id='SNAD',
-                            target="_blank",
-                            href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                        ), width=4),
-                ], justify='around'
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.Button(
-                            className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
-                            color='dark',
-                            outline=True,
-                            id='NED',
-                            target="_blank",
-                            href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
-                        ), width=4
-                    ),
-                    dbc.Col(
-                        dbc.Button(
-                            className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
-                            color='dark',
-                            outline=True,
-                            id='SDSS',
-                            target="_blank",
-                            href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
-                        ), width=4
+    card = dmc.Accordion(
+        disableIconRotation=True,
+        children=[
+            dmc.AccordionItem(
+                label="Personal Information",
+                icon=[
+                    DashIconify(
+                        icon="tabler:user",
+                        color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                        width=20,
                     )
-                ], justify='center'
+                ],
+            ),
+            dmc.AccordionItem(
+                label="Shipping Address",
+                icon=[
+                    DashIconify(
+                        icon="tabler:map-pin",
+                        color=dmc.theme.DEFAULT_COLORS["red"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                label="Confirmation",
+                icon=[
+                    DashIconify(
+                        icon="tabler:circle-check",
+                        color=dmc.theme.DEFAULT_COLORS["green"][6],
+                        width=20,
+                    )
+                ],
             ),
         ],
-        className="mt-3", body=True
     )
+    # id0 = pdf['i:objectId'].values[0]
+    # ra0 = pdf['i:ra'].values[0]
+    # dec0 = pdf['i:dec'].values[0]
+    # date0 = pdf['v:lastdate'].values[0]
+    # cdsxmatch = pdf['d:cdsxmatch'].values[0]
+
+    # distnr = pdf['i:distnr'].values[0]
+    # # objectidps1 = pdf['i:objectidps1'].values[0]
+    # ssnamenr = pdf['i:ssnamenr'].values[0]
+    # distpsnr1 = pdf['i:distpsnr1'].values[0]
+    # neargaia = pdf['i:neargaia'].values[0]
+
+    # try:
+    #     rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
+    # except IndexError:
+    #     rate_g = 0.0
+    # try:
+    #     rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
+    # except IndexError:
+    #     rate_r = 0.0
+
+    # classification = pdf['v:classification'].values[0]
+
+    # constellation = pdf['v:constellation'].values[0]
+
+    # card = dbc.Card(
+    #     [
+    #         html.H5("ObjectID: {}".format(id0), className="card-title"),
+    #         html.H6("Last class: {}".format(classification), className="card-subtitle"),
+    #         dcc.Markdown(
+    #             """
+    #             ```python
+    #             # General properties
+    #             Date: {}
+    #             RA: {} deg
+    #             Dec: {} deg
+    #             ```
+    #             ---
+    #             ```python
+    #             # Variability (DC magnitude)
+    #             Rate g (last): {:.2f} mag/day
+    #             Rate r (last): {:.2f} mag/day
+    #             ```
+    #             ---
+    #             ```python
+    #             # Neighbourhood
+    #             Constellation: {}
+    #             SIMBAD: {}
+    #             MPC: {}
+    #             Distance (PS1): {:.2f} arcsec
+    #             Distance (Gaia): {:.2f} arcsec
+    #             Distance (ZTF): {:.2f} arcsec
+    #             ```
+    #             ---
+    #             """.format(
+    #                 date0, ra0, dec0,
+    #                 rate_g, rate_r, constellation,
+    #                 cdsxmatch, ssnamenr, float(distpsnr1),
+    #                 float(neargaia), float(distnr))
+    #         ),
+    #         dbc.Row(
+    #             [
+    #                 dbc.Col(
+    #                     dbc.Button(
+    #                         className='btn btn-default zoom btn-circle btn-lg',
+    #                         style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
+    #                         color='dark',
+    #                         outline=True,
+    #                         id='TNS',
+    #                         target="_blank",
+    #                         href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
+    #                     ), width=4),
+    #                 dbc.Col(
+    #                     dbc.Button(
+    #                         className='btn btn-default zoom btn-circle btn-lg',
+    #                         style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
+    #                         color='dark',
+    #                         outline=True,
+    #                         id='SIMBAD',
+    #                         target="_blank",
+    #                         href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
+    #                     ), width=4
+    #                 ),
+    #                 dbc.Col(
+    #                     dbc.Button(
+    #                         className='btn btn-default zoom btn-circle btn-lg',
+    #                         style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+    #                         color='dark',
+    #                         outline=True,
+    #                         id='SNAD',
+    #                         target="_blank",
+    #                         href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+    #                     ), width=4),
+    #             ], justify='around'
+    #         ),
+    #         dbc.Row(
+    #             [
+    #                 dbc.Col(
+    #                     dbc.Button(
+    #                         className='btn btn-default zoom btn-circle btn-lg',
+    #                         style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+    #                         color='dark',
+    #                         outline=True,
+    #                         id='NED',
+    #                         target="_blank",
+    #                         href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
+    #                     ), width=4
+    #                 ),
+    #                 dbc.Col(
+    #                     dbc.Button(
+    #                         className='btn btn-default zoom btn-circle btn-lg',
+    #                         style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
+    #                         color='dark',
+    #                         outline=True,
+    #                         id='SDSS',
+    #                         target="_blank",
+    #                         href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
+    #                     ), width=4
+    #                 )
+    #             ], justify='center'
+    #         ),
+    #     ],
+    #     className="mt-3", body=True
+    # )
     return card
 
 def card_id1(pdf):
     """ Add a card containing basic alert data
     """
     date_end = pdf['v:lastdate'].values[0]
-    discovery_date = Time(pdf['i:jdstarthist'].values[0], format='jd').iso
+    discovery_date = pdf['v:lastdate'].values[-1]
     ndet = len(pdf)
 
     classification = pdf['v:classification'].values[0]
