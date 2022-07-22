@@ -559,6 +559,7 @@ def card_id(pdf):
     neargaia = pdf['i:neargaia'].values[0]
     constellation = pdf['v:constellation'].values[0]
     gaianame = pdf['d:DR3Name'].values[0]
+    cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     card = dmc.Accordion(
         disableIconRotation=True,
@@ -682,69 +683,7 @@ def card_id(pdf):
             ),
         ],
     )
-    id0 = pdf['i:objectId'].values[0]
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
-    date0 = pdf['v:lastdate'].values[0]
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
-    distnr = pdf['i:distnr'].values[0]
-    # objectidps1 = pdf['i:objectidps1'].values[0]
-    ssnamenr = pdf['i:ssnamenr'].values[0]
-    distpsnr1 = pdf['i:distpsnr1'].values[0]
-    neargaia = pdf['i:neargaia'].values[0]
-
-    try:
-        rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
-    except IndexError:
-        rate_g = 0.0
-    try:
-        rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
-    except IndexError:
-        rate_r = 0.0
-
-    classification = pdf['v:classification'].values[0]
-
-    constellation = pdf['v:constellation'].values[0]
-
-    card = dbc.Card(
-        [
-            html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6("Last class: {}".format(classification), className="card-subtitle"),
-            dcc.Markdown(
-                """
-                ```python
-                # General properties
-                Date: {}
-                RA: {} deg
-                Dec: {} deg
-                ```
-                ---
-                ```python
-                # Variability (DC magnitude)
-                Rate g (last): {:.2f} mag/day
-                Rate r (last): {:.2f} mag/day
-                ```
-                ---
-                ```python
-                # Neighbourhood
-                Constellation: {}
-                SIMBAD: {}
-                MPC: {}
-                Distance (PS1): {:.2f} arcsec
-                Distance (Gaia): {:.2f} arcsec
-                Distance (ZTF): {:.2f} arcsec
-                ```
-                ---
-                """.format(
-                    date0, ra0, dec0,
-                    rate_g, rate_r, constellation,
-                    cdsxmatch, ssnamenr, float(distpsnr1),
-                    float(neargaia), float(distnr))
-            ),
-        ],
-        className="mt-3", body=True
-    )
     return card
 
 def card_id1(pdf):
