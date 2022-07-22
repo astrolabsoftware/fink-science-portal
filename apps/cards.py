@@ -562,8 +562,7 @@ def card_id(pdf):
         gaianame = None
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
-    message_download = """
-import requests
+    message_download = """import requests
 import pandas as pd
 
 # get data for ZTF19acnjwgm
@@ -576,8 +575,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
-    """.format(
+pdf = pd.read_json(r.content)""".format(
         APIURL,
         objectid
     )
