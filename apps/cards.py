@@ -562,6 +562,7 @@ def card_id(pdf):
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     card = dmc.Accordion(
+        offsetIcon=False,
         disableIconRotation=True,
         children=[
             dmc.AccordionItem(
