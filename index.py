@@ -31,7 +31,7 @@ from apps import summary, about, statistics
 from apps.api import api
 from apps import __version__ as portal_version
 
-from apps.utils import markdownify_objectid
+from apps.utils import markdownify_objectid, class_colors
 from apps.utils import isoify_time, validate_query, extract_query_url
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
@@ -589,29 +589,18 @@ def display_skymap(validation, data, columns, activetab):
         mags = pdf['i:magpsf'].values
         classes = pdf['v:classification'].values
         n_alert_per_class = pdf.groupby('v:classification').count().to_dict()['i:objectId']
-        colors = {
-            'Early SN Ia candidate': 'red',
-            'SN candidate': 'orange',
-            'Kilonova candidate': 'blue',
-            'Microlensing candidate': 'green',
-            'Tracklet': "rgb(204,255,204)",
-            'Solar System MPC': "rgb(254,224,144)",
-            'Solar System candidate': "rgb(171,217,233)",
-            'Ambiguous': 'rgb(116,196,118)',
-            'Unknown': '#7f7f7f'
-        }
         cats = []
         for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
             if class_ in simbad_types:
                 cat = 'cat_{}'.format(simbad_types.index(class_))
-                color = '#3C8DFF'
-            elif class_ in colors.keys():
+                color = class_colors['Simbad']
+            elif class_ in class_colors.keys():
                 cat = 'cat_{}'.format(class_.replace(' ', '_'))
-                color = colors[class_]
+                color = class_colors[class_]
             else:
                 # Sometimes SIMBAD mess up names :-)
                 cat = 'cat_{}'.format(class_)
-                color = 'white'
+                color = class_colors['Simbad']
 
             if cat not in cats:
                 img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ' ({})'.format(n_alert_per_class[class_]), color)
