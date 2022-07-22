@@ -172,7 +172,6 @@ def card_cutouts(pdf, is_mobile):
                                     """
                                 ),
                                 label="Information",
-                                description="What am I seeing?",
                             ),
                         ],
                     )
@@ -390,8 +389,7 @@ def card_explanation_variable():
         children=[
             dmc.AccordionItem(
                 dcc.Markdown(msg),
-                label="Information",
-                description="How to make a fit?",
+                label="How to make a fit?",
             ),
         ],
     )
@@ -411,8 +409,7 @@ def card_explanation_mulens():
         children=[
             dmc.AccordionItem(
                 dcc.Markdown(msg),
-                label="Information",
-                description="How to make a fit?",
+                label="How to make a fit?",
             ),
         ],
     )
