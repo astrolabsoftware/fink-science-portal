@@ -561,7 +561,7 @@ def card_id(pdf):
         gaianame = None
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
-    message_download = """import requests
+    python_download = """import requests
 import pandas as pd
 
 # get data for ZTF19acnjwgm
@@ -577,6 +577,21 @@ r = requests.post(
 pdf = pd.read_json(r.content)""".format(
         APIURL,
         objectid
+    )
+
+    curl_download = """
+curl -H "Content-Type: application/json" -X POST \\
+        -d '{{"objectId":"{}", "output-format":"csv"}}' \\
+        {}/api/v1/objects \\
+        -o {}.csv
+    """.format(objectid, APIURL, objectid)
+
+    download_tab = dmc.Tabs(
+        color="red",
+        children=[
+            dmc.Tab(label="Python", children=dmc.Prism(children=python_download, language="python")),
+            dmc.Tab(label="Curl", children=dmc.Prism(children=curl_download, language="bash")),
+        ]
     )
 
     card = dmc.Accordion(
@@ -615,7 +630,7 @@ pdf = pd.read_json(r.content)""".format(
             dmc.AccordionItem(
                 [
                     dcc.Markdown('See {}/api for more options'.format(APIURL)),
-                    dmc.Prism(children=message_download, language="python"),
+                    download_tab,
                 ],
                 label="Download data",
                 icon=[
