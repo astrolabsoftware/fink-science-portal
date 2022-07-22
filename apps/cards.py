@@ -562,9 +562,29 @@ def card_id(pdf):
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     card = dmc.Accordion(
+        state={"0": True, **{"{}".format(i+1): False for i in range(3)}},
+        multiple=True,
         offsetIcon=False,
         disableIconRotation=True,
         children=[
+            dmc.AccordionItem(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            dbc.Row(id='stamps', justify='around', className="g-0"),
+                        ]
+                    ),
+                    className="mt-3"
+                ),
+                label="Last alert cutouts",
+                icon=[
+                    DashIconify(
+                        icon="tabler:user",
+                        color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                        width=20,
+                    )
+                ],
+            ),
             dmc.AccordionItem(
                 html.Div([], id='alert_table'),
                 label="Last alert content",

@@ -76,14 +76,6 @@ def tab1_content(pdf):
         dbc.Row([
             dbc.Col(card_cutouts(pdf, is_mobile=False), width=8),
             dbc.Col([
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            dbc.Row(id='stamps', justify='around', className="g-0"),
-                        ]
-                    ),
-                    className="mt-3"
-                ),
                 card_id(pdf)
             ], width=4)
         ]),
