@@ -28,6 +28,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
