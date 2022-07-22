@@ -749,7 +749,7 @@ def card_id1(pdf):
                 [
                     dbc.Col(dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png")),
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'})),
-                ]
+                ], justify='start'
             ),
             dcc.Markdown(
                 """
