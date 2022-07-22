@@ -744,7 +744,13 @@ def card_id1(pdf):
 
     card = dmc.Paper(
         [
-            html.H5("Last alert class: {}".format(classification), className="card-subtitle"),
+            html.Div(
+                [
+                    dmc.Avatar(src="https://avatars.githubusercontent.com/u/91216500?v=4"),
+                    dmc.Title(objectid, order=1, style={'color': '#15284F'}),
+                ]
+            ),
+            dmc.Title("Last alert class: {}".format(classification), order=2),
             dcc.Markdown(
                 """
                 ```python
