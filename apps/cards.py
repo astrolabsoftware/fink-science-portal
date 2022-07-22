@@ -629,8 +629,8 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
             dmc.AccordionItem(
                 [
-                    dcc.Markdown('See {}/api for more options'.format(APIURL)),
                     download_tab,
+                    dcc.Markdown('See {}/api for more options'.format(APIURL)),
                 ],
                 label="Download data",
                 icon=[
