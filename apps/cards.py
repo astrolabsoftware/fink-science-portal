@@ -736,6 +736,7 @@ pdf = pd.read_json(r.content)""".format(
 def card_id1(pdf):
     """ Add a card containing basic alert data
     """
+    objectid = pdf['i:objectId'].values[0]
     date_end = pdf['v:lastdate'].values[0]
     discovery_date = pdf['v:lastdate'].values[-1]
     ndet = len(pdf)
