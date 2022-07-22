@@ -655,8 +655,6 @@ def layout(name, is_mobile):
                         dbc.Col(
                             [
                                 html.Br(),
-                                title(name, is_mobile),
-                                html.Br(),
                                 card_id1(pdf),
                                 html.Br(),
                                 html.Div(
