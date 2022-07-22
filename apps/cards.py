@@ -745,21 +745,22 @@ def card_id1(pdf):
 
     card = dmc.Paper(
         [
-            html.Div(
+            dbc.Row(
                 [
-                    dmc.Avatar(src="https://avatars.githubusercontent.com/u/91216500?v=4"),
-                    dmc.Title(objectid, order=1, style={'color': '#15284F'}),
+                    dbc.Col(dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png")),
+                    dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'})),
                 ]
             ),
-            dmc.Title("Last alert class: {}".format(classification), order=2),
             dcc.Markdown(
                 """
                 ```python
+                Last alert class: {}
                 Discovery date: {}
                 Last detection: {}
                 Number of detections: {}
                 ```
                 """.format(
+                    classification,
                     discovery_date, date_end, ndet)
             ),
         ], radius='xl', p='md', shadow='xl', withBorder=True
