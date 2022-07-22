@@ -140,7 +140,6 @@ def tab5_content(pdf):
                             dmc.AccordionItem(
                                 dcc.Markdown(msg),
                                 label="Information",
-                                description="What am I seeing?",
                             ),
                         ],
                     )
@@ -158,8 +157,7 @@ def tab5_content(pdf):
                         children=[
                             dmc.AccordionItem(
                                 dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
-                                label="Information",
-                                description="How are computed the residuals?",
+                                label="How are computed the residuals?",
                             ),
                         ],
                     )
@@ -228,8 +226,7 @@ def tab5_content(pdf):
                         children=[
                             dmc.AccordionItem(
                                 dcc.Markdown(msg_phase),
-                                label="Information",
-                                description="How is modeled the phase curve?",
+                                label="How is modeled the phase curve?",
                             ),
                         ],
                     )
