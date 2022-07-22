@@ -747,7 +747,7 @@ def card_id1(pdf):
         [
             dbc.Row(
                 [
-                    dbc.Col(dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png"), width=2),
+                    dbc.Col(dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size='lg'), width=2),
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
                 ], justify='start'
             ),
