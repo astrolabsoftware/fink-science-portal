@@ -775,7 +775,7 @@ def card_id1(pdf):
             dbc.Row(
                 dmc.Badge(
                     classification,
-                    color='grey',
+                    color='gray',
                     variant="dot"
                 ), justify='start', style={'color': color}
             ),
