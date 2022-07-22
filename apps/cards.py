@@ -610,6 +610,7 @@ def card_id(pdf):
                         ],
                         className="mt-3", body=True
                     ),
+                    html.Br(),
                     dbc.Row(
                         [
                             dbc.Col(
