@@ -657,13 +657,12 @@ def layout(name, is_mobile):
                                 html.Br(),
                                 card_id1(pdf),
                                 html.Br(),
-                                dmc.Paper(
+                                html.Div(
                                     [visdcc.Run_js(id='aladin-lite-div')],
                                     style={
                                         'width': '100%',
                                         'height': '25pc'
-                                    },
-                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                    }
                                 ),
                                 html.Br(),
                             ], width={"size": 3},

@@ -132,53 +132,50 @@ def card_cutouts(pdf, is_mobile):
         Card with the cutouts drawn inside
     """
     if not is_mobile:
-        card = dbc.Card(
-            dbc.CardBody(
-                [
-                    dcc.Graph(
-                        id='lightcurve_cutouts',
-                        style={
-                            'width': '100%',
-                            'height': '25pc'
-                        },
-                        config={'displayModeBar': False}
-                    ),
-                    dbc.Row(
-                        dbc.Col(
-                            dmc.Chips(
-                                data=[
-                                    {'label': k, 'value': k} for k in all_radio_options.keys()
-                                ],
-                                id="switch-mag-flux",
-                                value="Difference magnitude",
-                                color="orange",
-                                radius="xl",
-                                size="sm",
-                                spacing="xl",
-                                variant="outline",
-                                position='center',
-                                multiple=False,
-                            )
+        card = dmc.Paper(
+            [
+                dcc.Graph(
+                    id='lightcurve_cutouts',
+                    style={
+                        'width': '100%',
+                        'height': '25pc'
+                    },
+                    config={'displayModeBar': False}
+                ),
+                dbc.Row(
+                    dbc.Col(
+                        dmc.Chips(
+                            data=[
+                                {'label': k, 'value': k} for k in all_radio_options.keys()
+                            ],
+                            id="switch-mag-flux",
+                            value="Difference magnitude",
+                            color="orange",
+                            radius="xl",
+                            size="sm",
+                            spacing="xl",
+                            variant="outline",
+                            position='center',
+                            multiple=False,
                         )
-                    ),
-                    dmc.Accordion(
-                        children=[
-                            dmc.AccordionItem(
-                                dcc.Markdown(
-                                    """
-                                    Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
-                                    In addition, the _Difference magnitude_ view shows:
-                                    - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-                                    """
-                                ),
-                                label="Information",
-                            ),
-                        ],
                     )
-                ]
-            ),
-            className="mt-3"
+                ),
+                dmc.Accordion(
+                    children=[
+                        dmc.AccordionItem(
+                            dcc.Markdown(
+                                """
+                                Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+                                In addition, the _Difference magnitude_ view shows:
+                                - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                                - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                                """
+                            ),
+                            label="Information",
+                        ),
+                    ],
+                )
+            ], radius='xl', p='md', shadow='xl', withBorder=True
         )
     else:
         card = dbc.Row(id='stamps_mobile', justify='around')
@@ -739,8 +736,6 @@ def card_id1(pdf):
     discovery_date = pdf['v:lastdate'].values[-1]
     ndet = len(pdf)
 
-    classification = pdf['v:classification'].values[0]
-
     colors = {
         'Early SN Ia candidate': 'red',
         'SN candidate': 'orange',
@@ -787,13 +782,11 @@ def card_id1(pdf):
             dcc.Markdown(
                 """
                 ```python
-                Last alert class: {}
                 Discovery date: {}
                 Last detection: {}
                 Number of detections: {}
                 ```
                 """.format(
-                    classification,
                     discovery_date, date_end, ndet)
             ),
         ], radius='xl', p='md', shadow='xl', withBorder=True
