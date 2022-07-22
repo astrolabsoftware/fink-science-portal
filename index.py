@@ -369,7 +369,7 @@ def carousel(nclick, data, is_mobile):
     return carousel
 
 
-modal_quickview = html.Div(
+modal_quickview = dmc.LoadingOverlay(
     [
         dbc.Button(
             "Preview",
@@ -381,12 +381,10 @@ modal_quickview = html.Div(
         dbc.Modal(
             [
                 dbc.ModalBody(
-                    dmc.LoadingOverlay(
-                        dbc.Container(
-                            id='carousel',
-                            fluid=True,
-                            style={'width': '95%'}
-                        ),loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
+                    dbc.Container(
+                        id='carousel',
+                        fluid=True,
+                        style={'width': '95%'}
                     ), style={
                         'background': '#000',
                         'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
@@ -402,7 +400,7 @@ modal_quickview = html.Div(
             is_open=False,
             size="lg",
         ),
-    ]
+    ], loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
 )
 
 @app.callback(
