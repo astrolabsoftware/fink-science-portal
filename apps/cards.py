@@ -582,7 +582,7 @@ def card_id(pdf):
                 icon=[
                     DashIconify(
                         icon="tabler:flare",
-                        color=dmc.theme.DEFAULT_COLORS["black"][6],
+                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
                         width=20,
                     )
                 ],
