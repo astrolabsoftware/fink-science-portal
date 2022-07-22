@@ -622,7 +622,7 @@ pdf = pd.read_json(r.content)
             dmc.AccordionItem(
                 [
                     dcc.Markdown('See {}/api for more options'.format(APIURL)),
-                    dmc.Prism(children=message_download, language="python", copiedLabel=True),
+                    dmc.Prism(children=message_download, language="python"),
                 ],
                 label="Download data",
                 icon=[
