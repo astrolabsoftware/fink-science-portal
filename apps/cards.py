@@ -137,7 +137,7 @@ def card_cutouts(pdf, is_mobile):
                         id='lightcurve_cutouts',
                         style={
                             'width': '100%',
-                            'height': '15pc'
+                            'height': '25pc'
                         },
                         config={'displayModeBar': False}
                     ),
@@ -547,6 +547,7 @@ def card_explanation_xmatch():
 def card_id(pdf):
     """ Add a card containing basic alert data
     """
+    objectid = pdf['i:objectId'].values[0]
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
 
@@ -560,6 +561,29 @@ def card_id(pdf):
     else:
         gaianame = None
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
+
+    message_download = """
+    # See {}/api for more options.
+
+    import requests
+    import pandas as pd
+
+    # get data for ZTF19acnjwgm
+    r = requests.post(
+      '{}/api/v1/objects',
+      json={{
+        'objectId': '{}',
+        'output-format': 'json'
+      }}
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    """.format(
+        APIURL,
+        APIURL,
+        objectid
+    )
 
     card = dmc.Accordion(
         state={"0": True, **{"{}".format(i+1): False for i in range(3)}},
@@ -599,6 +623,7 @@ def card_id(pdf):
                 ],
             ),
             dmc.AccordionItem(
+                dmc.Prism(message_download, language="python"),
                 label="Download data",
                 icon=[
                     DashIconify(
