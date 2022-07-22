@@ -381,10 +381,12 @@ modal_quickview = html.Div(
         dbc.Modal(
             [
                 dbc.ModalBody(
-                    dbc.Container(
-                        id='carousel',
-                        fluid=True,
-                        style={'width': '95%'}
+                    dmc.LoadingOverlay(
+                        dbc.Container(
+                            id='carousel',
+                            fluid=True,
+                            style={'width': '95%'}
+                        ),loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
                     ), style={
                         'background': '#000',
                         'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
