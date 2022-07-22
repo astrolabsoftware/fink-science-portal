@@ -18,8 +18,8 @@ external_stylesheets = [
     '//use.fontawesome.com/releases/v5.7.2/css/all.css',
 ]
 external_scripts = [
-    '//code.jquery.com/jquery-1.9.1.min.js',
-    '//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js',
+    '//code.jquery.com/jquery-1.12.1.min.js',
+    '//aladin.u-strasbg.fr/AladinLite/api/v3/latest/aladin.js',
     '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML',
 ]
 
