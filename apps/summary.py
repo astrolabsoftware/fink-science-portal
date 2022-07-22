@@ -334,14 +334,14 @@ def title(name, is_mobile):
         title_ = html.Div(header)
     else:
         header = [
-            dbc.Col(html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='90%', width='100%'), width=2),
+            dbc.Col(html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='90%', style={'min-width': '50px'}), width=2),
             dbc.Col(html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'}), width=10)
         ]
         title_ = dbc.Card(
             dbc.CardHeader(
                 [
                     dbc.Row(
-                        header
+                        header, style={'white-space': 'nowrap'}
                     )
                 ]
             ),
