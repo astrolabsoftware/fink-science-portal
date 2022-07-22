@@ -129,7 +129,7 @@ def card_cutouts(pdf, is_mobile):
         Card with the cutouts drawn inside
     """
     if not is_mobile:
-        card1 = card_id1(pdf),
+        card1 = card_id1(pdf)
         card2 = dbc.Card(
             dbc.CardBody(
                 [
