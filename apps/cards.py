@@ -563,24 +563,21 @@ def card_id(pdf):
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     message_download = """
-    # See {}/api for more options.
+import requests
+import pandas as pd
 
-    import requests
-    import pandas as pd
-
-    # get data for ZTF19acnjwgm
-    r = requests.post(
-      '{}/api/v1/objects',
-      json={{
+# get data for ZTF19acnjwgm
+r = requests.post(
+    '{}/api/v1/objects',
+    json={{
         'objectId': '{}',
         'output-format': 'json'
-      }}
-    )
+    }}
+)
 
-    # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+# Format output in a DataFrame
+pdf = pd.read_json(r.content)
     """.format(
-        APIURL,
         APIURL,
         objectid
     )
@@ -623,7 +620,10 @@ def card_id(pdf):
                 ],
             ),
             dmc.AccordionItem(
-                dmc.Prism(message_download, language="python"),
+                [
+                    dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                    dmc.Prism(children=message_download, language="python", copiedLabel=True),
+                ],
                 label="Download data",
                 icon=[
                     DashIconify(
