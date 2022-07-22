@@ -767,7 +767,7 @@ def card_id1(pdf):
         if c in simbad_types:
             color = class_colors['Simbad']
         elif c in class_colors.keys():
-            color = colors[c]
+            color = class_colors[c]
         else:
             # Sometimes SIMBAD mess up names :-)
             color = class_colors['Simbad']
