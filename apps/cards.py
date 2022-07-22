@@ -129,51 +129,17 @@ def card_cutouts(is_mobile):
         Card with the cutouts drawn inside
     """
     if not is_mobile:
-        card = dbc.Card(
+        card1 = dbc.Card(
             dbc.CardBody(
                 [
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                dmc.Button(
-                                    "Science",
-                                    variant="white",
-                                    color="gray",
-                                    radius="lg",
-                                    size="sm",
-                                    compact=True,
-                                    loading=False,
-                                    fullWidth=True
-                                )
-                            ),
-                            dbc.Col(
-                                dmc.Button(
-                                    "Template",
-                                    variant="white",
-                                    color="gray",
-                                    radius="lg",
-                                    size="sm",
-                                    compact=True,
-                                    loading=False,
-                                    fullWidth=True
-                                )
-                            ),
-                            dbc.Col(
-                                dmc.Button(
-                                    "Difference",
-                                    variant="white",
-                                    color="gray",
-                                    radius="lg",
-                                    size="sm",
-                                    compact=True,
-                                    loading=False,
-                                    fullWidth=True
-                                )
-                            )
-                        ], justify='around', className="g-0"
-                    ),
                     dbc.Row(id='stamps', justify='around', className="g-0"),
-                    html.Br(),
+                ]
+            ),
+            className="mt-3"
+        )
+        card2 = dbc.Card(
+            dbc.CardBody(
+                [
                     dcc.Graph(
                         id='lightcurve_cutouts',
                         style={
@@ -220,6 +186,8 @@ def card_cutouts(is_mobile):
             ),
             className="mt-3"
         )
+
+        card = [card1, card2]
     else:
         card = dbc.Row(id='stamps_mobile', justify='around')
     return card
