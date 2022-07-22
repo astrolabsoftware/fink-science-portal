@@ -657,6 +657,7 @@ def layout(name, is_mobile):
                                 html.Br(),
                                 card_id1(pdf),
                                 html.Br(),
+                                html.Br(),
                                 html.Div(
                                     [visdcc.Run_js(id='aladin-lite-div')],
                                     style={

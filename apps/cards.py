@@ -24,6 +24,7 @@ from apps.plotting import all_radio_options
 from apps.utils import queryMPC, convert_mpc_type
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
+from apps.utils import class_colors
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -758,37 +759,24 @@ def card_id1(pdf):
     discovery_date = pdf['v:lastdate'].values[-1]
     ndet = len(pdf)
 
-    colors = {
-        'Early SN Ia candidate': 'red',
-        'SN candidate': 'orange',
-        'Kilonova candidate': 'blue',
-        'Microlensing candidate': 'green',
-        'Tracklet': "rgb(204,255,204)",
-        'Solar System MPC': "rgb(254,224,144)",
-        'Solar System candidate': "rgb(171,217,233)",
-        'Ambiguous': 'rgb(116,196,118)',
-        'Unknown': '#7f7f7f'
-    }
-
     simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
     badges = []
     for c in np.unique(pdf['v:classification']):
         if c in simbad_types:
-            color = '#3C8DFF'
-        elif c in colors.keys():
+            color = class_colors['Simbad']
+        elif c in class_colors.keys():
             color = colors[c]
         else:
             # Sometimes SIMBAD mess up names :-)
-            color = 'white'
+            color = class_colors['Simbad']
 
         badges.append(
             dmc.Badge(
                 c,
-                color='gray',
+                color=color,
                 variant="dot",
-                style={'color': color}
             )
         )
 
