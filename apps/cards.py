@@ -747,7 +747,7 @@ curl -H "Content-Type: application/json" -X POST \\
     qrimg = generate_qr(qrdata)
 
     qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='90%', style={'min-width': '50px'})
-    return [card, qrcode]
+    return html.div([card, qrcode])
 
 def card_id1(pdf):
     """ Add a card containing basic alert data
