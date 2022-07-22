@@ -32,6 +32,7 @@ import dash_bootstrap_components as dbc
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
 from apps.utils import sine_fit, Vmag
+from apps.utils import class_colors
 
 from apps.statistics import dic_names
 from app import APIURL
@@ -411,19 +412,8 @@ def plot_classbar(pdf, is_mobile=False):
     customdata = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso')).values[::-1]
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
-    colors = {
-        'Early SN Ia candidate': 'red',
-        'SN candidate': 'orange',
-        'Kilonova candidate': 'blue',
-        'Microlensing candidate': 'green',
-        'Tracklet': "rgb(204,255,204)",
-        'Solar System MPC': "rgb(254,224,144)",
-        'Solar System candidate': "rgb(171,217,233)",
-        'Ambiguous': 'rgb(116,196,118)',
-        'Unknown': '#7f7f7f'
-    }
 
-    colors = [colors_[-1] if j not in colors.keys() else colors[j] for j in top_labels]
+    colors = [colors_[-1] if j not in class_colors.keys() else class_colors[j] for j in top_labels]
 
     fig = go.Figure()
 

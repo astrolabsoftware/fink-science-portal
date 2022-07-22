@@ -59,7 +59,7 @@ class_colors = {
         'Solar System candidate': "indigo",
         'Ambiguous': 'grape',
         'Unknown': 'gray',
-        'Simbad': 'teal'
+        'Simbad': 'blue'
     }
 
 def format_hbase_output(
