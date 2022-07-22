@@ -756,13 +756,24 @@ def card_id1(pdf):
     simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
-    if classification in simbad_types:
-        color = '#3C8DFF'
-    elif classification in colors.keys():
-        color = colors[classification]
-    else:
-        # Sometimes SIMBAD mess up names :-)
-        color = 'white'
+    badges = []
+    for c in np.unique(pdf['v:classification']):
+        if c in simbad_types:
+            color = '#3C8DFF'
+        elif c in colors.keys():
+            color = colors[classification]
+        else:
+            # Sometimes SIMBAD mess up names :-)
+            color = 'white'
+
+        badges.append(
+            dmc.Badge(
+                c,
+                color='gray',
+                variant="dot",
+                style={'color': color}
+            )
+        )
 
     card = dmc.Paper(
         [
@@ -772,12 +783,7 @@ def card_id1(pdf):
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
                 ], justify='start', align="center"
             ),
-            dmc.Badge(
-                classification,
-                color='gray',
-                variant="dot",
-                style={'color': color}
-            ),
+            badges,
             dcc.Markdown(
                 """
                 ```python
