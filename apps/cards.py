@@ -193,7 +193,7 @@ def card_variable_plot():
     card: dbc.Card
         Card with the variable drawn inside
     """
-    card = dmc.Paper(id='variable_plot', radius='xl', p='md', shadow='xl', withBorder=True)
+    card = html.Div(id='variable_plot')
     return card
 
 
