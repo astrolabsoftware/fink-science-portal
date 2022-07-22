@@ -30,9 +30,6 @@ import pandas as pd
 import numpy as np
 import urllib
 
-simbad_types = get_simbad_labels('old_and_new')
-simbad_types = sorted(simbad_types, key=lambda s: s.lower())
-
 def card_sn_scores() -> dbc.Card:
     """ Card containing the score evolution
 
@@ -756,6 +753,9 @@ def card_id1(pdf):
         'Unknown': '#7f7f7f'
     }
 
+    simbad_types = get_simbad_labels('old_and_new')
+    simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+
     if classification in simbad_types:
         color = '#3C8DFF'
     elif classification in colors.keys():
@@ -770,8 +770,14 @@ def card_id1(pdf):
                 [
                     dbc.Col(dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size='lg'), width=2),
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
-                    dbc.Col(dmc.Badge(classification, color=color, variant="dot"))
                 ], justify='start', align="center"
+            ),
+            dbc.Row(
+                dmc.Badge(
+                    classification,
+                    color='grey',
+                    variant="dot"
+                ), justify='start', style={'color': color}
             ),
             dcc.Markdown(
                 """
