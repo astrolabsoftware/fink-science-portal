@@ -1418,8 +1418,8 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
     )
 
     if not is_mobile:
-        fig.update_layout(width=150, height=150)
-        style = {'display': 'inline-block', 'height': '10pc', 'width': '10pc'}
+        fig.update_layout(width=75, height=75)
+        style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
     else:
         style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
 

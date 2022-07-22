@@ -33,7 +33,7 @@ html, body {
 }
 
 .zoom {
-  padding: 5px;
+  padding: 2px;
   transition: transform .2s; /* Animation */
   margin: 0 auto;
 }

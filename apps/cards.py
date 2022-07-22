@@ -120,7 +120,7 @@ def card_sn_scores() -> dbc.Card:
     )
     return card
 
-def card_cutouts(is_mobile):
+def card_cutouts(pdf, is_mobile):
     """ Add a card containing cutouts
 
     Returns
@@ -129,14 +129,7 @@ def card_cutouts(is_mobile):
         Card with the cutouts drawn inside
     """
     if not is_mobile:
-        card1 = dbc.Card(
-            dbc.CardBody(
-                [
-                    dbc.Row(id='stamps', justify='around', className="g-0"),
-                ]
-            ),
-            className="mt-3"
-        )
+        card1 = card_id1(pdf),
         card2 = dbc.Card(
             dbc.CardBody(
                 [
@@ -679,6 +672,37 @@ def card_id(pdf):
                         ), width=4
                     )
                 ], justify='center'
+            ),
+        ],
+        className="mt-3", body=True
+    )
+    return card
+
+def card_id1(pdf):
+    """ Add a card containing basic alert data
+    """
+    id0 = pdf['i:objectId'].values[0]
+    ra0 = pdf['i:ra'].values[0]
+    dec0 = pdf['i:dec'].values[0]
+    date0 = pdf['v:lastdate'].values[0]
+
+    classification = pdf['v:classification'].values[0]
+
+    card = dbc.Card(
+        [
+            html.H5("ObjectID: {}".format(id0), className="card-title"),
+            html.H6("Last class: {}".format(classification), className="card-subtitle"),
+            dcc.Markdown(
+                """
+                ```python
+                # General properties
+                Date: {}
+                RA: {} deg
+                Dec: {} deg
+                ```
+                ---
+                """.format(
+                    date0, ra0, dec0)
             ),
         ],
         className="mt-3", body=True

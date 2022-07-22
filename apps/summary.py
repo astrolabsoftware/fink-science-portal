@@ -74,7 +74,7 @@ def tab1_content(pdf):
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_cutouts(False), width=8),
+            dbc.Col(card_cutouts(pdf, is_mobile=False), width=8),
             dbc.Col([
                 card_id(pdf)
             ], width=4)
@@ -662,11 +662,20 @@ def layout(name, is_mobile):
                                 html.Br(),
                                 title(name, is_mobile),
                                 html.Br(),
+                                dbc.Card(
+                                    dbc.CardBody(
+                                        [
+                                            dbc.Row(id='stamps', justify='around', className="g-0"),
+                                        ]
+                                    ),
+                                    className="mt-3"
+                                ),
+                                html.Br(),
                                 html.Div(
                                     [visdcc.Run_js(id='aladin-lite-div')],
                                     style={
                                         'width': '100%',
-                                        'height': '25pc'
+                                        'height': '50%'
                                     }
                                 ),
                                 html.Br(),
