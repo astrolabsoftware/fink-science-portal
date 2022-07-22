@@ -176,6 +176,7 @@ def card_cutouts(pdf, is_mobile):
                             label="Information",
                         ),
                     ],
+                    state={'0': True}
                 )
             ], radius='xl', p='md', shadow='xl', withBorder=True
         )

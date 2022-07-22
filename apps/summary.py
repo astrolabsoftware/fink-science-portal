@@ -142,7 +142,6 @@ def tab5_content(pdf):
                                 label="Information",
                             ),
                         ],
-                        state={'0': True}
                     )
                 ]
             ),
