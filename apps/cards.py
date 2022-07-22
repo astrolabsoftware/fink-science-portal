@@ -588,14 +588,10 @@ pdf = pd.read_json(r.content)""".format(
         children=[
             dmc.AccordionItem(
                 [
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                dbc.Row(id='stamps', justify='around', className="g-0"),
-                            ]
-                        ),
-                        className="mt-3"
-                    ),
+                    dmc.Paper(
+                        dbc.Row(id='stamps', justify='around', className="g-0"),
+                        radius='xl', p='md', shadow='xl', withBorder=True
+                    )
                 ],
                 label="Last alert cutouts",
                 icon=[
