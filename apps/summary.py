@@ -681,8 +681,8 @@ def layout(name, is_mobile):
                                 #         dbc.Col(button_download, width=6)
                                 #     ],
                                 # ),
-                                modal_inspect,
-                                modal_download
+                                # modal_inspect,
+                                # modal_download
                             ], width={"size": 3},
                         ),
                         dbc.Col(tabs(pdf, is_mobile), width=8)
