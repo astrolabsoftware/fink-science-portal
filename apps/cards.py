@@ -23,10 +23,15 @@ from app import app, APIURL
 from apps.plotting import all_radio_options
 from apps.utils import queryMPC, convert_mpc_type
 
+from fink_utils.xmatch.simbad import get_simbad_labels
+
 from astropy.time import Time
 import pandas as pd
 import numpy as np
 import urllib
+
+simbad_types = get_simbad_labels('old_and_new')
+simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
 def card_sn_scores() -> dbc.Card:
     """ Card containing the score evolution
@@ -739,12 +744,33 @@ def card_id1(pdf):
 
     classification = pdf['v:classification'].values[0]
 
+    colors = {
+        'Early SN Ia candidate': 'red',
+        'SN candidate': 'orange',
+        'Kilonova candidate': 'blue',
+        'Microlensing candidate': 'green',
+        'Tracklet': "rgb(204,255,204)",
+        'Solar System MPC': "rgb(254,224,144)",
+        'Solar System candidate': "rgb(171,217,233)",
+        'Ambiguous': 'rgb(116,196,118)',
+        'Unknown': '#7f7f7f'
+    }
+
+    if classification in simbad_types:
+        color = '#3C8DFF'
+    elif classification in colors.keys():
+        color = colors[classification]
+    else:
+        # Sometimes SIMBAD mess up names :-)
+        color = 'white'
+
     card = dmc.Paper(
         [
             dbc.Row(
                 [
                     dbc.Col(dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size='lg'), width=2),
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
+                    dbc.Col(dmc.Badge(classification, color=color, variant="dot"))
                 ], justify='start', align="center"
             ),
             dcc.Markdown(
