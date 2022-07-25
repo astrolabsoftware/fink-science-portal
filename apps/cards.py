@@ -937,17 +937,11 @@ def card_sn_properties(clickData, object_data):
             html.Br(),
             dmc.Paper(
                 [
-                    dcc.Markdown(
-                        """
-                        ```python
-                        Date: {}
-                        ```
-                        """
-                    ),
                     badge,
                     dcc.Markdown(
                         """
                         ```python
+                        Date: {}
                         # SuperNNova classifiers
                         SN Ia score: {:.2f}
                         SNe score: {:.2f}
@@ -969,6 +963,7 @@ def card_sn_properties(clickData, object_data):
                         DL Real bogus: {:.2f}
                         ```
                         """.format(
+                            date0,
                             float(snn_snia_vs_nonia),
                             float(snn_sn_vs_all),
                             float(rf_snia_vs_nonia),
