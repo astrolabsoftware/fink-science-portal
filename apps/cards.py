@@ -126,7 +126,7 @@ def card_sn_scores() -> dbc.Card:
     )
     return card
 
-def card_cutouts(pdf, is_mobile):
+def card_cutouts(is_mobile):
     """ Add a card containing cutouts
 
     Returns

@@ -74,7 +74,7 @@ def tab1_content(pdf):
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_cutouts(pdf, is_mobile=False), width=8),
+            dbc.Col(card_cutouts(is_mobile=False), width=8),
             dbc.Col([
                 card_id(pdf)
             ], width=4)
@@ -324,9 +324,6 @@ def tabs(pdf, is_mobile):
     return tabs_
 
 def title(name, is_mobile):
-    qrdata = "https://fink-portal.org/{}".format(name[1:])
-    qrimg = generate_qr(qrdata)
-
     if is_mobile:
         header = [
             html.Hr(),
@@ -339,6 +336,8 @@ def title(name, is_mobile):
         ]
         title_ = html.Div(header)
     else:
+        qrdata = "https://fink-portal.org/{}".format(name[1:])
+        qrimg = generate_qr(qrdata)
         header = [
             dbc.Col(html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='90%', style={'min-width': '50px'}), width=2),
             dbc.Col(html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'}), width=10)
