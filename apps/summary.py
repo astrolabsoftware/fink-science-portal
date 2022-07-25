@@ -606,7 +606,6 @@ def layout(name, is_mobile):
 
     qrdata = "https://fink-portal.org/{}".format(name[1:])
     qrimg = generate_qr(qrdata)
-    qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
 
     if is_mobile:
         layout_ = html.Div(
@@ -668,14 +667,13 @@ def layout(name, is_mobile):
                                 card_id1(pdf),
                                 html.Br(),
                                 html.Br(),
-                                # html.Div(
-                                #     [visdcc.Run_js(id='aladin-lite-div')],
-                                #     style={
-                                #         'width': '100%',
-                                #         'height': '25pc',
-                                #     }, className='roundimg nozoom'
-                                # ),
-                                dmc.Center(qrcode, style={'width': '100%', 'height': '200'}),
+                                html.Div(
+                                    [visdcc.Run_js(id='aladin-lite-div')],
+                                    style={
+                                        'width': '100%',
+                                        'height': '25pc',
+                                    }, className='roundimg nozoom'
+                                ),
                                 html.Br(),
                             ], width={"size": 3},
                         ),
