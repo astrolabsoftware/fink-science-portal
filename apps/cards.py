@@ -238,18 +238,19 @@ submit_varstar_button = dbc.Button(
 def card_variable_button(pdf):
     """ Add a card containing button to fit for variable stars
     """
-    id0 = pdf['i:objectId'].values[0]
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
-
     distnr = pdf['i:distnr'].values[0]
-    objectidps1 = pdf['i:objectidps1'].values[0]
+    ssnamenr = pdf['i:ssnamenr'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
     neargaia = pdf['i:neargaia'].values[0]
+    constellation = pdf['v:constellation'].values[0]
+    if 'd:DR3Name' in pdf.columns:
+        gaianame = pdf['d:DR3Name'].values[0]
+    else:
+        gaianame = None
+    cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
-
-    classification = pdf['v:classification'].values[0]
 
     card1 = dmc.Accordion(
         state={"0": True, **{"{}".format(i+1): False for i in range(3)}},
