@@ -675,7 +675,7 @@ def layout(name, is_mobile):
                                 #         'height': '25pc',
                                 #     }, className='roundimg nozoom'
                                 # ),
-                                dmc.Center(qrcode, style={'width': '100%', 'height': '200'})
+                                dmc.Center(qrcode, style={'width': '100%', 'height': '200'}),
                                 html.Br(),
                             ], width={"size": 3},
                         ),
