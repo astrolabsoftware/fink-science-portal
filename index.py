@@ -533,7 +533,7 @@ def display_table_results(table, is_mobile):
                 ),
             ], justify='between'
         ),
-        dmc.LoadingOverlay(table, loaderProps={"variant": "dots", "color": "orange", "size": "xl"}, zIndex=1000)
+        table
     ], fluid=True)
 
 @app.callback(
@@ -1027,7 +1027,12 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         validation = 1
 
     table = populate_result_table(data, columns, is_mobile)
-    return construct_results_layout(table, is_mobile), validation
+    out1 = dmc.LoadingOverlay(
+        construct_results_layout(table, is_mobile),
+        loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+        zIndex=1000
+    )
+    return out1, validation
 
 
 noresults_toast = html.Div(
