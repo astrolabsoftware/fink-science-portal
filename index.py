@@ -874,10 +874,7 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         raise PreventUpdate
 
 @app.callback(
-    [
-        Output("results", "children"),
-        # Output("validate_results", "value"),
-    ],
+    Output("results", "children"),
     [
         Input("search_bar_input", "value"),
         Input("dropdown-query", "value"),
