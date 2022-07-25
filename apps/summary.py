@@ -60,13 +60,16 @@ def tab1_content(pdf):
         dbc.Row(
             [
                 dbc.Col(
-                    dcc.Graph(
-                        style={
-                            'width': '100%',
-                            'height': '4pc'
-                        },
-                        config={'displayModeBar': False},
-                        id='classbar'
+                    dmc.LoadingOverlay(
+                        dcc.Graph(
+                            style={
+                                'width': '100%',
+                                'height': '4pc'
+                            },
+                            config={'displayModeBar': False},
+                            id='classbar'
+                        ),
+                        loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
                     ),
                     width=12
                 ),
