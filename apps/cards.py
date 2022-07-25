@@ -758,9 +758,15 @@ curl -H "Content-Type: application/json" -X POST \\
 
     return html.Div([card, dmc.Center(qrcode, style={'width': '100%', 'height': '200'})])
 
-def card_id1(pdf):
+@app.callback(
+    Output('card_id_left', 'children'),
+    [
+        Input('object-data', 'children'),
+    ])
+def card_id1(object_data):
     """ Add a card containing basic alert data
     """
+    pdf = pd.read_json(object_data)
     objectid = pdf['i:objectId'].values[0]
     date_end = pdf['v:lastdate'].values[0]
     discovery_date = pdf['v:lastdate'].values[-1]
