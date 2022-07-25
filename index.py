@@ -1265,9 +1265,11 @@ def display_page(pathname, is_mobile):
                 dbc.Container(id='results'),
                 dbc.Input(id='validate_results', style={'display': 'none'}),
             ],
-            className='home',
-            style=style,
-        ),],loaderProps={"variant": "oval", "color": "blue", "size": "xl"},
+            loaderProps={"variant": "oval", "color": "blue", "size": "xl"},
+        ),
+        ],
+        className='home',
+        style=style,
     )
     if pathname == '/about':
         return about.layout
