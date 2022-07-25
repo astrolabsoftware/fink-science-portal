@@ -84,7 +84,7 @@ def tab1_content():
     )
     return out
 
-def tab2_content(pdf):
+def tab2_content():
     """ Supernova tab
     """
     tab2_content_ = html.Div([

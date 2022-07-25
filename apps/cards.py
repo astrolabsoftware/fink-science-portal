@@ -251,7 +251,7 @@ def card_variable_button(pdf):
 
     classification = pdf['v:classification'].values[0]
 
-    card = dmc.Paper(
+    card1 = dmc.Paper(
         [
             html.H5("ObjectID: {}".format(id0), className="card-title"),
             html.H6(
@@ -273,6 +273,10 @@ def card_variable_button(pdf):
                     cdsxmatch, objectidps1, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
+        ], radius='xl', p='md', shadow='xl', withBorder=True
+    )
+    card2 = dmc.Paper(
+        [
             nterms_base,
             dbc.Row(submit_varstar_button),
             html.Div(html.Br()),
@@ -300,10 +304,9 @@ def card_variable_button(pdf):
                         ), width=4),
                 ], justify='around'
             ),
-        ],
-        radius='xl', p='md', shadow='xl', withBorder=True
+        ], radius='xl', p='md', shadow='xl', withBorder=True
     )
-    return card
+    return html.Div([card1, html.Br(), card2])
 
 
 submit_mulens_button = html.Div(
@@ -818,7 +821,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
                 Discovery date: {}
                 Last detection: {}
                 Number of detections: {}
-                Number of low quality data: {}
+                Number of low quality alerts: {}
                 Number of upper limits: {}
                 ```
                 """.format(
