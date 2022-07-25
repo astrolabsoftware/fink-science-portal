@@ -61,7 +61,6 @@ def tab1_content(pdf):
             [
                 dbc.Col(
                     dcc.Graph(
-                        figure=plot_classbar(pdf),
                         style={
                             'width': '100%',
                             'height': '4pc'

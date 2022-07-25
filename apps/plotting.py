@@ -404,7 +404,14 @@ def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
         return pdfs
     return pdfs[values]
 
-def plot_classbar(pdf, is_mobile=False):
+@app.callback(
+    Output('classbar', 'figure'),
+    [
+        Input('object-data', 'children'),
+        Input('is-mobile', 'children')
+    ])
+def plot_classbar(object_data, is_mobile):
+    pdf = pd.read_json(object_data)
     grouped = pdf.groupby('v:classification').count()
     alert_per_class = grouped['i:objectId'].to_dict()
 
