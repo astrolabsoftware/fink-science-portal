@@ -1258,7 +1258,7 @@ def display_page(pathname, is_mobile):
                     # noresults_toast
                 ], id='trash', fluid=True, style={'width': width}
             ),
-            dmc.LoadingOverlay(dbc.Container(id='results')),
+            dmc.LoadingOverlay(dbc.Container(id='results'), loaderProps={"variant": "dots", "color": "orange", "size": "xl"}, zindex=1000),
             # dbc.Input(id='validate_results', style={'display': 'none'}),
         ],
         className='home',
