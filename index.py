@@ -894,8 +894,6 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     validation: int
         0: not results found, 1: results found
     """
-    ctx = dash.callback_context
-
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec',
         'v:lastdate', 'v:classification', 'i:ndethist',
@@ -908,8 +906,8 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         query, query_type, dropdown_option = extract_query_url(searchurl)
 
     is_ok = validate_query(query, query_type)
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if (not is_ok['flag']) and (button_id in ["submit", "search_bar_input"]):
+    empty_query = (query is None) or (query == '')
+    if (not is_ok['flag']) and (not empty_query):
         return dmc.Alert('Bad query', title='oups', color='red')
 
     if query_type == 'objectId':
