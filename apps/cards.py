@@ -779,7 +779,6 @@ def card_id1(object_data, object_uppervalid, object_upper):
     nupper_valid = len(pdf_upper_valid)
     pdf_upper = pd.read_json(object_upper)
     nupper = len(pdf_upper)
-    print(len(object_upper), object_upper.keys())
 
     simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
