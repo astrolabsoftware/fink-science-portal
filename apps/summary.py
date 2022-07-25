@@ -48,7 +48,7 @@ from app import APIURL
 
 dcc.Location(id='url', refresh=False)
 
-def tab1_content(pdf):
+def tab1_content():
     """ Summary tab
 
     Parameters
@@ -77,9 +77,7 @@ def tab1_content(pdf):
         ),
         dbc.Row([
             dbc.Col(card_cutouts(is_mobile=False), width=8),
-            dbc.Col([
-                card_id(pdf)
-            ], width=4)
+            dbc.Col(id="card_id_col", width=4)
         ]),
     ])
     return tab1_content_
@@ -314,7 +312,7 @@ def tabs(pdf, is_mobile):
     else:
         tabs_ = dmc.Tabs(
             [
-                dmc.Tab(tab1_content(pdf), label="Summary"),
+                dmc.Tab(tab1_content(), label="Summary"),
                 dmc.Tab(tab2_content(pdf), label="Supernovae"),
                 dmc.Tab(tab3_content(pdf), label="Variable stars"),
                 dmc.Tab(tab4_content(pdf), label="Microlensing"),
