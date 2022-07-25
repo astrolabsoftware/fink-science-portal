@@ -762,15 +762,24 @@ curl -H "Content-Type: application/json" -X POST \\
     Output('card_id_left', 'children'),
     [
         Input('object-data', 'children'),
+        Input('object-uppervalid', 'children'),
+        Input('object-upper', 'children')
     ])
-def card_id1(object_data):
+def card_id1(object_data, object_uppervalid, object_upper):
     """ Add a card containing basic alert data
     """
     pdf = pd.read_json(object_data)
+
     objectid = pdf['i:objectId'].values[0]
     date_end = pdf['v:lastdate'].values[0]
     discovery_date = pdf['v:lastdate'].values[-1]
     ndet = len(pdf)
+
+    pdf_upper_valid = pd.read_json(object_uppervalid)
+    nupper_valid = len(pdf_upper_valid)
+    pdf_upper = pd.read_json(object_upper)
+    nupper = len(pdf_upper)
+    print(len(object_upper), object_upper.keys())
 
     simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
@@ -808,9 +817,11 @@ def card_id1(object_data):
                 Discovery date: {}
                 Last detection: {}
                 Number of detections: {}
+                Number of low quality data: {}
+                Number of upper limits: {}
                 ```
                 """.format(
-                    discovery_date, date_end, ndet)
+                    discovery_date, date_end, ndet, nupper_valid, nupper)
             ),
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
