@@ -911,7 +911,9 @@ def card_sn_properties(clickData, object_data):
                 dcc.Markdown(
                     """
                     Click on a point in the lightcurve to update parameters below.
+
                     Date: {}
+
                     Alert class: {}
                     """.format(date0, classification),
                 ),
