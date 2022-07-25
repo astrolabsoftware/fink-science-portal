@@ -231,7 +231,7 @@ nterms_base = dbc.Row(
 submit_varstar_button = dbc.Button(
     'Fit data',
     id='submit_variable',
-    style={'width': '100%', 'display': 'inline-block'},
+    style={'width': '90%', 'display': 'inline-block'},
     color='dark', outline=True
 )
 
@@ -253,7 +253,7 @@ def card_variable_button(pdf):
     dec0 = pdf['i:dec'].values[0]
 
     card1 = dmc.Accordion(
-        state={"0": True, **{"{}".format(i+1): False for i in range(3)}},
+        state={"0": False, **{"{}".format(i+1): False for i in range(3)}},
         multiple=True,
         offsetIcon=False,
         disableIconRotation=True,
