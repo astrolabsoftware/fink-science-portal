@@ -1209,6 +1209,16 @@ app.clientside_callback(
 )
 
 @app.callback(
+    Output('alert_no_results', 'children'),
+    [Input("result_table", "data")]
+)
+def send_alert(data):
+    if len(data) == 0:
+        return dmc.Alert("No alerts found", title="Oups!", withCloseButton=True)
+    else:
+        return html.Div()
+
+@app.callback(
     Output('page-content', 'children'),
     [Input('url', 'pathname'), Input('is-mobile', 'children')]
 )
@@ -1259,6 +1269,7 @@ def display_page(pathname, is_mobile):
                 ], id='trash', fluid=True, style={'width': width}
             ),
             dmc.LoadingOverlay(dbc.Container(id='results'), loaderProps={"variant": "dots", "color": "orange", "size": "xl"}, zIndex=1000),
+            html.Div(id='alert_no_results')
             # dbc.Input(id='validate_results', style={'display': 'none'}),
         ],
         className='home',
