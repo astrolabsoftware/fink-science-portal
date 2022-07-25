@@ -23,6 +23,7 @@ from fink_utils.xmatch.simbad import get_simbad_labels
 
 import numpy as np
 import pandas as pd
+from astropy.time import Time
 
 def card_sn_scores() -> html.Div:
     """ Card containing the SN ML score evolution
