@@ -413,8 +413,8 @@ def card_explanation_variable():
     card = dmc.Accordion(
         children=[
             dmc.AccordionItem(
-                state={'0': False},
                 dcc.Markdown(msg),
+                state={'0': False},
                 label="How to make a fit?",
             ),
         ],
