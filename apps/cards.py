@@ -913,7 +913,7 @@ def card_sn_properties(clickData, object_data):
                     Click on a point in the lightcurve to update parameters below.
                     ```python
                     Date: {}
-                    Class: {}
+                    Alert class: {}
                     ```
                     """.format(date0, classification),
                 ),
@@ -930,36 +930,14 @@ def card_sn_properties(clickData, object_data):
                     # Early SN Ia classifier
                     RF score: {:.2f}
                     ```
-                    """.format(
-                        float(snn_snia_vs_nonia),
-                        float(snn_sn_vs_all),
-                        float(rf_snia_vs_nonia),
-                    ),
-                ),
-                radius='xl', p='md', shadow='xl', withBorder=True
-            ),
-            html.Br(),
-            dmc.Paper(
-                dcc.Markdown(
-                    """
+                    ---
                     ```python
                     # Variability (DC magnitude)
                     Rate g-r (last): {:.2f} mag/day
                     Rate g (last): {:.2f} mag/day
                     Rate r (last): {:.2f} mag/day
                     ```
-                    """.format(
-                        g_minus_r,
-                        rate_g,
-                        rate_r,
-                    ),
-                ),
-                radius='xl', p='md', shadow='xl', withBorder=True
-            ),
-            html.Br(),
-            dmc.Paper(
-                dcc.Markdown(
-                    """
+                    ---
                     ```python
                     # Extra properties
                     Classtar: {:.2f}
@@ -967,6 +945,12 @@ def card_sn_properties(clickData, object_data):
                     DL Real bogus: {:.2f}
                     ```
                     """.format(
+                        float(snn_snia_vs_nonia),
+                        float(snn_sn_vs_all),
+                        float(rf_snia_vs_nonia),
+                        g_minus_r,
+                        rate_g,
+                        rate_r,
                         float(classtar),
                         ndethist,
                         float(drb)
