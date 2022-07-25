@@ -1213,6 +1213,7 @@ app.clientside_callback(
     [Input("result_table", "data")]
 )
 def send_alert(data):
+    print(data)
     if len(data) == 0:
         return dmc.Alert("No alerts found", title="Oups!", withCloseButton=True)
     else:
