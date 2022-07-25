@@ -17,6 +17,12 @@ import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 
 from app import app
+from apps.utils import class_colors
+
+from fink_utils.xmatch.simbad import get_simbad_labels
+
+import numpy as np
+import pandas as pd
 
 def card_sn_scores() -> html.Div:
     """ Card containing the SN ML score evolution
