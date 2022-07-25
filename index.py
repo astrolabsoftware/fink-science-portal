@@ -894,6 +894,8 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     validation: int
         0: not results found, 1: results found
     """
+    ctx = dash.callback_context
+
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec',
         'v:lastdate', 'v:classification', 'i:ndethist',
@@ -906,7 +908,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         query, query_type, dropdown_option = extract_query_url(searchurl)
 
     is_ok = validate_query(query, query_type)
-    if not is_ok['flag']:
+    if (not is_ok['flag']) and ctx.triggered:
         return dmc.Alert('Bad query', title='oups', color='red')
 
     if query_type == 'objectId':
@@ -1205,16 +1207,6 @@ app.clientside_callback(
 )
 
 @app.callback(
-    Output('alert_no_results', 'children'),
-    [Input("result_table", "data")]
-)
-def send_alert(data):
-    if len(data) == 0:
-        return dmc.Alert("No alerts found", title="Oups!", withCloseButton=True)
-    else:
-        return html.Div()
-
-@app.callback(
     Output('page-content', 'children'),
     [Input('url', 'pathname'), Input('is-mobile', 'children')]
 )
@@ -1265,7 +1257,6 @@ def display_page(pathname, is_mobile):
                 ], id='trash', fluid=True, style={'width': width}
             ),
             dmc.LoadingOverlay(dbc.Container(id='results'), loaderProps={"variant": "dots", "color": "orange", "size": "xl"}, zIndex=1000),
-            html.Div(id='alert_no_results')
             # dbc.Input(id='validate_results', style={'display': 'none'}),
         ],
         className='home',
