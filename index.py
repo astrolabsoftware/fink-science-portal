@@ -992,11 +992,12 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         if searchurl != '':
             return dmc.Alert(
                 "No alerts found using {} with {}".format(query_type, query),
+                title='Oups!',
                 color="red",
-                dismissable=True
+                withCloseButton=True
             )
         else:
-            dmc.Alert(
+            return dmc.Alert(
                 "No alerts found using {} with {}".format(query_type, query),
                 title='Oups!',
                 color='red',
