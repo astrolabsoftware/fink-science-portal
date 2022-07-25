@@ -45,7 +45,7 @@ def card_sn_scores() -> dbc.Card:
         id='lightcurve_scores',
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '20pc'
         },
         config={'displayModeBar': False}
     )
@@ -53,7 +53,7 @@ def card_sn_scores() -> dbc.Card:
         id='scores',
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '20pc'
         },
         config={'displayModeBar': False}
     )
@@ -61,7 +61,7 @@ def card_sn_scores() -> dbc.Card:
         id='colors',
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '20pc'
         },
         config={'displayModeBar': False}
     )
@@ -69,7 +69,7 @@ def card_sn_scores() -> dbc.Card:
         id='colors_rate',
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '20pc'
         },
         config={'displayModeBar': False}
     )
