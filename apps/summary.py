@@ -25,7 +25,9 @@ import requests
 
 from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 
-from apps.cards import card_cutouts, card_sn_scores
+from apps.supernovae.cards import card_sn_scores
+
+from apps.cards import card_cutouts
 from apps.cards import card_id, card_id1, card_sn_properties
 from apps.cards import download_object_modal, inspect_object_modal
 from apps.cards import card_variable_plot, card_variable_button
@@ -50,11 +52,6 @@ dcc.Location(id='url', refresh=False)
 
 def tab1_content():
     """ Summary tab
-
-    Parameters
-    ----------
-    pdf: pd.DataFrame
-        Results from a HBase client query
     """
     tab1_content_ = html.Div([
         dbc.Row(
