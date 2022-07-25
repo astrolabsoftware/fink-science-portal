@@ -980,6 +980,8 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
                 'n': '100'
             }
         )
+    print(query, query_type)
+    print(r.content)
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
