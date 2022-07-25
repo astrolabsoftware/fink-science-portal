@@ -27,13 +27,13 @@ from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 
 from apps.supernovae.cards import card_sn_scores
 from apps.varstars.cards import card_explanation_variable, card_variable_button
+from apps.mulens.cards import card_explanation_mulens
+from apps.mulens.cards import card_mulens_button
+
 
 from apps.cards import card_cutouts
 from apps.cards import card_id, card_id1
 from apps.cards import download_object_modal, inspect_object_modal
-
-from apps.cards import card_explanation_mulens
-from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
 
 from apps.cards import card_sso_residual, card_sso_astrometry, card_sso_phasecurve
 from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
@@ -119,8 +119,18 @@ def tab4_content(pdf):
     """
     tab4_content_ = html.Div([
         dbc.Row([
-            dbc.Col([card_mulens_plot(), html.Br(), card_explanation_mulens()], width=8),
-            dbc.Col([card_mulens_button(pdf), card_mulens_param()], width=4)
+            dbc.Col(
+                dmc.LoadingOverlay(
+                    dmc.Paper(
+                        [
+                            html.Div(id='mulens_plot'),
+                            html.Br(),
+                            card_explanation_mulens()
+                        ], radius='xl', p='md', shadow='xl', withBorder=True
+                    ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                ), width=8
+            ),
+            dbc.Col([card_mulens_button(pdf)], width=4)
         ]),
     ])
     return tab4_content_

@@ -92,86 +92,8 @@ def card_cutouts(is_mobile):
         card = dbc.Row(id='stamps_mobile', justify='around')
     return card
 
-submit_mulens_button = html.Div(
-    dbc.Button(
-        'Fit data',
-        id='submit_mulens',
-        style={'width': '100%', 'display': 'inline-block'},
-        color='dark', outline=True
-    ), className='d-grid gap-2', style={'width': '100%', 'display': 'inline-block'}
-)
 
-def card_mulens_button(pdf):
-    """ Add a card containing button to fit for microlensing events
-    """
-    id0 = pdf['i:objectId'].values[0]
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
-    distnr = pdf['i:distnr'].values[0]
-    objectidps1 = pdf['i:objectidps1'].values[0]
-    distpsnr1 = pdf['i:distpsnr1'].values[0]
-    neargaia = pdf['i:neargaia'].values[0]
-
-    classification = pdf['v:classification'].values[0]
-
-    card = dbc.Card(
-        [
-            html.H5("ObjectID: {}".format(id0), className="card-title"),
-            html.H6(
-                "Fink class: {}".format(classification),
-                className="card-subtitle"
-            ),
-            dcc.Markdown(
-                """
-                ---
-                ```python
-                # Neighbourhood
-                SIMBAD: {}
-                PS1: {}
-                Distance (PS1): {:.2f} arcsec
-                Distance (Gaia): {:.2f} arcsec
-                Distance (ZTF): {:.2f} arcsec
-                ```
-                """.format(
-                    cdsxmatch, objectidps1, float(distpsnr1),
-                    float(neargaia), float(distnr))
-            ),
-            dbc.Row(submit_mulens_button)
-        ],
-        className="mt-3", body=True
-    )
-    return card
-
-def card_mulens_plot():
-    """ Add a card to fit for microlensing events
-
-    Returns
-    ----------
-    card: dbc.Card
-        Card with the microlensing fit drawn inside
-    """
-    card = html.Div(id='mulens_plot')
-    return card
-
-def card_explanation_mulens():
-    """ Explain what is used to fit for microlensing events
-    """
-    msg = """
-    Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed on the right panel.
-
-    The fit is done using [pyLIMA](https://github.com/ebachelet/pyLIMA)
-    described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract).
-    We use a simple PSPL model to fit the data.
-    """
-    card = dmc.Accordion(
-        children=[
-            dmc.AccordionItem(
-                dcc.Markdown(msg),
-                label="How to make a fit?",
-            ),
-        ],
-    )
-    return card
 
 def card_sso_lightcurve():
     """ Add a card to display SSO lightcurve
@@ -614,16 +536,6 @@ def card_download(pdf):
             ])
         ],
         className="mt-3", body=True
-    )
-    return card
-
-def card_mulens_param():
-    """ Add a card containing mulens fitted parameters
-    """
-    card = dbc.Card(
-        [
-            dcc.Markdown(id='mulens_params'),
-        ], className="mt-3", body=True
     )
     return card
 
