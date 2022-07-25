@@ -908,7 +908,7 @@ def card_sn_properties(clickData, object_data):
     card = html.Div(
         [
             dmc.Paper(
-                dmc.Markdown(
+                dcc.Markdown(
                     """
                     Click on a point in the lightcurve to update parameters below.
                     ```python
@@ -921,7 +921,7 @@ def card_sn_properties(clickData, object_data):
             ),
             html.Br(),
             dmc.Paper(
-                dmc.Markdown(
+                dcc.Markdown(
                     """
                     ```python
                     # SuperNNova classifiers
@@ -940,7 +940,7 @@ def card_sn_properties(clickData, object_data):
             ),
             html.Br(),
             dmc.Paper(
-                dmc.Markdown(
+                dcc.Markdown(
                     """
                     ```python
                     # Variability (DC magnitude)
@@ -958,7 +958,7 @@ def card_sn_properties(clickData, object_data):
             ),
             html.Br(),
             dmc.Paper(
-                dmc.Markdown(
+                dcc.Markdown(
                     """
                     ```python
                     # Extra properties
