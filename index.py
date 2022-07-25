@@ -894,6 +894,11 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     validation: int
         0: not results found, 1: results found
     """
+    empty_query = (query is None) or (query == '')
+
+    if empty_query:
+        raise PreventUpdate
+
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec',
         'v:lastdate', 'v:classification', 'i:ndethist',
@@ -906,7 +911,6 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         query, query_type, dropdown_option = extract_query_url(searchurl)
 
     is_ok = validate_query(query, query_type)
-    empty_query = (query is None) or (query == '')
     if (not is_ok['flag']) and (not empty_query):
         return dmc.Alert('Bad query', title='oups', color='red')
 
@@ -980,8 +984,6 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
                 'n': '100'
             }
         )
-    print(query, query_type)
-    print(r.content)
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
