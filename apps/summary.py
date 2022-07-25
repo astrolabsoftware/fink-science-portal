@@ -315,7 +315,7 @@ def tabs(pdf, is_mobile):
         tabs_ = dmc.Tabs(
             [
                 dmc.Tab(tab1_content(), label="Summary"),
-                dmc.Tab(tab2_content(pdf), label="Supernovae"),
+                dmc.Tab(tab2_content(), label="Supernovae"),
                 dmc.Tab(tab3_content(pdf), label="Variable stars"),
                 dmc.Tab(tab4_content(pdf), label="Microlensing"),
                 dmc.Tab(tab5_content(pdf), label="Solar System"),
