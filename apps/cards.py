@@ -411,7 +411,7 @@ def card_explanation_variable():
     The score is between 0 (poor fit) and 1 (excellent fit).
     """
     card = dmc.Accordion(
-        state={'0': False},
+        state={'0': True},
         children=[
             dmc.AccordionItem(
                 dcc.Markdown(msg),
