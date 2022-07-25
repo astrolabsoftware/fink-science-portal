@@ -1027,12 +1027,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         validation = 1
 
     table = populate_result_table(data, columns, is_mobile)
-    out1 = dmc.LoadingOverlay(
-        construct_results_layout(table, is_mobile),
-        loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
-        zIndex=1000
-    )
-    return out1, validation
+    return construct_results_layout(table, is_mobile), validation
 
 
 noresults_toast = html.Div(
@@ -1268,7 +1263,7 @@ def display_page(pathname, is_mobile):
                 ], id='trash', fluid=True, style={'width': width}
             ),
             dbc.Container(id='results'),
-            dbc.Input(id='validate_results', style={'display': 'none'}),
+            # dbc.Input(id='validate_results', style={'display': 'none'}),
         ],
         className='home',
         style=style
