@@ -28,7 +28,7 @@ from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 from apps.supernovae.cards import card_sn_scores
 
 from apps.cards import card_cutouts
-from apps.cards import card_id, card_id1, card_sn_properties
+from apps.cards import card_id, card_id1
 from apps.cards import download_object_modal, inspect_object_modal
 from apps.cards import card_variable_plot, card_variable_button
 from apps.cards import card_explanation_variable, card_explanation_mulens
