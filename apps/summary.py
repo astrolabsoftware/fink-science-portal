@@ -80,7 +80,7 @@ def tab1_content():
             dbc.Col(id="card_id_col", width=4)
         ]),
     ])
-    return tab1_content_
+    return dmc.LoadingOverlay(tab1_content_)
 
 def tab2_content(pdf):
     """ Supernova tab
