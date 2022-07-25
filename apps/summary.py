@@ -60,16 +60,13 @@ def tab1_content():
         dbc.Row(
             [
                 dbc.Col(
-                    dmc.LoadingOverlay(
-                        dcc.Graph(
-                            style={
-                                'width': '100%',
-                                'height': '4pc'
-                            },
-                            config={'displayModeBar': False},
-                            id='classbar'
-                        ),
-                        loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                    dcc.Graph(
+                        style={
+                            'width': '100%',
+                            'height': '4pc'
+                        },
+                        config={'displayModeBar': False},
+                        id='classbar'
                     ),
                     width=12
                 ),
@@ -80,7 +77,12 @@ def tab1_content():
             dbc.Col(id="card_id_col", width=4)
         ]),
     ])
-    return dmc.LoadingOverlay(tab1_content_)
+
+    out = dmc.LoadingOverlay(
+        tab1_content_,
+        loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
+    )
+    return out
 
 def tab2_content(pdf):
     """ Supernova tab
