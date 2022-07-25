@@ -231,7 +231,7 @@ nterms_base = dbc.Row(
 submit_varstar_button = dbc.Button(
     'Fit data',
     id='submit_variable',
-    style={'width': '90%', 'display': 'inline-block'},
+    style={'width': '100%', 'display': 'inline-block'},
     color='dark', outline=True
 )
 
@@ -803,10 +803,17 @@ def card_id1(object_data, object_uppervalid, object_upper):
     ndet = len(pdf)
 
     pdf_upper_valid = pd.read_json(object_uppervalid)
-    mask = pdf_upper_valid['i:jd'].apply(lambda x: x not in jds)
-    nupper_valid = len(pdf_upper_valid[mask])
+    if not pdf_upper_valid.empty:
+        mask = pdf_upper_valid['i:jd'].apply(lambda x: x not in jds)
+        nupper_valid = len(pdf_upper_valid[mask])
+    else:
+        nupper_valid = 0
+
     pdf_upper = pd.read_json(object_upper)
-    nupper = len(pdf_upper)
+    if not pdf_upper.empty:
+        nupper = len(pdf_upper)
+    else:
+        nupper = 0
 
     simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
