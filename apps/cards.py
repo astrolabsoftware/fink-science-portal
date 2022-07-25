@@ -253,7 +253,7 @@ def card_variable_button(pdf):
     dec0 = pdf['i:dec'].values[0]
 
     card1 = dmc.Accordion(
-        state={"0": False, **{"{}".format(i+1): False for i in range(3)}},
+        state={"0": False},
         multiple=True,
         offsetIcon=False,
         disableIconRotation=True,
@@ -321,54 +321,6 @@ def card_variable_button(pdf):
         ]
     )
 
-    # card1 = dmc.Paper(
-    #     [
-    #         html.H5("ObjectID: {}".format(id0), className="card-title"),
-    #         html.H6(
-    #             "Fink class: {}".format(classification),
-    #             className="card-subtitle"
-    #         ),
-    #         dcc.Markdown(
-    #             """
-    #             ---
-    #             ```python
-    #             # Neighbourhood
-    #             SIMBAD: {}
-    #             PS1: {}
-    #             Distance (PS1): {:.2f} arcsec
-    #             Distance (Gaia): {:.2f} arcsec
-    #             Distance (ZTF): {:.2f} arcsec
-    #             ```
-    #             """.format(
-    #                 cdsxmatch, objectidps1, float(distpsnr1),
-    #                 float(neargaia), float(distnr))
-    #         ),
-    #         dbc.Row(
-    #             [
-    #                 dbc.Col(
-    #                     dbc.Button(
-    #                         className='btn btn-default zoom btn-circle btn-lg',
-    #                         style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-size': 'cover'},
-    #                         color='dark',
-    #                         outline=True,
-    #                         id='asas-sn',
-    #                         target="_blank",
-    #                         href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
-    #                     ), width=4),
-    #                 dbc.Col(
-    #                     dbc.Button(
-    #                         className='btn btn-default zoom btn-circle btn-lg',
-    #                         style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
-    #                         color='dark',
-    #                         outline=True,
-    #                         id='SNAD-var-star',
-    #                         target="_blank",
-    #                         href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-    #                     ), width=4),
-    #             ], justify='around'
-    #         ),
-    #     ], radius='xl', p='md', shadow='xl', withBorder=True
-    # )
     card2 = dmc.Paper(
         [
             nterms_base,
@@ -444,7 +396,7 @@ def card_explanation_variable():
     """ Explain what is used to fit for variable stars
     """
     msg = """
-    Fill the fields on the right, and press `Fit data` to
+    Fill the fields on the right (or leave default), and press `Fit data` to
     perform a time series analysis of the data:
 
     - Number of base terms: number of frequency terms to use for the base model common to all bands (default=1)
@@ -461,6 +413,7 @@ def card_explanation_variable():
     card = dmc.Accordion(
         children=[
             dmc.AccordionItem(
+                state={'0': False},
                 dcc.Markdown(msg),
                 label="How to make a fit?",
             ),
