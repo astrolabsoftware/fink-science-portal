@@ -110,15 +110,17 @@ def card_sn_scores() -> dbc.Card:
     card = dbc.Card(
         dbc.CardBody(
             [
-                graph_lc,
+                dmc.Paper(graph_lc, radius='xl', p='md', shadow='xl', withBorder=True),
                 html.Br(),
-                dbc.Tabs(
-                    [
-                        dbc.Tab(graph_scores, label='ML scores', tab_id='snt0', label_style=label_style),
-                        dbc.Tab([graph_color, html.Br(), color_explanation], label='Color and mag evolution', tab_id='snt1', label_style=label_style),
-                        dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color and mag rate', tab_id='snt2', label_style=label_style),
-                        dbc.Tab(msg, label='Info', tab_id='snt3', label_style=label_style),
-                    ]
+                dmc.Paper(
+                    dbc.Tabs(
+                        [
+                            dbc.Tab(graph_scores, label='ML scores', tab_id='snt0', label_style=label_style),
+                            dbc.Tab([graph_color, html.Br(), color_explanation], label='Color and mag evolution', tab_id='snt1', label_style=label_style),
+                            dbc.Tab([graph_color_rate, html.Br(), color_rate_explanation], label='Color and mag rate', tab_id='snt2', label_style=label_style),
+                            dbc.Tab(msg, label='Info', tab_id='snt3', label_style=label_style),
+                        ]
+                    ), radius='xl', p='md', shadow='xl', withBorder=True
                 ),
             ]
         ),
