@@ -539,13 +539,12 @@ def display_table_results(table, is_mobile):
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
     [
-        Input("validate_results", "value"),
         Input("result_table", "data"),
         Input("result_table", "columns"),
         Input('tabs', 'active_tab')
     ],
 )
-def display_skymap(validation, data, columns, activetab):
+def display_skymap(data, columns, activetab):
     """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
@@ -565,7 +564,7 @@ def display_skymap(validation, data, columns, activetab):
     if len(data) > 1000:
         msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
         return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
-    if validation and (activetab == 't2'):
+    if len(data) > 0 and (activetab == 't2'):
         pdf = pd.DataFrame(data)
 
         # Coordinate of the first alert
@@ -1259,7 +1258,7 @@ def display_page(pathname, is_mobile):
                         clearable=True,
                     ),
                     html.Br(),
-                    noresults_toast
+                    # noresults_toast
                 ], id='trash', fluid=True, style={'width': width}
             ),
             dbc.Container(id='results'),
