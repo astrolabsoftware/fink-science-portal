@@ -751,7 +751,15 @@ curl -H "Content-Type: application/json" -X POST \\
     qrimg = generate_qr(qrdata)
 
     qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
-    return html.Div([card, dmc.Center(qrcode, style={'width': '100%', 'height': '200'})])
+
+    aladin = html.Div(
+        [visdcc.Run_js(id='aladin-lite-div')],
+        style={
+            'width': '100%',
+            'height': '25pc',
+        }, className='roundimg nozoom'
+    ),
+    return html.Div([card, aladin])
 
 def card_id1(pdf):
     """ Add a card containing basic alert data
