@@ -929,52 +929,58 @@ def card_sn_properties(clickData, object_data):
                     dcc.Markdown(
                         """
                         Click on a point in the lightcurve to update parameters below.
-                        ```bash
-                        Date: {}
-                        ```
-                        """.format(date0),
-                    ),
-                    badge,
+                        """
+                    )
                 ],
                 radius='xl', p='md', shadow='xl', withBorder=True
             ),
             html.Br(),
             dmc.Paper(
-                dcc.Markdown(
-                    """
-                    ```python
-                    # SuperNNova classifiers
-                    SN Ia score: {:.2f}
-                    SNe score: {:.2f}
-                    # Early SN Ia classifier
-                    RF score: {:.2f}
-                    ```
-                    ---
-                    ```python
-                    # Variability (DC magnitude)
-                    Rate g-r (last): {:.2f} mag/day
-                    Rate g (last): {:.2f} mag/day
-                    Rate r (last): {:.2f} mag/day
-                    ```
-                    ---
-                    ```python
-                    # Extra properties
-                    Classtar: {:.2f}
-                    Detection in the survey: {}
-                    DL Real bogus: {:.2f}
-                    ```
-                    """.format(
-                        float(snn_snia_vs_nonia),
-                        float(snn_sn_vs_all),
-                        float(rf_snia_vs_nonia),
-                        g_minus_r,
-                        rate_g,
-                        rate_r,
-                        float(classtar),
-                        ndethist,
-                        float(drb)
+                [
+                    dcc.Markdown(
+                        """
+                        ```python
+                        Date: {}
+                        ```
+                        """
                     ),
-                ),
+                    badge,
+                    dcc.Markdown(
+                        """
+                        ```python
+                        # SuperNNova classifiers
+                        SN Ia score: {:.2f}
+                        SNe score: {:.2f}
+                        # Early SN Ia classifier
+                        RF score: {:.2f}
+                        ```
+                        ---
+                        ```python
+                        # Variability (DC magnitude)
+                        Rate g-r (last): {:.2f} mag/day
+                        Rate g (last): {:.2f} mag/day
+                        Rate r (last): {:.2f} mag/day
+                        ```
+                        ---
+                        ```python
+                        # Extra properties
+                        Classtar: {:.2f}
+                        Detection in the survey: {}
+                        DL Real bogus: {:.2f}
+                        ```
+                        """.format(
+                            float(snn_snia_vs_nonia),
+                            float(snn_sn_vs_all),
+                            float(rf_snia_vs_nonia),
+                            g_minus_r,
+                            rate_g,
+                            rate_r,
+                            float(classtar),
+                            ndethist,
+                            float(drb)
+                        ),
+                    ),
+                ],
                 radius='xl', p='md', shadow='xl', withBorder=True
             ),
         ],
