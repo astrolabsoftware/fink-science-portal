@@ -1251,7 +1251,7 @@ def display_page(pathname, is_mobile):
                         multiple=False,
                     ),
                     html.Br(),
-                    dbc.Row(fink_search_bar),
+                    dbc.Row(dmc.LoadingOverlay(fink_search_bar)),
                     html.Br(),
                     dcc.Dropdown(
                         id='select',
