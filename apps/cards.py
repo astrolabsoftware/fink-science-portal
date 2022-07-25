@@ -75,7 +75,6 @@ def card_sn_scores() -> dbc.Card:
     )
     color_explanation = dcc.Markdown(
         """
-        We show the last color evolution in 3 ways:
         - `delta(g-r)`: `(g-r)(i) - (g-r)(i-1)`, where `i` and `i-1` are the last two nights where both `g` and `r` measurements are available
         - `delta(g)`: `g(i) - g(i-1)`, where `g(i)` and `g(i-1)` are the last two measurements in the `g` band
         - `delta(r)`: `r(i) - r(i-1)`, where `r(i)` and `r(i-1)` are the last two measurements in the `r` band
@@ -83,7 +82,6 @@ def card_sn_scores() -> dbc.Card:
     )
     color_rate_explanation = dcc.Markdown(
         """
-        We show:
         - `rate g-r`: color increase rate per day.
         - `rate g`: magnitude increase rate per day for the `g` band.
         - `rate r`: magnitude increase rate per day for the `r` band.
