@@ -1262,7 +1262,7 @@ def display_page(pathname, is_mobile):
                     noresults_toast
                 ], id='trash', fluid=True, style={'width': width}
             ),
-            dmc.LoadingOverlay(dbc.Container(id='results')),
+            dmc.LoadingOverlay(dbc.Container(id='results'), loaderProps={"variant": "oval", "color": "blue", "size": "xl"},),
             dbc.Input(id='validate_results', style={'display': 'none'}),
         ],
         className='home',
