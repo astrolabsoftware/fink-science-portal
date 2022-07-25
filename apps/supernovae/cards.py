@@ -14,6 +14,7 @@
 # limitations under the License.
 from dash import html, dcc, dash_table, Input, Output, State
 import dash_mantine_components as dmc
+import dash_bootstrap_components as dbc
 
 from app import app
 
