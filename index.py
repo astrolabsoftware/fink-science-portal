@@ -908,7 +908,8 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         query, query_type, dropdown_option = extract_query_url(searchurl)
 
     is_ok = validate_query(query, query_type)
-    if (not is_ok['flag']) and ctx.triggered:
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if (not is_ok['flag']) and (button_id in ["submit", "search_bar_input"]):
         return dmc.Alert('Bad query', title='oups', color='red')
 
     if query_type == 'objectId':
