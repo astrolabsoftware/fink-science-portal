@@ -910,9 +910,9 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     if searchurl != '':
         query, query_type, dropdown_option = extract_query_url(searchurl)
 
-    is_ok = validate_query(query, query_type)
-    if (not is_ok['flag']) and (not empty_query):
-        return dmc.Alert('Bad query', title='oups', color='red')
+    validation = validate_query(query, query_type)
+    if (not validation['flag']) and (not empty_query):
+        return dmc.Alert(validation['text'], title=validation['header'], color='red', withCloseButton=True)
 
     if query_type == 'objectId':
         r = requests.post(
@@ -990,16 +990,17 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
 
     if pdf.empty:
         if searchurl != '':
-            return dbc.Alert(
-                "No alerts found using the {} type: {}".format(query_type, query),
-                color="info",
+            return dmc.Alert(
+                "No alerts found using {} with {}".format(query_type, query),
+                color="red",
                 dismissable=True
             )
         else:
-            return dash_table.DataTable(
-                data=[],
-                columns=[],
-                id='result_table'
+            dmc.Alert(
+                "No alerts found using {} with {}".format(query_type, query),,
+                title='Oups!',
+                color='red',
+                withCloseButton=True
             )
     else:
         # Make clickable objectId
