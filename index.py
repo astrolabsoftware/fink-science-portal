@@ -907,11 +907,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
 
     is_ok = validate_query(query, query_type)
     if not is_ok['flag']:
-        return dash_table.DataTable(
-            data=[],
-            columns=[],
-            id='result_table'
-        )
+        return dmc.Alert('Bad query', title='oups', color='red')
 
     if query_type == 'objectId':
         r = requests.post(
@@ -1026,19 +1022,19 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     return construct_results_layout(table, is_mobile)
 
 
-noresults_toast = html.Div(
-    [
-        dbc.Toast(
-            "",
-            header="",
-            id="noresults-toast2",
-            icon="danger",
-            dismissable=True,
-            is_open=False
-        ),
-        html.Br()
-    ]
-)
+# noresults_toast = html.Div(
+#     [
+#         dbc.Toast(
+#             "",
+#             header="",
+#             id="noresults-toast2",
+#             icon="danger",
+#             dismissable=True,
+#             is_open=False
+#         ),
+#         html.Br()
+#     ]
+# )
 
 # @app.callback(
 #     [
@@ -1213,7 +1209,6 @@ app.clientside_callback(
     [Input("result_table", "data")]
 )
 def send_alert(data):
-    print(data)
     if len(data) == 0:
         return dmc.Alert("No alerts found", title="Oups!", withCloseButton=True)
     else:
