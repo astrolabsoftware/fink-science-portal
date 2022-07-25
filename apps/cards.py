@@ -758,7 +758,7 @@ curl -H "Content-Type: application/json" -X POST \\
             'width': '100%',
             'height': '25pc',
         }, className='roundimg nozoom'
-    ),
+    )
     return html.Div([card, aladin])
 
 def card_id1(pdf):
