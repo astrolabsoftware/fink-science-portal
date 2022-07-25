@@ -1223,53 +1223,50 @@ def display_page(pathname, is_mobile):
     else:
         width = '60%'
         style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'contain'}
-    layout = html.Div([
-            dmc.LoadingOverlay([
-                html.Br(),
-                html.Br(),
-                dbc.Container(
-                    [
-                        html.Div(id='logo'),
-                        html.Br(),
-                        dmc.Chips(
-                            data=[
-                                {"value": "objectId", "label": "objectId"},
-                                {"value": "Conesearch", "label": "Conesearch"},
-                                {"value": "Date Search", "label": "Date Search"},
-                                {"value": "Class Search", "label": "Class Search"},
-                                {"value": "SSO", "label": "SSO"},
-                                {"value": "Tracklet", "label": "Tracklet"},
-                            ],
-                            id="dropdown-query",
-                            value='objectId',
-                            color="orange",
-                            radius="xl",
-                            size="sm",
-                            spacing="xl",
-                            variant="outline",
-                            position='center',
-                            multiple=False,
-                        ),
-                        html.Br(),
-                        dbc.Row(fink_search_bar),
-                        html.Br(),
-                        dcc.Dropdown(
-                            id='select',
-                            searchable=True,
-                            clearable=True,
-                        ),
-                        html.Br(),
-                        noresults_toast
-                    ], id='trash', fluid=True, style={'width': width}
-                ),
-                dbc.Container(id='results'),
-                dbc.Input(id='validate_results', style={'display': 'none'}),
-            ],
-            loaderProps={"variant": "oval", "color": "blue", "size": "xl"},
-        ),
+    layout = html.Div(
+        [
+            html.Br(),
+            html.Br(),
+            dbc.Container(
+                [
+                    html.Div(id='logo'),
+                    html.Br(),
+                    dmc.Chips(
+                        data=[
+                            {"value": "objectId", "label": "objectId"},
+                            {"value": "Conesearch", "label": "Conesearch"},
+                            {"value": "Date Search", "label": "Date Search"},
+                            {"value": "Class Search", "label": "Class Search"},
+                            {"value": "SSO", "label": "SSO"},
+                            {"value": "Tracklet", "label": "Tracklet"},
+                        ],
+                        id="dropdown-query",
+                        value='objectId',
+                        color="orange",
+                        radius="xl",
+                        size="sm",
+                        spacing="xl",
+                        variant="outline",
+                        position='center',
+                        multiple=False,
+                    ),
+                    html.Br(),
+                    dbc.Row(fink_search_bar),
+                    html.Br(),
+                    dcc.Dropdown(
+                        id='select',
+                        searchable=True,
+                        clearable=True,
+                    ),
+                    html.Br(),
+                    noresults_toast
+                ], id='trash', fluid=True, style={'width': width}
+            ),
+            dmc.LoadingOverlay(dbc.Container(id='results'), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},),
+            dbc.Input(id='validate_results', style={'display': 'none'}),
         ],
         className='home',
-        style=style,
+        style=style
     )
     if pathname == '/about':
         return about.layout
