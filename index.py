@@ -876,7 +876,7 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
 @app.callback(
     [
         Output("results", "children"),
-        Output("validate_results", "value"),
+        # Output("validate_results", "value"),
     ],
     [
         Input("search_bar_input", "value"),
@@ -914,7 +914,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
             data=[],
             columns=[],
             id='result_table'
-        ), 0
+        )
 
     if query_type == 'objectId':
         r = requests.post(
@@ -996,13 +996,13 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
                 "No alerts found using the {} type: {}".format(query_type, query),
                 color="info",
                 dismissable=True
-            ), 0
+            )
         else:
             return dash_table.DataTable(
                 data=[],
                 columns=[],
                 id='result_table'
-            ), 0
+            )
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
@@ -1026,7 +1026,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         validation = 1
 
     table = populate_result_table(data, columns, is_mobile)
-    return construct_results_layout(table, is_mobile), validation
+    return construct_results_layout(table, is_mobile)
 
 
 noresults_toast = html.Div(
