@@ -273,13 +273,6 @@ def card_variable_button(pdf):
                     cdsxmatch, objectidps1, float(distpsnr1),
                     float(neargaia), float(distnr))
             ),
-        ], radius='xl', p='md', shadow='xl', withBorder=True
-    )
-    card2 = dmc.Paper(
-        [
-            nterms_base,
-            dbc.Row(submit_varstar_button),
-            html.Div(html.Br()),
             dbc.Row(
                 [
                     dbc.Col(
@@ -304,6 +297,13 @@ def card_variable_button(pdf):
                         ), width=4),
                 ], justify='around'
             ),
+        ], radius='xl', p='md', shadow='xl', withBorder=True
+    )
+    card2 = dmc.Paper(
+        [
+            nterms_base,
+            dbc.Row(submit_varstar_button),
+            html.Div(html.Br()),
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return html.Div([card1, html.Br(), card2])
