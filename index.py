@@ -1043,86 +1043,86 @@ noresults_toast = html.Div(
     ]
 )
 
-@app.callback(
-    [
-        Output("noresults-toast2", "is_open"),
-        Output("noresults-toast2", "children"),
-        Output("noresults-toast2", "header")
-    ],
-    [
-        Input("submit", "n_clicks"),
-        Input("validate_results", "value"),
-        Input("search_bar_input", "value"),
-        Input("search_bar_input", "n_submit"),
-        Input("dropdown-query", "value"),
-        Input("select", "value"),
-        Input("url", "search")
-    ]
-)
-def open_noresults(n, results, query, ns, query_type, dropdown_option, searchurl):
-    """ Toast to warn the user about the fact that we found no results
-    """
-    # Trigger the query only if the submit button is pressed.
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ('submit' not in changed_id and searchurl == '') or results is None:
-        raise PreventUpdate
+# @app.callback(
+#     [
+#         Output("noresults-toast2", "is_open"),
+#         Output("noresults-toast2", "children"),
+#         Output("noresults-toast2", "header")
+#     ],
+#     [
+#         Input("submit", "n_clicks"),
+#         Input("validate_results", "value"),
+#         Input("search_bar_input", "value"),
+#         Input("search_bar_input", "n_submit"),
+#         Input("dropdown-query", "value"),
+#         Input("select", "value"),
+#         Input("url", "search")
+#     ]
+# )
+# def open_noresults(n, results, query, ns, query_type, dropdown_option, searchurl):
+#     """ Toast to warn the user about the fact that we found no results
+#     """
+#     # Trigger the query only if the submit button is pressed.
+#     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+#     if ('submit' not in changed_id and searchurl == '') or results is None:
+#         raise PreventUpdate
 
-    # catch parameters sent from URL
-    # override any other options
-    if searchurl != '':
-        query, query_type, dropdown_option = extract_query_url(searchurl)
+#     # catch parameters sent from URL
+#     # override any other options
+#     if searchurl != '':
+#         query, query_type, dropdown_option = extract_query_url(searchurl)
 
-    validation = validate_query(query, query_type)
-    if not validation['flag']:
-        return (not validation['flag']), validation['header'], validation['text']
+#     validation = validate_query(query, query_type)
+#     if not validation['flag']:
+#         return (not validation['flag']), validation['header'], validation['text']
 
-    # Good query, but no results
-    # ugly hack
-    if n and int(results) == 0:
-        if query_type == 'objectId':
-            header = "Search by Object ID"
-            text = "{} not found".format(query)
-        elif query_type == 'SSO':
-            header = "Search by Solar System Object ID"
-            text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
-        elif query_type == 'Tracklet':
-            header = "Search by Tracklet ID"
-            text = "{} not found".format(query)
-        elif query_type == 'Conesearch':
-            header = "Conesearch"
-            text = "No alerts found for (RA, Dec, radius) = {}".format(
-                query
-            )
-        elif query_type == 'Date Search':
-            header = "Search by Date"
-            if dropdown_option is None:
-                window = 1
-            else:
-                window = dropdown_option
-            jd_start = Time(query).jd
-            jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
+#     # Good query, but no results
+#     # ugly hack
+#     if n and int(results) == 0:
+#         if query_type == 'objectId':
+#             header = "Search by Object ID"
+#             text = "{} not found".format(query)
+#         elif query_type == 'SSO':
+#             header = "Search by Solar System Object ID"
+#             text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
+#         elif query_type == 'Tracklet':
+#             header = "Search by Tracklet ID"
+#             text = "{} not found".format(query)
+#         elif query_type == 'Conesearch':
+#             header = "Conesearch"
+#             text = "No alerts found for (RA, Dec, radius) = {}".format(
+#                 query
+#             )
+#         elif query_type == 'Date Search':
+#             header = "Search by Date"
+#             if dropdown_option is None:
+#                 window = 1
+#             else:
+#                 window = dropdown_option
+#             jd_start = Time(query).jd
+#             jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
 
-            text = "No alerts found between {} and {}".format(
-                Time(jd_start, format='jd').iso,
-                Time(jd_end, format='jd').iso
-            )
-        elif query_type == 'Class Search':
-            header = "Get latest 100 alerts by class"
-            if dropdown_option is None:
-                alert_class = 'allclasses'
-            else:
-                alert_class = dropdown_option
-            # start of the Fink operations
-            jd_start = Time('2019-11-01 00:00:00').jd
-            jd_stop = Time.now().jd
+#             text = "No alerts found between {} and {}".format(
+#                 Time(jd_start, format='jd').iso,
+#                 Time(jd_end, format='jd').iso
+#             )
+#         elif query_type == 'Class Search':
+#             header = "Get latest 100 alerts by class"
+#             if dropdown_option is None:
+#                 alert_class = 'allclasses'
+#             else:
+#                 alert_class = dropdown_option
+#             # start of the Fink operations
+#             jd_start = Time('2019-11-01 00:00:00').jd
+#             jd_stop = Time.now().jd
 
-            text = "No alerts for class {} in between {} and {}".format(
-                alert_class,
-                Time(jd_start, format='jd').iso,
-                Time(jd_stop, format='jd').iso
-            )
-        return True, text, header
-    return False, "", ""
+#             text = "No alerts for class {} in between {} and {}".format(
+#                 alert_class,
+#                 Time(jd_start, format='jd').iso,
+#                 Time(jd_stop, format='jd').iso
+#             )
+#         return True, text, header
+#     return False, "", ""
 
 # building the navigation bar
 dropdown = dbc.DropdownMenu(
