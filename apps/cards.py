@@ -885,7 +885,6 @@ def card_sn_properties(clickData, object_data):
     snn_sn_vs_all = pdf['d:snn_sn_vs_all'].values[position]
     rf_snia_vs_nonia = pdf['d:rf_snia_vs_nonia'].values[position]
     classtar = pdf['i:classtar'].values[position]
-    ndethist = pdf['i:ndethist'].values[position]
     drb = pdf['i:drb'].values[position]
 
     try:
@@ -940,6 +939,7 @@ def card_sn_properties(clickData, object_data):
                         """
                         ```python
                         Date: {}
+
                         # SuperNNova classifiers
                         SN Ia score: {:.2f}
                         SNe score: {:.2f}
@@ -957,7 +957,6 @@ def card_sn_properties(clickData, object_data):
                         ```python
                         # Extra properties
                         Classtar: {:.2f}
-                        Detection in the survey: {}
                         DL Real bogus: {:.2f}
                         ```
                         """.format(
@@ -969,7 +968,6 @@ def card_sn_properties(clickData, object_data):
                             rate_g,
                             rate_r,
                             float(classtar),
-                            ndethist,
                             float(drb)
                         ),
                     ),
