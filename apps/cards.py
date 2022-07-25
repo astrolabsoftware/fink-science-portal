@@ -773,10 +773,12 @@ def card_id1(object_data, object_uppervalid, object_upper):
     objectid = pdf['i:objectId'].values[0]
     date_end = pdf['v:lastdate'].values[0]
     discovery_date = pdf['v:lastdate'].values[-1]
+    candid = pdf['i:candid'].values
     ndet = len(pdf)
 
     pdf_upper_valid = pd.read_json(object_uppervalid)
-    nupper_valid = len(pdf_upper_valid)
+    mask = pdf_upper_valid['i:candid'].apply(lambda x: x not in candid)
+    nupper_valid = len(pdf_upper_valid[mask])
     pdf_upper = pd.read_json(object_upper)
     nupper = len(pdf_upper)
 
