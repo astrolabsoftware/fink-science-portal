@@ -997,7 +997,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
             )
         else:
             dmc.Alert(
-                "No alerts found using {} with {}".format(query_type, query),,
+                "No alerts found using {} with {}".format(query_type, query),
                 title='Oups!',
                 color='red',
                 withCloseButton=True
