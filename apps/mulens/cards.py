@@ -97,7 +97,7 @@ def card_mulens_button(pdf):
             submit_mulens_button
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
-    return html.Div([card1, card2])
+    return html.Div([card1, html.Br(), card2])
 
 def card_explanation_mulens():
     """ Explain what is used to fit for microlensing events
