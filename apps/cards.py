@@ -550,7 +550,7 @@ def card_explanation_xmatch():
     return card
 
 @app.callback(
-    Output('card_id_col', 'figure'),
+    Output('card_id_col', 'children'),
     [
         Input('object-data', 'children'),
     ])
