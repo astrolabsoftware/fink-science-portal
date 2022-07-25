@@ -1223,9 +1223,8 @@ def display_page(pathname, is_mobile):
     else:
         width = '60%'
         style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'contain'}
-    layout = dmc.LoadingOverlay(
-        html.Div(
-            [
+    layout = html.Div(
+            dmc.LoadingOverlay([
                 html.Br(),
                 html.Br(),
                 dbc.Container(
@@ -1267,8 +1266,9 @@ def display_page(pathname, is_mobile):
                 dbc.Input(id='validate_results', style={'display': 'none'}),
             ],
             className='home',
-            style=style
-        ), loaderProps={"variant": "oval", "color": "blue", "size": "xl"},
+            style=style,
+            loaderProps={"variant": "oval", "color": "blue", "size": "xl"},
+        ),
     )
     if pathname == '/about':
         return about.layout
