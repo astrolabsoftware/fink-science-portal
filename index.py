@@ -896,7 +896,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     """
     empty_query = (query is None) or (query == '')
 
-    if empty_query:
+    if empty_query and query_type != "Class Search":
         raise PreventUpdate
 
     colnames_to_display = [
