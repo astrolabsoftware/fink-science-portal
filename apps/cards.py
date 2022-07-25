@@ -905,18 +905,37 @@ def card_sn_properties(clickData, object_data):
 
     classification = pdf['v:classification'].values[position]
 
+    simbad_types = get_simbad_labels('old_and_new')
+    simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+
+    if classification in simbad_types:
+        color = class_colors['Simbad']
+    elif classification in class_colors.keys():
+        color = class_colors[classification]
+    else:
+        # Sometimes SIMBAD mess up names :-)
+        color = class_colors['Simbad']
+
+    badge = dmc.Badge(
+        classification,
+        color=color,
+        variant="dot",
+    )
+
     card = html.Div(
         [
             dmc.Paper(
-                dcc.Markdown(
-                    """
-                    Click on a point in the lightcurve to update parameters below.
-
-                    Date: {}
-
-                    Alert class: {}
-                    """.format(date0, classification),
-                ),
+                [
+                    dcc.Markdown(
+                        """
+                        Click on a point in the lightcurve to update parameters below.
+                        ```bash
+                        Date: {}
+                        ```
+                        """.format(date0),
+                    ),
+                    badge,
+                ],
                 radius='xl', p='md', shadow='xl', withBorder=True
             ),
             html.Br(),
