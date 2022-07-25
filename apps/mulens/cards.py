@@ -95,7 +95,7 @@ def card_mulens_button(pdf):
         [
             dcc.Markdown(id='mulens_params'),
             submit_mulens_button
-        ]
+        ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return html.Div([card1, card2])
 
