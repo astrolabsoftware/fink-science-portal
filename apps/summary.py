@@ -701,11 +701,6 @@ def layout(name, is_mobile):
                         ),
                         dbc.Row(
                             [
-                                dbc.Col([html.Br(), card_lightcurve_summary(is_mobile)], width={"size": 12, "offset": 0},),
-                            ]
-                        ),
-                        dbc.Row(
-                            [
                                 dbc.Col(tabs(pdf, is_mobile), width=12)
                             ]
                         ),
