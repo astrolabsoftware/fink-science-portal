@@ -165,7 +165,6 @@ def card_sso_mpc_params(ssnamenr):
     G: {}
     neo: {}
     ```
-    ---
     """
     ssnamenr_ = str(ssnamenr)
     if ssnamenr_.startswith('C/'):
@@ -180,15 +179,11 @@ def card_sso_mpc_params(ssnamenr):
         data = queryMPC(ssnamenr_, kind=kind)
 
     if data.empty:
-        card = dbc.Card(
+        card = html.Div(
             [
                 html.H5("Name: None", className="card-title"),
                 html.H6("Orbit type: None", className="card-subtitle"),
-                dcc.Markdown(
-                    template.format(*([None] * 14))
-                )
             ],
-            className="mt-3", body=True
         )
         return card
     if kind == 'comet':
