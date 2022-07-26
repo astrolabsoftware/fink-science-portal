@@ -34,7 +34,7 @@ from apps.mulens.cards import card_mulens_button
 from apps.cards import card_cutouts
 from apps.cards import card_id, card_id1
 from apps.cards import download_object_modal, inspect_object_modal
-from apps.sso.cards import card_sso_mpc_params
+from apps.sso.cards import card_sso_left
 
 from apps.cards import card_tracklet_lightcurve, card_tracklet_radec
 
