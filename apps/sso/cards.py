@@ -121,7 +121,7 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
         ]
     else:
-        extra_items = [html.Div(), html.Div()]
+        extra_items = []
 
     card = dmc.Accordion(
         state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
