@@ -27,13 +27,12 @@ from apps.utils import class_colors
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
-from astropy.time import Time
 import pandas as pd
 import numpy as np
 import urllib
 
-def card_cutouts(is_mobile):
-    """ Add a card containing cutouts
+def card_lightcurve_summary(is_mobile):
+    """ Add a card containing the lightcurve
 
     Returns
     ----------
@@ -89,27 +88,6 @@ def card_cutouts(is_mobile):
         )
     else:
         card = dbc.Row(id='stamps_mobile', justify='around')
-    return card
-
-def card_tracklet_lightcurve():
-    """ Add a card to display tracklet lightcurve
-    Returns
-    ----------
-    card: dbc.Card
-        Card with the tracklet lightcurve
-    """
-    card = html.Div(id='tracklet_lightcurve')
-    return card
-
-def card_tracklet_radec():
-    """ Add a card to display tracklet radec
-    Returns
-    ----------
-    card: dbc.Card
-        Card with the tracklet radec
-    """
-    card = html.Div(id='tracklet_radec')
-
     return card
 
 def card_explanation_xmatch():
@@ -450,185 +428,3 @@ def card_id1(object_data, object_uppervalid, object_upper):
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return card
-
-def card_download(pdf):
-    """ Card containing a button to download object data
-    """
-    objectid = pdf['i:objectId'].values[0]
-    card = dbc.Card(
-        [
-            dbc.ButtonGroup([
-                dbc.Button(
-                    html.A(
-                        'Download Object Data',
-                        id="download-link",
-                        download="{}.csv".format(objectid),
-                        href=generate_download_link(pdf),
-                        target="_blank", style={"color": "white"}),
-                    id='download',
-                    target="_blank",
-                    href=""
-                )
-            ])
-        ],
-        className="mt-3", body=True
-    )
-    return card
-
-def generate_download_link(pdf):
-    """ Crappy way for downloading data as csv. The URL is modified on-the-fly.
-    TODO: try https://github.com/thedirtyfew/dash-extensions/
-    """
-    if pdf.empty:
-        return ""
-    else:
-        # drop cutouts from download for the moment
-        pdf = pdf.drop(
-            columns=[
-                'b:cutoutDifference_stampData',
-                'b:cutoutScience_stampData',
-                'b:cutoutTemplate_stampData'
-            ]
-        )
-        csv_string = pdf.to_csv(index=False, encoding='utf-8')
-        csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-        return csv_string
-
-def download_object_modal(objectid):
-    message_download = """
-    ### {}
-    In a terminal, simply paste (CSV):
-
-    ```bash
-    curl -H "Content-Type: application/json" -X POST \\
-        -d '{{"objectId":"{}", "output-format":"csv"}}' \\
-        {}/api/v1/objects \\
-        -o {}.csv
-    ```
-
-    Or in a python terminal, simply paste:
-
-    ```python
-    import requests
-    import pandas as pd
-
-    # get data for ZTF19acnjwgm
-    r = requests.post(
-      '{}/api/v1/objects',
-      json={{
-        'objectId': '{}',
-        'output-format': 'json'
-      }}
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
-    ```
-
-    See {}/api for more options.
-    """.format(
-        objectid,
-        objectid,
-        APIURL,
-        str(objectid).replace('/', '_'),
-        APIURL,
-        objectid,
-        APIURL
-    )
-    modal = [
-        html.Div(
-            dbc.Button(
-                "Get object data",
-                id="open-object",
-                color='dark', outline=True,
-                style={'width': '100%', 'display': 'inline-block'}
-            ), className='d-grid gap-2', style={'width': '100%', 'display': 'inline-block'}
-        ),
-        dbc.Modal(
-            [
-                dbc.ModalBody(
-                    dcc.Markdown(message_download),
-                    style={
-                        'background-image': 'linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.4)), url(/assets/background.png)'
-                    }
-                ),
-                dbc.ModalFooter(
-                    dbc.Button(
-                        "Close",
-                        color='dark', outline=True,
-                        id="close-object", className="ml-auto"
-                    )
-                ),
-            ],
-            id="modal-object", scrollable=True
-        ),
-    ]
-    return modal
-
-def inspect_object_modal(objectid):
-    message = """
-    ### {}
-    Here are the fields contained in the last alert for {}. Note you can filter the
-    table results using the first row (enter text and hit enter).
-    - Fields starting with `i:` are original fields from ZTF.
-    - Fields starting with `d:` are live added values by Fink.
-    - Fields starting with `v:` are added values by Fink (post-processing).
-
-    See {}/api/v1/columns for more information.
-    """.format(objectid, objectid, APIURL)
-    modal = [
-        html.Div(
-            dbc.Button(
-                "Inspect alert data",
-                id="open-object-prop",
-                color='dark', outline=True,
-                style={'width': '100%', 'display': 'inline-block'}
-            ), className='d-grid gap-2', style={'width': '100%', 'display': 'inline-block'}
-        ),
-        dbc.Modal(
-            [
-                dbc.ModalBody(
-                    [
-                        dcc.Markdown(message),
-                        html.Div([], id='alert_table')
-                    ], style={
-                        'background-image': 'linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.6)), url(/assets/background.png)'
-                    }
-                ),
-                dbc.ModalFooter(
-                    dbc.Button(
-                        "Close",
-                        color='dark', outline=True,
-                        id="close-object-prop",
-                        className="ml-auto"
-                    )
-                ),
-            ],
-            id="modal-object-prop", scrollable=True
-        ),
-    ]
-    return modal
-
-@app.callback(
-    Output("modal-object", "is_open"),
-    [Input("open-object", "n_clicks"), Input("close-object", "n_clicks")],
-    [State("modal-object", "is_open")],
-)
-def toggle_modal_object(n1, n2, is_open):
-    """ Callback for the modal (open/close)
-    """
-    if n1 or n2:
-        return not is_open
-    return is_open
-
-@app.callback(
-    Output("modal-object-prop", "is_open"),
-    [Input("open-object-prop", "n_clicks"), Input("close-object-prop", "n_clicks")],
-    [State("modal-object-prop", "is_open")],
-)
-def toggle_modal_object_prop(n1, n2, is_open):
-    """ Callback for the modal (open/close)
-    """
-    if n1 or n2:
-        return not is_open
-    return is_open

@@ -31,7 +31,7 @@ from apps.mulens.cards import card_explanation_mulens
 from apps.mulens.cards import card_mulens_button
 
 
-from apps.cards import card_cutouts
+from apps.cards import card_lightcurve_summary
 from apps.cards import card_id, card_id1
 from apps.cards import download_object_modal, inspect_object_modal
 from apps.sso.cards import card_sso_left
@@ -70,7 +70,7 @@ def tab1_content():
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_cutouts(is_mobile=False), width=8),
+            dbc.Col(card_lightcurve_summary(is_mobile=False), width=8),
             dbc.Col(id="card_id_col", width=4)
         ]),
     ])
@@ -284,8 +284,9 @@ def tab6_content(pdf):
             [
                 dbc.Col(
                     [
-                        card_tracklet_lightcurve(),
-                        card_tracklet_radec()
+                        html.Div(id="tracklet_lightcurve"),
+                        html.Br(),
+                        html.Div(id="tracklet_radec")
                     ]
                 ),
             ]
@@ -629,7 +630,7 @@ def layout(name, is_mobile):
                         ),
                         dbc.Row(
                             [
-                                dbc.Col([html.Br(), card_cutouts(is_mobile)], width={"size": 12, "offset": 0},),
+                                dbc.Col([html.Br(), card_lightcurve_summary(is_mobile)], width={"size": 12, "offset": 0},),
                             ]
                         ),
                         dbc.Row(

@@ -2617,7 +2617,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )
@@ -2629,13 +2629,15 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         color="info"
     )
 
-    card = [
-        alert,
-        dbc.Card(
-            dbc.CardBody(graph),
-            className="mt-3"
-        )
-    ]
+    card = html.Div(
+        [
+            alert,
+            dmc.Paper(
+                graph,
+                radius='xl', p='md', shadow='xl', withBorder=True
+            )
+        ]
+    )
     return card
 
 @app.callback(
@@ -2700,9 +2702,13 @@ def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
+    card = html.Div(
+        [
+            dmc.Paper(
+                graph,
+                radius='xl', p='md', shadow='xl', withBorder=True
+            )
+        ]
     )
     return card
 
