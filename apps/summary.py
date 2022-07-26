@@ -552,7 +552,7 @@ def accordion_mobile():
     )
 
     aladin = html.Div(
-        [dcc.Markdown('Hit full screen if the display does not work'), visdcc.Run_js(id='aladin-lite-div2')],
+        [dcc.Markdown('Hit full screen if the display does not work'), visdcc.Run_js(id='aladin-lite-div')],
         style={
             'width': '100%',
             'height': '25pc'
