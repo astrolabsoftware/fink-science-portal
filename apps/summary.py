@@ -782,13 +782,9 @@ def layout(name, is_mobile):
     Output('aladin-lite-div2', 'run'),
     [
         Input('object-data', 'children'),
-        Input(f"group-3-toggle", "n_clicks")
     ],
-    [
-        State(f"collapse-3", "is_open")
-    ]
 )
-def integrate_aladin_lite_mobile(object_data, n3, is_open3):
+def integrate_aladin_lite_mobile(object_data):
     """ Integrate aladin light in the mobile app.
 
     the default parameters are:
@@ -806,8 +802,8 @@ def integrate_aladin_lite_mobile(object_data, n3, is_open3):
     alert_id: str
         ID of the alert
     """
-    if n3:
-        pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(object_data)
+    if not pdf_.empty:
         cols = ['i:jd', 'i:ra', 'i:dec']
         pdf = pdf_.loc[:, cols]
         pdf = pdf.sort_values('i:jd', ascending=False)
