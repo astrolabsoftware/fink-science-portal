@@ -1442,14 +1442,19 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
     return graph
 
 @app.callback(
-    Output('variable_plot', 'children'),
+    [
+        Output('variable_plot', 'children'),
+        Output("submit_variable", "children"),
+    ],
     [
         Input('nterms_base', 'value'),
         Input('nterms_band', 'value'),
         Input('manual_period', 'value'),
         Input('submit_variable', 'n_clicks'),
-        Input('object-data', 'children')
-    ])
+        Input('object-data', 'children'),
+    ],
+    prevent_initial_call=True,
+)
 def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object_data):
     """ Fit for the period of a star using gatspy
 
@@ -1601,10 +1606,10 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
             config={'displayModeBar': False}
         )
 
-        return graph
+        return graph, no_update
 
     # quite referentially opaque...
-    return ""
+    return "", no_update
 
 @app.callback(
     [
