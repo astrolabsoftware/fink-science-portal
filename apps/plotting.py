@@ -1997,10 +1997,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
+    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
 @app.callback(
@@ -2143,10 +2140,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
+    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
 @app.callback(
@@ -2213,10 +2207,7 @@ def draw_sso_radec(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
+    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
 @app.callback(
@@ -2315,10 +2306,7 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
+    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
 @app.callback(
@@ -2596,14 +2584,12 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         },
         config={'displayModeBar': False}
     )
-    card = html.Div(
+    card = dmc.Paper(
         [
-            dbc.Card(
-                dbc.CardBody(graph),
-                className="mt-3"
-            ),
+            graph,
+            html.Br(),
             table
-        ]
+        ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return card
 

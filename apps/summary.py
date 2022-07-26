@@ -34,9 +34,8 @@ from apps.mulens.cards import card_mulens_button
 from apps.cards import card_cutouts
 from apps.cards import card_id, card_id1
 from apps.cards import download_object_modal, inspect_object_modal
+from apps.sso.cards import card_sso_mpc_params
 
-from apps.cards import card_sso_residual, card_sso_astrometry, card_sso_phasecurve
-from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
 from apps.cards import card_tracklet_lightcurve, card_tracklet_radec
 
 from apps.plotting import plot_classbar
@@ -153,8 +152,9 @@ def tab5_content(pdf):
         [
             dbc.Col(
                 [
-                    card_sso_lightcurve(),
-                    card_sso_residual(),
+                    html.Div(id='sso_lightcurve'),
+                    html.Br(),
+                    html.Div(id='sso_astrometry'),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
@@ -172,7 +172,7 @@ def tab5_content(pdf):
         [
             dbc.Col(
                 [
-                    card_sso_astrometry(),
+                    html.Div(id='sso_residual'),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
@@ -201,7 +201,7 @@ def tab5_content(pdf):
         [
             dbc.Col(
                 [
-                    card_sso_phasecurve(),
+                    html.Div(id='sso_phasecurve'),
                     html.Br(),
                     dbc.Row(
                         dbc.Col(
@@ -301,7 +301,6 @@ def tab_mobile_content(pdf):
             [
                 dbc.Col(
                     dcc.Graph(
-                        figure=plot_classbar(pdf, is_mobile=True),
                         style={
                             'width': '100%',
                             'height': '4pc'
