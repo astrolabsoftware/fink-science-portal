@@ -258,7 +258,8 @@ def tab5_content(pdf):
                     dmc.Tab(tab1, label="Lightcurve"),
                     dmc.Tab(tab2, label="Astrometry"),
                     dmc.Tab(tab3, label="Phase curve")
-                ]
+                ],
+                variant="outline"
             ), width=8
         )
     else:
