@@ -77,7 +77,7 @@ curl -H "Content-Type: application/json" -X POST \\
                 label="SSO card",
                 icon=[
                     DashIconify(
-                        icon="emojione-monotone:comet",
+                        icon="majesticons:comet",
                         color=dmc.theme.DEFAULT_COLORS["dark"][6],
                         width=20,
                     )
