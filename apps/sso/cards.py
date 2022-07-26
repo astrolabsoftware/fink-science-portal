@@ -61,7 +61,7 @@ curl -H "Content-Type: application/json" -X POST \\
         ]
     )
 
-    if ssnamenr_ is not 'null':
+    if ssnamenr_ != 'null':
         extra_items = [
             dmc.AccordionItem(
                 [
