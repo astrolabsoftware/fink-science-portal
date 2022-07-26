@@ -168,11 +168,10 @@ def card_variable_button(pdf):
         ], className='mb-3', style={'width': '100%', 'display': 'inline-block'}
     )
 
-    submit_varstar_button = dbc.Button(
+    submit_varstar_button = dmc.Button(
         'Fit data',
         id='submit_variable',
-        style={'width': '100%', 'display': 'inline-block'},
-        color='dark', outline=True
+        color='orange', variant="outline", fullWidth=True, loading=True
     )
 
     card2 = dmc.Paper(
