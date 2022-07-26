@@ -88,7 +88,7 @@ def tab2_content():
     ])
     return tab2_content_
 
-def tab3_content(pdf):
+def tab3_content():
     """ Variable stars tab
     """
     tab3_content_ = html.Div([
@@ -104,7 +104,7 @@ def tab3_content(pdf):
                     ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
                 ), width=8
             ),
-            dbc.Col([card_variable_button(pdf)], width=4)
+            dbc.Col(id="card_variable_button", width=4)
         ]),
     ])
     return tab3_content_
@@ -327,7 +327,7 @@ def tabs(pdf, is_mobile):
             [
                 dmc.Tab(tab1_content(), label="Summary"),
                 dmc.Tab(tab2_content(), label="Supernovae"),
-                dmc.Tab(tab3_content(pdf), label="Variable stars"),
+                dmc.Tab(tab3_content(), label="Variable stars"),
                 dmc.Tab(tab4_content(pdf), label="Microlensing"),
                 dmc.Tab(tab5_content(pdf), label="Solar System"),
                 dmc.Tab(tab6_content(pdf), label="Tracklets"),

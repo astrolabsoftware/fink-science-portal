@@ -51,19 +51,6 @@ from app import client, app, clientSSO, clientStats
 
 COLORS_ZTF = ['#15284F', '#F5622E']
 
-# colors_ = [
-#     COLORS_ZTF[0],  # muted blue
-#     COLORS_ZTF[1],  # safety orange
-#     '#2ca02c',  # cooked asparagus green
-#     '#d62728',  # brick red
-#     '#9467bd',  # muted purple
-#     '#8c564b',  # chestnut brown
-#     '#e377c2',  # raspberry yogurt pink
-#     '#7f7f7f',  # middle gray
-#     '#bcbd22',  # curry yellow-green
-#     '#17becf'   # blue-teal
-# ]
-
 colors_ = [
     "rgb(165,0,38)",
     "rgb(215,48,39)",
@@ -394,15 +381,6 @@ layout_tracklet_lightcurve = dict(
         'automargin': True
     }
 )
-
-def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
-    """ Extract SN scores from the data
-    """
-    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all', 'd:rf_snia_vs_nonia']
-    pdfs = pd.DataFrame.from_dict(data, orient='index')
-    if pdfs.empty:
-        return pdfs
-    return pdfs[values]
 
 @app.callback(
     Output('classbar', 'figure'),

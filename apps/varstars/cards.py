@@ -51,9 +51,15 @@ def card_explanation_variable():
     )
     return card
 
-def card_variable_button(pdf):
+@app.callback(
+    Output("card_variable_button", "children"),
+    [
+        Input('object-data', 'children'),
+    ])
+def card_variable_button(object_data):
     """ Add a card containing button to fit for variable stars
     """
+    pdf = pd.read_json(object_data)
     distnr = pdf['i:distnr'].values[0]
     ssnamenr = pdf['i:ssnamenr'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
