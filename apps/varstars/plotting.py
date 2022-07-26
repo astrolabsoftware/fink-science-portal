@@ -24,7 +24,7 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 
 from apps.utils import dc_mag
-from apps.plotting import layout_phase
+from apps.plotting import layout_phase, COLORS_ZTF
 
 from app import app
 
