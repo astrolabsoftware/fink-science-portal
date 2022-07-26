@@ -559,7 +559,7 @@ def accordion_mobile():
     )
     external = dbc.CardBody(id='external_links')
 
-    dmc.Accordion(
+    accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
                 lightcurve,
@@ -608,6 +608,8 @@ def accordion_mobile():
         ],
         state={'{}'.format(i): False for i in range(4)}
     )
+
+    return accordion
 
 def make_item(i):
     # we use this function to make the example items to avoid code duplication
