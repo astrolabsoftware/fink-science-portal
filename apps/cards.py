@@ -132,7 +132,7 @@ def card_explanation_xmatch():
     [
         Input('object-data', 'children'),
     ])
-def card_id_col(object_data):
+def card_id(object_data):
     """ Add a card containing basic alert data
     """
     pdf = pd.read_json(object_data)
