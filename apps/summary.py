@@ -608,7 +608,9 @@ def accordion_mobile():
             ),
         ],
         state={'{}'.format(i): False for i in range(4)},
-        id="accordion-mobile"
+        id="accordion-mobile",
+        multiple=True,
+        offsetIcon=False,
     )
 
     return accordion
