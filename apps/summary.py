@@ -267,7 +267,7 @@ def tab5_content(pdf):
         msg = """
         Object not referenced in the Minor Planet Center
         """
-        left_side = html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+        left_side = dbc.Col([html.Br(), dbc.Alert(msg, color="danger")], width=8)
     tab5_content_ = dbc.Row(
         [
             left_side,
