@@ -210,7 +210,7 @@ fink_search_bar = dbc.InputGroup(
             color='gray',
             variant="transparent",
             radius='xl',
-            size='xl'
+            size='xl',
             loaderProps={'variant': 'dots'}
             # style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
         ),
