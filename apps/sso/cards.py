@@ -15,6 +15,7 @@
 from dash import html, dcc, dash_table, Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 from apps.utils import queryMPC, convert_mpc_type
 
