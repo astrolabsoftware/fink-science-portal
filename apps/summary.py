@@ -143,16 +143,20 @@ def tab3_content():
                         [
                             html.Div(id='variable_plot'),
                             html.Br(),
-                            card_explanation_variable(),
-                            html.Br(),
-                            card2,
-                            html.Br(),
-                            submit_varstar_button
+                            card_explanation_variable()
                         ], radius='xl', p='md', shadow='xl', withBorder=True
                     ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
                 ), width=8
             ),
-            dbc.Col(id="card_variable_button", width=4)
+            dbc.Col(\
+                [
+                    html.Div(id="card_variable_button"),
+                    html.Br(),
+                    card2,
+                    html.Br(),
+                    submit_varstar_button
+                ], width=4
+            )
         ]),
     ])
     return tab3_content_

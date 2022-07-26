@@ -38,7 +38,7 @@ def card_explanation_variable():
     Alternatively, you can manually set the period in days.
 
     The title of the plot will give you the fitted period, and a score for the fit.
-    The score is between 0 (poor fit) and 1 (excellent fitprevent_initial_call=True,).
+    The score is between 0 (poor fit) and 1 (excellent fit).
     """
     card = dmc.Accordion(
         state={'0': True},
