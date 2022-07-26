@@ -55,7 +55,9 @@ def card_explanation_variable():
     Output("card_variable_button", "children"),
     [
         Input('object-data', 'children'),
-    ])
+    ],
+    prevent_initial_call=True
+)
 def card_variable_button(object_data):
     """ Add a card containing button to fit for variable stars
     """
