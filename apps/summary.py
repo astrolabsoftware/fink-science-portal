@@ -269,7 +269,7 @@ def tab5_content(pdf):
             ),
             dbc.Col(
                 [
-                    card_sso_mpc_params(ssnamenr)
+                    card_sso_left(ssnamenr)
                 ], width=4
             )
         ]

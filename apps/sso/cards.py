@@ -22,6 +22,36 @@ from app import app, APIURL
 
 import visdcc
 
+def card_sso_left(ssnamenr):
+    """
+    """
+    card = dmc.Accordion(
+        state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
+        multiple=True,
+        offsetIcon=False,
+        disableIconRotation=True,
+        children=[
+            dmc.AccordionItem(
+                [
+                    dmc.Paper(
+                        card_sso_mpc_params(ssnamenr),
+                        radius='xl', p='md', shadow='xl', withBorder=True
+                    )
+                ],
+                label="SSO card",
+                icon=[
+                    DashIconify(
+                        icon="emojione-monotone:comet",
+                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                        width=20,
+                    )
+                ],
+            ),
+        ]
+    )
+
+    return card
+
 def card_sso_mpc_params(ssnamenr):
     """ MPC parameters
     """
