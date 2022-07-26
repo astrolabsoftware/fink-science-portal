@@ -39,7 +39,6 @@ from app import app
         Input('submit_variable', 'n_clicks'),
         Input('object-data', 'children'),
     ],
-    prevent_initial_call=True,
 )
 def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object_data):
     """ Fit for the period of a star using gatspy
