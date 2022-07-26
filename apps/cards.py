@@ -206,8 +206,13 @@ curl -H "Content-Type: application/json" -X POST \\
         ]
     )
 
+    qrdata = "https://fink-portal.org/{}".format(objectid)
+    qrimg = generate_qr(qrdata)
+
+    qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
+
     card = dmc.Accordion(
-        state={"0": True, **{"{}".format(i+1): False for i in range(3)}},
+        state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
         multiple=True,
         offsetIcon=False,
         disableIconRotation=True,
@@ -350,15 +355,23 @@ curl -H "Content-Type: application/json" -X POST \\
                     )
                 ],
             ),
+            dmc.AccordionItem(
+                [
+                    dmc.Center(qrcode, style={'width': '100%', 'height': '200'})
+                ],
+                label="Share",
+                icon=[
+                    DashIconify(
+                        icon="tabler:share",
+                        color=dmc.theme.DEFAULT_COLORS["lime"][6],
+                        width=20,
+                    )
+                ],
+            ),
         ],
     )
 
-    qrdata = "https://fink-portal.org/{}".format(objectid)
-    qrimg = generate_qr(qrdata)
-
-    qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
-
-    return html.Div([card, dmc.Center(qrcode, style={'width': '100%', 'height': '200'})])
+    return card
 
 @app.callback(
     Output('card_id_left', 'children'),
