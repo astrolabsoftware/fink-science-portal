@@ -22,7 +22,7 @@ from app import app
 import pandas as pd
 
 @app.callback(
-    Output("card_variable_button", "children"),
+    Output("card_mulens_button", "children"),
     [
         Input('object-data', 'children'),
     ]
