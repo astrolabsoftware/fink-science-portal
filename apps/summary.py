@@ -35,6 +35,7 @@ from apps.cards import card_lightcurve_summary
 from apps.cards import card_id1
 
 from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
+from apps.plotting import draw_tracklet_lightcurve, draw_tracklet_radec
 from apps.plotting import plot_classbar
 from apps.plotting import all_radio_options
 
@@ -204,10 +205,10 @@ def tab4_content():
         Input('object-sso', 'children'),
     ]
 )
-def tab5_content(object_data):
+def tab5_content(object_soo):
     """ SSO tab
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(object_soo)
     if pdf.empty:
         ssnamenr = 'null'
     else:
@@ -358,17 +359,24 @@ def tab5_content(object_data):
     )
     return tab5_content_
 
-def tab6_content(pdf):
+@app.callback(
+    Output("tab_tracklet", "children"),
+    [
+        Input('object-tracklet', 'children'),
+    ]
+)
+def tab6_content(object_tracklet):
     """ Tracklet tab
     """
+    pdf = pd.read_json(object_tracklet)
     tab6_content_ = html.Div([
         dbc.Row(
             [
                 dbc.Col(
                     [
-                        html.Div(id="tracklet_lightcurve"),
+                        draw_tracklet_lightcurve(pdf),
                         html.Br(),
-                        html.Div(id="tracklet_radec")
+                        draw_tracklet_radec(pdf)
                     ]
                 ),
             ]

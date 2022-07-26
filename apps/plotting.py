@@ -2482,13 +2482,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     )
     return card
 
-@app.callback(
-    Output('tracklet_lightcurve', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-tracklet', 'children')
-    ])
-def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
+def draw_tracklet_lightcurve(pdf) -> dict:
     """ Draw tracklet object lightcurve with errorbars
 
     Parameters
@@ -2501,7 +2495,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     figure: dict
 
     """
-    pdf = pd.read_json(object_tracklet)
     if pdf.empty:
         msg = """
         Object not associated to a tracklet
@@ -2596,13 +2589,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     )
     return card
 
-@app.callback(
-    Output('tracklet_radec', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-tracklet', 'children')
-    ])
-def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
+def draw_tracklet_radec(pdf) -> dict:
     """ Draw tracklet object radec
     Parameters
     ----------
@@ -2612,7 +2599,6 @@ def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_tracklet)
     if pdf.empty:
         msg = ""
         return msg
