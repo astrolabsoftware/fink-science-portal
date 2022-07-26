@@ -61,28 +61,8 @@ curl -H "Content-Type: application/json" -X POST \\
         ]
     )
 
-    card = dmc.Accordion(
-        state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
-        multiple=True,
-        offsetIcon=False,
-        disableIconRotation=True,
-        children=[
-            dmc.AccordionItem(
-                [
-                    dmc.Paper(
-                        card_sso_mpc_params(ssnamenr),
-                        radius='xl', p='md', shadow='xl', withBorder=True
-                    )
-                ],
-                label="SSO card",
-                icon=[
-                    DashIconify(
-                        icon="majesticons:comet",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
-                    )
-                ],
-            ),
+    if ssnamenr_ is not 'null':
+        extra_items = [
             dmc.AccordionItem(
                 [
                     dmc.Paper(
@@ -139,6 +119,33 @@ curl -H "Content-Type: application/json" -X POST \\
                     )
                 ],
             ),
+        ]
+    else:
+        extra_items = [html.Div(), html.Div()]
+
+    card = dmc.Accordion(
+        state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
+        multiple=True,
+        offsetIcon=False,
+        disableIconRotation=True,
+        children=[
+            dmc.AccordionItem(
+                [
+                    dmc.Paper(
+                        card_sso_mpc_params(ssnamenr),
+                        radius='xl', p='md', shadow='xl', withBorder=True
+                    )
+                ],
+                label="SSO card",
+                icon=[
+                    DashIconify(
+                        icon="majesticons:comet",
+                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            *extra_items
         ]
     )
 
