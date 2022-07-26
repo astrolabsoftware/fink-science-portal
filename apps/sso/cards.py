@@ -26,6 +26,39 @@ import visdcc
 def card_sso_left(ssnamenr):
     """
     """
+    python_download = """import requests
+import pandas as pd
+import io
+
+# get data for ZTF19acnjwgm
+r = requests.post(
+    '{}/api/v1/sso',
+    json={{
+        'n_or_d': '{}',
+        'output-format': 'json'
+    }}
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(io.BytesIO(r.content))""".format(
+        APIURL,
+        ssnamenr
+    )
+
+    curl_download = """
+curl -H "Content-Type: application/json" -X POST \\
+    -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
+    {}/api/v1/sso -o {}.csv
+    """.format(ssnamenr, APIURL, ssnamenr)
+
+    download_tab = dmc.Tabs(
+        color="red",
+        children=[
+            dmc.Tab(label="Python", children=dmc.Prism(children=python_download, language="python")),
+            dmc.Tab(label="Curl", children=dmc.Prism(children=curl_download, language="bash")),
+        ]
+    )
+
     card = dmc.Accordion(
         state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
         multiple=True,
@@ -44,6 +77,22 @@ def card_sso_left(ssnamenr):
                     DashIconify(
                         icon="emojione-monotone:comet",
                         color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.Paper(
+                        download_tab,
+                        radius='xl', p='md', shadow='xl', withBorder=True
+                    )
+                ],
+                label="Download data",
+                icon=[
+                    DashIconify(
+                        icon="tabler:database-export",
+                        color=dmc.theme.DEFAULT_COLORS["red"][6],
                         width=20,
                     )
                 ],

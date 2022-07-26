@@ -175,6 +175,7 @@ def card_id(object_data):
 
     python_download = """import requests
 import pandas as pd
+import io
 
 # get data for ZTF19acnjwgm
 r = requests.post(
@@ -186,16 +187,16 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)""".format(
+pdf = pd.read_json(io.BytesIO(r.content))""".format(
         APIURL,
         objectid
     )
 
     curl_download = """
 curl -H "Content-Type: application/json" -X POST \\
-        -d '{{"objectId":"{}", "output-format":"csv"}}' \\
-        {}/api/v1/objects \\
-        -o {}.csv
+    -d '{{"objectId":"{}", "output-format":"csv"}}' \\
+    {}/api/v1/objects \\
+    -o {}.csv
     """.format(objectid, APIURL, objectid)
 
     download_tab = dmc.Tabs(
