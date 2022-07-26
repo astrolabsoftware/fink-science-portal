@@ -1786,7 +1786,6 @@ def plot_mulens(n_clicks, object_data):
         u0: {} +/- {}
         chi2/dof: {}
         ```
-        ---
         """.format(
             params[names['to']],
             err[names['to']],
@@ -1799,16 +1798,7 @@ def plot_mulens(n_clicks, object_data):
 
         return graph, mulens_params
 
-    mulens_params = """
-    ```python
-    # Fitted parameters
-    t0: None
-    tE: None
-    u0: None
-    chi2: None
-    ```
-    ---
-    """
+    mulens_params = ""
     return "", mulens_params
 
 @app.callback(

@@ -94,6 +94,7 @@ def card_mulens_button(pdf):
     card2 = dmc.Paper(
         [
             dcc.Markdown(id='mulens_params'),
+            html.Br(),
             submit_mulens_button
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
