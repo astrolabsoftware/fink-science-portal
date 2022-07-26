@@ -417,7 +417,7 @@ def tabs(pdf, is_mobile):
                 dmc.Tab(tab3_content(), label="Variable stars"),
                 dmc.Tab(tab4_content(), label="Microlensing"),
                 dmc.Tab(id="tab_sso", label="Solar System"),
-                dmc.Tab(tab6_content(pdf), label="Tracklets"),
+                dmc.Tab(id="tab_tracklet", label="Tracklets"),
                 dmc.Tab(label="GRB", disabled=True)
             ], position='right', variant='outline'
         )
