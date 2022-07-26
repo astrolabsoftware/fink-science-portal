@@ -252,17 +252,25 @@ def tab5_content(pdf):
     )
 
     label_style = {"color": "#000"}
+
+    if ssnamenr != 'null':
+        left_side = dbc.Col(
+            dbc.Tabs(
+                [
+                    dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
+                    dbc.Tab(tab2, label="Astrometry", label_style=label_style),
+                    dbc.Tab(tab3, label="Phase curve", label_style=label_style)
+                ]
+            ), width=8
+        )
+    else:
+        msg = """
+        Object not referenced in the Minor Planet Center
+        """
+        left_side = html.Div([html.Br(), dbc.Alert(msg, color="danger")])
     tab5_content_ = dbc.Row(
         [
-            dbc.Col(
-                dbc.Tabs(
-                    [
-                        dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
-                        dbc.Tab(tab2, label="Astrometry", label_style=label_style),
-                        dbc.Tab(tab3, label="Phase curve", label_style=label_style)
-                    ]
-                ), width=8
-            ),
+            left_side,
             dbc.Col(
                 [
                     card_sso_left(ssnamenr)

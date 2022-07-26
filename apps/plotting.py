@@ -1884,10 +1884,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     """
     pdf = pd.read_json(object_sso)
     if pdf.empty:
-        msg = """
-        Object not referenced in the Minor Planet Center
-        """
-        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+        return html.Div()
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
