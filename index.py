@@ -204,13 +204,13 @@ fink_search_bar = dbc.InputGroup(
             debounce=True
         ),
         dmc.ActionIcon(
-            DashIconify(icon="tabler:search"),
+            DashIconify(icon="tabler:search", width=20),
             n_clicks=0,
             id="submit",
             color='gray',
             variant="transparent",
             radius='xl',
-            size='xl',
+            size='lg',
             loaderProps={'variant': 'dots'}
             # style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
         ),
