@@ -186,7 +186,7 @@ def tab4_content(pdf):
             ),
             dbc.Col(
                 [
-                    html.Div("card_mulens_button"),
+                    html.Div(id="card_mulens_button"),
                     html.Br(),
                     html.Div(id='mulens_params'),
                     html.Br(),
