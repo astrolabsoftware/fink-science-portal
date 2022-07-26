@@ -26,7 +26,7 @@ import requests
 from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 
 from apps.supernovae.cards import card_sn_scores
-from apps.varstars.cards import card_explanation_variable, card_variable_button
+from apps.varstars.cards import card_explanation_variable
 from apps.mulens.cards import card_explanation_mulens
 from apps.mulens.cards import card_mulens_button
 from apps.sso.cards import card_sso_left
