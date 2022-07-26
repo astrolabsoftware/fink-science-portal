@@ -201,7 +201,7 @@ def tab4_content():
 @app.callback(
     Output("tab_sso", "children"),
     [
-        Input('object-data', 'children'),
+        Input('object-sso', 'children'),
     ]
 )
 def tab5_content(object_data):
