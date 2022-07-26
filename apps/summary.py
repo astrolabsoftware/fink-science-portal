@@ -26,7 +26,7 @@ import requests
 from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 
 from apps.supernovae.cards import card_sn_scores
-from apps.varstars.cards import card_explanation_variable
+from apps.varstars.cards import card_explanation_variable, card_variable_button
 from apps.mulens.cards import card_explanation_mulens
 from apps.mulens.cards import card_mulens_button
 from apps.sso.cards import card_sso_left
@@ -88,53 +88,9 @@ def tab2_content():
     ])
     return tab2_content_
 
-nterms_base = dbc.Row(
-    [
-        dbc.Label("Number of base terms"),
-        dbc.Input(
-            placeholder="1",
-            value=1,
-            type="number",
-            id='nterms_base',
-            debounce=True,
-            min=0, max=4
-        ),
-        dbc.Label("Number of band terms"),
-        dbc.Input(
-            placeholder="1",
-            value=1,
-            type="number",
-            id='nterms_band',
-            debounce=True,
-            min=0, max=4
-        ),
-        dbc.Label("Set manually the period (days)"),
-        dbc.Input(
-            placeholder="Optional",
-            value=None,
-            type="number",
-            id='manual_period',
-            debounce=True
-        )
-    ], className='mb-3', style={'width': '100%', 'display': 'inline-block'}
-)
-
-submit_varstar_button = dmc.Button(
-    'Fit data',
-    id='submit_variable',
-    color='dark', variant="outline", fullWidth=True, radius='xl',
-    loaderProps={'variant': 'dots'}
-)
-
-def tab3_content():
+def tab3_content(pdf):
     """ Variable stars tab
     """
-    card2 = dmc.Paper(
-        [
-            nterms_base,
-        ], radius='xl', p='md', shadow='xl', withBorder=True
-    )
-
     tab3_content_ = html.Div([
         dbc.Row([
             dbc.Col(
@@ -148,15 +104,7 @@ def tab3_content():
                     ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
                 ), width=8
             ),
-            dbc.Col(
-                [
-                    html.Div(id="card_variable_button"),
-                    html.Br(),
-                    card2,
-                    html.Br(),
-                    submit_varstar_button
-                ], width=4
-            )
+            dbc.Col([card_variable_button(pdf)], width=4)
         ]),
     ])
     return tab3_content_
@@ -379,7 +327,7 @@ def tabs(pdf, is_mobile):
             [
                 dmc.Tab(tab1_content(), label="Summary"),
                 dmc.Tab(tab2_content(), label="Supernovae"),
-                dmc.Tab(tab3_content(), label="Variable stars"),
+                dmc.Tab(tab3_content(pdf), label="Variable stars"),
                 dmc.Tab(tab4_content(pdf), label="Microlensing"),
                 dmc.Tab(tab5_content(pdf), label="Solar System"),
                 dmc.Tab(tab6_content(pdf), label="Tracklets"),
