@@ -46,6 +46,8 @@ from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
 
+from fink_utils.xmatch.simbad import get_simbad_labels
+
 from app import APIURL
 
 dcc.Location(id='url', refresh=False)
