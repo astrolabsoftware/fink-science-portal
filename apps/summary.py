@@ -734,12 +734,13 @@ def layout(name, is_mobile):
                         ),
                         dbc.Row(
                             [
-                                dbc.Col([html.Br(), dbc.Row(id='stamps_mobile', justify='around')], width={"size": 12, "offset": 0},),
+                                dbc.Col(dmc.Center(tabs(pdf, is_mobile)), width=12)
                             ]
                         ),
+                        html.Br(),
                         dbc.Row(
                             [
-                                dbc.Col(tabs(pdf, is_mobile), width=12)
+                                dbc.Col([html.Br(), dbc.Row(id='stamps_mobile', justify='around')], width={"size": 12, "offset": 0},),
                             ]
                         ),
                         html.Br(),
