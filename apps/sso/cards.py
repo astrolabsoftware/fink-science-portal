@@ -18,7 +18,7 @@ import dash_mantine_components as dmc
 
 from apps.utils import queryMPC, convert_mpc_type
 
-from app import app
+from app import app, APIURL
 
 import visdcc
 
