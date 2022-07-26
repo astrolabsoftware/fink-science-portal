@@ -18,6 +18,8 @@ import dash_mantine_components as dmc
 
 from apps.utils import queryMPC, convert_mpc_type
 
+from app import app
+
 import visdcc
 
 def card_sso_mpc_params(ssnamenr):
