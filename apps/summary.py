@@ -208,7 +208,10 @@ def tab5_content(object_data):
     """ SSO tab
     """
     pdf = pd.read_json(object_data)
-    ssnamenr = pdf['i:ssnamenr'].values[0]
+    if pdf.empty:
+        ssnamenr = 'null'
+    else:
+        ssnamenr = pdf['i:ssnamenr'].values[0]
 
     msg = """
     **Top:** lightcurve from ZTF, with ephemerides provided by the
