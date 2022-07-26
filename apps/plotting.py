@@ -1993,7 +1993,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )
@@ -2302,7 +2302,7 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '100%'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )
@@ -2580,7 +2580,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         figure=figure,
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )

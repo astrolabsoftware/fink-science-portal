@@ -154,7 +154,7 @@ def tab5_content(pdf):
                 [
                     html.Div(id='sso_lightcurve'),
                     html.Br(),
-                    html.Div(id='sso_astrometry'),
+                    html.Div(id='sso_residual'),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
@@ -172,7 +172,7 @@ def tab5_content(pdf):
         [
             dbc.Col(
                 [
-                    html.Div(id='sso_residual'),
+                    html.Div(id='sso_astrometry'),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
