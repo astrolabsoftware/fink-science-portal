@@ -408,6 +408,9 @@ def tab_mobile_content(pdf):
     #         ], justify='around'
     #     ),
     # ])
+    simbad_types = get_simbad_labels('old_and_new')
+    simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+
     badges = []
     for c in np.unique(pdf['v:classification']):
         if c in simbad_types:
