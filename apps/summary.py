@@ -555,7 +555,7 @@ def accordion_mobile():
         [dcc.Markdown('Hit full screen if the display does not work'), visdcc.Run_js(id='aladin-lite-div2')],
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '15pc'
         }
     )
     external = dbc.CardBody(id='external_links')
