@@ -85,7 +85,7 @@ def card_mulens_button(pdf):
     submit_mulens_button = dmc.Button(
         'Fit data',
         id='submit_mulens',
-        color='dark', variant="outline", fullWidth=True
+        color='dark', variant="outline", fullWidth=True, radius='xl'
     )
 
     card2 = html.Div(id='mulens_params')

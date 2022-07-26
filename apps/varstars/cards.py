@@ -171,7 +171,8 @@ def card_variable_button(pdf):
     submit_varstar_button = dmc.Button(
         'Fit data',
         id='submit_variable',
-        color='dark', variant="outline", fullWidth=True
+        color='dark', variant="outline", fullWidth=True, radius='xl',
+        loaderProps={variant: 'dots'}
     )
 
     card2 = dmc.Paper(
