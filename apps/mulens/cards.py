@@ -21,9 +21,16 @@ from app import app
 
 import pandas as pd
 
-def card_mulens_button(pdf):
+@app.callback(
+    Output("card_variable_button", "children"),
+    [
+        Input('object-data', 'children'),
+    ]
+)
+def card_mulens_button(object_data):
     """ Add a card containing button to fit for microlensing events
     """
+    pdf = pd.read_json(object_data)
     distnr = pdf['i:distnr'].values[0]
     ssnamenr = pdf['i:ssnamenr'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
@@ -81,17 +88,7 @@ def card_mulens_button(pdf):
         ]
     )
 
-    submit_mulens_button = dmc.Button(
-        'Fit data',
-        id='submit_mulens',
-        color='dark', variant="outline", fullWidth=True, radius='xl',
-        loaderProps={'variant': 'dots'}
-    )
-
-    card2 = html.Div(id='mulens_params')
-    card3 = submit_mulens_button
-
-    return html.Div([card1, html.Br(), card2, html.Br(), card3])
+    return card1
 
 def card_explanation_mulens():
     """ Explain what is used to fit for microlensing events

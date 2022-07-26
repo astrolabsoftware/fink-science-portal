@@ -164,6 +164,13 @@ def tab3_content():
 def tab4_content(pdf):
     """ Microlensing tab
     """
+    submit_mulens_button = dmc.Button(
+        'Fit data',
+        id='submit_mulens',
+        color='dark', variant="outline", fullWidth=True, radius='xl',
+        loaderProps={'variant': 'dots'}
+    )
+
     tab4_content_ = html.Div([
         dbc.Row([
             dbc.Col(
@@ -177,7 +184,15 @@ def tab4_content(pdf):
                     ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
                 ), width=8
             ),
-            dbc.Col([card_mulens_button(pdf)], width=4)
+            dbc.Col(
+                [
+                    html.Div("card_mulens_button"),
+                    html.Br(),
+                    html.Div(id='mulens_params'),
+                    html.Br(),
+                    submit_mulens_button
+                ], width=4
+            )
         ]),
     ])
     return tab4_content_
