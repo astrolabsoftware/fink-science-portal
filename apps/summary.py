@@ -44,6 +44,7 @@ from apps.utils import format_hbase_output
 from apps.utils import get_miriade_data
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
+from apps.utils import class_colors
 
 from app import APIURL
 
@@ -388,24 +389,41 @@ def tab6_content(object_tracklet):
 def tab_mobile_content(pdf):
     """ Content for mobile application
     """
-    content_ = html.Div([
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Graph(
-                        style={
-                            'width': '100%',
-                            'height': '4pc'
-                        },
-                        config={'displayModeBar': False},
-                        id='classbar'
-                    ),
-                    width=12
-                ),
-            ], justify='around'
-        ),
-    ])
-    return content_
+    # content_ = html.Div([
+    #     dbc.Row(
+    #         [
+    #             dbc.Col(
+    #                 dcc.Graph(
+    #                     style={
+    #                         'width': '100%',
+    #                         'height': '4pc'
+    #                     },
+    #                     config={'displayModeBar': False},
+    #                     id='classbar'
+    #                 ),
+    #                 width=12
+    #             ),
+    #         ], justify='around'
+    #     ),
+    # ])
+    badges = []
+    for c in np.unique(pdf['v:classification']):
+        if c in simbad_types:
+            color = class_colors['Simbad']
+        elif c in class_colors.keys():
+            color = class_colors[c]
+        else:
+            # Sometimes SIMBAD mess up names :-)
+            color = class_colors['Simbad']
+
+        badges.append(
+            dmc.Badge(
+                c,
+                color=color,
+                variant="dot",
+            )
+        )
+    return html.Div(badges)
 
 def tabs(pdf, is_mobile):
     if is_mobile:
