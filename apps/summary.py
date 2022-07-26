@@ -813,7 +813,7 @@ def layout(name, is_mobile):
                         html.Br(),
                         dbc.Row(
                             [
-                                dbc.Col(accordion_mobile, width=12)
+                                dbc.Col(accordion_mobile(), width=12)
                             ]
                         ),
                         html.Br(),
