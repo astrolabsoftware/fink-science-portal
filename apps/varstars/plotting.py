@@ -20,7 +20,6 @@ import copy
 from astropy.time import Time
 
 from dash import html, dcc, Input, Output, State, no_update
-import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 
 from apps.utils import dc_mag
