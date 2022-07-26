@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-from dash import html, dcc, Input, Output, State, dash_table
+from dash import html, dcc, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
@@ -202,10 +202,15 @@ fink_search_bar = dbc.InputGroup(
             className='inputbar',
             debounce=True
         ),
-        dbc.Button(
-            html.I(className="fas fa-search fa-1x"),
+        dmc.ActionIcon(
+            DashIconify(icon="tabler:search"),
+            n_clicks=0,
             id="submit",
-            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
+            color='grey',
+            variant="outline",
+            radius='xl',
+            loaderProps={'variant': 'dots'}
+            # style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
         ),
         modal
     ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
@@ -874,17 +879,21 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         raise PreventUpdate
 
 @app.callback(
-    Output("results", "children"),
+    [
+        Output("results", "children"),
+        Output("submit", "children")
+    ],
     [
         Input("search_bar_input", "value"),
         Input("dropdown-query", "value"),
         Input("select", "value"),
         Input("is-mobile", "children"),
-        Input('url', 'search')
+        Input('url', 'search'),
+        Input('submit', 'n_clicks')
     ],
     State("results", "children")
 )
-def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
+def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n_clicks):
     """ Query the database from the search input
 
     Returns
@@ -912,7 +921,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
 
     validation = validate_query(query, query_type)
     if (not validation['flag']) and (not empty_query):
-        return dmc.Alert(validation['text'], title=validation['header'], color='red', withCloseButton=True)
+        return dmc.Alert(validation['text'], title=validation['header'], color='red', withCloseButton=True), no_update
 
     if query_type == 'objectId':
         r = requests.post(
@@ -995,7 +1004,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
             title='Oops!',
             color="red",
             withCloseButton=True
-        )
+        ), no_update
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
@@ -1019,7 +1028,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         validation = 1
 
     table = populate_result_table(data, columns, is_mobile)
-    return construct_results_layout(table, is_mobile)
+    return construct_results_layout(table, is_mobile), no_update
 
 def text_noresults(query, query_type, dropdown_option, searchurl):
     """ Toast to warn the user about the fact that we found no results
@@ -1209,11 +1218,9 @@ def display_page(pathname, is_mobile):
                         clearable=True,
                     ),
                     html.Br(),
-                    # noresults_toast
                 ], id='trash', fluid=True, style={'width': width}
             ),
-            dmc.LoadingOverlay(dbc.Container(id='results'), loaderProps={"variant": "dots", "color": "orange", "size": "xl"}, zIndex=1000),
-            # dbc.Input(id='validate_results', style={'display': 'none'}),
+            dbc.Container(id='results'),
         ],
         className='home',
         style=style
