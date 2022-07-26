@@ -94,11 +94,14 @@ def card_mulens_button(pdf):
     card2 = dmc.Paper(
         [
             dcc.Markdown(id='mulens_params'),
-            html.Br(),
+        ], radius='xl', p='md', shadow='xl', withBorder=True
+    )
+    card3 = dmc.Paper(
+        [
             submit_mulens_button
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
-    return html.Div([card1, html.Br(), card2])
+    return html.Div([card1, html.Br(), card2, html.Br(), card3])
 
 def card_explanation_mulens():
     """ Explain what is used to fit for microlensing events
