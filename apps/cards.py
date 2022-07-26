@@ -31,7 +31,7 @@ import pandas as pd
 import numpy as np
 import urllib
 
-def card_lightcurve_summary(is_mobile):
+def card_lightcurve_summary():
     """ Add a card containing the lightcurve
 
     Returns
@@ -39,55 +39,52 @@ def card_lightcurve_summary(is_mobile):
     card: dbc.Card
         Card with the cutouts drawn inside
     """
-    if not is_mobile:
-        card = dmc.Paper(
-            [
-                dcc.Graph(
-                    id='lightcurve_cutouts',
-                    style={
-                        'width': '100%',
-                        'height': '25pc'
-                    },
-                    config={'displayModeBar': False}
-                ),
-                dbc.Row(
-                    dbc.Col(
-                        dmc.Chips(
-                            data=[
-                                {'label': k, 'value': k} for k in all_radio_options.keys()
-                            ],
-                            id="switch-mag-flux",
-                            value="Difference magnitude",
-                            color="orange",
-                            radius="xl",
-                            size="sm",
-                            spacing="xl",
-                            variant="outline",
-                            position='center',
-                            multiple=False,
-                        )
+    card = dmc.Paper(
+        [
+            dcc.Graph(
+                id='lightcurve_cutouts',
+                style={
+                    'width': '100%',
+                    'height': '25pc'
+                },
+                config={'displayModeBar': False}
+            ),
+            dbc.Row(
+                dbc.Col(
+                    dmc.Chips(
+                        data=[
+                            {'label': k, 'value': k} for k in all_radio_options.keys()
+                        ],
+                        id="switch-mag-flux",
+                        value="Difference magnitude",
+                        color="orange",
+                        radius="xl",
+                        size="sm",
+                        spacing="xl",
+                        variant="outline",
+                        position='center',
+                        multiple=False,
                     )
-                ),
-                dmc.Accordion(
-                    children=[
-                        dmc.AccordionItem(
-                            dcc.Markdown(
-                                """
-                                Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
-                                In addition, the _Difference magnitude_ view shows:
-                                - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                                - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-                                """
-                            ),
-                            label="Information",
-                        ),
-                    ],
-                    state={'0': True}
                 )
-            ], radius='xl', p='md', shadow='xl', withBorder=True
-        )
-    else:
-        card = dbc.Row(id='stamps_mobile', justify='around')
+            ),
+            dmc.Accordion(
+                children=[
+                    dmc.AccordionItem(
+                        dcc.Markdown(
+                            """
+                            Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+                            In addition, the _Difference magnitude_ view shows:
+                            - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                            - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                            """
+                        ),
+                        label="Information",
+                    ),
+                ],
+                state={'0': True}
+            )
+        ], radius='xl', p='md', shadow='xl', withBorder=True
+    )
     return card
 
 def card_explanation_xmatch():

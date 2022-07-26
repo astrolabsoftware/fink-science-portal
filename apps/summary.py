@@ -68,7 +68,7 @@ def tab1_content():
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_lightcurve_summary(is_mobile=False), width=8),
+            dbc.Col(card_lightcurve_summary(), width=8),
             dbc.Col(id="card_id_col", width=4)
         ]),
     ])
@@ -509,6 +509,105 @@ def create_external_links(object_data):
     ]
     return buttons
 
+def accordion_mobile():
+    """
+    """
+    lightcurve = html.Div(
+        [
+            dcc.Graph(
+                id='lightcurve_cutouts',
+                style={
+                    'width': '100%',
+                    'height': '15pc'
+                },
+                config={'displayModeBar': False}
+            ),
+            html.Div(
+                dbc.RadioItems(
+                    options=[{'label': k, 'value': k} for k in all_radio_options.keys()],
+                    value="Difference magnitude",
+                    id="switch-mag-flux",
+                    inline=True
+                ), style={'display': 'none'}
+            )
+        ]
+    )
+
+    message = """
+    Here are the fields contained in the last alert. Note you can filter the
+    table results using the first row (enter text and hit enter).
+    - Fields starting with `i:` are original fields from ZTF.
+    - Fields starting with `d:` are live added values by Fink.
+    - Fields starting with `v:` are added values by Fink (post-processing).
+
+    See {}/api/v1/columns for more information.
+    """.format(APIURL)
+
+    information = html.Div(
+        [
+            dcc.Markdown(message),
+            html.Div([], id='alert_table')
+        ]
+    )
+
+    aladin = html.Div(
+        [dcc.Markdown('Hit full screen if the display does not work'), visdcc.Run_js(id='aladin-lite-div2')],
+        style={
+            'width': '100%',
+            'height': '25pc'
+        }
+    )
+    external = dbc.CardBody(id='external_links')
+
+    dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                lightcurve,
+                label="Lightcurve",
+                icon=[
+                    DashIconify(
+                        icon="tabler:graph",
+                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                information,
+                label="Last alert properties",
+                icon=[
+                    DashIconify(
+                        icon="tabler:file-description",
+                        color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                aladin,
+                label="Aladin Lite",
+                icon=[
+                    DashIconify(
+                        icon="tabler:map-2",
+                        color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                external,
+                label="External links",
+                icon=[
+                    DashIconify(
+                        icon="tabler:atom-2",
+                        color=dmc.theme.DEFAULT_COLORS["green"][6],
+                        width=20,
+                    )
+                ],
+            ),
+        ],
+        state={'{}'.format(i): False for i in range(4)}
+    )
 
 def make_item(i):
     # we use this function to make the example items to avoid code duplication
@@ -701,13 +800,18 @@ def layout(name, is_mobile):
                         ),
                         dbc.Row(
                             [
+                                dbc.Col([html.Br(), dbc.Row(id='stamps_mobile', justify='around')], width={"size": 12, "offset": 0},),
+                            ]
+                        ),
+                        dbc.Row(
+                            [
                                 dbc.Col(tabs(pdf, is_mobile), width=12)
                             ]
                         ),
                         html.Br(),
                         dbc.Row(
                             [
-                                dbc.Col(accordion, width=12)
+                                dbc.Col(accordion_mobile, width=12)
                             ]
                         ),
                         html.Br(),
