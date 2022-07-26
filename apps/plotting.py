@@ -23,7 +23,7 @@ import copy
 from astropy.time import Time
 import requests
 
-from dash import html, dcc, dash_table, Input, Output, State
+from dash import html, dcc, dash_table, Input, Output, State, no_update
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
