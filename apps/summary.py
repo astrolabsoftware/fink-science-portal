@@ -428,8 +428,7 @@ def title_mobile(name):
         html.Hr(),
         dbc.Row(
             [
-                html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'),
-                html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+                dmc.Center(dmc.Title(children='{}'.format(name[1:]), style={'color': '#15284F'}))
             ]
         ),
     ]
