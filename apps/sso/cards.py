@@ -26,6 +26,8 @@ import visdcc
 def card_sso_left(ssnamenr):
     """
     """
+    ssnamenr_ = str(ssnamenr)
+
     python_download = """import requests
 import pandas as pd
 import io
