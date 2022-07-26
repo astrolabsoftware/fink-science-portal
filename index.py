@@ -211,7 +211,7 @@ fink_search_bar = dbc.InputGroup(
             variant="transparent",
             radius='xl',
             size='lg',
-            loaderProps={'variant': 'dots'}
+            loaderProps={'variant': 'dots', 'color': 'orange'}
             # style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
         ),
         modal
