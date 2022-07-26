@@ -97,6 +97,46 @@ curl -H "Content-Type: application/json" -X POST \\
                     )
                 ],
             ),
+            dmc.AccordionItem(
+                [
+                    dmc.Paper(
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    dbc.Button(
+                                        className='btn btn-default zoom btn-circle btn-lg',
+                                        style={'background-image': 'url(/assets/buttons/mpc.jpg)', 'background-size': 'cover'},
+                                        color='dark',
+                                        outline=True,
+                                        id='MPC',
+                                        target="_blank",
+                                        href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_)
+                                    ), width=4),
+                                dbc.Col(
+                                    dbc.Button(
+                                        className='btn btn-default zoom btn-circle btn-lg',
+                                        style={'background-image': 'url(/assets/buttons/nasa.png)', 'background-size': 'cover'},
+                                        color='dark',
+                                        outline=True,
+                                        id='JPL',
+                                        target="_blank",
+                                        href='https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={}'.format(ssnamenr_),
+                                    ), width=4
+                                ),
+                            ], justify='around'
+                        ),
+                        radius='xl', p='md', shadow='xl', withBorder=True
+                    )
+                ],
+                label="External links",
+                icon=[
+                    DashIconify(
+                        icon="tabler:external-link",
+                        color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                        width=20,
+                    )
+                ],
+            ),
         ]
     )
 
@@ -171,10 +211,8 @@ def card_sso_mpc_params(ssnamenr):
         phase_slope = data['phase_slope']
         neo = int(data['neo'])
 
-    card = dbc.Card(
+    card = html.Div(
         [
-            *download_sso_modal(ssnamenr),
-            dcc.Markdown("""---"""),
             *header,
             dcc.Markdown(
                 template.format(
@@ -194,110 +232,6 @@ def card_sso_mpc_params(ssnamenr):
                     neo
                 )
             ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.Button(
-                            className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/buttons/mpc.jpg)', 'background-size': 'cover'},
-                            color='dark',
-                            outline=True,
-                            id='MPC',
-                            target="_blank",
-                            href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_)
-                        ), width=4),
-                    dbc.Col(
-                        dbc.Button(
-                            className='btn btn-default zoom btn-circle btn-lg',
-                            style={'background-image': 'url(/assets/buttons/nasa.png)', 'background-size': 'cover'},
-                            color='dark',
-                            outline=True,
-                            id='JPL',
-                            target="_blank",
-                            href='https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={}'.format(ssnamenr_),
-                        ), width=4
-                    ),
-                ], justify='around'
-            ),
         ],
-        className="mt-3", body=True
     )
     return card
-
-def download_sso_modal(ssnamenr):
-    message_download_sso = """
-    In a terminal, simply paste (CSV):
-
-    ```bash
-    curl -H "Content-Type: application/json" -X POST \\
-        -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
-        {}/api/v1/sso -o {}.csv
-    ```
-
-    Or in a python terminal, simply paste:
-
-    ```python
-    import requests
-    import pandas as pd
-
-    r = requests.post(
-      '{}/api/v1/sso',
-      json={{
-        'n_or_d': '{}',
-        'output-format': 'json'
-      }}
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
-    ```
-
-    See {}/api for more options.
-    """.format(
-        ssnamenr,
-        APIURL,
-        str(ssnamenr).replace('/', '_'),
-        APIURL,
-        ssnamenr,
-        APIURL
-    )
-    modal = [
-        dbc.Button(
-            "Download {} data".format(ssnamenr),
-            id="open-sso",
-            color='dark', outline=True
-        ),
-        dbc.Modal(
-            [
-                dbc.ModalBody(
-                    dcc.Markdown(message_download_sso),
-                    style={
-                        'background-image': 'linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.4)), url(/assets/background.png)'
-                    }
-                ),
-                dbc.ModalFooter(
-                    dbc.Button(
-                        "Close",
-                        id="close-sso",
-                        className="ml-auto",
-                        color='dark',
-                        outline=True
-                    )
-                ),
-            ],
-            id="modal-sso", scrollable=True
-        ),
-    ]
-    return modal
-
-@app.callback(
-    Output("modal-sso", "is_open"),
-    [Input("open-sso", "n_clicks"), Input("close-sso", "n_clicks")],
-    [State("modal-sso", "is_open")],
-)
-def toggle_modal_sso(n1, n2, is_open):
-    """ Callback for the modal (open/close)
-    """
-    if n1 or n2:
-        return not is_open
-    return is_open
