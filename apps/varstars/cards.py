@@ -51,44 +51,6 @@ def card_explanation_variable():
     )
     return card
 
-nterms_base = dbc.Row(
-    [
-        dbc.Label("Number of base terms"),
-        dbc.Input(
-            placeholder="1",
-            value=1,
-            type="number",
-            id='nterms_base',
-            debounce=True,
-            min=0, max=4
-        ),
-        dbc.Label("Number of band terms"),
-        dbc.Input(
-            placeholder="1",
-            value=1,
-            type="number",
-            id='nterms_band',
-            debounce=True,
-            min=0, max=4
-        ),
-        dbc.Label("Set manually the period (days)"),
-        dbc.Input(
-            placeholder="Optional",
-            value=None,
-            type="number",
-            id='manual_period',
-            debounce=True
-        )
-    ], className='mb-3', style={'width': '100%', 'display': 'inline-block'}
-)
-
-submit_varstar_button = dmc.Button(
-    'Fit data',
-    id='submit_variable',
-    color='dark', variant="outline", fullWidth=True, radius='xl',
-    loaderProps={'variant': 'dots'}
-)
-
 @app.callback(
     Output("card_variable_button", "children"),
     [
@@ -180,6 +142,44 @@ def card_variable_button(object_data):
                 ],
             )
         ]
+    )
+
+    nterms_base = dbc.Row(
+        [
+            dbc.Label("Number of base terms"),
+            dbc.Input(
+                placeholder="1",
+                value=1,
+                type="number",
+                id='nterms_base',
+                debounce=True,
+                min=0, max=4
+            ),
+            dbc.Label("Number of band terms"),
+            dbc.Input(
+                placeholder="1",
+                value=1,
+                type="number",
+                id='nterms_band',
+                debounce=True,
+                min=0, max=4
+            ),
+            dbc.Label("Set manually the period (days)"),
+            dbc.Input(
+                placeholder="Optional",
+                value=None,
+                type="number",
+                id='manual_period',
+                debounce=True
+            )
+        ], className='mb-3', style={'width': '100%', 'display': 'inline-block'}
+    )
+
+    submit_varstar_button = dmc.Button(
+        'Fit data',
+        id='submit_variable',
+        color='dark', variant="outline", fullWidth=True, radius='xl',
+        loaderProps={'variant': 'dots'}
     )
 
     card2 = dmc.Paper(
