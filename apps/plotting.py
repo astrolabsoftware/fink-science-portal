@@ -1615,6 +1615,7 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
     [
         Output('mulens_plot', 'children'),
         Output('mulens_params', 'children'),
+        Output('submit_mulens', 'children'),
     ],
     [
         Input('submit_mulens', 'n_clicks'),
@@ -1807,10 +1808,10 @@ def plot_mulens(n_clicks, object_data):
             ], radius='xl', p='md', shadow='xl', withBorder=True
         )
 
-        return graph, mulens_params
+        return graph, mulens_params, no_update
 
     mulens_params = ""
-    return "", mulens_params
+    return "", mulens_params, no_update
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('object-data', 'children'))

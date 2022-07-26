@@ -82,13 +82,10 @@ def card_mulens_button(pdf):
         ]
     )
 
-    submit_mulens_button = html.Div(
-        dbc.Button(
-            'Fit data',
-            id='submit_mulens',
-            style={'width': '100%', 'display': 'inline-block'},
-            color='dark', outline=True
-        ), className='d-grid gap-2', style={'width': '100%', 'display': 'inline-block'}
+    submit_mulens_button = dmc.Button(
+        'Fit data',
+        id='submit_mulens',
+        color='dark', variant="outline", fullWidth=True
     )
 
     card2 = html.Div(id='mulens_params')
