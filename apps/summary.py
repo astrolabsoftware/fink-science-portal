@@ -251,15 +251,13 @@ def tab5_content(pdf):
         ]
     )
 
-    label_style = {"color": "#000"}
-
     if ssnamenr != 'null':
         left_side = dbc.Col(
-            dbc.Tabs(
+            dmc.Tabs(
                 [
-                    dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
-                    dbc.Tab(tab2, label="Astrometry", label_style=label_style),
-                    dbc.Tab(tab3, label="Phase curve", label_style=label_style)
+                    dmc.Tab(tab1, label="Lightcurve"),
+                    dmc.Tab(tab2, label="Astrometry"),
+                    dmc.Tab(tab3, label="Phase curve")
                 ]
             ), width=8
         )
