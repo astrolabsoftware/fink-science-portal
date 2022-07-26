@@ -363,7 +363,7 @@ curl -H "Content-Type: application/json" -X POST \\
                 icon=[
                     DashIconify(
                         icon="tabler:share",
-                        color=dmc.theme.DEFAULT_COLORS["lime"][6],
+                        color=dmc.theme.DEFAULT_COLORS["gray"][6],
                         width=20,
                     )
                 ],
