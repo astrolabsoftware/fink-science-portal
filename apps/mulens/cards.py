@@ -59,7 +59,6 @@ def card_mulens_button(pdf):
                                 Distance (PS1): {:.2f} arcsec
                                 Distance (ZTF): {:.2f} arcsec
                                 ```
-                                ---
                                 """.format(
                                     constellation,
                                     cdsxmatch, ssnamenr, gaianame,

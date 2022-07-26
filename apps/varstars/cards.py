@@ -89,7 +89,6 @@ def card_variable_button(pdf):
                                 Distance (PS1): {:.2f} arcsec
                                 Distance (ZTF): {:.2f} arcsec
                                 ```
-                                ---
                                 """.format(
                                     constellation,
                                     cdsxmatch, ssnamenr, gaianame,

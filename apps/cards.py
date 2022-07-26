@@ -252,7 +252,6 @@ curl -H "Content-Type: application/json" -X POST \\
                                 Distance (PS1): {:.2f} arcsec
                                 Distance (ZTF): {:.2f} arcsec
                                 ```
-                                ---
                                 """.format(
                                     constellation,
                                     cdsxmatch, ssnamenr, gaianame,
