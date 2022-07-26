@@ -1841,13 +1841,7 @@ def integrate_aladin_lite(object_data):
 
     return " ".join(img_to_show)
 
-@app.callback(
-    Output('sso_lightcurve', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
+def draw_sso_lightcurve(pdf) -> dict:
     """ Draw SSO object lightcurve with errorbars, and ephemerides on top
     from the miriade IMCCE service.
 
@@ -1860,7 +1854,6 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_sso)
     if pdf.empty:
         return html.Div()
 
@@ -1977,13 +1970,7 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
-@app.callback(
-    Output('sso_residual', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_residual(pathname: str, object_sso) -> dict:
+def draw_sso_residual(pdf) -> dict:
     """ Draw SSO residuals (observation - ephemerides)
 
     Parameters
@@ -1995,7 +1982,6 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_sso)
     if pdf.empty:
         return html.Div()
 
@@ -2120,13 +2106,7 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
-@app.callback(
-    Output('sso_astrometry', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_astrometry(pathname: str, object_sso) -> dict:
+def draw_sso_astrometry(pdf) -> dict:
     """ Draw SSO object astrometry, that is difference position wrt ephemerides
     from the miriade IMCCE service.
 
@@ -2139,7 +2119,6 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
         Object not referenced in the Minor Planet Center

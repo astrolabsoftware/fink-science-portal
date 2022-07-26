@@ -222,9 +222,9 @@ def tab5_content(object_data):
         [
             dbc.Col(
                 [
-                    html.Div(id='sso_lightcurve'),
+                    draw_sso_lightcurve(pdf),
                     html.Br(),
-                    html.Div(id='sso_residual'),
+                    draw_sso_residual(pdf),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
@@ -242,7 +242,7 @@ def tab5_content(object_data):
         [
             dbc.Col(
                 [
-                    html.Div(id='sso_astrometry'),
+                    draw_sso_astrometry(pdf),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
@@ -341,6 +341,7 @@ def tab5_content(object_data):
         Object not referenced in the Minor Planet Center
         """
         left_side = dbc.Col([html.Br(), dbc.Alert(msg, color="danger")], width=8)
+
     tab5_content_ = dbc.Row(
         [
             left_side,
