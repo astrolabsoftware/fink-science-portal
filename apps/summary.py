@@ -333,7 +333,7 @@ def tabs(pdf, is_mobile):
                 dmc.Tab(tab5_content(pdf), label="Solar System"),
                 dmc.Tab(tab6_content(pdf), label="Tracklets"),
                 dmc.Tab(label="GRB", disabled=True)
-            ], position='right'
+            ], position='right', variant='outline'
         )
     return tabs_
 
