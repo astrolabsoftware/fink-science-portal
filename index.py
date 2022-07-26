@@ -21,6 +21,7 @@ import visdcc
 import dash_trich_components as dtc
 
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 from app import server
 from app import app
