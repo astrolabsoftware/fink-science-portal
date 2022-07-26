@@ -307,7 +307,7 @@ layout_sso_astrometry = dict(
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
-        'title': '&#916;RA (\'\')',
+        'title': '&#916;RA cos(Dec) (\'\')',
         'automargin': True
     },
     yaxis={
@@ -2131,73 +2131,6 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
             rfit
         ],
         "layout": layout_sso_residual
-    }
-    graph = dcc.Graph(
-        figure=figure,
-        style={
-            'width': '100%',
-            'height': '15pc'
-        },
-        config={'displayModeBar': False}
-    )
-    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
-    return card
-
-@app.callback(
-    Output('sso_radec', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_radec(pathname: str, object_sso) -> dict:
-    """ Draw SSO object radec
-
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
-
-    Returns
-    ----------
-    figure: dict
-    """
-    pdf = pd.read_json(object_sso)
-    if pdf.empty:
-        msg = ""
-        return msg
-
-    # shortcuts
-    ra = pdf['i:ra'].apply(lambda x: float(x))
-    dec = pdf['i:dec'].apply(lambda x: float(x))
-
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>mjd</b>: %{customdata[1]}
-    <extra></extra>
-    """
-    figure = {
-        'data': [
-            {
-                'x': ra,
-                'y': dec,
-                'mode': 'markers',
-                'name': 'Observations',
-                'customdata': list(
-                    zip(
-                        pdf['i:objectId'],
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
-                    )
-                ),
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': '#d62728',
-                    'symbol': 'circle-open-dot'}
-            }
-        ],
-        "layout": layout_sso_radec
     }
     graph = dcc.Graph(
         figure=figure,
