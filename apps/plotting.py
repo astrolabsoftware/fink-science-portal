@@ -1796,6 +1796,12 @@ def plot_mulens(n_clicks, object_data):
             params[-1] / dof
         )
 
+        mulens_params = dmc.Paper(
+            [
+                dcc.Markdown(mulens_params),
+            ], radius='xl', p='md', shadow='xl', withBorder=True
+        )
+
         return graph, mulens_params
 
     mulens_params = ""
