@@ -148,7 +148,7 @@ def tab3_content():
                     ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
                 ), width=8
             ),
-            dbc.Col(\
+            dbc.Col(
                 [
                     html.Div(id="card_variable_button"),
                     html.Br(),
