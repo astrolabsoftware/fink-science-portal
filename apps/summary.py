@@ -423,35 +423,17 @@ def tabs(pdf, is_mobile):
         )
     return tabs_
 
-def title(name, is_mobile):
-    if is_mobile:
-        header = [
-            html.Hr(),
-            dbc.Row(
-                [
-                    html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'),
-                    html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
-                ]
-            ),
-        ]
-        title_ = html.Div(header)
-    else:
-        qrdata = "https://fink-portal.org/{}".format(name[1:])
-        qrimg = generate_qr(qrdata)
-        header = [
-            dbc.Col(html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='90%', style={'min-width': '50px'}), width=2),
-            dbc.Col(html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'}), width=10)
-        ]
-        title_ = dbc.Card(
-            dbc.CardHeader(
-                [
-                    dbc.Row(
-                        header, style={'white-space': 'nowrap'}
-                    )
-                ]
-            ),
-        )
-    return title_
+def title_mobile(name):
+    header = [
+        html.Hr(),
+        dbc.Row(
+            [
+                html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'),
+                html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
+            ]
+        ),
+    ]
+    return html.Div(header)
 
 @app.callback(
     Output('external_links', 'children'),
@@ -715,7 +697,7 @@ def layout(name, is_mobile):
                     [
                         dbc.Row(
                             [
-                                dbc.Col(title(name, is_mobile), width={"size": 12, "offset": 0},),
+                                dbc.Col(title_mobile(name), width={"size": 12, "offset": 0},),
                             ]
                         ),
                         dbc.Row(
