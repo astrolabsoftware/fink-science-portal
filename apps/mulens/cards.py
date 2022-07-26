@@ -91,11 +91,7 @@ def card_mulens_button(pdf):
         ), className='d-grid gap-2', style={'width': '100%', 'display': 'inline-block'}
     )
 
-    card2 = dmc.Paper(
-        [
-            html.Div(id='mulens_params'),
-        ], radius='xl', p='md', shadow='xl', withBorder=True
-    )
+    card2 = html.Div(id='mulens_params')
     card3 = dmc.Paper(
         [
             submit_mulens_button
