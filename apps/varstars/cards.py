@@ -180,9 +180,6 @@ def card_variable_button(pdf):
             nterms_base,
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
-    card3 = dmc.Paper(
-        [
-            dbc.Row(submit_varstar_button),
-        ], radius='xl', p='md', shadow='xl', withBorder=True
-    )
+    card3 = submit_varstar_button
+
     return html.Div([card1, html.Br(), card2, html.Br(), card3])

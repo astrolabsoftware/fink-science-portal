@@ -92,11 +92,8 @@ def card_mulens_button(pdf):
     )
 
     card2 = html.Div(id='mulens_params')
-    card3 = dmc.Paper(
-        [
-            submit_mulens_button
-        ], radius='xl', p='md', shadow='xl', withBorder=True
-    )
+    card3 = submit_mulens_button
+
     return html.Div([card1, html.Br(), card2, html.Br(), card3])
 
 def card_explanation_mulens():
