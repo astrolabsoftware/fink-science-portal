@@ -161,7 +161,7 @@ def tab3_content():
     ])
     return tab3_content_
 
-def tab4_content(pdf):
+def tab4_content():
     """ Microlensing tab
     """
     submit_mulens_button = dmc.Button(
@@ -197,9 +197,16 @@ def tab4_content(pdf):
     ])
     return tab4_content_
 
-def tab5_content(pdf):
+@app.callback(
+    Output("tab_sso", "children"),
+    [
+        Input('object-data', 'children'),
+    ]
+)
+def tab5_content(object_data):
     """ SSO tab
     """
+    pdf = pd.read_json(object_data)
     ssnamenr = pdf['i:ssnamenr'].values[0]
 
     msg = """
@@ -395,8 +402,8 @@ def tabs(pdf, is_mobile):
                 dmc.Tab(tab1_content(), label="Summary"),
                 dmc.Tab(tab2_content(), label="Supernovae"),
                 dmc.Tab(tab3_content(), label="Variable stars"),
-                dmc.Tab(tab4_content(pdf), label="Microlensing"),
-                dmc.Tab(tab5_content(pdf), label="Solar System"),
+                dmc.Tab(tab4_content(), label="Microlensing"),
+                dmc.Tab(id="tab_sso", label="Solar System"),
                 dmc.Tab(tab6_content(pdf), label="Tracklets"),
                 dmc.Tab(label="GRB", disabled=True)
             ], position='right', variant='outline'
