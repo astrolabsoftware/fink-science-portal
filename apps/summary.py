@@ -29,14 +29,10 @@ from apps.supernovae.cards import card_sn_scores
 from apps.varstars.cards import card_explanation_variable, card_variable_button
 from apps.mulens.cards import card_explanation_mulens
 from apps.mulens.cards import card_mulens_button
-
+from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
 from apps.cards import card_id, card_id1
-from apps.cards import download_object_modal, inspect_object_modal
-from apps.sso.cards import card_sso_left
-
-from apps.cards import card_tracklet_lightcurve, card_tracklet_radec
 
 from apps.plotting import plot_classbar
 from apps.plotting import all_radio_options
