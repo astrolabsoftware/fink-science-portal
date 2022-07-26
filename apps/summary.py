@@ -18,6 +18,7 @@ import dash_bootstrap_components as dbc
 import visdcc
 import plotly.graph_objects as go
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 import pandas as pd
 import numpy as np
