@@ -196,7 +196,16 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.Paper(
-                        dbc.Row(id='stamps', justify='around', className="g-0"),
+                        [
+                            dbc.Row(id='stamps', justify='around', className="g-0"),
+                            dbc.Row(
+                                dmc.ActionIcon(
+                                    DashIconify(icon="tabler:arrows-maximize"),
+                                    id="maximise_stamps",
+                                    n_clicks=0
+                                )
+                            )
+                        ],
                         radius='xl', p='md', shadow='xl', withBorder=True
                     )
                 ],
