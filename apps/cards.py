@@ -224,7 +224,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         id="date_modal_select",
                                         value=pdf['v:lastdate'].values[0],
                                         data=[
-                                            {"value": str(i), "label": j} for i, j in zip(pdf['i:jd'].values, pdf['v:lastdate'].values)
+                                            {"value": i, "label": i} for i in pdf['v:lastdate'].values
                                         ],
                                         style={"width": 200, "marginBottom": 10},
                                     ),
