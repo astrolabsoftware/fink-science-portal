@@ -216,15 +216,19 @@ curl -H "Content-Type: application/json" -X POST \\
                                         position='center',
                                         spacing='xl'
                                     ),
-                                    dmc.Slider(
-                                        id="slider-modal",
-                                        value=26,
-                                        marks=[
-                                            {"value": 20, "label": "20%"},
-                                            {"value": 50, "label": "50%"},
-                                            {"value": 80, "label": "80%"},
+                                    dmc.Select(
+                                        label="Select a date",
+                                        placeholder="Select one",
+                                        searchable=True,
+                                        nothingFound="No options found",
+                                        id="framework-select",
+                                        value=pdf['v:lastdate'].values[0],
+                                        data=[
+                                            {"value": i, "label": i} for i in pdf['v:lastdate'].values
                                         ],
+                                        style={"width": 200, "marginBottom": 10},
                                     ),
+                                    dmc.Space(h=35)
                                 ],
                             ),
                         ],
