@@ -1401,7 +1401,8 @@ def extract_cutout(object_data, time0, kind):
     [
         Input('lightcurve_cutouts', 'clickData'),
         Input('object-data', 'children'),
-    ])
+    ]
+)
 def draw_cutouts(clickData, object_data):
     """ Draw cutouts data based on lightcurve data
     """
@@ -1409,15 +1410,18 @@ def draw_cutouts(clickData, object_data):
         jd0 = clickData['points'][0]['x']
     else:
         jd0 = None
-    figs = []
+
+    figs, figs_modal = [], []
     for kind in ['science', 'template', 'difference']:
         try:
             data = extract_cutout(object_data, jd0, kind=kind)
             figs.append(draw_cutout(data, kind))
+            figs_modal.append(draw_cutout(data, kind, modal=True))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
-    return figs, figs
+            figs_modal.append(data)
+    return figs, figs_modal
 
 @app.callback(
     Output("stamps_mobile", "children"),
@@ -1534,7 +1538,7 @@ def legacy_normalizer(data: list, stretch='asinh', pmin=0.5, pmax=99.5) -> list:
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, modal=False):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -1577,19 +1581,26 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
         plot_bgcolor='rgba(0,0,0,0)'
     )
 
-    if not is_mobile:
-        fig.update_layout(width=75, height=75)
+    if not modal:
         style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
-    else:
-        style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
+        if not is_mobile:
+            fig.update_layout(width=75, height=75)
 
-    graph = dcc.Graph(
-        id='{}-stamps'.format(title),
-        figure=fig,
-        style=style,
-        config={'displayModeBar': False},
-        className='roundimg'
-    )
+        graph = dcc.Graph(
+            id='{}-stamps'.format(title),
+            figure=fig,
+            style=style,
+            config={'displayModeBar': False},
+            className='roundimg'
+        )
+    else:
+        graph = dcc.Graph(
+            id='{}-stamps'.format(title),
+            figure=fig,
+            style=style,
+            config={'displayModeBar': False}
+        )
+
     return graph
 
 @app.callback(
