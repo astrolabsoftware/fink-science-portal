@@ -1394,35 +1394,49 @@ def extract_cutout(object_data, time0, kind):
     return cutout
 
 @app.callback(
-    [
-        Output("stamps", "children"),
-        Output("stamps_modal_content", "children"),
-    ],
+    Output("stamps", "children"),
     [
         Input('lightcurve_cutouts', 'clickData'),
         Input('object-data', 'children'),
-        Input('date_modal_select', 'value'),
     ]
 )
-def draw_cutouts(clickData, object_data, date_modal_select):
+def draw_cutouts(clickData, object_data):
     """ Draw cutouts data based on lightcurve data
     """
     if clickData is not None:
         jd0 = clickData['points'][0]['x']
     else:
-        jd0 = date_modal_select
+        jd0 = None
 
-    figs, figs_modal = [], []
+    figs = []
     for kind in ['science', 'template', 'difference']:
         try:
             data = extract_cutout(object_data, jd0, kind=kind)
             figs.append(draw_cutout(data, kind))
-            figs_modal.append(draw_cutout(data, kind, modal=True))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
-            figs_modal.append(data)
-    return figs, figs_modal
+    return figs,
+
+@app.callback(
+    Output("stamps_modal_content", "children"),
+    [
+        Input('object-data', 'children'),
+        Input('date_modal_select', 'value'),
+    ]
+)
+def draw_cutouts_modal(object_data, date_modal_select):
+    """ Draw cutouts data based on lightcurve data
+    """
+    figs = []
+    for kind in ['science', 'template', 'difference']:
+        try:
+            data = extract_cutout(object_data, date_modal_select, kind=kind)
+            figs.append(draw_cutout(data, kind, modal=True))
+        except OSError:
+            data = dcc.Markdown("Load fail, refresh the page")
+            figs.append(data)
+    return figs
 
 @app.callback(
     Output("stamps_mobile", "children"),
