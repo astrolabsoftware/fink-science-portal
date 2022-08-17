@@ -1394,7 +1394,10 @@ def extract_cutout(object_data, time0, kind):
     return cutout
 
 @app.callback(
-    Output("stamps", "children"),
+    [
+        Output("stamps", "children"),
+        Output("stamps_modal", "children"),
+    ],
     [
         Input('lightcurve_cutouts', 'clickData'),
         Input('object-data', 'children'),
@@ -1414,7 +1417,7 @@ def draw_cutouts(clickData, object_data):
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
-    return figs
+    return figs, figs
 
 @app.callback(
     Output("stamps_mobile", "children"),
