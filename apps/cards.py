@@ -209,7 +209,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 id="stamps_modal",
                                 size="55%",
                                 centered=True,
-                                children=[]
+                                children=[dmc.Paper(id="stamps_modal_content", radius='xl', p='md', shadow='xl', withBorder=True)]
                             )
                         ],
                         radius='xl', p='md', shadow='xl', withBorder=True

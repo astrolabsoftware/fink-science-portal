@@ -1396,7 +1396,7 @@ def extract_cutout(object_data, time0, kind):
 @app.callback(
     [
         Output("stamps", "children"),
-        Output("stamps_modal", "children"),
+        Output("stamps_modal_content", "children"),
     ],
     [
         Input('lightcurve_cutouts', 'clickData'),
@@ -1594,7 +1594,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
             className='roundimg'
         )
     else:
-        style = {'display': 'inline-block', 'height': '50%', 'width': '50%'}
+        style = {'display': 'inline-block', 'height': '25%', 'width': '25%'}
         graph = dcc.Graph(
             id='{}-stamps'.format(title),
             figure=fig,
