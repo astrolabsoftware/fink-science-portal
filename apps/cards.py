@@ -204,6 +204,10 @@ curl -H "Content-Type: application/json" -X POST \\
                                     id="maximise_stamps",
                                     n_clicks=0
                                 )
+                            ),
+                            dmc.Modal(
+                                id="stamps_modal",
+                                children=[]
                             )
                         ],
                         radius='xl', p='md', shadow='xl', withBorder=True
@@ -356,6 +360,17 @@ curl -H "Content-Type: application/json" -X POST \\
     )
 
     return card
+
+@callback(
+    Output("stamps_modal", "opened"),
+    Input("maximise_stamps", "n_clicks"),
+    Input("maximise_stamps", "n_clicks"),
+    Input("maximise_stamps", "n_clicks"),
+    State("stamps_modal", "opened"),
+    prevent_initial_call=True,
+)
+def modal_stamps(nc1, nc2, nc3, opened):
+    return not opened
 
 @app.callback(
     Output('card_id_left', 'children'),

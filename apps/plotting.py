@@ -1585,7 +1585,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
         figure=fig,
         style=style,
         config={'displayModeBar': False},
-        className='roundimg zoom'
+        className='roundimg'
     )
     return graph
 
