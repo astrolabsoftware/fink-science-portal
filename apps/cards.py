@@ -206,7 +206,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 )
                             ),
                             dmc.Modal(
-                                title=html.Div(dmc.Title(objectid, order=1, style={'color': '#15284F'})),
+                                title="",
                                 zIndex=10000000,
                                 id="stamps_modal",
                                 size="55%",
