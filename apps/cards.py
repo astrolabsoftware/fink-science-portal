@@ -361,7 +361,7 @@ curl -H "Content-Type: application/json" -X POST \\
 
     return card
 
-@callback(
+@app.callback(
     Output("stamps_modal", "opened"),
     Input("maximise_stamps", "n_clicks"),
     Input("maximise_stamps", "n_clicks"),
