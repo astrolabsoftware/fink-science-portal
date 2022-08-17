@@ -1594,7 +1594,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
             className='roundimg'
         )
     else:
-        style = {'display': 'inline-block', 'height': '10pc', 'width': '10pc'}
+        style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
         graph = dcc.Graph(
             id='{}-stamps'.format(title),
             figure=fig,

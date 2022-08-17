@@ -206,6 +206,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 )
                             ),
                             dmc.Modal(
+                                title=objectid,
                                 id="stamps_modal",
                                 size="55%",
                                 centered=True,
@@ -214,9 +215,18 @@ curl -H "Content-Type: application/json" -X POST \\
                                         id="stamps_modal_content",
                                         position='center',
                                         spacing='xl'
-                                    )
-                                ]
-                            )
+                                    ),
+                                    dmc.Slider(
+                                        id="slider-modal",
+                                        value=26,
+                                        marks=[
+                                            {"value": 20, "label": "20%"},
+                                            {"value": 50, "label": "50%"},
+                                            {"value": 80, "label": "80%"},
+                                        ],
+                                    ),
+                                ],
+                            ),
                         ],
                         radius='xl', p='md', shadow='xl', withBorder=True
                     )
