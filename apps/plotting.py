@@ -1416,7 +1416,7 @@ def draw_cutouts(clickData, object_data):
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
-    return figs,
+    return figs
 
 @app.callback(
     Output("stamps_modal_content", "children"),
