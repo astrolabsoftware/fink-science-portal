@@ -207,6 +207,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             ),
                             dmc.Modal(
                                 title="",
+                                radius='xl',
                                 zIndex=10000000,
                                 id="stamps_modal",
                                 size="55%",
