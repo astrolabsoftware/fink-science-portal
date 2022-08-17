@@ -1401,15 +1401,16 @@ def extract_cutout(object_data, time0, kind):
     [
         Input('lightcurve_cutouts', 'clickData'),
         Input('object-data', 'children'),
+        Input('date_modal_select', 'value'),
     ]
 )
-def draw_cutouts(clickData, object_data):
+def draw_cutouts(clickData, object_data, date_modal_select):
     """ Draw cutouts data based on lightcurve data
     """
     if clickData is not None:
         jd0 = clickData['points'][0]['x']
     else:
-        jd0 = None
+        jd0 = date_modal_select
 
     figs, figs_modal = [], []
     for kind in ['science', 'template', 'difference']:
