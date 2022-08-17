@@ -206,7 +206,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 )
                             ),
                             dmc.Modal(
-                                title=objectid,
+                                title=dmc.Title(objectid, order=1, style={'color': '#15284F'}),
                                 zIndex=10000000,
                                 id="stamps_modal",
                                 size="55%",
@@ -217,6 +217,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         position='center',
                                         spacing='xl'
                                     ),
+                                    dmc.Space(h=15),
                                     dmc.Select(
                                         label="Select a date",
                                         placeholder="Select one",
@@ -230,7 +231,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         style={"width": 200, "marginBottom": 10},
                                         zIndex=10000000,
                                     ),
-                                    dmc.Space(h=35)
+                                    dmc.Space(h=15)
                                 ],
                             ),
                         ],
