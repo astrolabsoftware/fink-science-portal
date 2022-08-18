@@ -1208,9 +1208,7 @@ navbar = dmc.Header(
                                 href="https://github.com/astrolabsoftware/fink-science-portal",
                             ),
                             html.A(
-                                dmc.Tooltip(
-                                    dmc.Avatar(src='/assets/Fink_PrimaryLogo_WEB.png')
-                                ),
+                                dmc.Avatar(src='/assets/Fink_PrimaryLogo_WEB.png'),
                                 href="https://fink-broker.org",
                             ),
                         ],
