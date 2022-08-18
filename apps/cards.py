@@ -396,11 +396,11 @@ curl -H "Content-Type: application/json" -X POST \\
     return card
 
 @app.callback(
-    Output("stamps_modal", "opened"),
+    Output("stamps_modal", "is_open"),
     Input("maximise_stamps", "n_clicks"),
     Input("maximise_stamps", "n_clicks"),
     Input("maximise_stamps", "n_clicks"),
-    State("stamps_modal", "opened"),
+    State("stamps_modal", "is_open"),
     prevent_initial_call=True,
 )
 def modal_stamps(nc1, nc2, nc3, opened):
