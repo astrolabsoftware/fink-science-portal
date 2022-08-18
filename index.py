@@ -1229,9 +1229,10 @@ navbar = dmc.Header(
                             ),
                             html.A(
                                 dmc.Avatar(
-                                    src='/assets/Fink_SecondaryLogo_WEB.png',
+                                    src='F',
                                     radius=30,
                                     size=36,
+                                    color='gray'
                                 ),
                                 href="https://fink-broker.org",
                             ),
