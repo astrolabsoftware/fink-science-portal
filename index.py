@@ -523,40 +523,41 @@ def display_table_results(table, is_mobile):
                                         dmc.Group(
                                             [
                                                 dropdown,
-                                                modal_quickview
+                                                modal_quickview,
+                                                dmc.Paper(
+                                                    [
+                                                        dmc.Group(
+                                                            [
+                                                                switch,
+                                                                    dbc.Popover(
+                                                                        [dbc.PopoverBody(switch_description)],
+                                                                        target="alert-object-switch",
+                                                                        trigger="hover",
+                                                                        placement="top"
+                                                                    ),
+                                                                    switch_sso,
+                                                                    dbc.Popover(
+                                                                        [dbc.PopoverBody(switch_sso_description)],
+                                                                        target="alert-sso-switch",
+                                                                        trigger="hover",
+                                                                        placement="top"
+                                                                    ),
+                                                                    switch_tracklet,
+                                                                    dbc.Popover(
+                                                                        [dbc.PopoverBody(switch_tracklet_description)],
+                                                                        target="alert-tracklet-switch",
+                                                                        trigger="hover",
+                                                                        placement="top"
+                                                                    ),
+                                                            ], position='center'
+                                                        )
+                                                    ],
+                                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                                ),
                                             ], direction='column', grow=True
                                         )
-                                    ], width=6
+                                    ], width=8
                                 ),
-                                dbc.Col(
-                                    dmc.Paper(
-                                        [
-                                            switch,
-                                            dbc.Popover(
-                                                [dbc.PopoverBody(switch_description)],
-                                                target="alert-object-switch",
-                                                trigger="hover",
-                                                placement="top"
-                                            ),
-                                            switch_sso,
-                                            dbc.Popover(
-                                                [dbc.PopoverBody(switch_sso_description)],
-                                                target="alert-sso-switch",
-                                                trigger="hover",
-                                                placement="top"
-                                            ),
-                                            switch_tracklet,
-                                            dbc.Popover(
-                                                [dbc.PopoverBody(switch_tracklet_description)],
-                                                target="alert-tracklet-switch",
-                                                trigger="hover",
-                                                placement="top"
-                                            ),
-                                        ],
-                                        radius='xl', p='md', shadow='xl', withBorder=True
-                                    ),
-                                    width=6
-                                )
                             ]
                         )
                     ],
