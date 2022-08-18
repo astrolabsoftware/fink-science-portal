@@ -1435,8 +1435,6 @@ def draw_cutouts_modal(object_data, date_modal_select):
             figs.append(
                 dmc.Tooltip(
                     children=draw_cutout(data, kind, modal=True),
-                    wrapLines=True,
-                    width=100,
                     radius='xl',
                     position='top',
                     placement='center',
