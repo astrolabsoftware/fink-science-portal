@@ -656,7 +656,7 @@ def store_query(name):
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
-    if not name.startswith('ZTF'):
+    if not name[1:].startswith('ZTF'):
         raise PreventUpdate
     results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     schema_client = client.schema()
