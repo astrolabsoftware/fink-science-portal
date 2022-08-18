@@ -511,7 +511,6 @@ def display_table_results(table, is_mobile):
         dmc.Accordion(
             state={"0": False},
             offsetIcon=False,
-            disableIconRotation=True,
             children=[
                 dmc.AccordionItem(
                     children=[
@@ -521,30 +520,30 @@ def display_table_results(table, is_mobile):
                                 dbc.Col(modal_quickview, width=width_preview)
                             ]
                         ),
-                        dbc.Row(
+                        dmc.Group(
                             [
-                                dbc.Col(switch, width=width_button),
+                                switch,
                                 dbc.Popover(
                                     [dbc.PopoverBody(switch_description)],
                                     target="alert-object-switch",
                                     trigger="hover",
                                     placement="top"
                                 ),
-                                dbc.Col(switch_sso, width=width_button),
+                                switch_sso,
                                 dbc.Popover(
                                     [dbc.PopoverBody(switch_sso_description)],
                                     target="alert-sso-switch",
                                     trigger="hover",
                                     placement="top"
                                 ),
-                                dbc.Col(switch_tracklet, width=width_button),
+                                switch_tracklet,
                                 dbc.Popover(
                                     [dbc.PopoverBody(switch_tracklet_description)],
                                     target="alert-tracklet-switch",
                                     trigger="hover",
                                     placement="top"
                                 ),
-                            ], justify='between'
+                            ], position='center'
                         ),
                     ],
                     label="Table options",
