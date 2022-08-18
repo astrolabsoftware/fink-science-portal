@@ -514,42 +514,45 @@ def display_table_results(table, is_mobile):
             children=[
                 dmc.AccordionItem(
                     children=[
-                        dbc.Row(
+                        dbc.Col(
                             [
-                                dbc.Col(dropdown, width=width_dropdown),
-                                dbc.Col(modal_quickview, width=width_preview)
-                            ]
+                                dbc.Row(dropdown),
+                                dbc.Row(modal_quickview)
+                            ], width=6
                         ),
-                        dmc.Group(
-                            [
-                                dmc.Paper(
-                                    [
-                                        switch,
-                                        dbc.Popover(
-                                            [dbc.PopoverBody(switch_description)],
-                                            target="alert-object-switch",
-                                            trigger="hover",
-                                            placement="top"
-                                        ),
-                                        switch_sso,
-                                        dbc.Popover(
-                                            [dbc.PopoverBody(switch_sso_description)],
-                                            target="alert-sso-switch",
-                                            trigger="hover",
-                                            placement="top"
-                                        ),
-                                        switch_tracklet,
-                                        dbc.Popover(
-                                            [dbc.PopoverBody(switch_tracklet_description)],
-                                            target="alert-tracklet-switch",
-                                            trigger="hover",
-                                            placement="top"
-                                        ),
-                                    ],
-                                    radius='xl', p='md', shadow='xl', withBorder=True
-                                )
-                            ], position='center'
-                        ),
+                        dbc.Col(
+                            dmc.Group(
+                                [
+                                    dmc.Paper(
+                                        [
+                                            switch,
+                                            dbc.Popover(
+                                                [dbc.PopoverBody(switch_description)],
+                                                target="alert-object-switch",
+                                                trigger="hover",
+                                                placement="top"
+                                            ),
+                                            switch_sso,
+                                            dbc.Popover(
+                                                [dbc.PopoverBody(switch_sso_description)],
+                                                target="alert-sso-switch",
+                                                trigger="hover",
+                                                placement="top"
+                                            ),
+                                            switch_tracklet,
+                                            dbc.Popover(
+                                                [dbc.PopoverBody(switch_tracklet_description)],
+                                                target="alert-tracklet-switch",
+                                                trigger="hover",
+                                                placement="top"
+                                            ),
+                                        ],
+                                        radius='xl', p='md', shadow='xl', withBorder=True
+                                    )
+                                ], position='center'
+                            ),
+                            width=6
+                        )
                     ],
                     label="Table options",
                     icon=[
