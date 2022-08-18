@@ -377,7 +377,7 @@ def modal_quickview(is_mobile):
         button_title = "Preview"
         leftIcon = [DashIconify(icon="tabler:eye")]
     else:
-        button_title = [DashIconify(icon="tabler:eye")]
+        button_title = [DashIconify(icon="tabler:eye", width=30)]
         leftIcon = None
     modal = html.Div(
         [
