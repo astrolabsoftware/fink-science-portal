@@ -1598,15 +1598,17 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
 
     if not modal:
         style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
+        classname = 'roundimg zoom'
         if not is_mobile:
             fig.update_layout(width=75, height=75)
+            classname = 'roundimg'
 
         graph = dcc.Graph(
             id='{}-stamps'.format(title),
             figure=fig,
             style=style,
             config={'displayModeBar': False},
-            className='roundimg'
+            className=classname
         )
     else:
         style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
