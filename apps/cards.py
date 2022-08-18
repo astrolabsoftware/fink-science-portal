@@ -217,7 +217,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         close_button=True,
                                         style={
                                             'background': '#000',
-                                            'background-image': 'linear-gradient(rgba(190, 190, 190,0.3), rgba(255,255,255,0.3))'
+                                            'background-image': 'linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3))'
                                         }
                                     ),
                                     dbc.ModalBody(
@@ -229,7 +229,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                             ),
                                         ], style={
                                             'background': '#000',
-                                            'background-image': 'linear-gradient(rgba(190, 190, 190,0.3), rgba(255,255,255,0.3))'
+                                            'background-image': 'linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3))'
                                         }
                                     ),
                                 ],
