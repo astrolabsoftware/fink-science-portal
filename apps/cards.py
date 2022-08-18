@@ -214,7 +214,11 @@ curl -H "Content-Type: application/json" -X POST \\
                                             style={"width": 200, "marginBottom": 10},
                                             zIndex=10000000,
                                         ),
-                                        close_button=True
+                                        close_button=True,
+                                        style={
+                                            'background': '#000',
+                                            'background-image': 'linear-gradient(rgba(190, 190, 190,0.3), rgba(255,255,255,0.3))'
+                                        }
                                     ),
                                     dbc.ModalBody(
                                         [
