@@ -1285,6 +1285,7 @@ def toggle_navbar_collapse(n, is_open):
 # embedding the navigation bar
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
+    html.Br(),
     navbar,
     html.Div(id='page-content'),
     html.Div(children=False, id='is-mobile', hidden=True),
