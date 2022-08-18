@@ -1132,46 +1132,143 @@ dropdown = dbc.DropdownMenu(
     label="Info",
 )
 
-navbar = dbc.Navbar(
-    [
-        html.A(
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.NavbarBrand(
-                            "Fink Science portal {}".format(portal_version),
-                            className="ml-2"
-                        )
+def create_home_link(label):
+    return dmc.Text(
+        label,
+        size="xl",
+        color="gray",
+    )
+
+
+navbar = dmc.Header(
+    height=70,
+    fixed=True,
+    p="md",
+    children=[
+        dmc.Container(
+            fluid=True,
+            children=dmc.Group(
+                position="apart",
+                align="flex-start",
+                children=[
+                    dmc.Center(
+                        dcc.Link(
+                            [
+                                dmc.MediaQuery(
+                                    create_home_link("Dash Mantine Components"),
+                                    smallerThan="sm",
+                                    styles={"display": "none"},
+                                ),
+                                dmc.MediaQuery(
+                                    create_home_link("DMC"),
+                                    largerThan="sm",
+                                    styles={"display": "none"},
+                                ),
+                            ],
+                            href="/",
+                            style={"paddingTop": 5, "textDecoration": "none"},
+                        ),
+                    ),
+                    dmc.Group(
+                        position="right",
+                        align="center",
+                        spacing="xl",
+                        children=[
+                            dmc.MediaQuery(
+                                dmc.Select(
+                                    style={"width": 250},
+                                    placeholder="Search",
+                                    nothingFound="No match found",
+                                    searchable=True,
+                                    clearable=True,
+                                    icon=[
+                                        DashIconify(icon="radix-icons:magnifying-glass")
+                                    ],
+                                ),
+                                smallerThan="md",
+                                styles={"display": "none"},
+                            ),
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="radix-icons:github-logo",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    label="Source Code",
+                                    position="bottom",
+                                ),
+                                href="https://github.com/snehilvj/dash-mantine-components",
+                            ),
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="bi:discord",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                    ),
+                                    label="Discord",
+                                    position="bottom",
+                                ),
+                                href="https://discord.gg/KuJkh4Pyq5",
+                            ),
+                        ],
                     ),
                 ],
-                justify="start",
-                className="g-0",
             ),
-            href="/",
-        ),
-        dbc.NavbarToggler(id="navbar-toggler2"),
-        dbc.Collapse(
-            dbc.Nav(
-                # right align dropdown menu with ml-auto className
-                [
-                    dbc.NavItem(dbc.NavLink('Search', href="{}".format(APIURL))),
-                    dbc.NavItem(dbc.NavLink('Statistics', href="{}/stats".format(APIURL))),
-                    dbc.NavItem(dbc.NavLink('API', href="{}/api".format(APIURL))),
-                    dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/astrolabsoftware/fink-notebook-template")),
-                    dropdown
-                ],
-                navbar=True
-            ),
-            id="navbar-collapse2",
-            navbar=True,
-            style={'background-color': 'rgb(255,250,250)'}
-        ),
+        )
     ],
-    color="rgba(255,255,255,0.9)",
-    dark=False,
-    className="finknav",
-    fixed='top'
 )
+
+# navbar = dbc.Navbar(
+#     [
+#         dbc.NavbarToggler(id="navbar-toggler2"),
+#         html.A(
+#             dbc.Row(
+#                 [
+#                     dbc.Col(
+#                         dbc.NavbarBrand(
+#                             "Fink Science portal {}".format(portal_version),
+#                             className="ml-2"
+#                         )
+#                     ),
+#                 ],
+#                 justify="start",
+#                 className="g-0",
+#             ),
+#             href="/",
+#         ),
+#         dbc.Collapse(
+#             dbc.Nav(
+#                 # right align dropdown menu with ml-auto className
+#                 [
+#                     dbc.NavItem(dbc.NavLink('Search', href="{}".format(APIURL))),
+#                     dbc.NavItem(dbc.NavLink('Statistics', href="{}/stats".format(APIURL))),
+#                     dbc.NavItem(dbc.NavLink('API', href="{}/api".format(APIURL))),
+#                     dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/astrolabsoftware/fink-notebook-template")),
+#                     dropdown
+#                 ],
+#                 navbar=True
+#             ),
+#             id="navbar-collapse2",
+#             navbar=True,
+#             style={'background-color': 'rgb(255,250,250)'}
+#         ),
+#     ],
+#     color="rgba(255,255,255,0.9)",
+#     dark=False,
+#     className="finknav",
+#     fixed='top'
+# )
 
 # add callback for toggling the collapse on small screens
 @app.callback(

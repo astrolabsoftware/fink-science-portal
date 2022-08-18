@@ -785,7 +785,7 @@ def layout(name, is_mobile):
                                     [visdcc.Run_js(id='aladin-lite-div')],
                                     style={
                                         'width': '100%',
-                                        'height': '25pc',
+                                        'height': '27pc',
                                     }, className='roundimg nozoom'
                                 ),
                                 html.Br(),
