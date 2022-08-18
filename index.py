@@ -1176,19 +1176,39 @@ navbar = dmc.Header(
                         align="center",
                         spacing="xl",
                         children=[
-                            dmc.MediaQuery(
-                                dmc.Select(
-                                    style={"width": 250},
-                                    placeholder="Search",
-                                    nothingFound="No match found",
-                                    searchable=True,
-                                    clearable=True,
-                                    icon=[
-                                        DashIconify(icon="radix-icons:magnifying-glass")
-                                    ],
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:stats-chart-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    label="Statistics",
+                                    position="bottom",
                                 ),
-                                smallerThan="md",
-                                styles={"display": "none"},
+                                href="{}/stats".format(APIURL),
+                            ),
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="carbon:api",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    label="API",
+                                    position="bottom",
+                                ),
+                                href="{}/api".format(APIURL),
                             ),
                             html.A(
                                 dmc.Tooltip(
@@ -1202,10 +1222,10 @@ navbar = dmc.Header(
                                         variant="outline",
                                         color="gray",
                                     ),
-                                    label="Source Code",
+                                    label="Tutorials",
                                     position="bottom",
                                 ),
-                                href="https://github.com/astrolabsoftware/fink-science-portal",
+                                href="https://github.com/astrolabsoftware/fink-tutorials",
                             ),
                             html.A(
                                 dmc.Avatar(
