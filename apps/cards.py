@@ -243,7 +243,19 @@ curl -H "Content-Type: application/json" -X POST \\
                         radius='xl', p='md', shadow='xl', withBorder=True
                     )
                 ],
-                label=["Last alert cutouts", DashIconify(icon="tabler:flare")],
+                label=[
+                    "Last alert cutouts",
+                    dmc.Space(w=5),
+                    dmc.ActionIcon(
+                        DashIconify(icon="tabler:arrows-maximize"),
+                        id="maximise_stamps2",
+                        n_clicks=0,
+                        variant="default",
+                        radius=30,
+                        size=36,
+                        color='gray'
+                    ),
+                ],
                 icon=[
                     DashIconify(
                         icon="tabler:flare",
