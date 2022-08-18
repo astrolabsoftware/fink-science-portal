@@ -200,7 +200,22 @@ curl -H "Content-Type: application/json" -X POST \\
                             dbc.Row(id='stamps', justify='around', className="g-0"),
                             dbc.Modal(
                                 [
-                                    dbc.ModalHeader(dbc.ModalTitle("Cutouts"), close_button=True),
+                                    dbc.ModalHeader(
+                                        dmc.Select(
+                                            label="",
+                                            placeholder="Select a date",
+                                            searchable=True,
+                                            nothingFound="No options found",
+                                            id="date_modal_select",
+                                            value=None,
+                                            data=[
+                                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
+                                            ],
+                                            style={"width": 200, "marginBottom": 10},
+                                            zIndex=10000000,
+                                        ),
+                                        close_button=True
+                                    ),
                                     dbc.ModalBody(
                                         [
                                             dmc.Group(
@@ -208,21 +223,6 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 position='center',
                                                 spacing='xl'
                                             ),
-                                            dmc.Space(h=15),
-                                            dmc.Select(
-                                                label="Select a date",
-                                                placeholder="Select one",
-                                                searchable=True,
-                                                nothingFound="No options found",
-                                                id="date_modal_select",
-                                                value=None,
-                                                data=[
-                                                    {"value": i, "label": i} for i in pdf['v:lastdate'].values
-                                                ],
-                                                style={"width": 200, "marginBottom": 10},
-                                                zIndex=10000000,
-                                            ),
-                                            dmc.Space(h=15)
                                         ], style={
                                             'background': '#000',
                                             'background-image': 'linear-gradient(rgba(190, 190, 190,0.3), rgba(255,255,255,0.3))'
