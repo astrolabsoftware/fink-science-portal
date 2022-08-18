@@ -382,7 +382,9 @@ modal_quickview = html.Div(
             id="open_modal_quickview",
             n_clicks=0,
             leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
-            color="gray"
+            color="gray",
+            fullWidth=True,
+            variant='outline'
         ),
         dbc.Modal(
             [
@@ -518,8 +520,12 @@ def display_table_results(table, is_mobile):
                             [
                                 dbc.Col(
                                     [
-                                        dbc.Row(dropdown),
-                                        dbc.Row(modal_quickview)
+                                        dmc.Group(
+                                            [
+                                                dbc.Row(dropdown),
+                                                dbc.Row(modal_quickview)
+                                            ]
+                                        )
                                     ], width=6
                                 ),
                                 dbc.Col(
