@@ -1233,7 +1233,7 @@ navbar = dmc.Header(
                                         children='F',
                                         radius=30,
                                         size=36,
-                                        color='black'
+                                        color='dark'
                                     ),
                                     label='Fink website',
                                     position='bottom'
