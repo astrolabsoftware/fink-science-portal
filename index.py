@@ -1229,7 +1229,7 @@ navbar = dmc.Header(
                             ),
                             html.A(
                                 dmc.Avatar(
-                                    src='F',
+                                    children='F',
                                     radius=30,
                                     size=36,
                                     color='gray'
