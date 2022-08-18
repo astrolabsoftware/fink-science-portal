@@ -198,35 +198,38 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.Paper(
                         [
                             dbc.Row(id='stamps', justify='around', className="g-0"),
-                            dmc.Modal(
-                                title="",
-                                radius='xl',
-                                zIndex=10000000,
-                                id="stamps_modal",
-                                size="55%",
-                                centered=True,
-                                children=[
-                                    dmc.Group(
-                                        id="stamps_modal_content",
-                                        position='center',
-                                        spacing='xl'
+                            dbc.Modal(
+                                [
+                                    dbc.ModalHeader(dbc.ModalTitle("Cutouts"), close_button=True),
+                                    dbc.ModalBody(
+                                        [
+                                            dmc.Group(
+                                                id="stamps_modal_content",
+                                                position='center',
+                                                spacing='xl'
+                                            ),
+                                            dmc.Space(h=15),
+                                            dmc.Select(
+                                                label="Select a date",
+                                                placeholder="Select one",
+                                                searchable=True,
+                                                nothingFound="No options found",
+                                                id="date_modal_select",
+                                                value=None,
+                                                data=[
+                                                    {"value": i, "label": i} for i in pdf['v:lastdate'].values
+                                                ],
+                                                style={"width": 200, "marginBottom": 10},
+                                                zIndex=10000000,
+                                            ),
+                                            dmc.Space(h=15)
+                                        ]
                                     ),
-                                    dmc.Space(h=15),
-                                    dmc.Select(
-                                        label="Select a date",
-                                        placeholder="Select one",
-                                        searchable=True,
-                                        nothingFound="No options found",
-                                        id="date_modal_select",
-                                        value=None,
-                                        data=[
-                                            {"value": i, "label": i} for i in pdf['v:lastdate'].values
-                                        ],
-                                        style={"width": 200, "marginBottom": 10},
-                                        zIndex=10000000,
-                                    ),
-                                    dmc.Space(h=15)
                                 ],
+                                id="stamps_modal",
+                                scrollable=True,
+                                centered=True,
+                                size='lg'
                             ),
                         ],
                         radius='xl', p='md', shadow='xl', withBorder=True
