@@ -203,7 +203,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                     DashIconify(icon="tabler:arrows-maximize"),
                                     id="maximise_stamps",
                                     n_clicks=0,
-                                    variant="outline",
+                                    variant="default",
                                     radius=30,
                                     size=36,
                                     color='gray'
@@ -243,7 +243,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         radius='xl', p='md', shadow='xl', withBorder=True
                     )
                 ],
-                label="Last alert cutouts",
+                label=["Last alert cutouts", DashIconify(icon="tabler:flare")],
                 icon=[
                     DashIconify(
                         icon="tabler:flare",
