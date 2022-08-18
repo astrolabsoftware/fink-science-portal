@@ -377,31 +377,29 @@ def carousel(nclick, data, is_mobile):
 
 modal_quickview = html.Div(
     [
-        dbc.Button(
+        dmc.Button(
             "Preview",
             id="open_modal_quickview",
             n_clicks=0,
-            outline=True,
-            color="secondary"
+            leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
+            color="gray"
         ),
-        dbc.Modal(
+        dmc.Modal(
             [
-                dbc.ModalBody(
-                    dbc.Container(
-                        id='carousel',
-                        fluid=True,
-                        style={'width': '95%'}
-                    ), style={
-                        'background': '#000',
-                        'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-                    }
+                dbc.Container(
+                    id='carousel',
+                    fluid=True,
+                    style={'width': '95%'}
                 ),
-                dbc.ModalFooter(
-                    dbc.Button(
-                        "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
-                    ), style={'display': 'None'}
-                ),
+                dbc.Button(
+                    "Close", id="close_modal_quickview",
+                    className="ml-auto", n_clicks=0, style={'display': 'None'}
+                )
             ],
+            style={
+                'background': '#000',
+                'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+            },
             id="modal_quickview",
             is_open=False,
             size="lg",
