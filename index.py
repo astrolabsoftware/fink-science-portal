@@ -525,26 +525,32 @@ def display_table_results(table, is_mobile):
                                             dmc.Group(
                                                 [
                                                     dropdown,
-                                                    switch,
-                                                    dbc.Popover(
-                                                        [dbc.PopoverBody(switch_description)],
-                                                        target="alert-object-switch",
-                                                        trigger="hover",
-                                                        placement="top"
+                                                    dmc.Tooltip(
+                                                        children=switch,
+                                                        wrapLines=True,
+                                                        width=220,
+                                                        withArrow=True,
+                                                        transition="fade",
+                                                        transitionDuration=200,
+                                                        label=switch_description
                                                     ),
-                                                    switch_sso,
-                                                    dbc.Popover(
-                                                        [dbc.PopoverBody(switch_sso_description)],
-                                                        target="alert-sso-switch",
-                                                        trigger="hover",
-                                                        placement="top"
+                                                    dmc.Tooltip(
+                                                        children=switch_sso,
+                                                        wrapLines=True,
+                                                        width=220,
+                                                        withArrow=True,
+                                                        transition="fade",
+                                                        transitionDuration=200,
+                                                        label=switch_sso_description
                                                     ),
-                                                    switch_tracklet,
-                                                    dbc.Popover(
-                                                        [dbc.PopoverBody(switch_tracklet_description)],
-                                                        target="alert-tracklet-switch",
-                                                        trigger="hover",
-                                                        placement="top"
+                                                    dmc.Tooltip(
+                                                        children=switch_tracklet,
+                                                        wrapLines=True,
+                                                        width=220,
+                                                        withArrow=True,
+                                                        transition="fade",
+                                                        transitionDuration=200,
+                                                        label=switch_tracklet_description
                                                     ),
                                                     modal_quickview
                                                 ], direction='column', grow=True, spacing='xs'
@@ -554,7 +560,7 @@ def display_table_results(table, is_mobile):
                                         radius='xl', p='md', shadow='xl', withBorder=True
                                     )
                                 ],
-                                width=4
+                                width=3
                             )
                         )
                     ],
