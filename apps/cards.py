@@ -244,7 +244,9 @@ curl -H "Content-Type: application/json" -X POST \\
                     )
                 ],
                 label=[
-                    "Last alert cutouts",
+                    "Last alert cutouts"
+                ],
+                icon=[
                     dmc.ActionIcon(
                         DashIconify(icon="tabler:arrows-maximize"),
                         id="maximise_stamps2",
@@ -254,13 +256,6 @@ curl -H "Content-Type: application/json" -X POST \\
                         size=26,
                         color='gray'
                     ),
-                ],
-                icon=[
-                    DashIconify(
-                        icon="tabler:flare",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
-                    )
                 ],
             ),
             dmc.AccordionItem(
