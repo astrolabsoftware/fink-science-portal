@@ -389,17 +389,17 @@ modal_quickview = html.Div(
                 dbc.Container(
                     id='carousel',
                     fluid=True,
-                    style={'width': '95%'}
+                    style={
+                        'width': '95%',
+                        'background': '#000',
+                        'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+                    },
                 ),
                 dbc.Button(
                     "Close", id="close_modal_quickview",
                     className="ml-auto", n_clicks=0, style={'display': 'None'}
                 )
             ],
-            style={
-                'background': '#000',
-                'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-            },
             id="modal_quickview",
             opened=False,
             size="lg",
