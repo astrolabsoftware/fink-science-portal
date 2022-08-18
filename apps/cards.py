@@ -198,16 +198,14 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.Paper(
                         [
                             dbc.Row(id='stamps', justify='around', className="g-0"),
-                            dbc.Row(
-                                dmc.ActionIcon(
-                                    DashIconify(icon="tabler:arrows-maximize"),
-                                    id="maximise_stamps",
-                                    n_clicks=0,
-                                    variant="outline",
-                                    radius=30,
-                                    size=36,
-                                    color='gray'
-                                )
+                            dmc.ActionIcon(
+                                DashIconify(icon="tabler:arrows-maximize"),
+                                id="maximise_stamps",
+                                n_clicks=0,
+                                variant="default",
+                                radius=30,
+                                size=36,
+                                color='gray'
                             ),
                             dmc.Modal(
                                 title="",
