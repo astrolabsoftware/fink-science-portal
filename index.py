@@ -552,7 +552,7 @@ def display_table_results(table, is_mobile):
                                                 trigger="hover",
                                                 placement="top"
                                             ),
-                                        ], position='center'
+                                        ], direction='column', position='center'
                                     ),
                                     width=6
                                 )
