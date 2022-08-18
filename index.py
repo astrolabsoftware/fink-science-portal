@@ -1146,7 +1146,7 @@ navbar = dmc.Header(
     p=0,
     m=0,
     children=[
-        html.Br(),
+        dmc.Space(h=10),
         dmc.Container(
             fluid=True,
             children=dmc.Group(
