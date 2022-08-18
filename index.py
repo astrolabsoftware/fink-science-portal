@@ -1228,11 +1228,15 @@ navbar = dmc.Header(
                                 href="https://github.com/astrolabsoftware/fink-tutorials",
                             ),
                             html.A(
-                                dmc.Avatar(
-                                    children='F',
-                                    radius=30,
-                                    size=36,
-                                    color='gray'
+                                dmc.Tooltip(
+                                    dmc.Avatar(
+                                        children='F',
+                                        radius=30,
+                                        size=36,
+                                        color='black'
+                                    ),
+                                    label='Fink website',
+                                    position='bottom'
                                 ),
                                 href="https://fink-broker.org",
                             ),
