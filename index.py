@@ -381,7 +381,7 @@ modal_quickview = html.Div(
             "Preview",
             id="open_modal_quickview",
             n_clicks=0,
-            leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
+            leftIcon=[DashIconify(icon="tabler:eye")],
             color="gray",
             fullWidth=True,
             variant='outline'
@@ -470,7 +470,7 @@ def display_table_results(table, is_mobile):
     )
 
     switch = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
         label="Unique objects",
         color="orange",
@@ -480,7 +480,7 @@ def display_table_results(table, is_mobile):
     switch_description = "Toggle the switch to list each object only once. Only the latest alert will be displayed."
 
     switch_sso = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
         label="Unique Solar System objects",
         color="orange",
@@ -490,7 +490,7 @@ def display_table_results(table, is_mobile):
     switch_sso_description = "Toggle the switch to list each Solar System Object only once. Only the latest alert will be displayed."
 
     switch_tracklet = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
         label="Unique tracklets",
         color="orange",
