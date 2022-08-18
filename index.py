@@ -514,12 +514,39 @@ def display_table_results(table, is_mobile):
             disableIconRotation=True,
             children=[
                 dmc.AccordionItem(
-                    dbc.Row(
-                        [
-                            dbc.Col(dropdown, width=width_dropdown),
-                            dbc.Col(modal_quickview, width=width_preview)
-                        ]
-                    ),
+                    children=[
+                        dbc.Row(
+                            [
+                                dbc.Col(dropdown, width=width_dropdown),
+                                dbc.Col(modal_quickview, width=width_preview)
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(switch, width=width_button),
+                                dbc.Popover(
+                                    [dbc.PopoverBody(switch_description)],
+                                    target="alert-object-switch",
+                                    trigger="hover",
+                                    placement="top"
+                                ),
+                                dbc.Col(switch_sso, width=width_button),
+                                dbc.Popover(
+                                    [dbc.PopoverBody(switch_sso_description)],
+                                    target="alert-sso-switch",
+                                    trigger="hover",
+                                    placement="top"
+                                ),
+                                dbc.Col(switch_tracklet, width=width_button),
+                                dbc.Popover(
+                                    [dbc.PopoverBody(switch_tracklet_description)],
+                                    target="alert-tracklet-switch",
+                                    trigger="hover",
+                                    placement="top"
+                                ),
+                            ], justify='between'
+                        ),
+                    ],
                     label="Table options",
                     icon=[
                         DashIconify(
@@ -530,31 +557,6 @@ def display_table_results(table, is_mobile):
                     ],
                 )
             ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(switch, width=width_button),
-                dbc.Popover(
-                    [dbc.PopoverBody(switch_description)],
-                    target="alert-object-switch",
-                    trigger="hover",
-                    placement="top"
-                ),
-                dbc.Col(switch_sso, width=width_button),
-                dbc.Popover(
-                    [dbc.PopoverBody(switch_sso_description)],
-                    target="alert-sso-switch",
-                    trigger="hover",
-                    placement="top"
-                ),
-                dbc.Col(switch_tracklet, width=width_button),
-                dbc.Popover(
-                    [dbc.PopoverBody(switch_tracklet_description)],
-                    target="alert-tracklet-switch",
-                    trigger="hover",
-                    placement="top"
-                ),
-            ], justify='between'
         ),
         table
     ], fluid=True)
