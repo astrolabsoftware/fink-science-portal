@@ -177,6 +177,19 @@ modal = html.Div(
     ]
 )
 
+@app.callback(
+    Output("modal", "is_open"),
+    [Input("open", "n_clicks")],
+    [State("modal", "is_open")],
+)
+def toggle_modal(n1, is_open):
+    """ Callback for the modal (open/close)
+    """
+    if n1:
+        return not is_open
+    return is_open
+
+
 fink_search_bar = dbc.InputGroup(
     [
         dbc.Input(
