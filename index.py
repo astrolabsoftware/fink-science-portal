@@ -1229,14 +1229,18 @@ navbar = dmc.Header(
                             ),
                             html.A(
                                 dmc.Tooltip(
-                                    dmc.Avatar(
-                                        children='F',
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="healthicons:f-outline",
+                                            width=22,
+                                        ),
                                         radius=30,
                                         size=36,
-                                        color='dark'
+                                        variant="outline",
+                                        color="gray",
                                     ),
-                                    label='Fink website',
-                                    position='bottom'
+                                    label="Website",
+                                    position="bottom",
                                 ),
                                 href="https://fink-broker.org",
                             ),
