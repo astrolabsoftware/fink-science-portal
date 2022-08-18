@@ -501,13 +501,9 @@ def display_table_results(table, is_mobile):
     switch_tracklet_description = "Toggle the switch to list each Tracklet only once (fast moving objects). Only the latest alert will be displayed."
 
     if is_mobile:
-        width_dropdown = 8
-        width_preview = 4
-        width_button = 4
+        width_options = 12
     else:
-        width_dropdown = 10
-        width_preview = 2
-        width_button = 4
+        width_options = 3
 
     return dbc.Container([
         html.Br(),
@@ -560,7 +556,7 @@ def display_table_results(table, is_mobile):
                                         radius='xl', p='md', shadow='xl', withBorder=True
                                     )
                                 ],
-                                width=3
+                                width=width_options
                             )
                         )
                     ],
