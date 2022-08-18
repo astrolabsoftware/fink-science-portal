@@ -203,7 +203,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                     DashIconify(icon="tabler:arrows-maximize"),
                                     id="maximise_stamps",
                                     n_clicks=0,
-                                    variant="default",
+                                    variant="outline",
                                     radius=30,
                                     size=36,
                                     color='gray'
