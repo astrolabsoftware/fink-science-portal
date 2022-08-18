@@ -401,7 +401,7 @@ modal_quickview = html.Div(
                 'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
             },
             id="modal_quickview",
-            is_open=False,
+            opened=False,
             size="lg",
         ),
     ]
