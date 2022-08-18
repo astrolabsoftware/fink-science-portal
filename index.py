@@ -504,9 +504,9 @@ def display_table_results(table, is_mobile):
 
     return dbc.Container([
         html.Br(),
-        dbc.Row(
+        dmc.Grid(
             [
-                dbc.Col(
+                dmc.Col(
                     dmc.Accordion(
                         state={"0": False},
                         offsetIcon=False,
@@ -570,9 +570,9 @@ def display_table_results(table, is_mobile):
                             )
                         ]
                     ),
-                    width=10
+                    span=10
                 ),
-                dbc.Col(modal_quickview, width=2)
+                dmc.Col(modal_quickview, span=2)
             ]
         ),
         table
