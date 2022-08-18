@@ -504,13 +504,13 @@ def display_table_results(table, is_mobile):
 
     return dbc.Container([
         html.Br(),
-        dmc.Accordion(
-            state={"0": False},
-            offsetIcon=False,
-            children=[
-                dbc.Row(
-                    [
-                        dbc.Col(
+        dbc.Row(
+            [
+                dbc.Col(
+                    dmc.Accordion(
+                        state={"0": False},
+                        offsetIcon=False,
+                        children=[
                             dmc.AccordionItem(
                                 children=[
                                     dbc.Row(
@@ -567,14 +567,14 @@ def display_table_results(table, is_mobile):
                                         width=20,
                                     )
                                 ],
-                            ),
-                            width=8
-                        ),
-                        dbc.Col(modal_quickview, width=4)
-                    ]
-                )
+                            )
+                        ]
+                    ),
+                    width=8
+                ),
+                dbc.Col(modal_quickview, width=4)
             ]
-        ),
+        )
         table
     ], fluid=True)
 
