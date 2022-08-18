@@ -14,6 +14,8 @@
 # limitations under the License.
 import dash
 from dash import html, dcc, Input, Output, State
+from dash.exceptions import PreventUpdate
+
 import dash_bootstrap_components as dbc
 import visdcc
 import plotly.graph_objects as go
@@ -654,6 +656,8 @@ def store_query(name):
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
+    if not name.startswith('ZTF'):
+        raise PreventUpdate
     results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     schema_client = client.schema()
     pdfs = format_hbase_output(results, schema_client, group_alerts=False)
