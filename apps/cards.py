@@ -232,7 +232,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 id="stamps_modal",
                                 scrollable=True,
                                 centered=True,
-                                size='55%'
+                                size='xl'
                             ),
                         ],
                         radius='xl', p='md', shadow='xl', withBorder=True
