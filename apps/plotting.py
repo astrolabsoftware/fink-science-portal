@@ -1438,7 +1438,7 @@ def draw_cutouts_modal(object_data, date_modal_select):
                     wrapLines=True,
                     width=100,
                     radius='xl',
-                    position='center',
+                    position='top',
                     placement='center',
                     withArrow=True,
                     transition="fade",
