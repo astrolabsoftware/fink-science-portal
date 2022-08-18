@@ -508,63 +508,68 @@ def display_table_results(table, is_mobile):
             state={"0": False},
             offsetIcon=False,
             children=[
-                dmc.AccordionItem(
-                    children=[
-                        dbc.Row(
-                            dbc.Col(
-                                [
-                                    dmc.Paper(
+                dbc.Row(
+                    dbc.Col(
+                        dmc.AccordionItem(
+                            children=[
+                                dbc.Row(
+                                    dbc.Col(
                                         [
-                                            dmc.Group(
+                                            dmc.Paper(
                                                 [
-                                                    dropdown,
-                                                    dmc.Tooltip(
-                                                        children=switch,
-                                                        wrapLines=True,
-                                                        width=220,
-                                                        withArrow=True,
-                                                        transition="fade",
-                                                        transitionDuration=200,
-                                                        label=switch_description
-                                                    ),
-                                                    dmc.Tooltip(
-                                                        children=switch_sso,
-                                                        wrapLines=True,
-                                                        width=220,
-                                                        withArrow=True,
-                                                        transition="fade",
-                                                        transitionDuration=200,
-                                                        label=switch_sso_description
-                                                    ),
-                                                    dmc.Tooltip(
-                                                        children=switch_tracklet,
-                                                        wrapLines=True,
-                                                        width=220,
-                                                        withArrow=True,
-                                                        transition="fade",
-                                                        transitionDuration=200,
-                                                        label=switch_tracklet_description
-                                                    ),
-                                                    modal_quickview
-                                                ], direction='column', grow=True, spacing='xs'
-                                            )
+                                                    dmc.Group(
+                                                        [
+                                                            dropdown,
+                                                            dmc.Tooltip(
+                                                                children=switch,
+                                                                wrapLines=True,
+                                                                width=220,
+                                                                withArrow=True,
+                                                                transition="fade",
+                                                                transitionDuration=200,
+                                                                label=switch_description
+                                                            ),
+                                                            dmc.Tooltip(
+                                                                children=switch_sso,
+                                                                wrapLines=True,
+                                                                width=220,
+                                                                withArrow=True,
+                                                                transition="fade",
+                                                                transitionDuration=200,
+                                                                label=switch_sso_description
+                                                            ),
+                                                            dmc.Tooltip(
+                                                                children=switch_tracklet,
+                                                                wrapLines=True,
+                                                                width=220,
+                                                                withArrow=True,
+                                                                transition="fade",
+                                                                transitionDuration=200,
+                                                                label=switch_tracklet_description
+                                                            ),
+                                                        ], direction='column', grow=True, spacing='xs'
+                                                    )
 
+                                                ],
+                                                radius='xl', p='md', shadow='xl', withBorder=True
+                                            )
                                         ],
-                                        radius='xl', p='md', shadow='xl', withBorder=True
+                                        width=width_options
                                     )
-                                ],
-                                width=width_options
-                            )
-                        )
-                    ],
-                    label="Table options",
-                    icon=[
-                        DashIconify(
-                            icon="tabler:arrow-bar-to-down",
-                            color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                            width=20,
-                        )
-                    ],
+                                )
+                            ],
+                            label="Table options",
+                            icon=[
+                                DashIconify(
+                                    icon="tabler:arrow-bar-to-down",
+                                    color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                    width=20,
+                                )
+                            ],
+                        ),
+                        width=8
+                    ),
+                    dbc.Col(modal_quickview, width=4)
                 )
             ]
         ),
