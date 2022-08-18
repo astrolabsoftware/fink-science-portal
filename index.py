@@ -384,39 +384,38 @@ modal_quickview = html.Div(
             leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
             color="gray"
         ),
-        dmc.Modal(
+        dbc.Modal(
             [
-                dbc.Container(
-                    id='carousel',
-                    fluid=True,
-                    style={
-                        'width': '95%',
+                dbc.ModalBody(
+                    dbc.Container(
+                        id='carousel',
+                        fluid=True,
+                        style={'width': '95%'}
+                    ), style={
                         'background': '#000',
                         'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-                    },
+                    }
                 ),
-                dbc.Button(
-                    "Close", id="close_modal_quickview",
-                    className="ml-auto", n_clicks=0, style={'display': 'None'}
-                )
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
+                    ), style={'display': 'None'}
+                ),
             ],
             id="modal_quickview",
-            opened=False,
+            is_open=False,
             size="lg",
-            style={
-                'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-            },
         ),
     ]
 )
 
 @app.callback(
-    Output("modal_quickview", "opened"),
+    Output("modal_quickview", "is_open"),
     [
         Input("open_modal_quickview", "n_clicks"),
         Input("close_modal_quickview", "n_clicks")
     ],
-    [State("modal_quickview", "opened")],
+    [State("modal_quickview", "is_open")],
 )
 def toggle_modal_preview(n1, n2, is_open):
     if n1 or n2:
