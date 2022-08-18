@@ -198,17 +198,6 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.Paper(
                         [
                             dbc.Row(id='stamps', justify='around', className="g-0"),
-                            # dmc.Center(
-                            #     dmc.ActionIcon(
-                            #         DashIconify(icon="tabler:arrows-maximize"),
-                            #         id="maximise_stamps",
-                            #         n_clicks=0,
-                            #         variant="default",
-                            #         radius=30,
-                            #         size=36,
-                            #         color='gray'
-                            #     ),
-                            # ),
                             dmc.Modal(
                                 title="",
                                 radius='xl',
@@ -241,21 +230,26 @@ curl -H "Content-Type: application/json" -X POST \\
                             ),
                         ],
                         radius='xl', p='md', shadow='xl', withBorder=True
-                    )
-                ],
-                label=[
-                    "Last alert cutouts"
-                ],
-                icon=[
-                    dmc.ActionIcon(
-                        DashIconify(icon="tabler:arrows-maximize"),
-                        id="maximise_stamps",
-                        n_clicks=0,
-                        variant="default",
-                        radius=30,
-                        size=26,
-                        color='gray'
                     ),
+                    dmc.Center(
+                        dmc.ActionIcon(
+                            DashIconify(icon="tabler:arrows-maximize"),
+                            id="maximise_stamps",
+                            n_clicks=0,
+                            variant="default",
+                            radius=30,
+                            size=36,
+                            color='gray'
+                        ),
+                    ),
+                ],
+                label="Last alert cutouts",
+                icon=[
+                    DashIconify(
+                        icon="tabler:flare",
+                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                        width=20,
+                    )
                 ],
             ),
             dmc.AccordionItem(
