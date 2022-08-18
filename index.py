@@ -508,10 +508,27 @@ def display_table_results(table, is_mobile):
 
     return dbc.Container([
         html.Br(),
-        dbc.Row(
-            [
-                dbc.Col(dropdown, width=width_dropdown),
-                dbc.Col(modal_quickview, width=width_preview)
+        dmc.Accordion(
+            state={"0": False},
+            offsetIcon=False,
+            disableIconRotation=True,
+            children=[
+                dmc.AccordionItem(
+                    dbc.Row(
+                        [
+                            dbc.Col(dropdown, width=width_dropdown),
+                            dbc.Col(modal_quickview, width=width_preview)
+                        ]
+                    ),
+                    label="Table options",
+                    icon=[
+                        DashIconify(
+                            icon="tabler:arrow-bar-to-down",
+                            color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                            width=20,
+                        )
+                    ],
+                )
             ]
         ),
         dbc.Row(
