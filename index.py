@@ -384,7 +384,9 @@ modal_quickview = html.Div(
             leftIcon=[DashIconify(icon="tabler:eye")],
             color="gray",
             fullWidth=True,
-            variant='outline'
+            variant='outline',
+            size='xl',
+            radius='xl'
         ),
         dbc.Modal(
             [
@@ -470,7 +472,7 @@ def display_table_results(table, is_mobile):
     )
 
     switch = dmc.Switch(
-        size="sm",
+        size="md",
         radius="xl",
         label="Unique objects",
         color="orange",
@@ -480,7 +482,7 @@ def display_table_results(table, is_mobile):
     switch_description = "Toggle the switch to list each object only once. Only the latest alert will be displayed."
 
     switch_sso = dmc.Switch(
-        size="sm",
+        size="md",
         radius="xl",
         label="Unique Solar System objects",
         color="orange",
@@ -490,7 +492,7 @@ def display_table_results(table, is_mobile):
     switch_sso_description = "Toggle the switch to list each Solar System Object only once. Only the latest alert will be displayed."
 
     switch_tracklet = dmc.Switch(
-        size="sm",
+        size="md",
         radius="xl",
         label="Unique tracklets",
         color="orange",
@@ -523,7 +525,6 @@ def display_table_results(table, is_mobile):
                                         dmc.Group(
                                             [
                                                 dropdown,
-                                                modal_quickview,
                                                 dmc.Paper(
                                                     [
                                                         dmc.Group(
@@ -558,6 +559,7 @@ def display_table_results(table, is_mobile):
                                         )
                                     ], width=8
                                 ),
+                                dbc.Col(modal_quickview, width=4)
                             ]
                         )
                     ],
