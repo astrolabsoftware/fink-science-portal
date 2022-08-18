@@ -385,7 +385,6 @@ modal_quickview = html.Div(
             color="gray",
             fullWidth=True,
             variant='outline',
-            size='xl',
             radius='xl'
         ),
         dbc.Modal(
@@ -523,7 +522,7 @@ def display_table_results(table, is_mobile):
                                 [
                                     dmc.Paper(
                                         [
-                                            dbc.Group(
+                                            dmc.Group(
                                                 [
                                                     dropdown,
                                                     switch,
