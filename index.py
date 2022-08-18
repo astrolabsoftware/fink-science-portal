@@ -408,12 +408,12 @@ modal_quickview = html.Div(
 )
 
 @app.callback(
-    Output("modal_quickview", "is_open"),
+    Output("modal_quickview", "opened"),
     [
         Input("open_modal_quickview", "n_clicks"),
         Input("close_modal_quickview", "n_clicks")
     ],
-    [State("modal_quickview", "is_open")],
+    [State("modal_quickview", "opened")],
 )
 def toggle_modal_preview(n1, n2, is_open):
     if n1 or n2:
