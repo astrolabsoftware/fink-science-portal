@@ -231,6 +231,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         ],
                         radius='xl', p='md', shadow='xl', withBorder=True
                     ),
+                    dmc.Space(h=4),
                     dmc.Center(
                         dmc.ActionIcon(
                             DashIconify(icon="tabler:arrows-maximize"),
