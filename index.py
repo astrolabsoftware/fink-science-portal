@@ -1231,7 +1231,7 @@ navbar = dmc.Header(
                                 dmc.Tooltip(
                                     dmc.ThemeIcon(
                                         DashIconify(
-                                            icon="healthicons:f-outline",
+                                            icon="healthicons:f",
                                             width=22,
                                         ),
                                         radius=30,
