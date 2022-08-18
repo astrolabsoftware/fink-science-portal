@@ -573,7 +573,8 @@ def display_table_results(table, is_mobile):
                     span=10
                 ),
                 dmc.Col(modal_quickview, span=2)
-            ]
+            ],
+            align='center'
         ),
         table
     ], fluid=True)
