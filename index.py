@@ -403,7 +403,9 @@ modal_quickview = html.Div(
             id="modal_quickview",
             opened=False,
             size="lg",
-            overlayColor='rgba(255,255,255,0.3)'
+            style={
+                'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+            },
         ),
     ]
 )
