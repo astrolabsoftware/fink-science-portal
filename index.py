@@ -547,7 +547,7 @@ def display_table_results(table, is_mobile):
                                                         placement="top"
                                                     ),
                                                     modal_quickview
-                                                ], direction='column', grow=True
+                                                ], direction='column', grow=True, spacing='xs'
                                             )
 
                                         ],
