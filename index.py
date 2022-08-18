@@ -522,9 +522,9 @@ def display_table_results(table, is_mobile):
                                     [
                                         dmc.Group(
                                             [
-                                                dbc.Row(dropdown),
-                                                dbc.Row(modal_quickview)
-                                            ]
+                                                dropdown,
+                                                modal_quickview
+                                            ], direction='column', grow=True
                                         )
                                     ], width=6
                                 ),
