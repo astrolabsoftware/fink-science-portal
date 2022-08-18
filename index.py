@@ -169,11 +169,11 @@ modal = html.Div(
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("Fink Science Portal"),
+                dbc.ModalHeader(dbc.ModalTitle("Fink Science Portal"), close_button=True),
                 dbc.ModalBody(dcc.Markdown(message_help)),
-                dbc.ModalFooter(
-                    dbc.Button("Close", id="close", className="ml-auto")
-                ),
+                # dbc.ModalFooter(
+                #     dbc.Button("Close", id="close", className="ml-auto")
+                # ),
             ],
             id="modal", scrollable=True
         ),
