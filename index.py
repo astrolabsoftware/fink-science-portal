@@ -1205,23 +1205,13 @@ navbar = dmc.Header(
                                     label="Source Code",
                                     position="bottom",
                                 ),
-                                href="https://github.com/snehilvj/dash-mantine-components",
+                                href="https://github.com/astrolabsoftware/fink-science-portal",
                             ),
                             html.A(
                                 dmc.Tooltip(
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="bi:discord",
-                                            width=22,
-                                        ),
-                                        radius=30,
-                                        size=36,
-                                        variant="outline",
-                                    ),
-                                    label="Discord",
-                                    position="bottom",
+                                    dmc.Avatar(src='/assets/Fink_PrimaryLogo_WEB.png')
                                 ),
-                                href="https://discord.gg/KuJkh4Pyq5",
+                                href="https://fink-broker.org",
                             ),
                         ],
                     ),
