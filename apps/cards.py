@@ -227,7 +227,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 spacing='xl'
                                             ),
                                         ], style={
-                                            'background-image': 'linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3))'
+                                            'background': 'rgba(255, 255, 255,0.0)'
                                         }
                                     ),
                                 ],
