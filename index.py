@@ -372,42 +372,49 @@ def carousel(nclick, data, is_mobile):
     return carousel
 
 
-modal_quickview = html.Div(
-    [
-        dmc.Button(
-            "Preview",
-            id="open_modal_quickview",
-            n_clicks=0,
-            leftIcon=[DashIconify(icon="tabler:eye")],
-            color="gray",
-            fullWidth=True,
-            variant='outline',
-            radius='xl'
-        ),
-        dbc.Modal(
-            [
-                dbc.ModalBody(
-                    dbc.Container(
-                        id='carousel',
-                        fluid=True,
-                        style={'width': '95%'}
-                    ), style={
-                        'background': '#000',
-                        'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-                    }
-                ),
-                dbc.ModalFooter(
-                    dbc.Button(
-                        "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
-                    ), style={'display': 'None'}
-                ),
-            ],
-            id="modal_quickview",
-            is_open=False,
-            size="lg",
-        ),
-    ]
-)
+def modal_quickview(is_mobile):
+    if not is_mobile:
+        button_title = "Preview"
+    else:
+        button_title = ""
+    modal = html.Div(
+        [
+            dmc.Button(
+                button_title,
+                id="open_modal_quickview",
+                n_clicks=0,
+                leftIcon=[DashIconify(icon="tabler:eye")],
+                color="gray",
+                fullWidth=True,
+                variant='outline',
+                radius='xl'
+            ),
+            dbc.Modal(
+                [
+                    dbc.ModalBody(
+                        dbc.Container(
+                            id='carousel',
+                            fluid=True,
+                            style={'width': '95%'}
+                        ), style={
+                            'background': '#000',
+                            'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+                        }
+                    ),
+                    dbc.ModalFooter(
+                        dbc.Button(
+                            "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
+                        ), style={'display': 'None'}
+                    ),
+                ],
+                id="modal_quickview",
+                is_open=False,
+                size="lg",
+            ),
+        ]
+    )
+
+    return modal
 
 @app.callback(
     Output("modal_quickview", "is_open"),
@@ -572,7 +579,7 @@ def display_table_results(table, is_mobile):
                     ),
                     span=10
                 ),
-                dmc.Col(modal_quickview, span=2)
+                dmc.Col(modal_quickview(is_mobile), span=2)
             ],
             align='center'
         ),
