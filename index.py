@@ -529,7 +529,7 @@ def display_table_results(table, is_mobile):
                                     ], width=6
                                 ),
                                 dbc.Col(
-                                    dmc.Group(
+                                    dmc.Paper(
                                         [
                                             switch,
                                             dbc.Popover(
@@ -552,7 +552,8 @@ def display_table_results(table, is_mobile):
                                                 trigger="hover",
                                                 placement="top"
                                             ),
-                                        ], direction='column', position='center'
+                                        ],
+                                        radius='xl', p='md', shadow='xl', withBorder=True
                                     ),
                                     width=6
                                 )
