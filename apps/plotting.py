@@ -1436,7 +1436,8 @@ def draw_cutouts_modal(object_data, date_modal_select):
                 dmc.Tooltip(
                     children=draw_cutout(data, kind, modal=True),
                     wrapLines=True,
-                    width=220,
+                    width=100,
+                    radius='xl',
                     withArrow=True,
                     transition="fade",
                     transitionDuration=200,
