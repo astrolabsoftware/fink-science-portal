@@ -1143,8 +1143,8 @@ def create_home_link(label):
 navbar = dmc.Header(
     height=0,
     fixed=True,
-    p=0,
-    mt=10,
+    p=10,
+    m=0,
     children=[
         dmc.Container(
             fluid=True,
