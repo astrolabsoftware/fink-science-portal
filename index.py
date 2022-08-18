@@ -1140,7 +1140,7 @@ def create_home_link(label):
     )
 
 
-navbar = dmc.Header(
+navbar = dmc.Navbar(
     height=0,
     fixed=True,
     p="xs",
