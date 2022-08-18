@@ -375,15 +375,17 @@ def carousel(nclick, data, is_mobile):
 def modal_quickview(is_mobile):
     if not is_mobile:
         button_title = "Preview"
+        leftIcon = [DashIconify(icon="tabler:eye")]
     else:
-        button_title = ""
+        button_title = [DashIconify(icon="tabler:eye")]
+        leftIcon = None
     modal = html.Div(
         [
             dmc.Button(
                 button_title,
                 id="open_modal_quickview",
                 n_clicks=0,
-                leftIcon=[DashIconify(icon="tabler:eye")],
+                leftIcon=leftIcon,
                 color="gray",
                 fullWidth=True,
                 variant='outline',
