@@ -383,7 +383,7 @@ def modal_quickview(is_mobile):
             fullWidth=True,
             variant='outline',
             radius='xl'
-        ),
+        )
     else:
         button = dmc.ActionIcon(
             [DashIconify(icon="tabler:eye")],
