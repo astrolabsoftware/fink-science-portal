@@ -1141,7 +1141,7 @@ def create_home_link(label):
 
 
 navbar = dmc.Header(
-    height=30,
+    height=0,
     fixed=True,
     p="md",
     children=[
@@ -1155,12 +1155,12 @@ navbar = dmc.Header(
                         dcc.Link(
                             [
                                 dmc.MediaQuery(
-                                    create_home_link("Dash Mantine Components"),
+                                    create_home_link("Fink Science Portal"),
                                     smallerThan="sm",
                                     styles={"display": "none"},
                                 ),
                                 dmc.MediaQuery(
-                                    create_home_link("DMC"),
+                                    create_home_link("Fink"),
                                     largerThan="sm",
                                     styles={"display": "none"},
                                 ),
