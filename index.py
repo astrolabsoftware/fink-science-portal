@@ -500,7 +500,7 @@ def display_table_results(table, is_mobile):
     if is_mobile:
         width_options = 12
     else:
-        width_options = 3
+        width_options = 4
 
     return dbc.Container([
         html.Br(),
@@ -570,9 +570,9 @@ def display_table_results(table, is_mobile):
                             )
                         ]
                     ),
-                    width=8
+                    width=10
                 ),
-                dbc.Col(modal_quickview, width=4)
+                dbc.Col(modal_quickview, width=2)
             ]
         ),
         table
