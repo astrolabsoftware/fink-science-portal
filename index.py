@@ -574,7 +574,7 @@ def display_table_results(table, is_mobile):
                 ),
                 dbc.Col(modal_quickview, width=4)
             ]
-        )
+        ),
         table
     ], fluid=True)
 
