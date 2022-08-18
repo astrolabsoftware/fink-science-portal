@@ -1432,21 +1432,19 @@ def draw_cutouts_modal(object_data, date_modal_select):
     for kind in ['science', 'template', 'difference']:
         try:
             data = extract_cutout(object_data, date_modal_select, kind=kind)
-            figs.append(
-                dmc.Tooltip(
-                    children=draw_cutout(data, kind, modal=True),
-                    wrapLines=True,
-                    width=220,
-                    withArrow=True,
-                    transition="fade",
-                    transitionDuration=200,
-                    label=kind
-                )
-            )
+            figs.append(draw_cutout(data, kind, modal=True))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
-    return figs
+    return dmc.Tooltip(
+        children=figs,
+        wrapLines=True,
+        width=220,
+        withArrow=True,
+        transition="fade",
+        transitionDuration=200,
+        label=kind
+    )
 
 @app.callback(
     Output("stamps_mobile", "children"),
