@@ -74,8 +74,7 @@ def tab1_content():
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_lightcurve_summary(), width=8),
-            dbc.Col(id="card_id_col", width=4)
+            dbc.Col(card_lightcurve_summary(), width=12),
         ]),
     ])
 
@@ -785,13 +784,14 @@ def layout(name, is_mobile):
                                 html.Div(id="card_id_left"),
                                 html.Br(),
                                 html.Br(),
-                                html.Div(
-                                    [visdcc.Run_js(id='aladin-lite-div')],
-                                    style={
-                                        'width': '100%',
-                                        'height': '30pc',
-                                    }
-                                ),
+                                html.Div(id="card_id_col")
+                                # html.Div(
+                                #     [visdcc.Run_js(id='aladin-lite-div')],
+                                #     style={
+                                #         'width': '100%',
+                                #         'height': '30pc',
+                                #     }
+                                # ),
                                 html.Br(),
                             ], width={"size": 3},
                         ),
