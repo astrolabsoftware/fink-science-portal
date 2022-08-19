@@ -43,7 +43,7 @@ def card_lightcurve_summary():
         [
             dbc.Col(
                 dmc.Paper(
-                    dbc.Col(id='stamps'),
+                    dbc.Row(id='stamps', justify='around'),
                     radius='xl', p='md', shadow='xl', withBorder=True
                 ), width=8
             ),
