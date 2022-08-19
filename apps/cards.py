@@ -39,24 +39,24 @@ def card_lightcurve_summary():
     card: dbc.Card
         Card with the cutouts drawn inside
     """
-    stamps = dmc.Paper(
+    stamps = dbc.Row(
         [
-            dbc.Row(
-                [
-                    dbc.Col(id='stamps', width=8),
-                    dbc.Col(
-                        html.Div(
-                            [visdcc.Run_js(id='aladin-lite-div')],
-                            style={
-                                'width': '10pc',
-                                'height': '10pc',
-                            }
-                        ),
-                    )
-                ],
-                justify='around', className="g-0"),
-        ],
-        radius='xl', p='md', shadow='xl', withBorder=True
+            dbc.Col(
+                dmc.Paper(
+                    dbc.Col(id='stamps'),
+                    radius='xl', p='md', shadow='xl', withBorder=True
+                ), width=8
+            ),
+            dbc.Col(
+                html.Div(
+                    [visdcc.Run_js(id='aladin-lite-div')],
+                    style={
+                        'width': '10pc',
+                        'height': '10pc',
+                    }
+                ), width=4
+            )
+        ]
     )
 
     card = dmc.Paper(
