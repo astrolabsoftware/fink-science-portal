@@ -39,6 +39,13 @@ def card_lightcurve_summary():
     card: dbc.Card
         Card with the cutouts drawn inside
     """
+    stamps = dmc.Paper(
+        [
+            dbc.Row(id='stamps', justify='around', className="g-0"),
+        ],
+        radius='xl', p='md', shadow='xl', withBorder=True
+    )
+
     card = dmc.Paper(
         [
             dcc.Graph(
@@ -85,7 +92,7 @@ def card_lightcurve_summary():
             )
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
-    return card
+    return dmc.Group([stamps, html.Br(), card], direction='column', grow=True)
 
 def card_explanation_xmatch():
     """ Explain how xmatch works
@@ -193,75 +200,75 @@ curl -H "Content-Type: application/json" -X POST \\
         offsetIcon=False,
         disableIconRotation=True,
         children=[
-            dmc.AccordionItem(
-                [
-                    dmc.Paper(
-                        [
-                            dbc.Row(id='stamps', justify='around', className="g-0"),
-                            dbc.Modal(
-                                [
-                                    dbc.ModalHeader(
-                                        dmc.Select(
-                                            label="",
-                                            placeholder="Select a date",
-                                            searchable=True,
-                                            nothingFound="No options found",
-                                            id="date_modal_select",
-                                            value=None,
-                                            data=[
-                                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
-                                            ],
-                                            style={"width": 200, "marginBottom": 10},
-                                            zIndex=10000000,
-                                        ),
-                                        close_button=True,
-                                        style={
-                                            'background-image': 'linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3))'
-                                        }
-                                    ),
-                                    dbc.ModalBody(
-                                        [
-                                            dmc.Group(
-                                                id="stamps_modal_content",
-                                                position='center',
-                                                spacing='xl'
-                                            ),
-                                        ], style={
-                                            'background': 'rgba(255, 255, 255,0.0)',
-                                            'background-image': 'linear-gradient(rgba(255, 255, 255,0.0), rgba(255,255,255,0.0))'
-                                        }
-                                    ),
-                                ],
-                                id="stamps_modal",
-                                scrollable=True,
-                                centered=True,
-                                size='xl'
-                            ),
-                        ],
-                        radius='xl', p='md', shadow='xl', withBorder=True
-                    ),
-                    dmc.Space(h=4),
-                    dmc.Center(
-                        dmc.ActionIcon(
-                            DashIconify(icon="tabler:arrows-maximize"),
-                            id="maximise_stamps",
-                            n_clicks=0,
-                            variant="default",
-                            radius=30,
-                            size=36,
-                            color='gray'
-                        ),
-                    ),
-                ],
-                label="Last alert cutouts",
-                icon=[
-                    DashIconify(
-                        icon="tabler:flare",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
-                    )
-                ],
-            ),
+            # dmc.AccordionItem(
+            #     [
+            #         dmc.Paper(
+            #             [
+            #                 dbc.Row(id='stamps', justify='around', className="g-0"),
+            #                 dbc.Modal(
+            #                     [
+            #                         dbc.ModalHeader(
+            #                             dmc.Select(
+            #                                 label="",
+            #                                 placeholder="Select a date",
+            #                                 searchable=True,
+            #                                 nothingFound="No options found",
+            #                                 id="date_modal_select",
+            #                                 value=None,
+            #                                 data=[
+            #                                     {"value": i, "label": i} for i in pdf['v:lastdate'].values
+            #                                 ],
+            #                                 style={"width": 200, "marginBottom": 10},
+            #                                 zIndex=10000000,
+            #                             ),
+            #                             close_button=True,
+            #                             style={
+            #                                 'background-image': 'linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3))'
+            #                             }
+            #                         ),
+            #                         dbc.ModalBody(
+            #                             [
+            #                                 dmc.Group(
+            #                                     id="stamps_modal_content",
+            #                                     position='center',
+            #                                     spacing='xl'
+            #                                 ),
+            #                             ], style={
+            #                                 'background': 'rgba(255, 255, 255,0.0)',
+            #                                 'background-image': 'linear-gradient(rgba(255, 255, 255,0.0), rgba(255,255,255,0.0))'
+            #                             }
+            #                         ),
+            #                     ],
+            #                     id="stamps_modal",
+            #                     scrollable=True,
+            #                     centered=True,
+            #                     size='xl'
+            #                 ),
+            #             ],
+            #             radius='xl', p='md', shadow='xl', withBorder=True
+            #         ),
+            #         dmc.Space(h=4),
+            #         dmc.Center(
+            #             dmc.ActionIcon(
+            #                 DashIconify(icon="tabler:arrows-maximize"),
+            #                 id="maximise_stamps",
+            #                 n_clicks=0,
+            #                 variant="default",
+            #                 radius=30,
+            #                 size=36,
+            #                 color='gray'
+            #             ),
+            #         ),
+            #     ],
+            #     label="Last alert cutouts",
+            #     icon=[
+            #         DashIconify(
+            #             icon="tabler:flare",
+            #             color=dmc.theme.DEFAULT_COLORS["dark"][6],
+            #             width=20,
+            #         )
+            #     ],
+            # ),
             dmc.AccordionItem(
                 html.Div([], id='alert_table'),
                 label="Last alert content",
