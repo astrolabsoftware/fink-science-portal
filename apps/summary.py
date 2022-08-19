@@ -74,8 +74,8 @@ def tab1_content():
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_lightcurve_summary(), width=12),
-        ]),
+            dbc.Col(card_lightcurve_summary(), width=10),
+        ], justify='center'),
     ])
 
     out = dmc.LoadingOverlay(
