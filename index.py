@@ -1160,10 +1160,11 @@ def create_home_link(label):
 
 
 navbar = dmc.Header(
-    height=0,
+    height=55,
     fixed=True,
     p=0,
     m=0,
+    style={'background-image': 'linear-gradient(rgba(50,50,50,0.3), rgba(255,255,255,0.9)), url(/assets/background.png)'},
     children=[
         dmc.Space(h=10),
         dmc.Container(
