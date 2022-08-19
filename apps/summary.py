@@ -784,7 +784,7 @@ def layout(name, is_mobile):
                                 html.Div(id="card_id_left"),
                                 html.Br(),
                                 html.Br(),
-                                html.Div(id="card_id_col")
+                                html.Div(id="card_id_col"),
                                 # html.Div(
                                 #     [visdcc.Run_js(id='aladin-lite-div')],
                                 #     style={
