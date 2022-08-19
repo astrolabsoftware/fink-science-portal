@@ -830,7 +830,7 @@ def layout(name, is_mobile):
                                                     size='xl'
                                                 ),
                                             ],
-                                            radius='xl', p='md', shadow='xl', withBorder=True
+                                            p='md', shadow='xl', withBorder=True, style={'border-top-left-radius': '25px', 'border-top-right-radius': '25px'}
                                         ),
                                         visdcc.Run_js(id='aladin-lite-div'),
                                         dmc.Space(h=4),
@@ -848,7 +848,7 @@ def layout(name, is_mobile):
                                     ],
                                     style={
                                         'width': '100%',
-                                        'height': '27pc',
+                                        'height': '15pc',
                                     }
                                 ),
                                 html.Br(),
