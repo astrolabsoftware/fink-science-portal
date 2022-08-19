@@ -790,7 +790,7 @@ def layout(name, is_mobile):
                                     style={
                                         'width': '100%',
                                         'height': '27pc',
-                                    }, className='roundimg nozoom'
+                                    }, className='roundcorner'
                                 ),
                                 html.Br(),
                             ], width={"size": 3},

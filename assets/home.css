@@ -32,6 +32,10 @@ html, body {
   clip-path: circle(40%);
 }
 
+.roundcorner {
+  border-radius: 25px;
+}
+
 .zoom {
   padding: 2px;
   transition: transform .2s; /* Animation */
