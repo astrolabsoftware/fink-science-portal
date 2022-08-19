@@ -41,7 +41,15 @@ def card_lightcurve_summary():
     """
     stamps = dmc.Paper(
         [
-            dbc.Row(id='stamps', justify='around', className="g-0"),
+            # dbc.Row(id='stamps', justify='around', className="g-0"),
+            html.Div(id='stamps'),
+            html.Div(
+                [visdcc.Run_js(id='aladin-lite-div')],
+                style={
+                    'width': '100%',
+                    'height': '27pc',
+                }
+            ),
         ],
         radius='xl', p='md', shadow='xl', withBorder=True
     )
@@ -92,7 +100,7 @@ def card_lightcurve_summary():
             )
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
-    return dmc.Group([stamps, html.Br(), card], direction='column', grow=True)
+    return dmc.Group([stamps, card], direction='column', grow=True)
 
 def card_explanation_xmatch():
     """ Explain how xmatch works
