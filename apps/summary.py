@@ -451,7 +451,6 @@ def tabs(pdf, is_mobile):
 
 def title_mobile(name):
     header = [
-        html.Hr(),
         dbc.Row(
             [
                 dmc.Center(dmc.Title(children='{}'.format(name[1:]), style={'color': '#15284F'}))
@@ -741,7 +740,7 @@ def layout(name, is_mobile):
                                 dbc.Col(dmc.Center(tabs(pdf, is_mobile)), width=12)
                             ]
                         ),
-                        html.Br(),
+                        html.Hr(),
                         dbc.Row(
                             [
                                 dbc.Col([html.Br(), dbc.Row(id='stamps_mobile', justify='around')], width={"size": 12, "offset": 0},),
