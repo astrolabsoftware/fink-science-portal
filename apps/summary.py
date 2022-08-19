@@ -832,7 +832,7 @@ def layout(name, is_mobile):
                                             ],
                                             radius='xl', p='md', shadow='xl', withBorder=True
                                         ),
-                                        visdcc.Run_js(id='aladin-lite-div')
+                                        visdcc.Run_js(id='aladin-lite-div'),
                                         dmc.Space(h=4),
                                         dmc.Center(
                                             dmc.ActionIcon(
