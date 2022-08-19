@@ -46,8 +46,8 @@ def card_lightcurve_summary():
             html.Div(
                 [visdcc.Run_js(id='aladin-lite-div')],
                 style={
-                    'width': '100%',
-                    'height': '27pc',
+                    'width': '10pc',
+                    'height': '10pc',
                 }
             ),
         ],
