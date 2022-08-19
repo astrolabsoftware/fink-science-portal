@@ -785,13 +785,13 @@ def layout(name, is_mobile):
                                 html.Div(id="card_id_left"),
                                 html.Br(),
                                 html.Br(),
-                                # html.Div(
-                                #     [visdcc.Run_js(id='aladin-lite-div')],
-                                #     style={
-                                #         'width': '100%',
-                                #         'height': '27pc',
-                                #     }
-                                # ),
+                                html.Div(
+                                    [visdcc.Run_js(id='aladin-lite-div')],
+                                    style={
+                                        'width': '100%',
+                                        'height': '30pc',
+                                    }
+                                ),
                                 html.Br(),
                             ], width={"size": 3},
                         ),

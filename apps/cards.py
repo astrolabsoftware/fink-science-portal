@@ -41,15 +41,7 @@ def card_lightcurve_summary():
     """
     stamps = dmc.Paper(
         [
-            # dbc.Row(id='stamps', justify='around', className="g-0"),
-            html.Div(id='stamps'),
-            html.Div(
-                [visdcc.Run_js(id='aladin-lite-div')],
-                style={
-                    'width': '10pc',
-                    'height': '10pc',
-                }
-            ),
+            dbc.Row(id='stamps', justify='around', className="g-0"),
         ],
         radius='xl', p='md', shadow='xl', withBorder=True
     )
