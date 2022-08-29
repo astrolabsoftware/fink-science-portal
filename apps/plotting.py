@@ -2873,7 +2873,7 @@ def plot_stat_evolution(pathname, param_name, switch):
         figure=fig,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '35pc'
         },
         config={'displayModeBar': False}
     )
