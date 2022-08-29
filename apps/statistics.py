@@ -462,6 +462,7 @@ def layout(is_mobile):
             [
                 html.Br(),
                 html.Br(),
+                html.Br(),
                 dbc.Row(id='stat_row'),
                 html.Br(),
                 dbc.Row(
