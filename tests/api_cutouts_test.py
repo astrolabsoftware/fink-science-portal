@@ -56,7 +56,7 @@ def cutouttest(objectId='ZTF21aaxtctv', kind='Science', stretch='sigmoid', color
     elif output_format == 'FITS':
         data = fits.open(io.BytesIO(r.content), ignore_missing_simple=True)
     elif output_format == 'array':
-        pdf = pd.read_json(r.content)
+        pdf = pd.read_json(io.BytesIO(r.content))
         data = pdf['b:cutout{}_stampData'.format(kind)].values[0]
 
     return data

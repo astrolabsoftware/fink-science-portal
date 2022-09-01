@@ -36,7 +36,7 @@ def bayestartest(bayestar='bayestar.fits.gz', credible_level=0.1, output_format=
         json=payload
     )
 
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(io.BytesIO(r.content))
 
     return pdf
 
