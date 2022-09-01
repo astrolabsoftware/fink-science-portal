@@ -13,27 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Input, Output, State
-import dash_bootstrap_components as dbc
-import dash_table
+from dash import html, dcc, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
+
+import dash_bootstrap_components as dbc
 import visdcc
 import dash_trich_components as dtc
 
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 from app import server
 from app import app
 from app import client
 from app import APIURL
 
-from apps import home, summary, about, statistics
+from apps import summary, about, statistics
 from apps.api import api
 from apps import __version__ as portal_version
 
-from apps.utils import markdownify_objectid
+from apps.utils import markdownify_objectid, class_colors
 from apps.utils import isoify_time, validate_query, extract_query_url
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
@@ -170,11 +169,8 @@ modal = html.Div(
         ),
         dbc.Modal(
             [
-                dbc.ModalHeader("Fink Science Portal"),
+                dbc.ModalHeader(dbc.ModalTitle("Fink Science Portal"), close_button=True),
                 dbc.ModalBody(dcc.Markdown(message_help)),
-                dbc.ModalFooter(
-                    dbc.Button("Close", id="close", className="ml-auto")
-                ),
             ],
             id="modal", scrollable=True
         ),
@@ -183,13 +179,13 @@ modal = html.Div(
 
 @app.callback(
     Output("modal", "is_open"),
-    [Input("open", "n_clicks"), Input("close", "n_clicks")],
+    [Input("open", "n_clicks")],
     [State("modal", "is_open")],
 )
-def toggle_modal(n1, n2, is_open):
+def toggle_modal(n1, is_open):
     """ Callback for the modal (open/close)
     """
-    if n1 or n2:
+    if n1:
         return not is_open
     return is_open
 
@@ -204,10 +200,15 @@ fink_search_bar = dbc.InputGroup(
             className='inputbar',
             debounce=True
         ),
-        dbc.Button(
-            html.I(className="fas fa-search fa-1x"),
+        dmc.ActionIcon(
+            DashIconify(icon="tabler:search", width=20),
+            n_clicks=0,
             id="submit",
-            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'}
+            color='gray',
+            variant="transparent",
+            radius='xl',
+            size='lg',
+            loaderProps={'variant': 'dots', 'color': 'orange'}
         ),
         modal
     ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
@@ -371,39 +372,56 @@ def carousel(nclick, data, is_mobile):
     return carousel
 
 
-modal_quickview = html.Div(
-    [
-        dbc.Button(
+def modal_quickview(is_mobile):
+    if not is_mobile:
+        button = dmc.Button(
             "Preview",
             id="open_modal_quickview",
             n_clicks=0,
-            outline=True,
-            color="secondary"
-        ),
-        dbc.Modal(
-            [
-                dbc.ModalBody(
-                    dbc.Container(
-                        id='carousel',
-                        fluid=True,
-                        style={'width': '95%'}
-                    ), style={
-                        'background': '#000',
-                        'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-                    }
-                ),
-                dbc.ModalFooter(
-                    dbc.Button(
-                        "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
-                    ), style={'display': 'None'}
-                ),
-            ],
-            id="modal_quickview",
-            is_open=False,
-            size="lg",
-        ),
-    ]
-)
+            leftIcon=[DashIconify(icon="tabler:eye")],
+            color="gray",
+            fullWidth=True,
+            variant='outline',
+            radius='xl'
+        )
+    else:
+        button = dmc.ActionIcon(
+            [DashIconify(icon="tabler:eye")],
+            id="open_modal_quickview",
+            n_clicks=0,
+            color="gray",
+            variant='outline',
+            radius='xl'
+        )
+    modal = html.Div(
+        [
+            button,
+            dbc.Modal(
+                [
+                    dbc.ModalBody(
+                        dbc.Container(
+                            id='carousel',
+                            fluid=True,
+                            style={'width': '95%'}
+                        ), style={
+                            'background': '#000',
+                            'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+                        }
+                    ),
+                    dbc.ModalFooter(
+                        dbc.Button(
+                            "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
+                        ), style={'display': 'None'}
+                    ),
+                ],
+                id="modal_quickview",
+                is_open=False,
+                size="lg",
+            ),
+        ]
+    )
+
+    return modal
 
 @app.callback(
     Output("modal_quickview", "is_open"),
@@ -494,46 +512,83 @@ def display_table_results(table, is_mobile):
     switch_tracklet_description = "Toggle the switch to list each Tracklet only once (fast moving objects). Only the latest alert will be displayed."
 
     if is_mobile:
-        width_dropdown = 8
-        width_preview = 4
-        width_button = 4
+        width_options = 12
     else:
-        width_dropdown = 10
-        width_preview = 2
-        width_button = 4
+        width_options = 4
 
     return dbc.Container([
         html.Br(),
-        dbc.Row(
+        dmc.Grid(
             [
-                dbc.Col(dropdown, width=width_dropdown),
-                dbc.Col(modal_quickview, width=width_preview)
-            ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(switch, width=width_button),
-                dbc.Popover(
-                    [dbc.PopoverBody(switch_description)],
-                    target="alert-object-switch",
-                    trigger="hover",
-                    placement="top"
+                dmc.Col(
+                    dmc.Accordion(
+                        state={"0": False},
+                        offsetIcon=False,
+                        children=[
+                            dmc.AccordionItem(
+                                children=[
+                                    dbc.Row(
+                                        dbc.Col(
+                                            [
+                                                dmc.Paper(
+                                                    [
+                                                        dmc.Group(
+                                                            [
+                                                                dropdown,
+                                                                dmc.Tooltip(
+                                                                    children=switch,
+                                                                    wrapLines=True,
+                                                                    width=220,
+                                                                    withArrow=True,
+                                                                    transition="fade",
+                                                                    transitionDuration=200,
+                                                                    label=switch_description
+                                                                ),
+                                                                dmc.Tooltip(
+                                                                    children=switch_sso,
+                                                                    wrapLines=True,
+                                                                    width=220,
+                                                                    withArrow=True,
+                                                                    transition="fade",
+                                                                    transitionDuration=200,
+                                                                    label=switch_sso_description
+                                                                ),
+                                                                dmc.Tooltip(
+                                                                    children=switch_tracklet,
+                                                                    wrapLines=True,
+                                                                    width=220,
+                                                                    withArrow=True,
+                                                                    transition="fade",
+                                                                    transitionDuration=200,
+                                                                    label=switch_tracklet_description
+                                                                ),
+                                                            ], direction='column', grow=True, spacing='xs'
+                                                        )
+
+                                                    ],
+                                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                                )
+                                            ],
+                                            width=width_options
+                                        )
+                                    )
+                                ],
+                                label="Table options",
+                                icon=[
+                                    DashIconify(
+                                        icon="tabler:arrow-bar-to-down",
+                                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                        width=20,
+                                    )
+                                ],
+                            )
+                        ]
+                    ),
+                    span=10
                 ),
-                dbc.Col(switch_sso, width=width_button),
-                dbc.Popover(
-                    [dbc.PopoverBody(switch_sso_description)],
-                    target="alert-sso-switch",
-                    trigger="hover",
-                    placement="top"
-                ),
-                dbc.Col(switch_tracklet, width=width_button),
-                dbc.Popover(
-                    [dbc.PopoverBody(switch_tracklet_description)],
-                    target="alert-tracklet-switch",
-                    trigger="hover",
-                    placement="top"
-                ),
-            ], justify='between'
+                dmc.Col(modal_quickview(is_mobile), span=2)
+            ],
+            align='center'
         ),
         table
     ], fluid=True)
@@ -541,13 +596,12 @@ def display_table_results(table, is_mobile):
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
     [
-        Input("validate_results", "value"),
         Input("result_table", "data"),
         Input("result_table", "columns"),
         Input('tabs', 'active_tab')
     ],
 )
-def display_skymap(validation, data, columns, activetab):
+def display_skymap(data, columns, activetab):
     """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
@@ -567,7 +621,7 @@ def display_skymap(validation, data, columns, activetab):
     if len(data) > 1000:
         msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
         return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
-    if validation and (activetab == 't2'):
+    if len(data) > 0 and (activetab == 't2'):
         pdf = pd.DataFrame(data)
 
         # Coordinate of the first alert
@@ -591,29 +645,18 @@ def display_skymap(validation, data, columns, activetab):
         mags = pdf['i:magpsf'].values
         classes = pdf['v:classification'].values
         n_alert_per_class = pdf.groupby('v:classification').count().to_dict()['i:objectId']
-        colors = {
-            'Early SN Ia candidate': 'red',
-            'SN candidate': 'orange',
-            'Kilonova candidate': 'blue',
-            'Microlensing candidate': 'green',
-            'Tracklet': "rgb(204,255,204)",
-            'Solar System MPC': "rgb(254,224,144)",
-            'Solar System candidate': "rgb(171,217,233)",
-            'Ambiguous': 'rgb(116,196,118)',
-            'Unknown': '#7f7f7f'
-        }
         cats = []
         for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
             if class_ in simbad_types:
                 cat = 'cat_{}'.format(simbad_types.index(class_))
-                color = '#3C8DFF'
-            elif class_ in colors.keys():
+                color = class_colors['Simbad']
+            elif class_ in class_colors.keys():
                 cat = 'cat_{}'.format(class_.replace(' ', '_'))
-                color = colors[class_]
+                color = class_colors[class_]
             else:
                 # Sometimes SIMBAD mess up names :-)
                 cat = 'cat_{}'.format(class_)
-                color = 'white'
+                color = class_colors['Simbad']
 
             if cat not in cats:
                 img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ' ({})'.format(n_alert_per_class[class_]), color)
@@ -890,18 +933,19 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
 @app.callback(
     [
         Output("results", "children"),
-        Output("validate_results", "value"),
+        Output("submit", "children")
     ],
     [
         Input("search_bar_input", "value"),
         Input("dropdown-query", "value"),
         Input("select", "value"),
         Input("is-mobile", "children"),
-        Input('url', 'search')
+        Input('url', 'search'),
+        Input('submit', 'n_clicks')
     ],
     State("results", "children")
 )
-def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
+def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n_clicks):
     """ Query the database from the search input
 
     Returns
@@ -911,6 +955,11 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     validation: int
         0: not results found, 1: results found
     """
+    empty_query = (query is None) or (query == '')
+
+    if empty_query and query_type != "Class Search":
+        raise PreventUpdate
+
     colnames_to_display = [
         'i:objectId', 'i:ra', 'i:dec',
         'v:lastdate', 'v:classification', 'i:ndethist',
@@ -922,13 +971,9 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     if searchurl != '':
         query, query_type, dropdown_option = extract_query_url(searchurl)
 
-    is_ok = validate_query(query, query_type)
-    if not is_ok['flag']:
-        return dash_table.DataTable(
-            data=[],
-            columns=[],
-            id='result_table'
-        ), 0
+    validation = validate_query(query, query_type)
+    if (not validation['flag']) and (not empty_query):
+        return dmc.Alert(validation['text'], title=validation['header'], color='red', withCloseButton=True), no_update
 
     if query_type == 'objectId':
         r = requests.post(
@@ -1005,18 +1050,13 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
     pdf = pd.read_json(r.content)
 
     if pdf.empty:
-        if searchurl != '':
-            return dbc.Alert(
-                "No alerts found using the {} type: {}".format(query_type, query),
-                color="info",
-                dismissable=True
-            ), 0
-        else:
-            return dash_table.DataTable(
-                data=[],
-                columns=[],
-                id='result_table'
-            ), 0
+        text, header = text_noresults(query, query_type, dropdown_option, searchurl)
+        return dmc.Alert(
+            text,
+            title='Oops!',
+            color="red",
+            withCloseButton=True
+        ), no_update
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
@@ -1040,103 +1080,61 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results):
         validation = 1
 
     table = populate_result_table(data, columns, is_mobile)
-    return construct_results_layout(table, is_mobile), validation
+    return construct_results_layout(table, is_mobile), no_update
 
-
-noresults_toast = html.Div(
-    [
-        dbc.Toast(
-            "",
-            header="",
-            id="noresults-toast2",
-            icon="danger",
-            dismissable=True,
-            is_open=False
-        ),
-        html.Br()
-    ]
-)
-
-@app.callback(
-    [
-        Output("noresults-toast2", "is_open"),
-        Output("noresults-toast2", "children"),
-        Output("noresults-toast2", "header")
-    ],
-    [
-        Input("submit", "n_clicks"),
-        Input("validate_results", "value"),
-        Input("search_bar_input", "value"),
-        Input("search_bar_input", "n_submit"),
-        Input("dropdown-query", "value"),
-        Input("select", "value"),
-        Input("url", "search")
-    ]
-)
-def open_noresults(n, results, query, ns, query_type, dropdown_option, searchurl):
+def text_noresults(query, query_type, dropdown_option, searchurl):
     """ Toast to warn the user about the fact that we found no results
     """
-    # Trigger the query only if the submit button is pressed.
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ('submit' not in changed_id and searchurl == '') or results is None:
-        raise PreventUpdate
-
     # catch parameters sent from URL
     # override any other options
     if searchurl != '':
         query, query_type, dropdown_option = extract_query_url(searchurl)
 
-    validation = validate_query(query, query_type)
-    if not validation['flag']:
-        return (not validation['flag']), validation['header'], validation['text']
-
     # Good query, but no results
     # ugly hack
-    if n and int(results) == 0:
-        if query_type == 'objectId':
-            header = "Search by Object ID"
-            text = "{} not found".format(query)
-        elif query_type == 'SSO':
-            header = "Search by Solar System Object ID"
-            text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
-        elif query_type == 'Tracklet':
-            header = "Search by Tracklet ID"
-            text = "{} not found".format(query)
-        elif query_type == 'Conesearch':
-            header = "Conesearch"
-            text = "No alerts found for (RA, Dec, radius) = {}".format(
-                query
-            )
-        elif query_type == 'Date Search':
-            header = "Search by Date"
-            if dropdown_option is None:
-                window = 1
-            else:
-                window = dropdown_option
-            jd_start = Time(query).jd
-            jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
+    if query_type == 'objectId':
+        header = "Search by Object ID"
+        text = "{} not found".format(query)
+    elif query_type == 'SSO':
+        header = "Search by Solar System Object ID"
+        text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
+    elif query_type == 'Tracklet':
+        header = "Search by Tracklet ID"
+        text = "{} not found".format(query)
+    elif query_type == 'Conesearch':
+        header = "Conesearch"
+        text = "No alerts found for (RA, Dec, radius) = {}".format(
+            query
+        )
+    elif query_type == 'Date Search':
+        header = "Search by Date"
+        if dropdown_option is None:
+            window = 1
+        else:
+            window = dropdown_option
+        jd_start = Time(query).jd
+        jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
 
-            text = "No alerts found between {} and {}".format(
-                Time(jd_start, format='jd').iso,
-                Time(jd_end, format='jd').iso
-            )
-        elif query_type == 'Class Search':
-            header = "Get latest 100 alerts by class"
-            if dropdown_option is None:
-                alert_class = 'allclasses'
-            else:
-                alert_class = dropdown_option
-            # start of the Fink operations
-            jd_start = Time('2019-11-01 00:00:00').jd
-            jd_stop = Time.now().jd
+        text = "No alerts found between {} and {}".format(
+            Time(jd_start, format='jd').iso,
+            Time(jd_end, format='jd').iso
+        )
+    elif query_type == 'Class Search':
+        header = "Get latest 100 alerts by class"
+        if dropdown_option is None:
+            alert_class = 'allclasses'
+        else:
+            alert_class = dropdown_option
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_stop = Time.now().jd
 
-            text = "No alerts for class {} in between {} and {}".format(
-                alert_class,
-                Time(jd_start, format='jd').iso,
-                Time(jd_stop, format='jd').iso
-            )
-        return True, text, header
-    return False, "", ""
+        text = "No alerts for class {} in between {} and {}".format(
+            alert_class,
+            Time(jd_start, format='jd').iso,
+            Time(jd_stop, format='jd').iso
+        )
+    return text, header
 
 # building the navigation bar
 dropdown = dbc.DropdownMenu(
@@ -1153,46 +1151,167 @@ dropdown = dbc.DropdownMenu(
     label="Info",
 )
 
-navbar = dbc.Navbar(
-    [
-        html.A(
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.NavbarBrand(
-                            "Fink Science portal {}".format(portal_version),
-                            className="ml-2"
-                        )
+def create_home_link(label):
+    return dmc.Text(
+        label,
+        size="xl",
+        color="gray",
+    )
+
+
+navbar = dmc.Header(
+    height=55,
+    fixed=True,
+    p=0,
+    m=0,
+    style={'background-image': 'linear-gradient(rgba(50,50,50,0.3), rgba(255,255,255,0.9)), url(/assets/background.png)'},
+    children=[
+        dmc.Space(h=10),
+        dmc.Container(
+            fluid=True,
+            children=dmc.Group(
+                position="apart",
+                align="flex-start",
+                children=[
+                    dmc.Center(
+                        dcc.Link(
+                            [
+                                dmc.MediaQuery(
+                                    create_home_link("Fink Science Portal"),
+                                    smallerThan="sm",
+                                    styles={"display": "none"},
+                                ),
+                                dmc.MediaQuery(
+                                    create_home_link("Fink"),
+                                    largerThan="sm",
+                                    styles={"display": "none"},
+                                ),
+                            ],
+                            href="/",
+                            style={"paddingTop": 5, "textDecoration": "none"},
+                        ),
+                    ),
+                    dmc.Group(
+                        position="right",
+                        align="center",
+                        spacing="xl",
+                        children=[
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:stats-chart-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    label="Statistics",
+                                    position="bottom",
+                                ),
+                                href="{}/stats".format(APIURL),
+                            ),
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="carbon:api",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    label="API",
+                                    position="bottom",
+                                ),
+                                href="{}/api".format(APIURL),
+                            ),
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="radix-icons:github-logo",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    label="Tutorials",
+                                    position="bottom",
+                                ),
+                                href="https://github.com/astrolabsoftware/fink-tutorials",
+                            ),
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="foundation:web",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    label="Website",
+                                    position="bottom",
+                                ),
+                                href="https://fink-broker.org",
+                            ),
+                        ],
                     ),
                 ],
-                justify="start",
-                no_gutters=True,
             ),
-            href="/",
-        ),
-        dbc.NavbarToggler(id="navbar-toggler2"),
-        dbc.Collapse(
-            dbc.Nav(
-                # right align dropdown menu with ml-auto className
-                [
-                    dbc.NavItem(dbc.NavLink('Search', href="{}".format(APIURL))),
-                    dbc.NavItem(dbc.NavLink('Statistics', href="{}/stats".format(APIURL))),
-                    dbc.NavItem(dbc.NavLink('API', href="{}/api".format(APIURL))),
-                    dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/astrolabsoftware/fink-notebook-template")),
-                    dropdown
-                ],
-                navbar=True
-            ),
-            id="navbar-collapse2",
-            navbar=True,
-            style={'background-color': 'rgb(255,250,250)'}
-        ),
+        )
     ],
-    color="rgba(255,255,255,0.9)",
-    dark=False,
-    className="finknav",
-    fixed='top'
 )
+
+# navbar = dbc.Navbar(
+#     [
+#         dbc.NavbarToggler(id="navbar-toggler2"),
+#         html.A(
+#             dbc.Row(
+#                 [
+#                     dbc.Col(
+#                         dbc.NavbarBrand(
+#                             "Fink Science portal {}".format(portal_version),
+#                             className="ml-2"
+#                         )
+#                     ),
+#                 ],
+#                 justify="start",
+#                 className="g-0",
+#             ),
+#             href="/",
+#         ),
+#         dbc.Collapse(
+#             dbc.Nav(
+#                 # right align dropdown menu with ml-auto className
+#                 [
+#                     dbc.NavItem(dbc.NavLink('Search', href="{}".format(APIURL))),
+#                     dbc.NavItem(dbc.NavLink('Statistics', href="{}/stats".format(APIURL))),
+#                     dbc.NavItem(dbc.NavLink('API', href="{}/api".format(APIURL))),
+#                     dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/astrolabsoftware/fink-notebook-template")),
+#                     dropdown
+#                 ],
+#                 navbar=True
+#             ),
+#             id="navbar-collapse2",
+#             navbar=True,
+#             style={'background-color': 'rgb(255,250,250)'}
+#         ),
+#     ],
+#     color="rgba(255,255,255,0.9)",
+#     dark=False,
+#     className="finknav",
+#     fixed='top'
+# )
 
 # add callback for toggling the collapse on small screens
 @app.callback(
@@ -1272,11 +1391,9 @@ def display_page(pathname, is_mobile):
                         clearable=True,
                     ),
                     html.Br(),
-                    noresults_toast
                 ], id='trash', fluid=True, style={'width': width}
             ),
             dbc.Container(id='results'),
-            dbc.Input(id='validate_results', style={'display': 'none'}),
         ],
         className='home',
         style=style

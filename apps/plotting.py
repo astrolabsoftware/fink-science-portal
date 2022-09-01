@@ -23,19 +23,17 @@ import copy
 from astropy.time import Time
 import requests
 
-import dash
-import dash_table
-from dash.dependencies import Input, Output, State
+from dash import html, dcc, dash_table, Input, Output, State, no_update
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-import dash_core_components as dcc
 import dash_bootstrap_components as dbc
-import dash_html_components as html
+import dash_mantine_components as dmc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
 from apps.utils import sine_fit, Vmag
+from apps.utils import class_colors
 
 from apps.statistics import dic_names
 from app import APIURL
@@ -52,19 +50,6 @@ from sbpy.data import Obs
 from app import client, app, clientSSO, clientStats
 
 COLORS_ZTF = ['#15284F', '#F5622E']
-
-# colors_ = [
-#     COLORS_ZTF[0],  # muted blue
-#     COLORS_ZTF[1],  # safety orange
-#     '#2ca02c',  # cooked asparagus green
-#     '#d62728',  # brick red
-#     '#9467bd',  # muted purple
-#     '#8c564b',  # chestnut brown
-#     '#e377c2',  # raspberry yogurt pink
-#     '#7f7f7f',  # middle gray
-#     '#bcbd22',  # curry yellow-green
-#     '#17becf'   # blue-teal
-# ]
 
 colors_ = [
     "rgb(165,0,38)",
@@ -309,7 +294,7 @@ layout_sso_astrometry = dict(
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
-        'title': '&#916;RA (\'\')',
+        'title': '&#916;RA cos(Dec) (\'\')',
         'automargin': True
     },
     yaxis={
@@ -397,16 +382,193 @@ layout_tracklet_lightcurve = dict(
     }
 )
 
-def extract_scores(data: java.util.TreeMap) -> pd.DataFrame:
-    """ Extract SN scores from the data
-    """
-    values = ['i:jd', 'd:snn_snia_vs_nonia', 'd:snn_sn_vs_all', 'd:rf_snia_vs_nonia']
-    pdfs = pd.DataFrame.from_dict(data, orient='index')
-    if pdfs.empty:
-        return pdfs
-    return pdfs[values]
+@app.callback(
+    [
+        Output('variable_plot', 'children'),
+        Output("submit_variable", "children"),
+    ],
+    [
+        Input('nterms_base', 'value'),
+        Input('nterms_band', 'value'),
+        Input('manual_period', 'value'),
+        Input('submit_variable', 'n_clicks'),
+        Input('object-data', 'children'),
+    ],
+    prevent_initial_call=True
+)
+def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object_data):
+    """ Fit for the period of a star using gatspy
 
-def plot_classbar(pdf, is_mobile=False):
+    See https://zenodo.org/record/47887
+    See https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
+
+    TODO: clean me
+    """
+    if type(nterms_base) not in [int]:
+        return {'data': [], "layout": layout_phase}
+    if type(nterms_band) not in [int]:
+        return {'data': [], "layout": layout_phase}
+    if manual_period is not None and type(manual_period) not in [int, float]:
+        return {'data': [], "layout": layout_phase}
+
+    if n_clicks is not None:
+        pdf_ = pd.read_json(object_data)
+        cols = [
+            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
+        ]
+        pdf = pdf_.loc[:, cols]
+        pdf['i:fid'] = pdf['i:fid'].astype(str)
+        pdf = pdf.sort_values('i:jd', ascending=False)
+
+        mag_dc, err_dc = np.transpose(
+            [
+                dc_mag(*args) for args in zip(
+                    pdf['i:fid'].astype(int).values,
+                    pdf['i:magpsf'].astype(float).values,
+                    pdf['i:sigmapsf'].astype(float).values,
+                    pdf['i:magnr'].astype(float).values,
+                    pdf['i:sigmagnr'].astype(float).values,
+                    pdf['i:magzpsci'].astype(float).values,
+                    pdf['i:isdiffpos'].values
+                )
+            ]
+        )
+
+        jd = pdf['i:jd']
+        fit_period = False if manual_period is not None else True
+        model = periodic.LombScargleMultiband(
+            Nterms_base=int(nterms_base),
+            Nterms_band=int(nterms_band),
+            fit_period=fit_period
+        )
+
+        # Not sure about that...
+        model.optimizer.period_range = (0.1, 1.2)
+        model.optimizer.quiet = True
+
+        model.fit(
+            jd.astype(float),
+            mag_dc,
+            err_dc,
+            pdf['i:fid'].astype(int)
+        )
+
+        if fit_period:
+            period = model.best_period
+        else:
+            period = manual_period
+
+        phase = jd.astype(float).values % period
+        tfit = np.linspace(0, period, 100)
+
+        layout_phase_ = copy.deepcopy(layout_phase)
+        layout_phase_['title']['text'] = 'Period: {} days - score: {:.2f}'.format(period, model.score(period))
+
+        if '1' in np.unique(pdf['i:fid'].values):
+            plot_filt1 = {
+                'x': phase[pdf['i:fid'] == '1'],
+                'y': mag_dc[pdf['i:fid'] == '1'],
+                'error_y': {
+                    'type': 'data',
+                    'array': err_dc[pdf['i:fid'] == '1'],
+                    'visible': True,
+                    'color': COLORS_ZTF[0]
+                },
+                'mode': 'markers',
+                'name': 'g band',
+                'text': phase[pdf['i:fid'] == '1'],
+                'marker': {
+                    'size': 12,
+                    'color': COLORS_ZTF[0],
+                    'symbol': 'o'}
+            }
+            fit_filt1 = {
+                'x': tfit,
+                'y': model.predict(tfit, period=period, filts=1),
+                'mode': 'lines',
+                'name': 'fit g band',
+                'showlegend': False,
+                'line': {
+                    'color': COLORS_ZTF[0],
+                }
+            }
+        else:
+            plot_filt1 = {}
+            fit_filt1 = {}
+
+        if '2' in np.unique(pdf['i:fid'].values):
+            plot_filt2 = {
+                'x': phase[pdf['i:fid'] == '2'],
+                'y': mag_dc[pdf['i:fid'] == '2'],
+                'error_y': {
+                    'type': 'data',
+                    'array': err_dc[pdf['i:fid'] == '2'],
+                    'visible': True,
+                    'color': COLORS_ZTF[1]
+                },
+                'mode': 'markers',
+                'name': 'r band',
+                'text': phase[pdf['i:fid'] == '2'],
+                'marker': {
+                    'size': 12,
+                    'color': COLORS_ZTF[1],
+                    'symbol': 'o'}
+            }
+            fit_filt2 = {
+                'x': tfit,
+                'y': model.predict(tfit, period=period, filts=2),
+                'mode': 'lines',
+                'name': 'fit r band',
+                'showlegend': False,
+                'line': {
+                    'color': COLORS_ZTF[1],
+                }
+            }
+        else:
+            plot_filt2 = {}
+            fit_filt2 = {}
+
+        figure = {
+            'data': [
+                plot_filt1,
+                fit_filt1,
+                plot_filt2,
+                fit_filt2
+            ],
+            "layout": layout_phase_
+        }
+        graph = dcc.Graph(
+            figure=figure,
+            style={
+                'width': '100%',
+                'height': '25pc'
+            },
+            config={'displayModeBar': False}
+        )
+
+        return graph, no_update
+
+    # quite referentially opaque...
+    return "", no_update
+
+@app.callback(
+    Output('classbar', 'figure'),
+    [
+        Input('object-data', 'children'),
+        Input('is-mobile', 'children')
+    ])
+def plot_classbar(object_data, is_mobile):
+    """ Display a bar chart with individual alert classifications
+
+    Parameters
+    ----------
+    object_data: json data
+        cached alert data
+    is_mobile: bool
+        True if mobile plateform, False otherwise.
+    """
+    pdf = pd.read_json(object_data)
     grouped = pdf.groupby('v:classification').count()
     alert_per_class = grouped['i:objectId'].to_dict()
 
@@ -415,19 +577,10 @@ def plot_classbar(pdf, is_mobile=False):
     customdata = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso')).values[::-1]
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
-    colors = {
-        'Early SN Ia candidate': 'red',
-        'SN candidate': 'orange',
-        'Kilonova candidate': 'blue',
-        'Microlensing candidate': 'green',
-        'Tracklet': "rgb(204,255,204)",
-        'Solar System MPC': "rgb(254,224,144)",
-        'Solar System candidate': "rgb(171,217,233)",
-        'Ambiguous': 'rgb(116,196,118)',
-        'Unknown': '#7f7f7f'
-    }
 
-    colors = [colors_[-1] if j not in colors.keys() else colors[j] for j in top_labels]
+    palette = dmc.theme.DEFAULT_COLORS
+
+    colors = [palette[class_colors['Simbad']][6] if j not in class_colors.keys() else palette[class_colors[j]][6] for j in top_labels]
 
     fig = go.Figure()
 
@@ -1245,7 +1398,8 @@ def extract_cutout(object_data, time0, kind):
     [
         Input('lightcurve_cutouts', 'clickData'),
         Input('object-data', 'children'),
-    ])
+    ]
+)
 def draw_cutouts(clickData, object_data):
     """ Draw cutouts data based on lightcurve data
     """
@@ -1253,11 +1407,44 @@ def draw_cutouts(clickData, object_data):
         jd0 = clickData['points'][0]['x']
     else:
         jd0 = None
+
     figs = []
     for kind in ['science', 'template', 'difference']:
         try:
             data = extract_cutout(object_data, jd0, kind=kind)
             figs.append(draw_cutout(data, kind))
+        except OSError:
+            data = dcc.Markdown("Load fail, refresh the page")
+            figs.append(data)
+    return figs
+
+@app.callback(
+    Output("stamps_modal_content", "children"),
+    [
+        Input('object-data', 'children'),
+        Input('date_modal_select', 'value'),
+    ]
+)
+def draw_cutouts_modal(object_data, date_modal_select):
+    """ Draw cutouts data based on lightcurve data
+    """
+    figs = []
+    for kind in ['science', 'template', 'difference']:
+        try:
+            data = extract_cutout(object_data, date_modal_select, kind=kind)
+            figs.append(
+                dmc.Tooltip(
+                    children=draw_cutout(data, kind, modal=True),
+                    radius='xl',
+                    position='top',
+                    placement='center',
+                    withArrow=True,
+                    transition="fade",
+                    transitionDuration=200,
+                    label=kind,
+                    zIndex=10000001
+                )
+            )
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
@@ -1378,7 +1565,7 @@ def legacy_normalizer(data: list, stretch='asinh', pmin=0.5, pmax=99.5) -> list:
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, modal=False):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -1421,193 +1608,36 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False):
         plot_bgcolor='rgba(0,0,0,0)'
     )
 
-    if not is_mobile:
-        fig.update_layout(width=150, height=150)
-        style = {'display': 'inline-block', 'height': '10pc', 'width': '10pc'}
-    else:
+    if not modal:
         style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
+        classname = 'roundimg zoom'
+        if not is_mobile:
+            fig.update_layout(width=75, height=75)
+            classname = 'roundimg'
 
-    graph = dcc.Graph(
-        id='{}-stamps'.format(title),
-        figure=fig,
-        style=style,
-        config={'displayModeBar': False},
-        className='roundimg zoom'
-    )
-    return graph
-
-@app.callback(
-    Output('variable_plot', 'children'),
-    [
-        Input('nterms_base', 'value'),
-        Input('nterms_band', 'value'),
-        Input('manual_period', 'value'),
-        Input('submit_variable', 'n_clicks'),
-        Input('object-data', 'children')
-    ])
-def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object_data):
-    """ Fit for the period of a star using gatspy
-
-    See https://zenodo.org/record/47887
-    See https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
-
-    TODO: clean me
-    """
-    if type(nterms_base) not in [int]:
-        return {'data': [], "layout": layout_phase}
-    if type(nterms_band) not in [int]:
-        return {'data': [], "layout": layout_phase}
-    if manual_period is not None and type(manual_period) not in [int, float]:
-        return {'data': [], "layout": layout_phase}
-
-    if n_clicks is not None:
-        pdf_ = pd.read_json(object_data)
-        cols = [
-            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
-        ]
-        pdf = pdf_.loc[:, cols]
-        pdf['i:fid'] = pdf['i:fid'].astype(str)
-        pdf = pdf.sort_values('i:jd', ascending=False)
-
-        mag_dc, err_dc = np.transpose(
-            [
-                dc_mag(*args) for args in zip(
-                    pdf['i:fid'].astype(int).values,
-                    pdf['i:magpsf'].astype(float).values,
-                    pdf['i:sigmapsf'].astype(float).values,
-                    pdf['i:magnr'].astype(float).values,
-                    pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
-                    pdf['i:isdiffpos'].values
-                )
-            ]
-        )
-
-        jd = pdf['i:jd']
-        fit_period = False if manual_period is not None else True
-        model = periodic.LombScargleMultiband(
-            Nterms_base=int(nterms_base),
-            Nterms_band=int(nterms_band),
-            fit_period=fit_period
-        )
-
-        # Not sure about that...
-        model.optimizer.period_range = (0.1, 1.2)
-        model.optimizer.quiet = True
-
-        model.fit(
-            jd.astype(float),
-            mag_dc,
-            err_dc,
-            pdf['i:fid'].astype(int)
-        )
-
-        if fit_period:
-            period = model.best_period
-        else:
-            period = manual_period
-
-        phase = jd.astype(float).values % period
-        tfit = np.linspace(0, period, 100)
-
-        layout_phase_ = copy.deepcopy(layout_phase)
-        layout_phase_['title']['text'] = 'Period: {} days - score: {:.2f}'.format(period, model.score(period))
-
-        if '1' in np.unique(pdf['i:fid'].values):
-            plot_filt1 = {
-                'x': phase[pdf['i:fid'] == '1'],
-                'y': mag_dc[pdf['i:fid'] == '1'],
-                'error_y': {
-                    'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '1'],
-                    'visible': True,
-                    'color': COLORS_ZTF[0]
-                },
-                'mode': 'markers',
-                'name': 'g band',
-                'text': phase[pdf['i:fid'] == '1'],
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[0],
-                    'symbol': 'o'}
-            }
-            fit_filt1 = {
-                'x': tfit,
-                'y': model.predict(tfit, period=period, filts=1),
-                'mode': 'lines',
-                'name': 'fit g band',
-                'showlegend': False,
-                'line': {
-                    'color': COLORS_ZTF[0],
-                }
-            }
-        else:
-            plot_filt1 = {}
-            fit_filt1 = {}
-
-        if '2' in np.unique(pdf['i:fid'].values):
-            plot_filt2 = {
-                'x': phase[pdf['i:fid'] == '2'],
-                'y': mag_dc[pdf['i:fid'] == '2'],
-                'error_y': {
-                    'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '2'],
-                    'visible': True,
-                    'color': COLORS_ZTF[1]
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'text': phase[pdf['i:fid'] == '2'],
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[1],
-                    'symbol': 'o'}
-            }
-            fit_filt2 = {
-                'x': tfit,
-                'y': model.predict(tfit, period=period, filts=2),
-                'mode': 'lines',
-                'name': 'fit r band',
-                'showlegend': False,
-                'line': {
-                    'color': COLORS_ZTF[1],
-                }
-            }
-        else:
-            plot_filt2 = {}
-            fit_filt2 = {}
-
-        figure = {
-            'data': [
-                plot_filt1,
-                fit_filt1,
-                plot_filt2,
-                fit_filt2
-            ],
-            "layout": layout_phase_
-        }
         graph = dcc.Graph(
-            figure=figure,
-            style={
-                'width': '100%',
-                'height': '25pc'
-            },
+            id='{}-stamps'.format(title),
+            figure=fig,
+            style=style,
+            config={'displayModeBar': False},
+            className=classname
+        )
+    else:
+        style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
+        graph = dcc.Graph(
+            id='{}-stamps'.format(title),
+            figure=fig,
+            style=style,
             config={'displayModeBar': False}
         )
-        card = dbc.Card(
-            dbc.CardBody(graph),
-            className="mt-3"
-        )
-        return card
 
-    # quite referentially opaque...
-    return ""
+    return graph
 
 @app.callback(
     [
         Output('mulens_plot', 'children'),
         Output('mulens_params', 'children'),
+        Output('submit_mulens', 'children'),
     ],
     [
         Input('submit_mulens', 'n_clicks'),
@@ -1784,7 +1814,6 @@ def plot_mulens(n_clicks, object_data):
         u0: {} +/- {}
         chi2/dof: {}
         ```
-        ---
         """.format(
             params[names['to']],
             err[names['to']],
@@ -1794,23 +1823,17 @@ def plot_mulens(n_clicks, object_data):
             err[names['uo']],
             params[-1] / dof
         )
-        card = dbc.Card(
-            dbc.CardBody(graph),
-            className="mt-3"
-        )
-        return card, mulens_params
 
-    mulens_params = """
-    ```python
-    # Fitted parameters
-    t0: None
-    tE: None
-    u0: None
-    chi2: None
-    ```
-    ---
-    """
-    return "", mulens_params
+        mulens_params = dmc.Paper(
+            [
+                dcc.Markdown(mulens_params),
+            ], radius='xl', p='md', shadow='xl', withBorder=True
+        )
+
+        return graph, mulens_params, no_update
+
+    mulens_params = ""
+    return "", mulens_params, no_update
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('object-data', 'children'))
@@ -1862,13 +1885,7 @@ def integrate_aladin_lite(object_data):
 
     return " ".join(img_to_show)
 
-@app.callback(
-    Output('sso_lightcurve', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
+def draw_sso_lightcurve(pdf) -> dict:
     """ Draw SSO object lightcurve with errorbars, and ephemerides on top
     from the miriade IMCCE service.
 
@@ -1881,12 +1898,8 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_sso)
     if pdf.empty:
-        msg = """
-        Object not referenced in the Minor Planet Center
-        """
-        return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
+        return html.Div()
 
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
@@ -1994,23 +2007,14 @@ def draw_sso_lightcurve(pathname: str, object_sso) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
+    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
-@app.callback(
-    Output('sso_residual', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_residual(pathname: str, object_sso) -> dict:
+def draw_sso_residual(pdf) -> dict:
     """ Draw SSO residuals (observation - ephemerides)
 
     Parameters
@@ -2022,7 +2026,6 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_sso)
     if pdf.empty:
         return html.Div()
 
@@ -2144,89 +2147,10 @@ def draw_sso_residual(pathname: str, object_sso) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
+    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
-@app.callback(
-    Output('sso_radec', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_radec(pathname: str, object_sso) -> dict:
-    """ Draw SSO object radec
-
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
-
-    Returns
-    ----------
-    figure: dict
-    """
-    pdf = pd.read_json(object_sso)
-    if pdf.empty:
-        msg = ""
-        return msg
-
-    # shortcuts
-    ra = pdf['i:ra'].apply(lambda x: float(x))
-    dec = pdf['i:dec'].apply(lambda x: float(x))
-
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>mjd</b>: %{customdata[1]}
-    <extra></extra>
-    """
-    figure = {
-        'data': [
-            {
-                'x': ra,
-                'y': dec,
-                'mode': 'markers',
-                'name': 'Observations',
-                'customdata': list(
-                    zip(
-                        pdf['i:objectId'],
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
-                    )
-                ),
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': '#d62728',
-                    'symbol': 'circle-open-dot'}
-            }
-        ],
-        "layout": layout_sso_radec
-    }
-    graph = dcc.Graph(
-        figure=figure,
-        style={
-            'width': '100%',
-            'height': '15pc'
-        },
-        config={'displayModeBar': False}
-    )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
-    return card
-
-@app.callback(
-    Output('sso_astrometry', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_astrometry(pathname: str, object_sso) -> dict:
+def draw_sso_astrometry(pdf) -> dict:
     """ Draw SSO object astrometry, that is difference position wrt ephemerides
     from the miriade IMCCE service.
 
@@ -2239,7 +2163,6 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
         Object not referenced in the Minor Planet Center
@@ -2312,14 +2235,11 @@ def draw_sso_astrometry(pathname: str, object_sso) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '100%'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
-    )
+    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
     return card
 
 @app.callback(
@@ -2593,28 +2513,20 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         figure=figure,
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )
-    card = html.Div(
+    card = dmc.Paper(
         [
-            dbc.Card(
-                dbc.CardBody(graph),
-                className="mt-3"
-            ),
+            graph,
+            html.Br(),
             table
-        ]
+        ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return card
 
-@app.callback(
-    Output('tracklet_lightcurve', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-tracklet', 'children')
-    ])
-def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
+def draw_tracklet_lightcurve(pdf) -> dict:
     """ Draw tracklet object lightcurve with errorbars
 
     Parameters
@@ -2627,7 +2539,6 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
     figure: dict
 
     """
-    pdf = pd.read_json(object_tracklet)
     if pdf.empty:
         msg = """
         Object not associated to a tracklet
@@ -2699,7 +2610,7 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '15pc'
+            'height': '25pc'
         },
         config={'displayModeBar': False}
     )
@@ -2711,22 +2622,18 @@ def draw_tracklet_lightcurve(pathname: str, object_tracklet) -> dict:
         color="info"
     )
 
-    card = [
-        alert,
-        dbc.Card(
-            dbc.CardBody(graph),
-            className="mt-3"
-        )
-    ]
+    card = html.Div(
+        [
+            alert,
+            dmc.Paper(
+                graph,
+                radius='xl', p='md', shadow='xl', withBorder=True
+            )
+        ]
+    )
     return card
 
-@app.callback(
-    Output('tracklet_radec', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-tracklet', 'children')
-    ])
-def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
+def draw_tracklet_radec(pdf) -> dict:
     """ Draw tracklet object radec
     Parameters
     ----------
@@ -2736,7 +2643,6 @@ def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
     ----------
     figure: dict
     """
-    pdf = pd.read_json(object_tracklet)
     if pdf.empty:
         msg = ""
         return msg
@@ -2782,9 +2688,13 @@ def draw_tracklet_radec(pathname: str, object_tracklet) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dbc.Card(
-        dbc.CardBody(graph),
-        className="mt-3"
+    card = html.Div(
+        [
+            dmc.Paper(
+                graph,
+                radius='xl', p='md', shadow='xl', withBorder=True
+            )
+        ]
     )
     return card
 
@@ -2818,6 +2728,7 @@ def alert_properties(object_data):
         data=data,
         columns=columns,
         id='result_table_alert',
+        page_size=5,
         style_as_list_view=True,
         filter_action="native",
         markdown_options={'link_target': '_blank'},
@@ -2962,7 +2873,7 @@ def plot_stat_evolution(pathname, param_name, switch):
         figure=fig,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '35pc'
         },
         config={'displayModeBar': False}
     )

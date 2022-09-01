@@ -12,10 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import html, dcc, Input, Output
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output
 
 from app import app, clientStats
 
@@ -270,7 +268,7 @@ def heatmap_content():
             dbc.Row(
                 [
                     dbc.Col(id='heatmap_stat', width=10)
-                ], justify="center", no_gutters=True
+                ], justify="center", className="g-0"
             ),
         ],
     )
@@ -305,7 +303,7 @@ def timelines():
             dbc.Row(
                 [
                     dbc.Col(id='evolution', width=10)
-                ], justify="center", no_gutters=True
+                ], justify="center", className="g-0"
             ),
         ],
     )
@@ -464,6 +462,7 @@ def layout(is_mobile):
             [
                 html.Br(),
                 html.Br(),
+                html.Br(),
                 dbc.Row(id='stat_row'),
                 html.Br(),
                 dbc.Row(
@@ -471,7 +470,7 @@ def layout(is_mobile):
                         html.Br(),
                         dbc.Col(tabs_, width=10)
                     ],
-                    justify="center", no_gutters=True
+                    justify="center", className="g-0"
                 ),
                 html.Div(id='object-stats', style={'display': 'none'}),
             ],

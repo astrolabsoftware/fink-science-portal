@@ -49,6 +49,19 @@ hbase_type_converter = {
     'fits/image': str
 }
 
+class_colors = {
+        'Early SN Ia candidate': 'red',
+        'SN candidate': 'orange',
+        'Kilonova candidate': 'dark',
+        'Microlensing candidate': 'lime',
+        'Tracklet': "violet",
+        'Solar System MPC': "yellow",
+        'Solar System candidate': "indigo",
+        'Ambiguous': 'grape',
+        'Unknown': 'gray',
+        'Simbad': 'blue'
+    }
+
 def format_hbase_output(
         hbase_output, schema_client,
         group_alerts: bool, truncated: bool = False,

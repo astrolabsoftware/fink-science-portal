@@ -12,9 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
 import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 
 from flask import request, jsonify, Response
 
@@ -72,9 +72,9 @@ def layout(is_mobile):
                         ]
                     ),
                     html.Br(),
-                    dbc.Tabs(
+                    dmc.Tabs(
                         [
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -85,7 +85,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Retrieve object data"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -96,7 +96,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Query the database"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -107,7 +107,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Get latest alerts"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -118,7 +118,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Solar System objects from MPC"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -129,7 +129,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Candidate Solar System objects"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -140,7 +140,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Get Tracklet Objects"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -151,7 +151,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Get Image data"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -162,7 +162,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Xmatch"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -173,7 +173,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Gravitational Waves"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -184,7 +184,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Statistics"
                             ),
-                            dbc.Tab(
+                            dmc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(

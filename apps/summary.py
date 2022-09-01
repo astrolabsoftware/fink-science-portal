@@ -13,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash import html, dcc, Input, Output, State
+from dash.exceptions import PreventUpdate
+
 import dash_bootstrap_components as dbc
 import visdcc
 import plotly.graph_objects as go
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 import pandas as pd
 import numpy as np
@@ -27,17 +28,17 @@ import requests
 
 from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 
-from apps.cards import card_cutouts, card_sn_scores
-from apps.cards import card_id, card_sn_properties
-from apps.cards import download_object_modal, inspect_object_modal
-from apps.cards import card_variable_plot, card_variable_button
-from apps.cards import card_explanation_variable, card_explanation_mulens
-from apps.cards import card_mulens_plot, card_mulens_button, card_mulens_param
+from apps.supernovae.cards import card_sn_scores
+from apps.varstars.cards import card_explanation_variable, card_variable_button
+from apps.mulens.cards import card_explanation_mulens
+from apps.mulens.cards import card_mulens_button
+from apps.sso.cards import card_sso_left
 
-from apps.cards import card_sso_residual, card_sso_astrometry, card_sso_phasecurve
-from apps.cards import card_sso_lightcurve, card_sso_radec, card_sso_mpc_params
-from apps.cards import card_tracklet_lightcurve, card_tracklet_radec
+from apps.cards import card_lightcurve_summary
+from apps.cards import card_id1
 
+from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
+from apps.plotting import draw_tracklet_lightcurve, draw_tracklet_radec
 from apps.plotting import plot_classbar
 from apps.plotting import all_radio_options
 
@@ -45,25 +46,22 @@ from apps.utils import format_hbase_output
 from apps.utils import get_miriade_data
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
+from apps.utils import class_colors
+
+from fink_utils.xmatch.simbad import get_simbad_labels
 
 from app import APIURL
 
 dcc.Location(id='url', refresh=False)
 
-def tab1_content(pdf):
+def tab1_content():
     """ Summary tab
-
-    Parameters
-    ----------
-    pdf: pd.DataFrame
-        Results from a HBase client query
     """
     tab1_content_ = html.Div([
         dbc.Row(
             [
                 dbc.Col(
                     dcc.Graph(
-                        figure=plot_classbar(pdf),
                         style={
                             'width': '100%',
                             'height': '4pc'
@@ -76,15 +74,18 @@ def tab1_content(pdf):
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_cutouts(False), width=8),
-            dbc.Col([
-                card_id(pdf)
-            ], width=4)
+            dbc.Col(card_lightcurve_summary(), width=8),
+            dbc.Col(id="card_id_col", width=4)
         ]),
     ])
-    return tab1_content_
 
-def tab2_content(pdf):
+    out = dmc.LoadingOverlay(
+        tab1_content_,
+        loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
+    )
+    return out
+
+def tab2_content():
     """ Supernova tab
     """
     tab2_content_ = html.Div([
@@ -95,32 +96,129 @@ def tab2_content(pdf):
     ])
     return tab2_content_
 
-def tab3_content(pdf):
+def tab3_content():
     """ Variable stars tab
     """
+    nterms_base = dbc.Row(
+        [
+            dbc.Label("Number of base terms"),
+            dbc.Input(
+                placeholder="1",
+                value=1,
+                type="number",
+                id='nterms_base',
+                debounce=True,
+                min=0, max=4
+            ),
+            dbc.Label("Number of band terms"),
+            dbc.Input(
+                placeholder="1",
+                value=1,
+                type="number",
+                id='nterms_band',
+                debounce=True,
+                min=0, max=4
+            ),
+            dbc.Label("Set manually the period (days)"),
+            dbc.Input(
+                placeholder="Optional",
+                value=None,
+                type="number",
+                id='manual_period',
+                debounce=True
+            )
+        ], className='mb-3', style={'width': '100%', 'display': 'inline-block'}
+    )
+
+    submit_varstar_button = dmc.Button(
+        'Fit data',
+        id='submit_variable',
+        color='dark', variant="outline", fullWidth=True, radius='xl',
+        loaderProps={'variant': 'dots'}
+    )
+
+    card2 = dmc.Paper(
+        [
+            nterms_base,
+        ], radius='xl', p='md', shadow='xl', withBorder=True
+    )
+
     tab3_content_ = html.Div([
         dbc.Row([
-            dbc.Col([card_variable_plot(), html.Br(), card_explanation_variable()], width=8),
-            dbc.Col([card_variable_button(pdf)], width=4)
+            dbc.Col(
+                dmc.LoadingOverlay(
+                    dmc.Paper(
+                        [
+                            html.Div(id='variable_plot'),
+                            html.Br(),
+                            card_explanation_variable()
+                        ], radius='xl', p='md', shadow='xl', withBorder=True
+                    ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                ), width=8
+            ),
+            dbc.Col(
+                [
+                    html.Div(id="card_variable_button"),
+                    html.Br(),
+                    card2,
+                    html.Br(),
+                    submit_varstar_button
+                ], width=4
+            )
         ]),
     ])
     return tab3_content_
 
-def tab4_content(pdf):
+def tab4_content():
     """ Microlensing tab
     """
+    submit_mulens_button = dmc.Button(
+        'Fit data',
+        id='submit_mulens',
+        color='dark', variant="outline", fullWidth=True, radius='xl',
+        loaderProps={'variant': 'dots'}
+    )
+
     tab4_content_ = html.Div([
         dbc.Row([
-            dbc.Col([card_mulens_plot(), html.Br(), card_explanation_mulens()], width=8),
-            dbc.Col([card_mulens_button(pdf), card_mulens_param()], width=4)
+            dbc.Col(
+                dmc.LoadingOverlay(
+                    dmc.Paper(
+                        [
+                            html.Div(id='mulens_plot'),
+                            html.Br(),
+                            card_explanation_mulens()
+                        ], radius='xl', p='md', shadow='xl', withBorder=True
+                    ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                ), width=8
+            ),
+            dbc.Col(
+                [
+                    html.Div(id="card_mulens_button"),
+                    html.Br(),
+                    html.Div(id='mulens_params'),
+                    html.Br(),
+                    submit_mulens_button
+                ], width=4
+            )
         ]),
     ])
     return tab4_content_
 
-def tab5_content(pdf):
+@app.callback(
+    Output("tab_sso", "children"),
+    [
+        Input('object-sso', 'children'),
+    ]
+)
+def tab5_content(object_soo):
     """ SSO tab
     """
-    ssnamenr = pdf['i:ssnamenr'].values[0]
+    pdf = pd.read_json(object_soo)
+    if pdf.empty:
+        ssnamenr = 'null'
+    else:
+        ssnamenr = pdf['i:ssnamenr'].values[0]
 
     msg = """
     **Top:** lightcurve from ZTF, with ephemerides provided by the
@@ -135,14 +233,14 @@ def tab5_content(pdf):
         [
             dbc.Col(
                 [
-                    card_sso_lightcurve(),
-                    card_sso_residual(),
+                    draw_sso_lightcurve(pdf),
+                    html.Br(),
+                    draw_sso_residual(pdf),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
                                 dcc.Markdown(msg),
                                 label="Information",
-                                description="What am I seeing?",
                             ),
                         ],
                     )
@@ -155,13 +253,12 @@ def tab5_content(pdf):
         [
             dbc.Col(
                 [
-                    card_sso_astrometry(),
+                    draw_sso_astrometry(pdf),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
                                 dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
-                                label="Information",
-                                description="How are computed the residuals?",
+                                label="How are computed the residuals?",
                             ),
                         ],
                     )
@@ -185,7 +282,7 @@ def tab5_content(pdf):
         [
             dbc.Col(
                 [
-                    card_sso_phasecurve(),
+                    html.Div(id='sso_phasecurve'),
                     html.Br(),
                     dbc.Row(
                         dbc.Col(
@@ -230,8 +327,7 @@ def tab5_content(pdf):
                         children=[
                             dmc.AccordionItem(
                                 dcc.Markdown(msg_phase),
-                                label="Information",
-                                description="How is modeled the phase curve?",
+                                label="How is modeled the phase curve?",
                             ),
                         ],
                     )
@@ -240,37 +336,53 @@ def tab5_content(pdf):
         ]
     )
 
-    label_style = {"color": "#000"}
+    if ssnamenr != 'null':
+        left_side = dbc.Col(
+            dmc.Tabs(
+                [
+                    dmc.Tab(tab1, label="Lightcurve"),
+                    dmc.Tab(tab2, label="Astrometry"),
+                    dmc.Tab(tab3, label="Phase curve")
+                ],
+                variant="outline"
+            ), width=8
+        )
+    else:
+        msg = """
+        Object not referenced in the Minor Planet Center
+        """
+        left_side = dbc.Col([html.Br(), dbc.Alert(msg, color="danger")], width=8)
+
     tab5_content_ = dbc.Row(
         [
-            dbc.Col(
-                dbc.Tabs(
-                    [
-                        dbc.Tab(tab1, label="Lightcurve", label_style=label_style),
-                        dbc.Tab(tab2, label="Astrometry", label_style=label_style),
-                        dbc.Tab(tab3, label="Phase curve", label_style=label_style)
-                    ]
-                ), width=8
-            ),
+            left_side,
             dbc.Col(
                 [
-                    card_sso_mpc_params(ssnamenr)
+                    card_sso_left(ssnamenr)
                 ], width=4
             )
         ]
     )
     return tab5_content_
 
-def tab6_content(pdf):
+@app.callback(
+    Output("tab_tracklet", "children"),
+    [
+        Input('object-tracklet', 'children'),
+    ]
+)
+def tab6_content(object_tracklet):
     """ Tracklet tab
     """
+    pdf = pd.read_json(object_tracklet)
     tab6_content_ = html.Div([
         dbc.Row(
             [
                 dbc.Col(
                     [
-                        card_tracklet_lightcurve(),
-                        card_tracklet_radec()
+                        draw_tracklet_lightcurve(pdf),
+                        html.Br(),
+                        draw_tracklet_radec(pdf)
                     ]
                 ),
             ]
@@ -281,74 +393,72 @@ def tab6_content(pdf):
 def tab_mobile_content(pdf):
     """ Content for mobile application
     """
-    content_ = html.Div([
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Graph(
-                        figure=plot_classbar(pdf, is_mobile=True),
-                        style={
-                            'width': '100%',
-                            'height': '4pc'
-                        },
-                        config={'displayModeBar': False},
-                        id='classbar'
-                    ),
-                    width=12
-                ),
-            ], justify='around'
-        ),
-    ])
-    return content_
+    # content_ = html.Div([
+    #     dbc.Row(
+    #         [
+    #             dbc.Col(
+    #                 dcc.Graph(
+    #                     style={
+    #                         'width': '100%',
+    #                         'height': '4pc'
+    #                     },
+    #                     config={'displayModeBar': False},
+    #                     id='classbar'
+    #                 ),
+    #                 width=12
+    #             ),
+    #         ], justify='around'
+    #     ),
+    # ])
+    simbad_types = get_simbad_labels('old_and_new')
+    simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+
+    badges = []
+    for c in np.unique(pdf['v:classification']):
+        if c in simbad_types:
+            color = class_colors['Simbad']
+        elif c in class_colors.keys():
+            color = class_colors[c]
+        else:
+            # Sometimes SIMBAD mess up names :-)
+            color = class_colors['Simbad']
+
+        badges.append(
+            dmc.Badge(
+                c,
+                color=color,
+                variant="dot",
+            )
+        )
+    return html.Div(badges)
 
 def tabs(pdf, is_mobile):
     if is_mobile:
         tabs_ = tab_mobile_content(pdf)
     else:
-        label_style = {"color": "#000"}
-        tabs_ = dbc.Tabs(
+        tabs_ = dmc.Tabs(
             [
-                dbc.Tab(tab1_content(pdf), label="Summary", tab_style={"margin-left": "auto"}, label_style=label_style),
-                dbc.Tab(tab2_content(pdf), label="Supernovae", label_style=label_style),
-                dbc.Tab(tab3_content(pdf), label="Variable stars", label_style=label_style),
-                dbc.Tab(tab4_content(pdf), label="Microlensing", label_style=label_style),
-                dbc.Tab(tab5_content(pdf), label="Solar System", label_style=label_style),
-                dbc.Tab(tab6_content(pdf), label="Tracklets", label_style=label_style),
-                dbc.Tab(label="GRB", disabled=True)
-            ]
+                dmc.Tab(tab1_content(), label="Summary"),
+                dmc.Tab(tab2_content(), label="Supernovae"),
+                dmc.Tab(tab3_content(), label="Variable stars"),
+                dmc.Tab(tab4_content(), label="Microlensing"),
+                dmc.Tab(id="tab_sso", label="Solar System"),
+                dmc.Tab(id="tab_tracklet", label="Tracklets"),
+                dmc.Tab(label="GRB", disabled=True)
+            ], position='right', variant='outline'
         )
     return tabs_
 
-def title(name, is_mobile):
-    qrdata = "https://fink-portal.org/{}".format(name[1:])
-    qrimg = generate_qr(qrdata)
-
-    if is_mobile:
-        header = [
-            html.Hr(),
-            dbc.Row(
-                [
-                    html.Img(src="/assets/Fink_SecondaryLogo_WEB.png", height='10%', width='10%'),
-                    html.H5(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
-                ]
-            ),
-        ]
-        title_ = html.Div(header)
-    else:
-        header = [
-            html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='15%', width='15%'),
-            html.H1(children='{}'.format(name[1:]), id='name', style={'color': '#15284F'})
-        ]
-        title_ = dbc.Card(
-            dbc.CardHeader(
-                [
-                    dbc.Row(
-                        header
-                    )
-                ]
-            ),
-        )
-    return title_
+def title_mobile(name):
+    header = [
+        html.Br(),
+        dbc.Row(
+            [
+                dmc.Center(dmc.Title(children='{}'.format(name[1:]), style={'color': '#15284F'}))
+            ]
+        ),
+    ]
+    return html.Div(header)
 
 @app.callback(
     Output('external_links', 'children'),
@@ -425,27 +535,9 @@ def create_external_links(object_data):
     ]
     return buttons
 
-
-def make_item(i):
-    # we use this function to make the example items to avoid code duplication
-    names = ["&#43; Lightcurve", '&#43; Last alert properties', '&#43; Aladin Lite', '&#43; External links']
-
-    message = """
-    Here are the fields contained in the last alert. Note you can filter the
-    table results using the first row (enter text and hit enter).
-    - Fields starting with `i:` are original fields from ZTF.
-    - Fields starting with `d:` are live added values by Fink.
-    - Fields starting with `v:` are added values by Fink (post-processing).
-
-    See {}/api/v1/columns for more information.
-    """.format(APIURL)
-
-    information = html.Div(
-        [
-            dcc.Markdown(message),
-            html.Div([], id='alert_table')
-        ]
-    )
+def accordion_mobile():
+    """
+    """
     lightcurve = html.Div(
         [
             dcc.Graph(
@@ -466,60 +558,87 @@ def make_item(i):
             )
         ]
     )
+
+    message = """
+    Here are the fields contained in the last alert. Note you can filter the
+    table results using the first row (enter text and hit enter).
+    - Fields starting with `i:` are original fields from ZTF.
+    - Fields starting with `d:` are live added values by Fink.
+    - Fields starting with `v:` are added values by Fink (post-processing).
+
+    See {}/api/v1/columns for more information.
+    """.format(APIURL)
+
+    information = html.Div(
+        [
+            dcc.Markdown(message),
+            html.Div([], id='alert_table')
+        ]
+    )
+
     aladin = html.Div(
-        [dcc.Markdown('Hit full screen if the display does not work'), visdcc.Run_js(id='aladin-lite-div2')],
+        visdcc.Run_js(id='aladin-lite-div2'),
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '20pc'
         }
     )
     external = dbc.CardBody(id='external_links')
 
-    to_display = [lightcurve, information, aladin, external]
-
-    header = html.H2(
-        dbc.Button(
-            html.H5(children=dcc.Markdown('{}'.format(names[i - 1])), style={'color': '#15284F'}),
-            color='link',
-            id=f"group-{i}-toggle",
-            n_clicks=0,
-        )
+    accordion = dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                lightcurve,
+                label="Lightcurve",
+                icon=[
+                    DashIconify(
+                        icon="tabler:graph",
+                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                information,
+                label="Last alert properties",
+                icon=[
+                    DashIconify(
+                        icon="tabler:file-description",
+                        color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                aladin,
+                label="Aladin Lite",
+                icon=[
+                    DashIconify(
+                        icon="tabler:map-2",
+                        color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                external,
+                label="External links",
+                icon=[
+                    DashIconify(
+                        icon="tabler:atom-2",
+                        color=dmc.theme.DEFAULT_COLORS["green"][6],
+                        width=20,
+                    )
+                ],
+            ),
+        ],
+        state={'{}'.format(i): False for i in range(4)},
+        id="accordion-mobile",
+        multiple=True,
+        offsetIcon=False,
     )
-    coll = dbc.Collapse(
-        to_display[i - 1],
-        id=f"collapse-{i}",
-        is_open=False,
-    )
-    return html.Div([header, html.Hr(), coll])
 
-
-accordion = html.Div(
-    [make_item(1), make_item(2), make_item(3), make_item(4)], className="accordion"
-)
-
-
-@app.callback(
-    [Output(f"collapse-{i}", "is_open") for i in range(1, 5)],
-    [Input(f"group-{i}-toggle", "n_clicks") for i in range(1, 5)],
-    [State(f"collapse-{i}", "is_open") for i in range(1, 5)],
-)
-def toggle_accordion(n1, n2, n3, n4, is_open1, is_open2, is_open3, is_open4):
-    ctx = dash.callback_context
-
-    if not ctx.triggered:
-        return False, False, False, False
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if button_id == "group-1-toggle" and n1:
-        return not is_open1, False, False, False
-    elif button_id == "group-2-toggle" and n2:
-        return False, not is_open2, False, False
-    elif button_id == "group-3-toggle" and n3:
-        return False, False, not is_open3, False
-    elif button_id == "group-4-toggle" and n4:
-        return False, False, False, not is_open4
-    return False, False, False, False
+    return accordion
 
 @app.callback(
     [
@@ -537,6 +656,8 @@ def store_query(name):
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
+    if not name[1:].startswith('ZTF'):
+        raise PreventUpdate
     results = client.scan("", "key:key:{}".format(name[1:]), "*", 0, True, True)
     schema_client = client.schema()
     pdfs = format_hbase_output(results, schema_client, group_alerts=False)
@@ -612,23 +733,24 @@ def layout(name, is_mobile):
                     [
                         dbc.Row(
                             [
-                                dbc.Col(title(name, is_mobile), width={"size": 12, "offset": 0},),
+                                dbc.Col(title_mobile(name), width={"size": 12, "offset": 0},),
                             ]
                         ),
                         dbc.Row(
                             [
-                                dbc.Col([html.Br(), card_cutouts(is_mobile)], width={"size": 12, "offset": 0},),
-                            ]
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Col(tabs(pdf, is_mobile), width=12)
+                                dbc.Col(dmc.Center(tabs(pdf, is_mobile)), width=12)
                             ]
                         ),
                         html.Br(),
                         dbc.Row(
                             [
-                                dbc.Col(accordion, width=12)
+                                dbc.Col([html.Br(), dbc.Row(id='stamps_mobile', justify='around')], width={"size": 12, "offset": 0},),
+                            ]
+                        ),
+                        html.Br(),
+                        dbc.Row(
+                            [
+                                dbc.Col(accordion_mobile(), width=12)
                             ]
                         ),
                         html.Br(),
@@ -651,8 +773,6 @@ def layout(name, is_mobile):
             }
         )
     else:
-        button_inspect, modal_inspect = inspect_object_modal(pdf['i:objectId'].values[0])
-        button_download, modal_download = download_object_modal(pdf['i:objectId'].values[0])
         layout_ = html.Div(
             [
                 html.Br(),
@@ -662,29 +782,22 @@ def layout(name, is_mobile):
                         dbc.Col(
                             [
                                 html.Br(),
-                                title(name, is_mobile),
+                                html.Div(id="card_id_left"),
+                                html.Br(),
                                 html.Br(),
                                 html.Div(
                                     [visdcc.Run_js(id='aladin-lite-div')],
                                     style={
                                         'width': '100%',
-                                        'height': '25pc'
+                                        'height': '27pc',
                                     }
                                 ),
                                 html.Br(),
-                                dbc.Row(
-                                    [
-                                        dbc.Col(button_inspect, width=6),
-                                        dbc.Col(button_download, width=6)
-                                    ],
-                                ),
-                                modal_inspect,
-                                modal_download
                             ], width={"size": 3},
                         ),
                         dbc.Col(tabs(pdf, is_mobile), width=8)
                     ],
-                    justify="around", no_gutters=True
+                    justify="around", className="g-0"
                 ),
                 html.Div(id='object-data', style={'display': 'none'}),
                 html.Div(id='object-upper', style={'display': 'none'}),
@@ -700,13 +813,10 @@ def layout(name, is_mobile):
     Output('aladin-lite-div2', 'run'),
     [
         Input('object-data', 'children'),
-        Input(f"group-3-toggle", "n_clicks")
-    ],
-    [
-        State(f"collapse-3", "is_open")
+        Input(f"accordion-mobile", "state")
     ]
 )
-def integrate_aladin_lite_mobile(object_data, n3, is_open3):
+def integrate_aladin_lite_mobile(object_data, states):
     """ Integrate aladin light in the mobile app.
 
     the default parameters are:
@@ -724,7 +834,7 @@ def integrate_aladin_lite_mobile(object_data, n3, is_open3):
     alert_id: str
         ID of the alert
     """
-    if n3:
+    if states['2']:
         pdf_ = pd.read_json(object_data)
         cols = ['i:jd', 'i:ra', 'i:dec']
         pdf = pdf_.loc[:, cols]
