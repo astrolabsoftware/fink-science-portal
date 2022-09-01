@@ -43,7 +43,7 @@ def get_an_object(number=1, output_format='json', columns='*', object_class="", 
 
     if output_format == 'json':
         # Format output in a DataFrame
-        pdf = pd.read_json(r.content)
+        pdf = pd.read_json(io.BytesIO(r.content))
     elif output_format == 'csv':
         pdf = pd.read_csv(io.BytesIO(r.content))
     elif output_format == 'parquet':

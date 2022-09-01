@@ -37,7 +37,7 @@ def statstest(date='2021', columns='*', output_format='json'):
 
     if output_format == 'json':
         # Format output in a DataFrame
-        pdf = pd.read_json(r.content)
+        pdf = pd.read_json(io.BytesIO(r.content))
     elif output_format == 'csv':
         pdf = pd.read_csv(io.BytesIO(r.content))
     elif output_format == 'parquet':
