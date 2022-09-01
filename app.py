@@ -13,7 +13,7 @@ APIURL = args['APIURL']
 
 # bootstrap theme
 external_stylesheets = [
-    dbc.themes.ZEPHYR,
+    dbc.themes.SPACELAB,
     '//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css',
     '//use.fontawesome.com/releases/v5.7.2/css/all.css',
 ]
