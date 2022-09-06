@@ -955,6 +955,11 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
     validation: int
         0: not results found, 1: results found
     """
+    # catch parameters sent from URL
+    # override any other options
+    if searchurl != '':
+        query, query_type, dropdown_option = extract_query_url(searchurl)
+
     empty_query = (query is None) or (query == '')
 
     if empty_query and query_type != "Class Search":
@@ -965,11 +970,6 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         'v:lastdate', 'v:classification', 'i:ndethist',
         'v:lapse'
     ]
-
-    # catch parameters sent from URL
-    # override any other options
-    if searchurl != '':
-        query, query_type, dropdown_option = extract_query_url(searchurl)
 
     validation = validate_query(query, query_type)
     if (not validation['flag']) and (not empty_query):
