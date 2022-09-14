@@ -3443,9 +3443,22 @@ def draw_alert_astrometry(object_data) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '20pc'
         },
         config={'displayModeBar': False}
     )
-    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
-    return card
+    card1 = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+
+    coord = SkyCoord(mean_ra, mean_dec, unit='deg')
+    l = coord.galactic.l.deg
+    b = coord.galactic.b.deg
+    coords = """
+    ICRS: {} {}
+    GAL : {} {}
+    """.format(mean_ra, mean_dec, l, b)
+    card2 = dmc.Paper(
+        dcc.Markdown(coords),
+        radius='xl', p='md', shadow='xl', withBorder=True
+    )
+
+    return html.Div([card1, card2])
