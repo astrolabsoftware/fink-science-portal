@@ -3452,9 +3452,22 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     {} {}
     ```
     """.format(np.round(x, 6), np.round(y, 6))
-    card2 = dmc.Paper(
-        dcc.Markdown(coords),
-        radius='xl', p='md', shadow='xl', withBorder=True
-    )
+
+    card2 = html.Div([
+        dcc.Markdown(
+            coords,
+            id="code",
+            style={"width": 500, "height": 200, "overflow": "auto"},
+        ),
+        dcc.Clipboard(
+            target_id="code",
+            style={
+                "position": "absolute",
+                "top": 0,
+                "right": 20,
+                "fontSize": 20,
+            },
+        ),
+    ], style={"width": 500, "height": 200, "position": "relative"})
 
     return html.Div([card1, card2])
