@@ -3452,7 +3452,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     """.format(np.round(x, 6), np.round(y, 6))
 
     card2 = dmc.Center(
-        dmc.Prism(children=coords, language="python", style={'width': '75%'})
+        dmc.Prism(children=coords, language="python", copyLabel='Copy coordinates', style={'width': '60%'})
     )
 
     return html.Div([card1, html.Br(), card2])
