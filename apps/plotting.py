@@ -3457,7 +3457,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         dcc.Markdown(
             coords,
             id="code",
-            style={"width": 500, "height": 200, "overflow": "auto"},
+            style={"overflow": "auto"},
         ),
         dcc.Clipboard(
             target_id="code",
@@ -3468,6 +3468,6 @@ def draw_alert_astrometry(object_data, kind) -> dict:
                 "fontSize": 20,
             },
         ),
-    ], style={"width": 500, "height": 200, "position": "relative"})
+    ], style={"position": "relative"})
 
     return html.Div([card1, card2])
