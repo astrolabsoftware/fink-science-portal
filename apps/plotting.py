@@ -3459,7 +3459,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
                 dcc.Markdown(
                     coords,
                     id="code",
-                ), radius='xl', p=0, shadow='xl', withBorder=True
+                ), radius='xl', pb=0, shadow='xl', withBorder=True
             )
         ),
         dcc.Clipboard(
