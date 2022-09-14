@@ -3394,7 +3394,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>mjd</b>: %{customdata[0]}
+    <b>mjd</b>: %{customdata}
     <extra></extra>
     """
     diff_g = {
