@@ -21,6 +21,7 @@ import datetime
 import java
 import copy
 from astropy.time import Time
+from astropy.coordinates import SkyCoord
 import requests
 
 from dash import html, dcc, dash_table, Input, Output, State, no_update
