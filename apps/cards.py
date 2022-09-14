@@ -263,7 +263,28 @@ curl -H "Content-Type: application/json" -X POST \\
                 ],
             ),
             dmc.AccordionItem(
-                html.Div(id='coordinates'),
+                [
+                    html.Div(id='coordinates'),
+                    dbc.Row(
+                        dbc.Col(
+                            dmc.Chips(
+                                data=[
+                                    {'label': 'ICRS', 'value': 'ICRS'},
+                                    {'label': 'GAL', 'value': 'GAL'}
+                                ],
+                                id="coordinates_chips",
+                                value="ICRS",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                                spacing="xl",
+                                variant="outline",
+                                position='center',
+                                multiple=False,
+                            )
+                        )
+                    ),
+                ],
                 label="Coordinates",
                 icon=[
                     DashIconify(

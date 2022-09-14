@@ -3368,8 +3368,9 @@ def fields_exposures(pathname, dropdown_days):
     Output('coordinates', 'children'),
     [
         Input('object-data', 'children'),
+        Input('coordinates_chips', 'value')
     ])
-def draw_alert_astrometry(object_data) -> dict:
+def draw_alert_astrometry(object_data, kind) -> dict:
     """ Draw SSO object astrometry, that is difference position wrt ephemerides
     from the miriade IMCCE service.
 
@@ -3391,10 +3392,9 @@ def draw_alert_astrometry(object_data) -> dict:
     deltaDEC = (pdf['i:dec'] - mean_dec) * 3600
 
     hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
     <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>mjd</b>: %{customdata[1]}
+    <b>mjd</b>: %{customdata[0]}
     <extra></extra>
     """
     diff_g = {
@@ -3402,12 +3402,7 @@ def draw_alert_astrometry(object_data) -> dict:
         'y': deltaDEC[pdf['i:fid'] == 1],
         'mode': 'markers',
         'name': 'g band',
-        'customdata': list(
-            zip(
-                pdf['i:objectId'][pdf['i:fid'] == 1],
-                pdf['i:jd'][pdf['i:fid'] == 1].apply(lambda x: float(x) - 2400000.5),
-            )
-        ),
+        'customdata': pdf['i:jd'][pdf['i:fid'] == 1].apply(lambda x: float(x) - 2400000.5),
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -3420,12 +3415,7 @@ def draw_alert_astrometry(object_data) -> dict:
         'y': deltaDEC[pdf['i:fid'] == 2],
         'mode': 'markers',
         'name': 'r band',
-        'customdata': list(
-            zip(
-                pdf['i:objectId'][pdf['i:fid'] == 2],
-                pdf['i:jd'][pdf['i:fid'] == 2].apply(lambda x: float(x) - 2400000.5),
-            )
-        ),
+        'customdata': pdf['i:jd'][pdf['i:fid'] == 2].apply(lambda x: float(x) - 2400000.5),
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -3450,15 +3440,18 @@ def draw_alert_astrometry(object_data) -> dict:
     )
     card1 = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
 
-    coord = SkyCoord(mean_ra, mean_dec, unit='deg')
-    l = coord.galactic.l.deg
-    b = coord.galactic.b.deg
+    if kind == 'GAL':
+        coord = SkyCoord(mean_ra, mean_dec, unit='deg')
+        x = coord.galactic.l.deg
+        y = coord.galactic.b.deg
+    else:
+        x = mean_ra
+        y = mean_dec
     coords = """
     ```python
-    ICRS: {} {}
-    GAL : {} {}
+    {} {}
     ```
-    """.format(np.round(mean_ra, 6), np.round(mean_dec, 6), np.round(l, 6), np.round(b, 6))
+    """.format(np.round(x, 6), np.round(y, 6))
     card2 = dmc.Paper(
         dcc.Markdown(coords),
         radius='xl', p='md', shadow='xl', withBorder=True
