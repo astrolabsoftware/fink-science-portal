@@ -3448,27 +3448,11 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         x = mean_ra
         y = mean_dec
     coords = """
-    ```python
     {} {}
-    ```
     """.format(np.round(x, 6), np.round(y, 6))
 
-    card2 = html.Div([
-        dmc.Center(
-            dcc.Markdown(
-                coords,
-                id="code",
-            )
-        ),
-        dcc.Clipboard(
-            target_id="code",
-            style={
-                "position": "absolute",
-                "top": 0,
-                "right": 20,
-                "fontSize": 20,
-            },
-        ),
-    ], style={"position": "relative"})
+    card2 = dmc.Center(
+        dmc.Prism(children=coords, language="python")
+    )
 
     return html.Div([card1, html.Br(), card2])
