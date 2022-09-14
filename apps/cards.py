@@ -265,7 +265,6 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     html.Div(id='coordinates'),
-                    html.Br(),
                     dbc.Row(
                         dbc.Col(
                             dmc.Chips(

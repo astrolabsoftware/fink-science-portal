@@ -3471,4 +3471,4 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         ),
     ], style={"position": "relative"})
 
-    return html.Div([card1, card2])
+    return html.Div([card1, html.Br(), card2])
