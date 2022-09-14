@@ -3454,9 +3454,11 @@ def draw_alert_astrometry(object_data) -> dict:
     l = coord.galactic.l.deg
     b = coord.galactic.b.deg
     coords = """
+    ```python
     ICRS: {} {}
     GAL : {} {}
-    """.format(mean_ra, mean_dec, l, b)
+    ```
+    """.format(np.round(mean_ra, 6), np.round(mean_dec, 6), np.round(l, 6), np.round(b, 6))
     card2 = dmc.Paper(
         dcc.Markdown(coords),
         radius='xl', p='md', shadow='xl', withBorder=True
