@@ -3448,9 +3448,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         x = mean_ra
         y = mean_dec
     coords = """
-    ```python
     {} {}
-    ```
     """.format(np.round(x, 6), np.round(y, 6))
 
     card2 = html.Div([
@@ -3459,7 +3457,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
                 dcc.Markdown(
                     coords,
                     id="code",
-                ), radius='xl', pb=0, shadow='xl', withBorder=True
+                ), radius='xl', p='xs', shadow='xl', withBorder=True
             )
         ),
         dcc.Clipboard(
