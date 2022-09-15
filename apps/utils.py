@@ -59,7 +59,8 @@ class_colors = {
         'Solar System candidate': "indigo",
         'Ambiguous': 'grape',
         'Unknown': 'gray',
-        'Simbad': 'blue'
+        'Simbad': 'blue',
+        'Solar System trajectory': "teal"
     }
 
 def format_hbase_output(
@@ -153,12 +154,12 @@ def isoify_time(t):
             tt = Time(ft, format='mjd')
     return tt.iso
 
-def markdownify_objectid(objectid):
+def markdownify_objectid(display, link):
     """
     """
     objectid_markdown = '[{}](/{})'.format(
-        objectid,
-        objectid
+        display,
+        link
     )
     return objectid_markdown
 

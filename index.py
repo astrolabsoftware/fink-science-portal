@@ -28,7 +28,7 @@ from app import app
 from app import client
 from app import APIURL
 
-from apps import summary, about, statistics
+from apps import summary, about, statistics, sso_panel, ssotraj_summary
 from apps.api import api
 from apps import __version__ as portal_version
 
@@ -1059,7 +1059,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         ), no_update
     else:
         # Make clickable objectId
-        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
+        pdf['i:objectId'] = pdf['i:objectId'].apply(lambda objectId: markdownify_objectid(objectId, objectId))
 
         if query_type == 'Conesearch':
             data = pdf.sort_values(
@@ -1264,6 +1264,23 @@ navbar = dmc.Header(
                                 ),
                                 href="https://fink-broker.org",
                             ),
+                            html.A(
+                                dmc.Tooltip(
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="fa-solid:meteor",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=36,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    label="SSO",
+                                    position="bottom",
+                                ),
+                                href="{}/ssocand".format(APIURL),
+                            ),
                         ],
                     ),
                 ],
@@ -1404,8 +1421,12 @@ def display_page(pathname, is_mobile):
         return api.layout(is_mobile)
     elif pathname == '/stats':
         return statistics.layout(is_mobile)
+    elif pathname == '/ssocand':
+        return sso_panel.layout(is_mobile)
     elif 'ZTF' in pathname:
         return summary.layout(pathname, is_mobile)
+    elif 'trajid' in pathname:
+        return ssotraj_summary.layout(is_mobile)
     else:
         return layout
 
