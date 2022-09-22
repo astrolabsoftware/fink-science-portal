@@ -3255,6 +3255,8 @@ def hist_classified(pathname, dropdown_days):
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
+    # In case class:unknown contains NaN (see https://github.com/astrolabsoftware/fink-utils/issues/25)
+    pdf['class:Unknown'] = pdf['class:Unknown'].replace(np.nan, 0)
     pdf['Classified'] = pdf['basic:sci'].astype(int) - pdf['class:Unknown'].astype(int)
     pdf = pdf.rename(columns={'class:Unknown': 'Unclassified'})
 
