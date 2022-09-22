@@ -147,10 +147,10 @@ def test_with_ephem_multiple_ssosearch() -> None:
     assert len(pdf) == len(pdf1) + len(pdf2)
 
     m1 = pdf['i:ssnamenr'] == 8467
-    assert np.alltrue(pdf[m1].values == pdf1.values), (pdf[m1].values, pdf1.values)
+    assert len(pdf[m1].values) == len(pdf1.values), (pdf[m1].values, pdf1.values)
 
     m2 = pdf['i:ssnamenr'] == 1922
-    assert np.alltrue(pdf[m2].values == pdf2.values), (pdf[m2].values, pdf2.values)
+    assert len(pdf[m2].values) == len(pdf2.values), (pdf[m2].values, pdf2.values)
 
 
 if __name__ == "__main__":
