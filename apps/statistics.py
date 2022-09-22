@@ -244,7 +244,8 @@ def create_stat_generic(pdf):
         html.P('Since 2019/11/01')
     ]
 
-    n_alert_unclassified = np.sum(pdf['class:Unknown'].values)
+    mask = ~np.isnan(pdf['class:Unknown'].values)
+    n_alert_unclassified = np.sum(pdf['class:Unknown'].values[mask])
     n_alert_classified = np.sum(pdf['basic:sci'].values) - n_alert_unclassified
 
     c3 = [
