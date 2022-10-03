@@ -913,10 +913,10 @@ def get_miriade_data(pdf, observer='I41', rplane='1', tcoor=5, withecl=True):
             if withecl:
                 # Add Ecliptic coordinates
                 eph_ec = query_miriade(
-                str(ssnamenr),
-                pdf_sub['i:jd'],
-                observer=observer,
-                rplane='2'
+                    str(ssnamenr),
+                    pdf_sub['i:jd'],
+                    observer=observer,
+                    rplane='2'
                 )
 
                 sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))

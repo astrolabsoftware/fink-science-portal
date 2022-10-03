@@ -189,7 +189,7 @@ def estimate_sso_params(pdf, func, bounds=([0, 0, 0, 1e-6, 0, -np.pi/2], [30, 1,
         nparams = 2
         x = alpha
 
-    if not np.alltrue([i==i for i in ydata.values]):
+    if not np.alltrue([i == i for i in ydata.values]):
         popt = [None] * nparams
         perr = [None] * nparams
         chisq_red = None

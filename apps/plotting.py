@@ -35,7 +35,7 @@ from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
 from apps.utils import sine_fit, Vmag
 from apps.utils import class_colors
-from apps.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, estimate_sso_params
+from apps.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, add_ztf_color_correction, estimate_sso_params
 
 from apps.statistics import dic_names
 from app import APIURL
@@ -2285,10 +2285,6 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
 
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
-
-    # SSO Color index
-    V_minus_g = -0.32
-    V_minus_r = 0.13
 
     # Disctionary for filters
     filters = {1: 'g', 2: 'r', 3: 'i'}
