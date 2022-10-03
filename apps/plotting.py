@@ -52,6 +52,7 @@ from sbpy.data import Obs
 from app import client, app, clientSSO, clientStats
 
 COLORS_ZTF = ['#15284F', '#F5622E']
+COLORS_ZTF_RGB = ['rgba(21, 40, 79, 1, 0.2)', 'rgba(245, 98, 46, 1, 0.2)']
 
 colors_ = [
     "rgb(165,0,38)",
@@ -2422,7 +2423,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'showlegend': False,
                     'marker': dict(color=COLORS_ZTF[i]),
                     'line': dict(width=0),
-                    'fillcolor': COLORS_ZTF[i],
+                    'fillcolor': COLORS_ZTF_RGB[i],
                     'fill':'tonexty',
                 }
             )
