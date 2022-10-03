@@ -2308,18 +2308,34 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         fitfunc = func_hg1g2
         x = alpha
         params = ['H', 'G1', 'G2']
+        bounds = (
+            [0, 0, 0],
+            [30, 1, 1]
+        )
     elif switch_func == 'HG12':
         fitfunc = func_hg12
         x = alpha
         params = ['H', 'G12']
+        bounds = (
+            [0, 0],
+            [30, 1]
+        )
     elif switch_func == 'HG':
         fitfunc = func_hg
         x = alpha
         params = ['H', 'G']
+        bounds = (
+            [0, 0],
+            [30, 1]
+        )
     elif switch_func == 'HG1G2Spin':
         fitfunc = func_hg1g2_with_spin
         params = ['H', 'G1', 'G2', 'R', r'\alpha_0', r'\beta_0']
         x = pha
+        bounds = (
+            [0, 0, 0, 1e-1, 0, -np.pi/2],
+            [30, 1, 1, 1, 2*np.pi, np.pi/2]
+        )
 
     # fitter = LevMarLSQFitter(calc_uncertainties=True)
     if switch_band == 'per-band':
@@ -2338,10 +2354,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 popt, perr, chisq_red = estimate_sso_params(
                     pdf[cond],
                     fitfunc,
-                    bounds=(
-                        [0, 0, 0, 1e-1, 0, -np.pi/2],
-                        [30, 1, 1, 1, 2*np.pi, np.pi/2]
-                    )
+                    bounds=bounds
                 )
             except RuntimeError as e:
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
@@ -2402,10 +2415,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             popt, perr, chisq_red = estimate_sso_params(
                 pdf,
                 fitfunc,
-                bounds=(
-                    [0, 0, 0, 1e-1, 0, -np.pi/2],
-                    [30, 1, 1, 1, 2*np.pi, np.pi/2]
-                )
+                bounds=bounds
             )
         except RuntimeError as e:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
