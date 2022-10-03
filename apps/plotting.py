@@ -35,6 +35,7 @@ from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
 from apps.utils import sine_fit, Vmag
 from apps.utils import class_colors
+from apps.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, estimate_sso_params
 
 from apps.statistics import dic_names
 from app import APIURL
@@ -2264,7 +2265,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     figure: dict
     """
     # import here due to crash at the top level
-    from sbpy.photometry import HG1G2, HG12, HG
+    # from sbpy.photometry import HG1G2, HG12, HG
 
     pdf = pd.read_json(object_sso)
     if pdf.empty:
@@ -2302,18 +2303,32 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
+    alpha = np.deg2rad(pdf['Phase'].values)
+    ra = np.deg2rad(pdf['i:ra'].values)
+    dec = np.deg2rad(pdf['i:dec'].values)
+    pha = np.transpose([[i, j, k] for i, j, k in zip(alpha, ra, dec)])
+
     if switch_func == 'HG1G2':
-        fitfunc = HG1G2
+        fitfunc = func_hg1g2
+        x = alpha
         params = ['H', 'G1', 'G2']
     elif switch_func == 'HG12':
-        fitfunc = HG12
+        fitfunc = func_hg12
+        x = alpha
         params = ['H', 'G12']
     elif switch_func == 'HG':
-        fitfunc = HG
+        fitfunc = func_hg
+        x = alpha
         params = ['H', 'G']
+    elif switch_func == 'HG1G2Spin':
+        fitfunc = func_hg1g2_with_spin
+        params = ['H', 'G1', 'G2', 'R', r'\alpha_0', r'\beta_0']
+        x = pha
 
-    fitter = LevMarLSQFitter(calc_uncertainties=True)
+    # fitter = LevMarLSQFitter(calc_uncertainties=True)
     if switch_band == 'per-band':
+        # Add color correction in the DataFrame
+        pdf = add_ztf_color_correction(pdf, combined=False)
         dd = {'': [filters[f] + ' band' for f in filts]}
         dd.update({i: [''] * len(filts) for i in params})
         df_table = pd.DataFrame(
@@ -2323,36 +2338,22 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
 
-            # Color conversion
-            if filters[f] == 'g':
-                color_sso = V_minus_g
-            else:
-                color_sso = V_minus_r
-
-            ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
             try:
-                obs = Obs.from_dict(
-                    {
-                        'alpha': pdf.loc[cond, 'Phase'].values * u.deg,
-                        'mag': ydata.values * u.mag
-                    }
-                )
-                model_func = fitfunc.from_obs(
-                    obs,
-                    fitter,
-                    'mag',
-                    weights=pdf.loc[cond, 'i:sigmapsf'] * u.mag
+                popt, perr, chisq_red = estimate_sso_params(
+                    pdf[cond],
+                    fitfunc,
+                    bounds=(
+                        [0, 0, 0, 1e-1, 0, -np.pi/2],
+                        [30, 1, 1, 1, 2*np.pi, np.pi/2]
+                    )
                 )
             except RuntimeError as e:
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-            if model_func.cov_matrix is not None:
-                perr = np.sqrt(np.diag(model_func.cov_matrix.cov_matrix))
-            else:
-                perr = [np.nan] * len(params)
-
             for pindex, param in enumerate(params):
-                df_table[param][df_table[param].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_func.parameters[pindex], perr[pindex])
+                df_table[param][df_table[param].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(popt[pindex], perr[pindex])
+
+            ydata = pdf.loc[cond, 'i:magpsf_red'] + pdf.loc[cond, 'color_corr']
 
             figs.append(
                 {
@@ -2383,7 +2384,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             figs.append(
                 {
                     'x': pdf.loc[cond, 'Phase'].values,
-                    'y': model_func.to_mag(pdf.loc[cond, 'Phase'].values * u.deg, unit=u.deg).to_value(),
+                    'y': fitfunc(x, *popt),
                     'mode': 'lines',
                     'name': 'fit {:}'.format(filters[f]),
                     'showlegend': False,
@@ -2400,42 +2401,23 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             index=['Combined']
         )
 
-        # Conversion
-        color_sso = np.ones_like(pdf['i:magpsf'])
-        for i, f in enumerate(filts):
-            cond = pdf['i:fid'] == f
-
-            if filters[f] == 'g':
-                color_sso[cond] = V_minus_g
-            else:
-                color_sso[cond] = V_minus_r - V_minus_g
-
-        ydata = pdf['i:magpsf_red'] + color_sso
-
+        pdf = add_ztf_color_correction(pdf, combined=True)
         try:
-            obs = Obs.from_dict(
-                {
-                    'alpha': pdf['Phase'].values * u.deg,
-                    'mag': ydata.values * u.mag
-                }
-            )
-            model_func = fitfunc.from_obs(
-                obs,
-                fitter,
-                'mag',
-                weights=pdf['i:sigmapsf'] * u.mag
+            popt, perr, chisq_red = estimate_sso_params(
+                pdf,
+                fitfunc,
+                bounds=(
+                    [0, 0, 0, 1e-1, 0, -np.pi/2],
+                    [30, 1, 1, 1, 2*np.pi, np.pi/2]
+                )
             )
         except RuntimeError as e:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-        if model_func.cov_matrix is not None:
-            perr = np.sqrt(np.diag(model_func.cov_matrix.cov_matrix))
-        else:
-            perr = [np.nan] * len(params)
-
         for pindex, param in enumerate(params):
-            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(model_func.parameters[pindex], perr[pindex])
+            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(popt[pindex], perr[pindex])
 
+        ydata = pdf['i:magpsf_red'] + pdf['color_corr']
         figs.append(
             {
                 'x': pdf['Phase'].values,
@@ -2465,7 +2447,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         figs.append(
             {
                 'x': pdf['Phase'].values,
-                'y': model_func.to_mag(pdf['Phase'].values * u.deg, unit=u.deg).to_value(),
+                'y': fitfunc(x, *popt),
                 'mode': 'lines',
                 'name': 'fit combined',
                 'showlegend': False,
