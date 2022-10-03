@@ -52,7 +52,7 @@ from sbpy.data import Obs
 from app import client, app, clientSSO, clientStats
 
 COLORS_ZTF = ['#15284F', '#F5622E']
-COLORS_ZTF_RGB = ['rgb(21, 40, 79, 1)', 'rgb(245, 98, 46, 1)']
+COLORS_ZTF_RGB = ['rgba(21, 40, 79, 1, 0.2)', 'rgba(245, 98, 46, 1, 0.2)']
 
 colors_ = [
     "rgb(165,0,38)",
