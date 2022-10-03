@@ -2480,6 +2480,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             }
         )
 
+    layout_sso_phasecurve['title']['text'] = '$chi^2_{red}$: {:.2f}'.format(chisq_red)
     figure = {
         'data': figs,
         "layout": layout_sso_phasecurve
