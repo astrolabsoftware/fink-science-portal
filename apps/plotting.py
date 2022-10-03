@@ -2331,7 +2331,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         )
     elif switch_func == 'HG1G2S':
         fitfunc = func_hg1g2_with_spin
-        params = ['H', 'G1', 'G2', 'R', r'\alpha_0', r'\beta_0']
+        params = ['H', 'G1', 'G2', 'R', r'$\alpha_0$', r'$\beta_0$']
         x = pha
         bounds = (
             [0, 0, 0, 1e-1, 0, -np.pi/2],
