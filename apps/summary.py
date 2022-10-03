@@ -307,6 +307,7 @@ def tab5_content(object_soo):
                         dbc.Col(
                             dmc.Chips(
                                 data=[
+                                    {'label': 'HG1G2S', 'value': 'HG1G2S'},
                                     {'label': 'HG1G2', 'value': 'HG1G2'},
                                     {'label': 'HG12', 'value': 'HG12'},
                                     {'label': 'HG', 'value': 'HG'},
