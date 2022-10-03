@@ -2487,6 +2487,30 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 }
             }
         )
+        figs.append(
+            {
+                'x': pdf['Phase'].values,
+                'y': fitfunc(x, *(popt + perr)),
+                'mode': 'lines',
+                'name': 'Upper bound',
+                'showlegend': False,
+                'marker': dict(color=COLORS_ZTF[0]),
+                'line': dict(width=0),
+            }
+        )
+        figs.append(
+            {
+                'x': pdf['Phase'].values,
+                'y': fitfunc(x, *(popt - perr)),
+                'mode': 'lines',
+                'name': 'Lower bound',
+                'showlegend': False,
+                'marker': dict(color=COLORS_ZTF[0]),
+                'line': dict(width=0),
+                'fillcolor': COLORS_ZTF_RGB[0],
+                'fill':'tonexty',
+            }
+        )
 
     figure = {
         'data': figs,
