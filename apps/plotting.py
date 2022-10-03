@@ -2456,7 +2456,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
 
         ydata = pdf['i:magpsf_red'] + pdf['color_corr']
         figs.append(
-            go.Scatter(
+            go.Scattergl(
                 x=pdf['Phase'].values,
                 y=ydata.values,
                 error_y={
@@ -2483,7 +2483,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         )
 
         figs.append(
-            go.Scatter(
+            go.Scattergl(
                 x=pdf['Phase'].values,
                 y=fitfunc(x, *popt),
                 mode='lines',
@@ -2496,7 +2496,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         )
 
         figs.append(
-            go.Scatter(
+            go.Scattergl(
                 x=pdf['Phase'].values,
                 y=fitfunc(x, *(popt + perr)),
                 mode='lines',
@@ -2508,7 +2508,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         )
 
         figs.append(
-            go.Scatter(
+            go.Scattergl(
                 x=pdf['Phase'].values,
                 y=fitfunc(x, *(popt - perr)),
                 mode='lines',
