@@ -2394,7 +2394,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             if switch_func == 'HG1G2S':
                 xx = x[:, cond]
             else:
-                x = x[cond]
+                xx = x[cond]
             figs.append(
                 {
                     'x': pdf.loc[cond, 'Phase'].values,
