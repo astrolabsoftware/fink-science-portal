@@ -2352,7 +2352,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
 
             try:
                 popt, perr, chisq_red = estimate_sso_params(
-                    pdf[cond],
+                    pdf.loc[cond],
                     fitfunc,
                     bounds=bounds
                 )
