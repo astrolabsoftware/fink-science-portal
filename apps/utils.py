@@ -910,6 +910,10 @@ def get_miriade_data(pdf, observer='I41', rplane='1', tcoor=5, withecl=True):
         if not eph.empty:
             sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
 
+            eph = eph.drop(columns=['RA', 'DEC'])
+            eph['RA'] = sc.ra.value * 15
+            eph['Dec'] = sc.dec.value
+
             if withecl:
                 # Add Ecliptic coordinates
                 eph_ec = query_miriade(
