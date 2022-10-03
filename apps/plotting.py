@@ -2427,6 +2427,11 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'fill':'tonexty',
                 }
             )
+
+        figure = {
+            'data': figs,
+            "layout": layout_sso_phasecurve
+        }
     elif switch_band == 'combined':
         dd = {'': ['Combined']}
         dd.update({i: [''] for i in params})
@@ -2450,72 +2455,160 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
 
         ydata = pdf['i:magpsf_red'] + pdf['color_corr']
         figs.append(
-            {
-                'x': pdf['Phase'].values,
-                'y': ydata.values,
-                'error_y': {
+            go.Scatter(
+                x=pdf['Phase'].values,
+                y=ydata.values,
+                error_y={
                     'type': 'data',
                     'array': pdf['i:sigmapsf'].values,
                     'visible': True,
                     'color': COLORS_ZTF[0]
                 },
-                'mode': 'markers',
-                'name': 'combined (g & r)',
-                'customdata': list(
+                mode='markers',
+                name='combined (g & r)',
+                customdata=list(
                     zip(
                         pdf['i:objectId'],
                         pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
                     )
                 ),
-                'hovertemplate': hovertemplate,
-                'marker': {
+                hovertemplate=hovertemplate,
+                marker={
                     'size': 6,
                     'color': COLORS_ZTF[0],
-                    'symbol': 'o'}
-            }
+                    'symbol': 'o'
+                }
+            )
         )
 
         figs.append(
-            {
-                'x': pdf['Phase'].values,
-                'y': fitfunc(x, *popt),
-                'mode': 'lines',
-                'name': 'fit combined',
-                'showlegend': False,
-                'line': {
+            go.Scatter(
+                x=pdf['Phase'].values,
+                y=fitfunc(x, *popt),
+                mode='lines',
+                name='fit combined',
+                showlegend=False,
+                line={
                     'color': COLORS_ZTF[0],
                 }
-            }
+            )
         )
+
         figs.append(
-            {
-                'x': pdf['Phase'].values,
-                'y': fitfunc(x, *(popt + perr)),
-                'mode': 'lines',
-                'name': 'Upper bound',
-                'showlegend': False,
-                'marker': dict(color=COLORS_ZTF[0]),
-                'line': dict(width=0),
-            }
+            go.Scatter(
+                x=pdf['Phase'].values,
+                y=fitfunc(x, *(popt + perr)),
+                mode='lines',
+                name='Upper bound',
+                showlegend=False,
+                marker=dict(color=COLORS_ZTF[0]),
+                line=dict(width=0),
+            )
         )
+
         figs.append(
-            {
-                'x': pdf['Phase'].values,
-                'y': fitfunc(x, *(popt - perr)),
-                'mode': 'lines',
-                'name': 'Lower bound',
-                'showlegend': False,
-                'marker': dict(color=COLORS_ZTF[0]),
-                'line': dict(width=0),
-                'fillcolor': COLORS_ZTF_RGB[0],
-                'fill':'tonexty',
+            go.Scatter(
+                x=pdf['Phase'].values,
+                y=fitfunc(x, *(popt - perr)),
+                mode='lines',
+                name='Lower bound',
+                showlegend=False,
+                marker=dict(color=COLORS_ZTF[0]),
+                line=dict(width=0),
+                fillcolor=COLORS_ZTF_RGB[0],
+                fill='tonexty',
+            )
+        )
+
+        # figs.append(
+        #     {
+        #         'x': pdf['Phase'].values,
+        #         'y': ydata.values,
+        #         'error_y': {
+        #             'type': 'data',
+        #             'array': pdf['i:sigmapsf'].values,
+        #             'visible': True,
+        #             'color': COLORS_ZTF[0]
+        #         },
+        #         'mode': 'markers',
+        #         'name': 'combined (g & r)',
+        #         'customdata': list(
+        #             zip(
+        #                 pdf['i:objectId'],
+        #                 pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+        #             )
+        #         ),
+        #         'hovertemplate': hovertemplate,
+        #         'marker': {
+        #             'size': 6,
+        #             'color': COLORS_ZTF[0],
+        #             'symbol': 'o'}
+        #     }
+        # )
+
+        # figs.append(
+        #     {
+        #         'x': pdf['Phase'].values,
+        #         'y': fitfunc(x, *popt),
+        #         'mode': 'lines',
+        #         'name': 'fit combined',
+        #         'showlegend': False,
+        #         'line': {
+        #             'color': COLORS_ZTF[0],
+        #         }
+        #     }
+        # )
+        # figs.append(
+        #     {
+        #         'x': pdf['Phase'].values,
+        #         'y': fitfunc(x, *(popt + perr)),
+        #         'mode': 'lines',
+        #         'name': 'Upper bound',
+        #         'showlegend': False,
+        #         'marker': dict(color=COLORS_ZTF[0]),
+        #         'line': dict(width=0),
+        #     }
+        # )
+        # figs.append(
+        #     {
+        #         'x': pdf['Phase'].values,
+        #         'y': fitfunc(x, *(popt - perr)),
+        #         'mode': 'lines',
+        #         'name': 'Lower bound',
+        #         'showlegend': False,
+        #         'marker': dict(color=COLORS_ZTF[0]),
+        #         'line': dict(width=0),
+        #         'fillcolor': COLORS_ZTF_RGB[0],
+        #         'fill':'tonexty',
+        #     }
+        # )
+        figure = go.Figure(figs)
+        figure.update_layout(
+            automargin=True,
+            margin=dict(l=50, r=30, b=0, t=0),
+            hovermode="closest",
+            hoverlabel={
+                'align': "left"
+            },
+            legend=dict(
+                font=dict(size=10),
+                orientation="h",
+                xanchor="right",
+                x=1,
+                y=1.2,
+                bgcolor='rgba(218, 223, 225, 0.3)'
+            ),
+            xaxis={
+                'title': 'Phase angle [degree]',
+                'automargin': True
+            },
+            yaxis={
+                'autorange': 'reversed',
+                'title': 'observed V [mag]',
+                'automargin': True
             }
         )
 
-    figure = {
-        'data': figs,
-        "layout": layout_sso_phasecurve
-    }
     columns = [
         {
             'id': c,
