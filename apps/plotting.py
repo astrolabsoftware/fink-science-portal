@@ -2476,7 +2476,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 marker={
                     'size': 6,
                     'color': COLORS_ZTF[0],
-                    'symbol': 'o'
+                    'symbol': 'circle'
                 }
             )
         )
