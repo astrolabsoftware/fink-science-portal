@@ -2402,6 +2402,30 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     }
                 }
             )
+            figs.append(
+                {
+                    'x': pdf.loc[cond, 'Phase'].values,
+                    'y': fitfunc(x[cond], *(popt + perr)),
+                    'mode': 'lines',
+                    'name': 'Upper bound',
+                    'showlegend': False,
+                    'marker': dict(color=COLORS_ZTF[i]),
+                    'line': dict(width=0),
+                }
+            )
+            figs.append(
+                {
+                    'x': pdf.loc[cond, 'Phase'].values,
+                    'y': fitfunc(x[cond], *(popt - perr)),
+                    'mode': 'lines',
+                    'name': 'Lower bound',
+                    'showlegend': False,
+                    'marker': dict(color=COLORS_ZTF[i]),
+                    'line': dict(width=0),
+                    'fillcolor': COLORS_ZTF[i],
+                    'fill':'tonexty',
+                }
+            )
     elif switch_band == 'combined':
         dd = {'': ['Combined']}
         dd.update({i: [''] for i in params})
