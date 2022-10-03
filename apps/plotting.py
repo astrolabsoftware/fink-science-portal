@@ -2586,7 +2586,6 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         # )
         figure = go.Figure(figs)
         figure.update_layout(
-            automargin=True,
             margin=dict(l=50, r=30, b=0, t=0),
             hovermode="closest",
             hoverlabel={
