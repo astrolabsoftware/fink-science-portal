@@ -2517,7 +2517,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 marker=dict(color=COLORS_ZTF[0]),
                 line=dict(width=0),
                 fillcolor=COLORS_ZTF_RGB[0],
-                opacity=0.2
+                opacity=0.2,
                 fill='tonexty',
             )
         )
