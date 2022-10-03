@@ -807,6 +807,7 @@ def extract_query_url(search: str):
 
 def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
     """ Gets asteroid or comet ephemerides from IMCCE Miriade for a suite of JD for a single SSO
+
     Original function by M. Mahlke
 
     Limitations:
@@ -864,9 +865,9 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
 
     # Execute query
     try:
-        r = requests.post(url, params=params, files=files, timeout=2000)
+        r = requests.post(url, params=params, files=files, timeout=10)
     except requests.exceptions.ReadTimeout:
-        return False
+        return pd.DataFrame()
 
     j = r.json()
 
@@ -878,7 +879,7 @@ def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
 
     return ephem
 
-def get_miriade_data(pdf):
+def get_miriade_data(pdf, observer='I41', rplane='1', tcoor=5, withecl=True):
     """ Add ephemerides information from Miriade to a Pandas DataFrame with SSO lightcurve
 
     Parameters
@@ -892,28 +893,35 @@ def get_miriade_data(pdf):
         DataFrame of the same length, but with new columns from the ephemerides service.
     """
     ssnamenrs = np.unique(pdf['i:ssnamenr'].values)
-    ztf_code = 'I41'
 
     infos = []
     for ssnamenr in ssnamenrs:
         mask = pdf['i:ssnamenr'] == ssnamenr
         pdf_sub = pdf[mask]
 
-        eph = query_miriade(ssnamenr, pdf_sub['i:jd'], observer=ztf_code)
+        eph = query_miriade(
+            str(ssnamenr),
+            pdf_sub['i:jd'],
+            observer=observer,
+            rplane=rplane,
+            tcoor=tcoor
+        )
 
         if not eph.empty:
             sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
 
-            eph = eph.drop(columns=['RA', 'DEC'])
-            eph['RA'] = sc.ra.value * 15
-            eph['Dec'] = sc.dec.value
+            if withecl:
+                # Add Ecliptic coordinates
+                eph_ec = query_miriade(
+                str(ssnamenr),
+                pdf_sub['i:jd'],
+                observer=observer,
+                rplane='2'
+                )
 
-            # Add Ecliptic coordinates
-            eph_ec = query_miriade(ssnamenr, pdf_sub['i:jd'], rplane='2')
-
-            sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
-            eph['Longitude'] = sc.ra.value
-            eph['Latitude'] = sc.dec.value
+                sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
+                eph['Longitude'] = sc.ra.value
+                eph['Latitude'] = sc.dec.value
 
             # Merge fink & Eph
             info = pd.concat([eph.reset_index(), pdf_sub.reset_index()], axis=1)
