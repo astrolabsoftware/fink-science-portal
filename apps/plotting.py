@@ -2435,7 +2435,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
-                'name': 'combined (g & r)'.format(filters[f]),
+                'name': 'combined (g & r)',
                 'customdata': list(
                     zip(
                         pdf['i:objectId'],
