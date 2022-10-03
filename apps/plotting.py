@@ -2331,7 +2331,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         )
     elif switch_func == 'HG1G2S':
         fitfunc = func_hg1g2_with_spin
-        params = ['H', 'G1', 'G2', 'R', r'$\alpha_0$', r'$\beta_0$']
+        params = ['H', 'G1', 'G2', 'R', 'alpha[deg]', 'lambda[deg]']
         x = pha
         bounds = (
             [0, 0, 0, 1e-1, 0, -np.pi/2],
@@ -2361,7 +2361,12 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
             for pindex, param in enumerate(params):
-                df_table[param][df_table[param].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(popt[pindex], perr[pindex])
+                # rad2deg
+                if pindex >= 4:
+                    factor = 180. / np.pi
+                else:
+                    factor = 1.
+                df_table[param][df_table[param].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(factor*popt[pindex], factor*perr[pindex])
 
             ydata = pdf.loc[cond, 'i:magpsf_red'] + pdf.loc[cond, 'color_corr']
 
