@@ -20,8 +20,6 @@ import io
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from sbpy.photometry import HG1G2, HG12, HG
-
 import scipy
 from scipy.optimize import curve_fit
 
@@ -37,6 +35,7 @@ def func_hg(ph, h, g):
     G: float
         G parameter (no unit)
     """
+    from sbpy.photometry import HG
 
     # Standard G part
     func1 = (1 - g) * HG._hgphi(ph, 1) + g * HG._hgphi(ph, 2)
@@ -56,6 +55,7 @@ def func_hg12(ph, h, g12):
     G: float
         G parameter (no unit)
     """
+    from sbpy.photometry import HG1G2, HG12
 
     # Standard G1G2 part
     g1 = HG12._G12_to_G1(g12)
@@ -79,6 +79,7 @@ def func_hg1g2(ph, h, g1, g2):
     G2: float
         G2 parameter (no unit)
     """
+    from sbpy.photometry import HG1G2
 
     # Standard G1G2 part
     func1 = g1*HG1G2._phi1(ph)+g2*HG1G2._phi2(ph)+(1-g1-g2)*HG1G2._phi3(ph)
