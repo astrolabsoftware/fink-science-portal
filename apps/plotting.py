@@ -2433,7 +2433,12 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
         for pindex, param in enumerate(params):
-            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(popt[pindex], perr[pindex])
+            # rad2deg
+            if pindex >= 4:
+                factor = 180. / np.pi
+            else:
+                factor = 1.
+            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(factor*popt[pindex], factor*perr[pindex])
 
         ydata = pdf['i:magpsf_red'] + pdf['color_corr']
         figs.append(
