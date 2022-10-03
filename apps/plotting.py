@@ -2290,7 +2290,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     V_minus_r = 0.13
 
     # Disctionary for filters
-    filters = {1: 'g', 2: 'R', 3: 'i'}
+    filters = {1: 'g', 2: 'r', 3: 'i'}
     filts = np.unique(pdf['i:fid'].values)
 
     figs = []
