@@ -269,11 +269,11 @@ curl -H "Content-Type: application/json" -X POST \\
                         dbc.Col(
                             dmc.Chips(
                                 data=[
-                                    {'label': 'ECL', 'value': 'ECL'},
+                                    {'label': 'EQU', 'value': 'EQU'},
                                     {'label': 'GAL', 'value': 'GAL'}
                                 ],
                                 id="coordinates_chips",
-                                value="ECL",
+                                value="EQU",
                                 color="orange",
                                 radius="xl",
                                 size="sm",
