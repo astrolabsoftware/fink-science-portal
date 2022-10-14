@@ -727,21 +727,10 @@ def layout(name, is_mobile):
     if pdf.empty:
         layout_ = html.Div(
             [
-                dbc.Container(
-                    [
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    [
-                                        html.Br(),
-                                        html.Br(),
-                                        dbc.Alert("{} not found. Either the object does not exist, or it has not yet been injected in our database (nightly data appears on the evening).".format(name[1:]), color="danger"),
-                                    ],
-                                    width={"size": 12},
-                                ),
-                            ]
-                        ),
-                    ]
+                dmc.Center(
+                    children=[
+                        dbc.Alert("{} not found. Either the object does not exist, or it has not yet been injected in our database (nightly data appears on the evening).".format(name[1:]), color="danger"),
+                    ],
                 )
             ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
         )
