@@ -32,7 +32,7 @@ def ssocandsearch(kind='orbParams', trajectory_id=None, start_date=None, stop_da
     }
 
     if trajectory_id is not None:
-        payload.update({'trajectory_id': trajectory_id})
+        payload.update({'ssoCandId': trajectory_id})
     if start_date is not None:
         payload.update({'start_date': start_date})
     if stop_date is not None:
