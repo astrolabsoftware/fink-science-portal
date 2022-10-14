@@ -730,7 +730,7 @@ def layout(name, is_mobile):
                 dmc.Center(
                     style={"height": "100%", "width": "100%"},
                     children=[
-                        dbc.Alert("{} not found. Either the object does not exist, or it has not yet been injected in our database (nightly data appears on the evening).".format(name[1:]), color="danger"),
+                        dbc.Alert("{} not found. Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).".format(name[1:]), color="danger"),
                     ],
                 )
             ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
