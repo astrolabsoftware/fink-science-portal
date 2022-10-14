@@ -1186,7 +1186,7 @@ r = requests.post(
   'https://fink-portal.org/api/v1/ssocand',
   json={
     'kind': str, # Mandatory, `orbParams` or `lightcurves`
-    'trajectory_id': int, # optional, if you know a trajectory ID. Otherwise returns all.
+    'ssoCandId': int, # optional, if you know a trajectory ID. Otherwise returns all.
     'start_date': str, # optional. Only for lightcurves. Default is 2019-11-01
     'stop_date': str, # optional. Only for lightcurves. Default is today.
     'output-format': str
