@@ -728,6 +728,7 @@ def layout(name, is_mobile):
         layout_ = html.Div(
             [
                 dmc.Center(
+                    style={"height": 200, "width": "100%"},
                     children=[
                         dbc.Alert("{} not found. Either the object does not exist, or it has not yet been injected in our database (nightly data appears on the evening).".format(name[1:]), color="danger"),
                     ],
