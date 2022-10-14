@@ -727,10 +727,10 @@ def layout(name, is_mobile):
     if pdf.empty:
         layout_ = html.Div(
             [
-                html.Br(),
-                html.Br(),
                 dbc.Container(
                     [
+                        html.Br(),
+                        html.Br(),
                         dbc.Row(
                             [
                                 dbc.Col(
