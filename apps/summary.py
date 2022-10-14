@@ -729,13 +729,15 @@ def layout(name, is_mobile):
             [
                 dbc.Container(
                     [
-                        html.Br(),
-                        html.Br(),
                         dbc.Row(
                             [
                                 dbc.Col(
-                                    dbc.Alert("{} not found. Either the object does not exist, or it has not yet been injected in our database (nightly data appears on the evening).".format(name[1:]), color="danger"),
-                                    width={"size": 12, "offset": 0},
+                                    [
+                                        html.Br(),
+                                        html.Br(),
+                                        dbc.Alert("{} not found. Either the object does not exist, or it has not yet been injected in our database (nightly data appears on the evening).".format(name[1:]), color="danger"),
+                                    ],
+                                    width={"size": 12},
                                 ),
                             ]
                         ),
