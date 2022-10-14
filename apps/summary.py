@@ -729,7 +729,18 @@ def layout(name, is_mobile):
             [
                 html.Br(),
                 html.Br(),
-                dbc.Alert("{} not found. Either the object does not exist, or it has not yet been injected in our database (nightly data appears on the evening).".format(name[1:]), color="info"),
+                dbc.Container(
+                    [
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    dbc.Alert("{} not found. Either the object does not exist, or it has not yet been injected in our database (nightly data appears on the evening).".format(name[1:]), color="danger"),
+                                    width={"size": 12, "offset": 0},
+                                ),
+                            ]
+                        ),
+                    ]
+                )
             ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
         )
     elif is_mobile:
