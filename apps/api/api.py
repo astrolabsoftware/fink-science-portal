@@ -508,7 +508,7 @@ args_ssocand = [
         'description': 'Choose to return orbital parameters (orbParams), or lightcurves (lightcurves)'
     },
     {
-        'name': 'trajectory_id',
+        'name': 'ssoCandId',
         'required': False,
         'description': '[Optional] Trajectory ID if you know it. Otherwise do not specify to return all.'
     },

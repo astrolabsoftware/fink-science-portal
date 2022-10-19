@@ -21,6 +21,7 @@ import datetime
 #import java
 import copy
 from astropy.time import Time
+from astropy.coordinates import SkyCoord
 import requests
 
 from dash import html, dcc, dash_table, Input, Output, State, no_update
@@ -3302,6 +3303,8 @@ def hist_classified(pathname, dropdown_days):
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
+    # In case class:unknown contains NaN (see https://github.com/astrolabsoftware/fink-utils/issues/25)
+    pdf['class:Unknown'] = pdf['class:Unknown'].replace(np.nan, 0)
     pdf['Classified'] = pdf['basic:sci'].astype(int) - pdf['class:Unknown'].astype(int)
     pdf = pdf.rename(columns={'class:Unknown': 'Unclassified'})
 
@@ -3410,3 +3413,96 @@ def fields_exposures(pathname, dropdown_days):
     )
 
     return card
+
+@app.callback(
+    Output('coordinates', 'children'),
+    [
+        Input('object-data', 'children'),
+        Input('coordinates_chips', 'value')
+    ])
+def draw_alert_astrometry(object_data, kind) -> dict:
+    """ Draw SSO object astrometry, that is difference position wrt ephemerides
+    from the miriade IMCCE service.
+
+    Parameters
+    ----------
+    pathname: str
+        Pathname of the current webpage (should be /ZTF19...).
+
+    Returns
+    ----------
+    figure: dict
+    """
+    pdf = pd.read_json(object_data)
+
+    mean_ra = np.mean(pdf['i:ra'])
+    mean_dec = np.mean(pdf['i:dec'])
+
+    deltaRAcosDEC = (pdf['i:ra'] - mean_ra) * np.cos(np.radians(pdf['i:dec'])) * 3600
+    deltaDEC = (pdf['i:dec'] - mean_dec) * 3600
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>mjd</b>: %{customdata}
+    <extra></extra>
+    """
+    diff_g = {
+        'x': deltaRAcosDEC[pdf['i:fid'] == 1],
+        'y': deltaDEC[pdf['i:fid'] == 1],
+        'mode': 'markers',
+        'name': 'g band',
+        'customdata': pdf['i:jd'][pdf['i:fid'] == 1].apply(lambda x: float(x) - 2400000.5),
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[0],
+            'symbol': 'o'}
+    }
+
+    diff_r = {
+        'x': deltaRAcosDEC[pdf['i:fid'] == 2],
+        'y': deltaDEC[pdf['i:fid'] == 2],
+        'mode': 'markers',
+        'name': 'r band',
+        'customdata': pdf['i:jd'][pdf['i:fid'] == 2].apply(lambda x: float(x) - 2400000.5),
+        'hovertemplate': hovertemplate,
+        'marker': {
+            'size': 6,
+            'color': COLORS_ZTF[1],
+            'symbol': 'o'}
+    }
+
+    figure = {
+        'data': [
+            diff_g,
+            diff_r,
+        ],
+        "layout": layout_sso_astrometry
+    }
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            'width': '100%',
+            'height': '20pc'
+        },
+        config={'displayModeBar': False}
+    )
+    card1 = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+
+    if kind == 'GAL':
+        coord = SkyCoord(mean_ra, mean_dec, unit='deg')
+        x = coord.galactic.l.deg
+        y = coord.galactic.b.deg
+    else:
+        x = mean_ra
+        y = mean_dec
+    coords = """
+    {} {}
+    """.format(np.round(x, 6), np.round(y, 6))
+
+    card2 = dmc.Center(
+        dmc.Prism(children=coords, language="python", copyLabel='Copy coordinates', style={'width': '60%'})
+    )
+
+    return html.Div([card1, html.Br(), card2])

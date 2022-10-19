@@ -188,7 +188,7 @@ curl -H "Content-Type: application/json" -X POST \\
     qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
 
     card = dmc.Accordion(
-        state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
+        state={"0": True, **{"{}".format(i+1): False for i in range(5)}},
         multiple=True,
         offsetIcon=False,
         disableIconRotation=True,
@@ -258,6 +258,38 @@ curl -H "Content-Type: application/json" -X POST \\
                     DashIconify(
                         icon="tabler:flare",
                         color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                        width=20,
+                    )
+                ],
+            ),
+            dmc.AccordionItem(
+                [
+                    html.Div(id='coordinates'),
+                    dbc.Row(
+                        dbc.Col(
+                            dmc.Chips(
+                                data=[
+                                    {'label': 'EQU', 'value': 'EQU'},
+                                    {'label': 'GAL', 'value': 'GAL'}
+                                ],
+                                id="coordinates_chips",
+                                value="EQU",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                                spacing="xl",
+                                variant="outline",
+                                position='center',
+                                multiple=False,
+                            )
+                        )
+                    ),
+                ],
+                label="Coordinates",
+                icon=[
+                    DashIconify(
+                        icon="tabler:target",
+                        color=dmc.theme.DEFAULT_COLORS["orange"][6],
                         width=20,
                     )
                 ],
