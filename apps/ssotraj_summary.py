@@ -2,17 +2,32 @@ from app import app, APIURL
 import pandas as pd
 import requests
 import io
+import numpy as np
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+from astropy.time import Time
 
 from dash import html, dcc, Input, Output, dash_table, State
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash import html, dcc
 from dash_iconify import DashIconify
+from dash.exceptions import PreventUpdate
 
 from apps.utils import class_colors, isoify_time, convert_jd
-from apps.plotting import COLORS_ZTF, layout_sso_lightcurve, colors_, layout_sso_radec
+from apps.plotting import (
+    COLORS_ZTF,
+    layout_sso_lightcurve,
+    colors_,
+    layout_ssocand_speed,
+    layout_ssocand_acceleration,
+)
 
 import plotly.graph_objs as go
+
+from poliastro.twobody import Orbit
+from poliastro.plotting.misc import plot_solar_system
+from poliastro.bodies import Sun
 
 
 @app.callback(
@@ -220,7 +235,9 @@ def astr_tab_content(pdf_lc):
         for ra_s, dec_s, ra_e, dec_e in zip(ra[:-1], dec[:-1], ra[1:], dec[1:])
     ]
 
-    fig.update_layout(annotations=annotations,)
+    fig.update_layout(
+        annotations=annotations,
+    )
 
     graph = dcc.Graph(
         figure=fig,
@@ -245,15 +262,94 @@ def astr_tab_content(pdf_lc):
     return card
 
 
-def dyn_tab_content():
-    pass
+@app.callback(
+    Output("dynamic_graph", "children"),
+    [Input("dynamic_radio", "value"), Input("traj_lc", "data")],
+)
+def dyn_tab_content(v_radio, json_lc):
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+    <extra></extra>
+    """
+
+    pdf_lc = pd.read_json(json_lc)
+
+    ra, dec, jd = (
+        pdf_lc["d:ra"].values,
+        pdf_lc["d:dec"].values,
+        (pdf_lc["d:jd"].values * 24),
+    )
+    coord = SkyCoord(ra, dec, unit=u.degree)
+
+    ast_speed = coord[:-1:].separation(coord[1::]).arcminute / np.diff(jd)
+
+    if v_radio == "speed":
+        mean_speed = np.round(np.mean(ast_speed), 3)
+        obs = {
+            "x": np.arange(len(ast_speed)),
+            "y": ast_speed,
+            "hovertemplate": hovertemplate,
+        }
+        dyn_layout = layout_ssocand_speed
+    elif v_radio == "acceleration":
+        ast_acc = np.diff(ast_speed) / np.diff(np.diff(jd))
+        mean_acc = np.round(np.mean(ast_acc), 3)
+        obs = {
+            "x": np.arange(len(ast_acc)),
+            "y": ast_acc,
+            "hovertemplate": hovertemplate,
+        }
+        dyn_layout = layout_ssocand_acceleration
+    else:
+        raise PreventUpdate
+
+    figure = {"data": [obs], "layout": dyn_layout}
+
+    graph = dcc.Graph(
+        figure=figure,
+        style={"width": "100%", "height": "25pc"},
+        config={"displayModeBar": False},
+    )
+
+    card = dmc.Paper(graph, radius="xl", p="md", shadow="xl", withBorder=True)
+
+    return card
 
 
-def orb_tab_content():
+def orb_tab_content(pdf_orb):
 
-    
+    a = pdf_orb["d:a"].values[0] << u.AU
+    ecc = pdf_orb["d:e"].values[0] << u.one
+    inc = pdf_orb["d:i"].values[0] << u.deg
+    raan = pdf_orb["d:long_node"].values[0] << u.deg
+    argp = pdf_orb["d:arg_peric"].values[0] << u.deg
+    nu = pdf_orb["d:mean_anomaly"].values[0] << u.deg
 
-    pass
+    orb = Orbit.from_classical(Sun, a, ecc, inc, raan, argp, nu)
+
+    jupyter_distance = 5.4570 << u.AU
+
+    frame = plot_solar_system(
+        outer=a > jupyter_distance,
+        # epoch=Time(pdf_orb["d:ref_epoch"].values[0], format="jd"), # not working
+        use_3d=True,
+        interactive=True,
+    )
+
+    frame.plot(
+        orb,
+        label="trajectory_id={}".format(pdf_orb["d:trajectory_id"].values[0]),
+        color="red",
+    )
+
+    graph = dcc.Graph(
+        figure=frame._figure,
+        style={"width": "100%", "height": "25pc"},
+        config={"displayModeBar": False},
+    )
+    card = dmc.Paper(graph, radius="xs", p="md", shadow="xl", withBorder=True, style={"height":"30pc"})
+
+    return card
 
 
 @app.callback(
@@ -265,12 +361,17 @@ def tabs(json_lc, json_orb):
     pdf_lc = pd.read_json(json_lc)
     pdf_orb = pd.read_json(json_orb)
 
+    dynamic_tab = [
+        dcc.RadioItems(["speed", "acceleration"], "speed", id="dynamic_radio"),
+        html.Div(id="dynamic_graph"),
+    ]
+
     tabs_ = dmc.Tabs(
         [
             dmc.Tab(lc_tab_content(pdf_lc), label="Lightcurve"),
             dmc.Tab(astr_tab_content(pdf_lc), label="Astrometry"),
-            dmc.Tab(dyn_tab_content(), label="Dynamics"),
-            dmc.Tab(orb_tab_content(), label="Orbit"),
+            dmc.Tab(dynamic_tab, label="Dynamics"),
+            dmc.Tab(orb_tab_content(pdf_orb), label="Orbit"),
         ],
         position="right",
         variant="outline",

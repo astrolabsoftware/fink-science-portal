@@ -1,6 +1,8 @@
 import pandas as pd
+import numpy as np
 import io
 import requests
+import random
 
 from app import app
 import dash_bootstrap_components as dbc
@@ -10,12 +12,13 @@ import dash_mantine_components as dmc
 from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 
-from apps.utils import markdownify_objectid
+from apps.utils import markdownify_objectid, random_color
 
-@app.callback(
-    Output("pdf_lc", "data"),
-    [Input('url', 'pathname')]
-)
+import plotly.graph_objs as go
+import plotly.express as px
+
+
+@app.callback(Output("pdf_lc", "data"), [Input("url", "pathname")])
 def store_lighcurves_query(name):
     """Cache query results (sso trajectories and lightcurves) for easy re-use
 
@@ -35,10 +38,7 @@ def store_lighcurves_query(name):
     return pdf_lc.to_json()
 
 
-@app.callback(
-    Output("pdf_orb", "data"),
-    [Input("pdf_lc", "data")]
-)
+@app.callback(Output("pdf_orb", "data"), [Input("pdf_lc", "data")])
 def store_orbit_query(json_lc):
     """Cache query results (sso trajectories and lightcurves) for easy re-use
 
@@ -55,10 +55,19 @@ def store_orbit_query(json_lc):
     )
 
     # Format output in a DataFrame
-    pdf_orb = pd.read_json(io.BytesIO(r_orb.content)).drop_duplicates(["d:a", "d:e", "d:i"])
+    pdf_orb = pd.read_json(io.BytesIO(r_orb.content)).drop_duplicates(
+        ["d:a", "d:e", "d:i"]
+    )
     pdf_orb = pdf_orb[pdf_orb["d:trajectory_id"].isin(pdf_lc["d:trajectory_id"])]
 
     return pdf_orb.to_json()
+
+
+@app.callback(Output("mpc_data", "data"), [Input("url", "pathname")])
+def load_mpc(url):
+
+    mpc_ae = pd.read_parquet("data/ae_mpc.parquet")
+    return mpc_ae.to_json()
 
 
 def populate_sso_table(data, columns):
@@ -90,51 +99,9 @@ def populate_sso_table(data, columns):
 
 def display_table_results(table):
 
-    switch_lc_orb = dmc.Switch(
-        size="md",
-        radius="xl",
-        label="orb_switch",
-        color="orange",
-        checked=False,
-        id="sso-orb-switch",
-    )
-    switch_orb_description = (
-        "Toggle the switch to list the orbital element of each trajectories."
-    )
-
     return dbc.Container(
         [
-            dmc.Accordion(
-                state={"0": False},
-                offsetIcon=False,
-                children=[
-                    dmc.AccordionItem(
-                        children=[
-                            dmc.Paper(
-                                [
-                                    dmc.Tooltip(
-                                        children=switch_lc_orb,
-                                        wrapLines=True,
-                                        width=220,
-                                        withArrow=True,
-                                        transition="fade",
-                                        transitionDuration=200,
-                                        label=switch_orb_description,
-                                    )
-                                ]
-                            )
-                        ],
-                        label="Trajectory Table options",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:arrow-bar-to-down",
-                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                                width=20,
-                            )
-                        ],
-                    )
-                ],
-            ),
+            dcc.RadioItems(["Trajectory", "Orbit"], "Trajectory", id="sso-orb-radio"),
             table,
         ]
     )
@@ -142,18 +109,21 @@ def display_table_results(table):
 
 @app.callback(
     [Output("sso_lc_table", "data"), Output("sso_lc_table", "columns")],
-    [Input("sso-orb-switch", "checked"), Input("pdf_orb", "data"), Input("pdf_lc", "data")],
+    [
+        Input("sso-orb-radio", "value"),
+        Input("pdf_orb", "data"),
+        Input("pdf_lc", "data"),
+    ],
     [State("sso_lc_table", "data"), State("sso_lc_table", "columns")],
 )
-def update_sso_table(orb_checked, json_orb, json_lc, data, columns):
+def update_sso_table(orb_v_radio, json_orb, json_lc, data, columns):
 
-    markdown_trajid = lambda traj_id: markdownify_objectid(traj_id, "trajid_{}".format(traj_id))
-    if orb_checked is True:
-        pdf_orb = (
-            pd.read_json(json_orb)
-            .sort_values(["d:trajectory_id", "d:ref_epoch"])
-        )
-        pdf_orb['d:trajectory_id'] = pdf_orb['d:trajectory_id'].apply(markdown_trajid)
+    markdown_trajid = lambda traj_id: markdownify_objectid(
+        traj_id, "trajid_{}".format(traj_id)
+    )
+    if orb_v_radio == "Orbit":
+        pdf_orb = pd.read_json(json_orb).sort_values(["d:trajectory_id", "d:ref_epoch"])
+        pdf_orb["d:trajectory_id"] = pdf_orb["d:trajectory_id"].apply(markdown_trajid)
         pdf_orb = pdf_orb.to_dict("records")
 
         colnames_to_display = [
@@ -179,17 +149,14 @@ def update_sso_table(orb_checked, json_orb, json_lc, data, columns):
         ]
 
         return pdf_orb, columns
-    
-    else:
+
+    elif orb_v_radio == "Trajectory":
         original_pdf = pd.DataFrame.from_dict(data)
         if "d:jd" in original_pdf:
             raise PreventUpdate
-        
-        pdf_lc = (
-            pd.read_json(json_lc)
-            .sort_values(["d:trajectory_id", "d:jd"])
-        )
-        pdf_lc['d:trajectory_id'] = pdf_lc['d:trajectory_id'].apply(markdown_trajid)
+
+        pdf_lc = pd.read_json(json_lc).sort_values(["d:trajectory_id", "d:jd"])
+        pdf_lc["d:trajectory_id"] = pdf_lc["d:trajectory_id"].apply(markdown_trajid)
         pdf_lc = pdf_lc.to_dict("records")
 
         colnames_to_display = ["d:trajectory_id", "d:jd", "d:candid", "d:ra", "d:dec"]
@@ -204,8 +171,11 @@ def update_sso_table(orb_checked, json_orb, json_lc, data, columns):
             }
             for c in colnames_to_display
         ]
-        
+
         return pdf_lc, columns
+
+    else:
+        raise PreventUpdate
 
 
 @app.callback(
@@ -214,12 +184,10 @@ def update_sso_table(orb_checked, json_orb, json_lc, data, columns):
 )
 def results(json_lc):
 
-    pdf_lc = (
-        pd.read_json(json_lc)
-        .sort_values(["d:trajectory_id", "d:jd"])
+    pdf_lc = pd.read_json(json_lc).sort_values(["d:trajectory_id", "d:jd"])
+    pdf_lc["d:trajectory_id"] = pdf_lc["d:trajectory_id"].apply(
+        lambda traj_id: markdownify_objectid(traj_id, "trajid_{}".format(traj_id))
     )
-    pdf_lc['d:trajectory_id'] = pdf_lc['d:trajectory_id'].apply(
-        lambda traj_id: markdownify_objectid(traj_id, "trajid_{}".format(traj_id)))
     pdf_lc = pdf_lc.to_dict("records")
     colnames_to_display = ["d:trajectory_id", "d:jd", "d:candid", "d:ra", "d:dec"]
 
@@ -236,6 +204,146 @@ def results(json_lc):
 
     table = populate_sso_table(pdf_lc, columns)
     return dbc.Container([html.Br(), display_table_results(table)])
+
+
+def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
+
+    xcand_data = pdf_orb["d:{}".format(xdata)].values
+    ycand_data = pdf_orb["d:{}".format(ydata)].values
+
+    is_distant = mpc_ae["Orbit_type"] == "Distant Object"
+
+    no_distant = mpc_ae[~is_distant]
+    distant = mpc_ae[is_distant]
+
+
+    data = []
+    for orb_type in mpc_ae["Orbit_type"].unique():
+        tmp_df = no_distant[no_distant["Orbit_type"] == orb_type]
+        x = tmp_df[xdata]
+        y = tmp_df[ydata]
+        data.append(go.Scattergl(
+            x=x,
+            y=y,
+            mode='markers',
+            name=orb_type,
+            opacity=0.5
+            # marker=dict(color=random_color()[2])
+        ))
+
+    data.append(
+        go.Scattergl(
+            x=distant[xdata],
+            y=distant[ydata],
+            mode='markers',
+            name=distant["Orbit_type"].values[0],
+            visible='legendonly',
+            opacity=0.5,
+            marker=dict(color='rgba(152, 0, 0, .5)')
+        )
+    )
+
+    data.append(
+        go.Scattergl(
+            x=xcand_data,
+            y=ycand_data,
+            mode='markers',
+            name="Fink SSO candidates",
+            marker=dict(
+                size=10,
+                line=dict(
+                    color='rgba(70, 138, 94, 0.5)',
+                    width=2
+                ),
+                color='rgba(111, 235, 154, 0.5)'
+            )
+        )
+    )
+
+    custom_title = {
+        "a" : "semi major axis (AU)",
+        "e" : "eccentricity",
+        "i" : "inclination (degree)"
+    }
+
+    layout_sso_ae = dict(
+        margin=dict(l=50, r=30, b=0, t=0),
+        hovermode="closest",
+        hoverlabel={"align": "left"},
+        legend=dict(
+            font=dict(size=10),
+            orientation="h",
+            xanchor="right",
+            x=1,
+            y=1.2,
+            bgcolor="rgba(218, 223, 225, 0.3)",
+        ),
+        yaxis={"title": custom_title[ydata], "automargin": True},
+        xaxis={"title": custom_title[xdata], "automargin": True},
+    )
+
+    return {"data": data, "layout": layout_sso_ae}
+
+
+
+
+@app.callback(Output("ae_distrib", "children"), [Input("pdf_orb", "data"), Input("mpc_data", "data")])
+def construct_ae_distrib(json_orb, json_mpc):
+
+    pdf_orb = pd.read_json(json_orb)
+    mpc_ae = pd.read_json(json_mpc)
+
+    fig = construct_sso_stat_figure(pdf_orb, mpc_ae, "a", "e")
+
+    graph = dcc.Graph(
+        figure=fig,
+        config={"displayModeBar": False},
+        id="stats_sso"
+    )
+    card = dmc.Paper(graph, radius="xl", p="md", shadow="xl", withBorder=True)
+
+    xaxis_drop = dcc.Dropdown(
+        ["a", "e", "i"],
+        id="xaxis_data"
+    )
+
+    yaxis_drop = dcc.Dropdown(
+        ["a", "e", "i"],
+        id="yaxis_data"
+    )
+
+
+    # add a time slider to filter the SSO trajectories by date in the a/e plot. 
+
+    div = html.Div([
+        card,
+        xaxis_drop,
+        yaxis_drop
+    ])
+    return div
+
+@app.callback(
+    Output("stats_sso", "figure"),
+    [Input("xaxis_data", "value"), 
+    Input("yaxis_data", "value"),
+    Input("pdf_orb", "data"),
+    Input("mpc_data", "data")]
+)
+def change_axis(xaxis_value, yaxis_value, json_orb, json_mpc):
+
+    if xaxis_value != None and yaxis_value != None:
+        app.logger.info(xaxis_value)
+        app.logger.info(yaxis_value)
+
+        pdf_orb = pd.read_json(json_orb)
+        mpc_ae = pd.read_json(json_mpc)
+
+        fig = construct_sso_stat_figure(pdf_orb, mpc_ae, xaxis_value, yaxis_value)
+
+        return fig
+    else:
+        raise PreventUpdate
+
 
 
 def layout(is_mobile):
@@ -266,12 +374,9 @@ def layout(is_mobile):
                     label_style=label_style,
                 ),
                 dbc.Tab(
-                    dbc.Card(
-                        dbc.CardBody(dcc.Markdown("je sais pas quoi mettre ici")),
-                        style={"backgroundColor": "rgb(248, 248, 248, .7)"},
-                    ),
+                    html.Div(id="ae_distrib"), # edit props 
                     label="a/e distribution",
-                    label_style=label_style,
+                    label_style=label_style
                 ),
             ]
         )
@@ -283,17 +388,16 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 dbc.Row(
-                    [html.Br(), dbc.Col(tabs_, width=10)],
-                    justify="center",
-                    className="g-0",
+                    [dbc.Col(tabs_)]
                 ),
                 dcc.Store(id="pdf_lc"),
                 dcc.Store(id="pdf_orb"),
+                dcc.Store(id="mpc_data")
             ],
             className="home",
             style={
                 "background-image": "linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)",
-                "background-size": "contain",
+                "background-size": "contain"
             },
         )
 

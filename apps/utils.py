@@ -19,6 +19,7 @@ import gzip
 import io
 import requests
 import base64
+import matplotlib, random
 
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
@@ -1012,3 +1013,14 @@ def generate_qr(data):
     )
 
     return img
+
+def random_color():
+    hex_colors_dic = {}
+    rgb_colors_dic = {}
+    hex_colors_only = []
+    for name, hex in matplotlib.colors.cnames.items():
+        hex_colors_only.append(hex)
+        hex_colors_dic[name] = hex
+        rgb_colors_dic[name] = matplotlib.colors.to_rgb(hex)
+    
+    return hex_colors_dic, rgb_colors_dic, random.choice(hex_colors_only)
