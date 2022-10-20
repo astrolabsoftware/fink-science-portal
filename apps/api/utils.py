@@ -565,7 +565,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     out: pandas dataframe
     """
     if 'ssoCandId' in payload:
-        trajectory_id = int(payload['ssoCandId'])
+        trajectory_id = str(payload['ssoCandId'])
     else:
         trajectory_id = None
 
@@ -594,7 +594,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         gen_client.setRangeScan(True)
 
         if trajectory_id is not None:
-            gen_client.setEvaluation("ssoCandId == {}".format(trajectory_id))
+            gen_client.setEvaluation("ssoCandId.equals('{}')".format(trajectory_id))
 
         to_evaluate = "key:key:{}_,key:key:{}_".format(start_date, stop_date)
 
