@@ -79,6 +79,19 @@ def test_lightcurves() -> None:
 
     assert 'd:dcmag' in pdf.columns
 
+def test_lightcurves_traj() -> None:
+    """
+    Examples
+    ---------
+    >>> test_lightcurves_traj()
+    """
+    pdf = ssocandsearch(kind='lightcurves', trajectory_id='FF2022aaaaaxh')
+
+    assert 'd:ssoCandId' in pdf.columns
+
+    nobjects = len(np.unique(pdf['d:ssoCandId']))
+    assert nobjects == 1, "Expecting 1 object, but found {}".format(nobjects)
+
 def test_time_boundaries() -> None:
     """
     Examples
