@@ -14,7 +14,9 @@ from dash import html, dcc
 from dash_iconify import DashIconify
 from dash.exceptions import PreventUpdate
 
-from apps.utils import class_colors, isoify_time, convert_jd
+import visdcc
+
+from apps.utils import class_colors, isoify_time, convert_jd, readstamp
 from apps.plotting import (
     COLORS_ZTF,
     layout_sso_lightcurve,
@@ -39,23 +41,25 @@ def store_traj_data(pathname):
         "https://fink-portal.org/api/v1/ssocand",
         json={
             "kind": "lightcurves",  # Mandatory, `orbParams` or `lightcurves`
-            "trajectory_id": traj_id,
+            # "ssoCandId": traj_id,
         },
     )
 
     # Format output in a DataFrame
     pdf_lc = pd.read_json(io.BytesIO(r_lc.content))
+    pdf_lc = pdf_lc[pdf_lc["d:ssoCandId"] == traj_id]
 
     r_orb = requests.post(
         "https://fink-portal.org/api/v1/ssocand",
         json={
             "kind": "orbParams",  # Mandatory, `orbParams` or `lightcurves`
-            "trajectory_id": traj_id,
         },
     )
 
     # Format output in a DataFrame
     pdf_orb = pd.read_json(io.BytesIO(r_orb.content))
+    pdf_orb = pdf_orb[pdf_orb["d:ssoCandId"] == traj_id]
+
     return pdf_lc.to_json(), pdf_orb.to_json()
 
 
@@ -84,7 +88,7 @@ def construct_card_title(pathname, json_lc, json_orb):
                     ),
                     dbc.Col(
                         dmc.Title(
-                            "Trajectory id = {}".format(traj_id),
+                            "{}".format(traj_id),
                             order=1,
                             style={"color": "#15284F"},
                         ),
@@ -122,6 +126,31 @@ def construct_card_title(pathname, json_lc, json_orb):
     return [card, html.Div(id="ssotraj_card")]
 
 
+
+def get_cutout(objId_list):
+
+    print(objId_list)
+
+    # get data for many objects
+    r = requests.post(
+        'https://fink-portal.org/api/v1/objects',
+        json={
+            'objectId': ','.join(objId_list),
+            'output-format': 'json',
+            'columns': "i:objectId,b:cutoutScience_stampData,b:cutoutTemplate_stampData,b:cutoutDifference_stampData"
+        }
+    )
+
+    print(r.content)
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+
+    print(pdf)
+
+    return pdf
+
+
 def lc_tab_content(pdf_lc):
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
@@ -132,6 +161,7 @@ def lc_tab_content(pdf_lc):
 
     to_plot = []
 
+    label_band = ["g band", "r band"]
     def data_band(band):
         cond = pdf_lc["d:fid"] == band
 
@@ -149,7 +179,7 @@ def lc_tab_content(pdf_lc):
                 "color": COLORS_ZTF[band - 1],
             },
             "mode": "markers",
-            "name": "g band",
+            "name": label_band[band - 1],
             "customdata": pdf_lc[cond]["d:jd"].apply(lambda x: float(x) - 2400000.5),
             "hovertemplate": hovertemplate,
             "marker": {"size": 6, "color": COLORS_ZTF[band - 1], "symbol": "o"},
@@ -167,6 +197,40 @@ def lc_tab_content(pdf_lc):
         config={"displayModeBar": False},
     )
     card = dmc.Paper(graph, radius="xl", p="md", shadow="xl", withBorder=True)
+
+    # objId_list = ",".join(pdf_lc["d:objectId"].values)
+    # cutout_pdf = get_cutout(objId_list)
+
+    # cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
+
+    # items = [
+    #     {
+    #         "key": str(id), 
+    #         "src": readstamp(cutout_pdf[col].values[0])
+    #     }
+    #     for id, col in zip(cols, np.arange(len(cols)))
+    # ]
+
+    # traj_summary_layout = html.Div([
+    #     dbc.Row([
+    #         dbc.Col([
+    #             card,
+    #             html.Br(),
+    #             dbc.Carousel(
+    #             items=[
+    #                 {"key": "1", "src": "/static/images/slide1.svg"},
+    #                 {"key": "2", "src": "/static/images/slide2.svg"},
+    #                 {"key": "3", "src": "/static/images/slide3.svg"},
+    #             ],
+    #             controls=False,
+    #             indicators=False,
+    #             interval=2000,
+    #             ride="carousel",
+    #         )
+    #         ])
+    #     ])
+    # ])
+
 
     return card
 
@@ -244,22 +308,33 @@ def astr_tab_content(pdf_lc):
         style={"width": "100%", "height": "25pc"},
         config={"displayModeBar": False},
     )
-    # obs = {
-    #     "x": ra,
-    #     "y": dec,
-    #     "mode": "markers",
-    #     "customdata": date,
-    #     "hovertemplate": hovertemplate,
-    #     "marker": {"size": 6, "color": colors_[0], "symbol": "o"},
-    # }
-    # figure = {"data": [obs], "layout": layout_sso_radec}
-    # graph = dcc.Graph(
-    #     figure=figure,
-    #     style={"width": "100%", "height": "25pc"},
-    #     config={"displayModeBar": False},
-    # )
+
     card = dmc.Paper(graph, radius="xl", p="md", shadow="xl", withBorder=True)
-    return card
+
+    astr_layout = html.Div(
+        [dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        card,
+                        html.Br(),
+                        html.Div(
+                            [visdcc.Run_js(id='aladin-sso-lite')],
+                            style={
+                                'width': '100%',
+                                'height': '50pc',
+                            }
+                        ),
+                        html.Br(),
+                        html.Br(),
+                        html.Br(),
+                    ]
+                )
+            ]
+        )]
+    )
+
+    return astr_layout
 
 
 @app.callback(
@@ -338,7 +413,7 @@ def orb_tab_content(pdf_orb):
 
     frame.plot(
         orb,
-        label="trajectory_id={}".format(pdf_orb["d:trajectory_id"].values[0]),
+        label="{}".format(pdf_orb["d:ssoCandId"].values[0]),
         color="red",
     )
 
@@ -381,10 +456,10 @@ def tabs(json_lc, json_orb):
 
 def card_ssotraj_params(pdf_orb):
 
-    """MPC parameters"""
+    """Orbit parameters"""
     template = """
     ```python
-    # Properties from MPC
+    # Properties computed by OrbFit
     a (AU): {}
     rms_a: {}
     e: {}
@@ -402,7 +477,7 @@ def card_ssotraj_params(pdf_orb):
 
     header = [
         html.H5(
-            "Id: {}".format(pdf_orb["d:trajectory_id"].values[0]),
+            "Id: {}".format(pdf_orb["d:ssoCandId"].values[0]),
             className="card-title",
         ),
         html.H6(
@@ -449,15 +524,15 @@ import io
 r = requests.post(
         '{}/api/v1/ssocand',
         json={{
-            'kind': 'trajectory_id', # Mandatory, `orbParams` or `lightcurves`
-            'trajectory_id': {},
+            'kind': 'lightcurves', # Mandatory, `orbParams` or `lightcurves`
+            'ssoCandId': {},
             'output-format': 'json'
         }}
 )
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))""".format(
-        APIURL, pdf_orb["d:trajectory_id"].values[0]
+        APIURL, pdf_orb["d:ssoCandId"].values[0]
     )
 
     curl_download = """Not available"""

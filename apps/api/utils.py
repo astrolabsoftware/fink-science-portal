@@ -565,7 +565,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     out: pandas dataframe
     """
     if 'ssoCandId' in payload:
-        trajectory_id = int(payload['ssoCandId'])
+        trajectory_id = payload['ssoCandId']
     else:
         trajectory_id = None
 

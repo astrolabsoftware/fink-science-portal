@@ -4,7 +4,7 @@ import io
 import requests
 import random
 
-from app import app
+from app import app, clientStats
 import dash_bootstrap_components as dbc
 from dash import html, dcc, Input, Output, dash_table, State
 import dash_mantine_components as dmc
@@ -17,6 +17,7 @@ from apps.utils import markdownify_objectid, random_color
 import plotly.graph_objs as go
 import plotly.express as px
 
+from astropy.time import Time
 
 @app.callback(Output("pdf_lc", "data"), [Input("url", "pathname")])
 def store_lighcurves_query(name):
@@ -38,14 +39,14 @@ def store_lighcurves_query(name):
     return pdf_lc.to_json()
 
 
-@app.callback(Output("pdf_orb", "data"), [Input("pdf_lc", "data")])
-def store_orbit_query(json_lc):
+@app.callback(Output("pdf_orb", "data"), [Input("url", "pathname")])
+def store_orbit_query(url):
     """Cache query results (sso trajectories and lightcurves) for easy re-use
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
 
-    pdf_lc = pd.read_json(json_lc)
+    # pdf_lc = pd.read_json(json_lc)
 
     r_orb = requests.post(
         "https://fink-portal.org/api/v1/ssocand",
@@ -58,7 +59,7 @@ def store_orbit_query(json_lc):
     pdf_orb = pd.read_json(io.BytesIO(r_orb.content)).drop_duplicates(
         ["d:a", "d:e", "d:i"]
     )
-    pdf_orb = pdf_orb[pdf_orb["d:trajectory_id"].isin(pdf_lc["d:trajectory_id"])]
+    # pdf_orb = pdf_orb[pdf_orb["d:trajectory_id"].isin(pdf_lc["d:trajectory_id"])]
 
     return pdf_orb.to_json()
 
@@ -122,12 +123,12 @@ def update_sso_table(orb_v_radio, json_orb, json_lc, data, columns):
         traj_id, "trajid_{}".format(traj_id)
     )
     if orb_v_radio == "Orbit":
-        pdf_orb = pd.read_json(json_orb).sort_values(["d:trajectory_id", "d:ref_epoch"])
-        pdf_orb["d:trajectory_id"] = pdf_orb["d:trajectory_id"].apply(markdown_trajid)
+        pdf_orb = pd.read_json(json_orb).sort_values(["d:ssoCandId", "d:ref_epoch"])
+        pdf_orb["d:ssoCandId"] = pdf_orb["d:ssoCandId"].apply(markdown_trajid)
         pdf_orb = pdf_orb.to_dict("records")
 
         colnames_to_display = [
-            "d:trajectory_id",
+            "d:ssoCandId",
             "d:ref_epoch",
             "d:a",
             "d:rms_a",
@@ -155,11 +156,11 @@ def update_sso_table(orb_v_radio, json_orb, json_lc, data, columns):
         if "d:jd" in original_pdf:
             raise PreventUpdate
 
-        pdf_lc = pd.read_json(json_lc).sort_values(["d:trajectory_id", "d:jd"])
-        pdf_lc["d:trajectory_id"] = pdf_lc["d:trajectory_id"].apply(markdown_trajid)
+        pdf_lc = pd.read_json(json_lc).sort_values(["d:ssoCandId", "d:jd"])
+        pdf_lc["d:ssoCandId"] = pdf_lc["d:ssoCandId"].apply(markdown_trajid)
         pdf_lc = pdf_lc.to_dict("records")
 
-        colnames_to_display = ["d:trajectory_id", "d:jd", "d:candid", "d:ra", "d:dec"]
+        colnames_to_display = ["d:ssoCandId", "d:jd", "d:candid", "d:ra", "d:dec"]
 
         columns = [
             {
@@ -184,12 +185,12 @@ def update_sso_table(orb_v_radio, json_orb, json_lc, data, columns):
 )
 def results(json_lc):
 
-    pdf_lc = pd.read_json(json_lc).sort_values(["d:trajectory_id", "d:jd"])
-    pdf_lc["d:trajectory_id"] = pdf_lc["d:trajectory_id"].apply(
+    pdf_lc = pd.read_json(json_lc).sort_values(["d:ssoCandId", "d:jd"])
+    pdf_lc["d:ssoCandId"] = pdf_lc["d:ssoCandId"].apply(
         lambda traj_id: markdownify_objectid(traj_id, "trajid_{}".format(traj_id))
     )
     pdf_lc = pdf_lc.to_dict("records")
-    colnames_to_display = ["d:trajectory_id", "d:jd", "d:candid", "d:ra", "d:dec"]
+    colnames_to_display = ["d:ssoCandId", "d:jd", "d:candid", "d:ra", "d:dec"]
 
     columns = [
         {
@@ -285,8 +286,6 @@ def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
     return {"data": data, "layout": layout_sso_ae}
 
 
-
-
 @app.callback(Output("ae_distrib", "children"), [Input("pdf_orb", "data"), Input("mpc_data", "data")])
 def construct_ae_distrib(json_orb, json_mpc):
 
@@ -345,6 +344,126 @@ def change_axis(xaxis_value, yaxis_value, json_orb, json_mpc):
         raise PreventUpdate
 
 
+def query_stats():
+    name = 'ztf_'
+
+    cols = 'basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown'
+    results = clientStats.scan(
+        "",
+        "key:key:{}".format(name),
+        cols,
+        0,
+        True,
+        True
+    )
+
+    # Construct the dataframe
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+    return pdf
+
+
+def create_sso_stat_generic(pdf_lc):
+    """ Show basic stats. Used in the mobile app.
+    """
+
+
+    pdf_stats = query_stats()
+    n_ = pdf_stats['key:key'].values[-1]
+    night = n_[4:8] + '-' + n_[8:10] + '-' + n_[10:12]
+    last_night_jd = Time(night).jd
+
+
+    last_traj = pdf_lc["d:ssoCandId"].values[-1]
+    last_date = Time(pdf_lc["d:jd"].values[-1], format="jd").iso.split(" ")[0]
+
+    nb_traj = len(pdf_lc["d:ssoCandId"].unique())
+
+    nb_traj_last_obs = len(pdf_lc[pdf_lc["d:jd"] >= last_night_jd]["d:ssoCandId"].unique())
+
+    c0 = [
+        html.H3(html.B(night)),
+        html.P('Last ZTF observing night'),
+    ]
+
+    c1 = [
+        html.H3(html.B(last_traj)),
+        html.P('Last SSOCAND'),
+    ]
+
+    c2 = [
+        html.H3(html.B(nb_traj_last_obs)),
+        html.P('Number of SSOCAND'),
+        html.P('Last observing night')   
+    ]
+
+    c3 = [
+        html.H3(html.B(nb_traj)),
+        html.P('Number of SSOCAND trajectories'),
+        html.P('since 2019/11/01')
+    ]
+
+    # mask = ~np.isnan(pdf['class:Unknown'].values)
+    # n_alert_unclassified = np.sum(pdf['class:Unknown'].values[mask])
+    # n_alert_classified = np.sum(pdf['basic:sci'].values) - n_alert_unclassified
+
+    # c3 = [
+    #     html.H3(html.B('{:,}'.format(n_alert_classified))),
+    #     html.P('With classification')
+    # ]
+
+    # c4 = [
+    #     html.H3(html.B('{:,}'.format(n_alert_unclassified))),
+    #     html.P('Without classification')
+    # ]
+
+    return c0, c1, c2, c3 # , c4
+
+
+@app.callback(
+    Output('sso_stat_row', 'children'),
+    Input("pdf_lc", "data")
+)
+def create_stat_row(orb_json):
+    """ Show basic stats. Used in the desktop app.
+    """
+    pdf = pd.read_json(orb_json)
+    c0_, c1_, c2_, c3_ = create_sso_stat_generic(pdf)
+
+    c0 = dbc.Col(
+        children=c0_,
+        width=2,
+        style={
+            'border-left': '1px solid #c4c0c0',
+            'border-bottom': '1px solid #c4c0c0',
+            'border-radius': '0px 0px 0px 25px',
+            "text-align": "center"
+        }
+    )
+
+    c1 = dbc.Col(
+        children=c1_,
+        width=2,
+        style={
+            'border-bottom': '1px solid #c4c0c0',
+            'border-right': '1px solid #c4c0c0',
+            'border-radius': '0px 0px 25px 0px',
+            "text-align": "center"
+        }
+    )
+
+    c2 = dbc.Col(
+        children=c2_, width=2, style={"text-align": "center"}
+    )
+
+    c3 = dbc.Col(
+        children=c3_, width=2, style={"text-align": "center"}
+    )
+
+    row = [
+        dbc.Col(width=1), c0, c1, c2, c3, dbc.Col(width=1)
+    ]
+    return row
+
 
 def layout(is_mobile):
     """ """
@@ -386,6 +505,7 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 html.Br(),
+                dbc.Row(id='sso_stat_row'),
                 html.Br(),
                 dbc.Row(
                     [dbc.Col(tabs_)]
