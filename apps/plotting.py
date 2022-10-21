@@ -1965,9 +1965,16 @@ def integrate_sso_aladin(lc_json):
         aladin.addCatalog(sso_cat);\n
         """.format(class_colors['Solar System trajectory'])
 
-    for ra, dec, jd in zip(pdf_lc['d:ra'], pdf_lc['d:dec'], pdf_lc["d:jd"]):
+    for ra, dec, jd, objectId in zip(pdf_lc['d:ra'], pdf_lc['d:dec'], pdf_lc["d:jd"], pdf_lc["d:objectId"]):
 
-        ssocand_markers += "sso_cat.addSources([A.marker({}, {})]);\n".format(ra, dec)
+        ssocand_markers += """
+        sso_cat.addSources(
+            [A.marker({}, {}, 
+            {{
+                popupTitle: '{}', 
+                popupDesc: 'More info in <a target="_blank" href="https://fink-portal.org/{}"> Fink</a>'
+            }})]);\n
+        """.format(ra, dec, objectId, objectId)
 
         ssocand_markers += """aladin.addCatalog(A.catalogFromSkyBot({}, {}, {}, {}, {{"-loc": 'I41'}}, {{sourceSize: 10, onClick: "showTable", shape: "plus", displayLabel: true, labelColumn: 'Name', labelColor: '#ae4', labelFont: '12px sans-serif'}}));\n""".format(ra, dec, 1/60, jd)
 

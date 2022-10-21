@@ -15,6 +15,7 @@ from dash_iconify import DashIconify
 from dash.exceptions import PreventUpdate
 
 import visdcc
+import base64
 
 from apps.utils import class_colors, isoify_time, convert_jd, readstamp
 from apps.plotting import (
@@ -23,6 +24,8 @@ from apps.plotting import (
     colors_,
     layout_ssocand_speed,
     layout_ssocand_acceleration,
+    sigmoid_normalizer,
+    convolve,
 )
 
 import plotly.graph_objs as go
@@ -31,36 +34,225 @@ from poliastro.twobody import Orbit
 from poliastro.plotting.misc import plot_solar_system
 from poliastro.bodies import Sun
 
+from PIL import Image
+
+
+def get_cutout(objId_list):
+
+    # get data for many objects
+    r = requests.post(
+        "https://fink-portal.org/api/v1/objects",
+        json={
+            "objectId": ",".join(objId_list),
+            "output-format": "json",
+            "withcutouts": "True",
+            # "columns": "i:objectId,i:jd,b:cutoutScience_stampData,b:cutoutTemplate_stampData,b:cutoutDifference_stampData",
+        },
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+
+    return pdf
+
 
 @app.callback(
-    [Output("traj_lc", "data"), Output("traj_orb", "data")], [Input("url", "pathname")]
+    [Output("traj_lc", "data"), Output("traj_orb", "data"), Output("traj_img", "data")],
+    [Input("url", "pathname")],
 )
 def store_traj_data(pathname):
     traj_id = pathname.split("_")[-1]
+
     r_lc = requests.post(
         "https://fink-portal.org/api/v1/ssocand",
         json={
             "kind": "lightcurves",  # Mandatory, `orbParams` or `lightcurves`
-            # "ssoCandId": traj_id,
+            "ssoCandId": traj_id,
         },
     )
 
     # Format output in a DataFrame
     pdf_lc = pd.read_json(io.BytesIO(r_lc.content))
-    pdf_lc = pdf_lc[pdf_lc["d:ssoCandId"] == traj_id]
 
     r_orb = requests.post(
         "https://fink-portal.org/api/v1/ssocand",
         json={
             "kind": "orbParams",  # Mandatory, `orbParams` or `lightcurves`
+            "ssoCandId": traj_id,
         },
     )
 
     # Format output in a DataFrame
     pdf_orb = pd.read_json(io.BytesIO(r_orb.content))
-    pdf_orb = pdf_orb[pdf_orb["d:ssoCandId"] == traj_id]
 
-    return pdf_lc.to_json(), pdf_orb.to_json()
+    pdf_cutout = get_cutout(pdf_lc["d:objectId"].values)
+
+    return pdf_lc.to_json(), pdf_orb.to_json(), pdf_cutout.to_json()
+
+
+@app.callback(
+    Output("drawer_objectId", "opened"),
+    Input("open_objectId_drawer", "n_clicks"),
+    prevent_initial_call=True,
+)
+def drawer_objectId_open(n_clicks):
+    return True
+
+
+def plot_sso_timeline_classbar(pdf, is_mobile):
+    """Display a bar chart with individual alert classifications for the objectId timeline
+
+    Parameters
+    ----------
+    pdf: pandas data
+        cached alert data
+    is_mobile: bool
+        True if mobile plateform, False otherwise.
+    """
+    grouped = pdf.groupby("v:classification").count()
+    alert_per_class = grouped["i:objectId"].to_dict()
+
+    # descending date values
+    top_labels = pdf["v:classification"].values[::-1]
+    customdata = (
+        pdf["i:jd"].apply(lambda x: convert_jd(float(x), to="iso")).values[::-1]
+    )
+    x_data = [[1] * len(top_labels)]
+    y_data = top_labels
+
+    palette = dmc.theme.DEFAULT_COLORS
+
+    colors = [
+        palette[class_colors["Simbad"]][6]
+        if j not in class_colors.keys()
+        else palette[class_colors[j]][6]
+        for j in top_labels
+    ]
+
+    fig = go.Figure()
+
+    is_seen = []
+    for i in range(0, len(x_data[0])):
+        for xd, yd, label in zip(x_data, y_data, top_labels):
+            if top_labels[i] in is_seen:
+                showlegend = False
+            else:
+                showlegend = True
+            is_seen.append(top_labels[i])
+
+            percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(
+                int
+            )
+            if is_mobile:
+                name_legend = top_labels[i]
+            else:
+                name_legend = top_labels[i] + ": {}%".format(percent)
+            fig.add_trace(
+                go.Bar(
+                    x=[xd[i]],
+                    y=[yd],
+                    orientation="h",
+                    width=0.3,
+                    showlegend=showlegend,
+                    legendgroup=top_labels[i],
+                    name=name_legend,
+                    marker=dict(
+                        color=colors[i],
+                    ),
+                    customdata=[customdata[i]],
+                    hovertemplate="<b>Date</b>: %{customdata}",
+                )
+            )
+
+    if is_mobile:
+        legend_shift = 0.0
+    else:
+        legend_shift = 0.2
+    fig.update_layout(
+        xaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        legend=dict(
+            bgcolor="rgba(255, 255, 255, 0)",
+            bordercolor="rgba(255, 255, 255, 0)",
+            orientation="h",
+            traceorder="reversed",
+            yanchor="bottom",
+            itemclick=False,
+            itemdoubleclick=False,
+            x=legend_shift,
+        ),
+        barmode="stack",
+        dragmode=False,
+        paper_bgcolor="rgb(248, 248, 255, 0.0)",
+        plot_bgcolor="rgb(248, 248, 255, 0.0)",
+        margin=dict(l=0, r=0, b=0, t=0),
+    )
+    if not is_mobile:
+        fig.update_layout(title_text="Alert classification")
+        fig.update_layout(title_y=0.15)
+        fig.update_layout(title_x=0.0)
+        fig.update_layout(title_font_size=12)
+    if is_mobile:
+        fig.update_layout(legend=dict(font=dict(size=10)))
+    return fig
+
+
+@app.callback(Output("drawer_objectId", "children"), Input("traj_img", "data"))
+def construct_objectId_drawer(cutout_json):
+
+    pdf_cutout = pd.read_json(cutout_json)
+
+    all_timeline_items = [
+        dmc.TimelineItem(
+            title=objId,
+            children=[
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            dcc.Graph(
+                                figure=plot_sso_timeline_classbar(pdf_cutout[pdf_cutout["i:objectId"] == objId], False),
+                                style={"width": "100%", "height": "4pc"},
+                                config={"displayModeBar": False},
+                            ),
+                            width=12,
+                        ),
+                    ],
+                    justify="around",
+                ),
+                dmc.Text(
+                    [
+                        "View in ",
+                        dmc.Anchor(
+                            "Fink",
+                            href="https://fink-portal.org/{}".format(objId),
+                            size="sm",
+                        ),
+                    ],
+                    color="dimmed",
+                    size="sm",
+                ),
+            ],
+        )
+        for objId in pdf_cutout["i:objectId"].values
+    ]
+
+    return dbc.Col(
+        [
+            dmc.Timeline(
+                active=1, bulletSize=15, lineWidth=2, children=all_timeline_items
+            ),
+            html.Br(),
+    ])
 
 
 @app.callback(
@@ -116,6 +308,14 @@ def construct_card_title(pathname, json_lc, json_orb):
                     discovery_date, date_end, ndet
                 )
             ),
+            dmc.Button("ObjectId Timeline", id="open_objectId_drawer"),
+            dmc.Drawer(
+                title="ObjectId Trajectory Timeline",
+                id="drawer_objectId",
+                lockScroll = False,
+                padding="md",
+                size="40%"
+            ),
         ],
         radius="xl",
         p="md",
@@ -126,32 +326,108 @@ def construct_card_title(pathname, json_lc, json_orb):
     return [card, html.Div(id="ssotraj_card")]
 
 
+def convert_img_to_base64(img):
+    """
 
-def get_cutout(objId_list):
+    Parameters
+    ----------
+    img : numpy array
+        image
+    """
 
-    print(objId_list)
+    img = np.nan_to_num(img)
 
-    # get data for many objects
-    r = requests.post(
-        'https://fink-portal.org/api/v1/objects',
-        json={
-            'objectId': ','.join(objId_list),
-            'output-format': 'json',
-            'columns': "i:objectId,b:cutoutScience_stampData,b:cutoutTemplate_stampData,b:cutoutDifference_stampData"
-        }
+    data = sigmoid_normalizer(img, 0, 255)
+
+    data = data[::-1]
+    data = convolve(data, smooth=1, kernel="gauss")
+
+    im = Image.fromarray(data)
+    im = im.convert("L")
+
+    in_mem_file = io.BytesIO()
+    im.save(in_mem_file, format="PNG")
+
+    in_mem_file.seek(0)
+    img_bytes = in_mem_file.read()
+
+    return base64.b64encode(img_bytes)
+
+
+def build_carousel(pdf_cutout, kind):
+
+    pdf_cutout = pdf_cutout.sort_values("i:jd")
+
+    get_col_name = {
+        "Science": "b:cutoutScience_stampData",
+        "Template": "b:cutoutTemplate_stampData",
+        "Difference": "b:cutoutDifference_stampData",
+    }
+
+    base64_imgs = [
+        convert_img_to_base64(np.array(pdf_cutout[get_col_name[kind]].values[idx]))
+        for idx in np.arange(len(pdf_cutout))
+    ]
+
+    items = [
+        {"key": str(id), "src": "data:image/jpg;base64,{}".format(b64_img.decode())}
+        for b64_img in base64_imgs
+    ]
+
+    carousel = html.Div(
+        [
+            dbc.Col(
+                [
+                    html.H4(html.B(kind)),
+                    dbc.Carousel(
+                        id="carousel_{}".format(kind),
+                        items=items,
+                        controls=True,
+                        indicators=True,
+                        slide=False,
+                    ),
+                ]
+            )
+        ],
+        style={
+            "width": "20pc",
+            "height": "20pc",
+        },
     )
 
-    print(r.content)
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
-
-    print(pdf)
-
-    return pdf
+    return carousel
 
 
-def lc_tab_content(pdf_lc):
+@app.callback(
+    [
+        Output("carousel_Science", "active_index"),
+        Output("carousel_Template", "active_index"),
+        Output("carousel_Difference", "active_index"),
+    ],
+    Input("drop_jd", "value"),
+)
+def select_slide(idx):
+    return int(idx), int(idx), int(idx)
+
+
+def build_img_drop(pdf_cutout):
+
+    pdf_cutout = pdf_cutout.sort_values("i:jd")
+
+    dropdown = dmc.Select(
+        id="drop_jd",
+        label="Menu",
+        value="0",
+        data=[
+            {"value": "{}".format(idx), "label": "{}".format(Time(jd, format="jd").iso)}
+            for idx, jd in zip(np.arange(len(pdf_cutout)), pdf_cutout["i:jd"].values)
+        ],
+        style={"width": "15pc"},
+    )
+    return dropdown
+
+
+def lc_tab_content(pdf_lc, pdf_cutout):
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
@@ -162,6 +438,7 @@ def lc_tab_content(pdf_lc):
     to_plot = []
 
     label_band = ["g band", "r band"]
+
     def data_band(band):
         cond = pdf_lc["d:fid"] == band
 
@@ -198,41 +475,33 @@ def lc_tab_content(pdf_lc):
     )
     card = dmc.Paper(graph, radius="xl", p="md", shadow="xl", withBorder=True)
 
-    # objId_list = ",".join(pdf_lc["d:objectId"].values)
-    # cutout_pdf = get_cutout(objId_list)
+    traj_summary_layout = html.Div(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            card,
+                            html.Br(),
+                            dbc.Row(
+                                [
+                                    build_carousel(pdf_cutout, "Science"),
+                                    build_carousel(pdf_cutout, "Template"),
+                                    build_carousel(pdf_cutout, "Difference"),
+                                    build_img_drop(pdf_cutout),
+                                ]
+                            ),
+                            html.Br(),
+                            html.Br(),
+                            html.Br(),
+                        ]
+                    )
+                ]
+            )
+        ]
+    )
 
-    # cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
-
-    # items = [
-    #     {
-    #         "key": str(id), 
-    #         "src": readstamp(cutout_pdf[col].values[0])
-    #     }
-    #     for id, col in zip(cols, np.arange(len(cols)))
-    # ]
-
-    # traj_summary_layout = html.Div([
-    #     dbc.Row([
-    #         dbc.Col([
-    #             card,
-    #             html.Br(),
-    #             dbc.Carousel(
-    #             items=[
-    #                 {"key": "1", "src": "/static/images/slide1.svg"},
-    #                 {"key": "2", "src": "/static/images/slide2.svg"},
-    #                 {"key": "3", "src": "/static/images/slide3.svg"},
-    #             ],
-    #             controls=False,
-    #             indicators=False,
-    #             interval=2000,
-    #             ride="carousel",
-    #         )
-    #         ])
-    #     ])
-    # ])
-
-
-    return card
+    return traj_summary_layout
 
 
 def astr_tab_content(pdf_lc):
@@ -312,26 +581,28 @@ def astr_tab_content(pdf_lc):
     card = dmc.Paper(graph, radius="xl", p="md", shadow="xl", withBorder=True)
 
     astr_layout = html.Div(
-        [dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        card,
-                        html.Br(),
-                        html.Div(
-                            [visdcc.Run_js(id='aladin-sso-lite')],
-                            style={
-                                'width': '100%',
-                                'height': '50pc',
-                            }
-                        ),
-                        html.Br(),
-                        html.Br(),
-                        html.Br(),
-                    ]
-                )
-            ]
-        )]
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            card,
+                            html.Br(),
+                            html.Div(
+                                [visdcc.Run_js(id="aladin-sso-lite")],
+                                style={
+                                    "width": "100%",
+                                    "height": "50pc",
+                                },
+                            ),
+                            html.Br(),
+                            html.Br(),
+                            html.Br(),
+                        ]
+                    )
+                ]
+            )
+        ]
     )
 
     return astr_layout
@@ -400,7 +671,16 @@ def orb_tab_content(pdf_orb):
     argp = pdf_orb["d:arg_peric"].values[0] << u.deg
     nu = pdf_orb["d:mean_anomaly"].values[0] << u.deg
 
-    orb = Orbit.from_classical(Sun, a, ecc, inc, raan, argp, nu)
+    orb = Orbit.from_classical(
+        Sun,
+        a,
+        ecc,
+        inc,
+        raan,
+        argp,
+        nu,
+        epoch=Time(pdf_orb["d:ref_epoch"].values[0], format="jd"),
+    )
 
     jupyter_distance = 5.4570 << u.AU
 
@@ -417,24 +697,64 @@ def orb_tab_content(pdf_orb):
         color="red",
     )
 
+    orbit_figure = frame._figure
+
+    astro_unit = 149597870.700
+
+    if a > jupyter_distance:
+        tick_vals = [i * astro_unit for i in np.arange(-100, 100, 10)]
+        tick_texts = ["{:.3f}".format(i) for i in np.arange(-100, 100, 10)]
+    else:
+        tick_vals = [i * astro_unit for i in np.arange(-10, 10, 0.4)]
+        tick_texts = ["{:.3f}".format(i) for i in np.arange(-10, 10, 0.4)]
+
+    orbit_figure.update_layout(
+        margin=dict(l=5, r=5, t=5, b=5),
+        paper_bgcolor="LightSteelBlue",
+        legend=dict(
+            title="Solar System legend",
+            title_font_family="Times New Roman",
+            font=dict(family="Courier", size=16, color="black"),
+            bgcolor="LightSteelBlue",
+            bordercolor="Black",
+            borderwidth=2,
+        ),
+        scene=dict(
+            xaxis_title="x (AU)",
+            yaxis_title="y (AU)",
+            zaxis_title="z (AU)",
+            xaxis=dict(tickmode="array", tickvals=tick_vals, ticktext=tick_texts),
+            yaxis=dict(tickmode="array", tickvals=tick_vals, ticktext=tick_texts),
+            zaxis=dict(tickmode="array", tickvals=tick_vals, ticktext=tick_texts),
+        ),
+    )
+
     graph = dcc.Graph(
-        figure=frame._figure,
-        style={"width": "100%", "height": "25pc"},
+        figure=orbit_figure,
+        style={"height": "100%"},
         config={"displayModeBar": False},
     )
-    card = dmc.Paper(graph, radius="xs", p="md", shadow="xl", withBorder=True, style={"height":"30pc"})
+    card = dmc.Paper(
+        graph,
+        radius="xs",
+        p="md",
+        shadow="xl",
+        withBorder=True,
+        style={"height": "50pc"},
+    )
 
     return card
 
 
 @app.callback(
     Output("sso_tabs", "children"),
-    [Input("traj_lc", "data"), Input("traj_orb", "data")],
+    [Input("traj_lc", "data"), Input("traj_orb", "data"), Input("traj_img", "data")],
 )
-def tabs(json_lc, json_orb):
+def tabs(json_lc, json_orb, json_cutout):
 
     pdf_lc = pd.read_json(json_lc)
     pdf_orb = pd.read_json(json_orb)
+    pdf_cutout = pd.read_json(json_cutout)
 
     dynamic_tab = [
         dcc.RadioItems(["speed", "acceleration"], "speed", id="dynamic_radio"),
@@ -443,7 +763,7 @@ def tabs(json_lc, json_orb):
 
     tabs_ = dmc.Tabs(
         [
-            dmc.Tab(lc_tab_content(pdf_lc), label="Lightcurve"),
+            dmc.Tab(lc_tab_content(pdf_lc, pdf_cutout), label="Lightcurve"),
             dmc.Tab(astr_tab_content(pdf_lc), label="Astrometry"),
             dmc.Tab(dynamic_tab, label="Dynamics"),
             dmc.Tab(orb_tab_content(pdf_orb), label="Orbit"),
@@ -522,12 +842,12 @@ import io
 
 # get data for ZTF19acnjwgm
 r = requests.post(
-        '{}/api/v1/ssocand',
-        json={{
-            'kind': 'lightcurves', # Mandatory, `orbParams` or `lightcurves`
-            'ssoCandId': {},
-            'output-format': 'json'
-        }}
+    '{}/api/v1/ssocand',
+    json={{
+        'kind': 'lightcurves', # Mandatory, `orbParams` or `lightcurves`
+        'ssoCandId': "{}",
+        'output-format': 'json'
+    }}
 )
 
 # Format output in a DataFrame
@@ -644,8 +964,10 @@ def layout(is_mobile):
                     justify="around",
                     className="g-0",
                 ),
+                html.Br(),
                 dcc.Store("traj_lc"),
                 dcc.Store("traj_orb"),
+                dcc.Store("traj_img"),
             ],
             className="home",
             style={
