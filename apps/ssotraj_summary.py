@@ -113,9 +113,9 @@ def plot_sso_timeline_classbar(pdf, is_mobile):
     alert_per_class = grouped["i:objectId"].to_dict()
 
     # descending date values
-    top_labels = pdf["v:classification"].values[::-1]
+    top_labels = pdf["v:classification"].values# [::-1]
     customdata = (
-        pdf["i:jd"].apply(lambda x: convert_jd(float(x), to="iso")).values[::-1]
+        pdf["i:jd"].apply(lambda x: convert_jd(float(x), to="iso")).values# [::-1]
     )
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
@@ -210,12 +210,19 @@ def plot_sso_timeline_classbar(pdf, is_mobile):
 @app.callback(Output("drawer_objectId", "children"), Input("traj_img", "data"))
 def construct_objectId_drawer(cutout_json):
 
-    pdf_cutout = pd.read_json(cutout_json)
+    pdf_cutout = pd.read_json(cutout_json).sort_values("i:jd")
 
     all_timeline_items = [
         dmc.TimelineItem(
             title=objId,
             children=[
+                dmc.Text(
+                    [
+                        "{}".format(Time(pdf_cutout[(pdf_cutout["i:objectId"] == objId) & (pdf_cutout["v:classification"] == "Solar System candidate")]["i:jd"].values[0], format="jd").iso)
+                    ],
+                    color="dimmed",
+                    size="sm",
+                ),
                 dbc.Row(
                     [
                         dbc.Col(
@@ -243,16 +250,20 @@ def construct_objectId_drawer(cutout_json):
                 ),
             ],
         )
-        for objId in pdf_cutout["i:objectId"].values
+        for objId in pdf_cutout["i:objectId"].unique()
     ]
 
-    return dbc.Col(
+    return html.Div(
         [
             dmc.Timeline(
                 active=1, bulletSize=15, lineWidth=2, children=all_timeline_items
             ),
             html.Br(),
-    ])
+            html.Br(),
+            html.Br(),
+        ],
+        style={"overflow": "scroll", "height": "100%"}
+    )
 
 
 @app.callback(
@@ -320,7 +331,7 @@ def construct_card_title(pathname, json_lc, json_orb):
         radius="xl",
         p="md",
         shadow="xl",
-        withBorder=True,
+        withBorder=True
     )
 
     return [card, html.Div(id="ssotraj_card")]
@@ -335,7 +346,13 @@ def convert_img_to_base64(img):
         image
     """
 
+    if img.dtype == object:
+        img = img.astype(float)
+
     img = np.nan_to_num(img)
+    img_type = img.dtype
+    img[img == None] = 0
+    img = img.astype(img_type)
 
     data = sigmoid_normalizer(img, 0, 255)
 
@@ -504,6 +521,97 @@ def lc_tab_content(pdf_lc, pdf_cutout):
     return traj_summary_layout
 
 
+@app.callback(
+    Output('aladin-sso-lite', 'run'), 
+    [
+        Input('traj_lc', 'data'), 
+        Input("sso_summary_tabs", "active-tab")
+    ]
+)
+def integrate_sso_aladin(lc_json, active_tab):
+    """ Integrate aladin light in the 2nd Tab of the dashboard.
+
+    the default parameters are:
+        * PanSTARRS colors
+        * FoV = 0.02 deg
+        * SIMBAD catalig overlayed.
+
+    Callbacks
+    ----------
+    Input: takes the alert ID
+    Output: Display a sky image around the alert position from aladin.
+
+    Parameters
+    ----------
+    alert_id: str
+        ID of the alert
+    """
+
+    if len(lc_json) > 0:
+        pdf_lc = pd.read_json(lc_json)
+
+        # Coordinate of the current alert
+        ra0 = pdf_lc['d:ra'].values[0]
+        dec0 = pdf_lc['d:dec'].values[0]
+
+        ssocand_markers = """
+            var sso_cat = A.catalog({{name: 'ssoCand markers', sourceSize: 18, onClick: 'showPopup', color: '{}'}});\n
+            aladin.addCatalog(sso_cat);\n
+            """.format(class_colors['Solar System trajectory'])
+
+        for ra, dec, jd, objectId in zip(pdf_lc['d:ra'], pdf_lc['d:dec'], pdf_lc["d:jd"], pdf_lc["d:objectId"]):
+
+            ssocand_markers += """
+            sso_cat.addSources(
+                [A.marker({}, {}, 
+                {{
+                    popupTitle: '{}', 
+                    popupDesc: 'More info in <a target="_blank" href="https://fink-portal.org/{}"> Fink</a>'
+                }})]);\n
+            """.format(ra, dec, objectId, objectId)
+
+            ssocand_markers += """aladin.addCatalog(A.catalogFromSkyBot({}, {}, {}, {}, {{"-loc": 'I41'}}, {{sourceSize: 10, onClick: "showTable", shape: "plus", displayLabel: true, labelColumn: 'Name', labelColor: '#ae4', labelFont: '12px sans-serif'}}));\n""".format(ra, dec, 1/60, jd)
+
+
+        # Javascript. Note the use {{}} for dictionary
+        img = """
+        var container = document.getElementById('aladin-sso-lite');
+        var txt = '';
+        container.innerHTML = txt;
+
+        var aladin = A.aladin(
+            '#aladin-sso-lite',
+            {{
+                survey: 'P/PanSTARRS/DR1/color/z/zg/g',
+                fov: 0.025,
+                target: '{} {}',
+                reticleColor: '#ff89ff',
+                reticleSize: 32
+            }}
+        );""".format(ra0, dec0)
+
+        img += ssocand_markers
+
+        # img cannot be executed directly because of formatting
+        # We split line-by-line and remove comments
+        img_to_show = [i for i in img.split('\n') if '// ' not in i]
+
+        return " ".join(img_to_show)
+    else:
+        return ""
+
+
+def display_sso_skymap():
+
+    return dbc.Container(html.Div(
+        [visdcc.Run_js(id="aladin-sso-lite")],
+        style={
+            "width": "100%",
+            "height": "50pc",
+        },
+    ))
+
+
 def astr_tab_content(pdf_lc):
     hovertemplate = r"""
     <b>Observation date</b>: %{customdata}<br>
@@ -588,13 +696,7 @@ def astr_tab_content(pdf_lc):
                         [
                             card,
                             html.Br(),
-                            html.Div(
-                                [visdcc.Run_js(id="aladin-sso-lite")],
-                                style={
-                                    "width": "100%",
-                                    "height": "50pc",
-                                },
-                            ),
+                            display_sso_skymap(),
                             html.Br(),
                             html.Br(),
                             html.Br(),
@@ -761,15 +863,17 @@ def tabs(json_lc, json_orb, json_cutout):
         html.Div(id="dynamic_graph"),
     ]
 
-    tabs_ = dmc.Tabs(
+    tabs_ = dbc.Tabs(
         [
-            dmc.Tab(lc_tab_content(pdf_lc, pdf_cutout), label="Lightcurve"),
-            dmc.Tab(astr_tab_content(pdf_lc), label="Astrometry"),
-            dmc.Tab(dynamic_tab, label="Dynamics"),
-            dmc.Tab(orb_tab_content(pdf_orb), label="Orbit"),
+            dbc.Tab(lc_tab_content(pdf_lc, pdf_cutout), label="Lightcurve", tab_id='t0'),
+            dbc.Tab(astr_tab_content(pdf_lc), label="Astrometry", tab_id='t1'),
+            dbc.Tab(dynamic_tab, label="Dynamics", tab_id='t2'),
+            dbc.Tab(orb_tab_content(pdf_orb), label="Orbit", tab_id='t3'),
         ],
-        position="right",
-        variant="outline",
+        id="sso_summary_tabs",
+        # position="right",
+        # variant="outline",
+        active_tab='t0'
     )
     return tabs_
 
