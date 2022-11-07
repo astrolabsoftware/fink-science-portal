@@ -386,37 +386,18 @@ def create_sso_stat_generic(pdf_lc):
     ]
 
     c1 = [
-        html.H3(html.B(last_traj)),
-        html.P('Last SSOCAND'),
-    ]
-
-    c2 = [
         html.H3(html.B(nb_traj_last_obs)),
         html.P('Number of SSOCAND'),
         html.P('Last observing night')   
     ]
 
-    c3 = [
+    c2 = [
         html.H3(html.B(nb_traj)),
         html.P('Number of SSOCAND trajectories'),
-        html.P('since 2019/11/01')
+        html.P('since 2019/11/01 ({} observation nights)'.format(len(pdf_stats)))
     ]
 
-    # mask = ~np.isnan(pdf['class:Unknown'].values)
-    # n_alert_unclassified = np.sum(pdf['class:Unknown'].values[mask])
-    # n_alert_classified = np.sum(pdf['basic:sci'].values) - n_alert_unclassified
-
-    # c3 = [
-    #     html.H3(html.B('{:,}'.format(n_alert_classified))),
-    #     html.P('With classification')
-    # ]
-
-    # c4 = [
-    #     html.H3(html.B('{:,}'.format(n_alert_unclassified))),
-    #     html.P('Without classification')
-    # ]
-
-    return c0, c1, c2, c3 # , c4
+    return c0, c1, c2
 
 
 @app.callback(
@@ -427,7 +408,7 @@ def create_stat_row(orb_json):
     """ Show basic stats. Used in the desktop app.
     """
     pdf = pd.read_json(orb_json)
-    c0_, c1_, c2_, c3_ = create_sso_stat_generic(pdf)
+    c0_, c1_, c2_ = create_sso_stat_generic(pdf)
 
     c0 = dbc.Col(
         children=c0_,
@@ -445,22 +426,24 @@ def create_stat_row(orb_json):
         width=2,
         style={
             'border-bottom': '1px solid #c4c0c0',
+            # 'border-right': '1px solid #c4c0c0',
+            # 'border-radius': '0px 0px 25px 0px',
+            "text-align": "center"
+        }
+    )
+
+    c2 = dbc.Col(
+        children=c2_, width=2,
+        style={
+            'border-bottom': '1px solid #c4c0c0',
             'border-right': '1px solid #c4c0c0',
             'border-radius': '0px 0px 25px 0px',
             "text-align": "center"
         }
     )
 
-    c2 = dbc.Col(
-        children=c2_, width=2, style={"text-align": "center"}
-    )
-
-    c3 = dbc.Col(
-        children=c3_, width=2, style={"text-align": "center"}
-    )
-
     row = [
-        dbc.Col(width=1), c0, c1, c2, c3, dbc.Col(width=1)
+        dbc.Col(width=1), c0, c1, c2, dbc.Col(width=1)
     ]
     return row
 
