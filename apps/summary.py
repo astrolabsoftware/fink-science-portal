@@ -274,7 +274,9 @@ def tab5_content(object_soo):
 
     We propose two cases, one fitting bands separately, and
     the other fitting both bands simultaneously (rescaled). We
-    also propose different phase curve modeling using the HG12 and HG models.
+    also propose different phase curve modeling using the HG, HG12 and HG1G2 models.
+    In addition, you can fit for spin values on top of the HG1G2 model (paper in prep!).
+    Note that the title displays the value for the reduced $\chi^2$ of the fit.
     Hit buttons to see the fitted values!
     """
 
