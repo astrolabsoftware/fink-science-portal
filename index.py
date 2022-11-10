@@ -1381,7 +1381,7 @@ def display_page(pathname, is_mobile):
                     dmc.Chips(
                         data=[
                             {"value": "objectId", "label": "ZTF ID"},
-                            {"value": "objectId", "label": "Designation"},
+                            {"value": "Designation", "label": "Designation"},
                             {"value": "Conesearch", "label": "Conesearch"},
                             {"value": "Class Search", "label": "Class Search"},
                         ],
