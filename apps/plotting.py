@@ -331,7 +331,7 @@ layout_sso_phasecurve = dict(
         'automargin': True
     },
     title={
-        "text": "Score",
+        "text": r"Reduced $\chi^2$",
         "y": 1.01,
         "yanchor": "bottom"
     }
