@@ -1020,7 +1020,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         autils.data.Conf.remote_timeout.set(1.0)
         args = [i.strip() for i in query.split(',')]
         if len(args) == 1:
-            name = args
+            name = query
             radius = 60.0
             startdate = None
             window = None
