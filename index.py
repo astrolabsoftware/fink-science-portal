@@ -80,16 +80,6 @@ Example, to refine your search starting at 2021-06-25 05:59:37.000 for 7 days:
 
 We encourage you to use the `startdate` and `window`, as your query will run much faster.
 
-##### Date search
-
-Choose a starting date and a time window to see all processed alerts in this period.
-Dates are in UTC, and the time window in minutes.
-Among several, you can choose YYYY-MM-DD hh:mm:ss, Julian Date, or Modified Julian Date. Example of valid search:
-
-* 2021-07-01 05:59:37.000
-* 2459396.7497337963
-* 59396.2497337963
-
 ##### Class
 
 Choose a class of interest using the drop-down menu to see the 100 latest alerts processed by Fink.
@@ -764,21 +754,13 @@ def display_skymap():
 def input_type(chip_value):
     """ Decide if the dropdown below the search bar should be shown
 
-    Only some query types need to have a dropdown (Date & Class search). In
+    Only some query types need to have a dropdown (Class search). In
     those cases, we show the dropdown, otherwise it is hidden.
 
     In the case of class search, the options are derived from the
     Fink classification, and the SIMBAD labels.
     """
-    if chip_value == "Date Search":
-        options = [
-            {'label': '1 minute', 'value': 1},
-            {'label': '10 minutes', 'value': 10},
-            {'label': '60 minutes (can be long)', 'value': 60}
-        ]
-        placeholder = "Choose a time window (default is 1 minute)"
-        return {}, options, placeholder
-    elif chip_value == "Class Search":
+    if chip_value == "Class Search":
         options = [
             {'label': 'All classes', 'value': 'allclasses'},
             {'label': 'Unknown', 'value': 'Unknown'},
