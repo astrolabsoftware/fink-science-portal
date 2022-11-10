@@ -84,7 +84,7 @@ fink_search_bar_sso = dbc.InputGroup(
             id='selectSSO',
             options=[],
             placeholder='Enter first letters or numbers of a SSO (e.g. cer)',
-            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey', 'width': '100pc'},
+            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey', 'width': '100%'},
         )
     ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
 )
