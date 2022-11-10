@@ -1367,6 +1367,41 @@ navbar = dmc.Header(
 #     fixed='top'
 # )
 
+def Tile(icon, heading, description, href):
+    return dcc.Link(
+        dmc.Paper(
+            p="lg",
+            withBorder=True,
+            children=dmc.Group(
+                direction="column",
+                spacing=0,
+                align="center",
+                children=[
+                    dmc.ThemeIcon(
+                        DashIconify(icon=icon, height=20),
+                        size=40,
+                        radius=40,
+                        variant="light",
+                    ),
+                    dmc.Text(
+                        heading,
+                        style={"marginTop": 20, "marginBottom": 10},
+                    ),
+                    dmc.Text(
+                        description,
+                        color="dimmed",
+                        align="center",
+                        size="sm",
+                        style={"lineHeight": 1.6, "marginBottom": 10},
+                    ),
+                ],
+            ),
+            style={"marginBottom": 30},
+        ),
+        href=href,
+        style={"textDecoration": "none"},
+    )
+
 # add callback for toggling the collapse on small screens
 @app.callback(
     Output("navbar-collapse2", "is_open"),
