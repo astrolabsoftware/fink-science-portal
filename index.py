@@ -1334,6 +1334,8 @@ def Tile(icon, heading, description, href):
         dmc.Paper(
             p="lg",
             withBorder=True,
+            radius='xl',
+            shadow='xl',
             children=dmc.Group(
                 direction="column",
                 spacing=0,
@@ -1433,6 +1435,33 @@ def display_page(pathname, is_mobile):
                     ),
                     html.Br(),
                     dbc.Row(fink_search_bar),
+                    dmc.SimpleGrid(
+                        cols=3,
+                        breakpoints=[
+                            {"maxWidth": "xs", "cols": 1},
+                            {"maxWidth": "sm", "cols": 2},
+                        ],
+                        children=[
+                            Tile(
+                                icon="radix-icons:calendar",
+                                heading="Classic search",
+                                description="Search by name, coordinates, or class",
+                                href="/search",
+                            ),
+                            Tile(
+                                icon="radix-icons:blending-mode",
+                                heading="Solar System search",
+                                description="Inspect solar system data",
+                                href="/sso",
+                            ),
+                            Tile(
+                                icon="radix-icons:blending-mode",
+                                heading="{ API }",
+                                description="Inspect solar system data",
+                                href="/api",
+                            ),
+                        ]
+                    ),
                     html.Br(),
                     dcc.Dropdown(
                         id='select',
