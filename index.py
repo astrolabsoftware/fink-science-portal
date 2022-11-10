@@ -1359,7 +1359,7 @@ def Tile(icon, heading, description, href):
                         size="sm",
                         style={"lineHeight": 1.6, "marginBottom": 10},
                     ),
-                ],
+                ], className='zoom'
             ),
             style={"marginBottom": 30},
         ),
