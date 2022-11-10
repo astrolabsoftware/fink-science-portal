@@ -801,14 +801,12 @@ def chips_values(chip_value, val):
 
     if chip_value == "objectId":
         return default, val
+    elif chip_value == "Designation":
+        return default, val
     elif chip_value == "Conesearch":
         return "    Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", val
     elif chip_value == "Class Search":
         return "    Choose a class below. We will display the last 100 alerts for this class.", val
-    elif chip_value == "SSO":
-        return "    Enter a valid IAU number. See Help for more information", val
-    elif chip_value == "Tracklet":
-        return "    Enter a date to get satellite glints or debris. See Help for more information", val
     else:
         return default, ""
 
@@ -1016,26 +1014,6 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
                 'objectId': query,
             }
         )
-    elif query_type == 'SSO':
-        # strip from spaces
-        query_ = str(query.replace(' ', ''))
-
-        r = requests.post(
-            '{}/api/v1/sso'.format(APIURL),
-            json={
-                'n_or_d': query_
-            }
-        )
-    elif query_type == 'Tracklet':
-        # strip from spaces
-        payload = {
-            'date': query
-        }
-
-        r = requests.post(
-            '{}/api/v1/tracklet'.format(APIURL),
-            json=payload
-        )
     elif query_type == 'Conesearch':
         args = [i.strip() for i in query.split(',')]
         if len(args) == 3:
@@ -1115,12 +1093,6 @@ def text_noresults(query, query_type, dropdown_option, searchurl):
     # ugly hack
     if query_type == 'objectId':
         header = "Search by Object ID"
-        text = "{} not found".format(query)
-    elif query_type == 'SSO':
-        header = "Search by Solar System Object ID"
-        text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
-    elif query_type == 'Tracklet':
-        header = "Search by Tracklet ID"
         text = "{} not found".format(query)
     elif query_type == 'Conesearch':
         header = "Conesearch"
@@ -1408,17 +1380,16 @@ def display_page(pathname, is_mobile):
                     html.Br(),
                     dmc.Chips(
                         data=[
-                            {"value": "objectId", "label": "objectId"},
+                            {"value": "objectId", "label": "ZTF ID"},
+                            {"value": "objectId", "label": "Designation"},
                             {"value": "Conesearch", "label": "Conesearch"},
                             {"value": "Class Search", "label": "Class Search"},
-                            {"value": "SSO", "label": "SSO"},
-                            {"value": "Tracklet", "label": "Tracklet"},
                         ],
                         id="dropdown-query",
                         value='objectId',
                         color="orange",
                         radius="xl",
-                        size="sm",
+                        size="xl",
                         spacing="xl",
                         variant="outline",
                         position='center',
