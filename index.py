@@ -803,8 +803,6 @@ def chips_values(chip_value, val):
         return default, val
     elif chip_value == "Conesearch":
         return "    Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", val
-    elif chip_value == "Date Search":
-        return "    Search alerts inside a time window. See Help for the syntax", val
     elif chip_value == "Class Search":
         return "    Choose a class below. We will display the last 100 alerts for this class.", val
     elif chip_value == "SSO":
@@ -1056,19 +1054,6 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
                 'window_days_conesearch': window
             }
         )
-    elif query_type == 'Date Search':
-        startdate = isoify_time(query)
-        if dropdown_option is None:
-            window = 1
-        else:
-            window = dropdown_option
-        r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
-            json={
-                'startdate': startdate,
-                'window': window
-            }
-        )
     elif query_type == 'Class Search':
         if dropdown_option is None:
             alert_class = 'allclasses'
@@ -1141,19 +1126,6 @@ def text_noresults(query, query_type, dropdown_option, searchurl):
         header = "Conesearch"
         text = "No alerts found for (RA, Dec, radius) = {}".format(
             query
-        )
-    elif query_type == 'Date Search':
-        header = "Search by Date"
-        if dropdown_option is None:
-            window = 1
-        else:
-            window = dropdown_option
-        jd_start = Time(query).jd
-        jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
-
-        text = "No alerts found between {} and {}".format(
-            Time(jd_start, format='jd').iso,
-            Time(jd_end, format='jd').iso
         )
     elif query_type == 'Class Search':
         header = "Get latest 100 alerts by class"
@@ -1438,7 +1410,6 @@ def display_page(pathname, is_mobile):
                         data=[
                             {"value": "objectId", "label": "objectId"},
                             {"value": "Conesearch", "label": "Conesearch"},
-                            {"value": "Date Search", "label": "Date Search"},
                             {"value": "Class Search", "label": "Class Search"},
                             {"value": "SSO", "label": "SSO"},
                             {"value": "Tracklet", "label": "Tracklet"},
