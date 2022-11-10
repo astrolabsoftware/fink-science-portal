@@ -1472,28 +1472,7 @@ def display_page(pathname, is_mobile):
                         multiple=False,
                     ),
                     html.Br(),
-                    dbc.Row(fink_search_bar, style={'display': 'none'}),
-                    dmc.SimpleGrid(
-                        cols=3,
-                        breakpoints=[
-                            {"maxWidth": "xs", "cols": 1},
-                            {"maxWidth": "sm", "cols": 2},
-                        ],
-                        children=[
-                            Tile(
-                                icon="radix-icons:calendar",
-                                heading="Classic search",
-                                description="Search by name, coordinates, or class",
-                                href="/search",
-                            ),
-                            Tile(
-                                icon="radix-icons:blending-mode",
-                                heading="Solar System search",
-                                description="Inspect solar system data",
-                                href="/sso",
-                            ),
-                        ]
-                    ),
+                    dbc.Row(fink_search_bar),
                     html.Br(),
                     dcc.Dropdown(
                         id='select',
