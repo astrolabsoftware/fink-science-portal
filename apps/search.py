@@ -811,44 +811,6 @@ def chips_values(chip_value, val):
     else:
         return default, ""
 
-@app.callback(
-    Output("logo", "children"),
-    [
-        Input("submit", "n_clicks"),
-        Input("search_bar_input", "n_submit"),
-        Input("select", "options"),
-        Input("url", "search")
-    ],
-)
-def logo(ns, nss, options, searchurl):
-    """ Show the logo in the start page (and hide it otherwise)
-    """
-    ctx = dash.callback_context
-
-    logo = [
-        html.Br(),
-        html.Br(),
-        dbc.Row(
-            dbc.Col(
-                html.Img(
-                    src="/assets/Fink_PrimaryLogo_WEB.png",
-                    height='100%',
-                    width='60%'
-                )
-            ), style={'textAlign': 'center'}
-        ),
-        html.Br()
-    ]
-    if nss is None and (not ctx.triggered) and (searchurl == ''):
-        return logo
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if (button_id in ["submit", "search_bar_input"]) or (searchurl != '') or (options != []):
-        return []
-    else:
-        return logo
-
 def construct_results_layout(table, is_mobile):
     """ Construct the tabs containing explorer query results
     """
@@ -1165,7 +1127,6 @@ def layout(pathname, is_mobile):
             html.Br(),
             dbc.Container(
                 [
-                    html.Div(id='logo'),
                     html.Br(),
                     dmc.Chips(
                         data=[
