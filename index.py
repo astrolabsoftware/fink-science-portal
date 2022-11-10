@@ -215,8 +215,8 @@ fink_search_bar = dbc.InputGroup(
 )
 
 @app.callback(
-    Output('select', 'options'),
-    Input('select', 'search_value'),
+    Output('selectSSO', 'options'),
+    Input('selectSSO', 'search_value'),
 )
 def autocomplete_sso(data):
     """ Search for SSO names matching in IMCCE database
@@ -250,7 +250,7 @@ def autocomplete_sso(data):
 fink_search_bar_sso = dbc.InputGroup(
     [
         dcc.Dropdown(
-            id='select',
+            id='selectSSO',
             options=[],
             placeholder='Enter first letters or numbers of a SSO (e.g. cer)',
             style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey', 'width': '100pc'},
