@@ -1329,7 +1329,7 @@ navbar = dmc.Header(
 #     fixed='top'
 # )
 
-def Tile(icon, heading, description, href):
+def Tile(icon, heading, description, href, class_name=None):
     return dcc.Link(
         dmc.Paper(
             p="lg",
@@ -1362,7 +1362,7 @@ def Tile(icon, heading, description, href):
                 ]
             ),
             style={"marginBottom": 30},
-            class_name='zoom'
+            class_name=class_name
         ),
         href=href,
         style={"textDecoration": "none"},
@@ -1455,6 +1455,7 @@ def display_page(pathname, is_mobile):
                                 heading="Solar System search",
                                 description="Inspect data from the Solar System",
                                 href="/sso",
+                                class_name='zoomed'
                             ),
                             Tile(
                                 icon="carbon:api",

@@ -36,6 +36,16 @@ html, body {
   border-radius: 25px;
 }
 
+.zoomed {
+  padding: 2px;
+  transition: transform .2s; /* Animation */
+  margin: 0 auto;
+  transform: scale(1.25); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+  -ms-transform: scale(1.25); /* IE 9 */
+  -webkit-transform: scale(1.25); /* Safari 3-8 */
+  clip-path: none;
+}
+
 .zoom {
   padding: 2px;
   transition: transform .2s; /* Animation */
