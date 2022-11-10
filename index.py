@@ -1031,10 +1031,10 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         elif len(args) == 4:
             query, radius, startdate, window = args
         try:
-            coord = name_resolve(query)
+            coord = name_resolve.get_icrs_coordinates(query)
             ra, dec = coord.ra.deg, coord.dec.deg
             radius = 60.0
-        except NameResolveError:
+        except name_resolve.NameResolveError:
             return dmc.Alert('{} is not a valid designation according to Sesame.', title='Wrong designation!', color='red', withCloseButton=True), no_update
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
