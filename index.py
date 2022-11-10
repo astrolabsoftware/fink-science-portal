@@ -292,7 +292,7 @@ app.clientside_callback(
     Input('url', 'href')
 )
 
-def logo():
+def make_logo():
     """ Show the logo in the start page (and hide it otherwise)
     """
     logo = [
@@ -329,7 +329,7 @@ def display_page(pathname, is_mobile):
             html.Br(),
             dbc.Container(
                 [
-                    logo(),
+                    html.Div(make_logo()),
                     html.Br(),
                     dmc.SimpleGrid(
                         cols=3,
