@@ -1437,7 +1437,7 @@ def display_page(pathname, is_mobile):
                         multiple=False,
                     ),
                     html.Br(),
-                    dbc.Row(fink_search_bar, id='choice_search_bar'),
+                    dbc.Row(fink_search_bar),
                     html.Br(),
                     dcc.Dropdown(
                         id='select',
