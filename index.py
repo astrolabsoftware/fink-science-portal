@@ -214,6 +214,60 @@ fink_search_bar = dbc.InputGroup(
     ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
 )
 
+@app.callback(
+    Output('select', 'options'),
+    Input('select', 'search_value'),
+)
+def autocomplete_sso(data):
+    """ Search for SSO names matching in IMCCE database
+
+    Return only the 10 first results
+    """
+    if not data:
+        raise PreventUpdate
+
+    if data is not None:
+        r = requests.get('https://api.ssodnet.imcce.fr/quaero/1/sso/instant-search?q={}'.format(str(data)))
+        total = r.json()['total']
+        if total > 0:
+            template = '{} ({} {})'
+            names = []
+            for i in r.json()['data']:
+                if 'class' in i.keys():
+                    txt = template.format(i['name'], i['type'], '>'.join(i['class']))
+                else:
+                    txt = template.format(i['name'], i['type'], '')
+                names.append(txt)
+            options = [{'label': name, 'value': name, 'search': str(data)} for name in names]
+        else:
+            options = []
+    else:
+        options = [{'label': str(data), 'value': str(data)}]
+
+    return options
+
+# embedding the navigation bar
+fink_search_bar_sso = dbc.InputGroup(
+    [
+        dcc.Dropdown(
+            id='select',
+            options=[],
+            placeholder='Enter first letters or numbers of a SSO (e.g. cer)',
+            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey', 'width': '100pc'},
+        )
+    ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
+)
+
+@app.callback(
+    Input("dropdown-query", "value"),
+    Output("choice_search_bar", "children")
+)
+def switch_search_bar(chip_value):
+    if chip_value == 'SSO':
+        return fink_search_bar_sso
+    else:
+        return fink_search_bar
+
 def print_msg_info():
     """ Display the explorer info message
     """
@@ -1383,7 +1437,7 @@ def display_page(pathname, is_mobile):
                         multiple=False,
                     ),
                     html.Br(),
-                    dbc.Row(fink_search_bar),
+                    dbc.Row(id='choice_search_bar'),
                     html.Br(),
                     dcc.Dropdown(
                         id='select',
