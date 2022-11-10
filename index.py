@@ -259,8 +259,8 @@ fink_search_bar_sso = dbc.InputGroup(
 )
 
 @app.callback(
-    Input("dropdown-query", "value"),
-    Output("choice_search_bar", "children")
+    Output("choice_search_bar", "children"),
+    Input("dropdown-query", "value")
 )
 def switch_search_bar(chip_value):
     if chip_value == 'SSO':
