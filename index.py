@@ -1127,6 +1127,11 @@ def text_noresults(query, query_type, dropdown_option, searchurl):
     if query_type == 'objectId':
         header = "Search by Object ID"
         text = "{} not found".format(query)
+    elif query_type == 'Designation':
+        header = "Designation"
+        text = "No alerts found around {}".format(
+            query
+        )
     elif query_type == 'Conesearch':
         header = "Conesearch"
         text = "No alerts found for (RA, Dec, radius) = {}".format(
