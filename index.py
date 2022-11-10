@@ -1445,23 +1445,25 @@ def display_page(pathname, is_mobile):
                         ],
                         children=[
                             Tile(
-                                icon="tabler:search",
-                                heading="Classic search",
-                                description="Search by name, coordinates, or class",
-                                href="/search",
-                            ),
-                            Tile(
                                 icon="majesticons:comet",
                                 heading="Solar System search",
                                 description="Inspect data from the Solar System",
                                 href="/sso",
-                                class_name=None
+                                class_name='zoom'
+                            ),
+                            Tile(
+                                icon="tabler:search",
+                                heading="Classic search",
+                                description="Search by name, coordinates, or class",
+                                href="/search",
+                                class_name='zoom'
                             ),
                             Tile(
                                 icon="carbon:api",
                                 heading="{ API }",
                                 description="Learn how to integrate Fink services",
                                 href="/api",
+                                class_name='zoom'
                             ),
                         ]
                     ),
