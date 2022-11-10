@@ -802,11 +802,11 @@ def chips_values(chip_value, val):
     if chip_value == "objectId":
         return default, val
     elif chip_value == "Designation":
-        return default, val
+        return "    Enter the designation of an astronomical object from SIMBAD, Vizier, or NED. See Help for the syntax", val
     elif chip_value == "Conesearch":
         return "    Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", val
     elif chip_value == "Class Search":
-        return "    Choose a class below. We will display the last 100 alerts for this class.", val
+        return "    Choose a class below. The last 100 alerts for this class will be displayed.", val
     else:
         return default, ""
 
