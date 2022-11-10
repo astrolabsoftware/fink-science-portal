@@ -1455,7 +1455,7 @@ def display_page(pathname, is_mobile):
                                 heading="Solar System search",
                                 description="Inspect data from the Solar System",
                                 href="/sso",
-                                class_name='zoomed'
+                                class_name=None
                             ),
                             Tile(
                                 icon="carbon:api",
