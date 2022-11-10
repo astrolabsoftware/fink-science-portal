@@ -1346,6 +1346,7 @@ def Tile(icon, heading, description, href):
                         size=40,
                         radius=40,
                         variant="light",
+                        color='orange'
                     ),
                     dmc.Text(
                         heading,
@@ -1359,7 +1360,6 @@ def Tile(icon, heading, description, href):
                         style={"lineHeight": 1.6, "marginBottom": 10},
                     ),
                 ],
-                style={'backgroundColor': 'rgb(248, 248, 248, .7)'}
             ),
             style={"marginBottom": 30},
         ),
@@ -1444,21 +1444,21 @@ def display_page(pathname, is_mobile):
                         ],
                         children=[
                             Tile(
-                                icon="radix-icons:calendar",
+                                icon="tabler:search",
                                 heading="Classic search",
                                 description="Search by name, coordinates, or class",
                                 href="/search",
                             ),
                             Tile(
-                                icon="radix-icons:blending-mode",
+                                icon="majesticons:comet",
                                 heading="Solar System search",
-                                description="Inspect solar system data",
+                                description="Inspect data from the Solar System",
                                 href="/sso",
                             ),
                             Tile(
-                                icon="radix-icons:blending-mode",
+                                icon="carbon:api",
                                 heading="{ API }",
-                                description="Inspect solar system data",
+                                description="Learn how to integrate Fink services",
                                 href="/api",
                             ),
                         ]
