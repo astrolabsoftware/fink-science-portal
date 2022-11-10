@@ -1356,9 +1356,10 @@ def Tile(icon, heading, description, href):
                         color="dimmed",
                         align="center",
                         size="sm",
-                        style={"lineHeight": 1.6, "marginBottom": 10, 'backgroundColor': 'rgb(248, 248, 248, .7)'},
+                        style={"lineHeight": 1.6, "marginBottom": 10},
                     ),
                 ],
+                style={'backgroundColor': 'rgb(248, 248, 248, .7)'}
             ),
             style={"marginBottom": 30},
         ),
