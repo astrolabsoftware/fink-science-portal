@@ -1359,9 +1359,10 @@ def Tile(icon, heading, description, href):
                         size="sm",
                         style={"lineHeight": 1.6, "marginBottom": 10},
                     ),
-                ], class_name='zoom'
+                ]
             ),
             style={"marginBottom": 30},
+            class_name='zoom'
         ),
         href=href,
         style={"textDecoration": "none"},
