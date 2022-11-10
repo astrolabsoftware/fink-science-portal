@@ -1389,7 +1389,7 @@ def display_page(pathname, is_mobile):
                         value='objectId',
                         color="orange",
                         radius="xl",
-                        size="xl",
+                        size="md",
                         spacing="xl",
                         variant="outline",
                         position='center',
