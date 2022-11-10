@@ -1020,18 +1020,19 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         autils.data.Conf.remote_timeout.set(1.0)
         args = [i.strip() for i in query.split(',')]
         if len(args) == 1:
-            query = args
+            name = args
             radius = 60.0
             startdate = None
             window = None
         if len(args) == 2:
-            query, radius = args
+            name, radius = args
             startdate = None
             window = None
         elif len(args) == 4:
-            query, radius, startdate, window = args
+            name, radius, startdate, window = args
+
         try:
-            coord = name_resolve.get_icrs_coordinates(query)
+            coord = name_resolve.get_icrs_coordinates(name)
             ra, dec = coord.ra.deg, coord.dec.deg
             radius = 60.0
         except name_resolve.NameResolveError:
