@@ -28,7 +28,7 @@ from app import app
 from app import client
 from app import APIURL
 
-from apps import summary, about, statistics, search
+from apps import summary, about, statistics, search, sso_search
 from apps.api import api
 from apps import __version__ as portal_version
 
@@ -371,6 +371,8 @@ def display_page(pathname, is_mobile):
         return about.layout
     elif pathname == '/search':
         return search.layout(pathname, is_mobile)
+    elif pathname == '/sso':
+        return sso_search.layout(pathname, is_mobile)
     elif pathname == '/api':
         return api.layout(is_mobile)
     elif pathname == '/stats':
