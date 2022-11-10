@@ -42,6 +42,8 @@ import requests
 import pandas as pd
 import numpy as np
 from astropy.time import Time, TimeDelta
+from astropy.coordinates import name_resolve
+import astropy.utils as autils
 
 simbad_types = get_simbad_labels('old_and_new')
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
@@ -1012,6 +1014,36 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
             '{}/api/v1/explorer'.format(APIURL),
             json={
                 'objectId': query,
+            }
+        )
+    elif query_type == 'Designation':
+        autils.data.Conf.remote_timeout.set(1.0)
+        args = [i.strip() for i in query.split(',')]
+        if len(args) == 1:
+            query = args
+            radius = 60.0
+            startdate = None
+            window = None
+        if len(args) == 2:
+            query, radius = args
+            startdate = None
+            window = None
+        elif len(args) == 4:
+            query, radius, startdate, window = args
+        try:
+            coord = name_resolve(query)
+            ra, dec = coord.ra.deg, coord.dec.deg
+            radius = 60.0
+        except NameResolveError:
+            return dmc.Alert('{} is not a valid designation according to Sesame.', title='Wrong designation!', color='red', withCloseButton=True), no_update
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
+            json={
+                'ra': ra,
+                'dec': dec,
+                'radius': float(radius),
+                'startdate_conesearch': startdate,
+                'window_days_conesearch': window
             }
         )
     elif query_type == 'Conesearch':
