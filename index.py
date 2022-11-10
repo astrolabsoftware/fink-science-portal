@@ -1472,7 +1472,7 @@ def display_page(pathname, is_mobile):
                         multiple=False,
                     ),
                     html.Br(),
-                    # dbc.Row(fink_search_bar),
+                    dbc.Row(fink_search_bar, style={'display': 'none'}),
                     dmc.SimpleGrid(
                         cols=3,
                         breakpoints=[
