@@ -1472,7 +1472,7 @@ def display_page(pathname, is_mobile):
                         multiple=False,
                     ),
                     html.Br(),
-                    dbc.Row(fink_search_bar),
+                    # dbc.Row(fink_search_bar),
                     dmc.SimpleGrid(
                         cols=3,
                         breakpoints=[
@@ -1482,21 +1482,15 @@ def display_page(pathname, is_mobile):
                         children=[
                             Tile(
                                 icon="radix-icons:calendar",
-                                heading="Best DatePickers out there!",
-                                description="Easily switch between different years and months while looking great too.",
-                                href="/components/datepicker",
+                                heading="Classic search",
+                                description="Search by name, coordinates, or class",
+                                href="/search",
                             ),
                             Tile(
                                 icon="radix-icons:blending-mode",
-                                heading="Dark Theme Support",
-                                description="Use dark theme across all components with no additional steps.",
-                                href="/components/mantineprovider",
-                            ),
-                            Tile(
-                                icon="radix-icons:blending-mode",
-                                heading="Dark Theme Support",
-                                description="Use dark theme across all components with no additional steps.",
-                                href="/components/mantineprovider",
+                                heading="Solar System search",
+                                description="Inspect solar system data",
+                                href="/sso",
                             ),
                         ]
                     ),
