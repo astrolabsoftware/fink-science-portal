@@ -347,7 +347,7 @@ def display_page(pathname, is_mobile):
                             ),
                             Tile(
                                 icon="tabler:search",
-                                heading="Classic search",
+                                heading="Explore Fink alert data",
                                 description="Search by name, coordinates, or class",
                                 href="/search",
                                 class_name='zoomed'
