@@ -292,20 +292,9 @@ app.clientside_callback(
     Input('url', 'href')
 )
 
-@app.callback(
-    Output("logo", "children"),
-    [
-        Input("submit", "n_clicks"),
-        Input("search_bar_input", "n_submit"),
-        Input("select", "options"),
-        Input("url", "search")
-    ],
-)
-def logo(ns, nss, options, searchurl):
+def logo():
     """ Show the logo in the start page (and hide it otherwise)
     """
-    ctx = dash.callback_context
-
     logo = [
         html.Br(),
         html.Br(),
@@ -320,15 +309,8 @@ def logo(ns, nss, options, searchurl):
         ),
         html.Br()
     ]
-    if nss is None and (not ctx.triggered) and (searchurl == ''):
-        return logo
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    if (button_id in ["submit", "search_bar_input"]) or (searchurl != '') or (options != []):
-        return []
-    else:
-        return logo
+    return logo
 
 @app.callback(
     Output('page-content', 'children'),
@@ -347,7 +329,7 @@ def display_page(pathname, is_mobile):
             html.Br(),
             dbc.Container(
                 [
-                    html.Div(id='logo'),
+                    logo(),
                     html.Br(),
                     dmc.SimpleGrid(
                         cols=3,
