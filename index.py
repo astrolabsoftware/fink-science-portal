@@ -91,15 +91,17 @@ navbar = dmc.Header(
                 align="flex-start",
                 children=[
                     dmc.ActionIcon(
-                        DashIconify(icon="clarity:settings-line"), id="drawer-demo-button", n_clicks=0
+                        DashIconify(icon="dashicons:menu", width=30), id="drawer-demo-button", n_clicks=0
                     ),
+                    dmc.Title('Menu'),
                     dmc.Drawer(
                         children=[
                             html.Div('Example')
                         ],
-                        title="Drawer Example",
+                        title="Fink Science Portal",
                         id="drawer",
                         padding="md",
+                        zIndex=1e6
                     ),
                     dmc.Group(
                         position="right",
