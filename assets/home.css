@@ -120,7 +120,7 @@ html, body {
 
 
   /* make it glow! */
-  -webkit-box-shadow: 0px 0px 4px #F5622E;
+  -webkit-box-shadow: 0px 0px 4px #f5622e;
   -moz-box-shadow: 0px 0px 2px #F5622E;
   box-shadow: 0px 0px 4px #F5622E;
 }
@@ -187,3 +187,26 @@ input[type="search"].dark::-webkit-search-cancel-button {
 }
 
 img[alt=logoexp] { width: 200px; horizontal-align: middle; display: block; margin: auto;}
+
+._dash-loading {
+  margin: auto;
+  color: transparent;
+  width: 0;
+  height: 0;
+  text-align: center;
+}
+
+._dash-loading::after {
+  content: 'Loading';
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  color: #f5622e;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  -webkit-animation: spinner-border 0.75s linear infinite;
+  animation: spinner-border 0.75s linear infinite;
+  margin-top: 2rem;
+}
