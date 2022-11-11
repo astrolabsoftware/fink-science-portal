@@ -99,6 +99,46 @@ navbar = dmc.Header(
                                 labelPosition="left",
                                 label=[
                                     DashIconify(
+                                        icon='tabler:home', width=15, style={"marginRight": 10}
+                                    ),
+                                    "Home",
+                                ],
+                                style={"marginTop": 20, "marginBottom": 20},
+                            ),
+                            dmc.Group(
+                                [
+                                    dmc.Anchor(
+                                        'Home',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                    dmc.Anchor(
+                                        'Fink broker',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='https://fink-broker.org',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                    dmc.Anchor(
+                                        'Statistics',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/stats',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                ],
+                                grow=True,
+                                position="left",
+                                spacing="sm",
+                                direction="column",
+                                style={"paddingLeft": 30, "paddingRight": 20},
+                            ),
+                            dmc.Divider(
+                                labelPosition="left",
+                                label=[
+                                    DashIconify(
                                         icon='tabler:search', width=15, style={"marginRight": 10}
                                     ),
                                     "Search",
