@@ -83,7 +83,7 @@ navbar = dmc.Header(
                 align="flex-start",
                 children=[
                     dmc.Center(
-                        dcc.Link(
+                        html.Div(
                             [
                                 dmc.MediaQuery(
                                     create_home_link("Fink Science Portal"),
@@ -96,7 +96,6 @@ navbar = dmc.Header(
                                     styles={"display": "none"},
                                 ),
                             ],
-                            href="/",
                             style={"paddingTop": 5, "textDecoration": "none"},
                             className='drawer-toggle'
                         ),
