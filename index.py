@@ -293,7 +293,6 @@ def create_appshell(nav_data):
         theme={
             "colorScheme": "light",
             "fontFamily": "'Inter', sans-serif",
-            "primaryColor": "indigo",
         },
         styles={
             "Button": {"root": {"fontWeight": 400}},
