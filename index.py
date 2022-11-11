@@ -90,10 +90,14 @@ navbar = dmc.Header(
                 position="apart",
                 align="flex-start",
                 children=[
-                    dmc.ActionIcon(
-                        DashIconify(icon="dashicons:menu", width=30), id="drawer-demo-button", n_clicks=0
+                    dmc.Group(
+                        [
+                            dmc.ActionIcon(
+                                DashIconify(icon="dashicons:menu", width=30), id="drawer-demo-button", n_clicks=0
+                            ),
+                            dmc.Text('Menu'),
+                        ]
                     ),
-                    dmc.Title('Menu'),
                     dmc.Drawer(
                         children=[
                             dmc.Divider(
