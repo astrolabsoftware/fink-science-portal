@@ -90,13 +90,8 @@ navbar = dmc.Header(
                 position="apart",
                 align="flex-start",
                 children=[
-                    dmc.Group(
-                        [
-                            dmc.ActionIcon(
-                                DashIconify(icon="dashicons:menu", width=30), id="drawer-demo-button", n_clicks=0
-                            ),
-                            dmc.Text('Menu'),
-                        ]
+                    dmc.ActionIcon(
+                        DashIconify(icon="dashicons:menu", width=30), id="drawer-demo-button", n_clicks=0
                     ),
                     dmc.Drawer(
                         children=[
@@ -177,7 +172,8 @@ navbar = dmc.Header(
                         title="Fink Science Portal",
                         id="drawer",
                         padding="md",
-                        zIndex=1e7
+                        zIndex=1e7,
+                        transition='pop-top-left',
                     ),
                     dmc.Group(
                         position="right",
