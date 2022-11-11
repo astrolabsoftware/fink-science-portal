@@ -197,7 +197,7 @@ img[alt=logoexp] { width: 200px; horizontal-align: middle; display: block; margi
 }
 
 ._dash-loading::after {
-  content: 'Loading';
+  content: '';
   display: inline-block;
   width: 2rem;
   height: 2rem;
