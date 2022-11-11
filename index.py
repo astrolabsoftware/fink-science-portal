@@ -107,12 +107,17 @@ navbar = dmc.Header(
                             ),
                             dmc.Group(
                                 [
-                                    dmc.Anchor(
-                                        'Home',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                    # dmc.Anchor(
+                                    #     'Home',
+                                    #     style={"textTransform": "capitalize", "textDecoration": "none"},
+                                    #     href='/',
+                                    #     size="sm",
+                                    #     color="gray",
+                                    # ),
+                                    dcc.Link(
+                                        dmc.Text('Home', color='gray', size='sm'),
                                         href='/',
-                                        size="sm",
-                                        color="gray",
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
                                     ),
                                     dmc.Anchor(
                                         'Fink broker',
