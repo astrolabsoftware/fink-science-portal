@@ -67,6 +67,14 @@ def create_home_link(label):
         color="gray"
     )
 
+@callback(
+    Output("drawer", "opened"),
+    Input("drawer-demo-button", "n_clicks"),
+    prevent_initial_call=True,
+)
+def drawer_demo(n_clicks):
+    return True
+
 
 navbar = dmc.Header(
     height=55,
@@ -82,23 +90,16 @@ navbar = dmc.Header(
                 position="apart",
                 align="flex-start",
                 children=[
-                    dmc.Center(
-                        html.Div(
-                            [
-                                dmc.MediaQuery(
-                                    create_home_link("Fink Science Portal"),
-                                    smallerThan="sm",
-                                    styles={"display": "none"}
-                                ),
-                                dmc.MediaQuery(
-                                    create_home_link("Fink"),
-                                    largerThan="sm",
-                                    styles={"display": "none"},
-                                ),
-                            ],
-                            style={"paddingTop": 5, "textDecoration": "none"},
-                            className='drawer-toggle'
-                        ),
+                    dmc.ActionIcon(
+                        DashIconify(icon="clarity:settings-line"), id="action-icon", n_clicks=0
+                    ),
+                    dmc.Drawer(
+                        children=[
+                            html.Div('Example')
+                        ],
+                        title="Drawer Example",
+                        id="drawer",
+                        padding="md",
                     ),
                     dmc.Group(
                         position="right",
