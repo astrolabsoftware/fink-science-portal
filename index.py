@@ -107,29 +107,17 @@ navbar = dmc.Header(
                             ),
                             dmc.Group(
                                 [
-                                    # dmc.Anchor(
-                                    #     'Home',
-                                    #     style={"textTransform": "capitalize", "textDecoration": "none"},
-                                    #     href='/',
-                                    #     size="sm",
-                                    #     color="gray",
-                                    # ),
-                                    dcc.Link(
-                                        dmc.Text('Home', color='gray', size='sm'),
-                                        href='/',
+                                    dmc.Anchor(
+                                        'Home',
                                         style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/',
+                                        size="sm",
+                                        color="gray",
                                     ),
                                     dmc.Anchor(
                                         'Fink broker',
                                         style={"textTransform": "capitalize", "textDecoration": "none"},
                                         href='https://fink-broker.org',
-                                        size="sm",
-                                        color="gray",
-                                    ),
-                                    dmc.Anchor(
-                                        'Statistics',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='/stats',
                                         size="sm",
                                         color="gray",
                                     ),
@@ -205,6 +193,13 @@ navbar = dmc.Header(
                                         href='https://github.com/astrolabsoftware/fink-tutorials',
                                         size="sm",
                                         color="gray",
+                                    ),
+                                    dmc.Anchor(
+                                        'Bug tracker',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='https://github.com/astrolabsoftware/fink-science-portal',
+                                        size="sm",
+                                        color="gray",
                                     )
                                 ],
                                 grow=True,
@@ -220,127 +215,11 @@ navbar = dmc.Header(
                         zIndex=1e7,
                         transition='pop-top-left',
                     ),
-                    dmc.Group(
-                        position="right",
-                        align="center",
-                        spacing="xl",
-                        children=[
-                            html.A(
-                                dmc.Tooltip(
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="ion:stats-chart-outline",
-                                            width=22,
-                                        ),
-                                        radius=30,
-                                        size=36,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    label="Statistics",
-                                    position="bottom",
-                                ),
-                                href="{}/stats".format(APIURL),
-                            ),
-                            html.A(
-                                dmc.Tooltip(
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="carbon:api",
-                                            width=22,
-                                        ),
-                                        radius=30,
-                                        size=36,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    label="API",
-                                    position="bottom",
-                                ),
-                                href="{}/api".format(APIURL),
-                            ),
-                            html.A(
-                                dmc.Tooltip(
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="radix-icons:github-logo",
-                                            width=22,
-                                        ),
-                                        radius=30,
-                                        size=36,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    label="Tutorials",
-                                    position="bottom",
-                                ),
-                                href="https://github.com/astrolabsoftware/fink-tutorials",
-                            ),
-                            html.A(
-                                dmc.Tooltip(
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="foundation:web",
-                                            width=22,
-                                        ),
-                                        radius=30,
-                                        size=36,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    label="Website",
-                                    position="bottom",
-                                ),
-                                href="https://fink-broker.org",
-                            ),
-                        ],
-                    ),
                 ],
             ),
         )
     ],
 )
-
-# navbar = dbc.Navbar(
-#     [
-#         dbc.NavbarToggler(id="navbar-toggler2"),
-#         html.A(
-#             dbc.Row(
-#                 [
-#                     dbc.Col(
-#                         dbc.NavbarBrand(
-#                             "Fink Science portal {}".format(portal_version),
-#                             className="ml-2"
-#                         )
-#                     ),
-#                 ],
-#                 justify="start",
-#                 className="g-0",
-#             ),
-#             href="/",
-#         ),
-#         dbc.Collapse(
-#             dbc.Nav(
-#                 # right align dropdown menu with ml-auto className
-#                 [
-#                     dbc.NavItem(dbc.NavLink('Search', href="{}".format(APIURL))),
-#                     dbc.NavItem(dbc.NavLink('Statistics', href="{}/stats".format(APIURL))),
-#                     dbc.NavItem(dbc.NavLink('API', href="{}/api".format(APIURL))),
-#                     dbc.NavItem(dbc.NavLink('Tutorials', href="https://github.com/astrolabsoftware/fink-notebook-template")),
-#                     dropdown
-#                 ],
-#                 navbar=True
-#             ),
-#             id="navbar-collapse2",
-#             navbar=True,
-#             style={'background-color': 'rgb(255,250,250)'}
-#         ),
-#     ],
-#     color="rgba(255,255,255,0.9)",
-#     dark=False,
-#     className="finknav",
-#     fixed='top'
-# )
 
 def Tile(icon, heading, description, href, class_name=None):
     return dcc.Link(
