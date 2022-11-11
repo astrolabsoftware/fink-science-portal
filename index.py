@@ -93,7 +93,7 @@ navbar = dmc.Header(
     fixed=True,
     p=0,
     m=0,
-    style={'background-image': 'linear-gradient(rgba(50,50,50,0.3), rgba(255,255,255,0.9)), url(/assets/background.png)'},
+    style={'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'},
     children=[
         dmc.Space(h=10),
         dmc.Container(
@@ -365,7 +365,7 @@ def display_page(pathname, is_mobile):
         style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
     else:
         width = '60%'
-        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'contain'}
+        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'}
     layout = html.Div(
         [
             html.Br(),
