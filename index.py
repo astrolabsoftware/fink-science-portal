@@ -106,26 +106,35 @@ navbar = dmc.Header(
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
-                            dmc.Anchor(
-                                'Basic search',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
-                                href='/search',
-                                size="sm",
-                                color="gray",
-                            ),
-                            dmc.Anchor(
-                                'Solar System search',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
-                                href='/sso',
-                                size="sm",
-                                color="gray",
-                            ),
-                            dmc.Anchor(
-                                'Statistics',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
-                                href='/stats',
-                                size="sm",
-                                color="gray",
+                            dmc.Group(
+                                [
+                                    dmc.Anchor(
+                                        'Basic search',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/search',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                    dmc.Anchor(
+                                        'Solar System search',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/sso',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                    dmc.Anchor(
+                                        'Statistics',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/stats',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                ],
+                                grow=True,
+                                position="left",
+                                spacing="sm",
+                                direction="column",
+                                style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                             dmc.Divider(
                                 labelPosition="left",
@@ -137,20 +146,29 @@ navbar = dmc.Header(
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
-                            dmc.Anchor(
-                                '{ API }',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
-                                href='/api',
-                                size="sm",
-                                color="gray",
+                            dmc.Group(
+                                [
+                                    dmc.Anchor(
+                                        '{ API }',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/api',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                    dmc.Anchor(
+                                        'Tutorials',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='https://github.com/astrolabsoftware/fink-tutorials',
+                                        size="sm",
+                                        color="gray",
+                                    )
+                                ],
+                                grow=True,
+                                position="left",
+                                spacing="sm",
+                                direction="column",
+                                style={"paddingLeft": 30, "paddingRight": 20},
                             ),
-                            dmc.Anchor(
-                                'Tutorials',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
-                                href='https://github.com/astrolabsoftware/fink-tutorials',
-                                size="sm",
-                                color="gray",
-                            )
                         ],
                         title="Fink Science Portal",
                         id="drawer",
