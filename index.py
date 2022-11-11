@@ -64,7 +64,7 @@ def create_home_link(label):
     return dmc.Text(
         label,
         size="xl",
-        color="gray",
+        color="gray"
     )
 
 
@@ -88,7 +88,7 @@ navbar = dmc.Header(
                                 dmc.MediaQuery(
                                     create_home_link("Fink Science Portal"),
                                     smallerThan="sm",
-                                    styles={"display": "none"},
+                                    styles={"display": "none"}
                                 ),
                                 dmc.MediaQuery(
                                     create_home_link("Fink"),
@@ -98,6 +98,7 @@ navbar = dmc.Header(
                             ],
                             href="/",
                             style={"paddingTop": 5, "textDecoration": "none"},
+                            className='drawer-toggle'
                         ),
                     ),
                     dmc.Group(
