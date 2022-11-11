@@ -67,7 +67,7 @@ def create_home_link(label):
         color="gray"
     )
 
-@callback(
+@app.callback(
     Output("drawer", "opened"),
     Input("drawer-demo-button", "n_clicks"),
     prevent_initial_call=True,
