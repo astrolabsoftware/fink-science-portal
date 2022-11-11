@@ -91,7 +91,7 @@ navbar = dmc.Header(
                 align="flex-start",
                 children=[
                     dmc.ActionIcon(
-                        DashIconify(icon="clarity:settings-line"), id="action-icon", n_clicks=0
+                        DashIconify(icon="clarity:settings-line"), id="drawer-demo-button", n_clicks=0
                     ),
                     dmc.Drawer(
                         children=[
