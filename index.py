@@ -75,6 +75,18 @@ def create_home_link(label):
 def drawer_demo(n_clicks):
     return True
 
+app.clientside_callback(
+    """function(colorScheme) {
+        return {
+            colorScheme,
+            fontFamily: "'Inter', sans-serif",
+            primaryColor: "indigo"
+        }
+    }""",
+    Output("theme-provider", "theme"),
+    Input("color-scheme-toggle", "value"),
+    prevent_initial_callback=True,
+)
 
 navbar = dmc.Header(
     height=55,
@@ -215,6 +227,10 @@ navbar = dmc.Header(
                         zIndex=1e7,
                         transition='pop-top-left',
                     ),
+                    dmc.ThemeSwitcher(
+                        id="color-scheme-toggle",
+                        style={"cursor": "pointer"},
+                    ),
                 ],
             ),
         )
@@ -271,13 +287,41 @@ def toggle_navbar_collapse(n, is_open):
         return not is_open
     return is_open
 
-# embedding the navigation bar
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    navbar,
-    html.Div(id='page-content'),
-    html.Div(children=False, id='is-mobile', hidden=True),
-])
+def create_appshell(nav_data):
+    return dmc.MantineProvider(
+        id="theme-provider",
+        theme={
+            "colorScheme": "light",
+            "fontFamily": "'Inter', sans-serif",
+            "primaryColor": "indigo",
+        },
+        styles={
+            "Button": {"root": {"fontWeight": 400}},
+            "Alert": {"title": {"fontWeight": 500}},
+            "AvatarsGroup": {"truncated": {"fontWeight": 500}},
+        },
+        withGlobalStyles=True,
+        withNormalizeCSS=True,
+        children=[
+            dmc.NotificationsProvider(
+                [
+                    dcc.Location(id='url', refresh=False),
+                    navbar,
+                    html.Div(id='page-content'),
+                    html.Div(children=False, id='is-mobile', hidden=True),
+                ]
+            ),
+        ],
+    )
+
+app.layout = create_appshell(dash.page_registry.values())
+# # embedding the navigation bar
+# app.layout = html.Div([
+#     dcc.Location(id='url', refresh=False),
+#     navbar,
+#     html.Div(id='page-content'),
+#     html.Div(children=False, id='is-mobile', hidden=True),
+# ])
 
 app.clientside_callback(
     """
