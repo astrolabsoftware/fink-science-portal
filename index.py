@@ -287,7 +287,7 @@ def toggle_navbar_collapse(n, is_open):
         return not is_open
     return is_open
 
-def create_appshell(nav_data):
+def create_appshell():
     return dmc.MantineProvider(
         id="theme-provider",
         theme={
@@ -313,7 +313,7 @@ def create_appshell(nav_data):
         ],
     )
 
-app.layout = create_appshell(dash.page_registry.values())
+app.layout = create_appshell()
 # # embedding the navigation bar
 # app.layout = html.Div([
 #     dcc.Location(id='url', refresh=False),
@@ -361,7 +361,7 @@ def make_logo():
 def display_page(pathname, is_mobile):
     if is_mobile:
         width = '95%'
-        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'}
+        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
     else:
         width = '60%'
         style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'}
