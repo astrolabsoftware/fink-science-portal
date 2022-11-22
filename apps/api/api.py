@@ -199,7 +199,9 @@ def layout(is_mobile):
                     )
                 ], className="mb-8", fluid=True, style={'width': width}
             )
-        ], className='home fink-background', style={'background-size': 'contain'
+        ], className='home', style={
+            'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
+            'background-size': 'contain'
         }
     )
     return layout_
@@ -235,10 +237,10 @@ args_objects = [
 
 args_explorer = [
     {
-        'name': 'single objectId, or a comma-separated list of objectIds',
+        'name': 'objectId',
         'required': True,
         'group': 0,
-        'description': 'ZTF Object ID'
+        'description': 'ZTF Object ID, or comma-separated list of Object IDs'
     },
     {
         'name': 'ra',
