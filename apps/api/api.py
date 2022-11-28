@@ -200,8 +200,8 @@ def layout(is_mobile):
                 ], className="mb-8", fluid=True, style={'width': width}
             )
         ], className='home', style={
-            'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
-            'background-size': 'contain'
+            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
+            'background-size': 'cover'
         }
     )
     return layout_
