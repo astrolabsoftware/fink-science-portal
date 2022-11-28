@@ -1231,19 +1231,19 @@ navbar = dmc.Header(
                             dmc.Group(
                                 [
                                     dmc.Anchor(
-                                        'Basic search',
+                                        'Search',
                                         style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='/search',
+                                        href='/',
                                         size="sm",
                                         color="gray",
                                     ),
-                                    dmc.Anchor(
-                                        'Solar System search',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='/sso',
-                                        size="sm",
-                                        color="gray",
-                                    ),
+                                    # dmc.Anchor(
+                                    #     'Solar System search',
+                                    #     style={"textTransform": "capitalize", "textDecoration": "none"},
+                                    #     href='/sso',
+                                    #     size="sm",
+                                    #     color="gray",
+                                    # ),
                                     dmc.Anchor(
                                         'Statistics',
                                         style={"textTransform": "capitalize", "textDecoration": "none"},
