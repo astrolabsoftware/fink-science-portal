@@ -815,7 +815,7 @@ def layout(name, is_mobile):
                 html.Div(id='object-uppervalid', style={'display': 'none'}),
                 html.Div(id='object-sso', style={'display': 'none'}),
                 html.Div(id='object-tracklet', style={'display': 'none'}),
-            ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
+            ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'}
         )
 
     return layout_
