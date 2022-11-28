@@ -1136,21 +1136,6 @@ def text_noresults(query, query_type, dropdown_option, searchurl):
         )
     return text, header
 
-# building the navigation bar
-dropdown = dbc.DropdownMenu(
-    children=[
-        dbc.DropdownMenuItem("About", href="/about"),
-        dbc.DropdownMenuItem("Fink Website", href="https://fink-broker.org/"),
-        dbc.DropdownMenuItem(
-            "Science Portal GitHub",
-            href="https://github.com/astrolabsoftware/fink-science-portal"
-        ),
-    ],
-    nav=True,
-    in_navbar=True,
-    label="Info",
-)
-
 def create_home_link(label):
     return dmc.Text(
         label,
