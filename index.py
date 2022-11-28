@@ -1257,7 +1257,7 @@ navbar = dmc.Header(
                                     DashIconify(
                                         icon='tabler:external-link', width=15, style={"marginRight": 10}
                                     ),
-                                    "Home",
+                                    "External links",
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
