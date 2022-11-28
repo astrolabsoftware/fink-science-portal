@@ -1151,6 +1151,19 @@ def create_home_link(label):
 def drawer_switch(n_clicks):
     return True
 
+app.clientside_callback(
+    """function(colorScheme) {
+        return {
+            colorScheme,
+            fontFamily: "'Inter', sans-serif",
+            primaryColor: "indigo"
+        }
+    }""",
+    Output("theme-provider", "theme"),
+    Input("color-scheme-toggle", "value"),
+    prevent_initial_callback=True,
+)
+
 navbar = dmc.Header(
     height=55,
     fixed=True,
@@ -1276,23 +1289,43 @@ navbar = dmc.Header(
                         zIndex=1e7,
                         transition='pop-top-left',
                     ),
-                    # dmc.ThemeSwitcher(
-                    #     id="color-scheme-toggle",
-                    #     style={"cursor": "pointer"},
-                    # ),
+                    dmc.ThemeSwitcher(
+                        id="color-scheme-toggle",
+                        style={"cursor": "pointer"},
+                    ),
                 ],
             ),
         )
     ],
 )
 
-# embedding the navigation bar
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    navbar,
-    html.Div(id='page-content'),
-    html.Div(children=False, id='is-mobile', hidden=True),
-])
+def create_appshell():
+    return dmc.MantineProvider(
+        id="theme-provider",
+        theme={
+            "colorScheme": "light",
+            "fontFamily": "'Inter', sans-serif",
+        },
+        styles={
+            "Button": {"root": {"fontWeight": 400}},
+            "Alert": {"title": {"fontWeight": 500}},
+            "AvatarsGroup": {"truncated": {"fontWeight": 500}},
+        },
+        withGlobalStyles=True,
+        withNormalizeCSS=True,
+        children=[
+            dmc.NotificationsProvider(
+                [
+                    dcc.Location(id='url', refresh=False),
+                    navbar,
+                    html.Div(id='page-content'),
+                    html.Div(children=False, id='is-mobile', hidden=True),
+                ]
+            ),
+        ],
+    )
+
+app.layout = create_appshell()
 
 app.clientside_callback(
     """
