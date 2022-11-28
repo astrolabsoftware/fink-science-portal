@@ -94,7 +94,9 @@ layout_lightcurve = dict(
         'autorange': 'reversed',
         'title': 'Magnitude',
         'automargin': True
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_lightcurve_preview = dict(
@@ -120,7 +122,9 @@ layout_lightcurve_preview = dict(
         'autorange': 'reversed',
         'title': 'Magnitude',
         'automargin': True
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_phase = dict(
@@ -148,7 +152,9 @@ layout_phase = dict(
         "text": "Phased data",
         "y": 1.01,
         "yanchor": "bottom"
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_mulens = dict(
@@ -176,7 +182,9 @@ layout_mulens = dict(
         "text": "pyLIMA Fit (PSPL model)",
         "y": 1.01,
         "yanchor": "bottom"
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_scores = dict(
@@ -202,7 +210,9 @@ layout_scores = dict(
     yaxis={
         'title': 'Score',
         'range': [0, 1]
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_colors = dict(
@@ -226,7 +236,9 @@ layout_colors = dict(
     },
     yaxis={
         'title': 'Delta magnitude'
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_colors_rate = dict(
@@ -250,7 +262,9 @@ layout_colors_rate = dict(
     },
     yaxis={
         'title': 'Rate (mag/day)'
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_sso_lightcurve = dict(
@@ -276,7 +290,9 @@ layout_sso_lightcurve = dict(
         'autorange': 'reversed',
         'title': 'Magnitude',
         'automargin': True
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_sso_astrometry = dict(
@@ -301,7 +317,9 @@ layout_sso_astrometry = dict(
     yaxis={
         'title': '&#916;Dec (\'\')',
         'automargin': True
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_sso_phasecurve = dict(
@@ -327,7 +345,9 @@ layout_sso_phasecurve = dict(
         'autorange': 'reversed',
         'title': 'observed V [mag]',
         'automargin': True
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_sso_radec = dict(
@@ -353,7 +373,9 @@ layout_sso_radec = dict(
         'autorange': 'reversed',
         'title': 'Right Ascension',
         'automargin': True
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 layout_tracklet_lightcurve = dict(
@@ -380,7 +402,9 @@ layout_tracklet_lightcurve = dict(
         'autorange': 'reversed',
         'title': 'Right Ascension',
         'automargin': True
-    }
+    },
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
 )
 
 @app.callback(
