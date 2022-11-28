@@ -86,22 +86,6 @@ def card_lightcurve_summary():
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
 
-    card_ = dmc.MantineProvider(
-        id="theme-provider",
-        theme={
-            "colorScheme": "light",
-            "fontFamily": "'Inter', sans-serif",
-        },
-        styles={
-            "Button": {"root": {"fontWeight": 400}},
-            "Alert": {"title": {"fontWeight": 500}},
-            "AvatarsGroup": {"truncated": {"fontWeight": 500}},
-        },
-        withGlobalStyles=True,
-        withNormalizeCSS=True,
-        children=[card],
-    )
-
     return card
 
 def card_explanation_xmatch():
