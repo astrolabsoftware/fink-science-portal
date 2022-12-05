@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 FROM centos:centos7
-LABEL maintainer="peloton@lal.in2p3.fr"
 
 WORKDIR /root
 
-ADD . .
 
 RUN yum -y update \
 && yum -y install git wget java-1.8.0-openjdk gcc-c++ \
@@ -25,15 +23,18 @@ RUN yum -y update \
 && rm -rf /var/cache \
 && echo "export JAVA_HOME=$(dirname $(dirname $(readlink -f $(type -P java))))" > /etc/profile.d/javahome.sh
 
-# install python
+
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py37_4.11.0-Linux-x86_64.sh -O ~/miniconda.sh \
 && bash ~/miniconda.sh -b -p /miniconda
 
 ENV PYTHONPATH=/miniconda
 ENV PATH=/miniconda/bin:/usr/local/bin:${PATH}
 
+ADD requirements.txt .
+
 # Install Python deps.
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 && pip install -r requirements.txt
 
 ENTRYPOINT /bin/bash
+

@@ -18,7 +18,7 @@ cycler==0.10.0
 Cython==0.29.21
 dash==2.6.1
 dash-bootstrap-components==1.2.0
-dash-core-components
+dash-core-components==2.0.0
 dash-datetimepicker==0.0.4
 dash-extensions==0.0.58
 dash-html-components==2.0.0
@@ -112,6 +112,7 @@ six==1.14.0
 soupsieve==2.2.1
 synphot==1.1.1
 tabulate==0.8.9
+tenacity==8.1.0
 threadpoolctl==2.1.0
 tornado==5.1.1
 tqdm==4.42.1
