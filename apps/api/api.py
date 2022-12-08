@@ -240,7 +240,7 @@ args_explorer = [
         'name': 'objectId',
         'required': True,
         'group': 0,
-        'description': 'ZTF Object ID'
+        'description': 'ZTF Object ID, or comma-separated list of Object IDs'
     },
     {
         'name': 'ra',
