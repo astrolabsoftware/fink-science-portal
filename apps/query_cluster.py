@@ -224,7 +224,6 @@ def content_tab(date_range_picker):
     Output("summary_tab", "children"),
     [
         Input('trans_content', 'value'),
-        Input('filter_tab', 'children'),
     ],
     [
         State('trans_datasource', 'value'),
@@ -234,7 +233,7 @@ def content_tab(date_range_picker):
     ],
     prevent_initial_call=True
 )
-def summary_tab(trans_content, filter_tab, trans_datasource, date_range_picker, class_select, extra_cond):
+def summary_tab(trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
     """ Section containing summary
     """
     if trans_content is None:
