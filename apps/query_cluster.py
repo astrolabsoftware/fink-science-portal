@@ -160,12 +160,13 @@ def filter_tab(trans_datasource):
                     label="Extra conditions",
                     description=[
                         "One condition per line, ending with semi-colon. See ",
-                        dmc.Anchor("here", href="https://fink-portal.org/api/v1/columns", size="sm"),
+                        dmc.Anchor("here", href="https://fink-portal.org/api/v1/columns", size="xs"),
                         " for field description.",
                     ],
                     placeholder="e.g. magpsf > 19.5;",
                     style={"width": 500},
-                    autosize=True,                ),
+                    autosize=True,
+                    minRows=2,              ),
             ]
         )
         tab = html.Div(
