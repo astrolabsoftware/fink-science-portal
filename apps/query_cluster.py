@@ -44,7 +44,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker, trans_content):
     """
     """
     active_ = np.where(
-        np.array([trans_datasource, date_range_picker, trans_content]) != None
+        np.array([trans_datasource, date_range_picker, trans_content]) != ""
     )
     timeline = dmc.Timeline(
         active=len(active_[0]),
@@ -229,7 +229,7 @@ def query_builder():
                     {"value": "ztf", "label": "ZTF"},
                     {"value": "elasticc", "label": "ELASTiCC"},
                 ],
-                value=None,
+                value="",
                 label="Choose the type of alerts you want to retrieve",
                 size="sm",
             ),
@@ -274,8 +274,8 @@ def layout(is_mobile):
                     dbc.Col(
                         [
                             query_builder(),
-                            html.Div(None, id='filter_tab'),
-                            html.Div(None, id='content_tab')
+                            html.Div("", id='filter_tab'),
+                            html.Div("", id='content_tab')
                         ],
                         width=8)
                 ],
