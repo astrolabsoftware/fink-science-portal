@@ -220,7 +220,7 @@ def content_tab(date_range_picker):
         PreventUpdate
 
 @app.callback(
-    Output("content_tab", "children"),
+    Output("summary_tab", "children"),
     [
         Input('trans_datasource', 'value'),
         Input('date-range-picker', 'value'),
@@ -232,6 +232,9 @@ def content_tab(date_range_picker):
 def summary_tab(trans_datasource, date_range_picker, class_select, extra_cond, trans_content):
     """ Section containing summary
     """
+    if trans_content is None:
+        PreventUpdate
+
     tab = html.Div(
         [
             dbc.Text('Source: {}'.format(trans_datasource)),
@@ -306,7 +309,8 @@ def layout(is_mobile):
                         [
                             qb,
                             html.Div(None, id='filter_tab'),
-                            html.Div(None, id='content_tab')
+                            html.Div(None, id='content_tab'),
+                            html.Div(None, id='summary_tab')
                         ],
                         width=8)
                 ],
