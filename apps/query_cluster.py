@@ -109,7 +109,7 @@ def filter_tab(trans_datasource):
     """
     """
     if trans_datasource == 'ztf':
-        tab_date = html.Div(
+        datepicker = html.Div(
             [
                 dmc.DateRangePicker(
                     id="date-range-picker",
@@ -124,6 +124,16 @@ def filter_tab(trans_datasource):
                 dmc.Text(id="selected-date-date-range-picker"),
             ]
         )
+        tab = html.Div(
+            [
+                html.Br(),
+                html.Br(),
+                dmc.Divider(variant="solid", label='Filters'),
+                datepicker,
+                html.Br(),
+            ]
+        )
+        return tab
     elif trans_datasource == 'elasticc':
         return html.Div(trans_datasource)
     else:
