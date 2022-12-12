@@ -18,6 +18,8 @@ from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 
+import numpy as np
+
 def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
     """
     """
