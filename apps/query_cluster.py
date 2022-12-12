@@ -18,8 +18,16 @@ from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 
+from app import app
+
 import numpy as np
 
+@app.callback(
+    Output("timeline_data_transfer", "children"),
+    [
+        Input('trans_datasource', 'value'),
+    ]
+)
 def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
     """
     """
@@ -95,9 +103,9 @@ def query_builder():
         [
             html.Br(),
             html.Br(),
-            dmc.Title("Data Source"),
+            dmc.Text("Data Source"),
             dmc.RadioGroup(
-                id="radiogroup",
+                id="trans_datasource",
                 data=[
                     {"value": "ztf", "label": "ZTF"},
                     {"value": "elasticc", "label": "ELASTiCC"},
@@ -140,8 +148,7 @@ def layout(is_mobile):
                         [
                             html.Br(),
                             html.Br(),
-                            # html.Div(id="timeline_data_transfer"),
-                            timeline_data_transfer(1, None, None),
+                            html.Div(id='timeline_data_transfer'),
                             html.Br(),
                         ], width={"size": 3},
                     ),
