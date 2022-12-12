@@ -93,8 +93,20 @@ def query_builder():
     """
     tab1 = html.Div(
         [
+            html.Br(),
+            html.Br(),
             dmc.Title("Data Source"),
-            dmc.Text("Choose the type of alerts you want to retrieve"),
+            dmc.RadioGroup(
+                id="radiogroup",
+                data=[
+                    {"value": "ztf", "label": "ZTF"},
+                    {"value": "elasticc", "label": "ELASTiCC"},
+                ],
+                value=None,
+                label="Choose the type of alerts you want to retrieve",
+                size="sm",
+            ),
+            html.Br(),
             dmc.Divider(variant="solid"),
         ]
     )
