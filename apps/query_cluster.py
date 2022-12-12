@@ -26,7 +26,7 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
     active = np.where(
         np.array([trans_datasource, trans_filters, trans_content]) != None
     )
-    dmc.Timeline(
+    timeline = dmc.Timeline(
         active=active,
         bulletSize=15,
         lineWidth=2,
@@ -95,6 +95,8 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
             ),
         ],
     )
+
+    return timeline
 
 def query_builder():
     """ Build iteratively the query based on user inputs.
