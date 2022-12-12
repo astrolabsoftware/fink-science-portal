@@ -36,8 +36,8 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
     Output("timeline_data_transfer", "children"),
     [
         Input('trans_datasource', 'value'),
-        Input('filter_tab', 'value'),
-        Input('content_tab', 'value')
+        Input('filter_tab', 'children'),
+        Input('content_tab', 'children')
     ]
 )
 def timeline_data_transfer(trans_datasource, date_range_picker, trans_content):
