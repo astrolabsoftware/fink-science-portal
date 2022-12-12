@@ -187,14 +187,13 @@ def filter_tab(trans_datasource):
 @app.callback(
     Output("content_tab", "children"),
     [
-        Input('filter_tab', 'children')
+        Input('date-range-picker', 'value')
     ], prevent_initial_call=True
 )
 def content_tab(date_range_picker):
     """ Section containing filtering options
     """
-    val = date_range_picker['props']['children'][2]['props']['children'][0]['props']['value']
-    if val is not None:
+    if date_range_picker is not None:
         tab = html.Div(
             [
                 dmc.Space(h=10),
