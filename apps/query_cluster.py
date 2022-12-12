@@ -114,11 +114,14 @@ def filter_tab(trans_datasource):
                 dmc.DateRangePicker(
                     id="date-range-picker",
                     label="Date Range",
-                    description="You can also provide a description",
-                    minDate=date(2020, 8, 5),
-                    maxDate=date(2022, 9, 19),
-                    value=[datetime.now().date(), datetime.now().date() + timedelta(days=5)],
+                    description="Pick up a start and stop dates, with a maximum of 2 weeks allowed.",
+                    minDate=date(2019, 11, 1),
+                    maxDate=date.today(),
+                    value=[datetime.now().date(), datetime.now().date() - timedelta(days=7)],
                     style={"width": 330},
+                    hideOutsideDates=True,
+                    amountOfMonths=2,
+                    allowSingleDateInRange=True
                 ),
                 dmc.Space(h=10),
                 dmc.Text(id="selected-date-date-range-picker"),
@@ -130,7 +133,6 @@ def filter_tab(trans_datasource):
                 html.Br(),
                 dmc.Divider(variant="solid", label='Filters'),
                 datepicker,
-                html.Br(),
             ]
         )
         return tab
@@ -157,7 +159,6 @@ def query_builder():
                 label="Choose the type of alerts you want to retrieve",
                 size="sm",
             ),
-            html.Br(),
         ]
     )
     query = html.Div(
