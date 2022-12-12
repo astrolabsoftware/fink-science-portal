@@ -39,7 +39,7 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
                             "Choose between ",
                             dmc.Anchor("ZTF", href="https://www.ztf.caltech.edu/", size="sm"),
                             " and",
-                            dmc.Anchor("DESC/Elasticc", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/", size="sm"),
+                            dmc.Anchor(" DESC/Elasticc", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/", size="sm"),
                         ],
                         color="dimmed",
                         size="sm",
@@ -64,7 +64,7 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
                 children=[
                     dmc.Text(
                         [
-                            "Full fledge packet, or a subset.",
+                            "Complete alert packet, or a subset.",
                         ],
                         color="dimmed",
                         size="sm",
