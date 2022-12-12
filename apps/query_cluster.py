@@ -222,14 +222,17 @@ def content_tab(date_range_picker):
 @app.callback(
     Output("summary_tab", "children"),
     [
-        Input('trans_datasource', 'value'),
-        Input('date-range-picker', 'value'),
-        Input('class_select', 'value'),
-        Input('extra_cond', 'value'),
         Input('trans_content', 'value'),
-    ], prevent_initial_call=True
+    ],
+    [
+        State('trans_datasource', 'value'),
+        State('date-range-picker', 'value'),
+        State('class_select', 'value'),
+        State('extra_cond', 'value'),
+    ],
+    prevent_initial_call=True
 )
-def summary_tab(trans_datasource, date_range_picker, class_select, extra_cond, trans_content):
+def summary_tab(trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
     """ Section containing summary
     """
     if trans_content is None:
@@ -237,11 +240,11 @@ def summary_tab(trans_datasource, date_range_picker, class_select, extra_cond, t
 
     tab = html.Div(
         [
-            dbc.Text('Source: {}'.format(trans_datasource)),
-            dbc.Text('Dates: {} - {}'.format(*date_range_picker)),
-            dbc.Text('Classe(s): {}'.format(class_select)),
-            dbc.Text('Conditions: {}'.format(extra_cond)),
-            dbc.Text('Content: {}'.format(trans_content)),
+            dmc.Text('Source: {}'.format(trans_datasource)),
+            dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
+            dmc.Text('Classe(s): {}'.format(class_select)),
+            dmc.Text('Conditions: {}'.format(extra_cond)),
+            dmc.Text('Content: {}'.format(trans_content)),
         ]
 
     )
