@@ -114,7 +114,7 @@ def filter_tab(trans_datasource):
                 dmc.DateRangePicker(
                     id="date-range-picker",
                     label="Date Range",
-                    description="Pick up a start and stop dates, with a maximum of 2 weeks allowed.",
+                    description="Pick up start and stop dates (included), with a maximum of 2 weeks allowed.",
                     minDate=date(2019, 11, 1),
                     maxDate=date.today(),
                     value=[datetime.now().date() - timedelta(days=7), datetime.now().date()],
@@ -124,7 +124,7 @@ def filter_tab(trans_datasource):
                     allowSingleDateInRange=True
                 ),
                 dmc.Space(h=10),
-                dmc.Text(id="selected-date-date-range-picker"),
+                # dmc.Text(id="selected-date-date-range-picker"),
             ]
         )
         tab = html.Div(
