@@ -141,7 +141,7 @@ def filter_tab(trans_datasource):
                     label="Alert class",
                     description="Select all classes you like!",
                     placeholder="start typing...",
-                    id="framework-multi-select",
+                    id="class_select",
                     value=None,
                     data = [
                         {'label': 'All classes', 'value': 'allclasses'},
@@ -162,6 +162,7 @@ def filter_tab(trans_datasource):
                 ),
                 dmc.Space(h=10),
                 dmc.Textarea(
+                    id="extra_cond",
                     label="Extra conditions",
                     description=[
                         "One condition per line (SQL syntax), ending with semi-colon. See ",
@@ -217,6 +218,31 @@ def content_tab(date_range_picker):
         return tab
     else:
         PreventUpdate
+
+@app.callback(
+    Output("content_tab", "children"),
+    [
+        Input('trans_datasource', 'value'),
+        Input('date-range-picker', 'value'),
+        Input('class_select', 'value'),
+        Input('extra_cond', 'value'),
+        Input('trans_content', 'value'),
+    ], prevent_initial_call=True
+)
+def summary_tab(trans_datasource, date_range_picker, class_select, extra_cond, trans_content):
+    """ Section containing summary
+    """
+    tab = html.Div(
+        [
+            dbc.Text('Source: {}'.format(trans_datasource)),
+            dbc.Text('Dates: {} - {}'.format(*date_range_picker)),
+            dbc.Text('Classe(s): {}'.format(class_select)),
+            dbc.Text('Conditions: {}'.format(extra_cond)),
+            dbc.Text('Content: {}'.format(trans_content)),
+        ]
+
+    )
+    return tab
 
 def query_builder():
     """ Build iteratively the query based on user inputs.
