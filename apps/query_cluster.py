@@ -187,7 +187,7 @@ def filter_tab(trans_datasource):
 @app.callback(
     Output("content_tab", "children"),
     [
-        Input('date-range-picker', 'children')
+        Input('filter_tab', 'children')
     ], prevent_initial_call=True
 )
 def content_tab(date_range_picker):
