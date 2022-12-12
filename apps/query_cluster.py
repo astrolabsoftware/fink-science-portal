@@ -157,7 +157,12 @@ def filter_tab(trans_datasource):
                 ),
                 dmc.Space(h=10),
                 dmc.Textarea(
-                    label="Extra filter",
+                    label="Extra conditions",
+                    description=[
+                        "One condition per line, ending with semi-colon. See ",
+                        dmc.Anchor("here", href="https://fink-portal.org/api/v1/columns", size="sm"),
+                        " for field description.",
+                    ],
                     placeholder="e.g. magpsf > 19.5;",
                     style={"width": 500},
                     autosize=True,                ),
