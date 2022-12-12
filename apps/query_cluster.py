@@ -36,13 +36,13 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
     Output("timeline_data_transfer", "children"),
     [
         Input('trans_datasource', 'value'),
-        Input('date-range-picker', 'value')
+        Input('date-range-picker', 'value'),
+        Input('trans_content', 'value')
     ], prevent_initial_call=True
 )
-def timeline_data_transfer(trans_datasource, date_range_picker):
+def timeline_data_transfer(trans_datasource, date_range_picker, trans_content):
     """
     """
-    trans_content = None
     active_ = np.where(
         np.array([trans_datasource, date_range_picker, trans_content]) != None
     )
@@ -130,7 +130,8 @@ def filter_tab(trans_datasource):
                     style={"width": 500},
                     hideOutsideDates=True,
                     amountOfMonths=2,
-                    allowSingleDateInRange=True
+                    allowSingleDateInRange=True,
+                    required=True
                 ),
                 dmc.Space(h=10),
                 dmc.MultiSelect(
