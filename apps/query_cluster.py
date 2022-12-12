@@ -21,6 +21,7 @@ import dash_mantine_components as dmc
 from app import app
 
 import numpy as np
+from datetime import datetime, timedelta, date
 
 @app.callback(
     Output("timeline_data_transfer", "children"),
@@ -108,7 +109,21 @@ def filter_tab(trans_datasource):
     """
     """
     if trans_datasource == 'ztf':
-        return html.Div(trans_datasource)
+        tab_date = html.Div(
+            [
+                dmc.DateRangePicker(
+                    id="date-range-picker",
+                    label="Date Range",
+                    description="You can also provide a description",
+                    minDate=date(2020, 8, 5),
+                    maxDate=date(2022, 9, 19),
+                    value=[datetime.now().date(), datetime.now().date() + timedelta(days=5)],
+                    style={"width": 330},
+                ),
+                dmc.Space(h=10),
+                dmc.Text(id="selected-date-date-range-picker"),
+            ]
+        )
     elif trans_datasource == 'elasticc':
         return html.Div(trans_datasource)
     else:
