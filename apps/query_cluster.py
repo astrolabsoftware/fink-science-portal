@@ -43,7 +43,6 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
     """
     """
     trans_content = None
-    print(date_range_picker)
     active_ = np.where(
         np.array([trans_datasource, date_range_picker, trans_content]) != None
     )
@@ -116,7 +115,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
     ], prevent_initial_call=True
 )
 def filter_tab(trans_datasource):
-    """
+    """ Section containing filtering options
     """
     if trans_datasource == 'ztf':
         options = html.Div(
@@ -184,6 +183,37 @@ def filter_tab(trans_datasource):
     else:
         return html.Div()
 
+@app.callback(
+    Output("content_tab", "children"),
+    [
+        Input('date-range-picker', 'value')
+    ], prevent_initial_call=True
+)
+def content_tab(date_range_picker):
+    """ Section containing filtering options
+    """
+    if date_range_picker is not None:
+        tab = html.Div(
+            [
+                dmc.Space(h=10),
+                dmc.Divider(variant="solid", label='Alert content'),
+                dmc.RadioGroup(
+                    id="trans_content",
+                    data=[
+                        {"value": "Full packet", "label": "Full packet"},
+                        {"value": "Lightcurve", "label": "Lightcurve"},
+                        {"value": "Cutouts", "label": "Cutouts"},
+                    ],
+                    value=None,
+                    label="Choose the content you want to retrieve",
+                    size="sm",
+                ),
+            ]
+        )
+        return tab
+    else:
+        PreventUpdate
+
 def query_builder():
     """ Build iteratively the query based on user inputs.
     """
@@ -243,7 +273,8 @@ def layout(is_mobile):
                     dbc.Col(
                         [
                             query_builder(),
-                            html.Div(id='filter_tab')
+                            html.Div(id='filter_tab'),
+                            html.Div(id='content_tab')
                         ],
                         width=8)
                 ],
