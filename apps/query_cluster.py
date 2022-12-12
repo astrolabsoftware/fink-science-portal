@@ -134,7 +134,7 @@ def filter_tab(trans_datasource):
                 ),
                 dmc.Space(h=10),
                 dmc.MultiSelect(
-                    label="Select Alert class",
+                    label="Alert class",
                     placeholder="Select all you like!",
                     id="framework-multi-select",
                     value=None,
@@ -155,6 +155,12 @@ def filter_tab(trans_datasource):
                     searchable=True,
                     style={"width": 500, "marginBottom": 10},
                 ),
+                dmc.Space(h=10),
+                dmc.Textarea(
+                    label="Extra filter",
+                    placeholder="e.g. magpsf > 19.5;",
+                    style={"width": 500},
+                    autosize=True,                ),
             ]
         )
         tab = html.Div(
