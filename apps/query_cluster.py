@@ -26,6 +26,7 @@ import numpy as np
     Output("timeline_data_transfer", "children"),
     [
         Input('trans_datasource', 'value'),
+        # Input('trans_filters', 'value')
     ]
 )
 def timeline_data_transfer(trans_datasource):
@@ -36,7 +37,7 @@ def timeline_data_transfer(trans_datasource):
         np.array([trans_datasource, trans_filters, trans_content]) != None
     )
     timeline = dmc.Timeline(
-        active=len(active_),
+        active=len(active_[0]),
         bulletSize=15,
         lineWidth=2,
         children=[
@@ -97,6 +98,22 @@ def timeline_data_transfer(trans_datasource):
 
     return timeline
 
+@app.callback(
+    Output("filter_tab", "children"),
+    [
+        Input('trans_datasource', 'value'),
+    ]
+)
+def filter_tab(trans_datasource):
+    """
+    """
+    if trans_datasource == 'ztf':
+        return html.Div(trans_datasource)
+    elif trans_datasource == 'elasticc':
+        return html.Div(trans_datasource)
+    else:
+        return html.Div()
+
 def query_builder():
     """ Build iteratively the query based on user inputs.
     """
@@ -121,7 +138,8 @@ def query_builder():
     )
     query = html.Div(
         [
-            tab1
+            tab1,
+            html.Div(id='filter_tab')
             # Filter: Div based on previous response
             # Content: Div based on previous response
             # Result: Div based on previous response. Should contain a
