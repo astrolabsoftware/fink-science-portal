@@ -28,9 +28,10 @@ import numpy as np
         Input('trans_datasource', 'value'),
     ]
 )
-def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
+def timeline_data_transfer(trans_datasource):
     """
     """
+    trans_filters, trans_content = None, None
     active_ = np.where(
         np.array([trans_datasource, trans_filters, trans_content]) != None
     )
