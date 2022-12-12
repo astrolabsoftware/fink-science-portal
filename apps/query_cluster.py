@@ -44,7 +44,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker, trans_content):
     """
     """
     active_ = np.where(
-        np.array([trans_datasource, date_range_picker, trans_content]) != ""
+        np.array([trans_datasource, date_range_picker, trans_content]) != None
     )
     timeline = dmc.Timeline(
         active=len(active_[0]),
@@ -229,7 +229,7 @@ def query_builder():
                     {"value": "ztf", "label": "ZTF"},
                     {"value": "elasticc", "label": "ELASTiCC"},
                 ],
-                value="",
+                value=None,
                 label="Choose the type of alerts you want to retrieve",
                 size="sm",
             ),
@@ -257,6 +257,7 @@ def estimate_alert_number():
 def layout(is_mobile):
     """ Layout for the data transfer service
     """
+    qb = query_builder()
     layout_ = html.Div(
         [
             html.Br(),
@@ -273,9 +274,9 @@ def layout(is_mobile):
                     ),
                     dbc.Col(
                         [
-                            query_builder(),
-                            html.Div("", id='filter_tab'),
-                            html.Div("", id='content_tab')
+                            qb,
+                            html.Div(None, id='filter_tab'),
+                            html.Div(None, id='content_tab')
                         ],
                         width=8)
                 ],
