@@ -224,7 +224,7 @@ def content_tab(date_range_picker):
     Output("summary_tab", "children"),
     [
         Input('trans_content', 'value'),
-        Input('filter_tab', 'value'),
+        Input('filter_tab', 'children'),
     ],
     [
         State('trans_datasource', 'value'),
