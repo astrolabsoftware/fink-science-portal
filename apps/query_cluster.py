@@ -23,11 +23,11 @@ import numpy as np
 def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
     """
     """
-    active = np.where(
+    active_ = np.where(
         np.array([trans_datasource, trans_filters, trans_content]) != None
     )
     timeline = dmc.Timeline(
-        active=active,
+        active=len(active_),
         bulletSize=15,
         lineWidth=2,
         children=[
