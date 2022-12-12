@@ -212,6 +212,7 @@ def content_tab(date_range_picker):
                     value=None,
                     label="Choose the content you want to retrieve",
                     size="sm",
+                    color='orange'
                 ),
             ]
         )
@@ -240,6 +241,8 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
 
     tab = html.Div(
         [
+            dmc.Space(h=10),
+            dmc.Divider(variant="solid", label='Summary'),
             dmc.Text('Source: {}'.format(trans_datasource)),
             dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
             dmc.Text('Classe(s): {}'.format(class_select)),
@@ -266,7 +269,7 @@ def query_builder():
                 ],
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
-                size="md",
+                size="sm",
                 color='orange'
             ),
         ]
