@@ -135,7 +135,8 @@ def filter_tab(trans_datasource):
                 dmc.Space(h=10),
                 dmc.MultiSelect(
                     label="Alert class",
-                    placeholder="Select all you like!",
+                    description="Select all classes you like!",
+                    placeholder="start typing...",
                     id="framework-multi-select",
                     value=None,
                     data = [
