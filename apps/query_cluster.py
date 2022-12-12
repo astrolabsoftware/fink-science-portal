@@ -21,7 +21,16 @@ import dash_mantine_components as dmc
 from app import app
 
 import numpy as np
+import pandas as pd
 from datetime import datetime, timedelta, date
+
+from fink_utils.xmatch.simbad import get_simbad_labels
+
+simbad_types = get_simbad_labels('old_and_new')
+simbad_types = sorted(simbad_types, key=lambda s: s.lower())
+
+tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
+tns_types = sorted(tns_types, key=lambda s: s.lower())
 
 @app.callback(
     Output("timeline_data_transfer", "children"),
