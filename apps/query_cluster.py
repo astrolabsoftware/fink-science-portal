@@ -223,11 +223,11 @@ def content_tab(date_range_picker):
 @app.callback(
     [
         Output("summary_tab", "children"),
-        Output("generate_summary", "style"),
+        # Output("generate_summary", "style"),
     ],
     [
         Input('trans_content', 'value'),
-        Input('generate_summary', 'n_clicks')
+        # Input('generate_summary', 'n_clicks')
     ],
     [
         State('trans_datasource', 'value'),
@@ -255,7 +255,7 @@ def summary_tab(trans_content, n, trans_datasource, date_range_picker, class_sel
             ]
 
         )
-        return tab, {}
+        return tab
 
 def query_builder():
     """ Build iteratively the query based on user inputs.
@@ -308,8 +308,8 @@ def layout(is_mobile):
                             qb,
                             html.Div(None, id='filter_tab'),
                             html.Div(None, id='content_tab'),
+                            # dmc.Button("Default button", id='generate_summary', style={'display', 'none'}),
                             html.Div(None, id='summary_tab'),
-                            dmc.Button("Default button", id='generate_summary', style={'display', 'none'}),
                         ],
                         width=8)
                 ],
