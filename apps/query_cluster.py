@@ -38,7 +38,7 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
         Input('trans_datasource', 'value'),
         Input('filter_tab', 'value'),
         Input('content_tab', 'value')
-    ], prevent_initial_call=True
+    ]
 )
 def timeline_data_transfer(trans_datasource, date_range_picker, trans_content):
     """
@@ -193,7 +193,8 @@ def filter_tab(trans_datasource):
 def content_tab(date_range_picker):
     """ Section containing filtering options
     """
-    if date_range_picker is not None:
+    val = date_range_picker['props']['children'][2]['props']['children'][0]['props']['value']
+    if val is not None:
         tab = html.Div(
             [
                 dmc.Space(h=10),
