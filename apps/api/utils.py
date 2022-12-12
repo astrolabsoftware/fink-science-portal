@@ -175,15 +175,18 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     out: pandas dataframe
     """
     if user_group == 0:
-        # objectId search
-        to_evaluate = "key:key:{}".format(payload['objectId'])
+        results = java.util.TreeMap()
+        for oid in payload['objectId'].split(','):
+            # objectId search
+            to_evaluate = "key:key:{}".format(oid.strip())
+            result = client.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, True, True
+            )
+            results.putAll(result)
 
-        results = client.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
-        )
         # reset the limit in case it has been changed above
         client.setLimit(nlimit)
 
