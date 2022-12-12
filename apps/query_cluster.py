@@ -118,6 +118,7 @@ def filter_tab(trans_datasource):
                     minDate=date(2019, 11, 1),
                     maxDate=date.today(),
                     value=[datetime.now().date() - timedelta(days=7), datetime.now().date()],
+                    style={"width": 500},
                     hideOutsideDates=True,
                     amountOfMonths=2,
                     allowSingleDateInRange=True
