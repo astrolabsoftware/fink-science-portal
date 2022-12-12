@@ -121,7 +121,7 @@ def query_builder():
         [
             html.Br(),
             html.Br(),
-            dmc.Text("Data Source"),
+            dmc.Divider(variant="solid", label='Data Source'),
             dmc.RadioGroup(
                 id="trans_datasource",
                 data=[
@@ -133,7 +133,6 @@ def query_builder():
                 size="sm",
             ),
             html.Br(),
-            dmc.Divider(variant="solid"),
         ]
     )
     query = html.Div(
