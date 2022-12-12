@@ -238,20 +238,20 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
     """
     if trans_content is None:
         PreventUpdate
+    else:
+        tab = html.Div(
+            [
+                dmc.Space(h=10),
+                dmc.Divider(variant="solid", label='Summary'),
+                dmc.Text('Source: {}'.format(trans_datasource)),
+                dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
+                dmc.Text('Classe(s): {}'.format(class_select)),
+                dmc.Text('Conditions: {}'.format(extra_cond)),
+                dmc.Text('Content: {}'.format(trans_content)),
+            ]
 
-    tab = html.Div(
-        [
-            dmc.Space(h=10),
-            dmc.Divider(variant="solid", label='Summary'),
-            dmc.Text('Source: {}'.format(trans_datasource)),
-            dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
-            dmc.Text('Classe(s): {}'.format(class_select)),
-            dmc.Text('Conditions: {}'.format(extra_cond)),
-            dmc.Text('Content: {}'.format(trans_content)),
-        ]
-
-    )
-    return tab
+        )
+        return tab
 
 def query_builder():
     """ Build iteratively the query based on user inputs.
