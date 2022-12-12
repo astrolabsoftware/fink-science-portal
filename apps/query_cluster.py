@@ -250,7 +250,7 @@ def summary_tab(trans_datasource, date_range_picker, class_select, extra_cond, t
 def query_builder():
     """ Build iteratively the query based on user inputs.
     """
-    tab1 = html.Div(
+    tab = html.Div(
         [
             html.Br(),
             html.Br(),
@@ -268,19 +268,7 @@ def query_builder():
             ),
         ]
     )
-    return tab1
-    # query = html.Div(
-    #     [
-    #         tab1,
-    #         html.Div(id='filter_tab')
-    #         # Filter: Div based on previous response
-    #         # Content: Div based on previous response
-    #         # Result: Div based on previous response. Should contain a
-    #         # summary + instruction to get data via Kafka.
-    #     ]
-    # )
-
-    return query
+    return tab
 
 def estimate_alert_number():
     """ Callback to estimate the number of alerts to be transfered
