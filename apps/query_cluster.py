@@ -224,7 +224,6 @@ def content_tab(date_range_picker):
     Output("summary_tab", "children"),
     [
         Input('trans_content', 'value'),
-        Input('generate_summary', 'n_clicks')
     ],
     [
         State('trans_datasource', 'value'),
@@ -234,7 +233,7 @@ def content_tab(date_range_picker):
     ],
     prevent_initial_call=True
 )
-def summary_tab(trans_content, n, trans_datasource, date_range_picker, class_select, extra_cond):
+def summary_tab(trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
     """ Section containing summary
     """
     if trans_content is None:
@@ -305,7 +304,6 @@ def layout(is_mobile):
                             qb,
                             html.Div(None, id='filter_tab'),
                             html.Div(None, id='content_tab'),
-                            dmc.Button("Default button", id='generate_summary', style={'display', 'none'}),
                             html.Div(None, id='summary_tab'),
                         ],
                         width=8)
