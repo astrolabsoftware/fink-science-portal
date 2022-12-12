@@ -255,7 +255,7 @@ def summary_tab(trans_content, n, trans_datasource, date_range_picker, class_sel
             ]
 
         )
-        return [tab, {}]
+        return [tab, {'display': True}]
 
 def query_builder():
     """ Build iteratively the query based on user inputs.
