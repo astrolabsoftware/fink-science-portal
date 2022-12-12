@@ -36,8 +36,8 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
     Output("timeline_data_transfer", "children"),
     [
         Input('trans_datasource', 'value'),
-        Input('date-range-picker', 'value'),
-        Input('trans_content', 'value')
+        Input('filter_tab', 'value'),
+        Input('content_tab', 'value')
     ], prevent_initial_call=True
 )
 def timeline_data_transfer(trans_datasource, date_range_picker, trans_content):
@@ -274,8 +274,8 @@ def layout(is_mobile):
                     dbc.Col(
                         [
                             query_builder(),
-                            html.Div(id='filter_tab'),
-                            html.Div(id='content_tab')
+                            html.Div(None, id='filter_tab'),
+                            html.Div(None, id='content_tab')
                         ],
                         width=8)
                 ],
