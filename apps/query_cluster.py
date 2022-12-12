@@ -32,13 +32,14 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
         lineWidth=2,
         children=[
             dmc.TimelineItem(
-                title="New Branch",
+                title="Select data source",
                 children=[
                     dmc.Text(
                         [
-                            "You've created new branch ",
-                            dmc.Anchor("fix-notification", href="#", size="sm"),
-                            " from master",
+                            "Choose between ",
+                            dmc.Anchor("ZTF", href="https://www.ztf.caltech.edu/", size="sm"),
+                            " and",
+                            dmc.Anchor("DESC/Elasticc", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/", size="sm"),
                         ],
                         color="dimmed",
                         size="sm",
@@ -46,12 +47,11 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
                 ],
             ),
             dmc.TimelineItem(
-                title="Commits",
+                title="Filter alerts",
                 children=[
                     dmc.Text(
                         [
-                            "You've pushed 23 commits to ",
-                            dmc.Anchor("fix-notification", href="#", size="sm"),
+                            "Select date range, alert classes, or more.",
                         ],
                         color="dimmed",
                         size="sm",
@@ -59,17 +59,12 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
                 ],
             ),
             dmc.TimelineItem(
-                title="Pull Request",
+                title="Select content",
                 lineVariant="dashed",
                 children=[
                     dmc.Text(
                         [
-                            "You've submitted a pull request ",
-                            dmc.Anchor(
-                                "Fix incorrect notification message (#178)",
-                                href="#",
-                                size="sm",
-                            ),
+                            "Full fledge packet, or a subset.",
                         ],
                         color="dimmed",
                         size="sm",
@@ -80,18 +75,13 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
                 [
                     dmc.Text(
                         [
-                            dmc.Anchor(
-                                "Ann Marie Ward",
-                                href="https://github.com/AnnMarieW",
-                                size="sm",
-                            ),
-                            " left a comment on your pull request",
+                            "Review what you will get",
                         ],
                         color="dimmed",
                         size="sm",
                     ),
                 ],
-                title="Code Review",
+                title="Summary",
             ),
         ],
     )
