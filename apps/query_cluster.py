@@ -37,14 +37,15 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
     [
         Input('trans_datasource', 'value'),
         Input('filter_tab', 'children'),
-        Input('content_tab', 'children')
+        Input('content_tab', 'children'),
+        Input('summary_tab', 'children')
     ]
 )
-def timeline_data_transfer(trans_datasource, date_range_picker, trans_content):
+def timeline_data_transfer(trans_datasource, date_range_picker, trans_content, summary_content):
     """
     """
     active_ = np.where(
-        np.array([trans_datasource, date_range_picker, trans_content]) != None
+        np.array([trans_datasource, date_range_picker, trans_content, summary_content]) != None
     )[0]
     tmp = len(active_) - 1
     nsteps = 0 if tmp < 0 else tmp
@@ -225,7 +226,7 @@ def query_builder():
             html.Br(),
             html.Br(),
             dmc.Divider(variant="solid", label='Data Source'),
-            dmc.RadioGroup(
+            dmc.SegmentedControl(
                 id="trans_datasource",
                 data=[
                     {"value": "ztf", "label": "ZTF"},
@@ -233,7 +234,8 @@ def query_builder():
                 ],
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
-                size="sm",
+                size="md",
+                color='orange'
             ),
         ]
     )
