@@ -91,9 +91,16 @@ def timeline_data_transfer(trans_datasource, trans_filters, trans_content):
 def query_builder():
     """ Build iteratively the query based on user inputs.
     """
+    tab1 = html.Div(
+        [
+            dmc.Title("Data Source"),
+            dmc.Text("Choose the type of alerts you want to retrieve"),
+            dmc.Divider(variant="solid"),
+        ]
+    )
     query = html.Div(
         [
-            # Data source
+            tab1
             # Filter: Div based on previous response
             # Content: Div based on previous response
             # Result: Div based on previous response. Should contain a
