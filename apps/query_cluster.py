@@ -117,8 +117,7 @@ def filter_tab(trans_datasource):
                     description="Pick up a start and stop dates, with a maximum of 2 weeks allowed.",
                     minDate=date(2019, 11, 1),
                     maxDate=date.today(),
-                    value=[datetime.now().date(), datetime.now().date() - timedelta(days=7)],
-                    style={"width": 330},
+                    value=[datetime.now().date() - timedelta(days=7), datetime.now().date()],
                     hideOutsideDates=True,
                     amountOfMonths=2,
                     allowSingleDateInRange=True
