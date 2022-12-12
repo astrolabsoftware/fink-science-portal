@@ -265,7 +265,7 @@ def query_builder():
                 id="trans_datasource",
                 data=[
                     {"value": "ztf", "label": "ZTF"},
-                    {"value": "elasticc", "label": "ELASTiCC", "disabled": True},
+                    # {"value": "elasticc", "label": "ELASTiCC"},
                 ],
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
