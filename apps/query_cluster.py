@@ -36,15 +36,16 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
     Output("timeline_data_transfer", "children"),
     [
         Input('trans_datasource', 'value'),
-        # Input('trans_filters', 'value')
+        Input('date-range-picker', 'value')
     ]
 )
-def timeline_data_transfer(trans_datasource):
+def timeline_data_transfer(trans_datasource, date_range_picker):
     """
     """
-    trans_filters, trans_content = None, None
+    trans_content = None
+    print(date_range_picker)
     active_ = np.where(
-        np.array([trans_datasource, trans_filters, trans_content]) != None
+        np.array([trans_datasource, date_range_picker, trans_content]) != None
     )
     timeline = dmc.Timeline(
         active=len(active_[0]),
@@ -118,15 +119,15 @@ def filter_tab(trans_datasource):
     """
     """
     if trans_datasource == 'ztf':
-        datepicker = html.Div(
+        options = html.Div(
             [
                 dmc.DateRangePicker(
                     id="date-range-picker",
                     label="Date Range",
-                    description="Pick up start and stop dates (included), with a maximum of 2 weeks allowed.",
+                    description="Pick up start and stop dates (included), with a maximum of 14 nights allowed.",
                     minDate=date(2019, 11, 1),
                     maxDate=date.today(),
-                    value=[datetime.now().date() - timedelta(days=7), datetime.now().date()],
+                    value=None,
                     style={"width": 500},
                     hideOutsideDates=True,
                     amountOfMonths=2,
@@ -174,12 +175,12 @@ def filter_tab(trans_datasource):
             [
                 dmc.Space(h=10),
                 dmc.Divider(variant="solid", label='Filters'),
-                datepicker,
+                options,
             ]
         )
         return tab
     elif trans_datasource == 'elasticc':
-        return html.Div(trans_datasource)
+        return html.Div("Under construction...")
     else:
         return html.Div()
 
