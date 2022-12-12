@@ -37,7 +37,7 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
     [
         Input('trans_datasource', 'value'),
         Input('date-range-picker', 'value')
-    ]
+    ], prevent_initial_call=True
 )
 def timeline_data_transfer(trans_datasource, date_range_picker):
     """
@@ -113,7 +113,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
     Output("filter_tab", "children"),
     [
         Input('trans_datasource', 'value'),
-    ]
+    ], prevent_initial_call=True
 )
 def filter_tab(trans_datasource):
     """
@@ -204,16 +204,17 @@ def query_builder():
             ),
         ]
     )
-    query = html.Div(
-        [
-            tab1,
-            html.Div(id='filter_tab')
-            # Filter: Div based on previous response
-            # Content: Div based on previous response
-            # Result: Div based on previous response. Should contain a
-            # summary + instruction to get data via Kafka.
-        ]
-    )
+    return tab1
+    # query = html.Div(
+    #     [
+    #         tab1,
+    #         html.Div(id='filter_tab')
+    #         # Filter: Div based on previous response
+    #         # Content: Div based on previous response
+    #         # Result: Div based on previous response. Should contain a
+    #         # summary + instruction to get data via Kafka.
+    #     ]
+    # )
 
     return query
 
@@ -239,7 +240,12 @@ def layout(is_mobile):
                             html.Br(),
                         ], width={"size": 3},
                     ),
-                    dbc.Col(query_builder(), width=8)
+                    dbc.Col(
+                        [
+                            query_builder(),
+                            html.Div(id='filter_tab')
+                        ],
+                        width=8)
                 ],
                 justify="around", className="g-0"
             ),
