@@ -124,7 +124,31 @@ def filter_tab(trans_datasource):
                     allowSingleDateInRange=True
                 ),
                 dmc.Space(h=10),
-                # dmc.Text(id="selected-date-date-range-picker"),
+                dmc.MultiSelect(
+                    label="Select Alert class",
+                    placeholder="Select all you like!",
+                    id="framework-multi-select",
+                    value=None,
+                    data = [
+                        {'label': 'All classes', 'value': 'allclasses'},
+                        {'label': 'Unknown', 'value': 'Unknown'},
+                        {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
+                        {'label': 'Early Supernova Ia candidates', 'value': 'Early SN Ia candidate'},
+                        {'label': 'Supernova candidates', 'value': 'SN candidate'},
+                        {'label': 'Kilonova candidates', 'value': 'Kilonova candidate'},
+                        {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
+                        {'label': 'Solar System (MPC)', 'value': 'Solar System MPC'},
+                        {'label': 'Solar System (candidates)', 'value': 'Solar System candidate'},
+                        {'label': 'Tracklet (space debris & satellite glints)', 'value': 'Tracklet'},
+                        {'label': 'Ambiguous', 'value': 'Ambiguous'},
+                        {'label': 'TNS classified data', 'disabled': True, 'value': 'None'},
+                        *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
+                        {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
+                        *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
+                    ],
+                    searchable=True,
+                    style={"width": 500, "marginBottom": 10},
+                ),
             ]
         )
         tab = html.Div(
