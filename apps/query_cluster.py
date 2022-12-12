@@ -255,7 +255,7 @@ def query_builder():
             html.Br(),
             html.Br(),
             dmc.Divider(variant="solid", label='Data Source'),
-            dmc.SegmentedControl(
+            dmc.RadioGroup(
                 id="trans_datasource",
                 data=[
                     {"value": "ztf", "label": "ZTF"},
