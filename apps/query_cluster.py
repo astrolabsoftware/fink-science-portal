@@ -153,13 +153,13 @@ def filter_tab(trans_datasource):
                         *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
                     ],
                     searchable=True,
-                    style={"width": 500, "marginBottom": 10},
+                    style={"width": 500},
                 ),
                 dmc.Space(h=10),
                 dmc.Textarea(
                     label="Extra conditions",
                     description=[
-                        "One condition per line, ending with semi-colon. See ",
+                        "One condition per line (SQL syntax), ending with semi-colon. See ",
                         dmc.Anchor("here", href="https://fink-portal.org/api/v1/columns", size="xs"),
                         " for field description.",
                     ],
@@ -171,8 +171,7 @@ def filter_tab(trans_datasource):
         )
         tab = html.Div(
             [
-                html.Br(),
-                html.Br(),
+                dmc.Space(h=10),
                 dmc.Divider(variant="solid", label='Filters'),
                 datepicker,
             ]
