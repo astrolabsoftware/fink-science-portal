@@ -308,7 +308,7 @@ def layout(is_mobile):
                             qb,
                             html.Div(None, id='filter_tab'),
                             html.Div(None, id='content_tab'),
-                            dmc.Button("Default button", id='generate_summary', style={'display', 'none'}),
+                            dbc.Button("Default button", id='generate_summary', style={'display', 'none'}),
                             html.Div(None, id='summary_tab')
                         ],
                         width=8)
