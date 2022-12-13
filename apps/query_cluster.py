@@ -252,7 +252,7 @@ def estimate_alert_number(date_range_picker):
 
     count = 0
     for i in range(delta.days + 1):
-        tmp = (d1 + timedelta(i)).strftime('%Y%m%d')
+        tmp = (dstart + timedelta(i)).strftime('%Y%m%d')
         r = requests.post(
             '{}/api/v1/statistics'.format(APIURL),
             json={
