@@ -305,7 +305,7 @@ def layout(is_mobile):
                             qb,
                             ft,
                             ct,
-                            html.Div(id='summary_tab', style={'display': 'none'})
+                            html.Div(id='summary_tab')
                         ],
                         width=8)
                 ],
