@@ -45,7 +45,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
     active_ = np.where(
         np.array([trans_datasource, date_range_picker]) != None
     )[0]
-    tmp = len(active_) - 1
+    tmp = len(active_)
     nsteps = 0 if tmp < 0 else tmp
     timeline = dmc.Timeline(
         active=nsteps,
