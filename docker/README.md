@@ -1,72 +1,84 @@
+# Dockerfile's Tutorial
+Here is the Docker tutorial to develop your containers on your local machines.
 
----
-layout: fink-science-portal
-title: Doc Dockerfile
-author: Quentin
----
-
-			\\\ Dockerfile Documentation ///
-	
+Make sure you have docker installed : [https://docs.docker.com/get-docker/] (https://docs.docker.com/get-docker/)
 
 
-	- Prerequies for Docker
+## Develop your Docker
 
+Fistly, you have to clone the fink science portal on the server in your local machine.
 
+```bash
+git clone git@github.com:astrolabsoftware/fink-science-portal.git
+```
 
-*To install Docker :	https://docs.docker.com/get-docker/
-	
-* To  Clone the fink-science-portal repository on the local machine :	git clone https://github.com/astrolabsoftware/fink-science-portal.git
+Enter in this new Directory.
 
+```bash
+cd fink-science-portal
+```
 
+### build your Docker image
 
- 
+To build a docker image, you should use `sudo docker build -f <path/to/Dockerfile> -t <image name> <path destination of your image>`
 
-			\\\ Basic Command from Docker ///
+Therefore, we currently use :
 
+```bash
+sudo docker build -f docker/Dockerfile -t fsp .
+```
+Note that the . is the current directory.
 
+The default docker images will show all top level images, their repository and tags, and their size.
 
-docker ps					The docker ps command only shows running containers by default. We can notice The ID of each containers.
-
-docker ps -a					To see all containers.
-
-docker images					shows all top level images, their repository an tags, and their size.
-
-docker build  <path> .				Build an image from Dockerfile in the current folder.
-
-docker build -f <Dockerfile> -t <test> .	The -f option allows to write just the name of the file and -t option create a tag name of the build.
-
-docker rm -f <ID_Docker>			Stop and remove a container with this command and his specify ID in order to update the application.
-
-git branch <name>				To create a new branche in the current folder.
-
-git add <file>					To add the new modification of the file on the git
-
-git commit					This will launch a text editor prompting you for a commit message. After you've entered a message, save the file and close the editor to create the actual commit.
-
-git commit - m "message"			
-
-git push					To push this modifications on the server.
+```bash
+sudo docker images
+```
 
 
 
+### Run your docker
 
-			\\\  DOCKERFILE EXPLICATION ///
+This is the documentation in order to run a command in a new container.
+
+```bash
+sudo docker run -it fsp
+```
+
+The `docker ps` command only shows running containers by default. We can notice The ID of each containers. 
+
+```bash
+sudo docker ps
+```
 
 
-FROM						The FROM instruction initializes a new build stage and sets the Base Image for subsequent instructions. As such, a valid Dockerfile must start
-						with a FROM instruction
+If you have a problem during the running command, think to remove the `.bash_history` file.
 
-WORKDIR						The WORKDIR instruction sets the working directory for any RUN, CMD, ENTRYPOINT, COPY and ADD instructions that follow it in the Dockerfile. If the WORKDIR 
-						doesn’t exist, it will be created even if it’s not used in any subsequent Dockerfile instruction.
+```bash
+ls -ltha
+```
+```bash
+sudo rm .bash_history
+```
 
-RUN						The RUN instruction will execute any commands in a new layer on top of the current image and commit the results. The resulting
-						committed image will be used for the next step in the Dockerfile.
+### Share modifications of your Docker
 
-ENV						The ENV instruction sets the environment variable <key> to the value <value>. This value will be in the environment for all subsequent instructions in the
-						build stage and can be replaced inline in many as well.
-						The value will be interpreted for other environment variables, so quote characters will be removed if they are not escaped
+```bash
+git commit -m "new modifications of your dockerfile"
+```
+This will launch a text editor prompting you for a commit message. After you've entered a message, save the file and close the editor to create the actual commit.
 
-ADD						The ADD instruction copies new files, directories or remote file URLs from <src> and adds them to the filesystem of the image at the path <dest>.
 
-ENTRYPOINT					An ENTRYPOINT allows you to configure a container that will run as an executable.
+To push this modifications on the server:
 
+```bash
+git push
+```
+
+#### Additionnal Supports
+
+[https://docs.docker.com/engine/reference/commandline/build/] (https://docs.docker.com/engine/reference/commandline/build/) 
+
+[https://docs.docker.com/engine/reference/commandline/run/] (https://docs.docker.com/engine/reference/commandline/run/)
+
+[https://docs.docker.com/engine/reference/commandline/images/] (https://docs.docker.com/engine/reference/commandline/images/)
