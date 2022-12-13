@@ -223,10 +223,8 @@ def update_content_tab(date_range_picker):
         return {}
 
 @app.callback(
-    [
-        Output("summary_tab", "style"),
-        Output("summary_tab", "children"),
-    ],
+    Output("summary_tab", "style"),
+    Output("summary_tab", "children"),
     [
         Input('trans_content', 'value'),
         Input('trans_datasource', 'value'),
