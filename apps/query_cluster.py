@@ -187,70 +187,86 @@ def display_filter_tab(trans_datasource):
     else:
         return {}
 
-# @app.callback(
-#     Output("content_tab", "children"),
-#     [
-#         Input('date-range-picker', 'value')
-#     ], prevent_initial_call=True
-# )
-# def content_tab(date_range_picker):
-#     """ Section containing filtering options
-#     """
-#     if date_range_picker is not None:
-#         tab = html.Div(
-#             [
-#                 dmc.Space(h=10),
-#                 dmc.Divider(variant="solid", label='Alert content'),
-#                 dmc.RadioGroup(
-#                     id="trans_content",
-#                     data=[
-#                         {"value": "Full packet", "label": "Full packet"},
-#                         {"value": "Lightcurve", "label": "Lightcurve"},
-#                         {"value": "Cutouts", "label": "Cutouts"},
-#                     ],
-#                     value=None,
-#                     label="Choose the content you want to retrieve",
-#                     size="sm",
-#                     color='orange'
-#                 ),
-#             ]
-#         )
-#         return tab
-#     else:
-#         PreventUpdate
+def content_tab():
+    """ Section containing filtering options
+    """
+    tab = html.Div(
+        [
+            dmc.Space(h=10),
+            dmc.Divider(variant="solid", label='Alert content'),
+            dmc.RadioGroup(
+                id="trans_content",
+                data=[
+                    {"value": "Full packet", "label": "Full packet"},
+                    {"value": "Lightcurve", "label": "Lightcurve"},
+                    {"value": "Cutouts", "label": "Cutouts"},
+                ],
+                value=None,
+                label="Choose the content you want to retrieve",
+                size="sm",
+                color='orange'
+            ),
+        ], style={'display': 'none'}, id='content_tab'
+    )
+    return tab
 
-# @app.callback(
-#     Output("summary_tab", "children"),
-#     [
-#         Input('trans_content', 'value'),
-#     ],
-#     [
-#         State('trans_datasource', 'value'),
-#         State('date-range-picker', 'value'),
-#         State('class_select', 'value'),
-#         State('extra_cond', 'value'),
-#     ],
-#     prevent_initial_call=True
-# )
-# def summary_tab(trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
-#     """ Section containing summary
-#     """
-#     if trans_content is None:
-#         PreventUpdate
-#     else:
-#         tab = html.Div(
-#             [
-#                 dmc.Space(h=10),
-#                 dmc.Divider(variant="solid", label='Summary'),
-#                 dmc.Text('Source: {}'.format(trans_datasource)),
-#                 dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
-#                 dmc.Text('Classe(s): {}'.format(class_select)),
-#                 dmc.Text('Conditions: {}'.format(extra_cond)),
-#                 dmc.Text('Content: {}'.format(trans_content)),
-#             ]
+@app.callback(
+    Output("content_tab", "style"),
+    [
+        Input('date-range-picker', 'value')
+    ], prevent_initial_call=True
+)
+def update_content_tab(date_range_picker):
+    if date_range_picker is None:
+        PreventUpdate
+    else:
+        return {}
 
-#         )
-#         return tab
+@app.callback(
+    [
+        Output("summary_tab", "style"),
+        Output("summary_tab", "children"),
+    ],
+    [
+        Input('trans_content', 'value'),
+        Input('trans_datasource', 'value'),
+        Input('date-range-picker', 'value'),
+        Input('class_select', 'value'),
+        Input('extra_cond', 'value'),
+    ],
+    prevent_initial_call=True
+)
+def summary_tab(trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
+    """ Section containing summary
+    """
+    if trans_content is None:
+        PreventUpdate
+    else:
+        tab = html.Div(
+            [
+                dmc.Space(h=10),
+                dmc.Divider(variant="solid", label='Summary'),
+                dmc.Text('Source: {}'.format(trans_datasource)),
+                dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
+                dmc.Text('Classe(s): {}'.format(class_select)),
+                dmc.Text('Conditions: {}'.format(extra_cond)),
+                dmc.Text('Content: {}'.format(trans_content)),
+            ],
+        )
+        return {}, tab
+
+@app.callback(
+    Output("content_tab", "style"),
+    [
+        Input('date-range-picker', 'value')
+    ], prevent_initial_call=True
+)
+def update_content_tab(date_range_picker):
+    if date_range_picker is None:
+        PreventUpdate
+    else:
+        return {}
+
 
 def query_builder():
     """ Build iteratively the query based on user inputs.
@@ -285,6 +301,7 @@ def layout(is_mobile):
     """
     qb = query_builder()
     ft = filter_tab()
+    ct = content_tab()
     layout_ = html.Div(
         [
             html.Br(),
@@ -303,6 +320,8 @@ def layout(is_mobile):
                         [
                             qb,
                             ft,
+                            ct,
+                            html.Div(id='summary_tab', style={'display': 'none'})
                         ],
                         width=8)
                 ],
