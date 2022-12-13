@@ -38,9 +38,12 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
     [
         Input('trans_datasource', 'value'),
         Input('date-range-picker', 'value'),
+        Input('class_select', 'value'),
+        Input('extra_cond', 'value'),
+        Input('trans_content', 'value')
     ]
 )
-def timeline_data_transfer(trans_datasource, date_range_picker):
+def timeline_data_transfer(trans_datasource, date_range_picker, class_select, extra_cond, trans_content):
     """
     """
     active_ = np.where(
@@ -79,6 +82,20 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
                         color="dimmed",
                         size="sm",
                     ),
+                    dmc.Text(
+                        [
+                            "Classe(s): {}".format(class_select),
+                        ],
+                        color="dimmed",
+                        size="sm",
+                    ),
+                    dmc.Text(
+                        [
+                            "Conditions: {}".format(extra_cond),
+                        ],
+                        color="dimmed",
+                        size="sm",
+                    ),
                 ],
             ),
             dmc.TimelineItem(
@@ -87,7 +104,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
                 children=[
                     dmc.Text(
                         [
-                            "Complete alert packet, or a subset.",
+                            "Content: {}".format(trans_content),
                         ],
                         color="dimmed",
                         size="sm",
@@ -98,13 +115,13 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
                 [
                     dmc.Text(
                         [
-                            "Review what you will get",
+                            "Trigger your job!",
                         ],
                         color="dimmed",
                         size="sm",
                     ),
                 ],
-                title="Summary",
+                title="Submit",
             ),
         ],
     )
