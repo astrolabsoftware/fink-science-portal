@@ -259,8 +259,8 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         html.Div(style={'display': 'none'})
     else:
         block = dmc.Blockquote(
-            "Summary",
-            cite="Source: {}\n Dates: {}\n".format(trans_datasource, *date_range_picker),
+            "Estimated number of alerts: {:,}".format(100000),
+            cite="You are about to submit a streaming job on our Apache Spark cluster. Review your parameters, and take into account the estimated number of alerts before hitting submission!",
             icon=[DashIconify(icon="codicon:flame", width=30)],
             color="red",
         )
@@ -268,11 +268,6 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             [
                 dmc.Space(h=10),
                 dmc.Divider(variant="solid", label='Summary'),
-                # dmc.Text('Source: {}'.format(trans_datasource)),
-                # dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
-                # dmc.Text('Classe(s): {}'.format(class_select)),
-                # dmc.Text('Conditions: {}'.format(extra_cond)),
-                # dmc.Text('Content: {}'.format(trans_content)),
                 block
             ],
         )
