@@ -58,10 +58,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
                 children=[
                     dmc.Text(
                         [
-                            "Choose between ",
-                            dmc.Anchor("ZTF", href="https://www.ztf.caltech.edu/", size="sm"),
-                            " and",
-                            dmc.Anchor(" DESC/Elasticc", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/", size="sm"),
+                            "Source: {}".format(trans_datasource)
                         ],
                         color="dimmed",
                         size="sm",
@@ -73,7 +70,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
                 children=[
                     dmc.Text(
                         [
-                            "Select date range, alert classes, or more.",
+                            "Dates: {} - {}".format(*date_range_picker),
                         ],
                         color="dimmed",
                         size="sm",
