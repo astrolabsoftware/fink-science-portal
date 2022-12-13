@@ -255,19 +255,6 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         )
         return {}, tab
 
-@app.callback(
-    Output("content_tab", "style"),
-    [
-        Input('date-range-picker', 'value')
-    ], prevent_initial_call=True
-)
-def update_content_tab(date_range_picker):
-    if date_range_picker is None:
-        PreventUpdate
-    else:
-        return {}
-
-
 def query_builder():
     """ Build iteratively the query based on user inputs.
     """
