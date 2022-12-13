@@ -67,7 +67,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
                 children=[
                     dmc.Text(
                         [
-                            "Source: {}".format(trans_datasource)
+                            "Source: {}".format(trans_datasource.capitalize())
                         ],
                         color="dimmed",
                         size="sm",
@@ -285,16 +285,22 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
     elif date_range_picker is None:
         PreventUpdate
     else:
+        msg = """
+        You are about to submit a streaming job on our Apache Spark cluster.
+        Review your parameters, and take into account the estimated number of
+        alerts before hitting submission! Note that the estimation takes into account
+        the days requested and the classes, but not the extra conditions.
+        """
         block = dmc.Blockquote(
             "Estimated number of alerts: {:,}".format(estimate_alert_number(date_range_picker)),
-            cite="You are about to submit a streaming job on our Apache Spark cluster. Review your parameters, and take into account the estimated number of alerts before hitting submission!",
+            cite=msg,
             icon=[DashIconify(icon="codicon:flame", width=30)],
             color="red",
         )
         tab = html.Div(
             [
                 dmc.Space(h=10),
-                dmc.Divider(variant="solid", label='Summary'),
+                dmc.Divider(variant="solid", label='Submit'),
                 block
             ],
         )
