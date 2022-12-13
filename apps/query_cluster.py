@@ -223,7 +223,6 @@ def update_content_tab(date_range_picker):
         return {}
 
 @app.callback(
-    Output("summary_tab", "style"),
     Output("summary_tab", "children"),
     [
         Input('trans_content', 'value'),
@@ -238,7 +237,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
     """ Section containing summary
     """
     if trans_content is None:
-        PreventUpdate
+        html.Div(style={'display': 'none'})
     else:
         tab = html.Div(
             [
@@ -251,7 +250,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
                 dmc.Text('Content: {}'.format(trans_content)),
             ],
         )
-        return {}, tab
+        return tab
 
 def query_builder():
     """ Build iteratively the query based on user inputs.
