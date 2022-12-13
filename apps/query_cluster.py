@@ -49,7 +49,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
     active_ = np.where(
         np.array([trans_datasource, date_range_picker, trans_content]) != None
     )[0]
-    tmp = len(active_) - 1
+    tmp = len(active_)
     nsteps = 0 if tmp < 0 else tmp
 
     if date_range_picker is None:
