@@ -48,6 +48,10 @@ def timeline_data_transfer(trans_datasource, date_range_picker):
     )[0]
     tmp = len(active_) - 1
     nsteps = 0 if tmp < 0 else tmp
+
+    if date_range_picker is None:
+        date_range_picker = [None, None]
+
     timeline = dmc.Timeline(
         active=nsteps,
         bulletSize=15,
