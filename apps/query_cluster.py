@@ -261,9 +261,8 @@ def estimate_alert_number(date_range_picker):
                 'output-format': 'json'
             }
         )
-        strn = r.json()[0]['basic:sci']
-        if strn != '':
-            count += int(strn)
+        if r.json() != []:
+            count += int(strn[0]['basic:sci'])
 
     return count
 
