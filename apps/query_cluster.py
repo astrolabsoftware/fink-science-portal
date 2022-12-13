@@ -20,10 +20,12 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from app import app
+from app import APIURL
 
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta, date
+import requests
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -241,6 +243,30 @@ def update_content_tab(date_range_picker):
     else:
         return {}
 
+def estimate_alert_number(date_range_picker):
+    """ Callback to estimate the number of alerts to be transfered
+    """
+    dstart = date(*[int(i) for i in date_range_picker[0].split('-')])
+    dstop = date(*[int(i) for i in date_range_picker[1].split('-')])
+    delta = dstop - dstart
+
+    count = 0
+    for i in range(delta.days + 1):
+        tmp = (d1 + timedelta(i)).strftime('%Y%m%d')
+        r = requests.post(
+            '{}/api/v1/statistics'.format(APIURL),
+            json={
+                'date': tmp,
+                'columns': 'basic:sci',
+                'output-format': 'json'
+            }
+        )
+        strn = r.json()[0]['basic:sci']
+        if strn != '':
+            count += int(strn)
+
+    return count
+
 @app.callback(
     Output("summary_tab", "children"),
     [
@@ -257,9 +283,11 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
     """
     if trans_content is None:
         html.Div(style={'display': 'none'})
+    elif date_range_picker is None:
+        PreventUpdate
     else:
         block = dmc.Blockquote(
-            "Estimated number of alerts: {:,}".format(100000),
+            "Estimated number of alerts: {:,}".format(estimate_alert_number(date_range_picker)),
             cite="You are about to submit a streaming job on our Apache Spark cluster. Review your parameters, and take into account the estimated number of alerts before hitting submission!",
             icon=[DashIconify(icon="codicon:flame", width=30)],
             color="red",
@@ -295,11 +323,6 @@ def query_builder():
         ]
     )
     return tab
-
-def estimate_alert_number():
-    """ Callback to estimate the number of alerts to be transfered
-    """
-    pass
 
 def layout(is_mobile):
     """ Layout for the data transfer service
