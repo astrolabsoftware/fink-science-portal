@@ -67,7 +67,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
                 children=[
                     dmc.Text(
                         [
-                            "Source: {}".format(trans_datasource.capitalize())
+                            "Source: {}".format(trans_datasource)
                         ],
                         color="dimmed",
                         size="sm",
@@ -317,7 +317,7 @@ def query_builder():
             dmc.RadioGroup(
                 id="trans_datasource",
                 data=[
-                    {"value": "ztf", "label": "ZTF"},
+                    {"value": "ZTF", "label": "ZTF"},
                     # {"value": "elasticc", "label": "ELASTiCC"},
                 ],
                 value=None,
