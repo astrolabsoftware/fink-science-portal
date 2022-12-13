@@ -17,6 +17,7 @@ from dash import html, dcc, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 from app import app
 
@@ -239,15 +240,22 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
     if trans_content is None:
         html.Div(style={'display': 'none'})
     else:
+        block = dmc.Blockquote(
+            "Summary",
+            cite="Source: {}\n Dates: {}\n".format(trans_datasource, *date_range_picker),
+            icon=[DashIconify(icon="codicon:flame", width=30)],
+            color="red",
+        )
         tab = html.Div(
             [
                 dmc.Space(h=10),
                 dmc.Divider(variant="solid", label='Summary'),
-                dmc.Text('Source: {}'.format(trans_datasource)),
-                dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
-                dmc.Text('Classe(s): {}'.format(class_select)),
-                dmc.Text('Conditions: {}'.format(extra_cond)),
-                dmc.Text('Content: {}'.format(trans_content)),
+                # dmc.Text('Source: {}'.format(trans_datasource)),
+                # dmc.Text('Dates: {} - {}'.format(*date_range_picker)),
+                # dmc.Text('Classe(s): {}'.format(class_select)),
+                # dmc.Text('Conditions: {}'.format(extra_cond)),
+                # dmc.Text('Content: {}'.format(trans_content)),
+                block
             ],
         )
         return tab
