@@ -262,7 +262,7 @@ def estimate_alert_number(date_range_picker):
             }
         )
         if r.json() != []:
-            count += int(strn[0]['basic:sci'])
+            count += int(r.json()[0]['basic:sci'])
 
     return count
 
