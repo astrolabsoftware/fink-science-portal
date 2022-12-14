@@ -289,9 +289,13 @@ def estimate_alert_number(date_range_picker, class_select):
             }
         )
         if r.json() != []:
-            dic['basic:sci'] += int(r.json()[0]['basic:sci'])
+            payload = r.json()[0]
+            dic['basic:sci'] += int(payload['basic:sci'])
             for column_name in column_names:
-                dic[column_name] += int(r.json()[0][column_name])
+                if column_name in payload.keys():
+                    dic[column_name] += int(payload[column_name])
+                else:
+                    dic[column_name] += 0
 
     # Add TNS estimation
     if (class_select is not None) and (class_select != []):
