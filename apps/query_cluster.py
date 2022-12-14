@@ -266,6 +266,9 @@ def estimate_alert_number(date_range_picker, class_select):
                     elem = elem.replace('(SIMBAD) ', 'class:')
                 elif elem.startswith('(Fink)'):
                     elem = elem.replace('(Fink) ', 'class:')
+                elif elem == 'Unknown':
+                    # prepend class:
+                    elem = 'class:' + elem
                 columns += ',{}'.format(elem)
                 column_names.append(elem)
 
@@ -291,20 +294,24 @@ def estimate_alert_number(date_range_picker, class_select):
 
     # Add TNS estimation
     if (class_select is not None) and (class_select != []):
-        for elem in class_select:
-            # name correspondance
-            if elem.startswith('(TNS)'):
-                filt = coeffs_per_class['fclass'] == elem
+        if 'allclasses' not in class_select:
+            for elem in class_select:
+                # name correspondance
+                if elem.startswith('(TNS)'):
+                    filt = coeffs_per_class['fclass'] == elem
 
-                if np.sum(filt) == 0:
-                    # Nothing found. This could be because we have
-                    # no alerts from this class, or because it has not
-                    # yet entered the statistics. To be conservative,
-                    # we do not apply any coefficients.
-                    dic[elem] = 0
-                else:
-                    dic[elem] = int(dic['basic:sci'] * coeffs_per_class[filt]['coeff'].values[0])
-        count = np.sum([i[1] for i in dic.items() if 'class:' in i[0]])
+                    if np.sum(filt) == 0:
+                        # Nothing found. This could be because we have
+                        # no alerts from this class, or because it has not
+                        # yet entered the statistics. To be conservative,
+                        # we do not apply any coefficients.
+                        dic[elem] = 0
+                    else:
+                        dic[elem] = int(dic['basic:sci'] * coeffs_per_class[filt]['coeff'].values[0])
+            count = np.sum([i[1] for i in dic.items() if 'class:' in i[0]])
+        else:
+            # allclasses mean all alerts
+            count = dic['basic:sci']
     else:
         count = dic['basic:sci']
 
