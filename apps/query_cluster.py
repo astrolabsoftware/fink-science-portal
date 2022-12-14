@@ -35,6 +35,8 @@ simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
 
+coeffs_per_class = pd.read_parquet('assets/fclass_2022_060708_coeffs.parquet')
+
 @app.callback(
     Output("timeline_data_transfer", "children"),
     [
@@ -243,7 +245,7 @@ def update_content_tab(date_range_picker):
     else:
         return {}
 
-def estimate_alert_number(date_range_picker):
+def estimate_alert_number(date_range_picker, class_select):
     """ Callback to estimate the number of alerts to be transfered
     """
     dstart = date(*[int(i) for i in date_range_picker[0].split('-')])
@@ -264,6 +266,16 @@ def estimate_alert_number(date_range_picker):
         if r.json() != []:
             count += int(r.json()[0]['basic:sci'])
 
+    coeffs = 1.0
+    if (class_select is not None) and (class_select != []):
+        for elem in class_select:
+            if elem.startswith('(SIMBAD)'):
+                elem = elem.split('(SIMBAD)')[1].strip()
+            elif elem.startswith('(Fink)'):
+                elem = elem.split('(Fink)')[1].strip()
+            filt = coeffs_per_class['fclass'] == elem
+            coeff = coeffs_per_class[filt]['coeff'].values[0]
+            coeffs *= coeff
     return count
 
 @app.callback(
