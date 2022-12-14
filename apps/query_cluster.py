@@ -266,20 +266,32 @@ def estimate_alert_number(date_range_picker, class_select):
         if r.json() != []:
             count += int(r.json()[0]['basic:sci'])
 
-    coeffs = 1.0
     if (class_select is not None) and (class_select != []):
-        for elem in class_select:
-            if elem.startswith('(SIMBAD)'):
-                elem = elem.split('(SIMBAD)')[1].strip()
-            elif elem.startswith('(Fink)'):
-                elem = elem.split('(Fink)')[1].strip()
-            filt = coeffs_per_class['fclass'] == elem
-            if np.sum(filt) == 0:
-                continue
-            else:
-                coeff = coeffs_per_class[filt]['coeff'].values[0]
-                coeffs += coeff
-    return int(count * coeffs)
+        if 'allclasses' in class_select:
+            coeffs = 1.0
+        else:
+            coeffs = 0.0
+            for elem in class_select:
+                # name correspondance
+                if elem.startswith('(SIMBAD)'):
+                    elem = elem.split('(SIMBAD)')[1].strip()
+                elif elem.startswith('(Fink)'):
+                    elem = elem.split('(Fink)')[1].strip()
+
+                filt = coeffs_per_class['fclass'] == elem
+
+                if np.sum(filt) == 0:
+                    # Nothing found. This could be because we have
+                    # no alerts from this class, or because it has not
+                    # yet entered the statistics. To be conservative,
+                    # we do not apply any coefficients.
+                    continue
+                else:
+                    coeff = coeffs_per_class[filt]['coeff'].values[0]
+                    coeffs += coeff
+    else:
+        coeffs = 1.0
+    return count, coeffs
 
 @app.callback(
     Output("summary_tab", "children"),
