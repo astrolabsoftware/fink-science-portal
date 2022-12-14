@@ -371,12 +371,14 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             [
                 dmc.Button(
                     "Submit job",
+                    id='submit_datatransfer',
                     variant="outline",
                     color='indigo',
                     leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
                 ),
                 dmc.Button(
                     "Test job (LIMIT 10)",
+                    id='submit_datatransfer_test',
                     variant="outline",
                     color='orange',
                     leftIcon=[DashIconify(icon="fluent:battery-2-24-regular")],
@@ -392,6 +394,20 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             ],
         )
         return tab
+
+@app.callback(
+    Output("submit_datatransfer", "disabled"),
+    [
+        Input('submit_datatransfer', 'n_clicks'),
+    ],
+    prevent_initial_call=True
+)
+def submit_job():
+    """ Submit a job to the Apache Spark cluster via Livy
+    """
+    if n_clicks:
+        return True
+
 
 def query_builder():
     """ Build iteratively the query based on user inputs.
