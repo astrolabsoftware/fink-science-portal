@@ -304,7 +304,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         the days requested and the classes, but not the extra conditions.
         """
         block = dmc.Blockquote(
-            "Estimated number of alerts: {:,}".format(estimate_alert_number(date_range_picker)),
+            "Estimated number of alerts: {:,}".format(estimate_alert_number(date_range_picker, class_select)),
             cite=msg,
             icon=[DashIconify(icon="codicon:flame", width=30)],
             color="red",
