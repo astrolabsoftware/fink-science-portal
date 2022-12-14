@@ -247,37 +247,53 @@ def update_content_tab(date_range_picker):
 
 def estimate_alert_number(date_range_picker, class_select):
     """ Callback to estimate the number of alerts to be transfered
+
+    This can be improved by using the REST API directly to get number of
+    alerts per class.
     """
+    dic = {'basic:sci': 0}
     dstart = date(*[int(i) for i in date_range_picker[0].split('-')])
     dstop = date(*[int(i) for i in date_range_picker[1].split('-')])
     delta = dstop - dstart
 
-    count = 0
+    columns = 'basic:sci'
+    column_names = []
+    if (class_select is not None) and (class_select != []):
+        if 'allclasses' not in class_select:
+            for elem in class_select:
+                # name correspondance
+                if elem.startswith('(SIMBAD)'):
+                    elem = elem.replace('(SIMBAD) ', 'class:')
+                elif elem.startswith('(Fink)'):
+                    elem = elem.replace('(Fink) ', 'class:')
+                columns += ',{}'.format(elem)
+                column_names.append(elem)
+
+    # Initialise count
+    for column_name in column_names:
+        dic[column_name] = 0
+
+
     for i in range(delta.days + 1):
         tmp = (dstart + timedelta(i)).strftime('%Y%m%d')
         r = requests.post(
             '{}/api/v1/statistics'.format(APIURL),
             json={
                 'date': tmp,
-                'columns': 'basic:sci',
+                'columns': columns,
                 'output-format': 'json'
             }
         )
         if r.json() != []:
-            count += int(r.json()[0]['basic:sci'])
+            dic['basic:sci'] += int(r.json()[0]['basic:sci'])
+            for column_name in column_names:
+                dic[column_name] += int(r.json()[0][column_name])
 
+    # Add TNS estimation
     if (class_select is not None) and (class_select != []):
-        if 'allclasses' in class_select:
-            coeffs = 1.0
-        else:
-            coeffs = 0.0
-            for elem in class_select:
-                # name correspondance
-                if elem.startswith('(SIMBAD)'):
-                    elem = elem.split('(SIMBAD)')[1].strip()
-                elif elem.startswith('(Fink)'):
-                    elem = elem.split('(Fink)')[1].strip()
-
+        for elem in class_select:
+            # name correspondance
+            if elem.startswith('(TNS)'):
                 filt = coeffs_per_class['fclass'] == elem
 
                 if np.sum(filt) == 0:
@@ -285,13 +301,14 @@ def estimate_alert_number(date_range_picker, class_select):
                     # no alerts from this class, or because it has not
                     # yet entered the statistics. To be conservative,
                     # we do not apply any coefficients.
-                    continue
+                    dic[elem] = 0
                 else:
-                    coeff = coeffs_per_class[filt]['coeff'].values[0]
-                    coeffs += coeff
+                    dic[elem] = int(dic['basic:sci'] * coeffs_per_class[filt]['coeff'].values[0])
+        count = np.sum([i[1] for i in dic.items() if 'class:' in i[0]])
     else:
-        coeffs = 1.0
-    return count, coeffs
+        count = dic['basic:sci']
+
+    return dic['basic:sci'], count
 
 @app.callback(
     Output("summary_tab", "children"),
@@ -318,11 +335,11 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         alerts before hitting submission! Note that the estimation takes into account
         the days requested and the classes, but not the extra conditions.
         """
-        count, coeffs = estimate_alert_number(date_range_picker, class_select)
+        total, count = estimate_alert_number(date_range_picker, class_select)
         block = dmc.Blockquote(
             "Estimated number of alerts: {:,} ({:.2f}%)".format(
-                int(count * coeffs),
-                coeffs * 100
+                int(count),
+                count / total * 100
             ),
             cite=msg,
             icon=[DashIconify(icon="codicon:flame", width=30)],
