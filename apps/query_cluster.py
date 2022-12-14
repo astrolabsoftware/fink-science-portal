@@ -274,9 +274,12 @@ def estimate_alert_number(date_range_picker, class_select):
             elif elem.startswith('(Fink)'):
                 elem = elem.split('(Fink)')[1].strip()
             filt = coeffs_per_class['fclass'] == elem
-            coeff = coeffs_per_class[filt]['coeff'].values[0]
-            coeffs *= coeff
-    return count
+            if np.sum(filt) == 0:
+                continue
+            else:
+                coeff = coeffs_per_class[filt]['coeff'].values[0]
+                coeffs *= coeff
+    return count * coeffs
 
 @app.callback(
     Output("summary_tab", "children"),
