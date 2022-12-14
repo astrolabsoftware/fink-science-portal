@@ -415,6 +415,7 @@ def update_make_buttons(trans_content):
     Output("streaming_info", "children"),
     [
         Input('submit_datatransfer', 'n_clicks'),
+        Input('submit_datatransfer_test', 'n_clicks'),
     ],
     [
         State('trans_content', 'value'),
@@ -425,15 +426,14 @@ def update_make_buttons(trans_content):
     ],
     prevent_initial_call=True
 )
-def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
+def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
     """ Submit a job to the Apache Spark cluster via Livy
     """
-    if n_clicks:
+    if n_clicks or n_clicks_test:
         # Livy magic
 
         # topic name
         d = datetime.utcnow()
-
         topic_name = '{}_{}_livyuser'.format(d.date().isoformat(), d.microsecond)
         msg = "See an example on how to retrieve your data [here](). You will need to refresh the page if you want to resubmit a job."
         text = dmc.Blockquote(
