@@ -396,7 +396,10 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         return tab
 
 @app.callback(
-    Output("submit_datatransfer", "disabled"),
+    [
+        Output("submit_datatransfer", "disabled"),
+        Output("submit_datatransfer_test", "disabled"),
+    ],
     [
         Input('submit_datatransfer', 'n_clicks'),
     ],
@@ -406,7 +409,7 @@ def submit_job(n_clicks):
     """ Submit a job to the Apache Spark cluster via Livy
     """
     if n_clicks:
-        return True
+        return True, True
 
 
 def query_builder():
