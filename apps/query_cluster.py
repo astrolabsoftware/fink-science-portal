@@ -415,11 +415,13 @@ def update_make_buttons(trans_content):
     Output("streaming_info", "children"),
     [
         Input('submit_datatransfer', 'n_clicks'),
-        Input('trans_content', 'value'),
-        Input('trans_datasource', 'value'),
-        Input('date-range-picker', 'value'),
-        Input('class_select', 'value'),
-        Input('extra_cond', 'value'),
+    ],
+    [
+        State('trans_content', 'value'),
+        State('trans_datasource', 'value'),
+        State('date-range-picker', 'value'),
+        State('class_select', 'value'),
+        State('extra_cond', 'value'),
     ],
     prevent_initial_call=True
 )
