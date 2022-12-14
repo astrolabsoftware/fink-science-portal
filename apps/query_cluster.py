@@ -416,6 +416,8 @@ def submit_job(n_clicks):
         topic_name = '{}_{}_livyuser'.format(d.date().isoformat(), d.microsecond)
         text = dmc.Text("Your topic name is {}".format(topic_name))
         return True, True, text
+    else:
+        return False, False, ""
 
 
 def query_builder():
