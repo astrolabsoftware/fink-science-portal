@@ -435,7 +435,7 @@ def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, cla
         d = datetime.utcnow()
 
         topic_name = '{}_{}_livyuser'.format(d.date().isoformat(), d.microsecond)
-        msg = "See an example on how to retrieve your data [here]()."
+        msg = "See an example on how to retrieve your data [here](). You will need to refresh the page if you want to resubmit a job."
         text = dmc.Blockquote(
             "Your topic name is: {}".format(
                 topic_name
