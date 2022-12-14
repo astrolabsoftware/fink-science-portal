@@ -357,11 +357,26 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             icon=[DashIconify(icon="codicon:flame", width=30)],
             color="red",
         )
+        buttons = dmc.Group(
+            [
+                dmc.Button(
+                    "Submit job",
+                    leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
+                ),
+                dmc.Button(
+                    "Test (LIMIT 10)",
+                    variant="outline",
+                    color='orange',
+                    leftIcon=[DashIconify(icon="fluent:battery-2-24-regular")],
+                ),
+            ]
+        )
         tab = html.Div(
             [
                 dmc.Space(h=10),
                 dmc.Divider(variant="solid", label='Submit'),
-                block
+                block,
+                buttons
             ],
         )
         return tab
