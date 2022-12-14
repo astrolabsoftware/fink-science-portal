@@ -498,7 +498,8 @@ def layout(is_mobile):
                             ct,
                             html.Div(id='summary_tab'),
                             dmc.Space(h=10),
-                            html.Div(btns, id='transfer_buttons', style={'display': 'none'})
+                            html.Div(btns, id='transfer_buttons', style={'display': 'none'}),
+                            html.Div(id='streaming_info')
                         ],
                         width=8)
                 ],
