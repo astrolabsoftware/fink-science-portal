@@ -261,6 +261,9 @@ def estimate_alert_number(date_range_picker, class_select):
     if (class_select is not None) and (class_select != []):
         if 'allclasses' not in class_select:
             for elem in class_select:
+                if elem.startswith('(TNS)'):
+                    continue
+
                 # name correspondance
                 if elem.startswith('(SIMBAD)'):
                     elem = elem.replace('(SIMBAD) ', 'class:')
