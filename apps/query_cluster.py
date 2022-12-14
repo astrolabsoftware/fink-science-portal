@@ -396,11 +396,9 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         return tab
 
 @app.callback(
-    [
-        Output("submit_datatransfer", "disabled"),
-        Output("submit_datatransfer_test", "disabled"),
-        Output("streaming_info", "children"),
-    ],
+    Output("submit_datatransfer", "disabled"),
+    Output("submit_datatransfer_test", "disabled"),
+    Output("streaming_info", "children"),
     [
         Input('submit_datatransfer', 'n_clicks'),
     ],
