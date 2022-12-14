@@ -278,8 +278,8 @@ def estimate_alert_number(date_range_picker, class_select):
                 continue
             else:
                 coeff = coeffs_per_class[filt]['coeff'].values[0]
-                coeffs *= coeff
-    return count * coeffs
+                coeffs += coeff
+    return int(count * coeffs)
 
 @app.callback(
     Output("summary_tab", "children"),
