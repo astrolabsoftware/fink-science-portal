@@ -402,7 +402,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
     ],
     prevent_initial_call=True
 )
-def submit_job():
+def submit_job(n_clicks):
     """ Submit a job to the Apache Spark cluster via Livy
     """
     if n_clicks:
