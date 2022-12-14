@@ -399,6 +399,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
     [
         Output("submit_datatransfer", "disabled"),
         Output("submit_datatransfer_test", "disabled"),
+        Output("streaming_info", "children"),
     ],
     [
         Input('submit_datatransfer', 'n_clicks'),
@@ -409,7 +410,14 @@ def submit_job(n_clicks):
     """ Submit a job to the Apache Spark cluster via Livy
     """
     if n_clicks:
-        return True, True
+        # Livy magic
+
+        # topic name
+        d = datetime.utcnow()
+
+        topic_name = '{}_{}_livyuser'.format(d.date().isoformat(), d.microsecond)
+        text = dmc.Text("Your topic name is {}".format(topic_name))
+        return True, True, text
 
 
 def query_builder():
@@ -460,7 +468,8 @@ def layout(is_mobile):
                             qb,
                             ft,
                             ct,
-                            html.Div(id='summary_tab')
+                            html.Div(id='summary_tab'),
+                            html.Div(id='streaming_info')
                         ],
                         width=8)
                 ],
