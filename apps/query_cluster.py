@@ -348,14 +348,21 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         the days requested and the classes, but not the extra conditions.
         """
         total, count = estimate_alert_number(date_range_picker, class_select)
+
+        if count < 100000:
+            icon = "codicon:check"
+            color = 'green'
+        else:
+            icon = "codicon:flame"
+            color = 'orange'
         block = dmc.Blockquote(
             "Estimated number of alerts: {:,} ({:.2f}%)".format(
                 int(count),
                 count / total * 100
             ),
             cite=msg,
-            icon=[DashIconify(icon="codicon:flame", width=30)],
-            color="red",
+            icon=[DashIconify(icon=icon, width=30)],
+            color=color,
         )
         buttons = dmc.Group(
             [
