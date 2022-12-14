@@ -401,10 +401,15 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
     Output("streaming_info", "children"),
     [
         Input('submit_datatransfer', 'n_clicks'),
+        Input('trans_content', 'value'),
+        Input('trans_datasource', 'value'),
+        Input('date-range-picker', 'value'),
+        Input('class_select', 'value'),
+        Input('extra_cond', 'value'),
     ],
     prevent_initial_call=True
 )
-def submit_job(n_clicks):
+def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
     """ Submit a job to the Apache Spark cluster via Livy
     """
     if n_clicks:
