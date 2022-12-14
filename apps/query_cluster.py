@@ -264,9 +264,7 @@ def estimate_alert_number(date_range_picker, class_select):
                 # name correspondance
                 if elem.startswith('(SIMBAD)'):
                     elem = elem.replace('(SIMBAD) ', 'class:')
-                elif elem.startswith('(Fink)'):
-                    elem = elem.replace('(Fink) ', 'class:')
-                elif elem == 'Unknown':
+                else:
                     # prepend class:
                     elem = 'class:' + elem
                 columns += ',{}'.format(elem)
