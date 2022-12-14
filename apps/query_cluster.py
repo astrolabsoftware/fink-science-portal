@@ -349,9 +349,12 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         """
         total, count = estimate_alert_number(date_range_picker, class_select)
 
-        if count < 100000:
+        if count < 250000:
             icon = "codicon:check"
             color = 'green'
+        elif count > 10000000:
+            icon = "emojione-v1:face-screaming-in-fear"
+            color = "red"
         else:
             icon = "codicon:flame"
             color = 'orange'
