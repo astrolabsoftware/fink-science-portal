@@ -318,8 +318,12 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         alerts before hitting submission! Note that the estimation takes into account
         the days requested and the classes, but not the extra conditions.
         """
+        count, coeffs = estimate_alert_number(date_range_picker, class_select)
         block = dmc.Blockquote(
-            "Estimated number of alerts: {:,}".format(estimate_alert_number(date_range_picker, class_select)),
+            "Estimated number of alerts: {:,} ({:.2f}%)".format(
+                int(count * coeffs),
+                coeffs * 100
+            ),
             cite=msg,
             icon=[DashIconify(icon="codicon:flame", width=30)],
             color="red",
