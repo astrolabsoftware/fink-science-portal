@@ -367,33 +367,47 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             icon=[DashIconify(icon=icon, width=30)],
             color=color,
         )
-        buttons = dmc.Group(
-            [
-                dmc.Button(
-                    "Submit job",
-                    id='submit_datatransfer',
-                    variant="outline",
-                    color='indigo',
-                    leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
-                ),
-                dmc.Button(
-                    "Test job (LIMIT 10)",
-                    id='submit_datatransfer_test',
-                    variant="outline",
-                    color='orange',
-                    leftIcon=[DashIconify(icon="fluent:battery-2-24-regular")],
-                ),
-            ]
-        )
         tab = html.Div(
             [
                 dmc.Space(h=10),
                 dmc.Divider(variant="solid", label='Submit'),
-                block,
-                buttons
+                block
             ],
         )
         return tab
+
+def make_buttons():
+    buttons = dmc.Group(
+        [
+            dmc.Button(
+                "Submit job",
+                id='submit_datatransfer',
+                variant="outline",
+                color='indigo',
+                leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
+            ),
+            dmc.Button(
+                "Test job (LIMIT 10)",
+                id='submit_datatransfer_test',
+                variant="outline",
+                color='orange',
+                leftIcon=[DashIconify(icon="fluent:battery-2-24-regular")],
+            ),
+        ]
+    )
+    return buttons
+
+@app.callback(
+    Output("transfer_buttons", "style"),
+    [
+        Input('trans_content', 'value')
+    ], prevent_initial_call=True
+)
+def update_make_buttons(trans_content):
+    if trans_content is None:
+        PreventUpdate
+    else:
+        return {}
 
 @app.callback(
     Output("submit_datatransfer", "disabled"),
@@ -462,6 +476,7 @@ def layout(is_mobile):
     qb = query_builder()
     ft = filter_tab()
     ct = content_tab()
+    btns = make_buttons()
     layout_ = html.Div(
         [
             html.Br(),
@@ -483,7 +498,7 @@ def layout(is_mobile):
                             ct,
                             html.Div(id='summary_tab'),
                             dmc.Space(h=10),
-                            html.Div(id='streaming_info')
+                            html.Div(btns, id='transfer_buttons', style={'display': 'none'})
                         ],
                         width=8)
                 ],
