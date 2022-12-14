@@ -312,7 +312,7 @@ def estimate_alert_number(date_range_picker, class_select):
                         # we do not apply any coefficients.
                         dic[elem] = 0
                     else:
-                        dic[elem] = int(dic['basic:sci'] * coeffs_per_class[filt]['coeff'].values[0])
+                        dic[elem.replace('(TNS) ', 'class:')] = int(dic['basic:sci'] * coeffs_per_class[filt]['coeff'].values[0])
             count = np.sum([i[1] for i in dic.items() if 'class:' in i[0]])
         else:
             # allclasses mean all alerts
