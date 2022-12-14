@@ -361,10 +361,11 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             [
                 dmc.Button(
                     "Submit job",
+                    color='indigo',
                     leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
                 ),
                 dmc.Button(
-                    "Test (LIMIT 10)",
+                    "Test job (LIMIT 10)",
                     variant="outline",
                     color='orange',
                     leftIcon=[DashIconify(icon="fluent:battery-2-24-regular")],
