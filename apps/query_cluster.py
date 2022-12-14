@@ -414,7 +414,15 @@ def submit_job(n_clicks):
         d = datetime.utcnow()
 
         topic_name = '{}_{}_livyuser'.format(d.date().isoformat(), d.microsecond)
-        text = dmc.Text("Your topic name is {}".format(topic_name))
+        msg = "See an example on how to retrieve your data [here]()."
+        text = dmc.Blockquote(
+            "Your topic name is: {}".format(
+                topic_name
+            ),
+            cite=msg,
+            icon=[DashIconify(icon="system-uicons:pull-down", width=30)],
+            color="green",
+        )
         return True, True, text
     else:
         return False, False, ""
@@ -469,6 +477,7 @@ def layout(is_mobile):
                             ft,
                             ct,
                             html.Div(id='summary_tab'),
+                            dmc.Space(h=10),
                             html.Div(id='streaming_info')
                         ],
                         width=8)
