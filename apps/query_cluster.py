@@ -461,7 +461,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             return True, True, text
 
         # submit the job
-        filepath = 'hdfs://user/{}/{}'.format(input_args['USER'], filename)
+        filepath = 'hdfs:///user/{}/{}'.format(input_args['USER'], filename)
         batchid, status_code, spark_log = submit_spark_job(input_args['LIVYHOST'], filepath, input_args['SPARKCONF'])
 
         if status_code != 201:
