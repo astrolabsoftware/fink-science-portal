@@ -21,11 +21,13 @@ from dash_iconify import DashIconify
 
 from app import app
 from app import APIURL
+from apps.mining.utils import upload_file_hdfs, submit_spark_job
 
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta, date
 import requests
+import yaml
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -430,12 +432,37 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
     """ Submit a job to the Apache Spark cluster via Livy
     """
     if n_clicks or n_clicks_test:
-        # Livy magic
-
-        # topic name
+        # define unique topic name
         d = datetime.utcnow()
         topic_name = '{}_{}_livyuser'.format(d.date().isoformat(), d.microsecond)
-        msg = "See an example on how to retrieve your data [here](). You will need to refresh the page if you want to resubmit a job."
+
+        code = """
+        import numpy as np
+        """
+
+        filename = 'stream_{}.py'.format(topic_name)
+        input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
+        status_code, hdfs_log = upload_file_hdfs(
+            code,
+            input_args['WEBHDFS'],
+            input_args['NAMENODE'],
+            input_args['USER'],
+            filename
+        )
+
+        if status_code != 201:
+            text = "[Status code {}] Unable to upload resources on HDFS, with error: {}. Contact an administrator at contact@fink-broker.org.".format(status_code, hdfs_log)
+            return True, True, text
+
+        # submit the job
+        filepath = 'hdfs://user/{}/{}'.format(input_args['USER'], filename)
+        batchid, status_code, spark_log = submit_spark_job(input_args['LIVYHOST'], filepath, input_args['SPARKCONF'])
+
+        if status_code != 200:
+            text = "[Batch ID {}][Status code {}] Unable to upload resources on HDFS, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
+            return True, True, text
+
+        msg = "See an example on how to retrieve your data [here](). You will need to refresh the page, or open a new page if you want to resubmit a job."
         text = dmc.Blockquote(
             "Your topic name is: {}".format(
                 topic_name
