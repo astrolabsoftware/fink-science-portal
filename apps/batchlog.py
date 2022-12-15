@@ -32,7 +32,11 @@ def update_log(n_clicks, pathname):
     if n_clicks:
         batchid = pathname.split('/batch/')[-1]
         response = requests.get('http://134.158.75.222:21111/batches/{}/log'.format(batchid))
-        output = html.Div(response.text)
+
+        if 'log' in response.json():
+            output = html.Div('\n'.join(response.json()['log']))
+        elif 'msg' in response.json():
+            output = html.Div(response.text)
         return output
 
 def layout(path, is_mobile):
