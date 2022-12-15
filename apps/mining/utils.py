@@ -80,7 +80,7 @@ def submit_spark_job(livyhost, filename, spark_conf):
     'file': filename
     }
     response = requests.post(
-        livyhost + '/batches',
+        'http://' + livyhost + '/batches',
         data=json.dumps(data),
         headers=headers
     )
