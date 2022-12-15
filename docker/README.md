@@ -1,7 +1,7 @@
 # Dockerfile's Tutorial
 Here is the Docker tutorial to develop your containers on your local machines.
 
-Make sure you have docker installed : [https://docs.docker.com/get-docker/] (https://docs.docker.com/get-docker/)
+Make sure you have docker installed : https://docs.docker.com/get-docker/
 
 
 ## Develop your Docker
@@ -18,7 +18,7 @@ Enter in this new Directory.
 cd fink-science-portal
 ```
 
-### build your Docker image
+## build your Docker image
 
 To build a docker image, you should use `sudo docker build -f <path/to/Dockerfile> -t <image name> <path destination of your image>`
 
@@ -37,7 +37,7 @@ sudo docker images
 
 
 
-### Run your docker
+## Run your docker
 
 This is the documentation in order to run a command in a new container.
 
@@ -61,7 +61,21 @@ ls -ltha
 sudo rm .bash_history
 ```
 
-### Share modifications of your Docker
+Enter `exit` to get out of the container.
+
+To stop and remove your container, type `sudo docker rm -f <id_of_container>`.
+
+
+##
+
+## Share modifications of your Docker
+
+To see all the modifications of your folder, type `git status`.
+
+And to edit theses changes, enter :
+```bash
+git add docker <file> .
+```
 
 ```bash
 git commit -m "new modifications of your dockerfile"
@@ -75,10 +89,10 @@ To push this modifications on the server:
 git push
 ```
 
-#### Additionnal Supports
+### Additionnal Supports
 
-[https://docs.docker.com/engine/reference/commandline/build/] (https://docs.docker.com/engine/reference/commandline/build/) 
+https://docs.docker.com/engine/reference/commandline/build/ 
 
-[https://docs.docker.com/engine/reference/commandline/run/] (https://docs.docker.com/engine/reference/commandline/run/)
+https://docs.docker.com/engine/reference/commandline/run/
 
-[https://docs.docker.com/engine/reference/commandline/images/] (https://docs.docker.com/engine/reference/commandline/images/)
+https://docs.docker.com/engine/reference/commandline/images/
