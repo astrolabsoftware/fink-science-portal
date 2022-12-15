@@ -468,7 +468,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             text = "[Batch ID {}][Status code {}] Unable to submit job on the Spark cluster, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
             return True, True, text
 
-        msg = "See an example on how to retrieve your data [here](). You will need to refresh the page, or open a new page if you want to resubmit a job."
+        msg = "Log information can be found at {}/batch/{}. See an example on how to retrieve your data [here](). You will need to refresh the page, or open a new page if you want to resubmit a job.".format(APIURL, batchid)
         text = dmc.Blockquote(
             "Your topic name is: {}".format(
                 topic_name
