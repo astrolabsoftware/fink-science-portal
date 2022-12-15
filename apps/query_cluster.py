@@ -436,9 +436,14 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
         d = datetime.utcnow()
         topic_name = '{}_{}_livyuser'.format(d.date().isoformat(), d.microsecond)
 
-        code = """
-        import numpy as np
-        """
+        code = textwrap.dedent(
+            """
+            from pyspark.sql import SparkSession
+            spark = SparkSession.builder.getOrCreate()
+            df = spark.read.format('parquet').load('/user/julien.peloton/archive/science/year=2022/month=12/day=11')
+            df.count()
+            """
+        )
 
         filename = 'stream_{}.py'.format(topic_name)
         input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
@@ -458,8 +463,8 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
         filepath = 'hdfs://user/{}/{}'.format(input_args['USER'], filename)
         batchid, status_code, spark_log = submit_spark_job(input_args['LIVYHOST'], filepath, input_args['SPARKCONF'])
 
-        if status_code != 200:
-            text = "[Batch ID {}][Status code {}] Unable to upload resources on HDFS, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
+        if status_code != 201:
+            text = "[Batch ID {}][Status code {}] Unable to submit job on the Spark cluster, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
             return True, True, text
 
         msg = "See an example on how to retrieve your data [here](). You will need to refresh the page, or open a new page if you want to resubmit a job."
