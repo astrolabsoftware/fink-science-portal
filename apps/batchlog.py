@@ -34,7 +34,7 @@ def update_log(n_clicks, pathname):
         response = requests.get('http://134.158.75.222:21111/batches/{}/log'.format(batchid))
 
         if 'log' in response.json():
-            output = html.Div('\n'.join(response.json()['log']))
+            output = html.Div('\n'.join(response.json()['log']), style={'whiteSpace': 'pre-wrap'})
         elif 'msg' in response.json():
             output = html.Div(response.text)
         return output
