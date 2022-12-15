@@ -74,7 +74,7 @@ To see all the modifications of your folder, type `git status`.
 
 And to edit theses changes, enter :
 ```bash
-git add docker <file> .
+git add docker docker/Dockerfile .
 ```
 
 ```bash
