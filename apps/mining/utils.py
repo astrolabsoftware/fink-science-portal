@@ -87,7 +87,7 @@ def submit_spark_job(livyhost, filename, spark_conf):
 
     batchid = response.json()['id']
 
-    if status_code != 200:
+    if response.status_code != 200:
         print('Batch ID {}'.format(batchid))
         print('Status code: {}'.format(response.status_code))
         print('Log: {}'.format(response.text))
