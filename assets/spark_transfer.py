@@ -10,6 +10,7 @@ from fink_filters.classification import extract_fink_classification
 
 from time import time
 import pandas as pd
+import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
