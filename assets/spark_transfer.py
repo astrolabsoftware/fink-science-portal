@@ -1,6 +1,7 @@
 from pyspark import SparkContext
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.column import Column, _to_java_column
+import pyspark.sql.functions as F
 from pyspark.sql.functions import struct, lit
 from pyspark.sql.functions import pandas_udf, PandasUDFType
 from pyspark.sql.types import StringType
