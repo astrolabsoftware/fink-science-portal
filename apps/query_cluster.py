@@ -356,6 +356,17 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
 
         sizeGb = estimate_size_gb(trans_content)
 
+        if count == 0:
+            icon = 'codicon:chrome-close'
+            color = 'black'
+            msg_title = 'No alerts found. Try to update your criteria.'
+        else:
+            msg_title = "Estimated number of alerts: {:,} ({:.2f}%) or {:.2f} GB".format(
+                int(count),
+                count / total * 100,
+                count * sizeGb
+            ),
+
         if count < 250000:
             icon = "codicon:check"
             color = 'green'
@@ -366,11 +377,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             icon = "codicon:flame"
             color = 'orange'
         block = dmc.Blockquote(
-            "Estimated number of alerts: {:,} ({:.2f}%) or {:.2f} GB".format(
-                int(count),
-                count / total * 100,
-                count * sizeGb
-            ),
+            msg_title,
             cite=msg,
             icon=[DashIconify(icon=icon, width=30)],
             color=color,
