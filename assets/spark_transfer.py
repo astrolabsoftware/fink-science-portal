@@ -230,7 +230,7 @@ def generate_spark_paths(startDate, stopDate, basePath):
     paths: list of str
         List of paths
     """
-    endPath = '/science/year={}/month={}/day={}'
+    endPath = '/year={}/month={}/day={}'
 
     if startDate == stopDate:
         # easy case -- one night
