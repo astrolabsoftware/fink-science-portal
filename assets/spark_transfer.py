@@ -213,13 +213,15 @@ def check_path_exist(dateToCheck):
     else:
         return True
 
-def generate_spark_paths(dates, basePath):
+def generate_spark_paths(startDate, stopDate, basePath):
     """ Generate individual data paths
 
     Parameters
     ----------
-    dates: list of str
-        [startdate, stopdate] in the format YYYY-MM-DD
+    startDate: str
+        YYYY-MM-DD
+    stopDate: str
+        YYYY-MM-DD
     basePath: str
         HDFS basepath for the data
 
@@ -229,8 +231,6 @@ def generate_spark_paths(dates, basePath):
         List of paths
     """
     endPath = '/science/year={}/month={}/day={}'
-    startDate = dates[0]
-    stopDate = dates[1]
 
     if startDate == stopDate:
         # easy case -- one night
@@ -255,7 +255,7 @@ def generate_spark_paths(dates, basePath):
 def main(args):
     spark = SparkSession.builder.getOrCreate()
 
-    paths = generate_spark_paths(args.dates, args.basePath)
+    paths = generate_spark_paths(args.startDate, args.stopDate, args.basePath)
     if paths == []:
         spark.stop()
         sys.exit(1)
@@ -337,9 +337,10 @@ if __name__ == "__main__":
     """ Execute the test suite """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-dates', nargs=2)
-    parser.add_argument('-fclass', nargs='*')
-    parser.add_argument('-extraCond', nargs='*')
+    parser.add_argument('-startDate')
+    parser.add_argument('-stopDate')
+    parser.add_argument('-fclass', action='append')
+    parser.add_argument('-extraCond', action='append')
     parser.add_argument('-content')
     parser.add_argument('-basePath')
     parser.add_argument('-topic_name')
