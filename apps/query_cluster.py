@@ -22,6 +22,7 @@ from dash_iconify import DashIconify
 from app import app
 from app import APIURL
 from apps.mining.utils import upload_file_hdfs, submit_spark_job
+from apps.mining.utils import estimate_size_gb
 
 import numpy as np
 import pandas as pd
@@ -143,7 +144,7 @@ def filter_tab():
             dmc.DateRangePicker(
                 id="date-range-picker",
                 label="Date Range",
-                description="Pick up start and stop dates (included), with a maximum of 14 nights allowed.",
+                description="Pick up start and stop dates (included).",
                 minDate=date(2019, 11, 1),
                 maxDate=date.today(),
                 value=None,
@@ -156,7 +157,7 @@ def filter_tab():
             dmc.Space(h=10),
             dmc.MultiSelect(
                 label="Alert class",
-                description="Select all classes you like!",
+                description="Select all classes you like! Default is all classes.",
                 placeholder="start typing...",
                 id="class_select",
                 value=None,
@@ -348,9 +349,12 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         You are about to submit a streaming job on our Apache Spark cluster.
         Review your parameters, and take into account the estimated number of
         alerts before hitting submission! Note that the estimation takes into account
-        the days requested and the classes, but not the extra conditions.
+        the days requested and the classes, but not the extra conditions (which could reduce the
+        number of alerts).
         """
         total, count = estimate_alert_number(date_range_picker, class_select)
+
+        sizeGb = estimate_size_gb(trans_content)
 
         if count < 250000:
             icon = "codicon:check"
@@ -362,9 +366,10 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             icon = "codicon:flame"
             color = 'orange'
         block = dmc.Blockquote(
-            "Estimated number of alerts: {:,} ({:.2f}%)".format(
+            "Estimated number of alerts: {:,} ({:.2f}%) or {:.2f} GB".format(
                 int(count),
-                count / total * 100
+                count / total * 100,
+                count * sizeGb
             ),
             cite=msg,
             icon=[DashIconify(icon=icon, width=30)],
