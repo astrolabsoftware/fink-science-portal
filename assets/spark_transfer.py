@@ -397,7 +397,7 @@ def main(args):
 
     # save schema
     path_for_avro = 'new_schema_{}.avro'.format(time())
-    df.limit(1).write.format("avro").save(path_for_avro)
+    df.coalesce(1).limit(1).write.format("avro").save(path_for_avro)
 
     # retrieve data on local disk
     subprocess.run(["hdfs", "dfs", '-get', path_for_avro])
