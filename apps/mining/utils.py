@@ -14,7 +14,6 @@
 # limitations under the License.
 import requests
 import json
-import textwrap
 
 def upload_file_hdfs(code, webhdfs, namenode, user, filename):
     """ Upload a file to HDFS
@@ -111,15 +110,3 @@ def estimate_size_gb(trans_content):
         sizeGb = 55. / 1024 / 1024
 
     return sizeGb
-
-def generate_spark_code():
-    """
-    """
-    code = textwrap.dedent(
-        """
-        from pyspark.sql import SparkSession
-        spark = SparkSession.builder.getOrCreate()
-        df = spark.read.format('parquet').load('/user/julien.peloton/archive/science/year=2022/month=12/day=11')
-        df.count()
-        """
-    )
