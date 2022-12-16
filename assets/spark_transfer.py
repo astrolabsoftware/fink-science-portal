@@ -366,7 +366,7 @@ def main(args):
     # need fclass and extra conditions
     if args.fclass is not None:
         if args.fclass != []:
-            sanitized_fclass = [i.replace('(SIMBAD) ', '')]
+            sanitized_fclass = [i.replace('(SIMBAD) ', '') for i in args.fclass]
             df = df.filter(df['fclass'].isin(sanitized_fclass))
 
     if args.extraCond is not None:
