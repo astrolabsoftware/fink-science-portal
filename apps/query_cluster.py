@@ -367,7 +367,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
 
         if count == 0:
             icon = 'codicon:chrome-close'
-            color = 'black'
+            color = 'gray'
         elif count < 250000:
             icon = "codicon:check"
             color = 'green'
