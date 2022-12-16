@@ -355,6 +355,7 @@ def main(args):
 
     paths = generate_spark_paths(args.startDate, args.stopDate, args.basePath)
     if paths == []:
+        print('No data found in between {} and {}'.format(args.startDate, args.stopDate))
         spark.stop()
         sys.exit(1)
 
