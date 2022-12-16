@@ -357,8 +357,6 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         sizeGb = estimate_size_gb(trans_content)
 
         if count == 0:
-            icon = 'codicon:chrome-close'
-            color = 'black'
             msg_title = 'No alerts found. Try to update your criteria.'
         else:
             msg_title = "Estimated number of alerts: {:,} ({:.2f}%) or {:.2f} GB".format(
@@ -367,7 +365,10 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
                 count * sizeGb
             ),
 
-        if count < 250000:
+        if count == 0:
+            icon = 'codicon:chrome-close'
+            color = 'black'
+        elif count < 250000:
             icon = "codicon:check"
             color = 'green'
         elif count > 10000000:
