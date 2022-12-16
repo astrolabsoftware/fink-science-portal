@@ -440,16 +440,11 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
     if n_clicks or n_clicks_test:
         # define unique topic name
         d = datetime.utcnow()
-        topic_name = '{}_{}_livyuser'.format(d.date().isoformat(), d.microsecond)
+        topic_name = 'ftransfer_{}_{}'.format(d.date().isoformat(), d.microsecond)
 
-        code = textwrap.dedent(
-            """
-            from pyspark.sql import SparkSession
-            spark = SparkSession.builder.getOrCreate()
-            df = spark.read.format('parquet').load('/user/julien.peloton/archive/science/year=2022/month=12/day=11')
-            df.count()
-            """
-        )
+        with open('assets/spark_transfer.py', 'r') as f:
+            data = f.read()
+        code = textwrap.dedent(data)
 
         filename = 'stream_{}.py'.format(topic_name)
         input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
@@ -465,9 +460,35 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             text = "[Status code {}] Unable to upload resources on HDFS, with error: {}. Contact an administrator at contact@fink-broker.org.".format(status_code, hdfs_log)
             return True, True, text
 
+        # get the job args
+        job_args = [
+            '-startDate={}'.format(date_range_picker[0]),
+            '-stopDate={}'.format(date_range_picker[1]),
+            '-content={}'.format(trans_content),
+            '-basePath=/user/julien.peloton/archive/science',
+            '-topic_name={}'.format(topic_name),
+            '-kafka_bootstrap_servers={}'.format(input_args['KAFKA_BOOTSTRAP_SERVERS']),
+            '-kafka_sasl_username={}'.format(input_args['KAFKA_SASL_USERNAME']),
+            '-kafka_sasl_password={}'.format(input_args['KAFKA_SASL_PASSWORD']),
+            '-path_to_tns=/spark_mongo_tmp/julien.peloton/tns.parquet'
+        ]
+        if class_select is not None:
+            for elem in class_select:
+                job_args.append('-fclass={}'.format(elem))
+
+        if extra_cond is not None:
+            extra_cond_list = extra_cond.split(';')
+            for elem in extra_cond_list:
+                job_args.append('-extraCond={}'.format(elem.strip()))
+
         # submit the job
         filepath = 'hdfs:///user/{}/{}'.format(input_args['USER'], filename)
-        batchid, status_code, spark_log = submit_spark_job(input_args['LIVYHOST'], filepath, input_args['SPARKCONF'])
+        batchid, status_code, spark_log = submit_spark_job(
+            input_args['LIVYHOST'],
+            filepath,
+            input_args['SPARKCONF'],
+            job_args
+        )
 
         if status_code != 201:
             text = "[Batch ID {}][Status code {}] Unable to submit job on the Spark cluster, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
