@@ -45,7 +45,6 @@ def layout(path, is_mobile):
             html.Br(),
             html.Br(),
             html.Br(),
-            html.Br(),
             dmc.Button("Update log", id='update_batch_log', color='orange'),
             html.Div(id='batch_log')
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
