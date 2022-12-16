@@ -57,7 +57,7 @@ def upload_file_hdfs(code, webhdfs, namenode, user, filename):
 
     return status_code, text
 
-def submit_spark_job(livyhost, filename, spark_conf):
+def submit_spark_job(livyhost, filename, spark_conf, job_args):
     """ Submit a job on the Spark cluster via Livy (batch mode)
 
     Parameters
@@ -69,6 +69,9 @@ def submit_spark_job(livyhost, filename, spark_conf):
         hdfs://<path>/<filename>
     spark_conf: dict
         Dictionary with Spark configuration
+    job_args: list of str
+        Arguments for the Spark job in the form
+        ['-arg1=val1', '-arg2=val2', ...]
 
     Returns
     ----------
@@ -77,7 +80,8 @@ def submit_spark_job(livyhost, filename, spark_conf):
 
     data = {
     'conf': spark_conf,
-    'file': filename
+    'file': filename,
+    'args': job_args
     }
     response = requests.post(
         'http://' + livyhost + '/batches',
