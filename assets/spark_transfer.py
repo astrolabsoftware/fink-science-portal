@@ -368,9 +368,11 @@ def main(args):
 
     if args.extraCond is not None:
         for cond in args.extraCond:
-            if cond in df.columns:
+            inRoot = np.any([i in cond for i in df.columns])
+            inCandidate = np.any([i in cond for i in df.select('candidate.*').columns])
+            if inRoot:
                 df = df.filter(cond)
-            elif cond in df.select('candidate.*').columns:
+            elif inCandidate:
                 df = df.filter('candidate.' + cond)
             else:
                 continue
@@ -406,7 +408,6 @@ def main(args):
     # Write the schema to a file for decoding Kafka messages
     with open('/tmp/{}'.format(path_for_avro.replace('.avro', '.avsc')), 'w') as f:
         json.dump(avro_schema, f, indent=2)
-
 
     # reload the schema
     with open('/tmp/{}'.format(path_for_avro.replace('.avro', '.avsc')), 'r') as f:
