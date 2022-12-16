@@ -24,48 +24,7 @@ import subprocess
 import argparse
 import requests
 
-@pandas_udf(StringType(), PandasUDFType.SCALAR)
-def crossmatch_with_tns(objectid, ra, dec):
-    # TNS
-    pdf = pdf_tns_filt_b.value
-    ra2, dec2, type2 = pdf['ra'], pdf['declination'], pdf['type']
-
-    # create catalogs
-    catalog_ztf = SkyCoord(
-        ra=np.array(ra, dtype=np.float) * u.degree,
-        dec=np.array(dec, dtype=np.float) * u.degree
-    )
-    catalog_tns = SkyCoord(
-        ra=np.array(ra2, dtype=np.float) * u.degree,
-        dec=np.array(dec2, dtype=np.float) * u.degree
-    )
-
-    # cross-match
-    idx, d2d, d3d = catalog_tns.match_to_catalog_sky(catalog_ztf)
-
-    sub_pdf = pd.DataFrame({
-        'objectId': objectid.values,
-        'ra': ra.values,
-        'dec': dec.values,
-    })
-
-    # cross-match
-    idx2, d2d2, d3d2 = catalog_ztf.match_to_catalog_sky(catalog_tns)
-
-    # set separation length
-    sep_constraint2 = d2d2.degree < 1.5 / 3600
-
-    sub_pdf['TNS'] = ['Unknown'] * len(sub_pdf)
-    sub_pdf['TNS'][sep_constraint2] = type2.values[idx2[sep_constraint2]]
-
-    to_return = objectid.apply(
-        lambda x: 'Unknown' if x not in sub_pdf['objectId'].values
-        else sub_pdf['TNS'][sub_pdf['objectId'] == x].values[0]
-    )
-
-    return to_return
-
-def add_classification(df):
+def add_classification(spark, df, path_to_tns):
     """
     """
     # extract Fink classification
@@ -87,6 +46,50 @@ def add_classification(df):
             df['tracklet']
         )
     )
+
+    pdf_tns_filt = pd.read_parquet(path_to_tns)
+    pdf_tns_filt_b = spark.sparkContext.broadcast(pdf_tns_filt)
+
+    @pandas_udf(StringType(), PandasUDFType.SCALAR)
+    def crossmatch_with_tns(objectid, ra, dec):
+        # TNS
+        pdf = pdf_tns_filt_b.value
+        ra2, dec2, type2 = pdf['ra'], pdf['declination'], pdf['type']
+
+        # create catalogs
+        catalog_ztf = SkyCoord(
+            ra=np.array(ra, dtype=np.float) * u.degree,
+            dec=np.array(dec, dtype=np.float) * u.degree
+        )
+        catalog_tns = SkyCoord(
+            ra=np.array(ra2, dtype=np.float) * u.degree,
+            dec=np.array(dec2, dtype=np.float) * u.degree
+        )
+
+        # cross-match
+        idx, d2d, d3d = catalog_tns.match_to_catalog_sky(catalog_ztf)
+
+        sub_pdf = pd.DataFrame({
+            'objectId': objectid.values,
+            'ra': ra.values,
+            'dec': dec.values,
+        })
+
+        # cross-match
+        idx2, d2d2, d3d2 = catalog_ztf.match_to_catalog_sky(catalog_tns)
+
+        # set separation length
+        sep_constraint2 = d2d2.degree < 1.5 / 3600
+
+        sub_pdf['TNS'] = ['Unknown'] * len(sub_pdf)
+        sub_pdf['TNS'][sep_constraint2] = type2.values[idx2[sep_constraint2]]
+
+        to_return = objectid.apply(
+            lambda x: 'Unknown' if x not in sub_pdf['objectId'].values
+            else sub_pdf['TNS'][sub_pdf['objectId'] == x].values[0]
+        )
+
+        return to_return
 
     df = df.withColumn(
         'tns',
@@ -356,9 +359,7 @@ def main(args):
 
     df = spark.read.format('parquet').option('basePath', args.basePath).load(paths)
 
-    pdf_tns_filt = pd.read_parquet(args.path_to_tns)
-    pdf_tns_filt_b = spark.sparkContext.broadcast(pdf_tns_filt)
-    df = add_classification(df)
+    df = add_classification(spark, df, args.path_to_tns)
 
     # need fclass and extra conditions
     if args.fclass is not None:
