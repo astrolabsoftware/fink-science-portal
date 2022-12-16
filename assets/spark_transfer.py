@@ -1,10 +1,17 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.column import Column, _to_java_column
-from pyspark.sql import DataFrame
-from pyspark.sql.functions import struct, lit
 from pyspark import SparkContext
+from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql.column import Column, _to_java_column
+from pyspark.sql.functions import struct, lit
+from pyspark.sql.functions import pandas_udf, PandasUDFType
+from pyspark.sql.types import StringType
+
+from fink_filters.classification import extract_fink_classification
+
 from time import time
 import pandas as pd
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+
 import io
 import os
 import glob
@@ -15,6 +22,89 @@ import sys
 import subprocess
 import argparse
 import requests
+
+@pandas_udf(StringType(), PandasUDFType.SCALAR)
+def crossmatch_with_tns(objectid, ra, dec):
+    # TNS
+    pdf = pdf_tns_filt_b.value
+    ra2, dec2, type2 = pdf['ra'], pdf['declination'], pdf['type']
+
+    # create catalogs
+    catalog_ztf = SkyCoord(
+        ra=np.array(ra, dtype=np.float) * u.degree,
+        dec=np.array(dec, dtype=np.float) * u.degree
+    )
+    catalog_tns = SkyCoord(
+        ra=np.array(ra2, dtype=np.float) * u.degree,
+        dec=np.array(dec2, dtype=np.float) * u.degree
+    )
+
+    # cross-match
+    idx, d2d, d3d = catalog_tns.match_to_catalog_sky(catalog_ztf)
+
+    sub_pdf = pd.DataFrame({
+        'objectId': objectid.values,
+        'ra': ra.values,
+        'dec': dec.values,
+    })
+
+    # cross-match
+    idx2, d2d2, d3d2 = catalog_ztf.match_to_catalog_sky(catalog_tns)
+
+    # set separation length
+    sep_constraint2 = d2d2.degree < 1.5 / 3600
+
+    sub_pdf['TNS'] = ['Unknown'] * len(sub_pdf)
+    sub_pdf['TNS'][sep_constraint2] = type2.values[idx2[sep_constraint2]]
+
+    to_return = objectid.apply(
+        lambda x: 'Unknown' if x not in sub_pdf['objectId'].values
+        else sub_pdf['TNS'][sub_pdf['objectId'] == x].values[0]
+    )
+
+    return to_return
+
+def add_classification(df):
+    """
+    """
+    # extract Fink classification
+    df = df.withColumn(
+        'finkclass',
+        extract_fink_classification(
+            df['cdsxmatch'],
+            df['roid'],
+            df['mulens'],
+            df['snn_snia_vs_nonia'],
+            df['snn_sn_vs_all'],
+            df['rf_snia_vs_nonia'],
+            df['candidate.ndethist'],
+            df['candidate.drb'],
+            df['candidate.classtar'],
+            df['candidate.jd'],
+            df['candidate.jdstarthist'],
+            df['rf_kn_vs_nonkn'],
+            df['tracklet']
+        )
+    )
+
+    df = df.withColumn(
+        'tns',
+        crossmatch_with_tns(
+            df['objectId'],
+            df['candidate.ra'],
+            df['candidate.dec']
+        )
+    )
+
+    df = df.withColumn(
+        'fclass',
+        F.when(
+            df['tns'] != 'Unknown',
+            df['tns']
+        ).otherwise(df['finkclass'])
+    ).drop('finkclass').drop('tns')
+
+    return df
 
 def to_avro(dfcol: Column) -> Column:
     """Serialize the structured data of a DataFrame column into
@@ -255,6 +345,9 @@ def generate_spark_paths(startDate, stopDate, basePath):
 def main(args):
     spark = SparkSession.builder.getOrCreate()
 
+    # reduce Java verbosity
+    spark.sparkContext.setLogLevel("WARN")
+
     paths = generate_spark_paths(args.startDate, args.stopDate, args.basePath)
     if paths == []:
         spark.stop()
@@ -262,7 +355,22 @@ def main(args):
 
     df = spark.read.format('parquet').option('basePath', args.basePath).load(paths)
 
+    pdf_tns_filt = pd.read_parquet(args.path_to_tns)
+    pdf_tns_filt_b = spark.sparkContext.broadcast(pdf_tns_filt)
+    df = add_classification(df)
+
     # need fclass and extra conditions
+    if args.fclass is not None:
+        df = df.filter(df['fclass'].isin(args.fclass))
+
+    if args.extraCond is not None:
+        for cond in args.extraCond:
+            if cond in df.columns:
+                df = df.filter(cond)
+            elif cond in df.select('candidate.*').columns:
+                df = df.filter('candidate.' + cond)
+            else:
+                continue
 
     if args.content == 'Full packet':
         # Cast fields to ease the distribution
@@ -347,6 +455,7 @@ if __name__ == "__main__":
     parser.add_argument('-kafka_bootstrap_servers')
     parser.add_argument('-kafka_sasl_username')
     parser.add_argument('-kafka_sasl_password')
+    parser.add_argument('-path_to_tns')
 
     args = parser.parse_args()
     main(args)
