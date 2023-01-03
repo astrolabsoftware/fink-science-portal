@@ -502,6 +502,8 @@ def main(args):
         args.topic_name + '_schema'
     )
 
+    print('Starting sending data to topic {}'.format(args.topic_name))
+
     # Send data
     write_to_kafka(
         df,
