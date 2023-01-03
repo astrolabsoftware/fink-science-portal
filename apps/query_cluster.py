@@ -225,8 +225,8 @@ def content_tab():
                 id="trans_content",
                 data=[
                     {"value": "Lightcurve", "label": "Lightcurve (~1.4 KB/alert)"},
-                    {"value": "Full packet", "label": "Full packet (~55 KB/alert)"},
                     {"value": "Cutouts", "label": "Cutouts (~41 KB/alert)"},
+                    {"value": "Full packet", "label": "Full packet (~55 KB/alert)"},
                 ],
                 value=None,
                 label="Choose the content you want to retrieve",
