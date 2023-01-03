@@ -492,6 +492,8 @@ def main(args):
         )
     )
 
+    print('Initialising the schema...')
+
     # Send schema
     write_to_kafka(
         df_schema,
@@ -502,7 +504,7 @@ def main(args):
         args.topic_name + '_schema'
     )
 
-    print('Starting sending data to topic {}'.format(args.topic_name))
+    print('Starting to send data to topic {}'.format(args.topic_name))
 
     # Send data
     write_to_kafka(
@@ -514,7 +516,8 @@ def main(args):
         args.topic_name
     )
 
-    print('Done -- data ({}) available at topic: {}'.format(args.content, args.topic_name))
+    print('Done')
+    print('Data ({}) available at topic: {}'.format(args.content, args.topic_name))
 
 
 if __name__ == "__main__":
