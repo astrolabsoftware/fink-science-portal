@@ -61,7 +61,8 @@ class_colors = {
         'Ambiguous': 'grape',
         'Unknown': 'gray',
         'Simbad': 'blue',
-        'Solar System trajectory': "teal"
+        'Solar System trajectory': "teal",
+        'Solar System ephemeris' : 'darkred'
     }
 
 def format_hbase_output(
