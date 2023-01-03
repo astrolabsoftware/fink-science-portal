@@ -478,7 +478,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             '-kafka_bootstrap_servers={}'.format(input_args['KAFKA_BOOTSTRAP_SERVERS']),
             '-kafka_sasl_username={}'.format(input_args['KAFKA_SASL_USERNAME']),
             '-kafka_sasl_password={}'.format(input_args['KAFKA_SASL_PASSWORD']),
-            '-path_to_tns=/spark_mongo_tmp/julien.peloton/tns.parquet'
+            '-path_to_tns=/spark_mongo_tmp/julien.peloton/tns.parquet',
         ]
         if class_select is not None:
             for elem in class_select:
@@ -489,6 +489,8 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             for elem in extra_cond_list:
                 job_args.append('-extraCond={}'.format(elem.strip()))
 
+        if n_clicks_test:
+            job_args.append('--limit_output')
         # submit the job
         filepath = 'hdfs:///user/{}/{}'.format(input_args['USER'], filename)
         batchid, status_code, spark_log = submit_spark_job(
@@ -511,7 +513,10 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             icon=[DashIconify(icon="system-uicons:pull-down", width=30)],
             color="green",
         )
-        return True, True, text
+        if n_clicks:
+            return True, True, text
+        else:
+            return False, True, text
     else:
         return False, False, ""
 

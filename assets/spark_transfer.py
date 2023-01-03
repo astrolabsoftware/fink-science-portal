@@ -516,6 +516,9 @@ def main(args):
     print('Starting to send data to topic {}'.format(args.topic_name))
 
     # Send data
+    if args.limit_output:
+        df = df.coalesce(1).limit(10)
+
     write_to_kafka(
         df,
         lit(args.topic_name),
@@ -544,6 +547,7 @@ if __name__ == "__main__":
     parser.add_argument('-kafka_sasl_username')
     parser.add_argument('-kafka_sasl_password')
     parser.add_argument('-path_to_tns')
+    parser.add_argument('--limit_output', action='store_true', default=False)
 
     args = parser.parse_args()
     main(args)
