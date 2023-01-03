@@ -489,7 +489,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             for elem in extra_cond_list:
                 job_args.append('-extraCond={}'.format(elem.strip()))
 
-        if n_clicks_test:
+        if n_clicks_test and not (n_clicks is not None):
             job_args.append('--limit_output')
         # submit the job
         filepath = 'hdfs:///user/{}/{}'.format(input_args['USER'], filename)
