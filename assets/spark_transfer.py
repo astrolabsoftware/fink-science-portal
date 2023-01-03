@@ -101,14 +101,6 @@ def add_classification(spark, df, path_to_tns):
         )
     )
 
-    df = df.withColumn(
-        'fclass',
-        F.when(
-            df['tns'] != 'Unknown',
-            df['tns']
-        ).otherwise(df['finkclass'])
-    ).drop('finkclass').drop('tns')
-
     return df
 
 def to_avro(dfcol: Column) -> Column:
@@ -366,8 +358,21 @@ def main(args):
     # need fclass and extra conditions
     if args.fclass is not None:
         if args.fclass != []:
-            sanitized_fclass = [i.replace('(SIMBAD) ', '') for i in args.fclass]
-            df = df.filter(df['fclass'].isin(sanitized_fclass))
+            if 'allclasses' not in args.fclass:
+                tns_class = [i for i in args.fclass if i.startswith('(TNS)')]
+                other_class = [i for i in args.fclass if i not in tns_class]
+                sanitized_other_class = [i.replace('(SIMBAD) ', '') for i in other_class]
+
+                if tns_class != [] and sanitized_other_class != []:
+                    f1 = df['finkclass'].isin(sanitized_other_class)
+                    f2 = df['tns'].isin(tns_class)
+                    df = df.filter(f1 | f2)
+                elif tns_class != []:
+                    f1 = df['tns'].isin(tns_class)
+                    df = df.filter(f1)
+                elif sanitized_other_class != []:
+                    f1 = df['finkclass'].isin(sanitized_other_class)
+                    df = df.filter(f1)
 
     if args.extraCond is not None:
         for cond in args.extraCond:
