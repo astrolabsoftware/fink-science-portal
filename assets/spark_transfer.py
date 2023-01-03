@@ -512,6 +512,8 @@ def main(args):
         args.topic_name
     )
 
+    print('Done -- data ({}) available at topic: {}'.format(args.content, args.topic_name))
+
 
 if __name__ == "__main__":
     """ Execute the test suite """
