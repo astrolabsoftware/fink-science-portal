@@ -109,7 +109,7 @@ def estimate_size_gb(trans_content):
     if trans_content == 'Full packet':
         sizeGb = 55. / 1024 / 1024
     elif trans_content == 'Lightcurve':
-        sizeGb = 1.2 / 1024 / 1024
+        sizeGb = 1.4 / 1024 / 1024
     elif trans_content == 'Cutouts':
         sizeGb = 41. / 1024 / 1024
 
