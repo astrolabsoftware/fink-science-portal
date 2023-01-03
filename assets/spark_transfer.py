@@ -93,7 +93,7 @@ def add_classification(spark, df, path_to_tns):
         return to_return
 
     df = df.withColumn(
-        'tns',
+        'tnsclass',
         crossmatch_with_tns(
             df['objectId'],
             df['candidate.ra'],
@@ -365,10 +365,10 @@ def main(args):
 
                 if tns_class != [] and sanitized_other_class != []:
                     f1 = df['finkclass'].isin(sanitized_other_class)
-                    f2 = df['tns'].isin(tns_class)
+                    f2 = df['tnsclass'].isin(tns_class)
                     df = df.filter(f1 | f2)
                 elif tns_class != []:
-                    f1 = df['tns'].isin(tns_class)
+                    f1 = df['tnsclass'].isin(tns_class)
                     df = df.filter(f1)
                 elif sanitized_other_class != []:
                     f1 = df['finkclass'].isin(sanitized_other_class)
@@ -407,6 +407,8 @@ def main(args):
         ]
 
         cols_fink = [
+            'finkclass',
+            'tnsclass',
             'cdsxmatch',
             'roid',
             'mulens',
@@ -440,6 +442,8 @@ def main(args):
         ]
 
         cols_fink = [
+            'finkclass',
+            'tnsclass',
             'cdsxmatch',
             'roid',
             'mulens',
