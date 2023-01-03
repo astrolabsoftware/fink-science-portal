@@ -390,9 +390,74 @@ def main(args):
         cnames[cnames.index('prv_candidates')] = 'explode(array(prv_candidates)) as prv_candidates'
         cnames[cnames.index('candidate')] = 'struct(candidate.*) as candidate'
     elif args.content == 'Lightcurve':
-        pass
+        cnames = [
+            'objectId',
+            'candidate.candid',
+            'candidate.magpsf',
+            'candidate.sigmapsf',
+            'candidate.fid',
+            'candidate.jd',
+            'candidate.ra',
+            'candidate.dec'
+        ]
+
+        cols_fink = [
+            'cdsxmatch',
+            'roid',
+            'mulens',
+            'DR3Name',
+            'Plx',
+            'e_Plx',
+            'gcvs',
+            'vsx',
+            'snn_snia_vs_nonia',
+            'snn_sn_vs_all',
+            'rf_snia_vs_nonia',
+            'rf_kn_vs_nonkn',
+            'tracklet'
+        ]
+
+        for col in cols_fink:
+            # added values are at the root level
+            if col in df.columns:
+                cnames.append(col)
+
     elif args.content == 'Cutouts':
-        pass
+        cnames = [
+            'objectId',
+            'candidate.candid',
+            'candidate.magpsf',
+            'candidate.ra',
+            'candidate.dec',
+            'cutoutScience',
+            'cutoutTemplate',
+            'cutoutDifference'
+        ]
+
+        cols_fink = [
+            'cdsxmatch',
+            'roid',
+            'mulens',
+            'DR3Name',
+            'Plx',
+            'e_Plx',
+            'gcvs',
+            'vsx',
+            'snn_snia_vs_nonia',
+            'snn_sn_vs_all',
+            'rf_snia_vs_nonia',
+            'rf_kn_vs_nonkn',
+            'tracklet'
+        ]
+
+        for col in cols_fink:
+            # added values are at the root level
+            if col in df.columns:
+                cnames.append(col)
+
+        cnames[cnames.index('cutoutScience')] = 'struct(cutoutScience.*) as cutoutScience'
+        cnames[cnames.index('cutoutTemplate')] = 'struct(cutoutTemplate.*) as cutoutTemplate'
+        cnames[cnames.index('cutoutDifference')] = 'struct(cutoutDifference.*) as cutoutDifference'
 
     # Wrap alert data
     df = df.selectExpr(cnames)
