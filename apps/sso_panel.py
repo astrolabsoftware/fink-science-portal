@@ -466,11 +466,11 @@ def sso_identify(pdf_lc):
         ):
 
             assoc_str += """
-            1. Object name: {}
+            1. Object name: [{}](https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={})
                 - number of associated alerts: {}
                 - mean distance: {} arcsecond
             """.format(
-                ast_name, math.ceil(nb_assoc), np.round_(dist, decimals=2)
+                ast_name, ast_name.replace(" ", "+"), math.ceil(nb_assoc), np.round_(dist, decimals=2)
             )
 
         return dcc.Markdown(
@@ -578,7 +578,7 @@ def draw_new_ssocard(
         )
     )
 
-    # identification_info = sso_identify(pdf_lc)
+    identification_info = sso_identify(pdf_lc)
 
     return dmc.Paper(
         [
@@ -590,11 +590,11 @@ def draw_new_ssocard(
                     ),
                     dbc.Col(
                         dmc.Title(
-                            "{}".format(ssoCandId),
+                            dcc.Markdown(markdownify_objectid(ssoCandId, "trajid_{}".format(ssoCandId))),
                             order=1,
                             style={"color": "#15284F"},
                         ),
-                        width=1,
+                        #width=1,
                     ),
                 ],
                 justify="start",
@@ -607,7 +607,7 @@ def draw_new_ssocard(
                     dmc.AccordionItem(date_info, label="Date"),
                     dmc.AccordionItem(orbit_info, label="Orbit"),
                     dmc.AccordionItem(mag_info, label="Magnitude"),
-                    #dmc.AccordionItem(identification_info, label="Identification"),
+                    dmc.AccordionItem(identification_info, label="Identification"),
                 ],
             ),
         ],
@@ -646,14 +646,21 @@ def last_sso_list_component(orb_json):
 
     list_sso_paper += [html.Br()]
 
-    sso_news_component = dbc.Container(
+    sso_news_component = dbc.Card(
         [
-            dmc.Title("Solar System news", order=2, align="center"),
+            dbc.CardHeader(
+                "Solar System news", 
+                style={"text-align": "center", "font-weight": "bold", "font-size": "2vw"}),
             dbc.Container(
                 list_sso_paper,
-                style={"overflow": "scroll", "maxHeight": "600px", "maxWidth": "70%"},
+                style={
+                    "overflow": "scroll", 
+                    "maxHeight": "600px", 
+                    #"maxWidth": "70%"
+                    },
             ),
-        ]
+        ],
+        style={"padding": 0}
     )
 
     return sso_news_component
@@ -689,12 +696,12 @@ def layout(is_mobile):
             [
                 dbc.Tab(
                     html.Div(id="main_sso_panel"),
-                    label="Solar System Candidate table",
+                    label="SSOCands Explorer",
                     label_style=label_style,
                 ),
                 dbc.Tab(
                     html.Div(id="ae_distrib"),  # edit props
-                    label="a/e distribution",
+                    label="Distribution Explorer",
                     label_style=label_style,
                 ),
             ]

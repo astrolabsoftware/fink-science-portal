@@ -1196,6 +1196,13 @@ navbar = dmc.Header(
                                         size="sm",
                                         color="gray",
                                     ),
+                                    dmc.Anchor(
+                                        'Solar System Candidates',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/ssocand',
+                                        size="sm",
+                                        color="gray",
+                                    ),
                                 ],
                                 grow=True,
                                 position="left",
@@ -1268,24 +1275,7 @@ navbar = dmc.Header(
                                 spacing="sm",
                                 direction="column",
                                 style={"paddingLeft": 30, "paddingRight": 20},
-                            ),
-                            html.A(
-                                dmc.Tooltip(
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="fa-solid:meteor",
-                                            width=22,
-                                        ),
-                                        radius=30,
-                                        size=36,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    label="SSO",
-                                    position="bottom",
-                                ),
-                                href="{}/ssocand".format(APIURL),
-                            ),
+                            )
                         ],
                         title="Fink Science Portal",
                         id="drawer",
