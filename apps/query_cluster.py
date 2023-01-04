@@ -580,11 +580,11 @@ def layout(is_mobile):
                             html.Br(),
                             html.Div(id='timeline_data_transfer'),
                             html.Br(),
+                            mining_helper(),
                         ], width={"size": 3},
                     ),
                     dbc.Col(
                         [
-                            mining_helper(),
                             qb,
                             ft,
                             ct,
