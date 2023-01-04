@@ -68,38 +68,38 @@ def store_orbit_query(url):
 
     return pdf_orb.to_json()
 
+
 @app.callback(
-    Output("pdf_orb_ext", "data"), 
-    [
-        Input("pdf_orb", "data"),
-        Input("pdf_lc", "data")
-    ]
+    Output("pdf_orb_ext", "data"), [Input("pdf_orb", "data"), Input("pdf_lc", "data")]
 )
 def store_orbit_extend(orb_json, lc_json):
 
     pdf_orb = pd.read_json(orb_json)
     pdf_lc = pd.read_json(lc_json)
 
-    ext_values = pdf_lc.sort_values("d:jd").groupby("d:ssoCandId").apply(
-
-        lambda x: pd.DataFrame(
-            [[
-                len(x["d:ra"]),
-                x["d:jd"].values[-1] - x["d:jd"].values[0],
-                np.min(np.where(x["d:fid"] == 1, x["d:magpsf"], 50)),
-                np.max(np.where(x["d:fid"] == 1, x["d:magpsf"], -1)),
-                np.min(np.where(x["d:fid"] == 2, x["d:magpsf"], 50)),
-                np.max(np.where(x["d:fid"] == 2, x["d:magpsf"], -1)),
-            ]], 
-            columns=['nb_det', 'obs_win', 'g_min', 'g_max', 'r_min', 'r_max']
+    ext_values = (
+        pdf_lc.sort_values("d:jd")
+        .groupby("d:ssoCandId")
+        .apply(
+            lambda x: pd.DataFrame(
+                [
+                    [
+                        len(x["d:ra"]),
+                        x["d:jd"].values[-1] - x["d:jd"].values[0],
+                        np.min(np.where(x["d:fid"] == 1, x["d:magpsf"], 50)),
+                        np.max(np.where(x["d:fid"] == 1, x["d:magpsf"], -1)),
+                        np.min(np.where(x["d:fid"] == 2, x["d:magpsf"], 50)),
+                        np.max(np.where(x["d:fid"] == 2, x["d:magpsf"], -1)),
+                    ]
+                ],
+                columns=["nb_det", "obs_win", "g_min", "g_max", "r_min", "r_max"],
+            )
         )
     )
 
     ext_values = pdf_orb.merge(ext_values, on="d:ssoCandId")
 
     return ext_values.to_json()
-
-
 
 
 @app.callback(Output("mpc_data", "data"), [Input("url", "pathname")])
@@ -756,43 +756,92 @@ def search_sso_by_date_component(pdf_orb):
     return sso_datepicker
 
 
-
 def active_filter_component():
 
     active_filter_comp = dmc.MultiSelect(
         id="filter_list_comp",
         # data=["React", "Angular", "Svelte", "Vue"],
         searchable=True,
-        nothingFound="No options found",
+        nothingFound="No filters found",
         style={"width": 400},
     )
 
     return active_filter_comp
 
 
-def search_orbit_component(pdf_orb):
-    pass
+def search_orbit_component():
+
+    orbit_input_group = dbc.InputGroup(
+        [
+            dmc.Select(
+                data=[
+                    {"value": "d:a", "label": "a: semi major axis (AU)"},
+                    {"value": "d:e", "label": "e: eccentricity"},
+                    {"value": "d:i", "label": "i: inclination (degree)"},
+                    {"value": "obs_win", "label": "observation window"},
+                    {"value": "nb_det", "label": "number of detection"},
+                    {"value": "g", "label": "magnitude in g"},
+                    {"value": "r", "label": "magnitude in r"},
+                ],
+                id="select_range_filter",
+            ),
+            dcc.RangeSlider(
+                0,
+                40,
+                value=[5, 15],
+                id="orbit_prop_slider",
+                # dots=False,
+                tooltip={"placement": "bottom", "always_visible": True},
+            ),
+            dmc.Checkbox(
+                checked=False,
+                id="boolean_error_checkbox", label="show only orbits with error"
+            ),
+        ],
+        style={"width": "100%", "display": "inline-block"},
+    )
+
+    return orbit_input_group
 
 
-def search_traj_prop_component(pdf_orb):
-    pass
+@app.callback(
+    [Output("orbit_prop_slider", "min"), Output("orbit_prop_slider", "max")],
+    [Input("pdf_orb_ext", "data"), Input("select_range_filter", "value")],
+)
+def change_orb_props_filter(orb_json, select_value):
+
+    if select_value == "" or select_value is None:
+        raise PreventUpdate
+    else:
+        pdf_ext = pd.read_json(orb_json)
+
+        if select_value == "g":
+            prop_min, prop_max = pdf_ext["g_min"].min(), pdf_ext["g_max"].max()
+        elif select_value == "r":
+            prop_min, prop_max = pdf_ext["r_min"].min(), pdf_ext["r_max"].max()
+        else:
+            prop_min, prop_max = (
+                pdf_ext[select_value].min(),
+                pdf_ext[select_value].max(),
+            )
+        return prop_min, prop_max
 
 
 filter_list_data = []
 filter_list_value = []
 
+
 @app.callback(
-    [
-        Output("filter_list_comp", "data"),
-        Output("filter_list_comp", "value")
-    ],
+    [Output("filter_list_comp", "data"), Output("filter_list_comp", "value")],
     [
         Input("pdf_orb_ext", "data"),
         Input("ssocand_bar_input", "value"),
-        Input("search_sso_date_comp", "value")
-    ]
+        Input("search_sso_date_comp", "value"),
+        Input("select_range_filter", "value"),
+        Input("orbit_prop_slider", "value"),
+    ],
 )
-def search_ssocand_filter(orb_json, ssocandid, date_range):
+def search_ssocand_filter(orb_json, ssocandid, date_range, select_range, value_range):
 
     comp_id = ctx.triggered_id
     if comp_id is None:
@@ -805,9 +854,10 @@ def search_ssocand_filter(orb_json, ssocandid, date_range):
             value = "`d:ssoCandId`.str.contains('{}')".format(ssocandid)
             label = "{}".format(ssocandid)
             filter_list_data.append({"value": value, "label": label})
-            # return filter_list # pdf_ext[pdf_ext["d:ssoCandId"].str.contains(ssocandid)].to_dict("records")
+            filter_list_value.append(value)
+
     elif comp_id == "search_sso_date_comp":
-        
+
         if date_range is None:
             raise PreventUpdate
         else:
@@ -815,10 +865,43 @@ def search_ssocand_filter(orb_json, ssocandid, date_range):
             end_jd = Time(date_range[1], format="isot").jd
 
             value = "`d:ref_epoch` < {} and `d:ref_epoch` > {}".format(end_jd, start_jd)
-            label = "ref_epoch < {} and ref_epoch > {}".format(date_range[0], date_range[1])
-
+            label = "ref_epoch < {} and ref_epoch > {}".format(
+                date_range[0], date_range[1]
+            )
             filter_list_data.append({"value": value, "label": label})
-            # return filter_list  # pdf_ext[(pdf_ext["d:ref_epoch"] >= start_jd) & (pdf_ext["d:ref_epoch"] <= end_jd)].to_dict("records")
+            filter_list_value.append(value)
+
+    elif comp_id == "orbit_prop_slider":
+        
+        if value_range is None or select_range is None:
+            raise PreventUpdate
+
+        min_value, max_value = value_range[0], value_range[1]
+
+        if select_range == "g":
+            value = "`{}` < {} and `{}` > {}".format(
+                "g_max", max_value, "g_min", min_value
+            )
+            label = "g mag > {} and g mag < {}".format(min_value, max_value)
+        elif select_range == "r":
+            value = "`{}` < {} and `{}` > {}".format(
+                "r_max", max_value, "r_min", min_value
+            )
+            label = "r mag > {} and r mag < {}".format(min_value, max_value)
+        else:
+            value = "`{}` < {} and `{}` > {}".format(
+                select_range, max_value, select_range, min_value
+            )
+            if select_range.startswith("d:"):
+                label = "{} > {} and {} < {}".format(
+                    select_range[2:], min_value, select_range[2:], max_value
+                )
+            else:
+                label = "{} > {} and {} < {}".format(
+                    select_range, min_value, select_range, max_value
+                )
+            filter_list_data.append({"value": value, "label": label})
+            filter_list_value.append(value)
 
     return filter_list_data, filter_list_value
 
@@ -827,26 +910,29 @@ def search_ssocand_filter(orb_json, ssocandid, date_range):
     Output("ssocand_table", "data"),
     [
         Input("pdf_orb_ext", "data"),
-        Input("filter_list_comp", "value")
-    ]
+        Input("filter_list_comp", "value"),
+        Input("boolean_error_checkbox", "checked"),
+    ],
 )
-def apply_filter_to_table(orb_json, filter_list_v_comp):
+def apply_filter_to_table(orb_json, filter_list_v_comp, with_error):
+
+    if filter_list_v_comp is None or with_error is None:
+        raise PreventUpdate
 
     pdf_ext = pd.read_json(orb_json)
 
-    print()
-    print("in apply filter: ")
-    print(filter_list_v_comp)
-    print()
-    print(" and ".join(filter_list_v_comp))
-    print("-----")
-    print()
+    if with_error:
+        pdf_ext = pdf_ext[pdf_ext["d:rms_a"] != -1.0]
+
+    global filter_list_value
+    filter_list_value = filter_list_v_comp
 
     if filter_list_v_comp == []:
         return pdf_ext.to_dict("records")
     else:
-        print("OK!!!")
-        return pdf_ext.query(" and ".join(filter_list_v_comp), engine="python").to_dict("records")
+        return pdf_ext.query(" and ".join(filter_list_v_comp), engine="python").to_dict(
+            "records"
+        )
 
 
 @app.callback(
@@ -861,20 +947,18 @@ def build_filter_and_search(orb_json, lc_json):
     pdf_orb = pd.read_json(orb_json)
     pdf_lc = pd.read_json(lc_json)
 
+    return html.Div(
+        [
+            active_filter_component(),
+            search_ssocand_component(),
+            search_sso_by_date_component(pdf_orb),
+            search_orbit_component(),
+            html.Div(id="sso_table_results"),
+        ]
+    )
 
 
-    return html.Div([
-        active_filter_component(),
-        search_ssocand_component(),
-        search_sso_by_date_component(pdf_orb),
-        html.Div(id="sso_table_results")
-    ])
-
-
-@app.callback(
-    Output("sso_table_results", "children"),
-    Input("pdf_orb_ext", "data")
-)
+@app.callback(Output("sso_table_results", "children"), Input("pdf_orb_ext", "data"))
 def build_sso_table_results(orb_json):
 
     pdf_ext = pd.read_json(orb_json)
@@ -883,7 +967,7 @@ def build_sso_table_results(orb_json):
         pdf_ext.to_dict("records"),
         columns=[{"name": i, "id": i} for i in ["d:ssoCandId", "d:a", "d:e", "d:i"]],
         id="ssocand_table",
-        page_size=13
+        page_size=13,
     )
 
 
