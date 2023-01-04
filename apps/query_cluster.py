@@ -544,6 +544,23 @@ def query_builder():
     )
     return tab
 
+def mining_helper():
+    """ Helper
+    """
+    msg = """
+    The Fink data mining service allows you to ...
+    """
+
+    accordion = dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                dcc.Markdown(msg),
+                label="Help",
+            ),
+        ],
+    )
+    return accordion
+
 def layout(is_mobile):
     """ Layout for the data transfer service
     """
@@ -567,6 +584,7 @@ def layout(is_mobile):
                     ),
                     dbc.Col(
                         [
+                            mining_helper(),
                             qb,
                             ft,
                             ct,
