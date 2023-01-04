@@ -1,23 +1,21 @@
-from cProfile import label
 import pandas as pd
 import numpy as np
 import io
 import requests
-import random
 import math
+from datetime import timedelta
 
 from app import app, clientStats
 import dash_bootstrap_components as dbc
-from dash import html, dcc, Input, Output, dash_table, State
+from dash import html, dcc, Input, Output, dash_table, State, ctx
 import dash_mantine_components as dmc
 
 from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 
-from apps.utils import markdownify_objectid, random_color, class_colors
+from apps.utils import markdownify_objectid, class_colors
 
 import plotly.graph_objs as go
-import plotly.express as px
 
 from astropy.time import Time
 from astroquery.imcce import Skybot
@@ -70,6 +68,39 @@ def store_orbit_query(url):
 
     return pdf_orb.to_json()
 
+@app.callback(
+    Output("pdf_orb_ext", "data"), 
+    [
+        Input("pdf_orb", "data"),
+        Input("pdf_lc", "data")
+    ]
+)
+def store_orbit_extend(orb_json, lc_json):
+
+    pdf_orb = pd.read_json(orb_json)
+    pdf_lc = pd.read_json(lc_json)
+
+    ext_values = pdf_lc.sort_values("d:jd").groupby("d:ssoCandId").apply(
+
+        lambda x: pd.DataFrame(
+            [[
+                len(x["d:ra"]),
+                x["d:jd"].values[-1] - x["d:jd"].values[0],
+                np.min(np.where(x["d:fid"] == 1, x["d:magpsf"], 50)),
+                np.max(np.where(x["d:fid"] == 1, x["d:magpsf"], -1)),
+                np.min(np.where(x["d:fid"] == 2, x["d:magpsf"], 50)),
+                np.max(np.where(x["d:fid"] == 2, x["d:magpsf"], -1)),
+            ]], 
+            columns=['nb_det', 'obs_win', 'g_min', 'g_max', 'r_min', 'r_max']
+        )
+    )
+
+    ext_values = pdf_orb.merge(ext_values, on="d:ssoCandId")
+
+    return ext_values.to_json()
+
+
+
 
 @app.callback(Output("mpc_data", "data"), [Input("url", "pathname")])
 def load_mpc(url):
@@ -98,11 +129,7 @@ def populate_sso_table(data, columns):
         style_table={"maxWidth": "100%"},
         style_cell={"padding": "5px", "textAlign": "center", "overflow": "hidden"},
         style_data_conditional=[
-            {
-                "if": 
-                    {"row_index": "odd"}, 
-                "backgroundColor": "rgb(248, 248, 248, .7)"
-            }
+            {"if": {"row_index": "odd"}, "backgroundColor": "rgb(248, 248, 248, .7)"}
         ],
         style_header={"backgroundColor": "rgb(230, 230, 230)", "fontWeight": "bold"},
     )
@@ -470,7 +497,10 @@ def sso_identify(pdf_lc):
                 - number of associated alerts: {}
                 - mean distance: {} arcsecond
             """.format(
-                ast_name, ast_name.replace(" ", "+"), math.ceil(nb_assoc), np.round_(dist, decimals=2)
+                ast_name,
+                ast_name.replace(" ", "+"),
+                math.ceil(nb_assoc),
+                np.round_(dist, decimals=2),
             )
 
         return dcc.Markdown(
@@ -521,8 +551,8 @@ def draw_new_ssocard(
     date_info = dcc.Markdown(
         """
         ```python
-        Last detection: {},
         First detection: {},
+        Last detection: {},
         Number of detections: {},
         Observation window: {} days 
         ```
@@ -590,11 +620,15 @@ def draw_new_ssocard(
                     ),
                     dbc.Col(
                         dmc.Title(
-                            dcc.Markdown(markdownify_objectid(ssoCandId, "trajid_{}".format(ssoCandId))),
+                            dcc.Markdown(
+                                markdownify_objectid(
+                                    ssoCandId, "trajid_{}".format(ssoCandId)
+                                )
+                            ),
                             order=1,
                             style={"color": "#15284F"},
                         ),
-                        #width=1,
+                        # width=1,
                     ),
                 ],
                 justify="start",
@@ -649,21 +683,208 @@ def last_sso_list_component(orb_json):
     sso_news_component = dbc.Card(
         [
             dbc.CardHeader(
-                "Solar System news", 
-                style={"text-align": "center", "font-weight": "bold", "font-size": "2vw"}),
+                "Solar System news",
+                style={
+                    "text-align": "center",
+                    "font-weight": "bold",
+                    "font-size": "2vw",
+                },
+            ),
             dbc.Container(
                 list_sso_paper,
                 style={
-                    "overflow": "scroll", 
-                    "maxHeight": "600px", 
-                    #"maxWidth": "70%"
-                    },
+                    "overflow": "scroll",
+                    "maxHeight": "600px",
+                    # "maxWidth": "70%"
+                },
             ),
         ],
-        style={"padding": 0}
+        style={"padding": 0},
     )
 
     return sso_news_component
+
+
+def search_ssocand_component():
+
+    sso_search_bar = dbc.InputGroup(
+        [
+            dbc.Input(
+                id="ssocand_bar_input",
+                placeholder="Enter a valid SSOCandId, Example : FF2022aaaaaxl",
+                autoFocus=True,
+                type="search",
+                style={
+                    "border": "0px black solid",
+                    "background": "rgba(255, 255, 255, 0.0)",
+                    "color": "grey",
+                },
+                className="inputbar",
+                debounce=True,
+            ),
+            dmc.ActionIcon(
+                DashIconify(icon="tabler:search", width=20),
+                n_clicks=0,
+                id="ssocand_submit",
+                color="gray",
+                variant="transparent",
+                radius="xl",
+                size="lg",
+                loaderProps={"variant": "dots", "color": "orange"},
+            ),
+        ],
+        style={"border": "0.5px grey solid", "background": "rgba(255, 255, 255, .75)"},
+        className="rcorners2",
+    )
+    return sso_search_bar
+
+
+def search_sso_by_date_component(pdf_orb):
+
+    min_dateorb = Time(pdf_orb["d:ref_epoch"].min(), format="jd").to_datetime()
+    max_dateorb = Time(pdf_orb["d:ref_epoch"].max(), format="jd").to_datetime()
+
+    sso_datepicker = dmc.DateRangePicker(
+        id="search_sso_date_comp",
+        label="Search SSOCand by date",
+        description="Select a min and max date",
+        minDate=min_dateorb,
+        maxDate=max_dateorb,
+        value=[max_dateorb - timedelta(days=5), max_dateorb],
+    )
+
+    return sso_datepicker
+
+
+
+def active_filter_component():
+
+    active_filter_comp = dmc.MultiSelect(
+        id="filter_list_comp",
+        # data=["React", "Angular", "Svelte", "Vue"],
+        searchable=True,
+        nothingFound="No options found",
+        style={"width": 400},
+    )
+
+    return active_filter_comp
+
+
+def search_orbit_component(pdf_orb):
+    pass
+
+
+def search_traj_prop_component(pdf_orb):
+    pass
+
+
+filter_list_data = []
+filter_list_value = []
+
+@app.callback(
+    [
+        Output("filter_list_comp", "data"),
+        Output("filter_list_comp", "value")
+    ],
+    [
+        Input("pdf_orb_ext", "data"),
+        Input("ssocand_bar_input", "value"),
+        Input("search_sso_date_comp", "value")
+    ]
+)
+def search_ssocand_filter(orb_json, ssocandid, date_range):
+
+    comp_id = ctx.triggered_id
+    if comp_id is None:
+        raise PreventUpdate
+
+    if comp_id == "ssocand_bar_input":
+        if ssocandid == "" or ssocandid == None:
+            raise PreventUpdate
+        else:
+            value = "`d:ssoCandId`.str.contains('{}')".format(ssocandid)
+            label = "{}".format(ssocandid)
+            filter_list_data.append({"value": value, "label": label})
+            # return filter_list # pdf_ext[pdf_ext["d:ssoCandId"].str.contains(ssocandid)].to_dict("records")
+    elif comp_id == "search_sso_date_comp":
+        
+        if date_range is None:
+            raise PreventUpdate
+        else:
+            start_jd = Time(date_range[0], format="isot").jd
+            end_jd = Time(date_range[1], format="isot").jd
+
+            value = "`d:ref_epoch` < {} and `d:ref_epoch` > {}".format(end_jd, start_jd)
+            label = "ref_epoch < {} and ref_epoch > {}".format(date_range[0], date_range[1])
+
+            filter_list_data.append({"value": value, "label": label})
+            # return filter_list  # pdf_ext[(pdf_ext["d:ref_epoch"] >= start_jd) & (pdf_ext["d:ref_epoch"] <= end_jd)].to_dict("records")
+
+    return filter_list_data, filter_list_value
+
+
+@app.callback(
+    Output("ssocand_table", "data"),
+    [
+        Input("pdf_orb_ext", "data"),
+        Input("filter_list_comp", "value")
+    ]
+)
+def apply_filter_to_table(orb_json, filter_list_v_comp):
+
+    pdf_ext = pd.read_json(orb_json)
+
+    print()
+    print("in apply filter: ")
+    print(filter_list_v_comp)
+    print()
+    print(" and ".join(filter_list_v_comp))
+    print("-----")
+    print()
+
+    if filter_list_v_comp == []:
+        return pdf_ext.to_dict("records")
+    else:
+        print("OK!!!")
+        return pdf_ext.query(" and ".join(filter_list_v_comp), engine="python").to_dict("records")
+
+
+@app.callback(
+    Output("search_sso_cand", "children"),
+    [
+        Input("pdf_orb", "data"),
+        Input("pdf_lc", "data"),
+    ],
+)
+def build_filter_and_search(orb_json, lc_json):
+
+    pdf_orb = pd.read_json(orb_json)
+    pdf_lc = pd.read_json(lc_json)
+
+
+
+    return html.Div([
+        active_filter_component(),
+        search_ssocand_component(),
+        search_sso_by_date_component(pdf_orb),
+        html.Div(id="sso_table_results")
+    ])
+
+
+@app.callback(
+    Output("sso_table_results", "children"),
+    Input("pdf_orb_ext", "data")
+)
+def build_sso_table_results(orb_json):
+
+    pdf_ext = pd.read_json(orb_json)
+
+    return dash_table.DataTable(
+        pdf_ext.to_dict("records"),
+        columns=[{"name": i, "id": i} for i in ["d:ssoCandId", "d:a", "d:e", "d:i"]],
+        id="ssocand_table",
+        page_size=13
+    )
 
 
 @app.callback(Output("main_sso_panel", "children"), Input("pdf_orb", "data"))
@@ -717,6 +938,7 @@ def layout(is_mobile):
                 dbc.Row([dbc.Col(tabs_)]),
                 dcc.Store(id="pdf_lc"),
                 dcc.Store(id="pdf_orb"),
+                dcc.Store(id="pdf_orb_ext"),
                 dcc.Store(id="mpc_data"),
             ],
             className="home",
