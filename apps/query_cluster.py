@@ -548,7 +548,33 @@ def mining_helper():
     """ Helper
     """
     msg = """
-    The Fink data mining service allows you to ...
+    The Fink data mining service allows you to select and transfer the Fink processed alert data at scale.
+    The only data source currently available is ZTF, with more than 110 million alerts as of 2023.
+    Fill the fields on the right (note the changing timeline on the left when you update parameters),
+    and once you are happy, submit your job on the Fink Apache Spark Cluster and retrieve your data!
+    More information at []().
+
+    #### Filters
+
+    Pick up the dates you want to transfer using the calendar.
+    Choose the same start and stop dates if you want to select a single date.
+    By default, all alerts within the date boundaries will be transfered irrespective of their classification.
+    You can also restrict your search to specific alert classes by using the dropdown button.
+    Optionally, you can also extra conditions on the alerts you want to retrieve based on their content.
+    You will simply specify the name of the parameter with the condition.
+    If you have several conditions, put one condition per line (SQL syntax), ending with semi-colon.
+    E.g. if you want only alerts with magnitude above 19.5 and at least 2'' distance away to nearest source in ZTF reference images:
+
+    ```
+    magpsf > 19.5;
+    distnr > 2;
+    ```
+
+    Note you cannot yet combined fields (e.g. `magnr - magpsf > 1.0` is not allowed).
+
+    #### How it works?
+
+    toto
     """
 
     accordion = dmc.Accordion(
