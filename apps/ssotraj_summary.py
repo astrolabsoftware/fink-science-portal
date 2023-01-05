@@ -36,6 +36,7 @@ from poliastro.bodies import Sun
 
 from PIL import Image
 
+from apps.sso_panel import sso_identify
 
 def get_cutout(objId_list):
 
@@ -272,13 +273,18 @@ def construct_objectId_drawer(cutout_json):
 )
 def construct_card_title(pathname, json_lc, json_orb):
 
-    traj_lc = pd.read_json(json_lc)
+    traj_lc = pd.read_json(json_lc).sort_values("d:jd")
     traj_orb = pd.read_json(json_orb)
 
     traj_id = pathname.split("_")[-1]
-    discovery_date = isoify_time(traj_orb["d:ref_epoch"].values[0])
-    date_end = isoify_time(traj_lc["d:jd"].values[-1])
+
+    start_jd = traj_lc["d:jd"].values[0]
+    end_jd = traj_lc["d:jd"].values[-1]
+
+    discovery_date = isoify_time(start_jd)
+    date_end = isoify_time(end_jd)
     ndet = len(traj_lc)
+    obs_win = end_jd - start_jd
 
     classification = "Solar System trajectory"
     card = dmc.Paper(
@@ -311,12 +317,13 @@ def construct_card_title(pathname, json_lc, json_orb):
             dcc.Markdown(
                 """
                 ```python
-                Discovery date: {}
+                First detection: {}
                 Last detection: {}
                 Number of detections: {}
+                Observation window: {:.2f} days
                 ```
                 """.format(
-                    discovery_date, date_end, ndet
+                    discovery_date, date_end, ndet, obs_win
                 )
             ),
             dmc.Button("ObjectId Timeline", id="open_objectId_drawer"),
@@ -900,10 +907,6 @@ def card_ssotraj_params(pdf_orb):
     """
 
     header = [
-        html.H5(
-            "Id: {}".format(pdf_orb["d:ssoCandId"].values[0]),
-            className="card-title",
-        ),
         html.H6(
             "epoch (JD): {}".format(isoify_time(pdf_orb["d:ref_epoch"].values[0])),
             className="card-subtitle",
@@ -935,9 +938,10 @@ def card_ssotraj_params(pdf_orb):
     return card
 
 
-@app.callback(Output("ssotraj_card", "children"), [Input("traj_orb", "data")])
-def construct_ssotraj_card(json_orb):
+@app.callback(Output("ssotraj_card", "children"), [Input("traj_orb", "data"), Input("traj_lc", "data")])
+def construct_ssotraj_card(json_orb, json_lc):
     pdf_orb = pd.read_json(json_orb)
+    pdf_lc = pd.read_json(json_lc)
 
     python_download = """
 import requests
@@ -975,7 +979,24 @@ pdf = pd.read_json(io.BytesIO(r.content))""".format(
         ],
     )
 
+    identification_info = sso_identify(pdf_lc)
+
     extra_items = [
+        dmc.AccordionItem(
+            [
+                dmc.Paper(
+                    identification_info, radius="xl", p="md", shadow="xl", withBorder=True
+                )
+            ],
+            label="Neighbourhood",
+            icon=[
+                DashIconify(
+                    icon="tabler:target",
+                    color=dmc.theme.DEFAULT_COLORS["green"][6],
+                    width=20,
+                )
+            ],
+        ),
         dmc.AccordionItem(
             [
                 dmc.Paper(
@@ -992,6 +1013,7 @@ pdf = pd.read_json(io.BytesIO(r.content))""".format(
             ],
         )
     ]
+
 
     card = dmc.Accordion(
         state={"0": True, **{"{}".format(i + 1): False for i in range(4)}},
@@ -1010,7 +1032,7 @@ pdf = pd.read_json(io.BytesIO(r.content))""".format(
                         withBorder=True,
                     )
                 ],
-                label="SSO card",
+                label="Orbit parameters",
                 icon=[
                     DashIconify(
                         icon="majesticons:comet",
