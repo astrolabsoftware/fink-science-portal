@@ -39,7 +39,7 @@ def store_lighcurves_query(name):
     )
 
     # Format output in a DataFrame
-    pdf_lc = pd.read_json(io.BytesIO(r_lc.content)).drop_duplicates("d:candid")
+    pdf_lc = pd.read_json(io.BytesIO(r_lc.content))# .drop_duplicates("d:candid")
 
     return pdf_lc.to_json()
 
@@ -61,9 +61,9 @@ def store_orbit_query(url):
     )
 
     # Format output in a DataFrame
-    pdf_orb = pd.read_json(io.BytesIO(r_orb.content)).drop_duplicates(
-        ["d:a", "d:e", "d:i"]
-    )
+    pdf_orb = pd.read_json(io.BytesIO(r_orb.content))# .drop_duplicates(
+    #     ["d:a", "d:e", "d:i"]
+    # )
     # pdf_orb = pdf_orb[pdf_orb["d:trajectory_id"].isin(pdf_lc["d:trajectory_id"])]
 
     return pdf_orb.to_json()
@@ -98,6 +98,13 @@ def store_orbit_extend(orb_json, lc_json):
     )
 
     ext_values = pdf_orb.merge(ext_values, on="d:ssoCandId")
+
+    markdown_trajid = lambda traj_id: markdownify_objectid(
+        traj_id, "trajid_{}".format(traj_id)
+    )
+    ext_values["d:ssoCandId"] = ext_values["d:ssoCandId"].apply(markdown_trajid)
+
+    ext_values["d:isoTime"] = Time(ext_values["d:ref_epoch"], format="jd").iso
 
     return ext_values.to_json()
 
@@ -694,12 +701,12 @@ def last_sso_list_component(orb_json):
                 list_sso_paper,
                 style={
                     "overflow": "scroll",
-                    "maxHeight": "600px",
+                    "maxHeight": "700px",
                     # "maxWidth": "70%"
                 },
             ),
         ],
-        style={"padding": 0},
+        style={"padding": 1},
     )
 
     return sso_news_component
@@ -758,12 +765,21 @@ def search_sso_by_date_component(pdf_orb):
 
 def active_filter_component():
 
-    active_filter_comp = dmc.MultiSelect(
-        id="filter_list_comp",
-        # data=["React", "Angular", "Svelte", "Vue"],
-        searchable=True,
-        nothingFound="No filters found",
-        style={"width": 400},
+    active_filter_comp = dbc.InputGroup(
+        [
+            dmc.MultiSelect(
+                id="filter_list_comp",
+                # data=["React", "Angular", "Svelte", "Vue"],
+                searchable=True,
+                nothingFound="No filters found",
+                style={"width": 400},
+            ),
+            dmc.Checkbox(
+                checked=False,
+                id="boolean_error_checkbox",
+                label="show only orbits with error",
+            ),
+        ]
     )
 
     return active_filter_comp
@@ -793,15 +809,33 @@ def search_orbit_component():
                 # dots=False,
                 tooltip={"placement": "bottom", "always_visible": True},
             ),
-            dmc.Checkbox(
-                checked=False,
-                id="boolean_error_checkbox", label="show only orbits with error"
-            ),
         ],
         style={"width": "100%", "display": "inline-block"},
     )
 
     return orbit_input_group
+
+
+def column_orbit_component(pdf_orb):
+
+    orb_cols = pdf_orb.columns
+
+    orb_cols_group = dmc.Chips(
+        data=[
+            {"value": x, "label": x}
+            for x in orb_cols
+        ],
+        id="orbit_columns_chips",
+        value=['d:ssoCandId', 'd:isoTime'],
+        color="orange",
+        radius="xl",
+        size="xs",
+        spacing="xs",
+        variant="outline",
+        position='center',
+        multiple=True,
+    )
+    return orb_cols_group
 
 
 @app.callback(
@@ -872,7 +906,7 @@ def search_ssocand_filter(orb_json, ssocandid, date_range, select_range, value_r
             filter_list_value.append(value)
 
     elif comp_id == "orbit_prop_slider":
-        
+
         if value_range is None or select_range is None:
             raise PreventUpdate
 
@@ -916,18 +950,16 @@ def search_ssocand_filter(orb_json, ssocandid, date_range, select_range, value_r
 )
 def apply_filter_to_table(orb_json, filter_list_v_comp, with_error):
 
-    if filter_list_v_comp is None or with_error is None:
-        raise PreventUpdate
-
     pdf_ext = pd.read_json(orb_json)
 
-    if with_error:
+    if with_error and with_error is not None:
         pdf_ext = pdf_ext[pdf_ext["d:rms_a"] != -1.0]
 
-    global filter_list_value
-    filter_list_value = filter_list_v_comp
+    if filter_list_v_comp is not None:
+        global filter_list_value
+        filter_list_value = filter_list_v_comp
 
-    if filter_list_v_comp == []:
+    if filter_list_v_comp == [] or filter_list_v_comp is None:
         return pdf_ext.to_dict("records")
     else:
         return pdf_ext.query(" and ".join(filter_list_v_comp), engine="python").to_dict(
@@ -936,23 +968,40 @@ def apply_filter_to_table(orb_json, filter_list_v_comp, with_error):
 
 
 @app.callback(
+    Output("ssocand_table", "columns"),
+    Input("orbit_columns_chips", "value")
+)
+def apply_columns_filter(selected_columns):
+
+    new_columns = [{"name": cols, "id": cols, "presentation": "markdown"} if cols == "d:ssoCandId" else {"name": cols, "id": cols} for cols in selected_columns]
+
+    return new_columns
+
+
+
+@app.callback(
     Output("search_sso_cand", "children"),
     [
-        Input("pdf_orb", "data"),
-        Input("pdf_lc", "data"),
+        Input("pdf_orb_ext", "data"),
     ],
 )
-def build_filter_and_search(orb_json, lc_json):
+def build_filter_and_search(orb_json):
 
     pdf_orb = pd.read_json(orb_json)
-    pdf_lc = pd.read_json(lc_json)
+
+    filter_tabs = dbc.Tabs(
+        [
+            dbc.Tab(search_ssocand_component(), label="Id filter"),
+            dbc.Tab(search_sso_by_date_component(pdf_orb), label="Date filter"),
+            dbc.Tab(search_orbit_component(), label="Property filter"),
+            dbc.Tab(column_orbit_component(pdf_orb), label="Column filter")
+        ]
+    )
 
     return html.Div(
         [
+            filter_tabs,
             active_filter_component(),
-            search_ssocand_component(),
-            search_sso_by_date_component(pdf_orb),
-            search_orbit_component(),
             html.Div(id="sso_table_results"),
         ]
     )
@@ -963,11 +1012,28 @@ def build_sso_table_results(orb_json):
 
     pdf_ext = pd.read_json(orb_json)
 
+    markdown_options = {"link_target": "_blank"}
     return dash_table.DataTable(
         pdf_ext.to_dict("records"),
-        columns=[{"name": i, "id": i} for i in ["d:ssoCandId", "d:a", "d:e", "d:i"]],
+        columns=[
+            {"name": i, "id": i, "presentation": "markdown"}
+            if i == "d:ssoCandId"
+            else {"name": i, "id": i}
+            for i in ["d:ssoCandId", "d:a", "d:e", "d:i"]
+        ],
         id="ssocand_table",
         page_size=13,
+        sort_action="native",
+        style_as_list_view=True,
+        markdown_options=markdown_options,
+        # fixed_columns={"headers": True, "data": 1},
+        style_data={"backgroundColor": "rgb(248, 248, 248, .7)"},
+        style_table={"maxWidth": "100%"},
+        style_cell={"padding": "5px", "textAlign": "center", "overflow": "hidden"},
+        style_data_conditional=[
+            {"if": {"row_index": "odd"}, "backgroundColor": "rgb(248, 248, 248, .7)"}
+        ],
+        style_header={"backgroundColor": "rgb(230, 230, 230)", "fontWeight": "bold"},
     )
 
 
