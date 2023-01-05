@@ -254,8 +254,16 @@ def results(json_lc):
 
 def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
 
+    hovertemplate = r"""
+    <b>%{xaxis.title.text}</b>: %{y:.2f}<br>
+    <b>%{yaxis.title.text}</b>: %{x:.2f}<br>
+    <b>ssoCandId</b>: %{customdata}
+    <extra></extra>
+    """
+
     xcand_data = pdf_orb["d:{}".format(xdata)].values
     ycand_data = pdf_orb["d:{}".format(ydata)].values
+    candId_data = pdf_orb["d:ssoCandId"].values
 
     is_distant = mpc_ae["Orbit_type"] == "Distant Object"
 
@@ -273,7 +281,8 @@ def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
                 y=y,
                 mode="markers",
                 name=orb_type,
-                opacity=0.5
+                opacity=0.5,
+                hoverinfo="skip"
                 # marker=dict(color=random_color()[2])
             )
         )
@@ -287,6 +296,7 @@ def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
             visible="legendonly",
             opacity=0.5,
             marker=dict(color="rgba(152, 0, 0, .5)"),
+            hoverinfo="skip"
         )
     )
 
@@ -301,6 +311,8 @@ def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
                 line=dict(color="rgba(70, 138, 94, 0.5)", width=2),
                 color="rgba(111, 235, 154, 0.5)",
             ),
+            hovertemplate=hovertemplate,
+            customdata=candId_data
         )
     )
 
