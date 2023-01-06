@@ -2293,6 +2293,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     filts = np.unique(pdf['i:fid'].values)
 
     figs = []
+    residual_figs = []
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
@@ -2412,6 +2413,25 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'showlegend': False,
                     'line': {
                         'color': COLORS_ZTF[i],
+                    },
+                }
+            )
+
+            residual_figs.append(
+                {
+                    'x': pdf.loc[cond, 'Phase'].values,
+                    'y': ydata.values - fitfunc(xx, *popt),
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf.loc[cond, 'i:sigmapsf'].values,
+                        'visible': True,
+                        'color': COLORS_ZTF[i]
+                    },
+                    'mode': 'lines',
+                    'name': 'Residual {:}'.format(filters[f]),
+                    'showlegend': False,
+                    'line': {
+                        'color': COLORS_ZTF[i],
                     }
                 }
             )
@@ -2483,11 +2503,36 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             }
         )
 
+        residual_figs.append(
+            {
+                'x': pdf['Phase'].values,
+                'y': ydata.values - fitfunc(x, *popt),
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['i:sigmapsf'].values,
+                    'visible': True,
+                    'color': COLORS_ZTF[0]
+                },
+                'mode': 'lines',
+                'name': 'Residual',
+                'showlegend': False,
+                'line': {
+                    'color': COLORS_ZTF[0],
+                }
+            }
+        )
+
+    residual_figure = {
+        'data': residual_figs,
+        "layout": layout_sso_phasecurve
+    }
+
     layout_sso_phasecurve['title']['text'] = 'Reduced &#967;<sup>2</sup>: {:.2f}'.format(chisq_red)
     figure = {
         'data': figs,
         "layout": layout_sso_phasecurve
     }
+
     columns = [
         {
             'id': c,
@@ -2527,11 +2572,20 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         },
         config={'displayModeBar': False}
     )
+
+    graph2 = dcc.Graph(
+        figure=residual_figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
     card = dmc.Paper(
         [
             graph1,
             html.Br(),
-            graph1,
+            graph2,
             html.Br(),
             table
         ], radius='xl', p='md', shadow='xl', withBorder=True
