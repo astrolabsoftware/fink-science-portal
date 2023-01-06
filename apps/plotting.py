@@ -2014,7 +2014,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '35pc'
         },
         config={'displayModeBar': False}
     )
