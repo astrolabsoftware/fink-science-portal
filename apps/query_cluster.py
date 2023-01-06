@@ -556,21 +556,39 @@ def mining_helper():
 
     #### Filters
 
-    Pick up the dates you want to transfer using the calendar.
+    The filtering section lets you refine your search for alerts.
+
+    First, pick up the dates you want to transfer using the calendar.
     Choose the same start and stop dates if you want to select a single date.
     By default, all alerts within the date boundaries will be transfered irrespective of their classification.
     You can also restrict your search to specific alert classes by using the dropdown button.
-    Optionally, you can also extra conditions on the alerts you want to retrieve based on their content.
-    You will simply specify the name of the parameter with the condition.
-    If you have several conditions, put one condition per line (SQL syntax), ending with semi-colon.
+    Optionally, you can also impose extra conditions on the alerts you want to retrieve based on their content.
+    You will simply specify the name of the parameter with the condition (SQL syntax).
+    If you have several conditions, put one condition per line, ending with semi-colon.
     E.g. if you want only alerts with magnitude above 19.5 and at least 2'' distance away to nearest source in ZTF reference images:
 
     ```
     magpsf > 19.5;
     distnr > 2;
     ```
+    See [here](https://fink-portal.org/api/v1/columns) for field description (only `i:` and `d:` fields available).
+    Note you cannot yet combine fields (e.g. `magnr - magpsf > 1.0` is not allowed).
 
-    Note you cannot yet combined fields (e.g. `magnr - magpsf > 1.0` is not allowed).
+    #### Alert content
+
+    You have three types of content:
+    1. Lightcurve: lightweight (~1.4 KB/alerts), this option transfers only necessary fields for working with lightcurves plus all Fink added values. Prefer this option to start.
+    2. Cutouts: Only the cutouts (Science, Template, Difference) are transfered.
+    3. Full packet: original ZTF alerts plus all Fink added values.
+
+    #### Submit
+
+    Once you have filled all parameters, you will have a summary of your selection with an estimation of the number of alerts to transfer.
+    This estimation takes into account the number of alerts per night and the number of alerts per classes, but it does not account for the extra conditions (that could further reduce the number of alerts).
+    You will also have an estimation of the size of the data to be transfered.
+    You can update your parameters if need be, the estimations will be updated in real-time.
+    If you just want to test your
+
 
     #### How it works?
 
