@@ -2434,12 +2434,15 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 {
                     'x': pdf.loc[cond, 'Phase'].values,
                     'y': fitfunc(xx, *popt),
-                    'mode': 'lines',
+                    'mode': 'markers',
                     'name': 'fit {:}'.format(filters[f]),
                     'showlegend': False,
-                    'line': {
-                        'color': COLORS_ZTF[i],
-                    },
+                    'marker': {
+                        'size': 6,
+                        'color': COLORS_ZTF[0],
+                        'symbol': 'o',
+                        'opacity': 0.5
+                    }
                 }
             )
 
@@ -2456,7 +2459,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'mode': 'lines',
                     'name': 'Residual {:}'.format(filters[f]),
                     'showlegend': False,
-                    'line': {
+                    'marker': {
                         'color': COLORS_ZTF[i],
                     }
                 }
@@ -2520,11 +2523,14 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             {
                 'x': pdf['Phase'].values,
                 'y': fitfunc(x, *popt),
-                'mode': 'lines',
+                'mode': 'markers',
                 'name': 'fit combined',
                 'showlegend': False,
-                'line': {
+                'marker': {
+                    'size': 6,
                     'color': COLORS_ZTF[0],
+                    'symbol': 'o',
+                    'opacity': 0.5
                 }
             }
         )
@@ -2542,7 +2548,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 'mode': 'markers',
                 'name': 'Residual',
                 'showlegend': False,
-                'line': {
+                'marker': {
                     'color': COLORS_ZTF[0],
                 }
             }
