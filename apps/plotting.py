@@ -336,6 +336,32 @@ layout_sso_phasecurve = dict(
     }
 )
 
+layout_sso_phasecurve_residual = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': 'Phase angle [degree]',
+        'automargin': True
+    },
+    yaxis={
+        'range': [-1, 1],
+        'title': 'Residual [mag]',
+        'automargin': True
+    },
+)
+
 layout_sso_radec = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
@@ -2513,7 +2539,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'visible': True,
                     'color': COLORS_ZTF[0]
                 },
-                'mode': 'lines',
+                'mode': 'markers',
                 'name': 'Residual',
                 'showlegend': False,
                 'line': {
@@ -2524,7 +2550,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
 
     residual_figure = {
         'data': residual_figs,
-        "layout": layout_sso_phasecurve
+        "layout": layout_sso_phasecurve_residual
     }
 
     layout_sso_phasecurve['title']['text'] = 'Reduced &#967;<sup>2</sup>: {:.2f}'.format(chisq_red)
