@@ -234,7 +234,7 @@ def tab5_content(object_soo):
             dbc.Col(
                 [
                     draw_sso_lightcurve(pdf),
-                    # html.Br(),
+                    html.Br(),
                     # draw_sso_residual(pdf),
                     dmc.Accordion(
                         children=[

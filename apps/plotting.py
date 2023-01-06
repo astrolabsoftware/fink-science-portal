@@ -2014,7 +2014,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '35pc'
+            'height': '30pc'
         },
         config={'displayModeBar': False}
     )
@@ -2519,7 +2519,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         }
     )
 
-    graph = dcc.Graph(
+    graph1 = dcc.Graph(
         figure=figure,
         style={
             'width': '100%',
@@ -2529,7 +2529,9 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     )
     card = dmc.Paper(
         [
-            graph,
+            graph1,
+            html.Br(),
+            graph1,
             html.Br(),
             table
         ], radius='xl', p='md', shadow='xl', withBorder=True
