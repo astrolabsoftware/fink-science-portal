@@ -2436,11 +2436,10 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'y': fitfunc(xx, *popt),
                     'mode': 'markers',
                     'name': 'fit {:}'.format(filters[f]),
-                    'showlegend': False,
                     'marker': {
                         'size': 6,
                         'color': COLORS_ZTF[0],
-                        'symbol': 'o',
+                        'symbol': 'x',
                         'opacity': 0.5
                     }
                 }
@@ -2456,7 +2455,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                         'visible': True,
                         'color': COLORS_ZTF[i]
                     },
-                    'mode': 'lines',
+                    'mode': 'markers',
                     'name': 'Residual {:}'.format(filters[f]),
                     'showlegend': False,
                     'marker': {
@@ -2525,11 +2524,10 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 'y': fitfunc(x, *popt),
                 'mode': 'markers',
                 'name': 'fit combined',
-                'showlegend': False,
                 'marker': {
                     'size': 6,
                     'color': COLORS_ZTF[0],
-                    'symbol': 'o',
+                    'symbol': 'x',
                     'opacity': 0.5
                 }
             }
