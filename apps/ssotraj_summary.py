@@ -6,16 +6,18 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.time import Time
+from datetime import datetime, timedelta, date
 
 from dash import html, dcc, Input, Output, dash_table, State
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
-from dash import html, dcc
+from dash import html, dcc, ctx
 from dash_iconify import DashIconify
 from dash.exceptions import PreventUpdate
 
 import visdcc
 import base64
+import sys
 
 from apps.utils import class_colors, isoify_time, convert_jd, readstamp
 from apps.plotting import (
@@ -33,6 +35,8 @@ import plotly.graph_objs as go
 from poliastro.twobody import Orbit
 from poliastro.plotting.misc import plot_solar_system
 from poliastro.bodies import Sun
+
+import sbpy.data as sso_py
 
 from PIL import Image
 
@@ -855,6 +859,173 @@ def orb_tab_content(pdf_orb):
     return card
 
 
+def df_to_orb(df_orb):
+
+    print()
+    print("------------")
+    print(df_orb)
+    print(df_orb.columns)
+    print("------------")
+    print()
+
+    prep_to_orb = df_orb[
+        [
+            "d:ssoCandId",
+            "d:ref_epoch",
+            "d:a",
+            "d:e",
+            "d:i",
+            "d:long_node",
+            "d:arg_peric",
+            "d:mean_anomaly",
+        ]
+    ].rename(
+        {
+            "d:ssoCandId": "targetname",
+            "d:a": "a",
+            "d:e": "e",
+            "d:i": "i",
+            "d:long_node": "node",
+            "d:arg_peric": "argper",
+            "d:mean_anomaly": "M",
+            "d:ref_epoch": "epoch",
+        },
+        axis=1,
+    )
+
+    prep_to_orb["orbtype"] = "KEP"
+
+    prep_to_orb["H"] = 14.45
+    prep_to_orb["G"] = 0.15
+
+    orb_dict = prep_to_orb.to_dict(orient="list")
+
+    orb_dict["a"] = orb_dict["a"] * u.au
+    orb_dict["i"] = orb_dict["i"] * u.deg
+    orb_dict["node"] = orb_dict["node"] * u.deg
+    orb_dict["argper"] = orb_dict["argper"] * u.deg
+    orb_dict["M"] = orb_dict["M"] * u.deg
+    orb_dict["epoch"] = Time(orb_dict["epoch"], format="jd")
+    orb_dict["H"] = orb_dict["H"] * u.mag
+
+    ast_orb_db = sso_py.Orbit.from_dict(orb_dict)
+    return ast_orb_db
+
+
+def generate_ephem(pdf_traj, start: str, stop: str, step: float, location="I41"):
+    """
+    start and stop must be in iso format, step is in day
+    """
+    orb_table = df_to_orb(pdf_traj)
+    ephem_epoch = Time(
+        np.arange(Time(start, format="iso").jd, Time(stop, format="iso").jd, step=step),
+        format="jd",
+    )
+    ephem = sso_py.Ephem.from_oo(
+        orb_table, epochs=ephem_epoch, location=location, scope="full"
+    ).table.to_pandas()
+    return ephem, ephem_epoch
+
+
+def ephemeris_content():
+    
+    sso_datepicker = dmc.DateRangePicker(
+        id="ephemeries_select_date",
+        value=[datetime.now().date(), datetime.now().date() + timedelta(days=5)],
+    )
+
+    data_select = [
+        {"value": "minute", "label": "minute"},
+        {"value": "hour", "label": "hour"},
+        {"value": "day", "label": "day"}
+    ]
+
+    input_group = dbc.InputGroup(
+        [
+            sso_datepicker,
+            dmc.NumberInput(value=30, min=0, max=60, step=1, id="ephem_step_num"),
+            dmc.Select(data=data_select, value="minute", id="select_step_unit"),
+            dmc.Button("Generate ephemeries", id="gen_ephem_button"),
+        ]
+    )
+
+    gen_ephem_form = dmc.Container(input_group, style={"margin-top": "1%"})
+    download_button = dmc.Button("Download ephemeries", id="download_ephem")
+    download_comp = dcc.Download(id="download_df_ephem"),
+
+    return dmc.Container(dbc.Col([
+        dbc.Row(gen_ephem_form),
+        html.Div(id="gen_feedback"),
+        dbc.Row(download_button, style={"width": "30%", "margin-top": "1%"}),
+        dbc.Row(download_comp)
+    ]))
+
+
+@app.callback(
+    Output("download_df_ephem", "data"),
+    [   
+        Input("download_ephem", "n_clicks"),
+        Input("ephem_data", "data")
+    ],
+    prevent_initial_call=True
+)
+def download_ephem_data(b_click, ephem_json):
+
+    comp_id = ctx.triggered_id
+    if comp_id == "download_ephem":
+        pdf_ephem = pd.read_json(ephem_json)
+
+        return dcc.send_data_frame(pdf_ephem.to_csv, "ephem.csv")
+    else:
+        raise PreventUpdate
+
+
+
+@app.callback(
+    [
+        Output("ephem_data", "data"),
+        Output("gen_feedback", "children")
+    ],
+    [
+        Input("traj_orb", "data"),
+        Input("ephemeries_select_date", "value"),
+        Input("ephem_step_num", "value"),
+        Input("select_step_unit", "value"),
+        Input("gen_ephem_button", "n_clicks")
+    ],
+    prevent_initial_call=True,
+)
+def gen_and_store_ephem(orb_json, date_ephem, ephem_step, ephem_unit, b_click):
+    
+    comp_id = ctx.triggered_id
+    if comp_id == "gen_ephem_button":
+
+        pdf_orb = pd.read_json(orb_json)
+
+        start_ephem, stop_ephem = date_ephem[0], date_ephem[1]
+
+        if ephem_unit == "minute":
+            ephem_step = ephem_step / 60 / 24
+        elif ephem_unit == "hour":
+            ephem_step = ephem_step / 24
+        
+        ephem, _ = generate_ephem(pdf_orb, start_ephem, stop_ephem, ephem_step)
+
+        ephem_json = ephem.to_json()
+
+        
+        feedback_gen_ephem = dmc.Text(
+            "Ephemeries generated;  {} point;  In Memory size: {:.3f} MB".format(len(ephem), sys.getsizeof(ephem_json) / 10e6),
+            size="md"
+        )
+
+        return ephem_json, feedback_gen_ephem
+    else:
+        raise PreventUpdate
+
+
+
+
 @app.callback(
     Output("sso_tabs", "children"),
     [Input("traj_lc", "data"), Input("traj_orb", "data"), Input("traj_img", "data")],
@@ -876,6 +1047,7 @@ def tabs(json_lc, json_orb, json_cutout):
             dbc.Tab(astr_tab_content(pdf_lc), label="Astrometry", tab_id='t1'),
             dbc.Tab(dynamic_tab, label="Dynamics", tab_id='t2'),
             dbc.Tab(orb_tab_content(pdf_orb), label="Orbit", tab_id='t3'),
+            dbc.Tab(ephemeris_content(), label="Ephemeris", tab_id='ephemeries_tabs_4')
         ],
         id="sso_summary_tabs",
         # position="right",
@@ -1094,6 +1266,7 @@ def layout(is_mobile):
                 dcc.Store("traj_lc"),
                 dcc.Store("traj_orb"),
                 dcc.Store("traj_img"),
+                dcc.Store("ephem_data")
             ],
             className="home",
             style={
