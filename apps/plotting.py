@@ -2438,7 +2438,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'name': 'fit {:}'.format(filters[f]),
                     'marker': {
                         'size': 6,
-                        'color': COLORS_ZTF[0],
+                        'color': COLORS_ZTF[i],
                         'symbol': 'x',
                         'opacity': 0.5
                     }
