@@ -25,6 +25,32 @@ import rocks
 
 import visdcc
 
+def get_sso_data(ssnamenr):
+    """
+    """
+    data = rocks.Rock(
+        ssnamenr_,
+        datacloud=['phase_functions', 'spins'],
+        skip_id_check=False
+    )
+    if data.number is None:
+        if ssnamenr.startswith('C/'):
+            kind = 'comet'
+            ssnamenr = ssnamenr[:-2] + ' ' + ssnamenr[-2:]
+            data = queryMPC(ssnamenr, kind=kind)
+        elif (ssnamenr[-1] == 'P'):
+            kind = 'comet'
+            data = queryMPC(ssnamenr, kind=kind)
+        else:
+            kind = 'asteroid'
+            data = queryMPC(ssnamenr, kind=kind)
+
+        if data.empty:
+            return None, None
+        return data, kind
+    else:
+        return data, None
+
 def card_sso_left(ssnamenr):
     """
     """
@@ -66,11 +92,12 @@ curl -H "Content-Type: application/json" -X POST \\
 
     if ssnamenr_ != 'null':
         ssnamenr_ = str(ssnamenr)
-        data = rocks.Rock(
-            ssnamenr_,
-            datacloud=['phase_functions', 'spins'],
-            skip_id_check=False
-        )
+        data, kind = get_sso_data(ssnamenr)
+        if kind is not None:
+            # from MPC
+            card_properties = card_sso_mpc_params(data, ssnamenr, kind)
+        else:
+            card_properties = card_sso_rocks_params(data)
 
         extra_items = [
             dmc.AccordionItem(
@@ -98,7 +125,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                     dbc.Button(
                                         className='btn btn-default zoom btn-circle btn-lg',
                                         style={'background-image': 'url(/assets/buttons/imcce.png)', 'background-size': 'cover'},
-                                        color='dark',
+                                        color='light',
                                         outline=True,
                                         id='IMCCE',
                                         target="_blank",
@@ -153,7 +180,7 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.Paper(
-                        card_sso_rocks_params(data),
+                        card_properties,
                         radius='xl', p='md', shadow='xl', withBorder=True
                     )
                 ],
@@ -172,7 +199,7 @@ curl -H "Content-Type: application/json" -X POST \\
 
     return card
 
-def card_sso_mpc_params(ssnamenr):
+def card_sso_mpc_params(data, ssnamenr_, kind):
     """ MPC parameters
     """
     template = """
@@ -194,19 +221,7 @@ def card_sso_mpc_params(ssnamenr):
     neo: {}
     ```
     """
-    ssnamenr_ = str(ssnamenr)
-    if ssnamenr_.startswith('C/'):
-        kind = 'comet'
-        ssnamenr_ = ssnamenr_[:-2] + ' ' + ssnamenr_[-2:]
-        data = queryMPC(ssnamenr_, kind=kind)
-    elif (ssnamenr_[-1] == 'P'):
-        kind = 'comet'
-        data = queryMPC(ssnamenr_, kind=kind)
-    else:
-        kind = 'asteroid'
-        data = queryMPC(ssnamenr_, kind=kind)
-
-    if data.empty:
+    if data is None:
         card = html.Div(
             [
                 html.H5("Name: None", className="card-title"),
