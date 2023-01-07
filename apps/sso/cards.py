@@ -65,6 +65,13 @@ curl -H "Content-Type: application/json" -X POST \\
     )
 
     if ssnamenr_ != 'null':
+        ssnamenr_ = str(ssnamenr)
+        data = rocks.Rock(
+            ssnamenr_,
+            datacloud=['phase_functions', 'spins'],
+            skip_id_check=False
+        )
+
         extra_items = [
             dmc.AccordionItem(
                 [
@@ -87,6 +94,16 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.Paper(
                         dbc.Row(
                             [
+                                dbc.Col(
+                                    dbc.Button(
+                                        className='btn btn-default zoom btn-circle btn-lg',
+                                        style={'background-image': 'url(/assets/buttons/imcce.jpg)', 'background-size': 'cover'},
+                                        color='dark',
+                                        outline=True,
+                                        id='IMCCE',
+                                        target="_blank",
+                                        href='https://ssp.imcce.fr/webservices/ssodnet/api/ssocard.php?q={}'.format(data.name)
+                                    ), width=4),
                                 dbc.Col(
                                     dbc.Button(
                                         className='btn btn-default zoom btn-circle btn-lg',
@@ -125,6 +142,7 @@ curl -H "Content-Type: application/json" -X POST \\
         ]
     else:
         extra_items = []
+        data = None
 
     card = dmc.Accordion(
         state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
@@ -135,11 +153,11 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.Paper(
-                        card_sso_rocks_params(ssnamenr),
+                        card_sso_rocks_params(data),
                         radius='xl', p='md', shadow='xl', withBorder=True
                     )
                 ],
-                label="SSO card",
+                label="SsODNet - ssoCard",
                 icon=[
                     DashIconify(
                         icon="majesticons:comet",
@@ -243,12 +261,11 @@ def card_sso_mpc_params(ssnamenr):
     )
     return card
 
-def card_sso_rocks_params(ssnamenr):
+def card_sso_rocks_params(data):
     """ IMCCE parameters from Rocks
     """
     template = """
     ```python
-    # Properties from SsODNet
     a (AU): {}
     e: {}
     i (deg): {}
@@ -260,22 +277,22 @@ def card_sso_rocks_params(ssnamenr):
     H: {}
     ```
     """
-    ssnamenr_ = str(ssnamenr)
-
-    data = rocks.Rock(ssnamenr_, datacloud=['phase_functions'], skip_id_check=False)
-
-    if data.number is None:
+    if data is None:
         card = html.Div(
             [
                 html.H5("Name: None", className="card-title"),
-                html.H6("Dynamical class: None", className="card-subtitle"),
+                html.H6("Class: None", className="card-subtitle"),
+                html.H6("Parent body: None", className="card-subtitle"),
+                html.H6("Dynamical system: None", className="card-subtitle"),
             ],
         )
         return card
 
     header = [
         html.H5("Name: {} ({})".format(data.name, data.number), className="card-title"),
-        html.H6("Dynamical class: {}".format(data.class_), className="card-subtitle"),
+        html.H6("Class: {}".format(data.class_), className="card-subtitle"),
+        html.H6("Parent body: {}".format(data.parent), className="card-subtitle"),
+        html.H6("Dynamical system: {}".format(data.system), className="card-subtitle"),
     ]
 
     card = html.Div(
