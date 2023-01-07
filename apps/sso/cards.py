@@ -92,10 +92,10 @@ curl -H "Content-Type: application/json" -X POST \\
 
     if ssnamenr_ != 'null':
         ssnamenr_ = str(ssnamenr)
-        data, kind = get_sso_data(ssnamenr)
+        data, kind = get_sso_data(ssnamenr_)
         if kind is not None:
             # from MPC
-            card_properties = card_sso_mpc_params(data, ssnamenr, kind)
+            card_properties = card_sso_mpc_params(data, ssnamenr_, kind)
         else:
             card_properties = card_sso_rocks_params(data)
 
