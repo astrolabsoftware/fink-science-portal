@@ -254,7 +254,6 @@ def card_sso_rocks_params(ssnamenr):
     i (deg): {}
     Omega (deg): {}
     argPeri (deg): {}
-    tPeri (MJD): {}
     Mean motion (deg/day): {}
     Orbital period (day): {}
     Tisserand parameter: {}
@@ -263,7 +262,7 @@ def card_sso_rocks_params(ssnamenr):
     """
     ssnamenr_ = str(ssnamenr)
 
-    data = rocks.Rock(ssnamenr_, datacloud=['phase_functions', 'spins'], skip_id_check=True)
+    data = rocks.Rock(ssnamenr_, datacloud=['phase_functions'], skip_id_check=False)
 
     if data.number is None:
         card = html.Div(
@@ -276,7 +275,7 @@ def card_sso_rocks_params(ssnamenr):
 
     header = [
         html.H5("Name: {} ({})".format(data.name, data.number), className="card-title"),
-        html.H6("Dynamical class: {}".format(autonoma.class_), className="card-subtitle"),
+        html.H6("Dynamical class: {}".format(data.class_), className="card-subtitle"),
     ]
 
     card = html.Div(
@@ -292,7 +291,7 @@ def card_sso_rocks_params(ssnamenr):
                     data.parameters.dynamical.orbital_elements.mean_motion.value,
                     data.parameters.dynamical.orbital_elements.orbital_period.value,
                     data.parameters.dynamical.tisserand_parameter.jupiter.value,
-                    data.parameters.physical.phase_function.generic_johnson_V.H.value,
+                    data.parameters.physical.phase_function.generic_johnson_V.H.value
                 )
             ),
         ],

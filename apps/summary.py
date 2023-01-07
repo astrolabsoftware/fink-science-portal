@@ -235,7 +235,6 @@ def tab5_content(object_soo):
                 [
                     draw_sso_lightcurve(pdf),
                     html.Br(),
-                    # draw_sso_residual(pdf),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
