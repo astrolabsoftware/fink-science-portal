@@ -199,7 +199,7 @@ curl -H "Content-Type: application/json" -X POST \\
 
     return card
 
-def card_sso_mpc_params(data, ssnamenr_, kind):
+def card_sso_mpc_params(data, ssnamenr, kind):
     """ MPC parameters
     """
     template = """
