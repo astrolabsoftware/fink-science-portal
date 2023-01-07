@@ -29,7 +29,7 @@ def get_sso_data(ssnamenr):
     """
     """
     data = rocks.Rock(
-        ssnamenr_,
+        ssnamenr,
         datacloud=['phase_functions', 'spins'],
         skip_id_check=False
     )
