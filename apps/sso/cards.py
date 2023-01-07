@@ -97,7 +97,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 dbc.Col(
                                     dbc.Button(
                                         className='btn btn-default zoom btn-circle btn-lg',
-                                        style={'background-image': 'url(/assets/buttons/imcce.jpg)', 'background-size': 'cover'},
+                                        style={'background-image': 'url(/assets/buttons/imcce.png)', 'background-size': 'cover'},
                                         color='dark',
                                         outline=True,
                                         id='IMCCE',
