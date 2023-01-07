@@ -21,6 +21,8 @@ from apps.utils import queryMPC, convert_mpc_type
 
 from app import app, APIURL
 
+import rocks
+
 import visdcc
 
 def card_sso_left(ssnamenr):
@@ -32,7 +34,7 @@ def card_sso_left(ssnamenr):
 import pandas as pd
 import io
 
-# get data for ZTF19acnjwgm
+# get data for {}
 r = requests.post(
     '{}/api/v1/sso',
     json={{
@@ -43,6 +45,7 @@ r = requests.post(
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))""".format(
+        ssnamenr,
         APIURL,
         ssnamenr
     )
@@ -132,7 +135,7 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.Paper(
-                        card_sso_mpc_params(ssnamenr),
+                        card_sso_rocks_params(ssnamenr),
                         radius='xl', p='md', shadow='xl', withBorder=True
                     )
                 ],
@@ -234,6 +237,62 @@ def card_sso_mpc_params(ssnamenr):
                     abs_mag,
                     phase_slope,
                     neo
+                )
+            ),
+        ],
+    )
+    return card
+
+def card_sso_rocks_params(ssnamenr):
+    """ IMCCE parameters from Rocks
+    """
+    template = """
+    ```python
+    # Properties from SsODNet
+    a (AU): {}
+    e: {}
+    i (deg): {}
+    Omega (deg): {}
+    argPeri (deg): {}
+    tPeri (MJD): {}
+    Mean motion (deg/day): {}
+    Orbital period (day): {}
+    Tisserand parameter: {}
+    H: {}
+    ```
+    """
+    ssnamenr_ = str(ssnamenr)
+
+    data = rocks.Rock(ssnamenr_, datacloud=['phase_functions', 'spins'], skip_id_check=True)
+
+    if data.number is None:
+        card = html.Div(
+            [
+                html.H5("Name: None", className="card-title"),
+                html.H6("Dynamical class: None", className="card-subtitle"),
+            ],
+        )
+        return card
+
+    header = [
+        html.H5("Name: {} ({})".format(data.name, data.number), className="card-title"),
+        html.H6("Dynamical class: {}".format(autonoma.class_), className="card-subtitle"),
+    ]
+
+    card = html.Div(
+        [
+            *header,
+            dcc.Markdown(
+                template.format(
+                    data.parameters.dynamical.orbital_elements.semi_major_axis.value,
+                    data.parameters.dynamical.orbital_elements.eccentricity.value,
+                    data.parameters.dynamical.orbital_elements.inclination.value,
+                    data.parameters.dynamical.orbital_elements.node_longitude.value,
+                    data.parameters.dynamical.orbital_elements.perihelion_argument.value,
+                    data.parameters.dynamical.orbital_elements.mean_motion.value,
+                    data.parameters.dynamical.orbital_elements.orbital_period.value,
+                    data.parameters.dynamical.tisserand_parameter.jupiter.value,
+                    data.parameters.physical.phase_function.generic_johnson_V.H.value,
                 )
             ),
         ],

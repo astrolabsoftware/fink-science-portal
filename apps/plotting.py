@@ -2268,7 +2268,7 @@ def draw_sso_astrometry(pdf) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '30pc'
         },
         config={'displayModeBar': False}
     )
