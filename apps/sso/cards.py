@@ -167,35 +167,34 @@ curl -H "Content-Type: application/json" -X POST \\
                 ],
             ),
         ]
-    else:
-        extra_items = []
-        data = None
 
-    card = dmc.Accordion(
-        state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
-        multiple=True,
-        offsetIcon=False,
-        disableIconRotation=True,
-        children=[
-            dmc.AccordionItem(
-                [
-                    dmc.Paper(
-                        card_properties,
-                        radius='xl', p='md', shadow='xl', withBorder=True
-                    )
-                ],
-                label="SsODNet - ssoCard",
-                icon=[
-                    DashIconify(
-                        icon="majesticons:comet",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
-                    )
-                ],
-            ),
-            *extra_items
-        ]
-    )
+        card = dmc.Accordion(
+            state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
+            multiple=True,
+            offsetIcon=False,
+            disableIconRotation=True,
+            children=[
+                dmc.AccordionItem(
+                    [
+                        dmc.Paper(
+                            card_properties,
+                            radius='xl', p='md', shadow='xl', withBorder=True
+                        )
+                    ],
+                    label="SsODNet - ssoCard",
+                    icon=[
+                        DashIconify(
+                            icon="majesticons:comet",
+                            color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                            width=20,
+                        )
+                    ],
+                ),
+                *extra_items
+            ]
+        )
+    else:
+        card = html.Div()
 
     return card
 
