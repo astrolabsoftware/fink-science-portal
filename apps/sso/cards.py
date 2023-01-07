@@ -21,7 +21,35 @@ from apps.utils import queryMPC, convert_mpc_type
 
 from app import app, APIURL
 
+import rocks
+
 import visdcc
+
+def get_sso_data(ssnamenr):
+    """
+    """
+    data = rocks.Rock(
+        ssnamenr,
+        datacloud=['phase_functions', 'spins'],
+        skip_id_check=False
+    )
+    if data.number is None:
+        if ssnamenr.startswith('C/'):
+            kind = 'comet'
+            ssnamenr = ssnamenr[:-2] + ' ' + ssnamenr[-2:]
+            data = queryMPC(ssnamenr, kind=kind)
+        elif (ssnamenr[-1] == 'P'):
+            kind = 'comet'
+            data = queryMPC(ssnamenr, kind=kind)
+        else:
+            kind = 'asteroid'
+            data = queryMPC(ssnamenr, kind=kind)
+
+        if data.empty:
+            return None, None
+        return data, kind
+    else:
+        return data, None
 
 def card_sso_left(ssnamenr):
     """
@@ -32,7 +60,7 @@ def card_sso_left(ssnamenr):
 import pandas as pd
 import io
 
-# get data for ZTF19acnjwgm
+# get data for {}
 r = requests.post(
     '{}/api/v1/sso',
     json={{
@@ -43,6 +71,7 @@ r = requests.post(
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))""".format(
+        ssnamenr,
         APIURL,
         ssnamenr
     )
@@ -62,6 +91,14 @@ curl -H "Content-Type: application/json" -X POST \\
     )
 
     if ssnamenr_ != 'null':
+        ssnamenr_ = str(ssnamenr)
+        data, kind = get_sso_data(ssnamenr_)
+        if kind is not None:
+            # from MPC
+            card_properties = card_sso_mpc_params(data, ssnamenr_, kind)
+        else:
+            card_properties = card_sso_rocks_params(data)
+
         extra_items = [
             dmc.AccordionItem(
                 [
@@ -84,6 +121,16 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.Paper(
                         dbc.Row(
                             [
+                                dbc.Col(
+                                    dbc.Button(
+                                        className='btn btn-default zoom btn-circle btn-lg',
+                                        style={'background-image': 'url(/assets/buttons/imcce.png)', 'background-size': 'cover'},
+                                        color='light',
+                                        outline=True,
+                                        id='IMCCE',
+                                        target="_blank",
+                                        href='https://ssp.imcce.fr/webservices/ssodnet/api/ssocard.php?q={}'.format(data.name)
+                                    ), width=4),
                                 dbc.Col(
                                     dbc.Button(
                                         className='btn btn-default zoom btn-circle btn-lg',
@@ -120,38 +167,38 @@ curl -H "Content-Type: application/json" -X POST \\
                 ],
             ),
         ]
-    else:
-        extra_items = []
 
-    card = dmc.Accordion(
-        state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
-        multiple=True,
-        offsetIcon=False,
-        disableIconRotation=True,
-        children=[
-            dmc.AccordionItem(
-                [
-                    dmc.Paper(
-                        card_sso_mpc_params(ssnamenr),
-                        radius='xl', p='md', shadow='xl', withBorder=True
-                    )
-                ],
-                label="SSO card",
-                icon=[
-                    DashIconify(
-                        icon="majesticons:comet",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
-                    )
-                ],
-            ),
-            *extra_items
-        ]
-    )
+        card = dmc.Accordion(
+            state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
+            multiple=True,
+            offsetIcon=False,
+            disableIconRotation=True,
+            children=[
+                dmc.AccordionItem(
+                    [
+                        dmc.Paper(
+                            card_properties,
+                            radius='xl', p='md', shadow='xl', withBorder=True
+                        )
+                    ],
+                    label="SsODNet - ssoCard",
+                    icon=[
+                        DashIconify(
+                            icon="majesticons:comet",
+                            color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                            width=20,
+                        )
+                    ],
+                ),
+                *extra_items
+            ]
+        )
+    else:
+        card = html.Div()
 
     return card
 
-def card_sso_mpc_params(ssnamenr):
+def card_sso_mpc_params(data, ssnamenr, kind):
     """ MPC parameters
     """
     template = """
@@ -173,19 +220,7 @@ def card_sso_mpc_params(ssnamenr):
     neo: {}
     ```
     """
-    ssnamenr_ = str(ssnamenr)
-    if ssnamenr_.startswith('C/'):
-        kind = 'comet'
-        ssnamenr_ = ssnamenr_[:-2] + ' ' + ssnamenr_[-2:]
-        data = queryMPC(ssnamenr_, kind=kind)
-    elif (ssnamenr_[-1] == 'P'):
-        kind = 'comet'
-        data = queryMPC(ssnamenr_, kind=kind)
-    else:
-        kind = 'asteroid'
-        data = queryMPC(ssnamenr_, kind=kind)
-
-    if data.empty:
+    if data is None:
         card = html.Div(
             [
                 html.H5("Name: None", className="card-title"),
@@ -234,6 +269,60 @@ def card_sso_mpc_params(ssnamenr):
                     abs_mag,
                     phase_slope,
                     neo
+                )
+            ),
+        ],
+    )
+    return card
+
+def card_sso_rocks_params(data):
+    """ IMCCE parameters from Rocks
+    """
+    template = """
+    ```python
+    a (AU): {}
+    e: {}
+    i (deg): {}
+    Omega (deg): {}
+    argPeri (deg): {}
+    Mean motion (deg/day): {}
+    Orbital period (day): {}
+    Tisserand parameter: {}
+    H: {}
+    ```
+    """
+    if data is None:
+        card = html.Div(
+            [
+                html.H5("Name: None", className="card-title"),
+                html.H6("Class: None", className="card-subtitle"),
+                html.H6("Parent body: None", className="card-subtitle"),
+                html.H6("Dynamical system: None", className="card-subtitle"),
+            ],
+        )
+        return card
+
+    header = [
+        html.H5("Name: {} ({})".format(data.name, data.number), className="card-title"),
+        html.H6("Class: {}".format(data.class_), className="card-subtitle"),
+        html.H6("Parent body: {}".format(data.parent), className="card-subtitle"),
+        html.H6("Dynamical system: {}".format(data.system), className="card-subtitle"),
+    ]
+
+    card = html.Div(
+        [
+            *header,
+            dcc.Markdown(
+                template.format(
+                    data.parameters.dynamical.orbital_elements.semi_major_axis.value,
+                    data.parameters.dynamical.orbital_elements.eccentricity.value,
+                    data.parameters.dynamical.orbital_elements.inclination.value,
+                    data.parameters.dynamical.orbital_elements.node_longitude.value,
+                    data.parameters.dynamical.orbital_elements.perihelion_argument.value,
+                    data.parameters.dynamical.orbital_elements.mean_motion.value,
+                    data.parameters.dynamical.orbital_elements.orbital_period.value,
+                    data.parameters.dynamical.tisserand_parameter.jupiter.value,
+                    data.parameters.physical.phase_function.generic_johnson_V.H.value
                 )
             ),
         ],
