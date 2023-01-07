@@ -33,7 +33,7 @@ def get_sso_data(ssnamenr):
         datacloud=['phase_functions', 'spins'],
         skip_id_check=False
     )
-    if data.number is None:
+    if data.id_ == '':
         if ssnamenr.startswith('C/'):
             kind = 'comet'
             ssnamenr = ssnamenr[:-2] + ' ' + ssnamenr[-2:]
