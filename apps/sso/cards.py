@@ -65,6 +65,7 @@ r = requests.post(
     '{}/api/v1/sso',
     json={{
         'n_or_d': '{}',
+        'withEphem': True,
         'output-format': 'json'
     }}
 )
