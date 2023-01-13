@@ -282,19 +282,6 @@ def card_sso_mpc_params(data, ssnamenr, kind):
 def card_sso_rocks_params(data):
     """ IMCCE parameters from Rocks
     """
-    template = """
-    ```python
-    a (AU): {}
-    e: {}
-    i (deg): {}
-    Omega (deg): {}
-    argPeri (deg): {}
-    Mean motion (deg/day): {}
-    Orbital period (day): {}
-    Tisserand parameter: {}
-    H: {}
-    ```
-    """
     if data is None:
         card = html.Div(
             [
@@ -302,6 +289,27 @@ def card_sso_rocks_params(data):
                 html.H6("Class: None", className="card-subtitle"),
                 html.H6("Parent body: None", className="card-subtitle"),
                 html.H6("Dynamical system: None", className="card-subtitle"),
+                dmc.Divider(
+                    label='Physical parameters',
+                    variant="solid",
+                    style={"marginTop": 20, "marginBottom": 20},
+                ),
+                html.H6("Taxonomical class: None", className="card-subtitle"),
+                html.H6("Absolute magnitude (mag): None", className="card-subtitle"),
+                html.H6("Diameter (km): None", className="card-subtitle"),
+                dmc.Divider(
+                    label='Dynamical parameters',
+                    variant="solid",
+                    style={"marginTop": 20, "marginBottom": 20},
+                ),
+                html.H6("a (AU): None", className="card-subtitle"),
+                html.H6("e: None", className="card-subtitle"),
+                html.H6("i (deg): None", className="card-subtitle"),
+                html.H6("Omega (deg): None", className="card-subtitle"),
+                html.H6("argPeri (deg): None", className="card-subtitle"),
+                html.H6("Mean motion (deg/day): None", className="card-subtitle"),
+                html.H6("Orbital period (day): None", className="card-subtitle"),
+                html.H6("Tisserand parameter: None", className="card-subtitle"),
             ],
         )
         return card
@@ -311,24 +319,30 @@ def card_sso_rocks_params(data):
         html.H6("Class: {}".format(data.class_), className="card-subtitle"),
         html.H6("Parent body: {}".format(data.parent), className="card-subtitle"),
         html.H6("Dynamical system: {}".format(data.system), className="card-subtitle"),
+        dmc.Divider(
+            label='Physical parameters',
+            variant="solid",
+            style={"marginTop": 20, "marginBottom": 20},
+        ),
+        html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle"),
+        html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.phase_function.generic_johnson_V.H.value), className="card-subtitle"),
+        html.H6("Diameter (km): {}".format(data.parameters.physical.diameter.value), className="card-subtitle"),
+        dmc.Divider(
+            label='Dynamical parameters',
+            variant="solid",
+            style={"marginTop": 20, "marginBottom": 20},
+        ),
+        html.H6("a (AU): {}".format(data.parameters.dynamical.orbital_elements.semi_major_axis.value,), className="card-subtitle"),
+        html.H6("e: {}".format(data.parameters.dynamical.orbital_elements.eccentricity.value,), className="card-subtitle"),
+        html.H6("i (deg): {}".format(data.parameters.dynamical.orbital_elements.inclination.value,), className="card-subtitle"),
+        html.H6("Omega (deg): {}".format(data.parameters.dynamical.orbital_elements.node_longitude.value,), className="card-subtitle"),
+        html.H6("argPeri (deg): {}".format(data.parameters.dynamical.orbital_elements.perihelion_argument.value,), className="card-subtitle"),
+        html.H6("Mean motion (deg/day): {}".format(data.parameters.dynamical.orbital_elements.mean_motion.value,), className="card-subtitle"),
+        html.H6("Orbital period (day): {}".format(data.parameters.dynamical.orbital_elements.orbital_period.value,), className="card-subtitle"),
+        html.H6("Tisserand parameter: {}".format(data.parameters.dynamical.tisserand_parameter.jupiter.value,), className="card-subtitle"),
     ]
 
     card = html.Div(
-        [
-            *header,
-            dcc.Markdown(
-                template.format(
-                    data.parameters.dynamical.orbital_elements.semi_major_axis.value,
-                    data.parameters.dynamical.orbital_elements.eccentricity.value,
-                    data.parameters.dynamical.orbital_elements.inclination.value,
-                    data.parameters.dynamical.orbital_elements.node_longitude.value,
-                    data.parameters.dynamical.orbital_elements.perihelion_argument.value,
-                    data.parameters.dynamical.orbital_elements.mean_motion.value,
-                    data.parameters.dynamical.orbital_elements.orbital_period.value,
-                    data.parameters.dynamical.tisserand_parameter.jupiter.value,
-                    data.parameters.physical.phase_function.generic_johnson_V.H.value
-                )
-            ),
-        ],
+        header
     )
     return card
