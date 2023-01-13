@@ -316,17 +316,17 @@ def card_sso_rocks_params(data):
 
     header = [
         html.H5("Name: {} ({})".format(data.name, data.number), className="card-title"),
-        html.H6("Class: {}".format(data.class_), className="card-subtitle"),
-        html.H6("Parent body: {}".format(data.parent), className="card-subtitle"),
-        html.H6("Dynamical system: {}".format(data.system), className="card-subtitle"),
+        html.H6("Class: {}".format(data.class_), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
+        html.H6("Parent body: {}".format(data.parent), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
+        html.H6("Dynamical system: {}".format(data.system), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
         dmc.Divider(
             label='Physical parameters',
             variant="solid",
             style={"marginTop": 20, "marginBottom": 10},
         ),
-        html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle"),
-        html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.phase_function.generic_johnson_V.H.value), className="card-subtitle"),
-        html.H6("Diameter (km): {}".format(data.parameters.physical.diameter.value), className="card-subtitle"),
+        html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
+        html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.phase_function.generic_johnson_V.H.value), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
+        html.H6("Diameter (km): {}".format(data.parameters.physical.diameter.value), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
         dmc.Divider(
             label='Dynamical parameters',
             variant="solid",
