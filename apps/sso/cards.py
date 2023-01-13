@@ -369,6 +369,13 @@ def card_sso_rocks_params(data):
                     className="card-subtitle"
                 ),
             )
+            header.append(
+                dmc.Divider(
+                    variant="dashed",
+                    style={"marginTop": 5, "marginBottom": 5},
+                    color='orange'
+                )
+            )
 
     card = html.Div(
         header
