@@ -322,7 +322,7 @@ def card_sso_rocks_params(data):
         dmc.Divider(
             label='Physical parameters',
             variant="solid",
-            style={"marginTop": 20},
+            style={"marginTop": 20, "marginBottom": 10},
         ),
         html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle"),
         html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.phase_function.generic_johnson_V.H.value), className="card-subtitle"),
@@ -330,7 +330,7 @@ def card_sso_rocks_params(data):
         dmc.Divider(
             label='Dynamical parameters',
             variant="solid",
-            style={"marginTop": 20},
+            style={"marginTop": 20, "marginBottom": 10},
         ),
         html.H6("a (AU): {}".format(data.parameters.dynamical.orbital_elements.semi_major_axis.value,), className="card-subtitle"),
         html.H6("e: {}".format(data.parameters.dynamical.orbital_elements.eccentricity.value,), className="card-subtitle"),
@@ -347,7 +347,7 @@ def card_sso_rocks_params(data):
             dmc.Divider(
                 label='Spin parameters',
                 variant="solid",
-                style={"marginTop": 20},
+                style={"marginTop": 20, "marginBottom": 10},
             ),
         )
         for index, avail_spin in enumerate(data.parameters.physical.spin):
