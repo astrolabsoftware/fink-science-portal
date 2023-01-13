@@ -103,7 +103,10 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.Paper(
-                        download_tab,
+                        [
+                            download_tab,
+                            dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                        ],
                         radius='xl', p='md', shadow='xl', withBorder=True
                     )
                 ],
