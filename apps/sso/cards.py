@@ -358,7 +358,9 @@ def card_sso_rocks_params(data):
                         avail_spin.RA0.value
                     ),
                     className="card-subtitle"
-                ),
+                )
+            )
+            header.append(
                 html.H6(
                     "DEC0 [{}]: {}".format(
                         avail_spin.method[0].shortbib,
