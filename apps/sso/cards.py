@@ -322,7 +322,7 @@ def card_sso_rocks_params(data):
         dmc.Divider(
             label='Physical parameters',
             variant="solid",
-            style={"marginTop": 20, "marginBottom": 20},
+            style={"marginTop": 20},
         ),
         html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle"),
         html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.phase_function.generic_johnson_V.H.value), className="card-subtitle"),
@@ -330,7 +330,7 @@ def card_sso_rocks_params(data):
         dmc.Divider(
             label='Dynamical parameters',
             variant="solid",
-            style={"marginTop": 20, "marginBottom": 20},
+            style={"marginTop": 20},
         ),
         html.H6("a (AU): {}".format(data.parameters.dynamical.orbital_elements.semi_major_axis.value,), className="card-subtitle"),
         html.H6("e: {}".format(data.parameters.dynamical.orbital_elements.eccentricity.value,), className="card-subtitle"),
@@ -341,6 +341,32 @@ def card_sso_rocks_params(data):
         html.H6("Orbital period (day): {}".format(data.parameters.dynamical.orbital_elements.orbital_period.value,), className="card-subtitle"),
         html.H6("Tisserand parameter: {}".format(data.parameters.dynamical.tisserand_parameter.jupiter.value,), className="card-subtitle"),
     ]
+
+    if data.parameters.physical.spin is not None:
+        header.append(
+            dmc.Divider(
+                label='Spin parameters',
+                variant="solid",
+                style={"marginTop": 20},
+            ),
+        )
+        for index, avail_spin in enumerate(data.parameters.physical.spin):
+            header.append(
+                html.H6(
+                    "RA0 [{}]: {}".format(
+                        avail_spin.method[0].shortbib,
+                        avail_spin.RA0.value
+                    ),
+                    className="card-subtitle"
+                ),
+                html.H6(
+                    "DEC0 [{}]: {}".format(
+                        avail_spin.method[0].shortbib,
+                        avail_spin.DEC0.value
+                    ),
+                    className="card-subtitle"
+                ),
+            )
 
     card = html.Div(
         header
