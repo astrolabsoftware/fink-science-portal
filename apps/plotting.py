@@ -33,7 +33,7 @@ import dash_mantine_components as dmc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-from apps.utils import sine_fit, Vmag
+from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.statistics import dic_names
 from app import APIURL
