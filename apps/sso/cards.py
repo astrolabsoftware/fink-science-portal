@@ -356,7 +356,7 @@ def card_sso_rocks_params(data):
                 dmc.Divider(
                     label=avail_spin.method[0].shortbib,
                     variant="dashed",
-                    style={"marginTop": 20, "marginBottom": 5},
+                    style={"marginTop": 10, "marginBottom": 5},
                 )
             )
             header.append(
