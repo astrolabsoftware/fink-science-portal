@@ -2465,7 +2465,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     }
                 }
             )
-            layout_sso_phasecurve['title']['text'] += '{}={:.2f}'.format(filters[f], chisq_red)
+            layout_sso_phasecurve['title']['text'] += '  {}={:.2f}  '.format(filters[f], chisq_red)
     elif switch_band == 'combined':
         dd = {'': ['Combined']}
         dd.update({i: [''] for i in params})
@@ -2554,7 +2554,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 }
             }
         )
-        layout_sso_phasecurve['title']['text'] += '{:.2f}'.format(chisq_red)
+        layout_sso_phasecurve['title']['text'] += '  {:.2f}  '.format(chisq_red)
 
     residual_figure = {
         'data': residual_figs,
