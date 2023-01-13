@@ -221,13 +221,8 @@ def tab5_content(object_soo):
         ssnamenr = pdf['i:ssnamenr'].values[0]
 
     msg = """
-    **Top:** lightcurve from ZTF, with ephemerides provided by the
+    lightcurve from ZTF, with ephemerides provided by the
     [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).
-
-    **Bottom:** (asteroids only) residuals between observed and predicted magnitude
-    as a function of the ecliptic longitude. The variations are most-likely due
-    to the difference of aspect angle: the object is not a perfect sphere, and we
-    are seeing its oblateness here. The solid lines are sinusoidal fits to the residuals.
     """
     tab1 = dbc.Row(
         [

@@ -33,11 +33,12 @@ import dash_mantine_components as dmc
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-from apps.utils import sine_fit, Vmag
+from apps.utils import sine_fit
 from apps.utils import class_colors
-from apps.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, add_ztf_color_correction, estimate_sso_params
 from apps.statistics import dic_names
 from app import APIURL
+
+from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, add_ztf_color_correction, estimate_sso_params
 
 from pyLIMA import event
 from pyLIMA import telescopes
@@ -2367,6 +2368,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             [30, 1, 1, 1, 2*np.pi, np.pi/2]
         )
 
+    layout_sso_phasecurve['title']['text'] = 'Reduced &#967;<sup>2</sup>: '
     if switch_band == 'per-band':
         # Add color correction in the DataFrame
         pdf = add_ztf_color_correction(pdf, combined=False)
@@ -2463,6 +2465,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     }
                 }
             )
+            layout_sso_phasecurve['title']['text'] += '  {}={:.2f}  '.format(filters[f], chisq_red)
     elif switch_band == 'combined':
         dd = {'': ['Combined']}
         dd.update({i: [''] for i in params})
@@ -2551,13 +2554,13 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 }
             }
         )
+        layout_sso_phasecurve['title']['text'] += '  {:.2f}  '.format(chisq_red)
 
     residual_figure = {
         'data': residual_figs,
         "layout": layout_sso_phasecurve_residual
     }
 
-    layout_sso_phasecurve['title']['text'] = 'Reduced &#967;<sup>2</sup>: {:.2f}'.format(chisq_red)
     figure = {
         'data': figs,
         "layout": layout_sso_phasecurve
