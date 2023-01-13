@@ -314,32 +314,33 @@ def card_sso_rocks_params(data):
         )
         return card
 
+    margin = 1
     header = [
         html.H5("Name: {} ({})".format(data.name, data.number), className="card-title"),
-        html.H6("Class: {}".format(data.class_), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
-        html.H6("Parent body: {}".format(data.parent), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
-        html.H6("Dynamical system: {}".format(data.system), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
+        html.H6("Class: {}".format(data.class_), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Parent body: {}".format(data.parent), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Dynamical system: {}".format(data.system), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
         dmc.Divider(
             label='Physical parameters',
             variant="solid",
             style={"marginTop": 20, "marginBottom": 10},
         ),
-        html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
-        html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.phase_function.generic_johnson_V.H.value), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
-        html.H6("Diameter (km): {}".format(data.parameters.physical.diameter.value), className="card-subtitle", style={"marginTop": 2, "marginBottom": 2}),
+        html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.phase_function.generic_johnson_V.H.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Diameter (km): {}".format(data.parameters.physical.diameter.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
         dmc.Divider(
             label='Dynamical parameters',
             variant="solid",
             style={"marginTop": 20, "marginBottom": 10},
         ),
-        html.H6("a (AU): {}".format(data.parameters.dynamical.orbital_elements.semi_major_axis.value,), className="card-subtitle"),
-        html.H6("e: {}".format(data.parameters.dynamical.orbital_elements.eccentricity.value,), className="card-subtitle"),
-        html.H6("i (deg): {}".format(data.parameters.dynamical.orbital_elements.inclination.value,), className="card-subtitle"),
-        html.H6("Omega (deg): {}".format(data.parameters.dynamical.orbital_elements.node_longitude.value,), className="card-subtitle"),
-        html.H6("argPeri (deg): {}".format(data.parameters.dynamical.orbital_elements.perihelion_argument.value,), className="card-subtitle"),
-        html.H6("Mean motion (deg/day): {}".format(data.parameters.dynamical.orbital_elements.mean_motion.value,), className="card-subtitle"),
-        html.H6("Orbital period (day): {}".format(data.parameters.dynamical.orbital_elements.orbital_period.value,), className="card-subtitle"),
-        html.H6("Tisserand parameter: {}".format(data.parameters.dynamical.tisserand_parameter.jupiter.value,), className="card-subtitle"),
+        html.H6("a (AU): {}".format(data.parameters.dynamical.orbital_elements.semi_major_axis.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("e: {}".format(data.parameters.dynamical.orbital_elements.eccentricity.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("i (deg): {}".format(data.parameters.dynamical.orbital_elements.inclination.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Omega (deg): {}".format(data.parameters.dynamical.orbital_elements.node_longitude.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("argPeri (deg): {}".format(data.parameters.dynamical.orbital_elements.perihelion_argument.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Mean motion (deg/day): {}".format(data.parameters.dynamical.orbital_elements.mean_motion.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Orbital period (day): {}".format(data.parameters.dynamical.orbital_elements.orbital_period.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Tisserand parameter: {}".format(data.parameters.dynamical.tisserand_parameter.jupiter.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
     ]
 
     if data.parameters.physical.spin is not None:
@@ -352,9 +353,15 @@ def card_sso_rocks_params(data):
         )
         for index, avail_spin in enumerate(data.parameters.physical.spin):
             header.append(
+                dmc.Divider(
+                    label=avail_spin.method[0].shortbib,
+                    variant="dashed",
+                    style={"marginTop": 20, "marginBottom": 5},
+                )
+            )
+            header.append(
                 html.H6(
-                    "RA0 [{}]: {}".format(
-                        avail_spin.method[0].shortbib,
+                    "RA0 (deg): {}".format(
                         avail_spin.RA0.value
                     ),
                     className="card-subtitle"
@@ -362,18 +369,11 @@ def card_sso_rocks_params(data):
             )
             header.append(
                 html.H6(
-                    "DEC0 [{}]: {}".format(
-                        avail_spin.method[0].shortbib,
+                    "DEC0 (deg): {}".format(
                         avail_spin.DEC0.value
                     ),
                     className="card-subtitle"
                 ),
-            )
-            header.append(
-                dmc.Divider(
-                    variant="dashed",
-                    style={"marginTop": 5, "marginBottom": 20},
-                )
             )
 
     card = html.Div(
