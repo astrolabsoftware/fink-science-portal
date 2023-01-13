@@ -372,8 +372,7 @@ def card_sso_rocks_params(data):
             header.append(
                 dmc.Divider(
                     variant="dashed",
-                    style={"marginTop": 5, "marginBottom": 5},
-                    color='orange'
+                    style={"marginTop": 5, "marginBottom": 20},
                 )
             )
 
