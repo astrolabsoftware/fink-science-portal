@@ -35,9 +35,10 @@ from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
 from apps.utils import sine_fit, Vmag
 from apps.utils import class_colors
-from apps.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, add_ztf_color_correction, estimate_sso_params
 from apps.statistics import dic_names
 from app import APIURL
+
+from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, add_ztf_color_correction, estimate_sso_params
 
 from pyLIMA import event
 from pyLIMA import telescopes
