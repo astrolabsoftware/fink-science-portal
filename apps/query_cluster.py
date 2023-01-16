@@ -443,7 +443,7 @@ def update_log(n_clicks, batchid):
                     output = html.Div(response.text)
                 return output
             else:
-                html.Div('batch ID is empty')
+                return html.Div('batch ID is empty')
 
 def make_final_helper():
     """
@@ -462,6 +462,8 @@ def make_final_helper():
                 label="Monitor your job",
             ),
         ],
+        id='final_accordion',
+        style={'display': 'none'}
     )
     return accordion
 
@@ -470,6 +472,7 @@ def make_final_helper():
     Output("submit_datatransfer_test", "disabled"),
     Output("streaming_info", "children"),
     Output("batch_id", "children"),
+    Output("final_accordion", "style")
     [
         Input('submit_datatransfer', 'n_clicks'),
         Input('submit_datatransfer_test', 'n_clicks'),
@@ -507,7 +510,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
 
         if status_code != 201:
             text = "[Status code {}] Unable to upload resources on HDFS, with error: {}. Contact an administrator at contact@fink-broker.org.".format(status_code, hdfs_log)
-            return True, True, text, ""
+            return True, True, text, "", {'display': 'none'}
 
         # get the job args
         job_args = [
@@ -543,7 +546,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
 
         if status_code != 201:
             text = "[Batch ID {}][Status code {}] Unable to submit job on the Spark cluster, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
-            return True, True, text, ""
+            return True, True, text, "", {'display': 'none'}
 
         msg = "Log information can be found at {}/batch/{}. See an example on how to retrieve your data [here](). You will need to refresh the page, or open a new page if you want to resubmit a job.".format(APIURL, batchid)
         text = dmc.Blockquote(
@@ -555,11 +558,11 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             color="green",
         )
         if n_clicks:
-            return True, True, text, batchid
+            return True, True, text, batchid, {}
         else:
-            return False, True, text, batchid
+            return False, True, text, batchid, {}
     else:
-        return False, False, "", ""
+        return False, False, "", "", {'display': 'none'}
 
 
 def query_builder():
