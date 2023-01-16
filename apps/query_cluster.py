@@ -468,10 +468,42 @@ def make_final_helper():
     return accordion
 
 @app.callback(
+    Output("final_accordion_1", "children"),
+    [
+        Input('topic_name', 'children')
+    ]
+)
+def update_final_accordion1():
+    """
+    """
+    if topic_name != "":
+        msg = """
+        You can easily download your alerts using the [fink-client](https://github.com/astrolabsoftware/fink-client). Install the latest version and
+        use e.g.
+        """
+        code_block = """
+        fink_datatransfer \\
+            --topic_name {} \\
+            --limit -1 \\ # Number of alerts to retrieve. -1 means all alerts in the topic.
+            --outfolder {} \\ # Name of the folder to store alerts. Folder is created if it does not extist
+            --to_parquet \\ # By default alerts come in the Avro format. This option converts it to Parquet to ease the use with e.g. Pandas
+            --partition # By default all alerts are stored in the `outfolder`. If `--partition` is specified, alerts will be stored in a time structure `outfolder/year=YYYY/month=MM/day=DD`.
+        """.format(topic_name, topic_name)
+        out = html.Div(
+            [
+                dcc.Markdown(msg),
+                dmc.Prism(children=code_block, language="bash")
+            ]
+        )
+
+        return out
+
+@app.callback(
     Output("submit_datatransfer", "disabled"),
     Output("submit_datatransfer_test", "disabled"),
     Output("streaming_info", "children"),
     Output("batch_id", "children"),
+    Output("topic_name", "children"),
     Output("final_accordion", "style"),
     [
         Input('submit_datatransfer', 'n_clicks'),
@@ -510,7 +542,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
 
         if status_code != 201:
             text = "[Status code {}] Unable to upload resources on HDFS, with error: {}. Contact an administrator at contact@fink-broker.org.".format(status_code, hdfs_log)
-            return True, True, text, "", {'display': 'none'}
+            return True, True, text, "", "", {'display': 'none'}
 
         # get the job args
         job_args = [
@@ -546,23 +578,21 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
 
         if status_code != 201:
             text = "[Batch ID {}][Status code {}] Unable to submit job on the Spark cluster, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
-            return True, True, text, "", {'display': 'none'}
+            return True, True, text, "", "", {'display': 'none'}
 
-        msg = "Log information can be found at {}/batch/{}. See an example on how to retrieve your data [here](). You will need to refresh the page, or open a new page if you want to resubmit a job.".format(APIURL, batchid)
         text = dmc.Blockquote(
             "Your topic name is: {}".format(
                 topic_name
             ),
-            cite=msg,
             icon=[DashIconify(icon="system-uicons:pull-down", width=30)],
             color="green",
         )
         if n_clicks:
-            return True, True, text, batchid, {}
+            return True, True, text, batchid, topic_name, {}
         else:
-            return False, True, text, batchid, {}
+            return False, True, text, batchid, topic_name, {}
     else:
-        return False, False, "", "", {'display': 'none'}
+        return False, False, "", "", "", {'display': 'none'}
 
 
 def query_builder():
@@ -642,7 +672,9 @@ def layout(is_mobile):
                             html.Div(btns, id='transfer_buttons', style={'display': 'none'}),
                             html.Div(id='streaming_info'),
                             html.Div("", id='batch_id', style={'display': 'none'}),
+                            html.Div("", id='topic_name', style={'display': 'none'}),
                             make_final_helper()
+
                         ],
                         width=8)
                 ],
