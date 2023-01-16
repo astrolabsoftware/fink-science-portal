@@ -25,6 +25,46 @@ import subprocess
 import argparse
 import requests
 
+import logging
+from logging import Logger
+
+def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
+    """ Initialise python logger. Suitable for both driver and executors.
+
+    Parameters
+    ----------
+    name : str
+        Name of the application to be logged. Typically __name__ of a
+        function or module.
+    log_level : str
+        Minimum level of log wanted: DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF
+
+    Returns
+    ----------
+    logger : logging.Logger
+        Python Logger
+
+    Examples
+    ----------
+    >>> log = get_fink_logger(__name__, "INFO")
+    >>> log.info("Hi!")
+    """
+    # Format of the log message to be printed
+    FORMAT = "%(asctime)-15s "
+    FORMAT += "-Livy- "
+    FORMAT += "%(message)s"
+
+    # Date format
+    DATEFORMAT = "%y/%m/%d %H:%M:%S"
+
+    logging.basicConfig(format=FORMAT, datefmt=DATEFORMAT)
+    logger = logging.getLogger(name)
+
+    # Set the minimum log level
+    logger.setLevel(log_level)
+
+    return logger
+
 def add_classification(spark, df, path_to_tns):
     """ Add classification from Fink & TNS
 
@@ -359,9 +399,12 @@ def main(args):
     # reduce Java verbosity
     spark.sparkContext.setLogLevel("WARN")
 
+    log = get_fink_logger(__file__)
+
+    log.info("Generating data paths...")
     paths = generate_spark_paths(args.startDate, args.stopDate, args.basePath)
     if paths == []:
-        print('No data found in between {} and {}'.format(args.startDate, args.stopDate))
+        log.info('No alert data found in between {} and {}'.format(args.startDate, args.stopDate))
         spark.stop()
         sys.exit(1)
 
@@ -481,6 +524,7 @@ def main(args):
     df = df.selectExpr(cnames)
 
     # save schema
+    log.info("Determining data schema...")
     path_for_avro = 'new_schema_{}.avro'.format(time())
     df.coalesce(1).limit(1).write.format("avro").save(path_for_avro)
 
@@ -501,6 +545,8 @@ def main(args):
 
     schema = json.loads(schema_)
 
+    log.info("Schema OK...")
+
     # create a fake dataframe with 100 entries
     df_schema = spark.createDataFrame(
         pd.DataFrame(
@@ -510,7 +556,7 @@ def main(args):
         )
     )
 
-    print('Initialising the schema...')
+    log.info("Sending the schema to Kafka...")
 
     # Send schema
     write_to_kafka(
@@ -522,10 +568,11 @@ def main(args):
         args.topic_name + '_schema'
     )
 
-    print('Starting to send data to topic {}'.format(args.topic_name))
+    log.info('Starting to send data to topic {}'.format(args.topic_name))
 
     # Send data
     if args.limit_output:
+        log.info('Limiting to 10 first entries...')
         df = df.coalesce(1).limit(10)
 
     write_to_kafka(
@@ -537,8 +584,7 @@ def main(args):
         args.topic_name
     )
 
-    print('Done')
-    print('Data ({}) available at topic: {}'.format(args.content, args.topic_name))
+    log.info('Done. Data ({}) available at topic: {}'.format(args.content, args.topic_name))
 
 
 if __name__ == "__main__":

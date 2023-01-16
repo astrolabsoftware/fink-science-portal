@@ -438,7 +438,9 @@ def update_log(n_clicks, batchid):
                 response = requests.get('http://134.158.75.222:21111/batches/{}/log'.format(batchid))
 
                 if 'log' in response.json():
-                    output = html.Div('\n'.join(response.json()['log']), style={'whiteSpace': 'pre-wrap'})
+                    livy_log = [row for row in response.json()['log'] is '-Livy-' in row]
+                    livy_log = ['Batch ID: {}'.format(batchid)] + livy_log
+                    output = html.Div('\n'.join(livy_log), style={'whiteSpace': 'pre-wrap'})
                 elif 'msg' in response.json():
                     output = html.Div(response.text)
                 return output
@@ -673,7 +675,9 @@ def layout(is_mobile):
                             html.Div(id='streaming_info'),
                             html.Div("", id='batch_id', style={'display': 'none'}),
                             html.Div("", id='topic_name', style={'display': 'none'}),
-                            make_final_helper()
+                            make_final_helper(),
+                            html.Br(),
+                            html.Br(),
 
                         ],
                         width=8)
