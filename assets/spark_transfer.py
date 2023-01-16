@@ -584,7 +584,8 @@ def main(args):
         args.topic_name
     )
 
-    log.info('Done. Data ({}) available at topic: {}'.format(args.content, args.topic_name))
+    log.info('Data ({}) available at topic: {}'.format(args.content, args.topic_name))
+    log.info('End.')
 
 
 if __name__ == "__main__":
