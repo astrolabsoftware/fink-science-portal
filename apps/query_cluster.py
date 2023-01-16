@@ -445,12 +445,6 @@ def update_log(n_clicks, batchid):
             else:
                 html.Div('batch ID is empty')
 
-@app.callback(
-    Output("transfer_buttons", "style"),
-    [
-        Input('trans_content', 'value')
-    ], prevent_initial_call=True
-)
 def make_final_helper():
     """
     """
@@ -619,6 +613,7 @@ def layout(is_mobile):
     ft = filter_tab()
     ct = content_tab()
     btns = make_buttons()
+    fh = make_final_helper()
     layout_ = html.Div(
         [
             html.Br(),
@@ -643,7 +638,8 @@ def layout(is_mobile):
                             dmc.Space(h=10),
                             html.Div(btns, id='transfer_buttons', style={'display': 'none'}),
                             html.Div(id='streaming_info'),
-                            html.Div("", id='batch_id', style={'display': 'none'})
+                            html.Div("", id='batch_id', style={'display': 'none'}),
+                            make_final_helper()
                         ],
                         width=8)
                 ],
