@@ -451,7 +451,7 @@ def make_final_helper():
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
-                id='final_accordion_1',
+                children=html.Div(id='final_accordion_1'),
                 label="Get your data",
             ),
             dmc.AccordionItem(
