@@ -438,7 +438,7 @@ def update_log(n_clicks, batchid):
                 response = requests.get('http://134.158.75.222:21111/batches/{}/log'.format(batchid))
 
                 if 'log' in response.json():
-                    livy_log = [row for row in response.json()['log'] is '-Livy-' in row]
+                    livy_log = [row for row in response.json()['log'] if '-Livy-' in row]
                     livy_log = ['Batch ID: {}'.format(batchid)] + livy_log
                     output = html.Div('\n'.join(livy_log), style={'whiteSpace': 'pre-wrap'})
                 elif 'msg' in response.json():
