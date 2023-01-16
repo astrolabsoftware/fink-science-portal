@@ -221,13 +221,8 @@ def tab5_content(object_soo):
         ssnamenr = pdf['i:ssnamenr'].values[0]
 
     msg = """
-    **Top:** lightcurve from ZTF, with ephemerides provided by the
+    lightcurve from ZTF, with ephemerides provided by the
     [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).
-
-    **Bottom:** (asteroids only) residuals between observed and predicted magnitude
-    as a function of the ecliptic longitude. The variations are most-likely due
-    to the difference of aspect angle: the object is not a perfect sphere, and we
-    are seeing its oblateness here. The solid lines are sinusoidal fits to the residuals.
     """
     tab1 = dbc.Row(
         [
@@ -235,7 +230,6 @@ def tab5_content(object_soo):
                 [
                     draw_sso_lightcurve(pdf),
                     html.Br(),
-                    draw_sso_residual(pdf),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
@@ -274,7 +268,9 @@ def tab5_content(object_soo):
 
     We propose two cases, one fitting bands separately, and
     the other fitting both bands simultaneously (rescaled). We
-    also propose different phase curve modeling using the HG12 and HG models.
+    also propose different phase curve modeling using the HG, HG12 and HG1G2 models.
+    In addition, you can fit for spin values on top of the HG1G2 model (paper in prep!).
+    Note that the title displays the value for the reduced $\chi^2$ of the fit.
     Hit buttons to see the fitted values!
     """
 
@@ -307,6 +303,7 @@ def tab5_content(object_soo):
                         dbc.Col(
                             dmc.Chips(
                                 data=[
+                                    {'label': 'HG1G2S', 'value': 'HG1G2S'},
                                     {'label': 'HG1G2', 'value': 'HG1G2'},
                                     {'label': 'HG12', 'value': 'HG12'},
                                     {'label': 'HG', 'value': 'HG'},
