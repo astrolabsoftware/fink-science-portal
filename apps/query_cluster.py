@@ -472,7 +472,7 @@ def make_final_helper():
     Output("submit_datatransfer_test", "disabled"),
     Output("streaming_info", "children"),
     Output("batch_id", "children"),
-    Output("final_accordion", "style")
+    Output("final_accordion", "style"),
     [
         Input('submit_datatransfer', 'n_clicks'),
         Input('submit_datatransfer_test', 'n_clicks'),
