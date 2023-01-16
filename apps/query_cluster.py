@@ -473,7 +473,7 @@ def make_final_helper():
         Input('topic_name', 'children')
     ]
 )
-def update_final_accordion1():
+def update_final_accordion1(topic_name):
     """
     """
     if topic_name != "":
