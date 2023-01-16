@@ -390,6 +390,8 @@ def main(args):
 
     if args.extraCond is not None:
         for cond in args.extraCond:
+            if cond == '':
+                continue
             df = df.filter(cond)
 
     if args.content == 'Full packet':
