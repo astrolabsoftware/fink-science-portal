@@ -1368,8 +1368,6 @@ def display_page(pathname, is_mobile):
         return statistics.layout(is_mobile)
     elif pathname == '/download':
         return query_cluster.layout(is_mobile)
-    elif 'batch' in pathname:
-        return batchlog.layout(pathname, is_mobile)
     elif 'ZTF' in pathname:
         return summary.layout(pathname, is_mobile)
     else:

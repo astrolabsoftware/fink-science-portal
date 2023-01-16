@@ -426,9 +426,56 @@ def update_make_buttons(trans_content):
         return {}
 
 @app.callback(
+    Output("batch_log", "children"),
+    [
+        Input('update_batch_log', 'n_clicks'),
+        Input('batch_id', 'children')
+    ]
+)
+def update_log(n_clicks, batchid):
+        if n_clicks:
+            if batchid != "":
+                response = requests.get('http://134.158.75.222:21111/batches/{}/log'.format(batchid))
+
+                if 'log' in response.json():
+                    output = html.Div('\n'.join(response.json()['log']), style={'whiteSpace': 'pre-wrap'})
+                elif 'msg' in response.json():
+                    output = html.Div(response.text)
+                return output
+            else:
+                html.Div('batch ID is empty')
+
+@app.callback(
+    Output("transfer_buttons", "style"),
+    [
+        Input('trans_content', 'value')
+    ], prevent_initial_call=True
+)
+def make_final_helper():
+    """
+    """
+    accordion = dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                id='final_accordion_1',
+                label="Get your data",
+            ),
+            dmc.AccordionItem(
+                children=[
+                    dmc.Button("Update log", id='update_batch_log', color='orange'),
+                    html.Div(id='batch_log')
+                ],
+                label="Monitor your job",
+            ),
+        ],
+    )
+    return accordion
+
+@app.callback(
     Output("submit_datatransfer", "disabled"),
     Output("submit_datatransfer_test", "disabled"),
     Output("streaming_info", "children"),
+    Output("batch_id", "children"),
     [
         Input('submit_datatransfer', 'n_clicks'),
         Input('submit_datatransfer_test', 'n_clicks'),
@@ -466,7 +513,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
 
         if status_code != 201:
             text = "[Status code {}] Unable to upload resources on HDFS, with error: {}. Contact an administrator at contact@fink-broker.org.".format(status_code, hdfs_log)
-            return True, True, text
+            return True, True, text, ""
 
         # get the job args
         job_args = [
@@ -502,7 +549,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
 
         if status_code != 201:
             text = "[Batch ID {}][Status code {}] Unable to submit job on the Spark cluster, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
-            return True, True, text
+            return True, True, text, ""
 
         msg = "Log information can be found at {}/batch/{}. See an example on how to retrieve your data [here](). You will need to refresh the page, or open a new page if you want to resubmit a job.".format(APIURL, batchid)
         text = dmc.Blockquote(
@@ -514,11 +561,11 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             color="green",
         )
         if n_clicks:
-            return True, True, text
+            return True, True, text, batchid
         else:
-            return False, True, text
+            return False, True, text, batchid
     else:
-        return False, False, ""
+        return False, False, "", ""
 
 
 def query_builder():
@@ -553,46 +600,6 @@ def mining_helper():
     Fill the fields on the right (note the changing timeline on the left when you update parameters),
     and once you are happy, submit your job on the Fink Apache Spark Cluster and retrieve your data!
     More information at []().
-
-    #### Filters
-
-    The filtering section lets you refine your search for alerts.
-
-    First, pick up the dates you want to transfer using the calendar.
-    Choose the same start and stop dates if you want to select a single date.
-    By default, all alerts within the date boundaries will be transfered irrespective of their classification.
-    You can also restrict your search to specific alert classes by using the dropdown button.
-    Optionally, you can also impose extra conditions on the alerts you want to retrieve based on their content.
-    You will simply specify the name of the parameter with the condition (SQL syntax).
-    If you have several conditions, put one condition per line, ending with semi-colon.
-    E.g. if you want only alerts with magnitude above 19.5 and at least 2'' distance away to nearest source in ZTF reference images:
-
-    ```
-    magpsf > 19.5;
-    distnr > 2;
-    ```
-    See [here](https://fink-portal.org/api/v1/columns) for field description (only `i:` and `d:` fields available).
-    Note you cannot yet combine fields (e.g. `magnr - magpsf > 1.0` is not allowed).
-
-    #### Alert content
-
-    You have three types of content:
-    1. Lightcurve: lightweight (~1.4 KB/alerts), this option transfers only necessary fields for working with lightcurves plus all Fink added values. Prefer this option to start.
-    2. Cutouts: Only the cutouts (Science, Template, Difference) are transfered.
-    3. Full packet: original ZTF alerts plus all Fink added values.
-
-    #### Submit
-
-    Once you have filled all parameters, you will have a summary of your selection with an estimation of the number of alerts to transfer.
-    This estimation takes into account the number of alerts per night and the number of alerts per classes, but it does not account for the extra conditions (that could further reduce the number of alerts).
-    You will also have an estimation of the size of the data to be transfered.
-    You can update your parameters if need be, the estimations will be updated in real-time.
-    If you just want to test your
-
-
-    #### How it works?
-
-    toto
     """
 
     accordion = dmc.Accordion(
@@ -635,7 +642,8 @@ def layout(is_mobile):
                             html.Div(id='summary_tab'),
                             dmc.Space(h=10),
                             html.Div(btns, id='transfer_buttons', style={'display': 'none'}),
-                            html.Div(id='streaming_info')
+                            html.Div(id='streaming_info'),
+                            html.Div("", id='batch_id', style={'display': 'none'})
                         ],
                         width=8)
                 ],
