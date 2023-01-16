@@ -26,7 +26,21 @@ import argparse
 import requests
 
 def add_classification(spark, df, path_to_tns):
-    """
+    """ Add classification from Fink & TNS
+
+    Parameters
+    ----------
+    spark:
+    df: DataFrame
+        Spark DataFrame containing ZTF alert data
+    path_to_tns: str
+        Path to TNS data (parquet)
+
+    Returns
+    ----------
+    df: DataFrame
+        Input DataFrame with 2 new columns `finkclass` and
+        `tnsclass` containing classification tags.
     """
     # extract Fink classification
     df = df.withColumn(
@@ -376,14 +390,7 @@ def main(args):
 
     if args.extraCond is not None:
         for cond in args.extraCond:
-            inRoot = np.any([i in cond for i in df.columns])
-            inCandidate = np.any([i in cond for i in df.select('candidate.*').columns])
-            if inRoot:
-                df = df.filter(cond)
-            elif inCandidate:
-                df = df.filter('candidate.' + cond)
-            else:
-                continue
+            df = df.filter(cond)
 
     if args.content == 'Full packet':
         # Cast fields to ease the distribution
