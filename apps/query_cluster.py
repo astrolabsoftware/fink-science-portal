@@ -187,7 +187,7 @@ def filter_tab():
                     dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
                     " for field description.",
                 ],
-                placeholder="e.g. magpsf > 19.5;",
+                placeholder="e.g. candidate.magpsf > 19.5;",
                 style={"width": 500},
                 autosize=True,
                 minRows=2,              ),
