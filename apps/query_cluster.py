@@ -480,7 +480,7 @@ def update_final_accordion1(topic_name):
     """
     if topic_name != "":
         msg = """
-        You can easily download your alerts using the <a href="https://github.com/astrolabsoftware/fink-client" target="_blank">fink-client</a>. Install the latest version and
+        You can easily download your alerts using the [fink-client](https://github.com/astrolabsoftware/fink-client). Install the latest version and
         use e.g.
         """
         code_block = """
@@ -492,7 +492,7 @@ def update_final_accordion1(topic_name):
         """.format(topic_name, topic_name)
         out = html.Div(
             [
-                dcc.Markdown(msg),
+                dcc.Markdown(msg, link_target="_blank"),
                 dmc.Prism(children=code_block, language="bash")
             ]
         )
