@@ -627,12 +627,13 @@ def mining_helper():
     The only data source currently available is ZTF, with more than 110 million alerts as of 2023.
     Fill the fields on the right (note the changing timeline on the left when you update parameters),
     and once you are happy, submit your job on the Fink Apache Spark Cluster and retrieve your data!
+    More information on this [post](https://fink-broker.org/2023-01-17-data-transfer).
     """
 
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
-                dcc.Markdown(msg),
+                dcc.Markdown(msg, link_target="_blank"),
                 label="Description",
             ),
         ],
