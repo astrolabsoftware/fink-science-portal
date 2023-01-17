@@ -451,14 +451,14 @@ def make_final_helper():
     """
     """
     accordion = dmc.Accordion(
-        dmc.AccordionItem(
+        children=[
+            dmc.AccordionItem(
                 children=[
                     dmc.Button("Update log", id='update_batch_log', color='orange'),
                     html.Div(id='batch_log')
                 ],
                 label="Monitor your job",
             ),
-        children=[
             dmc.AccordionItem(
                 children=html.Div(id='final_accordion_1'),
                 label="Get your data",
@@ -480,7 +480,7 @@ def update_final_accordion1(topic_name):
     """
     if topic_name != "":
         msg = """
-        Once data has started to flow in the topic, you can easily download your alerts using the [fink-client](https://github.com/astrolabsoftware/fink-client). Install the latest version and
+        You can easily download your alerts using the [fink-client](https://github.com/astrolabsoftware/fink-client). Install the latest version and
         use e.g.
         """
         code_block = """
