@@ -1,0 +1,8 @@
+WEBHDFS: http://localhost:0/v1/webhdfs/path
+NAMENODE: localhost:0
+LIVYHOST: localhost:0
+USER: toto
+SPARKCONF: {'name': 'livy-batch'}
+KAFKA_BOOTSTRAP_SERVERS: localhost
+KAFKA_SASL_USERNAME: toto
+KAFKA_SASL_PASSWORD: toto
