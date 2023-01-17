@@ -184,7 +184,7 @@ def filter_tab():
                 label="Extra conditions",
                 description=[
                     "One condition per line (SQL syntax), ending with semi-colon. See ",
-                    dmc.Anchor("here", href="https://fink-portal.org/api/v1/columns", size="xs"),
+                    dmc.Anchor("here", href="https://fink-portal.org/api/v1/columns", size="xs", target="_blank"),
                     " for field description.",
                 ],
                 placeholder="e.g. magpsf > 19.5;",
