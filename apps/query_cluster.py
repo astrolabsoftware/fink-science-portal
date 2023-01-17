@@ -184,7 +184,7 @@ def filter_tab():
                 label="Extra conditions",
                 description=[
                     "One condition per line (SQL syntax), ending with semi-colon. See ",
-                    dmc.Anchor("here", href="https://fink-portal.org/api/v1/columns", size="xs"),
+                    dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
                     " for field description.",
                 ],
                 placeholder="e.g. magpsf > 19.5;",
@@ -492,7 +492,7 @@ def update_final_accordion1(topic_name):
         """.format(topic_name, topic_name)
         out = html.Div(
             [
-                dcc.Markdown(msg),
+                dcc.Markdown(msg, link_target="_blank"),
                 dmc.Prism(children=code_block, language="bash")
             ]
         )
