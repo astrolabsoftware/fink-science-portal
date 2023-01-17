@@ -1190,6 +1190,13 @@ navbar = dmc.Header(
                                         color="gray",
                                     ),
                                     dmc.Anchor(
+                                        'Download',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/download',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                    dmc.Anchor(
                                         'Statistics',
                                         style={"textTransform": "capitalize", "textDecoration": "none"},
                                         href='/stats',

@@ -488,6 +488,7 @@ def main(args):
             'candidate.magpsf',
             'candidate.ra',
             'candidate.dec',
+            'candidate.jd',
             'cutoutScience',
             'cutoutTemplate',
             'cutoutDifference'
