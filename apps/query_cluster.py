@@ -480,7 +480,7 @@ def update_final_accordion1(topic_name):
     """
     if topic_name != "":
         msg = """
-        You can easily download your alerts using the [fink-client](https://github.com/astrolabsoftware/fink-client). Install the latest version and
+        Once data has started to flow in the topic, you can easily download your alerts using the [fink-client](https://github.com/astrolabsoftware/fink-client). Install the latest version and
         use e.g.
         """
         code_block = """
