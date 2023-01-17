@@ -439,7 +439,7 @@ def update_log(n_clicks, batchid):
 
                 if 'log' in response.json():
                     livy_log = [row for row in response.json()['log'] if '-Livy-' in row]
-                    livy_log = ['Batch ID: {}'.format(batchid)] + livy_log
+                    livy_log = ['Batch ID: {}'.format(batchid), 'Starting...'] + livy_log
                     output = html.Div('\n'.join(livy_log), style={'whiteSpace': 'pre-wrap'})
                 elif 'msg' in response.json():
                     output = html.Div(response.text)
@@ -485,11 +485,10 @@ def update_final_accordion1(topic_name):
         """
         code_block = """
         fink_datatransfer \\
-            --topic_name {} \\
-            --limit -1 \\ # Number of alerts to retrieve. -1 means all alerts in the topic.
-            --outfolder {} \\ # Name of the folder to store alerts. Folder is created if it does not extist
-            --to_parquet \\ # By default alerts come in the Avro format. This option converts it to Parquet to ease the use with e.g. Pandas
-            --partition # By default all alerts are stored in the `outfolder`. If `--partition` is specified, alerts will be stored in a time structure `outfolder/year=YYYY/month=MM/day=DD`.
+            -topic {} \\
+            -outdir {} \\
+            -partitionby finkclass \\
+            --verbose
         """.format(topic_name, topic_name)
         out = html.Div(
             [
@@ -635,7 +634,7 @@ def mining_helper():
         children=[
             dmc.AccordionItem(
                 dcc.Markdown(msg),
-                label="Help",
+                label="Description",
             ),
         ],
     )
