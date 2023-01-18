@@ -663,17 +663,25 @@ def layout(is_mobile):
 
     if is_mobile:
         width_right = 10
-        bottom_row = dbc.Row(
+        title = dbc.Row(
             children=[
                 html.Br(),
-                html.Br(),
-                dbc.Col(mining_helper(), width=width_right)
+                dbc.Row(
+                    [
+                        dmc.Center(
+                            dmc.Title(
+                                children='Fink Data Transfer',
+                                style={'color': '#15284F'}
+                            )
+                        )
+                    ]
+                ),
             ]
         )
         left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
     else:
         width_right = 8
-        bottom_row = html.Br()
+        title = html.Div()
         left_side = dbc.Col(
             [
                 html.Br(),
@@ -687,6 +695,7 @@ def layout(is_mobile):
         [
             html.Br(),
             html.Br(),
+            title,
             dbc.Row(
                 [
                     left_side,
