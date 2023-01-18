@@ -666,6 +666,7 @@ def layout(is_mobile):
         title = dbc.Row(
             children=[
                 html.Br(),
+                html.Br(),
                 dbc.Row(
                     [
                         dmc.Center(
