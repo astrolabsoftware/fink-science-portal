@@ -654,21 +654,30 @@ def layout(is_mobile):
     ct = content_tab()
     btns = make_buttons()
     fh = make_final_helper()
+
+    if is_mobile:
+        top_row = mining_helper()
+        left_size = html.Div(id='timeline_data_transfer', style={'display': 'none'})
+        width_right = 12
+    else:
+        top_row = html.Br()
+        left_size = dbc.Col(
+            [
+                html.Br(),
+                html.Br(),
+                html.Div(id='timeline_data_transfer'),
+                html.Br(),
+                mining_helper(),
+            ], width={"size": 3},
+        )
+        width_right = 8
     layout_ = html.Div(
         [
-            html.Br(),
+            top_row,
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(
-                        [
-                            html.Br(),
-                            html.Br(),
-                            html.Div(id='timeline_data_transfer'),
-                            html.Br(),
-                            mining_helper(),
-                        ], width={"size": 3},
-                    ),
+                    left_side,
                     dbc.Col(
                         [
                             qb,
@@ -685,7 +694,7 @@ def layout(is_mobile):
                             html.Br(),
 
                         ],
-                        width=8)
+                        width=width_right)
                 ],
                 justify="around", className="g-0"
             ),
