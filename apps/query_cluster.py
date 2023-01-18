@@ -657,11 +657,11 @@ def layout(is_mobile):
 
     if is_mobile:
         top_row = mining_helper()
-        left_size = html.Div(id='timeline_data_transfer', style={'display': 'none'})
+        left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
         width_right = 12
     else:
         top_row = html.Br()
-        left_size = dbc.Col(
+        left_side = dbc.Col(
             [
                 html.Br(),
                 html.Br(),
