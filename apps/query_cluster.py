@@ -668,7 +668,7 @@ def layout(is_mobile):
                 dmc.Space(h=20),
                 dmc.Center(
                     [
-                        SimpleGrid(
+                        dmc.SimpleGrid(
                             cols=1,
                             children=[
                                 dbc.Row(
