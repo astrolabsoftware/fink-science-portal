@@ -667,6 +667,7 @@ def layout(is_mobile):
             children=[
                 html.Br(),
                 html.Br(),
+                html.Br(),
                 dmc.Center(
                     dmc.Title(
                         children='Fink Data Transfer',
