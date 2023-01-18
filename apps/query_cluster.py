@@ -680,7 +680,8 @@ def layout(is_mobile):
                                 variant="light",
                                 color='orange',
                             ),
-                            href="https://fink-broker.org/2023-01-17-data-transfer"
+                            href="https://fink-broker.org/2023-01-17-data-transfer",
+                            target="_blank"
                         ),
                     ],
                     align="center",
