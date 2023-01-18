@@ -663,7 +663,7 @@ def layout(is_mobile):
 
     if is_mobile:
         width_right = 10
-        top_row = dbc.Row(
+        bottom_row = dbc.Row(
             children=[
                 html.Br(),
                 html.Br(),
@@ -673,7 +673,7 @@ def layout(is_mobile):
         left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
     else:
         width_right = 8
-        top_row = html.Br()
+        bottom_row = html.Br()
         left_side = dbc.Col(
             [
                 html.Br(),
@@ -685,7 +685,7 @@ def layout(is_mobile):
         )
     layout_ = html.Div(
         [
-            top_row,
+            html.Br(),
             html.Br(),
             dbc.Row(
                 [
@@ -710,6 +710,8 @@ def layout(is_mobile):
                 ],
                 justify="around", className="g-0"
             ),
+            html.Br(),
+            bottom_row,
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
     )
 
