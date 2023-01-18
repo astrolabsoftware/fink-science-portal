@@ -656,10 +656,15 @@ def layout(is_mobile):
     fh = make_final_helper()
 
     if is_mobile:
-        top_row = mining_helper()
-        left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
         width_right = 10
+        top_row = dbc.Row(
+            children=[
+                dbc.Col(mining_helper(), width=width_right)
+            ]
+        )
+        left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
     else:
+        width_right = 8
         top_row = html.Br()
         left_side = dbc.Col(
             [
@@ -670,7 +675,6 @@ def layout(is_mobile):
                 mining_helper(),
             ], width={"size": 3},
         )
-        width_right = 8
     layout_ = html.Div(
         [
             top_row,
