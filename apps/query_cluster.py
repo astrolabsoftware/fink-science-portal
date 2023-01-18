@@ -679,6 +679,9 @@ def layout(is_mobile):
             ]
         )
         left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
+        style = {
+            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+        }
     else:
         width_right = 8
         title = html.Div()
@@ -691,6 +694,11 @@ def layout(is_mobile):
                 mining_helper(),
             ], width={"size": 3},
         )
+        style={
+            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
+            'background-size': 'cover'
+        }
+
     layout_ = html.Div(
         [
             html.Br(),
