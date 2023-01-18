@@ -141,8 +141,10 @@ def filter_tab(is_mobile):
     """
     if is_mobile:
         width = '100%'
+        amountOfMonths = 1
     else:
         width = '50%'
+        amountOfMonths = 2
     options = html.Div(
         [
             dmc.DateRangePicker(
@@ -154,7 +156,7 @@ def filter_tab(is_mobile):
                 value=None,
                 style={"width": width},
                 hideOutsideDates=True,
-                amountOfMonths=2,
+                amountOfMonths=amountOfMonths,
                 allowSingleDateInRange=True,
                 required=True
             ),
@@ -663,6 +665,8 @@ def layout(is_mobile):
         width_right = 10
         top_row = dbc.Row(
             children=[
+                html.Br(),
+                html.Br(),
                 dbc.Col(mining_helper(), width=width_right)
             ]
         )
