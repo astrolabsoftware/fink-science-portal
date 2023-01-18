@@ -672,12 +672,15 @@ def layout(is_mobile):
                             children='Fink Data Transfer',
                             style={'color': '#15284F'}
                         ),
-                        dmc.ActionIcon(
-                            DashIconify(icon="fluent:question-16-regular", width=20),
-                            size=20,
-                            radius="xl",
-                            variant="outline",
-                            color='orange',
+                        dmc.Anchor(
+                            dmc.ActionIcon(
+                                DashIconify(icon="fluent:question-16-regular", width=20),
+                                size=30,
+                                radius="xl",
+                                variant="subtle",
+                                color='orange',
+                            ),
+                            href="https://fink-broker.org/2023-01-17-data-transfer"
                         ),
                     ],
                     align="center",
