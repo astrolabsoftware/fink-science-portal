@@ -677,7 +677,7 @@ def layout(is_mobile):
                                 DashIconify(icon="fluent:question-16-regular", width=20),
                                 size=30,
                                 radius="xl",
-                                variant="subtle",
+                                variant="light",
                                 color='orange',
                             ),
                             href="https://fink-broker.org/2023-01-17-data-transfer"
