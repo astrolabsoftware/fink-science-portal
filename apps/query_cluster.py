@@ -438,6 +438,12 @@ def update_log(n_clicks, batchid):
                 response = requests.get('http://134.158.75.222:21111/batches/{}/log'.format(batchid))
 
                 if 'log' in response.json():
+                    failure_log = [row for row in response.json()['log'] if 'Caused by' in row]
+                    if len(failure_log) > 0:
+                        failure_msg = ['Batch ID: {}'.format(batchid), 'Failed. Please, contact contact@fink-broker.org with your batch ID.']
+                        output = html.Div('\n'.join(failure_msg), style={'whiteSpace': 'pre-wrap'})
+                        return output
+                    # catch and return tailored error msg if fail (with batchid and contact@fink-broker.org)
                     livy_log = [row for row in response.json()['log'] if '-Livy-' in row]
                     livy_log = ['Batch ID: {}'.format(batchid), 'Starting...'] + livy_log
                     output = html.Div('\n'.join(livy_log), style={'whiteSpace': 'pre-wrap'})
