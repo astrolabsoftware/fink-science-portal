@@ -139,6 +139,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
 def filter_tab():
     """ Section containing filtering options
     """
+    width = '75pc'
     options = html.Div(
         [
             dmc.DateRangePicker(
@@ -148,7 +149,7 @@ def filter_tab():
                 minDate=date(2019, 11, 1),
                 maxDate=date.today(),
                 value=None,
-                style={"width": 500},
+                style={"width": width},
                 hideOutsideDates=True,
                 amountOfMonths=2,
                 allowSingleDateInRange=True,
@@ -176,7 +177,7 @@ def filter_tab():
                     *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
                 ],
                 searchable=True,
-                style={"width": 500},
+                style={"width": width},
             ),
             dmc.Space(h=10),
             dmc.Textarea(
@@ -188,7 +189,7 @@ def filter_tab():
                     " for field description.",
                 ],
                 placeholder="e.g. candidate.magpsf > 19.5;",
-                style={"width": 500},
+                style={"width": width},
                 autosize=True,
                 minRows=2,              ),
         ]
