@@ -136,10 +136,13 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
 
     return timeline
 
-def filter_tab():
+def filter_tab(is_mobile):
     """ Section containing filtering options
     """
-    width = '50%'
+    if is_mobile:
+        width = '100%'
+    else:
+        width = '50%'
     options = html.Div(
         [
             dmc.DateRangePicker(
@@ -651,7 +654,7 @@ def layout(is_mobile):
     """ Layout for the data transfer service
     """
     qb = query_builder()
-    ft = filter_tab()
+    ft = filter_tab(is_mobile)
     ct = content_tab()
     btns = make_buttons()
     fh = make_final_helper()
