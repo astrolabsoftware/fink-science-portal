@@ -667,16 +667,12 @@ def layout(is_mobile):
             children=[
                 html.Br(),
                 html.Br(),
-                dbc.Row(
-                    [
-                        dmc.Center(
-                            dmc.Title(
-                                children='Fink Data Transfer',
-                                style={'color': '#15284F'}
-                            )
-                        )
-                    ]
-                ),
+                dmc.Center(
+                    dmc.Title(
+                        children='Fink Data Transfer',
+                        style={'color': '#15284F'}
+                    )
+                )
             ]
         )
         left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
