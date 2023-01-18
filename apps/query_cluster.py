@@ -665,9 +665,7 @@ def layout(is_mobile):
         width_right = 10
         title = dbc.Row(
             children=[
-                html.Br(),
-                html.Br(),
-                html.Br(),
+                dmc.Space(h=20),
                 dmc.Center(
                     dmc.Title(
                         children='Fink Data Transfer',
