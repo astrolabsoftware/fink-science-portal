@@ -635,7 +635,7 @@ def mining_helper():
     """ Helper
     """
     msg = """
-    The Fink data mining service allows you to select and transfer the Fink processed alert data at scale.
+    The Fink data transfer service allows you to select and transfer the Fink processed alert data at scale.
     The only data source currently available is ZTF, with more than 110 million alerts as of 2023.
     Fill the fields on the right (note the changing timeline on the left when you update parameters),
     and once you are happy, submit your job on the Fink Apache Spark Cluster and retrieve your data!
@@ -720,7 +720,6 @@ def layout(is_mobile):
                 justify="around", className="g-0"
             ),
             html.Br(),
-            bottom_row,
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
     )
 
