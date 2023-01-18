@@ -666,29 +666,22 @@ def layout(is_mobile):
         title = dbc.Row(
             children=[
                 dmc.Space(h=20),
-                dmc.Center(
-                    [
-                        dmc.SimpleGrid(
-                            cols=1,
-                            children=[
-                                dbc.Row(
-                                    dmc.Title(
-                                        children='Fink Data Transfer',
-                                        style={'color': '#15284F'}
-                                    )
-                                ),
-                                dbc.Row(
-                                    dmc.ActionIcon(
-                                        DashIconify(icon="fluent:question-16-regular", width=20),
-                                        size="lg",
-                                        radius="xl",
-                                        variant="outline",
-                                        color='orange',
-                                    ),
-                                )
-                            ]
-                        )
-                    ]
+                dmc.Stack(
+                    children=[
+                        dmc.Title(
+                            children='Fink Data Transfer',
+                            style={'color': '#15284F'}
+                        ),
+                        dmc.ActionIcon(
+                            DashIconify(icon="fluent:question-16-regular", width=20),
+                            size=20,
+                            radius="xl",
+                            variant="outline",
+                            color='orange',
+                        ),
+                    ],
+                    align="center",
+                    justify="center",
                 )
             ]
         )
