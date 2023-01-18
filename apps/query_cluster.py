@@ -139,7 +139,7 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
 def filter_tab():
     """ Section containing filtering options
     """
-    width = '75pc'
+    width = '25%'
     options = html.Div(
         [
             dmc.DateRangePicker(
