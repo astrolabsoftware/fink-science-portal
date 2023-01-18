@@ -136,9 +136,15 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
 
     return timeline
 
-def filter_tab():
+def filter_tab(is_mobile):
     """ Section containing filtering options
     """
+    if is_mobile:
+        width = '100%'
+        amountOfMonths = 1
+    else:
+        width = '50%'
+        amountOfMonths = 2
     options = html.Div(
         [
             dmc.DateRangePicker(
@@ -148,9 +154,9 @@ def filter_tab():
                 minDate=date(2019, 11, 1),
                 maxDate=date.today(),
                 value=None,
-                style={"width": 500},
+                style={"width": width},
                 hideOutsideDates=True,
-                amountOfMonths=2,
+                amountOfMonths=amountOfMonths,
                 allowSingleDateInRange=True,
                 required=True
             ),
@@ -176,7 +182,7 @@ def filter_tab():
                     *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
                 ],
                 searchable=True,
-                style={"width": 500},
+                style={"width": width},
             ),
             dmc.Space(h=10),
             dmc.Textarea(
@@ -188,7 +194,7 @@ def filter_tab():
                     " for field description.",
                 ],
                 placeholder="e.g. candidate.magpsf > 19.5;",
-                style={"width": 500},
+                style={"width": width},
                 autosize=True,
                 minRows=2,              ),
         ]
@@ -346,7 +352,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         PreventUpdate
     else:
         msg = """
-        You are about to submit a streaming job on our Apache Spark cluster.
+        You are about to submit a job on the Fink Apache Spark & Kafka clusters.
         Review your parameters, and take into account the estimated number of
         alerts before hitting submission! Note that the estimation takes into account
         the days requested and the classes, but not the extra conditions (which could reduce the
@@ -438,6 +444,12 @@ def update_log(n_clicks, batchid):
                 response = requests.get('http://134.158.75.222:21111/batches/{}/log'.format(batchid))
 
                 if 'log' in response.json():
+                    failure_log = [row for row in response.json()['log'] if 'Caused by' in row]
+                    if len(failure_log) > 0:
+                        failure_msg = ['Batch ID: {}'.format(batchid), 'Failed. Please, contact contact@fink-broker.org with your batch ID.']
+                        output = html.Div('\n'.join(failure_msg), style={'whiteSpace': 'pre-wrap'})
+                        return output
+                    # catch and return tailored error msg if fail (with batchid and contact@fink-broker.org)
                     livy_log = [row for row in response.json()['log'] if '-Livy-' in row]
                     livy_log = ['Batch ID: {}'.format(batchid), 'Starting...'] + livy_log
                     output = html.Div('\n'.join(livy_log), style={'whiteSpace': 'pre-wrap'})
@@ -623,10 +635,10 @@ def mining_helper():
     """ Helper
     """
     msg = """
-    The Fink data mining service allows you to select and transfer the Fink processed alert data at scale.
+    The Fink data transfer service allows you to select and transfer the Fink processed alert data at scale.
     The only data source currently available is ZTF, with more than 110 million alerts as of 2023.
     Fill the fields on the right (note the changing timeline on the left when you update parameters),
-    and once you are happy, submit your job on the Fink Apache Spark Cluster and retrieve your data!
+    and once ready, submit your job on the Fink Apache Spark & Kafka clusters and retrieve your data.
     More information on this [post](https://fink-broker.org/2023-01-17-data-transfer).
     """
 
@@ -644,25 +656,68 @@ def layout(is_mobile):
     """ Layout for the data transfer service
     """
     qb = query_builder()
-    ft = filter_tab()
+    ft = filter_tab(is_mobile)
     ct = content_tab()
     btns = make_buttons()
     fh = make_final_helper()
+
+    if is_mobile:
+        width_right = 10
+        title = dbc.Row(
+            children=[
+                dmc.Space(h=20),
+                dmc.Stack(
+                    children=[
+                        dmc.Title(
+                            children='Fink Data Transfer',
+                            style={'color': '#15284F'}
+                        ),
+                        dmc.Anchor(
+                            dmc.ActionIcon(
+                                DashIconify(icon="fluent:question-16-regular", width=20),
+                                size=30,
+                                radius="xl",
+                                variant="light",
+                                color='orange',
+                            ),
+                            href="https://fink-broker.org/2023-01-17-data-transfer",
+                            target="_blank"
+                        ),
+                    ],
+                    align="center",
+                    justify="center",
+                )
+            ]
+        )
+        left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
+        style = {
+            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+        }
+    else:
+        width_right = 8
+        title = html.Div()
+        left_side = dbc.Col(
+            [
+                html.Br(),
+                html.Br(),
+                html.Div(id='timeline_data_transfer'),
+                html.Br(),
+                mining_helper(),
+            ], width={"size": 3},
+        )
+        style={
+            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
+            'background-size': 'cover'
+        }
+
     layout_ = html.Div(
         [
             html.Br(),
             html.Br(),
+            title,
             dbc.Row(
                 [
-                    dbc.Col(
-                        [
-                            html.Br(),
-                            html.Br(),
-                            html.Div(id='timeline_data_transfer'),
-                            html.Br(),
-                            mining_helper(),
-                        ], width={"size": 3},
-                    ),
+                    left_side,
                     dbc.Col(
                         [
                             qb,
@@ -679,10 +734,11 @@ def layout(is_mobile):
                             html.Br(),
 
                         ],
-                        width=8)
+                        width=width_right)
                 ],
                 justify="around", className="g-0"
             ),
+            html.Br(),
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
     )
 
