@@ -352,7 +352,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         PreventUpdate
     else:
         msg = """
-        You are about to submit a streaming job on our Apache Spark cluster.
+        You are about to submit a job on the Fink Apache Spark & Kafka clusters.
         Review your parameters, and take into account the estimated number of
         alerts before hitting submission! Note that the estimation takes into account
         the days requested and the classes, but not the extra conditions (which could reduce the
@@ -638,7 +638,7 @@ def mining_helper():
     The Fink data transfer service allows you to select and transfer the Fink processed alert data at scale.
     The only data source currently available is ZTF, with more than 110 million alerts as of 2023.
     Fill the fields on the right (note the changing timeline on the left when you update parameters),
-    and once you are happy, submit your job on the Fink Apache Spark Cluster and retrieve your data!
+    and once ready, submit your job on the Fink Apache Spark & Kafka clusters and retrieve your data.
     More information on this [post](https://fink-broker.org/2023-01-17-data-transfer).
     """
 
@@ -667,10 +667,23 @@ def layout(is_mobile):
             children=[
                 dmc.Space(h=20),
                 dmc.Center(
-                    dmc.Title(
-                        children='Fink Data Transfer',
-                        style={'color': '#15284F'}
-                    )
+                    [
+                        dbc.Row(
+                            dmc.Title(
+                                children='Fink Data Transfer',
+                                style={'color': '#15284F'}
+                            )
+                        ),
+                        dbc.Row(
+                            dmc.ActionIcon(
+                                DashIconify(icon="fluent:question-16-regular", width=20),
+                                size="lg",
+                                radius="xl",
+                                variant="outline",
+                                color='orange',
+                            ),
+                        )
+                    ]
                 )
             ]
         )
