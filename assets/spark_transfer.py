@@ -28,6 +28,30 @@ import requests
 import logging
 from logging import Logger
 
+COLS_FINK = [
+    'finkclass',
+    'tnsclass',
+    'cdsxmatch',
+    'roid',
+    'mulens',
+    'DR3Name',
+    'Plx',
+    'e_Plx',
+    'gcvs',
+    'vsx',
+    'snn_snia_vs_nonia',
+    'snn_sn_vs_all',
+    'rf_snia_vs_nonia',
+    'rf_kn_vs_nonkn',
+    'tracklet',
+    'tracklet',
+    'x4lac',
+    'x3hsp',
+    'mangrove',
+    't2',
+    'anomaly_score'
+]
+
 def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
     """ Initialise python logger. Suitable for both driver and executors.
 
@@ -446,6 +470,8 @@ def main(args):
         cnames[cnames.index('cutoutDifference')] = 'struct(cutoutDifference.*) as cutoutDifference'
         cnames[cnames.index('prv_candidates')] = 'explode(array(prv_candidates)) as prv_candidates'
         cnames[cnames.index('candidate')] = 'struct(candidate.*) as candidate'
+        cnames[cnames.index('lc_features_g')] = 'struct(lc_features_g.*) as lc_features_g'
+        cnames[cnames.index('lc_features_r')] = 'struct(lc_features_r.*) as lc_features_r'
     elif args.content == 'Lightcurve':
         cnames = [
             'objectId',
@@ -458,25 +484,7 @@ def main(args):
             'candidate.dec'
         ]
 
-        cols_fink = [
-            'finkclass',
-            'tnsclass',
-            'cdsxmatch',
-            'roid',
-            'mulens',
-            'DR3Name',
-            'Plx',
-            'e_Plx',
-            'gcvs',
-            'vsx',
-            'snn_snia_vs_nonia',
-            'snn_sn_vs_all',
-            'rf_snia_vs_nonia',
-            'rf_kn_vs_nonkn',
-            'tracklet'
-        ]
-
-        for col in cols_fink:
+        for col in COLS_FINK:
             # added values are at the root level
             if col in df.columns:
                 cnames.append(col)
@@ -494,25 +502,7 @@ def main(args):
             'cutoutDifference'
         ]
 
-        cols_fink = [
-            'finkclass',
-            'tnsclass',
-            'cdsxmatch',
-            'roid',
-            'mulens',
-            'DR3Name',
-            'Plx',
-            'e_Plx',
-            'gcvs',
-            'vsx',
-            'snn_snia_vs_nonia',
-            'snn_sn_vs_all',
-            'rf_snia_vs_nonia',
-            'rf_kn_vs_nonkn',
-            'tracklet'
-        ]
-
-        for col in cols_fink:
+        for col in COLS_FINK:
             # added values are at the root level
             if col in df.columns:
                 cnames.append(col)
