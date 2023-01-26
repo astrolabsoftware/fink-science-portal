@@ -44,7 +44,6 @@ COLS_FINK = [
     'rf_snia_vs_nonia',
     'rf_kn_vs_nonkn',
     'tracklet',
-    'tracklet',
     'x4lac',
     'x3hsp',
     'mangrove',
