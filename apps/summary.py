@@ -282,10 +282,10 @@ def tab5_content(object_soo):
                     html.Br(),
                     dbc.Row(
                         dbc.Col(
-                            dmc.Chips(
-                                data=[
-                                    {'label': 'per-band', 'value': 'per-band'},
-                                    {'label': 'combined', 'value': 'combined'}
+                            dmc.ChipGroup(
+                                [
+                                    dmc.Chip(x, value=x, variant="outline")
+                                    for x in ['per-band', 'combined']
                                 ],
                                 id="switch-phase-curve-band",
                                 value="per-band",
@@ -293,7 +293,6 @@ def tab5_content(object_soo):
                                 radius="xl",
                                 size="sm",
                                 spacing="xl",
-                                variant="outline",
                                 position='center',
                                 multiple=False,
                             )
@@ -301,12 +300,10 @@ def tab5_content(object_soo):
                     ),
                     dbc.Row(
                         dbc.Col(
-                            dmc.Chips(
-                                data=[
-                                    {'label': 'HG1G2S', 'value': 'HG1G2S'},
-                                    {'label': 'HG1G2', 'value': 'HG1G2'},
-                                    {'label': 'HG12', 'value': 'HG12'},
-                                    {'label': 'HG', 'value': 'HG'},
+                            dmc.ChipGroup(
+                                [
+                                    dmc.Chip(x, value=x, variant="outline")
+                                    for x in ['HG1G2S', 'HG1G2', 'HG12', 'HG']
                                 ],
                                 id="switch-phase-curve-func",
                                 value="HG1G2",
@@ -314,7 +311,6 @@ def tab5_content(object_soo):
                                 radius="xl",
                                 size="sm",
                                 spacing="xl",
-                                variant="outline",
                                 position='center',
                                 multiple=False,
                             )

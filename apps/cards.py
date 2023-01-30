@@ -51,9 +51,10 @@ def card_lightcurve_summary():
             ),
             dbc.Row(
                 dbc.Col(
-                    dmc.Chips(
-                        data=[
-                            {'label': k, 'value': k} for k in all_radio_options.keys()
+                    dmc.ChipGroup(
+                        [
+                            dmc.Chip(x, value=x, variant="outline")
+                            for x in all_radio_options.keys()
                         ],
                         id="switch-mag-flux",
                         value="Difference magnitude",
@@ -61,7 +62,6 @@ def card_lightcurve_summary():
                         radius="xl",
                         size="sm",
                         spacing="xl",
-                        variant="outline",
                         position='center',
                         multiple=False,
                     )
@@ -267,10 +267,10 @@ curl -H "Content-Type: application/json" -X POST \\
                     html.Div(id='coordinates'),
                     dbc.Row(
                         dbc.Col(
-                            dmc.Chips(
-                                data=[
-                                    {'label': 'EQU', 'value': 'EQU'},
-                                    {'label': 'GAL', 'value': 'GAL'}
+                            dmc.ChipGroup(
+                                [
+                                    dmc.Chip(x, value=x, variant="outline")
+                                    for x in ['EQU', 'GAL']
                                 ],
                                 id="coordinates_chips",
                                 value="EQU",
@@ -278,7 +278,6 @@ curl -H "Content-Type: application/json" -X POST \\
                                 radius="xl",
                                 size="sm",
                                 spacing="xl",
-                                variant="outline",
                                 position='center',
                                 multiple=False,
                             )

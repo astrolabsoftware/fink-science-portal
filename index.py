@@ -562,7 +562,7 @@ def display_table_results(table, is_mobile):
                                                                     transitionDuration=200,
                                                                     label=switch_tracklet_description
                                                                 ),
-                                                            ], direction='column', grow=True, spacing='xs'
+                                                            ], grow=True, spacing='xs'
                                                         )
 
                                                     ],
@@ -1332,14 +1332,10 @@ def display_page(pathname, is_mobile):
                 [
                     html.Div(id='logo'),
                     html.Br(),
-                    dmc.Chips(
-                        data=[
-                            {"value": "objectId", "label": "objectId"},
-                            {"value": "Conesearch", "label": "Conesearch"},
-                            {"value": "Date Search", "label": "Date Search"},
-                            {"value": "Class Search", "label": "Class Search"},
-                            {"value": "SSO", "label": "SSO"},
-                            {"value": "Tracklet", "label": "Tracklet"},
+                    dmc.ChipGroup(
+                        [
+                            dmc.Chip(x, value=x, variant="outline")
+                            for x in ["objectId", "Conesearch", "Date Search", "Class Search", "SSO", "Tracklet"]
                         ],
                         id="dropdown-query",
                         value='objectId',
@@ -1347,7 +1343,6 @@ def display_page(pathname, is_mobile):
                         radius="xl",
                         size="sm",
                         spacing="xl",
-                        variant="outline",
                         position='center',
                         multiple=False,
                     ),
