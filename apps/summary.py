@@ -423,7 +423,7 @@ def tabs(pdf, is_mobile):
     else:
         tabs_ = dmc.Tabs(
             [
-                dmc.Tablist(
+                dmc.TabList(
                     [
                         dmc.Tab("Summary", value="Summary"),
                         dmc.Tab("Supernovae", value="Supernovae"),
