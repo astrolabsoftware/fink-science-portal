@@ -569,7 +569,7 @@ def display_table_results(table, is_mobile):
                                                                             transitionDuration=200,
                                                                             label=switch_tracklet_description
                                                                         ),
-                                                                    ], grow=True, spacing='xs'
+                                                                    ], spacing='xs'
                                                                 )
 
                                                             ],
