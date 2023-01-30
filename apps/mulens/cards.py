@@ -50,7 +50,7 @@ def card_mulens_button(object_data):
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Neighbourhood",
                         icon=[
                             DashIconify(
@@ -60,7 +60,7 @@ def card_mulens_button(object_data):
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             dmc.Paper(
                                 [

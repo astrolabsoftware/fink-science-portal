@@ -176,11 +176,17 @@ curl -H "Content-Type: application/json" -X POST \\
     """.format(objectid, APIURL, objectid)
 
     download_tab = dmc.Tabs(
+        [
+            dmc.TabsList(
+                [
+                    dmc.Tab("Python", value="Python"),
+                    dmc.Tab("Curl", value="Curl"),
+                ],
+            ),
+            dmc.TabsPanel(dmc.Prism(children=python_download, language="python"), value="Python"),
+            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl"),
+        ],
         color="red",
-        children=[
-            dmc.Tab(label="Python", children=dmc.Prism(children=python_download, language="python")),
-            dmc.Tab(label="Curl", children=dmc.Prism(children=curl_download, language="bash")),
-        ]
     )
 
     qrdata = "https://fink-portal.org/{}".format(objectid)
