@@ -522,8 +522,6 @@ def display_table_results(table, is_mobile):
             [
                 dmc.Col(
                     dmc.Accordion(
-                        state={"0": False},
-                        offsetIcon=False,
                         children=[
                             dmc.AccordionItem(
                                 children=[
