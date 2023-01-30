@@ -272,7 +272,7 @@ def content_tab():
 )
 def update_content_tab(trans_datasource, date_range_picker):
     if date_range_picker is None:
-        {'display': 'none'}, []
+        return {'display': 'none'}, []
     else:
         if trans_datasource == 'ZTF':
             data = [
