@@ -294,20 +294,7 @@ def main(args):
     if args.fclass is not None:
         if args.fclass != []:
             if 'allclasses' not in args.fclass:
-                tns_class = [i for i in args.fclass if i.startswith('(TNS)')]
-                other_class = [i for i in args.fclass if i not in tns_class]
-                sanitized_other_class = [i.replace('(SIMBAD) ', '') for i in other_class]
-
-                if tns_class != [] and sanitized_other_class != []:
-                    f1 = df['finkclass'].isin(sanitized_other_class)
-                    f2 = df['tnsclass'].isin(tns_class)
-                    df = df.filter(f1 | f2)
-                elif tns_class != []:
-                    f1 = df['tnsclass'].isin(tns_class)
-                    df = df.filter(f1)
-                elif sanitized_other_class != []:
-                    f1 = df['finkclass'].isin(sanitized_other_class)
-                    df = df.filter(f1)
+                df = df.filter(df['classId'].isin(args.fclass))
 
     if args.extraCond is not None:
         for cond in args.extraCond:
@@ -319,13 +306,6 @@ def main(args):
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index('timestamp')] = 'cast(timestamp as string) as timestamp'
-        cnames[cnames.index('cutoutScience')] = 'struct(cutoutScience.*) as cutoutScience'
-        cnames[cnames.index('cutoutTemplate')] = 'struct(cutoutTemplate.*) as cutoutTemplate'
-        cnames[cnames.index('cutoutDifference')] = 'struct(cutoutDifference.*) as cutoutDifference'
-        cnames[cnames.index('prv_candidates')] = 'explode(array(prv_candidates)) as prv_candidates'
-        cnames[cnames.index('candidate')] = 'struct(candidate.*) as candidate'
-        cnames[cnames.index('lc_features_g')] = 'struct(lc_features_g.*) as lc_features_g'
-        cnames[cnames.index('lc_features_r')] = 'struct(lc_features_r.*) as lc_features_r'
 
     # Wrap alert data
     df = df.selectExpr(cnames)
