@@ -44,8 +44,8 @@ def card_explanation_variable():
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel("How to make a fit?"),
-                    dmc.AccordionControl(dcc.Markdown(msg)),
+                    dmc.AccordionControl("How to make a fit?"),
+                    dmc.AccordionPanel(dcc.Markdown(msg)),
                 ],
                 value="info"
             ),
@@ -82,7 +82,7 @@ def card_variable_button(object_data):
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Neighbourhood",
                         icon=[
                             DashIconify(
@@ -92,7 +92,7 @@ def card_variable_button(object_data):
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             dmc.Paper(
                                 [

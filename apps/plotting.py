@@ -1471,8 +1471,7 @@ def draw_cutouts_modal(object_data, date_modal_select):
                     children=draw_cutout(data, kind, modal=True),
                     radius='xl',
                     position='top',
-                    placement='center',
-                    withArrow=True,
+                    multiline=True,
                     transition="fade",
                     transitionDuration=200,
                     label=kind,
@@ -3552,7 +3551,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     """.format(np.round(x, 6), np.round(y, 6))
 
     card2 = dmc.Center(
-        dmc.Prism(children=coords, language="python", copyLabel='Copy coordinates', style={'width': '60%'})
+        dmc.Prism(children=coords, language="python", style={'width': '60%'})
     )
 
     return html.Div([card1, html.Br(), card2])

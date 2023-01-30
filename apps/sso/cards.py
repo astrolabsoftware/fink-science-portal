@@ -84,11 +84,16 @@ curl -H "Content-Type: application/json" -X POST \\
     """.format(ssnamenr, APIURL, ssnamenr)
 
     download_tab = dmc.Tabs(
-        color="red",
-        children=[
-            dmc.Tab(label="Python", children=dmc.Prism(children=python_download, language="python")),
-            dmc.Tab(label="Curl", children=dmc.Prism(children=curl_download, language="bash")),
-        ]
+        [
+            dmc.TabsList(
+                [
+                    dmc.Tab("Python", value="Python"),
+                    dmc.Tab("Curl", value="Curl")
+                ],
+            ),
+            dmc.TabsPanel(children=dmc.Prism(children=python_download, language="python"), value="Python"),
+            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl")
+        ], color="red"
     )
 
     if ssnamenr_ != 'null':
@@ -103,7 +108,7 @@ curl -H "Content-Type: application/json" -X POST \\
         extra_items = [
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Download data",
                         icon=[
                             DashIconify(
@@ -113,7 +118,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             dmc.Paper(
                                 [
@@ -129,7 +134,7 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "External links",
                         icon=[
                             DashIconify(
@@ -139,7 +144,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             dmc.Paper(
                                 dbc.Row(
@@ -191,7 +196,7 @@ curl -H "Content-Type: application/json" -X POST \\
             children=[
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionPanel(
+                        dmc.AccordionControl(
                             "SsODNet - ssoCard",
                             icon=[
                                 DashIconify(
@@ -201,7 +206,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 )
                             ],
                         ),
-                        dmc.AccordionControl(
+                        dmc.AccordionPanel(
                             [
                                 dmc.Paper(
                                     card_properties,
