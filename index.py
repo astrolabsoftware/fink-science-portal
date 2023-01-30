@@ -1209,7 +1209,6 @@ navbar = dmc.Header(
                                         color="gray",
                                     ),
                                 ],
-                                grow=True,
                                 position="left",
                                 spacing="sm",
                                 style={"paddingLeft": 30, "paddingRight": 20},
@@ -1241,7 +1240,6 @@ navbar = dmc.Header(
                                         color="gray",
                                     ),
                                 ],
-                                grow=True,
                                 position="left",
                                 spacing="sm",
                                 style={"paddingLeft": 30, "paddingRight": 20},
@@ -1273,7 +1271,6 @@ navbar = dmc.Header(
                                         color="gray",
                                     )
                                 ],
-                                grow=True,
                                 position="left",
                                 spacing="sm",
                                 style={"paddingLeft": 30, "paddingRight": 20},
