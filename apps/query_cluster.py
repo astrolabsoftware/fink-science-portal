@@ -180,7 +180,8 @@ def filter_tab(is_mobile):
                 placeholder="e.g. candidate.magpsf > 19.5;",
                 style={"width": width},
                 autosize=True,
-                minRows=2,              ),
+                minRows=2,
+            ),
         ]
     )
     tab = html.Div(
@@ -224,14 +225,26 @@ def display_filter_tab(trans_datasource):
                 *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
                 *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
             ]
+            description = [
+                "One condition per line (SQL syntax), ending with semi-colon. See ",
+                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
+                " for field description.",
+            ]
+            placeholder = "e.g. candidate.magpsf > 19.5;"
         elif trans_datasource == 'elasticc':
             minDate = date(2023, 11, 1)
             maxDate = date(2026, 12, 31)
             data_class_select = [
                 {'label': 'Testme', 'value': 'testme'},
             ]
+            description = [
+                "One condition per line (SQL syntax), ending with semi-colon. See ",
+                dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
+                " for field description.",
+            ]
+            placeholder = "e.g. diaSource.psFlux > 0.0;"
 
-        return {}, minDate, maxDate, data_class_select
+        return {}, minDate, maxDate, data_class_select, description, placeholder
 
 def content_tab():
     """ Section containing filtering options
