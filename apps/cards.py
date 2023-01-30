@@ -53,14 +53,11 @@ def card_lightcurve_summary():
                 dbc.Col(
                     dmc.ChipGroup(
                         [
-                            dmc.Chip(x, value=x, variant="outline")
+                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
                             for x in all_radio_options.keys()
                         ],
                         id="switch-mag-flux",
                         value="Difference magnitude",
-                        color="orange",
-                        radius="xl",
-                        size="sm",
                         spacing="xl",
                         position='center',
                         multiple=False,
@@ -269,14 +266,11 @@ curl -H "Content-Type: application/json" -X POST \\
                         dbc.Col(
                             dmc.ChipGroup(
                                 [
-                                    dmc.Chip(x, value=x, variant="outline")
+                                    dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
                                     for x in ['EQU', 'GAL']
                                 ],
                                 id="coordinates_chips",
                                 value="EQU",
-                                color="orange",
-                                radius="xl",
-                                size="sm",
                                 spacing="xl",
                                 position='center',
                                 multiple=False,

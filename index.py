@@ -1331,14 +1331,11 @@ def display_page(pathname, is_mobile):
                     html.Br(),
                     dmc.ChipGroup(
                         [
-                            dmc.Chip(x, value=x, variant="outline")
+                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
                             for x in ["objectId", "Conesearch", "Date Search", "Class Search", "SSO", "Tracklet"]
                         ],
                         id="dropdown-query",
                         value='objectId',
-                        color="orange",
-                        radius="xl",
-                        size="sm",
                         spacing="xl",
                         position='center',
                         multiple=False,

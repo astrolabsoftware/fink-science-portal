@@ -284,14 +284,11 @@ def tab5_content(object_soo):
                         dbc.Col(
                             dmc.ChipGroup(
                                 [
-                                    dmc.Chip(x, value=x, variant="outline")
+                                    dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
                                     for x in ['per-band', 'combined']
                                 ],
                                 id="switch-phase-curve-band",
                                 value="per-band",
-                                color="orange",
-                                radius="xl",
-                                size="sm",
                                 spacing="xl",
                                 position='center',
                                 multiple=False,
@@ -302,14 +299,11 @@ def tab5_content(object_soo):
                         dbc.Col(
                             dmc.ChipGroup(
                                 [
-                                    dmc.Chip(x, value=x, variant="outline")
+                                    dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
                                     for x in ['HG1G2S', 'HG1G2', 'HG12', 'HG']
                                 ],
                                 id="switch-phase-curve-func",
                                 value="HG1G2",
-                                color="orange",
-                                radius="xl",
-                                size="sm",
                                 spacing="xl",
                                 position='center',
                                 multiple=False,
