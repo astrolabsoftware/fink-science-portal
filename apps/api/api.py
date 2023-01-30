@@ -72,9 +72,9 @@ def layout(is_mobile):
                         ]
                     ),
                     html.Br(),
-                    dmc.Tabs(
+                    dbc.Tabs(
                         [
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -85,7 +85,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Retrieve object data"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -96,7 +96,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Query the database"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -107,7 +107,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Get latest alerts"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -118,7 +118,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Solar System objects from MPC"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -129,7 +129,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Candidate Solar System objects"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -140,7 +140,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Get Tracklet Objects"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -151,7 +151,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Get Image data"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -162,7 +162,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Xmatch"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -173,7 +173,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Gravitational Waves"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
@@ -184,7 +184,7 @@ def layout(is_mobile):
                                     ),
                                 ], label="Statistics"
                             ),
-                            dmc.Tab(
+                            dbc.Tab(
                                 [
                                     dbc.Card(
                                         dbc.CardBody(
