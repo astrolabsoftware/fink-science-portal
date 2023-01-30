@@ -165,20 +165,6 @@ def filter_tab(is_mobile):
                 placeholder="start typing...",
                 id="class_select",
                 value=None,
-                data = [
-                    {'label': 'All classes', 'value': 'allclasses'},
-                    {'label': 'Unknown', 'value': 'Unknown'},
-                    {'label': '(Fink) Early Supernova Ia candidates', 'value': 'Early SN Ia candidate'},
-                    {'label': '(Fink) Supernova candidates', 'value': 'SN candidate'},
-                    {'label': '(Fink) Kilonova candidates', 'value': 'Kilonova candidate'},
-                    {'label': '(Fink) Microlensing candidates', 'value': 'Microlensing candidate'},
-                    {'label': '(Fink) Solar System (MPC)', 'value': 'Solar System MPC'},
-                    {'label': '(Fink) Solar System (candidates)', 'value': 'Solar System candidate'},
-                    {'label': '(Fink) Tracklet (space debris & satellite glints)', 'value': 'Tracklet'},
-                    {'label': '(Fink) Ambiguous', 'value': 'Ambiguous'},
-                    *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
-                    *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
-                ],
                 searchable=True,
                 style={"width": width},
             ),
@@ -211,6 +197,7 @@ def filter_tab(is_mobile):
         Output("filter_tab", "style"),
         Output("date-range-picker", "minDate"),
         Output("date-range-picker", "maxDate"),
+        Output("class_select", "data"),
     ],
     [
         Input('trans_datasource', 'value')
@@ -223,10 +210,28 @@ def display_filter_tab(trans_datasource):
         if trans_datasource == 'ZTF':
             minDate = date(2019, 11, 1)
             maxDate = date.today()
+            data_class_select = [
+                {'label': 'All classes', 'value': 'allclasses'},
+                {'label': 'Unknown', 'value': 'Unknown'},
+                {'label': '(Fink) Early Supernova Ia candidates', 'value': 'Early SN Ia candidate'},
+                {'label': '(Fink) Supernova candidates', 'value': 'SN candidate'},
+                {'label': '(Fink) Kilonova candidates', 'value': 'Kilonova candidate'},
+                {'label': '(Fink) Microlensing candidates', 'value': 'Microlensing candidate'},
+                {'label': '(Fink) Solar System (MPC)', 'value': 'Solar System MPC'},
+                {'label': '(Fink) Solar System (candidates)', 'value': 'Solar System candidate'},
+                {'label': '(Fink) Tracklet (space debris & satellite glints)', 'value': 'Tracklet'},
+                {'label': '(Fink) Ambiguous', 'value': 'Ambiguous'},
+                *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
+                *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
+            ]
         elif trans_datasource == 'elasticc':
             minDate = date(2023, 11, 1)
             maxDate = date(2026, 12, 31)
-        return {}, minDate, maxDate
+            data_class_select = [
+                {'label': 'Testme', 'value': 'testme'},
+            ]
+
+        return {}, minDate, maxDate, data_class_select
 
 def content_tab():
     """ Section containing filtering options
