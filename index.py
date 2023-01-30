@@ -548,6 +548,7 @@ def display_table_results(table, is_mobile):
                                                                         dmc.Tooltip(
                                                                             children=switch,
                                                                             width=220,
+                                                                            multiline=True,
                                                                             withArrow=True,
                                                                             transition="fade",
                                                                             transitionDuration=200,
@@ -556,6 +557,7 @@ def display_table_results(table, is_mobile):
                                                                         dmc.Tooltip(
                                                                             children=switch_sso,
                                                                             width=220,
+                                                                            multiline=True,
                                                                             withArrow=True,
                                                                             transition="fade",
                                                                             transitionDuration=200,
@@ -564,6 +566,7 @@ def display_table_results(table, is_mobile):
                                                                         dmc.Tooltip(
                                                                             children=switch_tracklet,
                                                                             width=220,
+                                                                            multiline=True,
                                                                             withArrow=True,
                                                                             transition="fade",
                                                                             transitionDuration=200,
