@@ -828,7 +828,13 @@ def layout(name, is_mobile):
                                 html.Br(),
                             ], width={"size": 3},
                         ),
-                        dbc.Col(tabs(pdf, is_mobile), width=8)
+                        dbc.Col(
+                            [
+                                dmc.Space(h=10),
+                                tabs(pdf, is_mobile),
+                            ],
+                            width=8
+                        )
                     ],
                     justify="around", className="g-0"
                 ),
