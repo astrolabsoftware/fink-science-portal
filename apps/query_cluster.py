@@ -270,7 +270,7 @@ def content_tab():
 )
 def update_content_tab(trans_datasource, date_range_picker):
     if date_range_picker is None:
-        PreventUpdate
+        {'display': 'none'}, []
     else:
         if trans_datasource == 'ZTF':
             labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
