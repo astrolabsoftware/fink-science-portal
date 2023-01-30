@@ -83,7 +83,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Retrieve object data"
+                                ], label="Retrieve object data", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -94,7 +94,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Query the database"
+                                ], label="Query the database", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -105,7 +105,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Get latest alerts"
+                                ], label="Get latest alerts", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -116,7 +116,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Solar System objects from MPC"
+                                ], label="Solar System objects from MPC", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -127,7 +127,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Candidate Solar System objects"
+                                ], label="Candidate Solar System objects", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -138,7 +138,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Get Tracklet Objects"
+                                ], label="Get Tracklet Objects", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -149,7 +149,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Get Image data"
+                                ], label="Get Image data", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -160,7 +160,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Xmatch"
+                                ], label="Xmatch", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -171,7 +171,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Gravitational Waves"
+                                ], label="Gravitational Waves", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -182,7 +182,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Statistics"
+                                ], label="Statistics", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -193,7 +193,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Random objects"
+                                ], label="Random objects", label_style = {"color": "#000"}
                             ),
                         ]
                     )
