@@ -233,8 +233,11 @@ def tab5_content(object_soo):
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                dcc.Markdown(msg),
-                                label="Information",
+                                [
+                                    dmc.AccordionPanel("Information"),
+                                    dmc.AccordionControl(dcc.Markdown(msg)),
+                                ],
+                                value='info'
                             ),
                         ],
                     )
@@ -251,8 +254,11 @@ def tab5_content(object_soo):
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
-                                label="How are computed the residuals?",
+                                [
+                                    dmc.AccordionPanel("How are computed the residuals?"),
+                                    dmc.AccordionControl(dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),),
+                                ],
+                                value="residuals"
                             ),
                         ],
                     )
@@ -313,8 +319,11 @@ def tab5_content(object_soo):
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                dcc.Markdown(msg_phase),
-                                label="How is modeled the phase curve?",
+                                [
+                                    dmc.AccordionPanel("How is modeled the phase curve?"),
+                                    dmc.AccordionControl(dcc.Markdown(msg_phase),),
+                                ],
+                                value='phase_curve'
                             ),
                         ],
                     )
@@ -572,57 +581,74 @@ def accordion_mobile():
     )
     external = dbc.CardBody(id='external_links')
 
-    accordion = dmc.Accordion(
+    accordion = dmc.AccordionMultiple(
         children=[
             dmc.AccordionItem(
-                lightcurve,
-                label="Lightcurve",
-                icon=[
-                    DashIconify(
-                        icon="tabler:graph",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
-                    )
+                [
+                    dmc.AccordionPanel(
+                        "Lightcurve",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:graph",
+                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(lightcurve),
                 ],
+                value="lightcurve"
             ),
             dmc.AccordionItem(
-                information,
-                label="Last alert properties",
-                icon=[
-                    DashIconify(
-                        icon="tabler:file-description",
-                        color=dmc.theme.DEFAULT_COLORS["blue"][6],
-                        width=20,
-                    )
+                [
+                    dmc.AccordionPanel(
+                        "Last alert properties",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:file-description",
+                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(information),
                 ],
+                value='info'
             ),
             dmc.AccordionItem(
-                aladin,
-                label="Aladin Lite",
-                icon=[
-                    DashIconify(
-                        icon="tabler:map-2",
-                        color=dmc.theme.DEFAULT_COLORS["orange"][6],
-                        width=20,
-                    )
+                [
+                    dmc.AccordionPanel(
+                        "Aladin Lite",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:map-2",
+                                color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(aladin),
                 ],
+                value='aladin'
             ),
             dmc.AccordionItem(
-                external,
-                label="External links",
-                icon=[
-                    DashIconify(
-                        icon="tabler:atom-2",
-                        color=dmc.theme.DEFAULT_COLORS["green"][6],
-                        width=20,
-                    )
+                [
+                    dmc.AccordionPanel(
+                        "External links",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:atom-2",
+                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(external),
                 ],
+                value='external'
             ),
         ],
-        state={'{}'.format(i): False for i in range(4)},
         id="accordion-mobile",
-        multiple=True,
-        offsetIcon=False,
     )
 
     return accordion
