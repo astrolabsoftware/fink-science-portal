@@ -41,6 +41,7 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
 
 elasticc_classes = pd.read_csv('assets/elasticc_classes.csv')
 elasticc_dates = pd.read_csv('assets/elasticc_dates.csv')
+elasticc_dates['date'] = elasticc_dates['date'].astype('str')
 
 coeffs_per_class = pd.read_parquet('assets/fclass_2022_060708_coeffs.parquet')
 
