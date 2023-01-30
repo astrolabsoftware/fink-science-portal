@@ -240,7 +240,7 @@ def display_filter_tab(trans_datasource):
             maxDate = date(2026, 12, 5)
             data_class_select = [
                 {'label': 'All classes', 'value': 'allclasses'},
-                *[{'label': simtype, 'value': simtype} for simtype in sorted(elasticc_classes['classId'].values)],
+                *[{'label': str(simtype), 'value': simtype} for simtype in sorted(elasticc_classes['classId'].values)],
             ]
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
