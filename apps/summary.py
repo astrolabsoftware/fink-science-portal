@@ -58,6 +58,7 @@ def tab1_content():
     """ Summary tab
     """
     tab1_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row(
             [
                 dbc.Col(
@@ -89,6 +90,7 @@ def tab2_content():
     """ Supernova tab
     """
     tab2_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row([
             dbc.Col(card_sn_scores(), width=8),
             dbc.Col(id='card_sn_properties', width=4)
@@ -144,6 +146,7 @@ def tab3_content():
     )
 
     tab3_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row([
             dbc.Col(
                 dmc.LoadingOverlay(
@@ -180,6 +183,7 @@ def tab4_content():
     )
 
     tab4_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row([
             dbc.Col(
                 dmc.LoadingOverlay(
@@ -357,6 +361,7 @@ def tab5_content(object_soo):
 
     tab5_content_ = dbc.Row(
         [
+            dmc.Space(h=10),
             left_side,
             dbc.Col(
                 [
@@ -378,6 +383,7 @@ def tab6_content(object_tracklet):
     """
     pdf = pd.read_json(object_tracklet)
     tab6_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row(
             [
                 dbc.Col(
