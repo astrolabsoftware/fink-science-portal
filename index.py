@@ -537,7 +537,6 @@ def display_table_results(table, is_mobile):
                                                                 dropdown,
                                                                 dmc.Tooltip(
                                                                     children=switch,
-                                                                    wrapLines=True,
                                                                     width=220,
                                                                     withArrow=True,
                                                                     transition="fade",
@@ -546,7 +545,6 @@ def display_table_results(table, is_mobile):
                                                                 ),
                                                                 dmc.Tooltip(
                                                                     children=switch_sso,
-                                                                    wrapLines=True,
                                                                     width=220,
                                                                     withArrow=True,
                                                                     transition="fade",
@@ -555,7 +553,6 @@ def display_table_results(table, is_mobile):
                                                                 ),
                                                                 dmc.Tooltip(
                                                                     children=switch_tracklet,
-                                                                    wrapLines=True,
                                                                     width=220,
                                                                     withArrow=True,
                                                                     transition="fade",
