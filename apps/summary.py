@@ -336,11 +336,17 @@ def tab5_content(object_soo):
         left_side = dbc.Col(
             dmc.Tabs(
                 [
-                    dmc.Tab(tab1, label="Lightcurve"),
-                    dmc.Tab(tab2, label="Astrometry"),
-                    dmc.Tab(tab3, label="Phase curve")
-                ],
-                variant="outline"
+                    dmc.TabList(
+                        [
+                            dmc.Tab("Lightcurve", value="Lightcurve"),
+                            dmc.Tab("Astrometry", value="Astrometry"),
+                            dmc.Tab("Phase curve", value="Phase curve")
+                        ]
+                    ),
+                    dmc.TabsPanel(tab1, value="Lightcurve"),
+                    dmc.TabsPanel(tab2, value="Astrometry"),
+                    dmc.TabsPanel(tab3, value="Phase curve")
+                ], variant="outline"
             ), width=8
         )
     else:
@@ -389,23 +395,6 @@ def tab6_content(object_tracklet):
 def tab_mobile_content(pdf):
     """ Content for mobile application
     """
-    # content_ = html.Div([
-    #     dbc.Row(
-    #         [
-    #             dbc.Col(
-    #                 dcc.Graph(
-    #                     style={
-    #                         'width': '100%',
-    #                         'height': '4pc'
-    #                     },
-    #                     config={'displayModeBar': False},
-    #                     id='classbar'
-    #                 ),
-    #                 width=12
-    #             ),
-    #         ], justify='around'
-    #     ),
-    # ])
     simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
@@ -434,14 +423,25 @@ def tabs(pdf, is_mobile):
     else:
         tabs_ = dmc.Tabs(
             [
-                dmc.Tab(tab1_content(), label="Summary"),
-                dmc.Tab(tab2_content(), label="Supernovae"),
-                dmc.Tab(tab3_content(), label="Variable stars"),
-                dmc.Tab(tab4_content(), label="Microlensing"),
-                dmc.Tab(id="tab_sso", label="Solar System"),
-                dmc.Tab(id="tab_tracklet", label="Tracklets"),
-                dmc.Tab(label="GRB", disabled=True)
-            ], position='right', variant='outline'
+                dmc.Tablist(
+                    [
+                        dmc.Tab("Summary", value="Summary"),
+                        dmc.Tab("Supernovae", value="Supernovae"),
+                        dmc.Tab("Variable stars", value="Variable stars"),
+                        dmc.Tab("Microlensing", value="Microlensing"),
+                        dmc.Tab("Solar System", value="Solar System"),
+                        dmc.Tab("Tracklets", value="Tracklets"),
+                        dmc.Tab("GRB", value="GRB", disabled=True)
+                    ],
+                ),
+                dmc.TabsPanel(tab1_content(), value="Summary"),
+                dmc.TabsPanel(tab2_content(), value="Supernovae"),
+                dmc.TabsPanel(tab3_content(), value="Variable stars"),
+                dmc.TabsPanel(tab4_content(), value="Microlensing"),
+                dmc.TabsPanel(id="tab_sso", value="Solar System"),
+                dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
+            ],
+            position='right', variant='outline'
         )
     return tabs_
 
