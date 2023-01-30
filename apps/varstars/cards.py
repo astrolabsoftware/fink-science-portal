@@ -41,11 +41,13 @@ def card_explanation_variable():
     The score is between 0 (poor fit) and 1 (excellent fit).
     """
     card = dmc.Accordion(
-        state={'0': True},
         children=[
             dmc.AccordionItem(
-                dcc.Markdown(msg),
-                label="How to make a fit?",
+                [
+                    dmc.AccordionPanel("How to make a fit?"),
+                    dmc.AccordionControl(dcc.Markdown(msg)),
+                ],
+                value="info"
             ),
         ],
     )
@@ -75,71 +77,75 @@ def card_variable_button(object_data):
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
 
-    card1 = dmc.Accordion(
-        state={"0": False},
-        multiple=True,
-        offsetIcon=False,
-        disableIconRotation=True,
+    card1 = dmc.AccordionMultiple(
+        disableChevronRotation=True,
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.Paper(
+                    dmc.AccordionPanel(
+                        "Neighbourhood",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:atom-2",
+                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(
                         [
-                            dcc.Markdown(
-                                """
-                                ```python
-                                Constellation: {}
-                                Class (SIMBAD): {}
-                                Name (MPC): {}
-                                Name (Gaia): {}
-                                Distance (Gaia): {:.2f} arcsec
-                                Distance (PS1): {:.2f} arcsec
-                                Distance (ZTF): {:.2f} arcsec
-                                ```
-                                """.format(
-                                    constellation,
-                                    cdsxmatch, ssnamenr, gaianame,
-                                    float(neargaia), float(distpsnr1), float(distnr)
-                                )
-                            ),
-                            html.Br(),
-                            dbc.Row(
+                            dmc.Paper(
                                 [
-                                    dbc.Col(
-                                        dbc.Button(
-                                            className='btn btn-default zoom btn-circle btn-lg',
-                                            style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-size': 'cover'},
-                                            color='dark',
-                                            outline=True,
-                                            id='asas-sn',
-                                            target="_blank",
-                                            href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
-                                        ), width=4),
-                                    dbc.Col(
-                                        dbc.Button(
-                                            className='btn btn-default zoom btn-circle btn-lg',
-                                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
-                                            color='dark',
-                                            outline=True,
-                                            id='SNAD-var-star',
-                                            target="_blank",
-                                            href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                                        ), width=4),
-                                ], justify='around'
+                                    dcc.Markdown(
+                                        """
+                                        ```python
+                                        Constellation: {}
+                                        Class (SIMBAD): {}
+                                        Name (MPC): {}
+                                        Name (Gaia): {}
+                                        Distance (Gaia): {:.2f} arcsec
+                                        Distance (PS1): {:.2f} arcsec
+                                        Distance (ZTF): {:.2f} arcsec
+                                        ```
+                                        """.format(
+                                            constellation,
+                                            cdsxmatch, ssnamenr, gaianame,
+                                            float(neargaia), float(distpsnr1), float(distnr)
+                                        )
+                                    ),
+                                    html.Br(),
+                                    dbc.Row(
+                                        [
+                                            dbc.Col(
+                                                dbc.Button(
+                                                    className='btn btn-default zoom btn-circle btn-lg',
+                                                    style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-size': 'cover'},
+                                                    color='dark',
+                                                    outline=True,
+                                                    id='asas-sn',
+                                                    target="_blank",
+                                                    href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
+                                                ), width=4),
+                                            dbc.Col(
+                                                dbc.Button(
+                                                    className='btn btn-default zoom btn-circle btn-lg',
+                                                    style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                                                    color='dark',
+                                                    outline=True,
+                                                    id='SNAD-var-star',
+                                                    target="_blank",
+                                                    href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+                                                ), width=4),
+                                        ], justify='around'
+                                    ),
+                                ],
+                                radius='xl', p='md', shadow='xl', withBorder=True
                             ),
                         ],
-                        radius='xl', p='md', shadow='xl', withBorder=True
                     ),
                 ],
-                label="Neighbourhood",
-                icon=[
-                    DashIconify(
-                        icon="tabler:atom-2",
-                        color=dmc.theme.DEFAULT_COLORS["green"][6],
-                        width=20,
-                    )
-                ],
-            )
+                value="external"
+            ),
         ]
     )
 

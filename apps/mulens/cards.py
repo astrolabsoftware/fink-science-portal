@@ -45,46 +45,50 @@ def card_mulens_button(object_data):
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
 
-    card1 = dmc.Accordion(
-        state={"0": False},
-        multiple=True,
-        offsetIcon=False,
-        disableIconRotation=True,
+    card1 = dmc.AccordionMultiple(
+        disableChevronRotation=True,
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.Paper(
+                    dmc.AccordionPanel(
+                        "Neighbourhood",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:atom-2",
+                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(
                         [
-                            dcc.Markdown(
-                                """
-                                ```python
-                                Constellation: {}
-                                Class (SIMBAD): {}
-                                Name (MPC): {}
-                                Name (Gaia): {}
-                                Distance (Gaia): {:.2f} arcsec
-                                Distance (PS1): {:.2f} arcsec
-                                Distance (ZTF): {:.2f} arcsec
-                                ```
-                                """.format(
-                                    constellation,
-                                    cdsxmatch, ssnamenr, gaianame,
-                                    float(neargaia), float(distpsnr1), float(distnr)
-                                )
+                            dmc.Paper(
+                                [
+                                    dcc.Markdown(
+                                        """
+                                        ```python
+                                        Constellation: {}
+                                        Class (SIMBAD): {}
+                                        Name (MPC): {}
+                                        Name (Gaia): {}
+                                        Distance (Gaia): {:.2f} arcsec
+                                        Distance (PS1): {:.2f} arcsec
+                                        Distance (ZTF): {:.2f} arcsec
+                                        ```
+                                        """.format(
+                                            constellation,
+                                            cdsxmatch, ssnamenr, gaianame,
+                                            float(neargaia), float(distpsnr1), float(distnr)
+                                        )
+                                    ),
+                                ],
+                                radius='xl', p='md', shadow='xl', withBorder=True
                             ),
                         ],
-                        radius='xl', p='md', shadow='xl', withBorder=True
                     ),
                 ],
-                label="Neighbourhood",
-                icon=[
-                    DashIconify(
-                        icon="tabler:atom-2",
-                        color=dmc.theme.DEFAULT_COLORS["green"][6],
-                        width=20,
-                    )
-                ],
-            )
+                value='neighbourhood'
+            ),
         ]
     )
 
@@ -101,11 +105,13 @@ def card_explanation_mulens():
     We use a simple PSPL model to fit the data.
     """
     card = dmc.Accordion(
-        state={'0': True},
         children=[
             dmc.AccordionItem(
-                dcc.Markdown(msg),
-                label="How to make a fit?",
+                [
+                    dmc.AccordionPanel("How to make a fit?"),
+                    dmc.AccordionControl(dcc.Markdown(msg)),
+                ],
+                value='info'
             ),
         ],
     )
