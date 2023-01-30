@@ -263,7 +263,7 @@ def content_tab():
 @app.callback(
     [
         Output("content_tab", "style"),
-        Output("trans_content", "data")
+        Output("trans_content", "children")
     ],
     [
         Input('trans_datasource', 'value'),
@@ -272,7 +272,7 @@ def content_tab():
 )
 def update_content_tab(trans_datasource, date_range_picker):
     if date_range_picker is None:
-        return {'display': 'none'}, []
+        PreventUpdate
     else:
         if trans_datasource == 'ZTF':
             data = [
