@@ -98,7 +98,7 @@ def submit_spark_job(livyhost, filename, spark_conf, job_args):
 
     return batchid, response.status_code, response.text
 
-def estimate_size_gb(trans_content):
+def estimate_size_gb_ztf(trans_content):
     """ Estimate the size of the data to download
 
     Parameters
@@ -112,5 +112,20 @@ def estimate_size_gb(trans_content):
         sizeGb = 1.4 / 1024 / 1024
     elif trans_content == 'Cutouts':
         sizeGb = 41. / 1024 / 1024
+
+    return sizeGb
+
+def estimate_size_gb_elasticc(trans_content):
+    """ Estimate the size of the data to download
+
+    Parameters
+    ----------
+    trans_content: str
+        Name as given by content_tab
+    """
+    if trans_content == 'Full packet':
+        sizeGb = 55. / 1024 / 1024
+    elif trans_content == 'Lightcurve':
+        sizeGb = 1.4 / 1024 / 1024
 
     return sizeGb
