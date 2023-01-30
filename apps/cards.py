@@ -199,7 +199,7 @@ curl -H "Content-Type: application/json" -X POST \\
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Last alert cutouts",
                         icon=[
                             DashIconify(
@@ -209,7 +209,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             dmc.Paper(
                                 [
@@ -275,7 +275,7 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Coordinates",
                         icon=[
                             DashIconify(
@@ -285,7 +285,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             html.Div(id='coordinates'),
                             dbc.Row(
@@ -310,7 +310,7 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Last alert content",
                         icon=[
                             DashIconify(
@@ -320,7 +320,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         html.Div([], id='alert_table'),
                     ),
                 ],
@@ -328,7 +328,7 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Download data",
                         icon=[
                             DashIconify(
@@ -338,7 +338,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             download_tab,
                             dcc.Markdown('See {}/api for more options'.format(APIURL)),
@@ -349,7 +349,7 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Neighbourhood",
                         icon=[
                             DashIconify(
@@ -359,7 +359,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             dmc.Paper(
                                 [
@@ -452,7 +452,7 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Share",
                         icon=[
                             DashIconify(
@@ -462,7 +462,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             )
                         ],
                     ),
-                    dmc.AccordionControl(
+                    dmc.AccordionPanel(
                         [
                             dmc.Center(qrcode, style={'width': '100%', 'height': '200'})
                         ],
