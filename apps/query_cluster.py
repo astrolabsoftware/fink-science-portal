@@ -227,7 +227,7 @@ def display_filter_tab(trans_datasource):
                 " for field description.",
             ]
             placeholder = "e.g. candidate.magpsf > 19.5;"
-        elif trans_datasource == 'elasticc':
+        elif trans_datasource == 'ELASTiCC':
             minDate = date(2023, 11, 1)
             maxDate = date(2026, 12, 31)
             data_class_select = [
@@ -253,8 +253,6 @@ def content_tab():
                 id="trans_content",
                 value=None,
                 label="Choose the content you want to retrieve",
-                size="sm",
-                color='orange'
             ),
         ], style={'display': 'none'}, id='content_tab'
     )
@@ -275,15 +273,18 @@ def update_content_tab(trans_datasource, date_range_picker):
         PreventUpdate
     else:
         if trans_datasource == 'ZTF':
+            labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
+            values = ['Lightcurve', 'Cutouts', 'Full packet']
             data = [
-                {"value": "Lightcurve", "label": "Lightcurve (~1.4 KB/alert)"},
-                {"value": "Cutouts", "label": "Cutouts (~41 KB/alert)"},
-                {"value": "Full packet", "label": "Full packet (~55 KB/alert)"},
+                dmc.Radio(label=l, value=k, size='sm', color='orange')
+                for l, k in zip(labels, values)
             ]
-        elif trans_datasource == 'elasticc':
+        elif trans_datasource == 'ELASTiCC':
+            labels = ["Lightcurve (~1.4 KB/alert)", "Full packet (~55 KB/alert)"]
+            values = ['Lightcurve', 'Full packet']
             data = [
-                {"value": "Lightcurve", "label": "Lightcurve (~1.4 KB/alert)"},
-                {"value": "Full packet", "label": "Full packet (~55 KB/alert)"},
+                dmc.Radio(label=l, value=k, size='sm', color='orange')
+                for l, k in zip(labels, values)
             ]
         return {}, data
 
@@ -649,15 +650,10 @@ def query_builder():
             html.Br(),
             dmc.Divider(variant="solid", label='Data Source'),
             dmc.RadioGroup(
+                [dmc.Radio(k, value=k, size='sm', color='orange') for k in ['ZTF', 'ELASTiCC']],
                 id="trans_datasource",
-                children=[
-                    {"value": "ZTF", "label": "ZTF"},
-                    {"value": "elasticc", "label": "ELASTiCC"},
-                ],
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
-                size="sm",
-                color='orange'
             ),
         ]
     )
