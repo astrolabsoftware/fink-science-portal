@@ -237,26 +237,28 @@ def write_to_kafka(sdf, key, kafka_bootstrap_servers, kafka_sasl_username, kafka
         .option("topic", topic_name)\
         .save()
 
-# def check_path_exist(dateToCheck):
-#     """ Check we have data for the given night on HDFS
+def check_path_exist(spark, path):
+    """ Check we have data for the given night on HDFS
 
-#     Parameters
-#     ----------
-#     dateToCheck: str
-#         YYYY-MM-DD
+    Parameters
+    ----------
+    path: str
+        Path on HDFS (file or folder)
 
-#     Returns
-#     ----------
-#     out: bool
-#     """
-#     # check on hdfs
+    Returns
+    ----------
+    out: bool
+    """
+    # check on hdfs
+    jvm = spark._jvm
+    jsc = spark._jsc
+    fs = jvm.org.apache.hadoop.fs.FileSystem.get(jsc.hadoopConfiguration())
+    if fs.exists(jvm.org.apache.hadoop.fs.Path(path)):
+        return True
+    else:
+        return False
 
-#     if r.json() == []:
-#         return False
-#     else:
-#         return True
-
-def generate_spark_paths(startDate, stopDate, basePath):
+def generate_spark_paths(spark, startDate, stopDate, basePath):
     """ Generate individual data paths
 
     Parameters
@@ -275,9 +277,12 @@ def generate_spark_paths(startDate, stopDate, basePath):
     """
     endPath = '/year={}/month={}/day={}'
 
+    paths = []
     if startDate == stopDate:
         year, month, day = startDate.split('-')
-        paths = [basePath + endPath.format(year, int(month), int(day))]
+        path = basePath + endPath.format(year, int(month), int(day))
+        if check_path_exist(spark, path):
+            paths = [path]
     else:
         # more than one night
         dateRange = pd.date_range(
@@ -285,10 +290,11 @@ def generate_spark_paths(startDate, stopDate, basePath):
             end=stopDate
         ).astype('str').values
 
-        paths = []
         for aDate in dateRange:
             year, month, day = aDate.split('-')
-            paths.append(basePath + endPath.format(year, int(month), int(day)))
+            path = basePath + endPath.format(year, int(month), int(day))
+            if check_path_exist(spark, path):
+                paths.append(path)
 
     return paths
 
@@ -301,17 +307,13 @@ def main(args):
     log = get_fink_logger(__file__)
 
     log.info("Generating data paths...")
-    paths = generate_spark_paths(args.startDate, args.stopDate, args.basePath)
+    paths = generate_spark_paths(spark, args.startDate, args.stopDate, args.basePath)
     if paths == []:
         log.info('No alert data found in between {} and {}'.format(args.startDate, args.stopDate))
         spark.stop()
         sys.exit(1)
 
     df = spark.read.format('parquet').option('basePath', args.basePath).load(paths)
-
-    # remove null classes
-    filt = df['classId'].isNotNull()
-    df = df.filter(filt)
 
     # need fclass and extra conditions
     if args.fclass is not None:

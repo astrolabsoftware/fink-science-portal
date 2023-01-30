@@ -249,7 +249,7 @@ def display_filter_tab(trans_datasource):
                 " for field description.",
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
-            labels = ["Full packet (~55 KB/alert)"]
+            labels = ["Full packet (~1.4 KB/alert)"]
             values = ['Full packet']
             data_content = [
                 dmc.Radio(label=l, value=k, size='sm', color='orange')
