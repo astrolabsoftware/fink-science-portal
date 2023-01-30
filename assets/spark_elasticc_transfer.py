@@ -237,6 +237,25 @@ def write_to_kafka(sdf, key, kafka_bootstrap_servers, kafka_sasl_username, kafka
         .option("topic", topic_name)\
         .save()
 
+# def check_path_exist(dateToCheck):
+#     """ Check we have data for the given night on HDFS
+
+#     Parameters
+#     ----------
+#     dateToCheck: str
+#         YYYY-MM-DD
+
+#     Returns
+#     ----------
+#     out: bool
+#     """
+#     # check on hdfs
+
+#     if r.json() == []:
+#         return False
+#     else:
+#         return True
+
 def generate_spark_paths(startDate, stopDate, basePath):
     """ Generate individual data paths
 
@@ -310,6 +329,7 @@ def main(args):
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index('timestamp')] = 'cast(timestamp as string) as timestamp'
+        cnames[cnames.index('classId')] = 'cast(classId as integer) as classId'
 
     # Wrap alert data
     df = df.selectExpr(cnames)
