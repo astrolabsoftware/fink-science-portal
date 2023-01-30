@@ -503,10 +503,12 @@ def make_final_helper():
                     html.Div(id='batch_log')
                 ],
                 label="Monitor your job",
+                value='monitor'
             ),
             dmc.AccordionItem(
                 children=html.Div(id='final_accordion_1'),
                 label="Get your data",
+                alue='get_data'
             ),
         ],
         id='final_accordion',
