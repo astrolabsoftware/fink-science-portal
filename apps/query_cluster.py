@@ -166,7 +166,6 @@ def filter_tab(is_mobile):
                 description="Select all classes you like! Default is all classes.",
                 placeholder="start typing...",
                 id="class_select",
-                value=None,
                 searchable=True,
                 style={"width": width},
             ),
