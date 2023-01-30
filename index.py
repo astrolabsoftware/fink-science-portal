@@ -578,6 +578,7 @@ def display_table_results(table, is_mobile):
                                         width=20,
                                     )
                                 ],
+                                value='table_option'
                             )
                         ]
                     ),
