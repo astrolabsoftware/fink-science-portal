@@ -151,7 +151,6 @@ def filter_tab(is_mobile):
                 id="date-range-picker",
                 label="Date Range",
                 description="Pick up start and stop dates (included).",
-                value=None,
                 style={"width": width},
                 hideOutsideDates=True,
                 amountOfMonths=amountOfMonths,
