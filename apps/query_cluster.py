@@ -237,8 +237,8 @@ def display_filter_tab(trans_datasource):
                 for l, k in zip(labels, values)
             ]
         elif trans_datasource == 'ELASTiCC':
-            minDate = date(2023, 11, 1)
-            maxDate = date(2026, 12, 31)
+            minDate = date(2023, 11, 27)
+            maxDate = date(2026, 12, 5)
             data_class_select = [
                 {'label': 'All classes', 'value': 'allclasses'},
                 *[{'label': simtype, 'value': simtype} for simtype in sorted(elasticc_classes['classId'].values)],
