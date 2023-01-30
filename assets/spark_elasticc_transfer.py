@@ -257,7 +257,8 @@ def generate_spark_paths(startDate, stopDate, basePath):
     endPath = '/year={}/month={}/day={}'
 
     if startDate == stopDate:
-        paths = [basePath + endPath.format(*startDate.split('-'))]
+        year, month, day = startDate.split('-')
+        paths = [basePath + endPath.format(year, int(month), int(day))]
     else:
         # more than one night
         dateRange = pd.date_range(
@@ -267,7 +268,8 @@ def generate_spark_paths(startDate, stopDate, basePath):
 
         paths = []
         for aDate in dateRange:
-            paths.append(basePath + endPath.format(*aDate.split('-')))
+            year, month, day = aDate.split('-')
+            paths.append(basePath + endPath.format(year, int(month), int(day)))
 
     return paths
 
