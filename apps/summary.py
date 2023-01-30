@@ -225,13 +225,14 @@ def tab5_content(object_soo):
         ssnamenr = pdf['i:ssnamenr'].values[0]
 
     msg = """
-    lightcurve from ZTF, with ephemerides provided by the
+    Alert data from ZTF, with ephemerides provided by the
     [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).
     """
     tab1 = dbc.Row(
         [
             dbc.Col(
                 [
+                    dmc.Space(h=10),
                     draw_sso_lightcurve(pdf),
                     html.Br(),
                     dmc.Accordion(
@@ -254,6 +255,7 @@ def tab5_content(object_soo):
         [
             dbc.Col(
                 [
+                    dmc.Space(h=10),
                     draw_sso_astrometry(pdf),
                     dmc.Accordion(
                         children=[
@@ -288,6 +290,7 @@ def tab5_content(object_soo):
         [
             dbc.Col(
                 [
+                    dmc.Space(h=10),
                     html.Div(id='sso_phasecurve'),
                     html.Br(),
                     dbc.Row(
@@ -446,8 +449,7 @@ def tabs(pdf, is_mobile):
                 dmc.TabsPanel(tab4_content(), value="Microlensing"),
                 dmc.TabsPanel(id="tab_sso", value="Solar System"),
                 dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
-            ],
-            variant='outline', value="Summary"
+            ], value="Summary"
         )
     return tabs_
 
