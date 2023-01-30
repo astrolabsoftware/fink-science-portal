@@ -264,7 +264,7 @@ def content_tab():
     [
         Output("content_tab", "style"),
         Output("trans_content", "data"),
-    ]
+    ],
     [
         Input('trans_datasource', 'value'),
         Input('date-range-picker', 'value')
