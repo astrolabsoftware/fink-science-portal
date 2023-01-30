@@ -186,7 +186,7 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.TabsPanel(dmc.Prism(children=python_download, language="python"), value="Python"),
             dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl"),
         ],
-        color="red",
+        color="red", value="Python"
     )
 
     qrdata = "https://fink-portal.org/{}".format(objectid)
@@ -471,6 +471,7 @@ curl -H "Content-Type: application/json" -X POST \\
                 value='qr'
             ),
         ],
+        value='stamps'
     )
 
     return card

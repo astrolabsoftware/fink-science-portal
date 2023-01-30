@@ -1185,7 +1185,7 @@ navbar = dmc.Header(
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
-                            dmc.Group(
+                            dmc.Stack(
                                 [
                                     dmc.Anchor(
                                         'Search',
@@ -1224,7 +1224,7 @@ navbar = dmc.Header(
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
-                            dmc.Group(
+                            dmc.Stack(
                                 [
                                     dmc.Anchor(
                                         '{ API }',
@@ -1256,7 +1256,7 @@ navbar = dmc.Header(
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
-                            dmc.Group(
+                            dmc.Stack(
                                 [
                                     dmc.Anchor(
                                         'Fink broker',

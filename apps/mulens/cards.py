@@ -108,8 +108,8 @@ def card_explanation_mulens():
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel("How to make a fit?"),
-                    dmc.AccordionControl(dcc.Markdown(msg)),
+                    dmc.AccordionControl("How to make a fit?"),
+                    dmc.AccordionPanel(dcc.Markdown(msg)),
                 ],
                 value='info'
             ),

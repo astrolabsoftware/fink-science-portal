@@ -234,8 +234,8 @@ def tab5_content(object_soo):
                         children=[
                             dmc.AccordionItem(
                                 [
-                                    dmc.AccordionPanel("Information"),
-                                    dmc.AccordionControl(dcc.Markdown(msg)),
+                                    dmc.AccordionControl("Information"),
+                                    dmc.AccordionPanel(dcc.Markdown(msg)),
                                 ],
                                 value='info'
                             ),
@@ -255,8 +255,8 @@ def tab5_content(object_soo):
                         children=[
                             dmc.AccordionItem(
                                 [
-                                    dmc.AccordionPanel("How are computed the residuals?"),
-                                    dmc.AccordionControl(dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),),
+                                    dmc.AccordionControl("How are computed the residuals?"),
+                                    dmc.AccordionPanel(dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),),
                                 ],
                                 value="residuals"
                             ),
@@ -320,8 +320,8 @@ def tab5_content(object_soo):
                         children=[
                             dmc.AccordionItem(
                                 [
-                                    dmc.AccordionPanel("How is modeled the phase curve?"),
-                                    dmc.AccordionControl(dcc.Markdown(msg_phase),),
+                                    dmc.AccordionControl("How is modeled the phase curve?"),
+                                    dmc.AccordionPanel(dcc.Markdown(msg_phase),),
                                 ],
                                 value='phase_curve'
                             ),
@@ -346,7 +346,7 @@ def tab5_content(object_soo):
                     dmc.TabsPanel(tab1, value="Lightcurve"),
                     dmc.TabsPanel(tab2, value="Astrometry"),
                     dmc.TabsPanel(tab3, value="Phase curve")
-                ], variant="outline"
+                ], variant="outline", value="Lightcurve"
             ), width=8
         )
     else:
@@ -441,7 +441,7 @@ def tabs(pdf, is_mobile):
                 dmc.TabsPanel(id="tab_sso", value="Solar System"),
                 dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
             ],
-            variant='outline'
+            variant='outline', value="Summary"
         )
     return tabs_
 
@@ -648,6 +648,7 @@ def accordion_mobile():
                 value='external'
             ),
         ],
+        value='lightcurve',
         id="accordion-mobile",
     )
 
