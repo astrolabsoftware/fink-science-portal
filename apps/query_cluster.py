@@ -498,17 +498,27 @@ def make_final_helper():
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
-                children=[
-                    dmc.Button("Update log", id='update_batch_log', color='orange'),
-                    html.Div(id='batch_log')
+                [
+                    dmc.AccordionControl("Monitor your job"),
+                    dmc.AccordionPanel(
+                        [
+                            dmc.Button("Update log", id='update_batch_log', color='orange'),
+                            html.Div(id='batch_log')
+                        ],
+                    ),
                 ],
-                label="Monitor your job",
                 value='monitor'
             ),
             dmc.AccordionItem(
-                children=html.Div(id='final_accordion_1'),
-                label="Get your data",
-                alue='get_data'
+                [
+                    dmc.AccordionControl("Get your data"),
+                    dmc.AccordionPanel(
+                        [
+                            html.Div(id='final_accordion_1'),
+                        ],
+                    ),
+                ],
+                value='get_data'
             ),
         ],
         id='final_accordion',
@@ -675,8 +685,13 @@ def mining_helper():
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
-                dcc.Markdown(msg, link_target="_blank"),
-                label="Description",
+                [
+                    dmc.AccordionControl("Description"),
+                    dmc.AccordionPanel(
+                        dcc.Markdown(msg, link_target="_blank")
+                    ),
+                ],
+                value='description'
             ),
         ],
     )
