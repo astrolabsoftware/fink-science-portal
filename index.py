@@ -542,7 +542,7 @@ def display_table_results(table, is_mobile):
                                                     [
                                                         dmc.Paper(
                                                             [
-                                                                dmc.Group(
+                                                                dmc.Stack(
                                                                     [
                                                                         dropdown,
                                                                         dmc.Tooltip(
