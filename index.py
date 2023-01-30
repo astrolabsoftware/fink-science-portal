@@ -1207,7 +1207,6 @@ navbar = dmc.Header(
                                 grow=True,
                                 position="left",
                                 spacing="sm",
-                                direction="column",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                             dmc.Divider(
@@ -1240,7 +1239,6 @@ navbar = dmc.Header(
                                 grow=True,
                                 position="left",
                                 spacing="sm",
-                                direction="column",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                             dmc.Divider(
@@ -1273,7 +1271,6 @@ navbar = dmc.Header(
                                 grow=True,
                                 position="left",
                                 spacing="sm",
-                                direction="column",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                         ],
