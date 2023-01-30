@@ -23,7 +23,7 @@ dash-datetimepicker==0.0.4
 dash-extensions==0.0.58
 dash-html-components==2.0.0
 dash-iconify==0.1.2
-dash-mantine-components==0.10.2
+dash-mantine-components==0.11.1
 dash-renderer==1.9.1
 dash-table==5.0.0
 dash-trich-components==1.0.0
