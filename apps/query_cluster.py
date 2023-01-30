@@ -263,7 +263,7 @@ def content_tab():
 @app.callback(
     [
         Output("content_tab", "style"),
-        Output("trans_content", "data"),
+        Output("trans_content", "data")
     ],
     [
         Input('trans_datasource', 'value'),
