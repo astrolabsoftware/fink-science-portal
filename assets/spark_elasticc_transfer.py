@@ -290,6 +290,10 @@ def main(args):
 
     df = spark.read.format('parquet').option('basePath', args.basePath).load(paths)
 
+    # remove null classes
+    filt = df['classId'].isNotNull()
+    df = df.filter(filt)
+
     # need fclass and extra conditions
     if args.fclass is not None:
         if args.fclass != []:
