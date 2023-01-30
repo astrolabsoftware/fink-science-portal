@@ -432,7 +432,7 @@ def tabs(pdf, is_mobile):
                         dmc.Tab("Solar System", value="Solar System"),
                         dmc.Tab("Tracklets", value="Tracklets"),
                         dmc.Tab("GRB", value="GRB", disabled=True)
-                    ],
+                    ], position='right'
                 ),
                 dmc.TabsPanel(tab1_content(), value="Summary"),
                 dmc.TabsPanel(tab2_content(), value="Supernovae"),
@@ -441,7 +441,7 @@ def tabs(pdf, is_mobile):
                 dmc.TabsPanel(id="tab_sso", value="Solar System"),
                 dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
             ],
-            position='right', variant='outline'
+            variant='outline'
         )
     return tabs_
 
