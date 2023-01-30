@@ -336,7 +336,7 @@ def tab5_content(object_soo):
         left_side = dbc.Col(
             dmc.Tabs(
                 [
-                    dmc.TabList(
+                    dmc.TabsList(
                         [
                             dmc.Tab("Lightcurve", value="Lightcurve"),
                             dmc.Tab("Astrometry", value="Astrometry"),
@@ -423,7 +423,7 @@ def tabs(pdf, is_mobile):
     else:
         tabs_ = dmc.Tabs(
             [
-                dmc.TabList(
+                dmc.TabsList(
                     [
                         dmc.Tab("Summary", value="Summary"),
                         dmc.Tab("Supernovae", value="Supernovae"),
