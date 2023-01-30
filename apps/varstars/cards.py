@@ -49,7 +49,7 @@ def card_explanation_variable():
                 ],
                 value="info"
             ),
-        ],
+        ], value='info'
     )
     return card
 

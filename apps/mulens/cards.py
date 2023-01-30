@@ -113,6 +113,6 @@ def card_explanation_mulens():
                 ],
                 value='info'
             ),
-        ],
+        ], value='info'
     )
     return card
