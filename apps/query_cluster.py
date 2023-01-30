@@ -251,11 +251,6 @@ def content_tab():
             dmc.Divider(variant="solid", label='Alert content'),
             dmc.RadioGroup(
                 id="trans_content",
-                data=[
-                    {"value": "Lightcurve", "label": "Lightcurve (~1.4 KB/alert)"},
-                    {"value": "Cutouts", "label": "Cutouts (~41 KB/alert)"},
-                    {"value": "Full packet", "label": "Full packet (~55 KB/alert)"},
-                ],
                 value=None,
                 label="Choose the content you want to retrieve",
                 size="sm",
@@ -266,16 +261,31 @@ def content_tab():
     return tab
 
 @app.callback(
-    Output("content_tab", "style"),
     [
+        Output("content_tab", "style"),
+        Output("trans_content", "data"),
+    ]
+    [
+        Input('trans_datasource', 'value'),
         Input('date-range-picker', 'value')
     ], prevent_initial_call=True
 )
-def update_content_tab(date_range_picker):
+def update_content_tab(trans_datasource, date_range_picker):
     if date_range_picker is None:
         PreventUpdate
     else:
-        return {}
+        if trans_datasource == 'ZTF':
+            data = [
+                {"value": "Lightcurve", "label": "Lightcurve (~1.4 KB/alert)"},
+                {"value": "Cutouts", "label": "Cutouts (~41 KB/alert)"},
+                {"value": "Full packet", "label": "Full packet (~55 KB/alert)"},
+            ]
+        elif trans_datasource == 'elasticc':
+            data = [
+                {"value": "Lightcurve", "label": "Lightcurve (~1.4 KB/alert)"},
+                {"value": "Full packet", "label": "Full packet (~55 KB/alert)"},
+            ]
+        return {}, data
 
 def estimate_alert_number(date_range_picker, class_select):
     """ Callback to estimate the number of alerts to be transfered
