@@ -195,7 +195,6 @@ def filter_tab(is_mobile):
         Output("class_select", "data"),
         Output("extra_cond", "description"),
         Output("extra_cond", "placeholder"),
-        Output("trans_content", "children")
     ],
     [
         Input('trans_datasource', 'value')
@@ -228,12 +227,6 @@ def display_filter_tab(trans_datasource):
                 " for field description.",
             ]
             placeholder = "e.g. candidate.magpsf > 19.5;"
-            labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
-            values = ['Lightcurve', 'Cutouts', 'Full packet']
-            data = [
-                dmc.Radio(label=l, value=k, size='sm', color='orange')
-                for l, k in zip(labels, values)
-            ]
         elif trans_datasource == 'ELASTiCC':
             minDate = date(2023, 11, 1)
             maxDate = date(2026, 12, 31)
@@ -246,23 +239,24 @@ def display_filter_tab(trans_datasource):
                 " for field description.",
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
-            labels = ["Lightcurve (~1.4 KB/alert)", "Full packet (~55 KB/alert)"]
-            values = ['Lightcurve', 'Full packet']
-            data = [
-                dmc.Radio(label=l, value=k, size='sm', color='orange')
-                for l, k in zip(labels, values)
-            ]
 
         return {}, minDate, maxDate, data_class_select, description, placeholder
 
 def content_tab():
     """ Section containing filtering options
     """
+    labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
+    values = ['Lightcurve', 'Cutouts', 'Full packet']
+    data = [
+        dmc.Radio(label=l, value=k, size='sm', color='orange')
+        for l, k in zip(labels, values)
+    ]
     tab = html.Div(
         [
             dmc.Space(h=10),
             dmc.Divider(variant="solid", label='Alert content'),
             dmc.RadioGroup(
+                data,
                 id="trans_content",
                 value=None,
                 label="Choose the content you want to retrieve",
