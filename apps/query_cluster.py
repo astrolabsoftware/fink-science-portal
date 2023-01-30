@@ -172,12 +172,6 @@ def filter_tab(is_mobile):
             dmc.Textarea(
                 id="extra_cond",
                 label="Extra conditions",
-                description=[
-                    "One condition per line (SQL syntax), ending with semi-colon. See ",
-                    dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
-                    " for field description.",
-                ],
-                placeholder="e.g. candidate.magpsf > 19.5;",
                 style={"width": width},
                 autosize=True,
                 minRows=2,
@@ -199,6 +193,8 @@ def filter_tab(is_mobile):
         Output("date-range-picker", "minDate"),
         Output("date-range-picker", "maxDate"),
         Output("class_select", "data"),
+        Output("extra_cond", "description"),
+        Output("extra_cond", "placeholder"),
     ],
     [
         Input('trans_datasource', 'value')
