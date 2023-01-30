@@ -374,7 +374,8 @@ def estimate_alert_number_elasticc(date_range_picker, class_select):
     for i in range(delta.days + 1):
         tmp = (dstart + timedelta(i)).strftime('%Y%m%d')
         filt = elasticc_dates['date'] == tmp
-        dic['basic:sci'] += int(elasticc_dates[filt]['count'].values[0])
+        if len(elasticc_dates[filt] > 0):
+            dic['basic:sci'] += int(elasticc_dates[filt]['count'].values[0])
 
     # Add class estimation
     if (class_select is not None) and (class_select != []):
