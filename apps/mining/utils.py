@@ -1,4 +1,4 @@
-# Copyright 2022 AstroLab Software
+# Copyright 2023 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,8 +124,6 @@ def estimate_size_gb_elasticc(trans_content):
         Name as given by content_tab
     """
     if trans_content == 'Full packet':
-        sizeGb = 55. / 1024 / 1024
-    elif trans_content == 'Lightcurve':
         sizeGb = 1.4 / 1024 / 1024
 
     return sizeGb
