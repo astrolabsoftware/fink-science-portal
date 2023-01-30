@@ -195,6 +195,7 @@ def filter_tab(is_mobile):
         Output("class_select", "data"),
         Output("extra_cond", "description"),
         Output("extra_cond", "placeholder"),
+        Output("trans_content", "children")
     ],
     [
         Input('trans_datasource', 'value')
@@ -227,6 +228,12 @@ def display_filter_tab(trans_datasource):
                 " for field description.",
             ]
             placeholder = "e.g. candidate.magpsf > 19.5;"
+            labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
+            values = ['Lightcurve', 'Cutouts', 'Full packet']
+            data = [
+                dmc.Radio(label=l, value=k, size='sm', color='orange')
+                for l, k in zip(labels, values)
+            ]
         elif trans_datasource == 'ELASTiCC':
             minDate = date(2023, 11, 1)
             maxDate = date(2026, 12, 31)
@@ -239,6 +246,12 @@ def display_filter_tab(trans_datasource):
                 " for field description.",
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
+            labels = ["Lightcurve (~1.4 KB/alert)", "Full packet (~55 KB/alert)"]
+            values = ['Lightcurve', 'Full packet']
+            data = [
+                dmc.Radio(label=l, value=k, size='sm', color='orange')
+                for l, k in zip(labels, values)
+            ]
 
         return {}, minDate, maxDate, data_class_select, description, placeholder
 
@@ -259,34 +272,16 @@ def content_tab():
     return tab
 
 @app.callback(
+    Output("content_tab", "style"),
     [
-        Output("content_tab", "style"),
-        Output("trans_content", "children")
-    ],
-    [
-        Input('trans_datasource', 'value'),
         Input('date-range-picker', 'value')
     ], prevent_initial_call=True
 )
-def update_content_tab(trans_datasource, date_range_picker):
+def update_content_tab(date_range_picker):
     if date_range_picker is None:
         {'display': 'none'}, []
     else:
-        if trans_datasource == 'ZTF':
-            labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
-            values = ['Lightcurve', 'Cutouts', 'Full packet']
-            data = [
-                dmc.Radio(label=l, value=k, size='sm', color='orange')
-                for l, k in zip(labels, values)
-            ]
-        elif trans_datasource == 'ELASTiCC':
-            labels = ["Lightcurve (~1.4 KB/alert)", "Full packet (~55 KB/alert)"]
-            values = ['Lightcurve', 'Full packet']
-            data = [
-                dmc.Radio(label=l, value=k, size='sm', color='orange')
-                for l, k in zip(labels, values)
-            ]
-        return {}, data
+        return {}
 
 def estimate_alert_number(date_range_picker, class_select):
     """ Callback to estimate the number of alerts to be transfered
