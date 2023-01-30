@@ -279,7 +279,7 @@ def content_tab():
 )
 def update_content_tab(date_range_picker):
     if date_range_picker is None:
-        {'display': 'none'}, []
+        PreventUpdate
     else:
         return {}
 
