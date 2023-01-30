@@ -195,7 +195,6 @@ curl -H "Content-Type: application/json" -X POST \\
     qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
 
     card = dmc.AccordionMultiple(
-        disableChevronRotation=True,
         children=[
             dmc.AccordionItem(
                 [
