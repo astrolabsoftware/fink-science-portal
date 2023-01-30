@@ -76,9 +76,8 @@ def card_lightcurve_summary():
                                 - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
                                 - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
                                 """
-                            ),
+                            )
                         ),
-                        value='info'
                     ),
                 ],
             )
