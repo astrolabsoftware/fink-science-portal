@@ -650,7 +650,7 @@ def query_builder():
             dmc.Divider(variant="solid", label='Data Source'),
             dmc.RadioGroup(
                 id="trans_datasource",
-                data=[
+                children=[
                     {"value": "ZTF", "label": "ZTF"},
                     {"value": "elasticc", "label": "ELASTiCC"},
                 ],
