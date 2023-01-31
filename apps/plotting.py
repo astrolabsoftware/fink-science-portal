@@ -1281,7 +1281,7 @@ def draw_scores(object_data) -> dict:
             figure=figure,
             style={
                 'width': '100%',
-                'height': '25pc'
+                'height': '20pc'
             },
             config={'displayModeBar': False}
         )
