@@ -84,11 +84,16 @@ curl -H "Content-Type: application/json" -X POST \\
     """.format(ssnamenr, APIURL, ssnamenr)
 
     download_tab = dmc.Tabs(
-        color="red",
-        children=[
-            dmc.Tab(label="Python", children=dmc.Prism(children=python_download, language="python")),
-            dmc.Tab(label="Curl", children=dmc.Prism(children=curl_download, language="bash")),
-        ]
+        [
+            dmc.TabsList(
+                [
+                    dmc.Tab("Python", value="Python"),
+                    dmc.Tab("Curl", value="Curl")
+                ],
+            ),
+            dmc.TabsPanel(children=dmc.Prism(children=python_download, language="python"), value="Python"),
+            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl")
+        ], color="red", value="Python"
     )
 
     if ssnamenr_ != 'null':
@@ -103,99 +108,117 @@ curl -H "Content-Type: application/json" -X POST \\
         extra_items = [
             dmc.AccordionItem(
                 [
-                    dmc.Paper(
-                        [
-                            download_tab,
-                            dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                    dmc.AccordionControl(
+                        "Download data",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:database-export",
+                                color=dmc.theme.DEFAULT_COLORS["red"][6],
+                                width=20,
+                            )
                         ],
-                        radius='xl', p='md', shadow='xl', withBorder=True
-                    )
+                    ),
+                    dmc.AccordionPanel(
+                        [
+                            dmc.Paper(
+                                [
+                                    download_tab,
+                                    dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                                ],
+                                radius='xl', p='md', shadow='xl', withBorder=True
+                            )
+                        ],
+                    ),
                 ],
-                label="Download data",
-                icon=[
-                    DashIconify(
-                        icon="tabler:database-export",
-                        color=dmc.theme.DEFAULT_COLORS["red"][6],
-                        width=20,
-                    )
-                ],
+                value='api'
             ),
             dmc.AccordionItem(
                 [
-                    dmc.Paper(
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    dbc.Button(
-                                        className='btn btn-default zoom btn-circle btn-lg',
-                                        style={'background-image': 'url(/assets/buttons/imcce.png)', 'background-size': 'cover'},
-                                        color='light',
-                                        outline=True,
-                                        id='IMCCE',
-                                        target="_blank",
-                                        href='https://ssp.imcce.fr/webservices/ssodnet/api/ssocard.php?q={}'.format(data.name)
-                                    ), width=4),
-                                dbc.Col(
-                                    dbc.Button(
-                                        className='btn btn-default zoom btn-circle btn-lg',
-                                        style={'background-image': 'url(/assets/buttons/mpc.jpg)', 'background-size': 'cover'},
-                                        color='dark',
-                                        outline=True,
-                                        id='MPC',
-                                        target="_blank",
-                                        href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_)
-                                    ), width=4),
-                                dbc.Col(
-                                    dbc.Button(
-                                        className='btn btn-default zoom btn-circle btn-lg',
-                                        style={'background-image': 'url(/assets/buttons/nasa.png)', 'background-size': 'cover'},
-                                        color='dark',
-                                        outline=True,
-                                        id='JPL',
-                                        target="_blank",
-                                        href='https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={}'.format(ssnamenr_),
-                                    ), width=4
+                    dmc.AccordionControl(
+                        "External links",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:external-link",
+                                color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        [
+                            dmc.Paper(
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Button(
+                                                className='btn btn-default zoom btn-circle btn-lg',
+                                                style={'background-image': 'url(/assets/buttons/imcce.png)', 'background-size': 'cover'},
+                                                color='light',
+                                                outline=True,
+                                                id='IMCCE',
+                                                target="_blank",
+                                                href='https://ssp.imcce.fr/webservices/ssodnet/api/ssocard.php?q={}'.format(data.name)
+                                            ), width=4),
+                                        dbc.Col(
+                                            dbc.Button(
+                                                className='btn btn-default zoom btn-circle btn-lg',
+                                                style={'background-image': 'url(/assets/buttons/mpc.jpg)', 'background-size': 'cover'},
+                                                color='dark',
+                                                outline=True,
+                                                id='MPC',
+                                                target="_blank",
+                                                href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_)
+                                            ), width=4),
+                                        dbc.Col(
+                                            dbc.Button(
+                                                className='btn btn-default zoom btn-circle btn-lg',
+                                                style={'background-image': 'url(/assets/buttons/nasa.png)', 'background-size': 'cover'},
+                                                color='dark',
+                                                outline=True,
+                                                id='JPL',
+                                                target="_blank",
+                                                href='https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={}'.format(ssnamenr_),
+                                            ), width=4
+                                        ),
+                                    ], justify='around'
                                 ),
-                            ], justify='around'
-                        ),
-                        radius='xl', p='md', shadow='xl', withBorder=True
-                    )
+                                radius='xl', p='md', shadow='xl', withBorder=True
+                            )
+                        ],
+                    ),
                 ],
-                label="External links",
-                icon=[
-                    DashIconify(
-                        icon="tabler:external-link",
-                        color=dmc.theme.DEFAULT_COLORS["orange"][6],
-                        width=20,
-                    )
-                ],
+                value='external'
             ),
         ]
 
-        card = dmc.Accordion(
-            state={"0": True, **{"{}".format(i+1): False for i in range(4)}},
-            multiple=True,
-            offsetIcon=False,
-            disableIconRotation=True,
+        card = dmc.AccordionMultiple(
+            disableChevronRotation=True,
             children=[
                 dmc.AccordionItem(
                     [
-                        dmc.Paper(
-                            card_properties,
-                            radius='xl', p='md', shadow='xl', withBorder=True
-                        )
+                        dmc.AccordionControl(
+                            "SsODNet - ssoCard",
+                            icon=[
+                                DashIconify(
+                                    icon="majesticons:comet",
+                                    color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                    width=20,
+                                )
+                            ],
+                        ),
+                        dmc.AccordionPanel(
+                            [
+                                dmc.Paper(
+                                    card_properties,
+                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                )
+                            ],
+                        ),
                     ],
-                    label="SsODNet - ssoCard",
-                    icon=[
-                        DashIconify(
-                            icon="majesticons:comet",
-                            color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                            width=20,
-                        )
-                    ],
+                    value='sso'
                 ),
                 *extra_items
-            ]
+            ], value='sso'
         )
     else:
         card = html.Div()

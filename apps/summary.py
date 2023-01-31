@@ -58,6 +58,7 @@ def tab1_content():
     """ Summary tab
     """
     tab1_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row(
             [
                 dbc.Col(
@@ -89,6 +90,7 @@ def tab2_content():
     """ Supernova tab
     """
     tab2_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row([
             dbc.Col(card_sn_scores(), width=8),
             dbc.Col(id='card_sn_properties', width=4)
@@ -144,6 +146,7 @@ def tab3_content():
     )
 
     tab3_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row([
             dbc.Col(
                 dmc.LoadingOverlay(
@@ -180,6 +183,7 @@ def tab4_content():
     )
 
     tab4_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row([
             dbc.Col(
                 dmc.LoadingOverlay(
@@ -221,20 +225,24 @@ def tab5_content(object_soo):
         ssnamenr = pdf['i:ssnamenr'].values[0]
 
     msg = """
-    lightcurve from ZTF, with ephemerides provided by the
+    Alert data from ZTF, with ephemerides provided by the
     [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).
     """
     tab1 = dbc.Row(
         [
             dbc.Col(
                 [
+                    dmc.Space(h=10),
                     draw_sso_lightcurve(pdf),
                     html.Br(),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                dcc.Markdown(msg),
-                                label="Information",
+                                [
+                                    dmc.AccordionControl("Information"),
+                                    dmc.AccordionPanel(dcc.Markdown(msg)),
+                                ],
+                                value='info'
                             ),
                         ],
                     )
@@ -247,12 +255,16 @@ def tab5_content(object_soo):
         [
             dbc.Col(
                 [
+                    dmc.Space(h=10),
                     draw_sso_astrometry(pdf),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),
-                                label="How are computed the residuals?",
+                                [
+                                    dmc.AccordionControl("How are computed the residuals?"),
+                                    dmc.AccordionPanel(dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),),
+                                ],
+                                value="residuals"
                             ),
                         ],
                     )
@@ -278,22 +290,19 @@ def tab5_content(object_soo):
         [
             dbc.Col(
                 [
+                    dmc.Space(h=10),
                     html.Div(id='sso_phasecurve'),
                     html.Br(),
                     dbc.Row(
                         dbc.Col(
-                            dmc.Chips(
-                                data=[
-                                    {'label': 'per-band', 'value': 'per-band'},
-                                    {'label': 'combined', 'value': 'combined'}
+                            dmc.ChipGroup(
+                                [
+                                    dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                                    for x in ['per-band', 'combined']
                                 ],
                                 id="switch-phase-curve-band",
                                 value="per-band",
-                                color="orange",
-                                radius="xl",
-                                size="sm",
                                 spacing="xl",
-                                variant="outline",
                                 position='center',
                                 multiple=False,
                             )
@@ -301,20 +310,14 @@ def tab5_content(object_soo):
                     ),
                     dbc.Row(
                         dbc.Col(
-                            dmc.Chips(
-                                data=[
-                                    {'label': 'HG1G2S', 'value': 'HG1G2S'},
-                                    {'label': 'HG1G2', 'value': 'HG1G2'},
-                                    {'label': 'HG12', 'value': 'HG12'},
-                                    {'label': 'HG', 'value': 'HG'},
+                            dmc.ChipGroup(
+                                [
+                                    dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                                    for x in ['HG1G2S', 'HG1G2', 'HG12', 'HG']
                                 ],
                                 id="switch-phase-curve-func",
                                 value="HG1G2",
-                                color="orange",
-                                radius="xl",
-                                size="sm",
                                 spacing="xl",
-                                variant="outline",
                                 position='center',
                                 multiple=False,
                             )
@@ -323,8 +326,11 @@ def tab5_content(object_soo):
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
-                                dcc.Markdown(msg_phase),
-                                label="How is modeled the phase curve?",
+                                [
+                                    dmc.AccordionControl("How is modeled the phase curve?"),
+                                    dmc.AccordionPanel(dcc.Markdown(msg_phase),),
+                                ],
+                                value='phase_curve'
                             ),
                         ],
                     )
@@ -337,11 +343,17 @@ def tab5_content(object_soo):
         left_side = dbc.Col(
             dmc.Tabs(
                 [
-                    dmc.Tab(tab1, label="Lightcurve"),
-                    dmc.Tab(tab2, label="Astrometry"),
-                    dmc.Tab(tab3, label="Phase curve")
-                ],
-                variant="outline"
+                    dmc.TabsList(
+                        [
+                            dmc.Tab("Lightcurve", value="Lightcurve"),
+                            dmc.Tab("Astrometry", value="Astrometry"),
+                            dmc.Tab("Phase curve", value="Phase curve")
+                        ]
+                    ),
+                    dmc.TabsPanel(tab1, value="Lightcurve"),
+                    dmc.TabsPanel(tab2, value="Astrometry"),
+                    dmc.TabsPanel(tab3, value="Phase curve")
+                ], variant="outline", value="Lightcurve"
             ), width=8
         )
     else:
@@ -352,6 +364,7 @@ def tab5_content(object_soo):
 
     tab5_content_ = dbc.Row(
         [
+            dmc.Space(h=10),
             left_side,
             dbc.Col(
                 [
@@ -373,6 +386,7 @@ def tab6_content(object_tracklet):
     """
     pdf = pd.read_json(object_tracklet)
     tab6_content_ = html.Div([
+        dmc.Space(h=10),
         dbc.Row(
             [
                 dbc.Col(
@@ -390,23 +404,6 @@ def tab6_content(object_tracklet):
 def tab_mobile_content(pdf):
     """ Content for mobile application
     """
-    # content_ = html.Div([
-    #     dbc.Row(
-    #         [
-    #             dbc.Col(
-    #                 dcc.Graph(
-    #                     style={
-    #                         'width': '100%',
-    #                         'height': '4pc'
-    #                     },
-    #                     config={'displayModeBar': False},
-    #                     id='classbar'
-    #                 ),
-    #                 width=12
-    #             ),
-    #         ], justify='around'
-    #     ),
-    # ])
     simbad_types = get_simbad_labels('old_and_new')
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
@@ -435,14 +432,24 @@ def tabs(pdf, is_mobile):
     else:
         tabs_ = dmc.Tabs(
             [
-                dmc.Tab(tab1_content(), label="Summary"),
-                dmc.Tab(tab2_content(), label="Supernovae"),
-                dmc.Tab(tab3_content(), label="Variable stars"),
-                dmc.Tab(tab4_content(), label="Microlensing"),
-                dmc.Tab(id="tab_sso", label="Solar System"),
-                dmc.Tab(id="tab_tracklet", label="Tracklets"),
-                dmc.Tab(label="GRB", disabled=True)
-            ], position='right', variant='outline'
+                dmc.TabsList(
+                    [
+                        dmc.Tab("Summary", value="Summary"),
+                        dmc.Tab("Supernovae", value="Supernovae"),
+                        dmc.Tab("Variable stars", value="Variable stars"),
+                        dmc.Tab("Microlensing", value="Microlensing"),
+                        dmc.Tab("Solar System", value="Solar System"),
+                        dmc.Tab("Tracklets", value="Tracklets"),
+                        dmc.Tab("GRB", value="GRB", disabled=True)
+                    ], position='right'
+                ),
+                dmc.TabsPanel(tab1_content(), value="Summary"),
+                dmc.TabsPanel(tab2_content(), value="Supernovae"),
+                dmc.TabsPanel(tab3_content(), value="Variable stars"),
+                dmc.TabsPanel(tab4_content(), value="Microlensing"),
+                dmc.TabsPanel(id="tab_sso", value="Solar System"),
+                dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
+            ], value="Summary"
         )
     return tabs_
 
@@ -582,57 +589,75 @@ def accordion_mobile():
     )
     external = dbc.CardBody(id='external_links')
 
-    accordion = dmc.Accordion(
+    accordion = dmc.AccordionMultiple(
         children=[
             dmc.AccordionItem(
-                lightcurve,
-                label="Lightcurve",
-                icon=[
-                    DashIconify(
-                        icon="tabler:graph",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
-                    )
+                [
+                    dmc.AccordionPanel(
+                        "Lightcurve",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:graph",
+                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(lightcurve),
                 ],
+                value="lightcurve"
             ),
             dmc.AccordionItem(
-                information,
-                label="Last alert properties",
-                icon=[
-                    DashIconify(
-                        icon="tabler:file-description",
-                        color=dmc.theme.DEFAULT_COLORS["blue"][6],
-                        width=20,
-                    )
+                [
+                    dmc.AccordionPanel(
+                        "Last alert properties",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:file-description",
+                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(information),
                 ],
+                value='info'
             ),
             dmc.AccordionItem(
-                aladin,
-                label="Aladin Lite",
-                icon=[
-                    DashIconify(
-                        icon="tabler:map-2",
-                        color=dmc.theme.DEFAULT_COLORS["orange"][6],
-                        width=20,
-                    )
+                [
+                    dmc.AccordionPanel(
+                        "Aladin Lite",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:map-2",
+                                color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(aladin),
                 ],
+                value='aladin'
             ),
             dmc.AccordionItem(
-                external,
-                label="External links",
-                icon=[
-                    DashIconify(
-                        icon="tabler:atom-2",
-                        color=dmc.theme.DEFAULT_COLORS["green"][6],
-                        width=20,
-                    )
+                [
+                    dmc.AccordionPanel(
+                        "External links",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:atom-2",
+                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionControl(external),
                 ],
+                value='external'
             ),
         ],
-        state={'{}'.format(i): False for i in range(4)},
+        value='lightcurve',
         id="accordion-mobile",
-        multiple=True,
-        offsetIcon=False,
     )
 
     return accordion
@@ -803,7 +828,13 @@ def layout(name, is_mobile):
                                 html.Br(),
                             ], width={"size": 3},
                         ),
-                        dbc.Col(tabs(pdf, is_mobile), width=8)
+                        dbc.Col(
+                            [
+                                dmc.Space(h=10),
+                                tabs(pdf, is_mobile),
+                            ],
+                            width=8
+                        )
                     ],
                     justify="around", className="g-0"
                 ),

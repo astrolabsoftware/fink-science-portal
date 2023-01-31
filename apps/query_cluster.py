@@ -22,7 +22,7 @@ from dash_iconify import DashIconify
 from app import app
 from app import APIURL
 from apps.mining.utils import upload_file_hdfs, submit_spark_job
-from apps.mining.utils import estimate_size_gb
+from apps.mining.utils import estimate_size_gb_ztf, estimate_size_gb_elasticc
 
 import numpy as np
 import pandas as pd
@@ -38,6 +38,10 @@ simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
+
+elasticc_classes = pd.read_csv('assets/elasticc_classes.csv')
+elasticc_dates = pd.read_csv('assets/elasticc_dates.csv')
+elasticc_dates['date'] = elasticc_dates['date'].astype('str')
 
 coeffs_per_class = pd.read_parquet('assets/fclass_2022_060708_coeffs.parquet')
 
@@ -151,9 +155,6 @@ def filter_tab(is_mobile):
                 id="date-range-picker",
                 label="Date Range",
                 description="Pick up start and stop dates (included).",
-                minDate=date(2019, 11, 1),
-                maxDate=date.today(),
-                value=None,
                 style={"width": width},
                 hideOutsideDates=True,
                 amountOfMonths=amountOfMonths,
@@ -166,21 +167,6 @@ def filter_tab(is_mobile):
                 description="Select all classes you like! Default is all classes.",
                 placeholder="start typing...",
                 id="class_select",
-                value=None,
-                data = [
-                    {'label': 'All classes', 'value': 'allclasses'},
-                    {'label': 'Unknown', 'value': 'Unknown'},
-                    {'label': '(Fink) Early Supernova Ia candidates', 'value': 'Early SN Ia candidate'},
-                    {'label': '(Fink) Supernova candidates', 'value': 'SN candidate'},
-                    {'label': '(Fink) Kilonova candidates', 'value': 'Kilonova candidate'},
-                    {'label': '(Fink) Microlensing candidates', 'value': 'Microlensing candidate'},
-                    {'label': '(Fink) Solar System (MPC)', 'value': 'Solar System MPC'},
-                    {'label': '(Fink) Solar System (candidates)', 'value': 'Solar System candidate'},
-                    {'label': '(Fink) Tracklet (space debris & satellite glints)', 'value': 'Tracklet'},
-                    {'label': '(Fink) Ambiguous', 'value': 'Ambiguous'},
-                    *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
-                    *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
-                ],
                 searchable=True,
                 style={"width": width},
             ),
@@ -188,15 +174,10 @@ def filter_tab(is_mobile):
             dmc.Textarea(
                 id="extra_cond",
                 label="Extra conditions",
-                description=[
-                    "One condition per line (SQL syntax), ending with semi-colon. See ",
-                    dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
-                    " for field description.",
-                ],
-                placeholder="e.g. candidate.magpsf > 19.5;",
                 style={"width": width},
                 autosize=True,
-                minRows=2,              ),
+                minRows=2,
+            ),
         ]
     )
     tab = html.Div(
@@ -209,7 +190,15 @@ def filter_tab(is_mobile):
     return tab
 
 @app.callback(
-    Output("filter_tab", "style"),
+    [
+        Output("filter_tab", "style"),
+        Output("date-range-picker", "minDate"),
+        Output("date-range-picker", "maxDate"),
+        Output("class_select", "data"),
+        Output("extra_cond", "description"),
+        Output("extra_cond", "placeholder"),
+        Output("trans_content", "children")
+    ],
     [
         Input('trans_datasource', 'value')
     ], prevent_initial_call=True
@@ -218,7 +207,56 @@ def display_filter_tab(trans_datasource):
     if trans_datasource is None:
         PreventUpdate
     else:
-        return {}
+        if trans_datasource == 'ZTF':
+            minDate = date(2019, 11, 1)
+            maxDate = date.today()
+            data_class_select = [
+                {'label': 'All classes', 'value': 'allclasses'},
+                {'label': 'Unknown', 'value': 'Unknown'},
+                {'label': '(Fink) Early Supernova Ia candidates', 'value': 'Early SN Ia candidate'},
+                {'label': '(Fink) Supernova candidates', 'value': 'SN candidate'},
+                {'label': '(Fink) Kilonova candidates', 'value': 'Kilonova candidate'},
+                {'label': '(Fink) Microlensing candidates', 'value': 'Microlensing candidate'},
+                {'label': '(Fink) Solar System (MPC)', 'value': 'Solar System MPC'},
+                {'label': '(Fink) Solar System (candidates)', 'value': 'Solar System candidate'},
+                {'label': '(Fink) Tracklet (space debris & satellite glints)', 'value': 'Tracklet'},
+                {'label': '(Fink) Ambiguous', 'value': 'Ambiguous'},
+                *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
+                *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
+            ]
+            description = [
+                "One condition per line (SQL syntax), ending with semi-colon. See ",
+                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
+                " for field description.",
+            ]
+            placeholder = "e.g. candidate.magpsf > 19.5;"
+            labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
+            values = ['Lightcurve', 'Cutouts', 'Full packet']
+            data_content = [
+                dmc.Radio(label=l, value=k, size='sm', color='orange')
+                for l, k in zip(labels, values)
+            ]
+        elif trans_datasource == 'ELASTiCC':
+            minDate = date(2023, 11, 27)
+            maxDate = date(2026, 12, 5)
+            data_class_select = [
+                {'label': 'All classes', 'value': 'allclasses'},
+                *[{'label': str(simtype), 'value': simtype} for simtype in sorted(elasticc_classes['classId'].values)],
+            ]
+            description = [
+                "One condition per line (SQL syntax), ending with semi-colon. See ",
+                dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
+                " for field description.",
+            ]
+            placeholder = "e.g. diaSource.psFlux > 0.0;"
+            labels = ["Full packet (~1.4 KB/alert)"]
+            values = ['Full packet']
+            data_content = [
+                dmc.Radio(label=l, value=k, size='sm', color='orange')
+                for l, k in zip(labels, values)
+            ]
+
+        return {}, minDate, maxDate, data_class_select, description, placeholder, data_content
 
 def content_tab():
     """ Section containing filtering options
@@ -229,15 +267,7 @@ def content_tab():
             dmc.Divider(variant="solid", label='Alert content'),
             dmc.RadioGroup(
                 id="trans_content",
-                data=[
-                    {"value": "Lightcurve", "label": "Lightcurve (~1.4 KB/alert)"},
-                    {"value": "Cutouts", "label": "Cutouts (~41 KB/alert)"},
-                    {"value": "Full packet", "label": "Full packet (~55 KB/alert)"},
-                ],
-                value=None,
                 label="Choose the content you want to retrieve",
-                size="sm",
-                color='orange'
             ),
         ], style={'display': 'none'}, id='content_tab'
     )
@@ -255,7 +285,7 @@ def update_content_tab(date_range_picker):
     else:
         return {}
 
-def estimate_alert_number(date_range_picker, class_select):
+def estimate_alert_number_ztf(date_range_picker, class_select):
     """ Callback to estimate the number of alerts to be transfered
 
     This can be improved by using the REST API directly to get number of
@@ -332,6 +362,46 @@ def estimate_alert_number(date_range_picker, class_select):
 
     return dic['basic:sci'], count
 
+def estimate_alert_number_elasticc(date_range_picker, class_select):
+    """ Callback to estimate the number of alerts to be transfered
+    """
+    dic = {'basic:sci': 0}
+    dstart = date(*[int(i) for i in date_range_picker[0].split('-')])
+    dstop = date(*[int(i) for i in date_range_picker[1].split('-')])
+    delta = dstop - dstart
+
+    # count all raw number of alerts
+    for i in range(delta.days + 1):
+        tmp = (dstart + timedelta(i)).strftime('%Y%m%d')
+        filt = elasticc_dates['date'] == tmp
+        if np.sum(filt) > 0:
+            dic['basic:sci'] += int(elasticc_dates[filt]['count'].values[0])
+
+    # Add class estimation
+    if (class_select is not None) and (class_select != []):
+        if 'allclasses' not in class_select:
+            for elem in class_select:
+                # name correspondance
+                filt = elasticc_classes['classId'] == elem
+
+                if np.sum(filt) == 0:
+                    # Nothing found. This could be because we have
+                    # no alerts from this class, or because it has not
+                    # yet entered the statistics. To be conservative,
+                    # we do not apply any coefficients.
+                    dic[elem] = 0
+                else:
+                    coeff = elasticc_classes[filt]['count'].values[0] / elasticc_classes['count'].sum()
+                    dic['class:' + str(elem)] = int(dic['basic:sci'] * coeff)
+            count = np.sum([i[1] for i in dic.items() if 'class:' in i[0]])
+        else:
+            # allclasses mean all alerts
+            count = dic['basic:sci']
+    else:
+        count = dic['basic:sci']
+
+    return dic['basic:sci'], count
+
 @app.callback(
     Output("summary_tab", "children"),
     [
@@ -358,9 +428,12 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         the days requested and the classes, but not the extra conditions (which could reduce the
         number of alerts).
         """
-        total, count = estimate_alert_number(date_range_picker, class_select)
-
-        sizeGb = estimate_size_gb(trans_content)
+        if trans_datasource == 'ZTF':
+            total, count = estimate_alert_number_ztf(date_range_picker, class_select)
+            sizeGb = estimate_size_gb_ztf(trans_content)
+        elif trans_datasource == 'ELASTiCC':
+            total, count = estimate_alert_number_elasticc(date_range_picker, class_select)
+            sizeGb = estimate_size_gb_elasticc(trans_content)
 
         if count == 0:
             msg_title = 'No alerts found. Try to update your criteria.'
@@ -465,15 +538,27 @@ def make_final_helper():
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
-                children=[
-                    dmc.Button("Update log", id='update_batch_log', color='orange'),
-                    html.Div(id='batch_log')
+                [
+                    dmc.AccordionControl("Monitor your job"),
+                    dmc.AccordionPanel(
+                        [
+                            dmc.Button("Update log", id='update_batch_log', color='orange'),
+                            html.Div(id='batch_log')
+                        ],
+                    ),
                 ],
-                label="Monitor your job",
+                value='monitor'
             ),
             dmc.AccordionItem(
-                children=html.Div(id='final_accordion_1'),
-                label="Get your data",
+                [
+                    dmc.AccordionControl("Get your data"),
+                    dmc.AccordionPanel(
+                        [
+                            html.Div(id='final_accordion_1'),
+                        ],
+                    ),
+                ],
+                value='get_data'
             ),
         ],
         id='final_accordion',
@@ -491,6 +576,11 @@ def update_final_accordion1(topic_name):
     """
     """
     if topic_name != "":
+        if 'elasticc' in topic_name:
+            partition = 'classId'
+        else:
+            partition = 'finkclass'
+
         msg = """
         Once data has started to flow in the topic, you can easily download your alerts using the [fink-client](https://github.com/astrolabsoftware/fink-client). Install the latest version and
         use e.g.
@@ -499,9 +589,9 @@ def update_final_accordion1(topic_name):
         fink_datatransfer \\
             -topic {} \\
             -outdir {} \\
-            -partitionby finkclass \\
+            -partitionby {} \\
             --verbose
-        """.format(topic_name, topic_name)
+        """.format(topic_name, topic_name, partition)
         out = html.Div(
             [
                 dcc.Markdown(msg, link_target="_blank"),
@@ -537,13 +627,21 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
     if n_clicks or n_clicks_test:
         # define unique topic name
         d = datetime.utcnow()
-        topic_name = 'ftransfer_{}_{}'.format(d.date().isoformat(), d.microsecond)
 
-        with open('assets/spark_transfer.py', 'r') as f:
+        if trans_datasource == 'ZTF':
+            topic_name = 'ftransfer_ztf_{}_{}'.format(d.date().isoformat(), d.microsecond)
+            fn = 'assets/spark_ztf_transfer.py'
+            basepath = '/user/julien.peloton/archive/science'
+        elif trans_datasource == 'ELASTiCC':
+            topic_name = 'ftransfer_elasticc_{}_{}'.format(d.date().isoformat(), d.microsecond)
+            fn = 'assets/spark_elasticc_transfer.py'
+            basepath = '/user/julien.peloton/elasticc_curated_truth_one'
+        filename = 'stream_{}.py'.format(topic_name)
+
+        with open(fn, 'r') as f:
             data = f.read()
         code = textwrap.dedent(data)
 
-        filename = 'stream_{}.py'.format(topic_name)
         input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
         status_code, hdfs_log = upload_file_hdfs(
             code,
@@ -562,7 +660,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             '-startDate={}'.format(date_range_picker[0]),
             '-stopDate={}'.format(date_range_picker[1]),
             '-content={}'.format(trans_content),
-            '-basePath=/user/julien.peloton/archive/science',
+            '-basePath={}'.format(basepath),
             '-topic_name={}'.format(topic_name),
             '-kafka_bootstrap_servers={}'.format(input_args['KAFKA_BOOTSTRAP_SERVERS']),
             '-kafka_sasl_username={}'.format(input_args['KAFKA_SASL_USERNAME']),
@@ -617,15 +715,10 @@ def query_builder():
             html.Br(),
             dmc.Divider(variant="solid", label='Data Source'),
             dmc.RadioGroup(
+                [dmc.Radio(k, value=k, size='sm', color='orange') for k in ['ZTF', 'ELASTiCC']],
                 id="trans_datasource",
-                data=[
-                    {"value": "ZTF", "label": "ZTF"},
-                    # {"value": "elasticc", "label": "ELASTiCC"},
-                ],
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
-                size="sm",
-                color='orange'
             ),
         ]
     )
@@ -636,17 +729,23 @@ def mining_helper():
     """
     msg = """
     The Fink data transfer service allows you to select and transfer the Fink processed alert data at scale.
-    The only data source currently available is ZTF, with more than 110 million alerts as of 2023.
+    We provide alert data from ZTF (more than 110 million alerts as of 2023), and from the DESC/ELASTiCC data challenge (more than 50 million alerts).
     Fill the fields on the right (note the changing timeline on the left when you update parameters),
     and once ready, submit your job on the Fink Apache Spark & Kafka clusters and retrieve your data.
-    More information on this [post](https://fink-broker.org/2023-01-17-data-transfer).
+    To retrieve the data, you need to get an account. See [fink-client](https://github.com/astrolabsoftware/fink-client) and
+    this [post](https://fink-broker.org/2023-01-17-data-transfer) for more information.
     """
 
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
-                dcc.Markdown(msg, link_target="_blank"),
-                label="Description",
+                [
+                    dmc.AccordionControl("Description"),
+                    dmc.AccordionPanel(
+                        dcc.Markdown(msg, link_target="_blank")
+                    ),
+                ],
+                value='description'
             ),
         ],
     )

@@ -522,65 +522,70 @@ def display_table_results(table, is_mobile):
             [
                 dmc.Col(
                     dmc.Accordion(
-                        state={"0": False},
-                        offsetIcon=False,
                         children=[
                             dmc.AccordionItem(
                                 children=[
-                                    dbc.Row(
-                                        dbc.Col(
-                                            [
-                                                dmc.Paper(
+                                    dmc.AccordionControl(
+                                        "Table options",
+                                        icon=[
+                                            DashIconify(
+                                                icon="tabler:arrow-bar-to-down",
+                                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                                width=20,
+                                            )
+                                        ],
+                                    ),
+                                    dmc.AccordionPanel(
+                                        [
+                                            dbc.Row(
+                                                dbc.Col(
                                                     [
-                                                        dmc.Group(
+                                                        dmc.Paper(
                                                             [
-                                                                dropdown,
-                                                                dmc.Tooltip(
-                                                                    children=switch,
-                                                                    wrapLines=True,
-                                                                    width=220,
-                                                                    withArrow=True,
-                                                                    transition="fade",
-                                                                    transitionDuration=200,
-                                                                    label=switch_description
-                                                                ),
-                                                                dmc.Tooltip(
-                                                                    children=switch_sso,
-                                                                    wrapLines=True,
-                                                                    width=220,
-                                                                    withArrow=True,
-                                                                    transition="fade",
-                                                                    transitionDuration=200,
-                                                                    label=switch_sso_description
-                                                                ),
-                                                                dmc.Tooltip(
-                                                                    children=switch_tracklet,
-                                                                    wrapLines=True,
-                                                                    width=220,
-                                                                    withArrow=True,
-                                                                    transition="fade",
-                                                                    transitionDuration=200,
-                                                                    label=switch_tracklet_description
-                                                                ),
-                                                            ], direction='column', grow=True, spacing='xs'
-                                                        )
+                                                                dmc.Stack(
+                                                                    [
+                                                                        dropdown,
+                                                                        dmc.Tooltip(
+                                                                            children=switch,
+                                                                            width=220,
+                                                                            multiline=True,
+                                                                            withArrow=True,
+                                                                            transition="fade",
+                                                                            transitionDuration=200,
+                                                                            label=switch_description
+                                                                        ),
+                                                                        dmc.Tooltip(
+                                                                            children=switch_sso,
+                                                                            width=220,
+                                                                            multiline=True,
+                                                                            withArrow=True,
+                                                                            transition="fade",
+                                                                            transitionDuration=200,
+                                                                            label=switch_sso_description
+                                                                        ),
+                                                                        dmc.Tooltip(
+                                                                            children=switch_tracklet,
+                                                                            width=220,
+                                                                            multiline=True,
+                                                                            withArrow=True,
+                                                                            transition="fade",
+                                                                            transitionDuration=200,
+                                                                            label=switch_tracklet_description
+                                                                        ),
+                                                                    ], spacing='xs'
+                                                                )
 
+                                                            ],
+                                                            radius='xl', p='md', shadow='xl', withBorder=True
+                                                        )
                                                     ],
-                                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                                    width=width_options
                                                 )
-                                            ],
-                                            width=width_options
-                                        )
+                                            )
+                                        ]
                                     )
                                 ],
-                                label="Table options",
-                                icon=[
-                                    DashIconify(
-                                        icon="tabler:arrow-bar-to-down",
-                                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                                        width=20,
-                                    )
-                                ],
+                                value='table_option'
                             )
                         ]
                     ),
@@ -1180,7 +1185,7 @@ navbar = dmc.Header(
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
-                            dmc.Group(
+                            dmc.Stack(
                                 [
                                     dmc.Anchor(
                                         'Search',
@@ -1204,10 +1209,8 @@ navbar = dmc.Header(
                                         color="gray",
                                     ),
                                 ],
-                                grow=True,
-                                position="left",
+                                align="left",
                                 spacing="sm",
-                                direction="column",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                             dmc.Divider(
@@ -1220,7 +1223,7 @@ navbar = dmc.Header(
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
-                            dmc.Group(
+                            dmc.Stack(
                                 [
                                     dmc.Anchor(
                                         '{ API }',
@@ -1237,10 +1240,8 @@ navbar = dmc.Header(
                                         color="gray",
                                     ),
                                 ],
-                                grow=True,
-                                position="left",
+                                align="left",
                                 spacing="sm",
-                                direction="column",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                             dmc.Divider(
@@ -1253,7 +1254,7 @@ navbar = dmc.Header(
                                 ],
                                 style={"marginTop": 20, "marginBottom": 20},
                             ),
-                            dmc.Group(
+                            dmc.Stack(
                                 [
                                     dmc.Anchor(
                                         'Fink broker',
@@ -1270,10 +1271,8 @@ navbar = dmc.Header(
                                         color="gray",
                                     )
                                 ],
-                                grow=True,
-                                position="left",
+                                align="left",
                                 spacing="sm",
-                                direction="column",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                         ],
@@ -1332,22 +1331,14 @@ def display_page(pathname, is_mobile):
                 [
                     html.Div(id='logo'),
                     html.Br(),
-                    dmc.Chips(
-                        data=[
-                            {"value": "objectId", "label": "objectId"},
-                            {"value": "Conesearch", "label": "Conesearch"},
-                            {"value": "Date Search", "label": "Date Search"},
-                            {"value": "Class Search", "label": "Class Search"},
-                            {"value": "SSO", "label": "SSO"},
-                            {"value": "Tracklet", "label": "Tracklet"},
+                    dmc.ChipGroup(
+                        [
+                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                            for x in ["objectId", "Conesearch", "Date Search", "Class Search", "SSO", "Tracklet"]
                         ],
                         id="dropdown-query",
                         value='objectId',
-                        color="orange",
-                        radius="xl",
-                        size="sm",
                         spacing="xl",
-                        variant="outline",
                         position='center',
                         multiple=False,
                     ),
