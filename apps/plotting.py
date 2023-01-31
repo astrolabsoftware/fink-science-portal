@@ -1306,7 +1306,13 @@ def draw_scores(object_data) -> dict:
             transitionDuration=100,
             label=msg
         )
-        out = dmc.Group([tooltip, graph])
+        out = dmc.Center(
+            style={"height": 200, "width": "100%"},
+            children=[
+                tooltip,
+                graph
+            ],
+        )
 
     return out
 
