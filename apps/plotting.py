@@ -1233,7 +1233,7 @@ def extract_max_t2(pdf):
     [
         Input('object-data', 'children'),
     ])
-def draw_scores(object_data) -> dict:
+def draw_t2(object_data) -> dict:
     """ Draw scores from SNN module
 
     Parameters
@@ -1367,7 +1367,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'
                 }
             },
@@ -1385,7 +1385,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'
                 }
             },
@@ -1403,7 +1403,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'
                 }
             }
@@ -1459,7 +1459,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'
                 }
             },
@@ -1477,7 +1477,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'
                 }
             },
@@ -1495,7 +1495,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'
                 }
             },
