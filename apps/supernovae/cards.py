@@ -108,7 +108,7 @@ def card_sn_scores() -> html.Div:
                     [
                         dbc.Tab(
                             graph_scores,
-                            label='ML scores',
+                            label='SN scores',
                             tab_id='snt0',
                             label_style=label_style
                         ),

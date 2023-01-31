@@ -1287,12 +1287,24 @@ def draw_scores(object_data) -> dict:
         The radius gives the number of times a label was assigned the highest score from the T2 layer, among all alerts.
         T2 was deployed in 2023/01, and previous alerts do not contained scores.
         """
-        out = dbc.Row(
-            [
-                dbc.Col(dcc.Markdown(msg), width=4),
-                dbc.Col(graph, width=8)
-            ]
+        button = dmc.ActionIcon(
+            DashIconify(icon="clarity:settings-line", width=20),
+            size="lg",
+            variant="outline",
+            id="action-icon",
+            n_clicks=0,
+            mb=10,
         )
+        tooltip = dmc.Tooltip(
+            button,
+            width=220,
+            withArrow=True,
+            multiline=True,
+            transition="fade",
+            transitionDuration=200,
+            label=msg
+        )
+        out = html.Div([tooltip, graph])
 
     return out
 
