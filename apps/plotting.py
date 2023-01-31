@@ -1202,6 +1202,48 @@ def draw_scores(object_data) -> dict:
     }
     return figure
 
+def extract_max_t2(pdf):
+    """
+    """
+    cols = [i for i in pdf.columns if i.startswith('d:t2')]
+    series = pdf[cols].apply(lambda x: np.argmax(x))
+    df = pd.DataFrame(
+        {
+            'r': series.values,
+            'theta': series.index
+        },
+        columns=['r', 'theta']
+    )
+
+    return df
+
+@app.callback(
+    Output('t2', 'figure'),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_scores(object_data) -> dict:
+    """ Draw scores from SNN module
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Results from a HBase client query
+
+    Returns
+    ----------
+    figure: dict
+
+    TODO: memoise me
+    """
+    pdf = pd.read_json(object_data)
+
+    df = extract_max_t2(pdf)
+
+    figure = px.line_polar(df, r='r', theta='theta', line_close=True)
+    figure.update_traces(fill='toself')
+    return figure
+
 @app.callback(
     Output('colors', 'figure'),
     [
