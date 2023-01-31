@@ -1256,8 +1256,23 @@ def draw_scores(object_data) -> dict:
         """
         out = dbc.Alert(msg, color="danger")
     else:
-        figure = px.line_polar(df, r='r', theta='theta', line_close=True)
-        figure.update_traces(fill='toself')
+        figure = go.Figure(
+            data=go.Scatterpolar(
+                r=df.r,
+                theta=df.theta,
+                fill='toself'
+            )
+        )
+        # figure = px.line_polar(df, r='r', theta='theta', line_close=True)
+        # figure.update_traces(fill='toself')
+        figure.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True
+                ),
+            ),
+            showlegend=False
+        )
 
         out = dcc.Graph(
             id='t2',
