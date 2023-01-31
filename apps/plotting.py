@@ -1161,7 +1161,7 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'}
             },
             {
@@ -1178,7 +1178,7 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'}
             },
             {
@@ -1195,7 +1195,7 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'}
             }
         ],
@@ -1261,8 +1261,9 @@ def draw_scores(object_data) -> dict:
             data=go.Scatterpolar(
                 r=df.r,
                 theta=[i.split('_')[-1] for i in df.theta],
-                fill='toself'
-            )
+                fill='toself',
+                line=dict(color="#F5622E")
+            ),
         )
         # figure = px.line_polar(df, r='r', theta='theta', line_close=True)
         # figure.update_traces(fill='toself')
@@ -1287,7 +1288,7 @@ def draw_scores(object_data) -> dict:
         )
         msg = """
         The radius gives the number of times a label was assigned the highest score from the T2 layer, among all alerts.
-        T2 was deployed in 2023/01, and previous alerts do not contained scores.
+        T2 was deployed in 2023/01/25, and previous alerts do not contained scores.
         """
         button = dmc.ActionIcon(
             DashIconify(icon="fluent:question-16-regular", width=20),
