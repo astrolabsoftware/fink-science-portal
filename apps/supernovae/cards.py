@@ -85,6 +85,7 @@ def card_sn_scores() -> html.Div:
         Fink's machine learning classification scores for Supernovae are derived from:
         - [SuperNNova](https://github.com/supernnova/SuperNNova) ([Möller & de Boissière 2019](https://academic.oup.com/mnras/article-abstract/491/3/4277/5651173)) to classify SNe at all light-curve epochs (`SN Ia score` & `SNe score`)
         - Random Forest ([Leoni et al. 2021](https://arxiv.org/abs/2111.11438)) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
+        - Transformers for general multi-variate time-series data, based on [Allam Jr. et al. 2022](https://arxiv.org/abs/2105.06178)
 
         Note that we then combine these scores, with other criteria,
         to give a final classification to the alert. An `SN candidate` requires that:
