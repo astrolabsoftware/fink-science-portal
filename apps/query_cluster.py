@@ -732,7 +732,8 @@ def mining_helper():
     We provide alert data from ZTF (more than 110 million alerts as of 2023), and from the DESC/ELASTiCC data challenge (more than 50 million alerts).
     Fill the fields on the right (note the changing timeline on the left when you update parameters),
     and once ready, submit your job on the Fink Apache Spark & Kafka clusters and retrieve your data.
-    More information on this [post](https://fink-broker.org/2023-01-17-data-transfer).
+    To retrieve the data, you need to get an account. See [fink-client](https://github.com/astrolabsoftware/fink-client) and
+    this [post](https://fink-broker.org/2023-01-17-data-transfer) for more information.
     """
 
     accordion = dmc.Accordion(
