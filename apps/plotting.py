@@ -1273,7 +1273,7 @@ def draw_scores(object_data) -> dict:
                 ),
             ),
             showlegend=False,
-            margin=dict(l=50, r=30, b=0, t=0),
+            margin=dict(l=10, r=10, b=10, t=10),
         )
 
         graph = dcc.Graph(
