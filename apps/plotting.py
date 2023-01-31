@@ -30,6 +30,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
@@ -1160,7 +1161,7 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'}
             },
             {
@@ -1177,7 +1178,7 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'}
             },
             {
@@ -1194,13 +1195,130 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'}
             }
         ],
         "layout": layout_scores
     }
     return figure
+
+def extract_max_t2(pdf):
+    """
+    """
+    cols = [i for i in pdf.columns if i.startswith('d:t2')]
+
+    if cols == []:
+        return pd.DataFrame()
+
+    filt = pdf[cols].apply(lambda x: np.sum(x) > 0, axis=1)
+
+    if pdf[filt].empty:
+        return pd.DataFrame()
+
+    series = pdf[cols][filt].apply(lambda x: np.array(x) == np.max(x), axis=1)
+    df_tmp = pd.DataFrame(list(series.values), columns=pdf[cols].columns).T.sum(axis=1)
+    df = pd.DataFrame(
+        {
+            'r': df_tmp.values,
+            'theta': df_tmp.index
+        },
+        columns=['r', 'theta']
+    )
+
+    return df
+
+@app.callback(
+    Output('t2', 'children'),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_t2(object_data) -> dict:
+    """ Draw scores from SNN module
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Results from a HBase client query
+
+    Returns
+    ----------
+    figure: dict
+
+    TODO: memoise me
+    """
+    pdf = pd.read_json(object_data)
+
+    df = extract_max_t2(pdf)
+
+    if df.empty:
+        msg = """
+        No classification from T2 yet
+        """
+        out = dbc.Alert(msg, color="danger")
+    else:
+        figure = go.Figure(
+            data=go.Scatterpolar(
+                r=df.r,
+                theta=[i.split('_')[-1] for i in df.theta],
+                fill='toself',
+                line=dict(color="#F5622E")
+            ),
+        )
+        # figure = px.line_polar(df, r='r', theta='theta', line_close=True)
+        # figure.update_traces(fill='toself')
+        figure.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True
+                ),
+            ),
+            showlegend=False,
+            margin=dict(l=10, r=10, b=20, t=10),
+        )
+
+        graph = dcc.Graph(
+            id='t2',
+            figure=figure,
+            style={
+                'width': '100%',
+                'height': '20pc'
+            },
+            config={'displayModeBar': False}
+        )
+        msg = """
+        The radius gives the number of times a label was assigned the highest score from the T2 layer, among all alerts.
+        T2 was deployed in 2023/01/25, and previous alerts do not contained scores.
+        """
+        button = dmc.ActionIcon(
+            DashIconify(icon="fluent:question-16-regular", width=20),
+            size="lg",
+            variant="outline",
+            id="action-icon",
+            n_clicks=0,
+            mb=10,
+        )
+        tooltip = dmc.Tooltip(
+            button,
+            width=220,
+            withArrow=True,
+            multiline=True,
+            transition="fade",
+            transitionDuration=100,
+            label=msg
+        )
+        out = dmc.Center(
+            children=[
+                dmc.Group(
+                    [
+                        tooltip,
+                        graph
+                    ], position='center'
+                )
+            ],
+        )
+
+    return out
 
 @app.callback(
     Output('colors', 'figure'),
@@ -1249,7 +1367,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'
                 }
             },
@@ -1267,7 +1385,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'
                 }
             },
@@ -1285,7 +1403,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'
                 }
             }
@@ -1341,7 +1459,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'
                 }
             },
@@ -1359,7 +1477,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'
                 }
             },
@@ -1377,7 +1495,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'
                 }
             },
