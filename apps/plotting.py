@@ -1290,7 +1290,7 @@ def draw_scores(object_data) -> dict:
         T2 was deployed in 2023/01, and previous alerts do not contained scores.
         """
         button = dmc.ActionIcon(
-            DashIconify(icon="clarity:settings-line", width=20),
+            DashIconify(icon="fluent:question-16-regular", width=20),
             size="lg",
             variant="outline",
             id="action-icon",
