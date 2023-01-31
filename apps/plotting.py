@@ -1272,7 +1272,8 @@ def draw_scores(object_data) -> dict:
                     visible=True
                 ),
             ),
-            showlegend=False
+            showlegend=False,
+            margin=dict(l=50, r=30, b=0, t=0),
         )
 
         graph = dcc.Graph(
@@ -1302,7 +1303,7 @@ def draw_scores(object_data) -> dict:
             withArrow=True,
             multiline=True,
             transition="fade",
-            transitionDuration=200,
+            transitionDuration=100,
             label=msg
         )
         out = dmc.Group([tooltip, graph])
