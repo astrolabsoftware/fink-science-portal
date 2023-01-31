@@ -1289,7 +1289,7 @@ def draw_scores(object_data) -> dict:
         """
         out = dbc.Row(
             [
-                dbc.Col(dbc.Markdown(msg), width=4),
+                dbc.Col(dcc.Markdown(msg), width=4),
                 dbc.Col(graph, width=8)
             ]
         )
