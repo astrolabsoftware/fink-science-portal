@@ -49,14 +49,7 @@ def card_sn_scores() -> html.Div:
         },
         config={'displayModeBar': False}
     )
-    graph_t2 = dcc.Graph(
-        id='t2',
-        style={
-            'width': '100%',
-            'height': '20pc'
-        },
-        config={'displayModeBar': False}
-    )
+    graph_t2 = html.Div(id='t2')
     graph_color = dcc.Graph(
         id='colors',
         style={

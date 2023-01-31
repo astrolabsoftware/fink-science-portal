@@ -1206,9 +1206,17 @@ def extract_max_t2(pdf):
     """
     """
     cols = [i for i in pdf.columns if i.startswith('d:t2')]
-    series = pdf[cols].apply(lambda x: np.array(x) == np.max(x), axis=1)
-    filt = series.apply(lambda x: np.sum(x) != 0)
-    df_tmp = pd.DataFrame(list(series[filt].values), columns=pdf[cols].columns).T.sum(axis=1)
+
+    if cols == []:
+        return pd.DataFrame()
+
+    filt = pdf[cols].apply(lambda x: np.sum(x) > 0, axis=1)
+
+    if pdf[filt].empty:
+        return pd.DataFrame()
+
+    series = pdf[cols][filt].apply(lambda x: np.array(x) == np.max(x), axis=1)
+    df_tmp = pd.DataFrame(list(series.values), columns=pdf[cols].columns).T.sum(axis=1)
     df = pd.DataFrame(
         {
             'r': df_tmp.values,
@@ -1242,9 +1250,27 @@ def draw_scores(object_data) -> dict:
 
     df = extract_max_t2(pdf)
 
-    figure = px.line_polar(df, r='r', theta='theta', line_close=True)
-    figure.update_traces(fill='toself')
-    return figure
+    if df.empty:
+        msg = """
+        No classification from T2 yet
+        """
+        out = dbc.Alert(msg, color="danger")
+    else:
+
+        figure = px.line_polar(df, r='r', theta='theta', line_close=True)
+        figure.update_traces(fill='toself')
+
+        out = dcc.Graph(
+            id='t2',
+            figure=figure,
+            style={
+                'width': '100%',
+                'height': '20pc'
+            },
+            config={'displayModeBar': False}
+        )
+
+    return out
 
 @app.callback(
     Output('colors', 'figure'),
