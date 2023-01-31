@@ -1273,7 +1273,7 @@ def draw_scores(object_data) -> dict:
                 ),
             ),
             showlegend=False,
-            margin=dict(l=10, r=10, b=10, t=10),
+            margin=dict(l=10, r=10, b=20, t=10),
         )
 
         graph = dcc.Graph(
@@ -1281,7 +1281,7 @@ def draw_scores(object_data) -> dict:
             figure=figure,
             style={
                 'width': '100%',
-                'height': '15pc'
+                'height': '20pc'
             },
             config={'displayModeBar': False}
         )
