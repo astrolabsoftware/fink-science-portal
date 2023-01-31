@@ -1206,11 +1206,13 @@ def extract_max_t2(pdf):
     """
     """
     cols = [i for i in pdf.columns if i.startswith('d:t2')]
-    series = pdf[cols].apply(lambda x: np.argmax(x))
+    series = pdf[cols].apply(lambda x: np.array(x) == np.max(x), axis=1)
+    filt = series.apply(lambda x: np.sum(x) != 0)
+    df_tmp = pd.DataFrame(list(series[filt].values), columns=pdf[cols].columns).T.sum(axis=1)
     df = pd.DataFrame(
         {
-            'r': series.values,
-            'theta': series.index
+            'r': df_tmp.values,
+            'theta': df_tmp.index
         },
         columns=['r', 'theta']
     )
