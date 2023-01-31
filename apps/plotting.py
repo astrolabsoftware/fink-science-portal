@@ -1260,7 +1260,7 @@ def draw_scores(object_data) -> dict:
         figure = go.Figure(
             data=go.Scatterpolar(
                 r=df.r,
-                theta=df.theta,
+                theta=[i.split('_')[-1] for i in df.theta],
                 fill='toself'
             )
         )
@@ -1305,7 +1305,7 @@ def draw_scores(object_data) -> dict:
             transitionDuration=200,
             label=msg
         )
-        out = html.Div([tooltip, graph])
+        out = dmc.Group([tooltip, graph])
 
     return out
 
