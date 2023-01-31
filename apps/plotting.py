@@ -1228,7 +1228,7 @@ def extract_max_t2(pdf):
     return df
 
 @app.callback(
-    Output('t2', 'figure'),
+    Output('t2', 'children'),
     [
         Input('object-data', 'children'),
     ])
@@ -1256,7 +1256,6 @@ def draw_scores(object_data) -> dict:
         """
         out = dbc.Alert(msg, color="danger")
     else:
-
         figure = px.line_polar(df, r='r', theta='theta', line_close=True)
         figure.update_traces(fill='toself')
 
