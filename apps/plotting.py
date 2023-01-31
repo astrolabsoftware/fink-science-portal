@@ -1274,7 +1274,7 @@ def draw_scores(object_data) -> dict:
             showlegend=False
         )
 
-        out = dcc.Graph(
+        graph = dcc.Graph(
             id='t2',
             figure=figure,
             style={
@@ -1282,6 +1282,16 @@ def draw_scores(object_data) -> dict:
                 'height': '25pc'
             },
             config={'displayModeBar': False}
+        )
+        msg = """
+        The radius gives the number of times a label was assigned the highest score from the T2 layer, among all alerts.
+        T2 was deployed in 2023/01, and previous alerts do not contained scores.
+        """
+        out = dbc.Row(
+            [
+                dbc.Col(dbc.Markdown(msg), width=4),
+                dbc.Col(graph, width=8)
+            ]
         )
 
     return out
