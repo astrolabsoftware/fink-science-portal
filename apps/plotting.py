@@ -1307,7 +1307,6 @@ def draw_scores(object_data) -> dict:
             label=msg
         )
         out = dmc.Center(
-            style={"height": '100%', "width": "100%"},
             children=[
                 dmc.Group(
                     [
