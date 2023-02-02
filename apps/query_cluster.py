@@ -711,8 +711,6 @@ def query_builder():
     """
     tab = html.Div(
         [
-            html.Br(),
-            html.Br(),
             dmc.Divider(variant="solid", label='Data Source'),
             dmc.RadioGroup(
                 [dmc.Radio(k, value=k, size='sm', color='orange') for k in ['ZTF', 'ELASTiCC']],
@@ -736,16 +734,39 @@ def mining_helper():
     this [post](https://fink-broker.org/2023-01-17-data-transfer) for more information.
     """
 
+    cite = """
+    You need an account to retrieve the data. See [fink-client](https://github.com/astrolabsoftware/fink-client) if you are not yet registered.
+    """
+
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionControl("Description"),
+                    dmc.AccordionControl(
+                        "Description",
+                        icon=[
+                            DashIconify(icon="material-symbols:info-outline", width=30, color='black')
+                        ]
+                    ),
                     dmc.AccordionPanel(
                         dcc.Markdown(msg, link_target="_blank")
                     ),
                 ],
                 value='description'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Log in",
+                        icon=[
+                            DashIconify(icon="bx:log-in-circle", width=30, color='orange')
+                        ]
+                    ),
+                    dmc.AccordionPanel(
+                        dcc.Markdown(cite, link_target="_blank")
+                    ),
+                ],
+                value='login'
             ),
         ],
     )
@@ -819,6 +840,8 @@ def layout(is_mobile):
                     left_side,
                     dbc.Col(
                         [
+                            html.Br(),
+                            html.Br(),
                             qb,
                             ft,
                             ct,
