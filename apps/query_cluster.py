@@ -734,18 +734,42 @@ def mining_helper():
     this [post](https://fink-broker.org/2023-01-17-data-transfer) for more information.
     """
 
+    cite = """
+    You need an account to retrieve the data. See [fink-client](https://github.com/astrolabsoftware/fink-client) if you are not yet registered.
+    """
+
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionControl("Description"),
+                    dmc.AccordionControl(
+                        "Description",
+                        icon=[
+                            DashIconify(icon="bx:info-circle", width=30, color='orange')
+                        ]
+                    ),
                     dmc.AccordionPanel(
                         dcc.Markdown(msg, link_target="_blank")
                     ),
                 ],
                 value='description'
             ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Log in",
+                        icon=[
+                            DashIconify(icon="bx:log-in-circle", width=30, color='orange')
+                        ]
+                    ),
+                    dmc.AccordionPanel(
+                        dcc.Markdown(cite, link_target="_blank")
+                    ),
+                ],
+                value='login'
+            ),
         ],
+        value='login'
     )
     return accordion
 
@@ -793,16 +817,9 @@ def layout(is_mobile):
     else:
         width_right = 8
         title = html.Div()
-        cite = """
-        See [fink-client](https://github.com/astrolabsoftware/fink-client) if you are not yet registered.
-        """
         left_side = dbc.Col(
             [
-                dmc.Blockquote(
-                    dcc.Markdown(cite, link_target="_blank"),
-                    icon=DashIconify(icon="bx:log-in-circle", width=30),
-                    color="orange",
-                ),
+                html.Br(),
                 html.Br(),
                 html.Div(id='timeline_data_transfer'),
                 html.Br(),
