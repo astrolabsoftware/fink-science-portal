@@ -809,6 +809,9 @@ def layout(is_mobile):
             'background-size': 'cover'
         }
 
+    msg = """
+    You need to register to retrieve the data. See [fink-client](https://github.com/astrolabsoftware/fink-client) if you have not done it yet.
+    """
     layout_ = html.Div(
         [
             html.Br(),
@@ -819,6 +822,7 @@ def layout(is_mobile):
                     left_side,
                     dbc.Col(
                         [
+                            dcc.Markdown(msg, link_target="_blank"),
                             qb,
                             ft,
                             ct,
