@@ -797,8 +797,6 @@ def layout(is_mobile):
         title = html.Div()
         left_side = dbc.Col(
             [
-                html.Br(),
-                html.Br(),
                 html.Div(id='timeline_data_transfer'),
                 html.Br(),
                 mining_helper(),
@@ -810,7 +808,7 @@ def layout(is_mobile):
         }
 
     msg = """
-    You need to register to retrieve the data. See [fink-client](https://github.com/astrolabsoftware/fink-client) if you have not done it yet.
+    You need an account to retrieve the data. See [fink-client](https://github.com/astrolabsoftware/fink-client) if you are not registered yet.
     """
     layout_ = html.Div(
         [
@@ -822,6 +820,8 @@ def layout(is_mobile):
                     left_side,
                     dbc.Col(
                         [
+                            html.Br(),
+                            html.Br(),
                             dcc.Markdown(msg, link_target="_blank"),
                             qb,
                             ft,
