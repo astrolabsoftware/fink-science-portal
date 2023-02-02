@@ -826,7 +826,7 @@ def layout(is_mobile):
                             html.Br(),
                             dmc.Blockquote(
                                 dcc.Markdown(cite, link_target="_blank"),
-                                icon=DashIconify(icon="ic:baseline-log-in", width=50),
+                                icon=DashIconify(icon="ic:baseline-log-in", width=20),
                                 color="orange",
                             ),
                             qb,
