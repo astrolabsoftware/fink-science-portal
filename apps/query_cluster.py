@@ -745,7 +745,7 @@ def mining_helper():
                     dmc.AccordionControl(
                         "Description",
                         icon=[
-                            DashIconify(icon="bx:info-circle", width=30, color='orange')
+                            DashIconify(icon="bx:info-circle", width=30, color='black')
                         ]
                     ),
                     dmc.AccordionPanel(
@@ -769,7 +769,6 @@ def mining_helper():
                 value='login'
             ),
         ],
-        value='login'
     )
     return accordion
 
