@@ -795,6 +795,8 @@ def layout(is_mobile):
         title = html.Div()
         left_side = dbc.Col(
             [
+                html.Br(),
+                html.Br(),
                 html.Div(id='timeline_data_transfer'),
                 html.Br(),
                 mining_helper(),
