@@ -745,7 +745,7 @@ def mining_helper():
                     dmc.AccordionControl(
                         "Description",
                         icon=[
-                            DashIconify(icon="bx:info-circle", width=30, color='black')
+                            DashIconify(icon="material-symbols:info-outline", width=30, color='black')
                         ]
                     ),
                     dmc.AccordionPanel(
