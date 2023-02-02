@@ -824,11 +824,9 @@ def layout(is_mobile):
                     dbc.Col(
                         [
                             html.Br(),
-                            html.Br(),
                             dmc.Blockquote(
-                                dcc.Markdown(msg, link_target="_blank"),
-                                icon=DashIconify(icon="ic:baseline-log-in", width=30),
-                                cite=dcc.Markdown(cite, link_target="_blank"),
+                                dcc.Markdown(cite, link_target="_blank"),
+                                icon=DashIconify(icon="ic:baseline-log-in", width=50),
                                 color="orange",
                             ),
                             qb,
