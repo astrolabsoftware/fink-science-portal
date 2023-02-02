@@ -656,7 +656,6 @@ def accordion_mobile():
                 value='external'
             ),
         ],
-        value='lightcurve',
         id="accordion-mobile",
     )
 
