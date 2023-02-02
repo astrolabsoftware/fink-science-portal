@@ -793,9 +793,16 @@ def layout(is_mobile):
     else:
         width_right = 8
         title = html.Div()
+        cite = """
+        See [fink-client](https://github.com/astrolabsoftware/fink-client) if you are not yet registered.
+        """
         left_side = dbc.Col(
             [
-                html.Br(),
+                dmc.Blockquote(
+                    dcc.Markdown(cite, link_target="_blank"),
+                    icon=DashIconify(icon="bx:log-in-circle", width=30),
+                    color="orange",
+                ),
                 html.Br(),
                 html.Div(id='timeline_data_transfer'),
                 html.Br(),
@@ -807,12 +814,6 @@ def layout(is_mobile):
             'background-size': 'cover'
         }
 
-    msg = """
-    You need an account to retrieve the data.
-    """
-    cite = """
-    See [fink-client](https://github.com/astrolabsoftware/fink-client) if you are not yet registered.
-    """
     layout_ = html.Div(
         [
             html.Br(),
@@ -824,11 +825,7 @@ def layout(is_mobile):
                     dbc.Col(
                         [
                             html.Br(),
-                            dmc.Blockquote(
-                                cite,
-                                icon=DashIconify(icon="ic:baseline-log-in", width=20),
-                                color="orange",
-                            ),
+                            html.Br(),
                             qb,
                             ft,
                             ct,
