@@ -811,7 +811,7 @@ def layout(is_mobile):
     You need an account to retrieve the data.
     """
     cite = """
-    See [fink-client](https://github.com/astrolabsoftware/fink-client) if you are not registered yet.
+    See [fink-client](https://github.com/astrolabsoftware/fink-client) if you are not yet registered.
     """
     layout_ = html.Div(
         [
@@ -825,7 +825,7 @@ def layout(is_mobile):
                         [
                             html.Br(),
                             dmc.Blockquote(
-                                dcc.Markdown(cite, link_target="_blank"),
+                                cite,
                                 icon=DashIconify(icon="ic:baseline-log-in", width=20),
                                 color="orange",
                             ),
