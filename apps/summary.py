@@ -593,7 +593,7 @@ def accordion_mobile():
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Lightcurve",
                         icon=[
                             DashIconify(
@@ -603,13 +603,13 @@ def accordion_mobile():
                             )
                         ],
                     ),
-                    dmc.AccordionControl(lightcurve),
+                    dmc.AccordionPanel(lightcurve),
                 ],
                 value="lightcurve"
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Last alert properties",
                         icon=[
                             DashIconify(
@@ -619,13 +619,13 @@ def accordion_mobile():
                             )
                         ],
                     ),
-                    dmc.AccordionControl(information),
+                    dmc.AccordionPanel(information),
                 ],
                 value='info'
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "Aladin Lite",
                         icon=[
                             DashIconify(
@@ -635,13 +635,13 @@ def accordion_mobile():
                             )
                         ],
                     ),
-                    dmc.AccordionControl(aladin),
+                    dmc.AccordionPanel(aladin),
                 ],
                 value='aladin'
             ),
             dmc.AccordionItem(
                 [
-                    dmc.AccordionPanel(
+                    dmc.AccordionControl(
                         "External links",
                         icon=[
                             DashIconify(
@@ -651,7 +651,7 @@ def accordion_mobile():
                             )
                         ],
                     ),
-                    dmc.AccordionControl(external),
+                    dmc.AccordionPanel(external),
                 ],
                 value='external'
             ),
