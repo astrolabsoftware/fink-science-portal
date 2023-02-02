@@ -711,8 +711,6 @@ def query_builder():
     """
     tab = html.Div(
         [
-            html.Br(),
-            html.Br(),
             dmc.Divider(variant="solid", label='Data Source'),
             dmc.RadioGroup(
                 [dmc.Radio(k, value=k, size='sm', color='orange') for k in ['ZTF', 'ELASTiCC']],
