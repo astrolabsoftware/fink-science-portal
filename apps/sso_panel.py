@@ -39,7 +39,7 @@ def store_lighcurves_query(name):
     )
 
     # Format output in a DataFrame
-    pdf_lc = pd.read_json(io.BytesIO(r_lc.content))# .drop_duplicates("d:candid")
+    pdf_lc = pd.read_json(io.BytesIO(r_lc.content))  # .drop_duplicates("d:candid")
 
     return pdf_lc.to_json()
 
@@ -61,7 +61,7 @@ def store_orbit_query(url):
     )
 
     # Format output in a DataFrame
-    pdf_orb = pd.read_json(io.BytesIO(r_orb.content))# .drop_duplicates(
+    pdf_orb = pd.read_json(io.BytesIO(r_orb.content))  # .drop_duplicates(
     #     ["d:a", "d:e", "d:i"]
     # )
     # pdf_orb = pdf_orb[pdf_orb["d:trajectory_id"].isin(pdf_lc["d:trajectory_id"])]
@@ -255,8 +255,8 @@ def results(json_lc):
 def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
 
     hovertemplate = r"""
-    <b>%{xaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{yaxis.title.text}</b>: %{x:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
     <b>ssoCandId</b>: %{customdata}
     <extra></extra>
     """
@@ -296,7 +296,7 @@ def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
             visible="legendonly",
             opacity=0.5,
             marker=dict(color="rgba(152, 0, 0, .5)"),
-            hoverinfo="skip"
+            hoverinfo="skip",
         )
     )
 
@@ -338,7 +338,14 @@ def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
         xaxis={"title": custom_title[xdata], "automargin": True},
     )
 
-    return {"data": data, "layout": layout_sso_ae}
+    fig = go.Figure(data=data, layout=layout_sso_ae)
+
+    if xdata == "a" or xdata == "i":
+        fig.update_xaxes(type="log")
+    if ydata == "a" or ydata == "i":
+        fig.update_yaxes(type="log")
+
+    return fig
 
 
 @app.callback(
@@ -355,13 +362,13 @@ def construct_ae_distrib(json_orb, json_mpc):
     graph = dcc.Graph(figure=fig, config={"displayModeBar": False}, id="stats_sso")
     card = dmc.Paper(graph, radius="xl", p="md", shadow="xl", withBorder=True)
 
-    xaxis_drop = dcc.Dropdown(["a", "e", "i"], id="xaxis_data")
+    xaxis_drop = dcc.Dropdown(["a", "e", "i"], id="xaxis_data", searchable=False)
 
-    yaxis_drop = dcc.Dropdown(["a", "e", "i"], id="yaxis_data")
+    yaxis_drop = dcc.Dropdown(["a", "e", "i"], id="yaxis_data", searchable=False)
 
     # add a time slider to filter the SSO trajectories by date in the a/e plot.
 
-    div = html.Div([card, xaxis_drop, yaxis_drop])
+    div = dbc.Row([dbc.Col(card, width=15), dbc.Col([xaxis_drop, yaxis_drop], width=1)], className="g-9")
     return div
 
 
@@ -537,24 +544,16 @@ def sso_identify(pdf_lc):
 
 
 def draw_new_ssocard(
-    ssoCandId, ref_epoch, semi_major, semi_maj_error, ecc, ecc_error, incl, incl_error
+    pdf_lc,
+    ssoCandId,
+    ref_epoch,
+    semi_major,
+    semi_maj_error,
+    ecc,
+    ecc_error,
+    incl,
+    incl_error,
 ):
-
-    r_lc = requests.post(
-        "https://fink-portal.org/api/v1/ssocand",
-        json={
-            "kind": "lightcurves",  # Mandatory, `orbParams` or `lightcurves`
-            "ssoCandId": ssoCandId,
-        },
-    )
-
-    # Format output in a DataFrame
-    pdf_lc = (
-        pd.read_json(io.BytesIO(r_lc.content))
-        .drop_duplicates("d:candid")
-        .reset_index(drop=True)
-        .sort_values("d:jd")
-    )
 
     new_detection_badge = dmc.Badge(
         "New detection",
@@ -655,12 +654,30 @@ def draw_new_ssocard(
             ),
             html.Div(new_detection_badge),
             dmc.Accordion(
-                state={"0": True, "1": False, "2": False},
+                value="Date",
                 children=[
-                    dmc.AccordionItem(date_info, label="Date"),
-                    dmc.AccordionItem(orbit_info, label="Orbit"),
-                    dmc.AccordionItem(mag_info, label="Magnitude"),
-                    dmc.AccordionItem(identification_info, label="Identification"),
+                    dmc.AccordionItem(
+                        [dmc.AccordionControl("Date"), dmc.AccordionPanel(date_info)],
+                        value="Date",
+                    ),
+                    dmc.AccordionItem(
+                        [dmc.AccordionControl("Orbit"), dmc.AccordionPanel(orbit_info)],
+                        value="Orbit",
+                    ),
+                    dmc.AccordionItem(
+                        [
+                            dmc.AccordionControl("Magnitude"),
+                            dmc.AccordionPanel(mag_info),
+                        ],
+                        value="Magnitude",
+                    ),
+                    dmc.AccordionItem(
+                        [
+                            dmc.AccordionControl("Identification"),
+                            dmc.AccordionPanel(identification_info),
+                        ],
+                        value="Identification",
+                    ),
                 ],
             ),
         ],
@@ -671,10 +688,16 @@ def draw_new_ssocard(
     )
 
 
-@app.callback(Output("last_sso_list", "children"), Input("pdf_orb", "data"))
-def last_sso_list_component(orb_json):
+@app.callback(
+    Output("last_sso_list", "children"),
+    [Input("pdf_orb", "data"), Input("pdf_lc", "data")],
+)
+def last_sso_list_component(orb_json, lc_json):
+
     orb_data = pd.read_json(orb_json)
     orb_data = orb_data.sort_values("d:ref_epoch")
+
+    lc_data = pd.read_json(lc_json)
 
     last_sso_orb = orb_data.tail().sort_values("d:ref_epoch", ascending=False)
 
@@ -682,7 +705,20 @@ def last_sso_list_component(orb_json):
         html.Div(
             [
                 html.Br(),
-                draw_new_ssocard(ssoId, ref_epoch, a, a_err, e, e_err, i, i_err),
+                draw_new_ssocard(
+                    lc_data[lc_data["d:ssoCandId"] == ssoId]
+                    .drop_duplicates("d:candid")
+                    .reset_index(drop=True)
+                    .sort_values("d:jd"),
+                    ssoId,
+                    ref_epoch,
+                    a,
+                    a_err,
+                    e,
+                    e_err,
+                    i,
+                    i_err,
+                ),
             ]
         )
         for ssoId, ref_epoch, a, a_err, e, e_err, i, i_err in zip(
@@ -832,19 +868,17 @@ def column_orbit_component(pdf_orb):
 
     orb_cols = pdf_orb.columns
 
-    orb_cols_group = dmc.Chips(
-        data=[
-            {"value": x, "label": x}
+    orb_cols_group = dmc.ChipGroup(
+        [
+            dmc.Chip(
+                x, color="orange", value=x, radius="xl", variant="outline", size="xs"
+            )
             for x in orb_cols
         ],
         id="orbit_columns_chips",
-        value=['d:ssoCandId', 'd:isoTime'],
-        color="orange",
-        radius="xl",
-        size="xs",
+        value=["d:ssoCandId", "d:isoTime"],
+        position="center",
         spacing="xs",
-        variant="outline",
-        position='center',
         multiple=True,
     )
     return orb_cols_group
@@ -979,16 +1013,17 @@ def apply_filter_to_table(orb_json, filter_list_v_comp, with_error):
         )
 
 
-@app.callback(
-    Output("ssocand_table", "columns"),
-    Input("orbit_columns_chips", "value")
-)
+@app.callback(Output("ssocand_table", "columns"), Input("orbit_columns_chips", "value"))
 def apply_columns_filter(selected_columns):
 
-    new_columns = [{"name": cols, "id": cols, "presentation": "markdown"} if cols == "d:ssoCandId" else {"name": cols, "id": cols} for cols in selected_columns]
+    new_columns = [
+        {"name": cols, "id": cols, "presentation": "markdown"}
+        if cols == "d:ssoCandId"
+        else {"name": cols, "id": cols}
+        for cols in selected_columns
+    ]
 
     return new_columns
-
 
 
 @app.callback(
@@ -1006,7 +1041,7 @@ def build_filter_and_search(orb_json):
             dbc.Tab(search_ssocand_component(), label="Id filter"),
             dbc.Tab(search_sso_by_date_component(pdf_orb), label="Date filter"),
             dbc.Tab(search_orbit_component(), label="Property filter"),
-            dbc.Tab(column_orbit_component(pdf_orb), label="Column filter")
+            dbc.Tab(column_orbit_component(pdf_orb), label="Column filter"),
         ]
     )
 

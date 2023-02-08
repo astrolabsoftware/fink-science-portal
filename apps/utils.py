@@ -40,6 +40,7 @@ from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astropy.time import Time
 
 from fink_filters.classification import extract_fink_classification_
+from fink_utils.sso.utils import get_miriade_data, query_miriade
 
 hbase_type_converter = {
     'integer': int,
@@ -808,135 +809,6 @@ def extract_query_url(search: str):
 
     return query, query_type.replace('%20', ' '), dropdown_option
 
-def query_miriade(ident, jd, observer='I41', rplane='1', tcoor=5):
-    """ Gets asteroid or comet ephemerides from IMCCE Miriade for a suite of JD for a single SSO
-    Original function by M. Mahlke
-
-    Limitations:
-        - Color ephemerides are returned only for asteroids
-        - Temporary designations (C/... or YYYY...) do not have ephemerides available
-
-    Parameters
-    ----------
-    ident: int, float, str
-        asteroid or comet identifier
-    jd: array
-        dates to query
-    observer: str
-        IAU Obs code - default to ZTF: https://minorplanetcenter.net//iau/lists/ObsCodesF.html
-    rplane: str
-        Reference plane: equator ('1'), ecliptic ('2').
-        If rplane = '2', then tcoor is automatically set to 1 (spherical)
-    tcoor: int
-        See https://ssp.imcce.fr/webservices/miriade/api/ephemcc/
-        Default is 5 (dedicated to observation)
-
-    Returns
-    ----------
-    pd.DataFrame
-        Input dataframe with ephemerides columns
-        appended False if query failed somehow
-    """
-    # Miriade URL
-    url = 'https://ssp.imcce.fr/webservices/miriade/api/ephemcc.php'
-
-    if rplane == '2':
-        tcoor = '1'
-
-    # Query parameters
-    if ident.endswith('P') or ident.startswith('C/'):
-        otype = 'c'
-    else:
-        otype = 'a'
-    params = {
-        '-name': f'{otype}:{ident}',
-        '-mime': 'json',
-        '-rplane': rplane,
-        '-tcoor': tcoor,
-        '-output': '--jd,--colors(SDSS:r,SDSS:g)',
-        '-observer': observer,
-        '-tscale': 'UTC'
-    }
-
-    # Pass sorted list of epochs to speed up query
-    # Add 15 seconds, which is half of the exposure time for ZTF
-    shift = 15.0 / 24 / 3600
-    files = {
-        'epochs': ('epochs', '\n'.join(['{:.6f}'.format(epoch + shift) for epoch in jd]))
-    }
-
-    # Execute query
-    try:
-        r = requests.post(url, params=params, files=files, timeout=2000)
-    except requests.exceptions.ReadTimeout:
-        return False
-
-    j = r.json()
-
-    # Read JSON response
-    try:
-        ephem = pd.DataFrame.from_dict(j['data'])
-    except KeyError:
-        return pd.DataFrame()
-
-    return ephem
-
-def get_miriade_data(pdf):
-    """ Add ephemerides information from Miriade to a Pandas DataFrame with SSO lightcurve
-
-    Parameters
-    ----------
-    pdf: pd.DataFrame
-        Pandas DataFrame containing Fink alert data for a (or several) SSO
-
-    Returns
-    ----------
-    out: pd.DataFrame
-        DataFrame of the same length, but with new columns from the ephemerides service.
-    """
-    ssnamenrs = np.unique(pdf['i:ssnamenr'].values)
-    ztf_code = 'I41'
-
-    infos = []
-    for ssnamenr in ssnamenrs:
-        mask = pdf['i:ssnamenr'] == ssnamenr
-        pdf_sub = pdf[mask]
-
-        eph = query_miriade(ssnamenr, pdf_sub['i:jd'], observer=ztf_code)
-
-        if not eph.empty:
-            sc = SkyCoord(eph['RA'], eph['DEC'], unit=(u.deg, u.deg))
-
-            eph = eph.drop(columns=['RA', 'DEC'])
-            eph['RA'] = sc.ra.value * 15
-            eph['Dec'] = sc.dec.value
-
-            # Add Ecliptic coordinates
-            eph_ec = query_miriade(ssnamenr, pdf_sub['i:jd'], rplane='2')
-
-            sc = SkyCoord(eph_ec['Longitude'], eph_ec['Latitude'], unit=(u.deg, u.deg))
-            eph['Longitude'] = sc.ra.value
-            eph['Latitude'] = sc.dec.value
-
-            # Merge fink & Eph
-            info = pd.concat([eph.reset_index(), pdf_sub.reset_index()], axis=1)
-
-            # index has been duplicated obviously
-            info = info.loc[:, ~info.columns.duplicated()]
-
-            # Compute magnitude reduced to unit distance
-            info['i:magpsf_red'] = info['i:magpsf'] - 5 * np.log10(info['Dobs'] * info['Dhelio'])
-            infos.append(info)
-        else:
-            infos.append(pdf_sub)
-
-    if len(infos) > 1:
-        info_out = pd.concat(infos)
-    else:
-        info_out = infos[0]
-
-    return info_out
-
 def sine_fit(x, a, b):
     """ Sinusoidal function a*sin( 2*(x-b) )
     :x: float - in degrees
@@ -945,26 +817,6 @@ def sine_fit(x, a, b):
 
     """
     return a * np.sin(2 * np.radians(x - b))
-
-def phi1(alpha):
-    """ simple form only
-    """
-    return 1 - 6 * alpha / np.pi
-
-def phi2(alpha):
-    """ simple form only
-    """
-    return 1 - 9 * alpha / (5 * np.pi)
-
-def phi3(alpha):
-    """ simple form only
-    """
-    return 1 - np.exp(-4 * np.pi * np.tan(alpha / 2)**(2./3))
-
-def Vmag(alpha, H, G1, G2):
-    """ Only phase part
-    """
-    return H - 2.5 * np.log10(G1 * phi1(alpha) + G2 * phi2(alpha) + (1 - G1 - G2) * phi3(alpha))
 
 def pil_to_b64(im, enc_format="png", **kwargs):
     """ Converts a PIL Image into base64 string for HTML displaying

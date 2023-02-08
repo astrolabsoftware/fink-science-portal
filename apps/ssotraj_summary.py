@@ -42,6 +42,7 @@ from PIL import Image
 
 from apps.sso_panel import sso_identify
 
+
 def get_cutout(objId_list):
 
     # get data for many objects
@@ -56,8 +57,7 @@ def get_cutout(objId_list):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
-
+    pdf = pd.read_json(io.BytesIO(r.content))
     return pdf
 
 
@@ -118,9 +118,9 @@ def plot_sso_timeline_classbar(pdf, is_mobile):
     alert_per_class = grouped["i:objectId"].to_dict()
 
     # descending date values
-    top_labels = pdf["v:classification"].values# [::-1]
+    top_labels = pdf["v:classification"].values  # [::-1]
     customdata = (
-        pdf["i:jd"].apply(lambda x: convert_jd(float(x), to="iso")).values# [::-1]
+        pdf["i:jd"].apply(lambda x: convert_jd(float(x), to="iso")).values  # [::-1]
     )
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
@@ -223,7 +223,18 @@ def construct_objectId_drawer(cutout_json):
             children=[
                 dmc.Text(
                     [
-                        "{}".format(Time(pdf_cutout[(pdf_cutout["i:objectId"] == objId) & (pdf_cutout["v:classification"] == "Solar System candidate")]["i:jd"].values[0], format="jd").iso)
+                        "{}".format(
+                            Time(
+                                pdf_cutout[
+                                    (pdf_cutout["i:objectId"] == objId)
+                                    & (
+                                        pdf_cutout["v:classification"]
+                                        == "Solar System candidate"
+                                    )
+                                ]["i:jd"].values[0],
+                                format="jd",
+                            ).iso
+                        )
                     ],
                     color="dimmed",
                     size="sm",
@@ -232,7 +243,9 @@ def construct_objectId_drawer(cutout_json):
                     [
                         dbc.Col(
                             dcc.Graph(
-                                figure=plot_sso_timeline_classbar(pdf_cutout[pdf_cutout["i:objectId"] == objId], False),
+                                figure=plot_sso_timeline_classbar(
+                                    pdf_cutout[pdf_cutout["i:objectId"] == objId], False
+                                ),
                                 style={"width": "100%", "height": "4pc"},
                                 config={"displayModeBar": False},
                             ),
@@ -267,7 +280,7 @@ def construct_objectId_drawer(cutout_json):
             html.Br(),
             html.Br(),
         ],
-        style={"overflow": "scroll", "height": "100%"}
+        style={"overflow": "scroll", "height": "100%"},
     )
 
 
@@ -334,15 +347,15 @@ def construct_card_title(pathname, json_lc, json_orb):
             dmc.Drawer(
                 title="ObjectId Trajectory Timeline",
                 id="drawer_objectId",
-                lockScroll = False,
+                lockScroll=False,
                 padding="md",
-                size="40%"
+                size="40%",
             ),
         ],
         radius="xl",
         p="md",
         shadow="xl",
-        withBorder=True
+        withBorder=True,
     )
 
     return [card, html.Div(id="ssotraj_card")]
@@ -471,8 +484,8 @@ def lc_tab_content(pdf_lc, pdf_cutout):
         cond = pdf_lc["d:fid"] == band
 
         date = pdf_lc[cond]["d:jd"].apply(lambda x: convert_jd(float(x), to="iso"))
-        mag = pdf_lc[cond]["d:dcmag"]
-        err = pdf_lc[cond]["d:dcmag_err"]
+        mag = pdf_lc[cond]["d:magpsf"]
+        err = pdf_lc[cond]["d:sigmapsf"]
 
         obs = {
             "x": date,
@@ -533,14 +546,11 @@ def lc_tab_content(pdf_lc, pdf_cutout):
 
 
 @app.callback(
-    Output('aladin-sso-lite', 'run'), 
-    [
-        Input('traj_lc', 'data'), 
-        Input("sso_summary_tabs", "active-tab")
-    ]
+    Output("aladin-sso-lite", "run"),
+    [Input("traj_lc", "data"), Input("sso_summary_tabs", "active-tab")],
 )
 def integrate_sso_aladin(lc_json, active_tab):
-    """ Integrate aladin light in the 2nd Tab of the dashboard.
+    """Integrate aladin light in the 2nd Tab of the dashboard.
 
     the default parameters are:
         * PanSTARRS colors
@@ -562,15 +572,19 @@ def integrate_sso_aladin(lc_json, active_tab):
         pdf_lc = pd.read_json(lc_json)
 
         # Coordinate of the current alert
-        ra0 = pdf_lc['d:ra'].values[0]
-        dec0 = pdf_lc['d:dec'].values[0]
+        ra0 = pdf_lc["d:ra"].values[0]
+        dec0 = pdf_lc["d:dec"].values[0]
 
         ssocand_markers = """
             var sso_cat = A.catalog({{name: 'ssoCand markers', sourceSize: 18, onClick: 'showPopup', color: '{}'}});\n
             aladin.addCatalog(sso_cat);\n
-            """.format(class_colors['Solar System trajectory'])
+            """.format(
+            class_colors["Solar System trajectory"]
+        )
 
-        for ra, dec, jd, objectId in zip(pdf_lc['d:ra'], pdf_lc['d:dec'], pdf_lc["d:jd"], pdf_lc["d:objectId"]):
+        for ra, dec, jd, objectId in zip(
+            pdf_lc["d:ra"], pdf_lc["d:dec"], pdf_lc["d:jd"], pdf_lc["d:objectId"]
+        ):
 
             ssocand_markers += """
             sso_cat.addSources(
@@ -579,10 +593,13 @@ def integrate_sso_aladin(lc_json, active_tab):
                     popupTitle: '{}', 
                     popupDesc: 'More info in <a target="_blank" href="https://fink-portal.org/{}"> Fink</a>'
                 }})]);\n
-            """.format(ra, dec, objectId, objectId)
+            """.format(
+                ra, dec, objectId, objectId
+            )
 
-            ssocand_markers += """aladin.addCatalog(A.catalogFromSkyBot({}, {}, {}, {}, {{"-loc": 'I41'}}, {{sourceSize: 10, onClick: "showTable", shape: "plus", displayLabel: true, labelColumn: 'Name', labelColor: '#ae4', labelFont: '12px sans-serif'}}));\n""".format(ra, dec, 1/60, jd)
-
+            ssocand_markers += """aladin.addCatalog(A.catalogFromSkyBot({}, {}, {}, {}, {{"-loc": 'I41'}}, {{sourceSize: 10, onClick: "showTable", shape: "plus", displayLabel: true, labelColumn: 'Name', labelColor: '#ae4', labelFont: '12px sans-serif'}}));\n""".format(
+                ra, dec, 1 / 60, jd
+            )
 
         # Javascript. Note the use {{}} for dictionary
         img = """
@@ -599,13 +616,15 @@ def integrate_sso_aladin(lc_json, active_tab):
                 reticleColor: '#ff89ff',
                 reticleSize: 32
             }}
-        );""".format(ra0, dec0)
+        );""".format(
+            ra0, dec0
+        )
 
         img += ssocand_markers
 
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
-        img_to_show = [i for i in img.split('\n') if '// ' not in i]
+        img_to_show = [i for i in img.split("\n") if "// " not in i]
 
         return " ".join(img_to_show)
     else:
@@ -614,13 +633,15 @@ def integrate_sso_aladin(lc_json, active_tab):
 
 def display_sso_skymap():
 
-    return dbc.Container(html.Div(
-        [visdcc.Run_js(id="aladin-sso-lite")],
-        style={
-            "width": "100%",
-            "height": "50pc",
-        },
-    ))
+    return dbc.Container(
+        html.Div(
+            [visdcc.Run_js(id="aladin-sso-lite")],
+            style={
+                "width": "100%",
+                "height": "50pc",
+            },
+        )
+    )
 
 
 def astr_tab_content(pdf_lc):
@@ -861,13 +882,6 @@ def orb_tab_content(pdf_orb):
 
 def df_to_orb(df_orb):
 
-    print()
-    print("------------")
-    print(df_orb)
-    print(df_orb.columns)
-    print("------------")
-    print()
-
     prep_to_orb = df_orb[
         [
             "d:ssoCandId",
@@ -928,7 +942,7 @@ def generate_ephem(pdf_traj, start: str, stop: str, step: float, location="I41")
 
 
 def ephemeris_content():
-    
+
     sso_datepicker = dmc.DateRangePicker(
         id="ephemeries_select_date",
         value=[datetime.now().date(), datetime.now().date() + timedelta(days=5)],
@@ -937,7 +951,7 @@ def ephemeris_content():
     data_select = [
         {"value": "minute", "label": "minute"},
         {"value": "hour", "label": "hour"},
-        {"value": "day", "label": "day"}
+        {"value": "day", "label": "day"},
     ]
 
     input_group = dbc.InputGroup(
@@ -951,23 +965,29 @@ def ephemeris_content():
 
     gen_ephem_form = dmc.Container(input_group, style={"margin-top": "1%"})
     download_button = dmc.Button("Download ephemeries", id="download_ephem")
-    download_comp = dcc.Download(id="download_df_ephem"),
+    download_comp = (dcc.Download(id="download_df_ephem"),)
 
-    return dmc.Container(dbc.Col([
-        dbc.Row(gen_ephem_form),
-        html.Div(id="gen_feedback"),
-        dbc.Row(download_button, style={"width": "30%", "margin-top": "1%"}),
-        dbc.Row(download_comp)
-    ]))
+    return dmc.Container(
+        dbc.Col(
+            [
+                dbc.Row(gen_ephem_form),
+                html.Div(id="gen_feedback"),
+                dbc.Row(download_button, style={"width": "30%", "margin-top": "1%"}),
+                dbc.Row(download_comp),
+                html.Div(
+                    [dcc.Graph(id="earth_skymap_obs")],
+                    id="div_skymap",
+                    style={"display": "none"},
+                ),
+            ]
+        )
+    )
 
 
 @app.callback(
     Output("download_df_ephem", "data"),
-    [   
-        Input("download_ephem", "n_clicks"),
-        Input("ephem_data", "data")
-    ],
-    prevent_initial_call=True
+    [Input("download_ephem", "n_clicks"), Input("ephem_data", "data")],
+    prevent_initial_call=True,
 )
 def download_ephem_data(b_click, ephem_json):
 
@@ -980,23 +1000,23 @@ def download_ephem_data(b_click, ephem_json):
         raise PreventUpdate
 
 
-
 @app.callback(
     [
         Output("ephem_data", "data"),
-        Output("gen_feedback", "children")
+        Output("gen_feedback", "children"),
+        Output("div_skymap", "style"),
     ],
     [
         Input("traj_orb", "data"),
         Input("ephemeries_select_date", "value"),
         Input("ephem_step_num", "value"),
         Input("select_step_unit", "value"),
-        Input("gen_ephem_button", "n_clicks")
+        Input("gen_ephem_button", "n_clicks"),
     ],
     prevent_initial_call=True,
 )
 def gen_and_store_ephem(orb_json, date_ephem, ephem_step, ephem_unit, b_click):
-    
+
     comp_id = ctx.triggered_id
     if comp_id == "gen_ephem_button":
 
@@ -1008,22 +1028,21 @@ def gen_and_store_ephem(orb_json, date_ephem, ephem_step, ephem_unit, b_click):
             ephem_step = ephem_step / 60 / 24
         elif ephem_unit == "hour":
             ephem_step = ephem_step / 24
-        
+
         ephem, _ = generate_ephem(pdf_orb, start_ephem, stop_ephem, ephem_step)
 
         ephem_json = ephem.to_json()
 
-        
         feedback_gen_ephem = dmc.Text(
-            "Ephemeries generated;  {} point;  In Memory size: {:.3f} MB".format(len(ephem), sys.getsizeof(ephem_json) / 10e6),
-            size="md"
+            "Ephemeries generated;  {} point;  In Memory size: {:.3f} MB".format(
+                len(ephem), sys.getsizeof(ephem_json) / 10e6
+            ),
+            size="md",
         )
 
-        return ephem_json, feedback_gen_ephem
+        return ephem_json, feedback_gen_ephem, {"display": "block"}
     else:
         raise PreventUpdate
-
-
 
 
 @app.callback(
@@ -1043,16 +1062,18 @@ def tabs(json_lc, json_orb, json_cutout):
 
     tabs_ = dbc.Tabs(
         [
-            dbc.Tab(lc_tab_content(pdf_lc, pdf_cutout), label="Lightcurve", tab_id='t0'),
-            dbc.Tab(astr_tab_content(pdf_lc), label="Astrometry", tab_id='t1'),
-            dbc.Tab(dynamic_tab, label="Dynamics", tab_id='t2'),
-            dbc.Tab(orb_tab_content(pdf_orb), label="Orbit", tab_id='t3'),
-            dbc.Tab(ephemeris_content(), label="Ephemeris", tab_id='ephemeries_tabs_4')
+            dbc.Tab(
+                lc_tab_content(pdf_lc, pdf_cutout), label="Lightcurve", tab_id="t0"
+            ),
+            dbc.Tab(astr_tab_content(pdf_lc), label="Astrometry", tab_id="t1"),
+            dbc.Tab(dynamic_tab, label="Dynamics", tab_id="t2"),
+            dbc.Tab(orb_tab_content(pdf_orb), label="Orbit", tab_id="t3"),
+            dbc.Tab(ephemeris_content(), label="Ephemeris", tab_id="ephemeries_tabs_4"),
         ],
         id="sso_summary_tabs",
         # position="right",
         # variant="outline",
-        active_tab='t0'
+        active_tab="t0",
     )
     return tabs_
 
@@ -1110,7 +1131,10 @@ def card_ssotraj_params(pdf_orb):
     return card
 
 
-@app.callback(Output("ssotraj_card", "children"), [Input("traj_orb", "data"), Input("traj_lc", "data")])
+@app.callback(
+    Output("ssotraj_card", "children"),
+    [Input("traj_orb", "data"), Input("traj_lc", "data")],
+)
 def construct_ssotraj_card(json_orb, json_lc):
     pdf_orb = pd.read_json(json_orb)
     pdf_lc = pd.read_json(json_lc)
@@ -1138,17 +1162,16 @@ pdf = pd.read_json(io.BytesIO(r.content))""".format(
     curl_download = """Not available"""
 
     download_tab = dmc.Tabs(
-        color="red",
-        children=[
-            dmc.Tab(
-                label="Python",
-                children=dmc.Prism(children=python_download, language="python"),
+        [
+            dmc.TabsList(
+                [dmc.Tab("Python", value="python"), dmc.Tab("Curl", value="curl")]
             ),
-            dmc.Tab(
-                label="Curl",
-                children=dmc.Prism(children=curl_download, language="bash"),
+            dmc.TabsPanel(
+                dmc.Prism(python_download, language="python"), value="python"
             ),
+            dmc.TabsPanel(dmc.Prism(curl_download, language="bash"), value="curl"),
         ],
+        color="red",
     )
 
     identification_info = sso_identify(pdf_lc)
@@ -1156,62 +1179,76 @@ pdf = pd.read_json(io.BytesIO(r.content))""".format(
     extra_items = [
         dmc.AccordionItem(
             [
-                dmc.Paper(
-                    identification_info, radius="xl", p="md", shadow="xl", withBorder=True
-                )
-            ],
-            label="Neighbourhood",
-            icon=[
-                DashIconify(
-                    icon="tabler:target",
-                    color=dmc.theme.DEFAULT_COLORS["green"][6],
-                    width=20,
-                )
-            ],
-        ),
-        dmc.AccordionItem(
-            [
-                dmc.Paper(
-                    download_tab, radius="xl", p="md", shadow="xl", withBorder=True
-                )
-            ],
-            label="Download data",
-            icon=[
-                DashIconify(
-                    icon="tabler:database-export",
-                    color=dmc.theme.DEFAULT_COLORS["red"][6],
-                    width=20,
-                )
-            ],
-        )
-    ]
-
-
-    card = dmc.Accordion(
-        state={"0": True, **{"{}".format(i + 1): False for i in range(4)}},
-        multiple=True,
-        offsetIcon=False,
-        disableIconRotation=True,
-        children=[
-            dmc.AccordionItem(
-                [
+                dmc.AccordionControl(
+                    "Neighbourhood",
+                    icon=[
+                        DashIconify(
+                            icon="tabler:target",
+                            color=dmc.theme.DEFAULT_COLORS["green"][6],
+                            width=20,
+                        )
+                    ],
+                ),
+                dmc.AccordionPanel(
                     dmc.Paper(
-                        children=card_ssotraj_params(pdf_orb),
-                        id="ssotraj_params",
+                        identification_info,
                         radius="xl",
                         p="md",
                         shadow="xl",
                         withBorder=True,
                     )
-                ],
-                label="Orbit parameters",
-                icon=[
-                    DashIconify(
-                        icon="majesticons:comet",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
+                ),
+            ],
+            value="Neighbourhood",
+        ),
+        dmc.AccordionItem(
+            [
+                dmc.AccordionControl(
+                    "Download data",
+                    icon=[
+                        DashIconify(
+                            icon="tabler:database-export",
+                            color=dmc.theme.DEFAULT_COLORS["red"][6],
+                            width=20,
+                        )
+                    ],
+                ),
+                dmc.AccordionPanel(
+                    dmc.Paper(
+                        download_tab, radius="xl", p="md", shadow="xl", withBorder=True
                     )
+                ),
+            ],
+            value="Download data",
+        ),
+    ]
+
+    card = dmc.AccordionMultiple(
+        children=[
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Orbit parameters",
+                        icon=[
+                            DashIconify(
+                                icon="majesticons:comet",
+                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        dmc.Paper(
+                            children=card_ssotraj_params(pdf_orb),
+                            id="ssotraj_params",
+                            radius="xl",
+                            p="md",
+                            shadow="xl",
+                            withBorder=True,
+                        )
+                    ),
                 ],
+                value="Orbit parameters",
             ),
             *extra_items,
         ],
@@ -1266,7 +1303,7 @@ def layout(is_mobile):
                 dcc.Store("traj_lc"),
                 dcc.Store("traj_orb"),
                 dcc.Store("traj_img"),
-                dcc.Store("ephem_data")
+                dcc.Store("ephem_data"),
             ],
             className="home",
             style={

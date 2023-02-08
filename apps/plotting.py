@@ -30,14 +30,16 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from apps.utils import apparent_flux, dc_mag
-from apps.utils import sine_fit, Vmag
+from apps.utils import sine_fit
 from apps.utils import class_colors
-
 from apps.statistics import dic_names
 from app import APIURL
+
+from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, add_ztf_color_correction, estimate_sso_params
 
 from pyLIMA import event
 from pyLIMA import telescopes
@@ -51,6 +53,7 @@ from sbpy.data import Obs
 from app import client, app, clientSSO, clientStats
 
 COLORS_ZTF = ['#15284F', '#F5622E']
+COLORS_ZTF_RGB = ['rgba(21, 40, 79, 1, 0.2)', 'rgba(245, 98, 46, 1, 0.2)']
 
 colors_ = [
     "rgb(165,0,38)",
@@ -327,7 +330,38 @@ layout_sso_phasecurve = dict(
         'autorange': 'reversed',
         'title': 'observed V [mag]',
         'automargin': True
+    },
+    title={
+        "text": r"Reduced $\chi^2$",
+        "y": 1.01,
+        "yanchor": "bottom"
     }
+)
+
+layout_sso_phasecurve_residual = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    xaxis={
+        'title': 'Phase angle [degree]',
+        'automargin': True
+    },
+    yaxis={
+        'range': [-1, 1],
+        'title': 'Residual [mag]',
+        'automargin': True
+    },
 )
 
 layout_sso_radec = dict(
@@ -1175,7 +1209,7 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'}
             },
             {
@@ -1192,7 +1226,7 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'}
             },
             {
@@ -1209,13 +1243,130 @@ def draw_scores(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'}
             }
         ],
         "layout": layout_scores
     }
     return figure
+
+def extract_max_t2(pdf):
+    """
+    """
+    cols = [i for i in pdf.columns if i.startswith('d:t2')]
+
+    if cols == []:
+        return pd.DataFrame()
+
+    filt = pdf[cols].apply(lambda x: np.sum(x) > 0, axis=1)
+
+    if pdf[filt].empty:
+        return pd.DataFrame()
+
+    series = pdf[cols][filt].apply(lambda x: np.array(x) == np.max(x), axis=1)
+    df_tmp = pd.DataFrame(list(series.values), columns=pdf[cols].columns).T.sum(axis=1)
+    df = pd.DataFrame(
+        {
+            'r': df_tmp.values,
+            'theta': df_tmp.index
+        },
+        columns=['r', 'theta']
+    )
+
+    return df
+
+@app.callback(
+    Output('t2', 'children'),
+    [
+        Input('object-data', 'children'),
+    ])
+def draw_t2(object_data) -> dict:
+    """ Draw scores from SNN module
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Results from a HBase client query
+
+    Returns
+    ----------
+    figure: dict
+
+    TODO: memoise me
+    """
+    pdf = pd.read_json(object_data)
+
+    df = extract_max_t2(pdf)
+
+    if df.empty:
+        msg = """
+        No classification from T2 yet
+        """
+        out = dbc.Alert(msg, color="danger")
+    else:
+        figure = go.Figure(
+            data=go.Scatterpolar(
+                r=df.r,
+                theta=[i.split('_')[-1] for i in df.theta],
+                fill='toself',
+                line=dict(color="#F5622E")
+            ),
+        )
+        # figure = px.line_polar(df, r='r', theta='theta', line_close=True)
+        # figure.update_traces(fill='toself')
+        figure.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True
+                ),
+            ),
+            showlegend=False,
+            margin=dict(l=10, r=10, b=20, t=10),
+        )
+
+        graph = dcc.Graph(
+            id='t2',
+            figure=figure,
+            style={
+                'width': '100%',
+                'height': '20pc'
+            },
+            config={'displayModeBar': False}
+        )
+        msg = """
+        The radius gives the number of times a label was assigned the highest score from the T2 layer, among all alerts.
+        T2 was deployed in 2023/01/25, and previous alerts do not contained scores.
+        """
+        button = dmc.ActionIcon(
+            DashIconify(icon="fluent:question-16-regular", width=20),
+            size="lg",
+            variant="outline",
+            id="action-icon",
+            n_clicks=0,
+            mb=10,
+        )
+        tooltip = dmc.Tooltip(
+            button,
+            width=220,
+            withArrow=True,
+            multiline=True,
+            transition="fade",
+            transitionDuration=100,
+            label=msg
+        )
+        out = dmc.Center(
+            children=[
+                dmc.Group(
+                    [
+                        tooltip,
+                        graph
+                    ], position='center'
+                )
+            ],
+        )
+
+    return out
 
 @app.callback(
     Output('colors', 'figure'),
@@ -1264,7 +1415,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'
                 }
             },
@@ -1282,7 +1433,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'
                 }
             },
@@ -1300,7 +1451,7 @@ def draw_color(object_data) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'
                 }
             }
@@ -1356,7 +1507,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#2ca02c',
+                    'color': '#15284F',
                     'symbol': 'circle'
                 }
             },
@@ -1374,7 +1525,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#d62728',
+                    'color': '#F5622E',
                     'symbol': 'square'
                 }
             },
@@ -1392,7 +1543,7 @@ def draw_color_rate(object_data) -> dict:
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#9467bd',
+                    'color': '#3C8DFF',
                     'symbol': 'diamond'
                 }
             },
@@ -1486,8 +1637,7 @@ def draw_cutouts_modal(object_data, date_modal_select):
                     children=draw_cutout(data, kind, modal=True),
                     radius='xl',
                     position='top',
-                    placement='center',
-                    withArrow=True,
+                    multiline=True,
                     transition="fade",
                     transitionDuration=200,
                     label=kind,
@@ -2056,7 +2206,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '30pc'
         },
         config={'displayModeBar': False}
     )
@@ -2284,7 +2434,7 @@ def draw_sso_astrometry(pdf) -> dict:
         figure=figure,
         style={
             'width': '100%',
-            'height': '25pc'
+            'height': '30pc'
         },
         config={'displayModeBar': False}
     )
@@ -2311,9 +2461,6 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     ----------
     figure: dict
     """
-    # import here due to crash at the top level
-    from sbpy.photometry import HG1G2, HG12, HG
-
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
@@ -2333,15 +2480,12 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     # type conversion
     pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
 
-    # SSO Color index
-    V_minus_g = -0.32
-    V_minus_r = 0.13
-
     # Disctionary for filters
-    filters = {1: 'g', 2: 'R', 3: 'i'}
+    filters = {1: 'g', 2: 'r', 3: 'i'}
     filts = np.unique(pdf['i:fid'].values)
 
     figs = []
+    residual_figs = []
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
@@ -2350,18 +2494,50 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
-    if switch_func == 'HG1G2':
-        fitfunc = HG1G2
-        params = ['H', 'G1', 'G2']
-    elif switch_func == 'HG12':
-        fitfunc = HG12
-        params = ['H', 'G12']
-    elif switch_func == 'HG':
-        fitfunc = HG
-        params = ['H', 'G']
 
-    fitter = LevMarLSQFitter(calc_uncertainties=True)
+    alpha = np.deg2rad(pdf['Phase'].values)
+    ra = np.deg2rad(pdf['i:ra'].values)
+    dec = np.deg2rad(pdf['i:dec'].values)
+    pha = np.transpose([[i, j, k] for i, j, k in zip(alpha, ra, dec)])
+
+    if switch_func == 'HG1G2':
+        fitfunc = func_hg1g2
+        x = alpha
+        params = ['H', 'G1', 'G2']
+        bounds = (
+            [0, 0, 0],
+            [30, 1, 1]
+        )
+    elif switch_func == 'HG12':
+        fitfunc = func_hg12
+        x = alpha
+        params = ['H', 'G12']
+        bounds = (
+            [0, 0],
+            [30, 1]
+        )
+    elif switch_func == 'HG':
+        fitfunc = func_hg
+        x = alpha
+        params = ['H', 'G']
+        bounds = (
+            [0, 0],
+            [30, 1]
+        )
+    elif switch_func == 'HG1G2S':
+        fitfunc = func_hg1g2_with_spin
+        params = ['H', 'G1', 'G2', 'R', 'alpha[deg]', 'beta[deg]']
+        x = pha
+        bounds = (
+            [0, 0, 0, 1e-1, 0, -np.pi/2],
+            [30, 1, 1, 1, 2*np.pi, np.pi/2]
+        )
+
+    layout_sso_phasecurve['title']['text'] = 'Reduced &#967;<sup>2</sup>: '
     if switch_band == 'per-band':
+        # Add color correction in the DataFrame
+        pdf = add_ztf_color_correction(pdf, combined=False)
+
         dd = {'': [filters[f] + ' band' for f in filts]}
         dd.update({i: [''] * len(filts) for i in params})
         df_table = pd.DataFrame(
@@ -2371,36 +2547,24 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
 
-            # Color conversion
-            if filters[f] == 'g':
-                color_sso = V_minus_g
-            else:
-                color_sso = V_minus_r
-
-            ydata = pdf.loc[cond, 'i:magpsf_red'] + color_sso
             try:
-                obs = Obs.from_dict(
-                    {
-                        'alpha': pdf.loc[cond, 'Phase'].values * u.deg,
-                        'mag': ydata.values * u.mag
-                    }
-                )
-                model_func = fitfunc.from_obs(
-                    obs,
-                    fitter,
-                    'mag',
-                    weights=pdf.loc[cond, 'i:sigmapsf'] * u.mag
+                popt, perr, chisq_red = estimate_sso_params(
+                    pdf.loc[cond],
+                    fitfunc,
+                    bounds=bounds
                 )
             except RuntimeError as e:
                 return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-            if model_func.cov_matrix is not None:
-                perr = np.sqrt(np.diag(model_func.cov_matrix.cov_matrix))
-            else:
-                perr = [np.nan] * len(params)
-
             for pindex, param in enumerate(params):
-                df_table[param][df_table[param].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(model_func.parameters[pindex], perr[pindex])
+                # rad2deg
+                if pindex >= 4:
+                    factor = 180. / np.pi
+                else:
+                    factor = 1.
+                df_table[param][df_table[param].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(factor*popt[pindex], factor*perr[pindex])
+
+            ydata = pdf.loc[cond, 'i:magpsf_red'] + pdf.loc[cond, 'color_corr']
 
             figs.append(
                 {
@@ -2428,18 +2592,45 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 }
             )
 
+            if switch_func == 'HG1G2S':
+                xx = x[:, cond]
+            else:
+                xx = x[cond]
+
             figs.append(
                 {
                     'x': pdf.loc[cond, 'Phase'].values,
-                    'y': model_func.to_mag(pdf.loc[cond, 'Phase'].values * u.deg, unit=u.deg).to_value(),
-                    'mode': 'lines',
+                    'y': fitfunc(xx, *popt),
+                    'mode': 'markers',
                     'name': 'fit {:}'.format(filters[f]),
+                    'marker': {
+                        'size': 6,
+                        'color': COLORS_ZTF[i],
+                        'symbol': 'x',
+                        'opacity': 0.5
+                    }
+                }
+            )
+
+            residual_figs.append(
+                {
+                    'x': pdf.loc[cond, 'Phase'].values,
+                    'y': ydata.values - fitfunc(xx, *popt),
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf.loc[cond, 'i:sigmapsf'].values,
+                        'visible': True,
+                        'color': COLORS_ZTF[i]
+                    },
+                    'mode': 'markers',
+                    'name': 'Residual {:}'.format(filters[f]),
                     'showlegend': False,
-                    'line': {
+                    'marker': {
                         'color': COLORS_ZTF[i],
                     }
                 }
             )
+            layout_sso_phasecurve['title']['text'] += '  {}={:.2f}  '.format(filters[f], chisq_red)
     elif switch_band == 'combined':
         dd = {'': ['Combined']}
         dd.update({i: [''] for i in params})
@@ -2448,41 +2639,26 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             index=['Combined']
         )
 
-        # Conversion
-        color_sso = np.ones_like(pdf['i:magpsf'])
-        for i, f in enumerate(filts):
-            cond = pdf['i:fid'] == f
-
-            if filters[f] == 'g':
-                color_sso[cond] = V_minus_g
-            else:
-                color_sso[cond] = V_minus_r - V_minus_g
-
-        ydata = pdf['i:magpsf_red'] + color_sso
+        pdf = add_ztf_color_correction(pdf, combined=True)
 
         try:
-            obs = Obs.from_dict(
-                {
-                    'alpha': pdf['Phase'].values * u.deg,
-                    'mag': ydata.values * u.mag
-                }
-            )
-            model_func = fitfunc.from_obs(
-                obs,
-                fitter,
-                'mag',
-                weights=pdf['i:sigmapsf'] * u.mag
+            popt, perr, chisq_red = estimate_sso_params(
+                pdf,
+                fitfunc,
+                bounds=bounds
             )
         except RuntimeError as e:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
-        if model_func.cov_matrix is not None:
-            perr = np.sqrt(np.diag(model_func.cov_matrix.cov_matrix))
-        else:
-            perr = [np.nan] * len(params)
-
         for pindex, param in enumerate(params):
-            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(model_func.parameters[pindex], perr[pindex])
+            # rad2deg
+            if pindex >= 4:
+                factor = 180. / np.pi
+            else:
+                factor = 1.
+            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(factor*popt[pindex], factor*perr[pindex])
+
+        ydata = pdf['i:magpsf_red'] + pdf['color_corr']
 
         figs.append(
             {
@@ -2495,7 +2671,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
-                'name': 'combined (g & r)'.format(filters[f]),
+                'name': 'combined (g & r)',
                 'customdata': list(
                     zip(
                         pdf['i:objectId'],
@@ -2513,20 +2689,48 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         figs.append(
             {
                 'x': pdf['Phase'].values,
-                'y': model_func.to_mag(pdf['Phase'].values * u.deg, unit=u.deg).to_value(),
-                'mode': 'lines',
+                'y': fitfunc(x, *popt),
+                'mode': 'markers',
                 'name': 'fit combined',
+                'marker': {
+                    'size': 6,
+                    'color': COLORS_ZTF[0],
+                    'symbol': 'x',
+                    'opacity': 0.5
+                }
+            }
+        )
+
+        residual_figs.append(
+            {
+                'x': pdf['Phase'].values,
+                'y': ydata.values - fitfunc(x, *popt),
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['i:sigmapsf'].values,
+                    'visible': True,
+                    'color': COLORS_ZTF[0]
+                },
+                'mode': 'markers',
+                'name': 'Residual',
                 'showlegend': False,
-                'line': {
+                'marker': {
                     'color': COLORS_ZTF[0],
                 }
             }
         )
+        layout_sso_phasecurve['title']['text'] += '  {:.2f}  '.format(chisq_red)
+
+    residual_figure = {
+        'data': residual_figs,
+        "layout": layout_sso_phasecurve_residual
+    }
 
     figure = {
         'data': figs,
         "layout": layout_sso_phasecurve
     }
+
     columns = [
         {
             'id': c,
@@ -2558,7 +2762,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         }
     )
 
-    graph = dcc.Graph(
+    graph1 = dcc.Graph(
         figure=figure,
         style={
             'width': '100%',
@@ -2566,9 +2770,20 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         },
         config={'displayModeBar': False}
     )
+
+    graph2 = dcc.Graph(
+        figure=residual_figure,
+        style={
+            'width': '100%',
+            'height': '15pc'
+        },
+        config={'displayModeBar': False}
+    )
     card = dmc.Paper(
         [
-            graph,
+            graph1,
+            html.Br(),
+            graph2,
             html.Br(),
             table
         ], radius='xl', p='md', shadow='xl', withBorder=True
@@ -3502,7 +3717,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     """.format(np.round(x, 6), np.round(y, 6))
 
     card2 = dmc.Center(
-        dmc.Prism(children=coords, language="python", copyLabel='Copy coordinates', style={'width': '60%'})
+        dmc.Prism(children=coords, language="python", style={'width': '60%'})
     )
 
     return html.Div([card1, html.Br(), card2])

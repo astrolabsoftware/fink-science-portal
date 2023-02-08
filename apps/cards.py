@@ -51,17 +51,14 @@ def card_lightcurve_summary():
             ),
             dbc.Row(
                 dbc.Col(
-                    dmc.Chips(
-                        data=[
-                            {'label': k, 'value': k} for k in all_radio_options.keys()
+                    dmc.ChipGroup(
+                        [
+                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                            for x in all_radio_options.keys()
                         ],
                         id="switch-mag-flux",
                         value="Difference magnitude",
-                        color="orange",
-                        radius="xl",
-                        size="sm",
                         spacing="xl",
-                        variant="outline",
                         position='center',
                         multiple=False,
                     )
@@ -70,18 +67,22 @@ def card_lightcurve_summary():
             dmc.Accordion(
                 children=[
                     dmc.AccordionItem(
-                        dcc.Markdown(
-                            """
-                            Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
-                            In addition, the _Difference magnitude_ view shows:
-                            - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                            - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-                            """
-                        ),
-                        label="Information",
+                        [
+                            dmc.AccordionPanel("Information"),
+                            dmc.AccordionControl(
+                                dcc.Markdown(
+                                    """
+                                    Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+                                    In addition, the _Difference magnitude_ view shows:
+                                    - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+                                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                                    """
+                                )
+                            ),
+                        ],
+                        value='info'
                     ),
                 ],
-                state={'0': True}
             )
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
@@ -175,11 +176,17 @@ curl -H "Content-Type: application/json" -X POST \\
     """.format(objectid, APIURL, objectid)
 
     download_tab = dmc.Tabs(
-        color="red",
-        children=[
-            dmc.Tab(label="Python", children=dmc.Prism(children=python_download, language="python")),
-            dmc.Tab(label="Curl", children=dmc.Prism(children=curl_download, language="bash")),
-        ]
+        [
+            dmc.TabsList(
+                [
+                    dmc.Tab("Python", value="Python"),
+                    dmc.Tab("Curl", value="Curl"),
+                ],
+            ),
+            dmc.TabsPanel(dmc.Prism(children=python_download, language="python"), value="Python"),
+            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl"),
+        ],
+        color="red", value="Python"
     )
 
     qrdata = "https://fink-portal.org/{}".format(objectid)
@@ -187,248 +194,283 @@ curl -H "Content-Type: application/json" -X POST \\
 
     qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
 
-    card = dmc.Accordion(
-        state={"0": True, **{"{}".format(i+1): False for i in range(5)}},
-        multiple=True,
-        offsetIcon=False,
-        disableIconRotation=True,
+    card = dmc.AccordionMultiple(
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.Paper(
+                    dmc.AccordionControl(
+                        "Last alert cutouts",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:flare",
+                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
                         [
-                            dbc.Row(id='stamps', justify='around', className="g-0"),
-                            dbc.Modal(
+                            dmc.Paper(
                                 [
-                                    dbc.ModalHeader(
-                                        dmc.Select(
-                                            label="",
-                                            placeholder="Select a date",
-                                            searchable=True,
-                                            nothingFound="No options found",
-                                            id="date_modal_select",
-                                            value=None,
-                                            data=[
-                                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
-                                            ],
-                                            style={"width": 200, "marginBottom": 10},
-                                            zIndex=10000000,
-                                        ),
-                                        close_button=True,
-                                        style={
-                                            'background-image': 'linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3))'
-                                        }
-                                    ),
-                                    dbc.ModalBody(
+                                    dbc.Row(id='stamps', justify='around', className="g-0"),
+                                    dbc.Modal(
                                         [
-                                            dmc.Group(
-                                                id="stamps_modal_content",
-                                                position='center',
-                                                spacing='xl'
+                                            dbc.ModalHeader(
+                                                dmc.Select(
+                                                    label="",
+                                                    placeholder="Select a date",
+                                                    searchable=True,
+                                                    nothingFound="No options found",
+                                                    id="date_modal_select",
+                                                    value=None,
+                                                    data=[
+                                                        {"value": i, "label": i} for i in pdf['v:lastdate'].values
+                                                    ],
+                                                    style={"width": 200, "marginBottom": 10},
+                                                    zIndex=10000000,
+                                                ),
+                                                close_button=True,
+                                                style={
+                                                    'background-image': 'linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3))'
+                                                }
                                             ),
-                                        ], style={
-                                            'background': 'rgba(255, 255, 255,0.0)',
-                                            'background-image': 'linear-gradient(rgba(255, 255, 255,0.0), rgba(255,255,255,0.0))'
-                                        }
+                                            dbc.ModalBody(
+                                                [
+                                                    dmc.Group(
+                                                        id="stamps_modal_content",
+                                                        position='center',
+                                                        spacing='xl'
+                                                    ),
+                                                ], style={
+                                                    'background': 'rgba(255, 255, 255,0.0)',
+                                                    'background-image': 'linear-gradient(rgba(255, 255, 255,0.0), rgba(255,255,255,0.0))'
+                                                }
+                                            ),
+                                        ],
+                                        id="stamps_modal",
+                                        scrollable=True,
+                                        centered=True,
+                                        size='xl'
                                     ),
                                 ],
-                                id="stamps_modal",
-                                scrollable=True,
-                                centered=True,
-                                size='xl'
+                                radius='xl', p='md', shadow='xl', withBorder=True
+                            ),
+                            dmc.Space(h=4),
+                            dmc.Center(
+                                dmc.ActionIcon(
+                                    DashIconify(icon="tabler:arrows-maximize"),
+                                    id="maximise_stamps",
+                                    n_clicks=0,
+                                    variant="default",
+                                    radius=30,
+                                    size=36,
+                                    color='gray'
+                                ),
                             ),
                         ],
-                        radius='xl', p='md', shadow='xl', withBorder=True
-                    ),
-                    dmc.Space(h=4),
-                    dmc.Center(
-                        dmc.ActionIcon(
-                            DashIconify(icon="tabler:arrows-maximize"),
-                            id="maximise_stamps",
-                            n_clicks=0,
-                            variant="default",
-                            radius=30,
-                            size=36,
-                            color='gray'
-                        ),
                     ),
                 ],
-                label="Last alert cutouts",
-                icon=[
-                    DashIconify(
-                        icon="tabler:flare",
-                        color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                        width=20,
-                    )
-                ],
+                value='stamps'
             ),
             dmc.AccordionItem(
                 [
-                    html.Div(id='coordinates'),
-                    dbc.Row(
-                        dbc.Col(
-                            dmc.Chips(
-                                data=[
-                                    {'label': 'EQU', 'value': 'EQU'},
-                                    {'label': 'GAL', 'value': 'GAL'}
-                                ],
-                                id="coordinates_chips",
-                                value="EQU",
-                                color="orange",
-                                radius="xl",
-                                size="sm",
-                                spacing="xl",
-                                variant="outline",
-                                position='center',
-                                multiple=False,
+                    dmc.AccordionControl(
+                        "Coordinates",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:target",
+                                color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                                width=20,
                             )
-                        )
+                        ],
                     ),
-                ],
-                label="Coordinates",
-                icon=[
-                    DashIconify(
-                        icon="tabler:target",
-                        color=dmc.theme.DEFAULT_COLORS["orange"][6],
-                        width=20,
-                    )
-                ],
-            ),
-            dmc.AccordionItem(
-                html.Div([], id='alert_table'),
-                label="Last alert content",
-                icon=[
-                    DashIconify(
-                        icon="tabler:file-description",
-                        color=dmc.theme.DEFAULT_COLORS["blue"][6],
-                        width=20,
-                    )
-                ],
-            ),
-            dmc.AccordionItem(
-                [
-                    download_tab,
-                    dcc.Markdown('See {}/api for more options'.format(APIURL)),
-                ],
-                label="Download data",
-                icon=[
-                    DashIconify(
-                        icon="tabler:database-export",
-                        color=dmc.theme.DEFAULT_COLORS["red"][6],
-                        width=20,
-                    )
-                ],
-            ),
-            dmc.AccordionItem(
-                [
-                    dmc.Paper(
+                    dmc.AccordionPanel(
                         [
-                            dcc.Markdown(
-                                """
-                                ```python
-                                Constellation: {}
-                                Class (SIMBAD): {}
-                                Name (MPC): {}
-                                Name (Gaia): {}
-                                Distance (Gaia): {:.2f} arcsec
-                                Distance (PS1): {:.2f} arcsec
-                                Distance (ZTF): {:.2f} arcsec
-                                ```
-                                """.format(
-                                    constellation,
-                                    cdsxmatch, ssnamenr, gaianame,
-                                    float(neargaia), float(distpsnr1), float(distnr)
+                            html.Div(id='coordinates'),
+                            dbc.Row(
+                                dbc.Col(
+                                    dmc.ChipGroup(
+                                        [
+                                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                                            for x in ['EQU', 'GAL']
+                                        ],
+                                        id="coordinates_chips",
+                                        value="EQU",
+                                        spacing="xl",
+                                        position='center',
+                                        multiple=False,
+                                    )
                                 )
                             ),
-                            html.Br(),
-                            dbc.Row(
-                                [
-                                    dbc.Col(
-                                        dbc.Button(
-                                            className='btn btn-default zoom btn-circle btn-lg',
-                                            style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
-                                            color='dark',
-                                            outline=True,
-                                            id='TNS',
-                                            target="_blank",
-                                            href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
-                                        ), width=4),
-                                    dbc.Col(
-                                        dbc.Button(
-                                            className='btn btn-default zoom btn-circle btn-lg',
-                                            style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
-                                            color='dark',
-                                            outline=True,
-                                            id='SIMBAD',
-                                            target="_blank",
-                                            href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
-                                        ), width=4
-                                    ),
-                                    dbc.Col(
-                                        dbc.Button(
-                                            className='btn btn-default zoom btn-circle btn-lg',
-                                            style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
-                                            color='dark',
-                                            outline=True,
-                                            id='SNAD',
-                                            target="_blank",
-                                            href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                                        ), width=4),
-                                ], justify='around'
-                            ),
-                            dbc.Row(
-                                [
-                                    dbc.Col(
-                                        dbc.Button(
-                                            className='btn btn-default zoom btn-circle btn-lg',
-                                            style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
-                                            color='dark',
-                                            outline=True,
-                                            id='NED',
-                                            target="_blank",
-                                            href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
-                                        ), width=4
-                                    ),
-                                    dbc.Col(
-                                        dbc.Button(
-                                            className='btn btn-default zoom btn-circle btn-lg',
-                                            style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
-                                            color='dark',
-                                            outline=True,
-                                            id='SDSS',
-                                            target="_blank",
-                                            href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
-                                        ), width=4
-                                    )
-                                ], justify='center'
-                            ),
                         ],
-                        radius='xl', p='md', shadow='xl', withBorder=True
                     ),
                 ],
-                label="Neighbourhood",
-                icon=[
-                    DashIconify(
-                        icon="tabler:atom-2",
-                        color=dmc.theme.DEFAULT_COLORS["green"][6],
-                        width=20,
-                    )
-                ],
+                value='coordinates'
             ),
             dmc.AccordionItem(
                 [
-                    dmc.Center(qrcode, style={'width': '100%', 'height': '200'})
+                    dmc.AccordionControl(
+                        "Last alert content",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:file-description",
+                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        html.Div([], id='alert_table'),
+                    ),
                 ],
-                label="Share",
-                icon=[
-                    DashIconify(
-                        icon="tabler:share",
-                        color=dmc.theme.DEFAULT_COLORS["gray"][6],
-                        width=20,
-                    )
+                value='last_alert'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Download data",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:database-export",
+                                color=dmc.theme.DEFAULT_COLORS["red"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        [
+                            download_tab,
+                            dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                        ],
+                    ),
                 ],
+                value='api'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Neighbourhood",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:atom-2",
+                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        [
+                            dmc.Paper(
+                                [
+                                    dcc.Markdown(
+                                        """
+                                        ```python
+                                        Constellation: {}
+                                        Class (SIMBAD): {}
+                                        Name (MPC): {}
+                                        Name (Gaia): {}
+                                        Distance (Gaia): {:.2f} arcsec
+                                        Distance (PS1): {:.2f} arcsec
+                                        Distance (ZTF): {:.2f} arcsec
+                                        ```
+                                        """.format(
+                                            constellation,
+                                            cdsxmatch, ssnamenr, gaianame,
+                                            float(neargaia), float(distpsnr1), float(distnr)
+                                        )
+                                    ),
+                                    html.Br(),
+                                    dbc.Row(
+                                        [
+                                            dbc.Col(
+                                                dbc.Button(
+                                                    className='btn btn-default zoom btn-circle btn-lg',
+                                                    style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
+                                                    color='dark',
+                                                    outline=True,
+                                                    id='TNS',
+                                                    target="_blank",
+                                                    href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
+                                                ), width=4),
+                                            dbc.Col(
+                                                dbc.Button(
+                                                    className='btn btn-default zoom btn-circle btn-lg',
+                                                    style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
+                                                    color='dark',
+                                                    outline=True,
+                                                    id='SIMBAD',
+                                                    target="_blank",
+                                                    href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
+                                                ), width=4
+                                            ),
+                                            dbc.Col(
+                                                dbc.Button(
+                                                    className='btn btn-default zoom btn-circle btn-lg',
+                                                    style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                                                    color='dark',
+                                                    outline=True,
+                                                    id='SNAD',
+                                                    target="_blank",
+                                                    href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+                                                ), width=4),
+                                        ], justify='around'
+                                    ),
+                                    dbc.Row(
+                                        [
+                                            dbc.Col(
+                                                dbc.Button(
+                                                    className='btn btn-default zoom btn-circle btn-lg',
+                                                    style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                                                    color='dark',
+                                                    outline=True,
+                                                    id='NED',
+                                                    target="_blank",
+                                                    href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
+                                                ), width=4
+                                            ),
+                                            dbc.Col(
+                                                dbc.Button(
+                                                    className='btn btn-default zoom btn-circle btn-lg',
+                                                    style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
+                                                    color='dark',
+                                                    outline=True,
+                                                    id='SDSS',
+                                                    target="_blank",
+                                                    href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
+                                                ), width=4
+                                            )
+                                        ], justify='center'
+                                    ),
+                                ],
+                                radius='xl', p='md', shadow='xl', withBorder=True
+                            ),
+                        ],
+                    ),
+                ],
+                value='external'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Share",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:share",
+                                color=dmc.theme.DEFAULT_COLORS["gray"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        [
+                            dmc.Center(qrcode, style={'width': '100%', 'height': '200'})
+                        ],
+                    ),
+                ],
+                value='qr'
             ),
         ],
+        value='stamps'
     )
 
     return card
