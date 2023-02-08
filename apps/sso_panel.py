@@ -261,18 +261,17 @@ def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
     <extra></extra>
     """
 
-    xcand_data = pdf_orb["d:{}".format(xdata)].values
-    ycand_data = pdf_orb["d:{}".format(ydata)].values
-    candId_data = pdf_orb["d:ssoCandId"].values
+    with_error = pdf_orb[pdf_orb["d:rms_a"] != -1.0]
+    without_error = pdf_orb[pdf_orb["d:rms_a"] == -1.0]
 
-    is_distant = mpc_ae["Orbit_type"] == "Distant Object"
+    # is_distant = mpc_ae["Orbit_type"] == "Distant Object"
 
-    no_distant = mpc_ae[~is_distant]
-    distant = mpc_ae[is_distant]
+    # no_distant = mpc_ae[~is_distant]
+    # distant = mpc_ae[is_distant]
 
     data = []
     for orb_type in mpc_ae["Orbit_type"].unique():
-        tmp_df = no_distant[no_distant["Orbit_type"] == orb_type]
+        tmp_df = mpc_ae[mpc_ae["Orbit_type"] == orb_type]
         x = tmp_df[xdata]
         y = tmp_df[ydata]
         data.append(
@@ -289,30 +288,33 @@ def construct_sso_stat_figure(pdf_orb, mpc_ae, xdata, ydata):
 
     data.append(
         go.Scattergl(
-            x=distant[xdata],
-            y=distant[ydata],
+            x=with_error["d:{}".format(xdata)].values,
+            y=with_error["d:{}".format(ydata)].values,
             mode="markers",
-            name=distant["Orbit_type"].values[0],
-            visible="legendonly",
-            opacity=0.5,
-            marker=dict(color="rgba(152, 0, 0, .5)"),
-            hoverinfo="skip",
-        )
-    )
-
-    data.append(
-        go.Scattergl(
-            x=xcand_data,
-            y=ycand_data,
-            mode="markers",
-            name="Fink SSO candidates",
+            name="Fink SSO candidates (with orbit errors)",
             marker=dict(
                 size=10,
                 line=dict(color="rgba(70, 138, 94, 0.5)", width=2),
                 color="rgba(111, 235, 154, 0.5)",
             ),
             hovertemplate=hovertemplate,
-            customdata=candId_data
+            customdata=with_error["d:ssoCandId"].values
+        )
+    )
+
+    data.append(
+        go.Scattergl(
+            x=without_error["d:{}".format(xdata)].values,
+            y=without_error["d:{}".format(ydata)].values,
+            mode="markers",
+            name="Fink SSO candidates (without orbit errors)",
+            marker=dict(
+                size=10,
+                line=dict(color="rgba(70, 138, 94, 0.5)", width=2),
+                color="rgba(194, 14, 29, 0.8)",
+            ),
+            hovertemplate=hovertemplate,
+            customdata=without_error["d:ssoCandId"].values
         )
     )
 
