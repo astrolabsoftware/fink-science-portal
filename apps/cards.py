@@ -189,11 +189,7 @@ def create_external_links(ra0, dec0):
                         target="_blank",
                         href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
                     ),
-                )
-            ], justify='around'
-        ),
-        dbc.Row(
-            [
+                ),
                 dbc.Col(
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
