@@ -140,7 +140,8 @@ def create_external_links(ra0, dec0):
                         id='TNS',
                         target="_blank",
                         href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
-                    ), width=4),
+                    )
+                ),
                 dbc.Col(
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
@@ -150,7 +151,7 @@ def create_external_links(ra0, dec0):
                         id='SIMBAD',
                         target="_blank",
                         href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
-                    ), width=4
+                    )
                 ),
                 dbc.Col(
                     dbc.Button(
@@ -161,7 +162,8 @@ def create_external_links(ra0, dec0):
                         id='SNAD',
                         target="_blank",
                         href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                    ), width=4),
+                    )
+                ),
             ], justify='around'
         ),
         dbc.Row(
@@ -175,7 +177,7 @@ def create_external_links(ra0, dec0):
                         id='NED',
                         target="_blank",
                         href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
-                    ), width=4
+                    ),
                 ),
                 dbc.Col(
                     dbc.Button(
@@ -186,9 +188,9 @@ def create_external_links(ra0, dec0):
                         id='SDSS',
                         target="_blank",
                         href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
-                    ), width=4
+                    ),
                 )
-            ], justify='center'
+            ], justify='around'
         ),
         dbc.Row(
             [
@@ -201,9 +203,9 @@ def create_external_links(ra0, dec0):
                         id='ASAS-SN',
                         target="_blank",
                         href="https://asas-sn.osu.edu/?ra={}&dec={}".format(ra0, dec0)
-                    ), width=4
+                    ),
                 )
-            ], justify='center'
+            ], justify='around'
         ),
     ]
     return buttons
