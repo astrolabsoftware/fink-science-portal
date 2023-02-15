@@ -175,7 +175,7 @@ def create_external_links(ra0, dec0):
                         id='NED',
                         target="_blank",
                         href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
-                    ), width=6
+                    ), width=4
                 ),
                 dbc.Col(
                     dbc.Button(
@@ -186,7 +186,7 @@ def create_external_links(ra0, dec0):
                         id='SDSS',
                         target="_blank",
                         href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
-                    ), width=6
+                    ), width=4
                 )
             ], justify='center'
         ),
@@ -201,7 +201,7 @@ def create_external_links(ra0, dec0):
                         id='ASAS-SN',
                         target="_blank",
                         href="https://asas-sn.osu.edu/?ra={}&dec={}".format(ra0, dec0)
-                    ), width=12
+                    ), width=4
                 )
             ], justify='center'
         ),
