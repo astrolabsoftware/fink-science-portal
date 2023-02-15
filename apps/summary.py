@@ -36,6 +36,7 @@ from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
 from apps.cards import card_id1
+from apps.cards import create_external_links
 
 from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
 from apps.plotting import draw_tracklet_lightcurve, draw_tracklet_radec
@@ -468,75 +469,13 @@ def title_mobile(name):
     Output('external_links', 'children'),
     Input('object-data', 'children')
 )
-def create_external_links(object_data):
+def create_external_links_(object_data):
     """ Create links to external website. Used in the mobile app.
     """
     pdf = pd.read_json(object_data)
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
-    buttons = [
-        dbc.Row(
-            [
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
-                        color='dark',
-                        outline=True,
-                        id='TNS',
-                        target="_blank",
-                        href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
-                    ), width=4),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
-                        color='dark',
-                        outline=True,
-                        id='SIMBAD',
-                        target="_blank",
-                        href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
-                    ), width=4
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
-                        color='dark',
-                        outline=True,
-                        id='SNAD',
-                        target="_blank",
-                        href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                    ), width=4),
-            ], justify='around'
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
-                        color='dark',
-                        outline=True,
-                        id='NED',
-                        target="_blank",
-                        href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
-                    ), width=4
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
-                        color='dark',
-                        outline=True,
-                        id='SDSS',
-                        target="_blank",
-                        href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
-                    ), width=4
-                )
-            ], justify='center'
-        ),
-    ]
+    buttons = create_external_links(ra0, dec0)
     return buttons
 
 def accordion_mobile():
