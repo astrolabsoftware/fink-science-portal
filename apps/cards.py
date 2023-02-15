@@ -467,6 +467,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                     ],
                                     radius='xl', p='md', shadow='xl', withBorder=True
                                 ),
+                                html.Br(),
                                 *create_external_links(ra0, dec0)
                             ],
                             align='center'
