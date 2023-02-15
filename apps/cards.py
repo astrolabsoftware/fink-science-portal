@@ -442,32 +442,34 @@ curl -H "Content-Type: application/json" -X POST \\
                         ],
                     ),
                     dmc.AccordionPanel(
-                        [
-                            dmc.Paper(
-                                [
-                                    dcc.Markdown(
-                                        """
-                                        ```python
-                                        Constellation: {}
-                                        Class (SIMBAD): {}
-                                        Name (MPC): {}
-                                        Name (Gaia): {}
-                                        Distance (Gaia): {:.2f} arcsec
-                                        Distance (PS1): {:.2f} arcsec
-                                        Distance (ZTF): {:.2f} arcsec
-                                        ```
-                                        """.format(
-                                            constellation,
-                                            cdsxmatch, ssnamenr, gaianame,
-                                            float(neargaia), float(distpsnr1), float(distnr)
-                                        )
-                                    ),
-                                    html.Br(),
-                                ],
-                                radius='xl', p='md', shadow='xl', withBorder=True
-                            ),
-                            *create_external_links(ra0, dec0)
-                        ],
+                        dmc.Center(
+                            [
+                                dmc.Paper(
+                                    [
+                                        dcc.Markdown(
+                                            """
+                                            ```python
+                                            Constellation: {}
+                                            Class (SIMBAD): {}
+                                            Name (MPC): {}
+                                            Name (Gaia): {}
+                                            Distance (Gaia): {:.2f} arcsec
+                                            Distance (PS1): {:.2f} arcsec
+                                            Distance (ZTF): {:.2f} arcsec
+                                            ```
+                                            """.format(
+                                                constellation,
+                                                cdsxmatch, ssnamenr, gaianame,
+                                                float(neargaia), float(distpsnr1), float(distnr)
+                                            )
+                                        ),
+                                        html.Br(),
+                                    ],
+                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                ),
+                                *create_external_links(ra0, dec0)
+                            ],
+                        )
                     ),
                 ],
                 value='external'
