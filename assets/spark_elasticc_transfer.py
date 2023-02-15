@@ -280,7 +280,7 @@ def generate_spark_paths(spark, startDate, stopDate, basePath):
     paths = []
     if startDate == stopDate:
         year, month, day = startDate.split('-')
-        path = basePath + endPath.format(year, int(month), int(day))
+        path = basePath + endPath.format(year, month, day)
         if check_path_exist(spark, path):
             paths = [path]
     else:
@@ -292,7 +292,7 @@ def generate_spark_paths(spark, startDate, stopDate, basePath):
 
         for aDate in dateRange:
             year, month, day = aDate.split('-')
-            path = basePath + endPath.format(year, int(month), int(day))
+            path = basePath + endPath.format(year, month, day)
             if check_path_exist(spark, path):
                 paths.append(path)
 
