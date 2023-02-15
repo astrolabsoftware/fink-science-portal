@@ -194,7 +194,7 @@ def create_external_links(ra0, dec0):
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
                         style={'background-image': 'url(/assets/buttons/asassn.png)', 'background-size': 'cover'},
-                        color='dark',
+                        color='white',
                         outline=True,
                         id='ASAS-SN',
                         target="_blank",
