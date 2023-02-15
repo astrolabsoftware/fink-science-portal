@@ -461,7 +461,6 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 float(neargaia), float(distpsnr1), float(distnr)
                                             )
                                         ),
-                                        html.Br(),
                                     ],
                                     radius='xl', p='md', shadow='xl', withBorder=True
                                 ),
