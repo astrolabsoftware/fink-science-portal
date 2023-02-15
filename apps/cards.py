@@ -442,7 +442,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         ],
                     ),
                     dmc.AccordionPanel(
-                        dmc.Center(
+                        dmc.Stack(
                             [
                                 dmc.Paper(
                                     [
@@ -469,6 +469,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 ),
                                 *create_external_links(ra0, dec0)
                             ],
+                            align='center'
                         )
                     ),
                 ],
