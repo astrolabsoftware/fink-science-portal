@@ -204,7 +204,7 @@ def readschemafromavrofile(fn: str) -> dict:
         schema = data.schema
     return schema
 
-def write_to_kafka(sdf, key, kafka_bootstrap_servers, kafka_sasl_username, kafka_sasl_password, topic_name):
+def write_to_kafka(sdf, key, kafka_bootstrap_servers, kafka_sasl_username, kafka_sasl_password, topic_name, npart=10):
     """ Send data to a Kafka cluster using Apache Spark
 
     Parameters
@@ -221,11 +221,14 @@ def write_to_kafka(sdf, key, kafka_bootstrap_servers, kafka_sasl_username, kafka
         Password for writing into the Kafka cluster
     topic_name: str
         Kafka topic (does not need to exist)
+    npart: int, optional
+        Number of Kafka partitions. Default is 10.
     """
     # Create a StructType column in the df for distribution.
     df_struct = sdf.select(struct(sdf.columns).alias("struct"))
     df_kafka = df_struct.select(to_avro("struct").alias("value"))
     df_kafka = df_kafka.withColumn('key', key)
+    df_kafka = df_kafka.withColumn('partition', (F.rand(seed=0) * npart).astype('int'))
 
     # Send schema
     disquery = df_kafka\
