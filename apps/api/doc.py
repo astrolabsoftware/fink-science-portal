@@ -1041,8 +1041,9 @@ WD*                           1
 Most of the alerts are actually catalogued. If we focus on alerts that appeared for less than a day:
 
 ```python
-f1 = pdf['v:lapse'].apply(lambda x: x <= 1.)
-pdf[f1].groupby('v:classification').count().sort_values('v:lapse', ascending=False)
+flow = pdf['i:jdstarthist'] >= (Time('2020-02-19T09:44:15.197173').jd - 1)
+fhigh = pdf['i:jdstarthist'] <= (Time('2020-02-19T09:44:15.197173').jd + 6)
+pdf[flow & fhigh].groupby('v:classification').count().sort_values('v:lapse', ascending=False)
 
 v:classification
 Solar System MPC            416
