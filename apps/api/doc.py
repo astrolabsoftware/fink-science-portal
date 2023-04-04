@@ -959,6 +959,11 @@ within `[-1 day, +6 day]` from the GW event inside the chosen credible region.
 Concretely on [S200219ac](https://gracedb.ligo.org/superevents/S200219ac/view/):
 
 ```python
+import io
+import requests
+import gzip
+import pandas as pd
+
 # LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
 # S200219ac on 2020-02-19T09:44:15.197173
 fn = 'bayestar.fits.gz'
@@ -970,7 +975,7 @@ fn = 'bayestar.fits.gz'
 credible_level = 0.2
 
 # Query Fink
-data = open(fn, 'rb').read()
+data = gzip.open(fn, 'rb').read()
 r = requests.post(
     'https://fink-portal.org/api/v1/bayestar',
     json={
