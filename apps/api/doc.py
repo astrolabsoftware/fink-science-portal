@@ -994,62 +994,76 @@ Here are some statistics on this specific event:
 ```markdown
 | `credible_level` | Sky area | number of alerts returned | Execution time |
 |-----------|----------|---------------------------|----------------------|
-| 0.2 | 81 deg2 | 121 | 2 to 5 seconds |
-| 0.5 | 317 deg2 | 1137 | 10 to 15 seconds|
-| 0.9 | 1250 deg2 | 2515 | > 60 seconds |
+| 0.2 | 81 deg2 | 232 | 2 to 5 seconds |
+| 0.5 | 317 deg2 | 3183 | about a minute (timeout might apply -- resend if need be)|
 ```
 
-Here is the details of alert classification for a credible level of 0.9:
+The performance is currently not great, and we are working to implement a better service! Here is the details of alert classification for a credible level of 0.5:
 
 ```
-5968 alerts found
 v:classification
-Unknown                   2122
-Solar System candidate    2058
-QSO                        703
-SN candidate               259
-RRLyr                      253
-Solar System MPC           172
-Seyfert_1                  118
-EB*                        105
-Ambiguous                   24
-Blue                        19
-Star                        18
-Galaxy                      15
-BLLac                       12
-Radio                       10
-Candidate_RRLyr             10
-SN                           8
-Seyfert_2                    6
-PulsV*delSct                 5
-BClG                         5
-AGN                          5
-LPV*                         4
-EB*Algol                     4
-RadioG                       3
-CataclyV*                    3
-QSO_Candidate                2
-X                            2
-BlueStraggler                2
-Candidate_EB*                2
-LINER                        2
-GravLensSystem               2
-PM*                          2
-GinCl                        1
-EllipVar                     1
-AMHer                        1
-Early SN Ia candidate        1
-HB*                          1
-DwarfNova                    1
-Possible_G                   1
-Candidate_CV*                1
-Nova                         1
-BYDra                        1
-WD*                          1
-Mira                         1
-low-mass*                    1
+Unknown                    1882
+Solar System MPC            420
+QSO                         420
+RRLyr                        85
+Solar System candidate       79
+Seyfert_1                    65
+Star                         51
+SN candidate                 46
+EB*                          45
+V*                           22
+BLLac                        14
+Candidate_EB*                 7
+AGN                           4
+PulsV*delSct                  4
+Radio                         4
+HB*                           4
+Candidate_RRLyr               4
+Seyfert_2                     3
+LINER                         3
+PM*                           2
+RadioG                        2
+BlueStraggler                 2
+SN                            2
+Blue                          2
+PulsV*                        1
+QSO_Candidate                 1
+PulsV*WVir                    1
+Ambiguous                     1
+Nova                          1
+Mira                          1
+LPV*                          1
+Candidate_LP*                 1
+C*                            1
+BClG                          1
+WD*                           1
 ```
-Most of the alerts are actually catalogued. Finally, you can overplot alerts on the sky map:
+Most of the alerts are actually catalogued. If we focus on alerts that appeared for less than a day:
+
+```python
+f1 = pdf['v:lapse'].apply(lambda x: x <= 1.)
+pdf[f1].groupby('v:classification').count().sort_values('v:lapse', ascending=False)
+
+v:classification
+Solar System MPC            416
+Unknown                     122
+Solar System candidate       79
+Star                          4
+SN candidate                  3
+Ambiguous                     1
+WD*                           1
+```
+
+and then only unknown or extra-galactic alerts:
+
+```
+v:classification
+Unknown                     122
+SN candidate                  3
+Ambiguous                     1
+```
+
+Finally, you can overplot alerts on the sky map:
 
 ```python
 import healpy as hp
@@ -1075,7 +1089,7 @@ hp.graticule()
 plt.show()
 ```
 
-![gw](https://user-images.githubusercontent.com/20426972/134175884-3b190fa9-8051-4a1d-8bf8-cc8b47252494.png)
+![gw](/assets/gw.png)
 """
 
 api_doc_stats = """
