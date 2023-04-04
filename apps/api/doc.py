@@ -1038,7 +1038,7 @@ C*                            1
 BClG                          1
 WD*                           1
 ```
-Most of the alerts are actually catalogued. If we focus on alerts that appeared for less than a day:
+Most of the alerts are actually catalogued. If we focus on alerts that appeared _exactly_ in this time window:
 
 ```python
 flow = pdf['i:jdstarthist'] >= (Time('2020-02-19T09:44:15.197173').jd - 1)
