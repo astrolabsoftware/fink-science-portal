@@ -1060,11 +1060,12 @@ and then only unknown or extra-galactic alerts:
 ```
 v:classification
 Unknown                     122
+Solar System candidate       79
 SN candidate                  3
 Ambiguous                     1
 ```
 
-Finally, you can overplot alerts on the sky map:
+Note that `Solar System candidate` can also be genuine new extra-galactic transients that we misclassified. Finally, you can overplot alerts on the sky map:
 
 ```python
 import healpy as hp
