@@ -602,7 +602,7 @@ def accordion_mobile():
                             )
                         ],
                     ),
-                    dmc.AccordionPanel(external_brokers),
+                    dmc.AccordionPanel(dmc.Stack(external_brokers, align='center')),
                 ],
                 value='external_brokers'
             ),
@@ -831,7 +831,7 @@ def integrate_aladin_lite_mobile(object_data, accordion_value):
 
     Callbacks
     ----------
-    Input: takes the alert ID
+    Input: data + list for accordion values
     Output: Display a sky image around the alert position from aladin.
 
     Parameters
@@ -839,7 +839,7 @@ def integrate_aladin_lite_mobile(object_data, accordion_value):
     alert_id: str
         ID of the alert
     """
-    if accordion_value == 'aladin':
+    if 'aladin' in accordion_value:
         pdf_ = pd.read_json(object_data)
         cols = ['i:jd', 'i:ra', 'i:dec']
         pdf = pdf_.loc[:, cols]
