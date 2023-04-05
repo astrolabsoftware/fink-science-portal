@@ -478,6 +478,17 @@ def create_external_links_(object_data):
     buttons = create_external_links(ra0, dec0)
     return buttons
 
+@app.callback(
+    Output('external_links_brokers', 'children'),
+    Input('object-data', 'children')
+)
+def create_external_links_brokers_(object_data):
+    """ Create links to external website. Used in the mobile app.
+    """
+    pdf = pd.read_json(object_data)
+    buttons = create_external_links_brokers(pdf['i:objectId'].values[0])
+    return buttons
+
 def accordion_mobile():
     """
     """
@@ -527,6 +538,7 @@ def accordion_mobile():
         }
     )
     external = dbc.CardBody(id='external_links')
+    external_brokers = dbc.CardBody(id='external_links_brokers')
 
     accordion = dmc.AccordionMultiple(
         children=[
@@ -581,11 +593,27 @@ def accordion_mobile():
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "External links",
+                        "Other brokers",
                         icon=[
                             DashIconify(
                                 icon="tabler:atom-2",
                                 color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(external_brokers),
+                ],
+                value='external_brokers'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "External links",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:external-link",
+                                color=dmc.theme.DEFAULT_COLORS["red"][6],
                                 width=20,
                             )
                         ],
