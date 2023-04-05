@@ -472,7 +472,7 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "Neighbourhood",
+                        "Other brokers",
                         icon=[
                             DashIconify(
                                 icon="tabler:atom-2",
