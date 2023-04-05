@@ -36,7 +36,7 @@ from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
 from apps.cards import card_id1
-from apps.cards import create_external_links
+from apps.cards import create_external_links, create_external_links_brokers
 
 from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
 from apps.plotting import draw_tracklet_lightcurve, draw_tracklet_radec
