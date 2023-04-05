@@ -206,6 +206,48 @@ def create_external_links(ra0, dec0):
     ]
     return buttons
 
+def create_external_links_brokers(objectId):
+    """
+    """
+    buttons = dbc.Row(
+        [
+            dbc.Col(
+                dbc.Button(
+                    className='btn btn-default btn-circle btn-lg',
+                    style={'background-image': 'url(/assets/buttons/logo_alerce.png)', 'background-size': 'cover'},
+                    color='dark',
+                    outline=True,
+                    id='alerce',
+                    target="_blank",
+                    href='https://alerce.online/object/{}'.format(objectId)
+                )
+            ),
+            dbc.Col(
+                dbc.Button(
+                    className='btn btn-default btn-circle btn-lg',
+                    style={'background-image': 'url(/assets/buttons/logo_antares.png)', 'background-size': 'cover'},
+                    color='dark',
+                    outline=True,
+                    id='antares',
+                    target="_blank",
+                    href='https://antares.noirlab.edu/loci?query=%7B%22currentPage%22%3A1,%22filters%22%3A%5B%7B%22type%22%3A%22query_string%22,%22field%22%3A%7B%22query%22%3A%22%2a{}%2a%22,%22fields%22%3A%5B%22properties.ztf_object_id%22,%22locus_id%22%5D%7D,%22value%22%3Anull,%22text%22%3A%22ID%20Lookup%3A%20ZTF21abfmbix%22%7D%5D,%22sortBy%22%3A%22properties.newest_alert_observation_time%22,%22sortDesc%22%3Atrue,%22perPage%22%3A25%7D'.format(objectId)
+                )
+            ),
+            dbc.Col(
+                dbc.Button(
+                    className='btn btn-default btn-circle btn-lg',
+                    style={'background-image': 'url(/assets/buttons/logo_lasair.png)', 'background-size': 'cover'},
+                    color='dark',
+                    outline=True,
+                    id='lasair',
+                    target="_blank",
+                    href='https://lasair-ztf.lsst.ac.uk/objects/{}'.format(objectId)
+                )
+            ),
+        ], justify='around'
+    )
+    return buttons
+
 @app.callback(
     Output('card_id_col', 'children'),
     [
@@ -430,11 +472,34 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "Neighbourhood",
+                        "Other brokers",
                         icon=[
                             DashIconify(
                                 icon="tabler:atom-2",
                                 color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        dmc.Stack(
+                            [
+                                create_external_links_brokers(objectid)
+                            ],
+                            align='center'
+                        )
+                    ),
+                ],
+                value='external_brokers'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Neighbourhood",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:external-link",
+                                color="#15284F",
                                 width=20,
                             )
                         ],

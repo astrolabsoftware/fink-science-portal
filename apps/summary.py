@@ -36,7 +36,7 @@ from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
 from apps.cards import card_id1
-from apps.cards import create_external_links
+from apps.cards import create_external_links, create_external_links_brokers
 
 from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
 from apps.plotting import draw_tracklet_lightcurve, draw_tracklet_radec
@@ -478,6 +478,17 @@ def create_external_links_(object_data):
     buttons = create_external_links(ra0, dec0)
     return buttons
 
+@app.callback(
+    Output('external_links_brokers', 'children'),
+    Input('object-data', 'children')
+)
+def create_external_links_brokers_(object_data):
+    """ Create links to external website. Used in the mobile app.
+    """
+    pdf = pd.read_json(object_data)
+    buttons = create_external_links_brokers(pdf['i:objectId'].values[0])
+    return buttons
+
 def accordion_mobile():
     """
     """
@@ -527,6 +538,7 @@ def accordion_mobile():
         }
     )
     external = dbc.CardBody(id='external_links')
+    external_brokers = dbc.CardBody(id='external_links_brokers')
 
     accordion = dmc.AccordionMultiple(
         children=[
@@ -581,11 +593,27 @@ def accordion_mobile():
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "External links",
+                        "Other brokers",
                         icon=[
                             DashIconify(
                                 icon="tabler:atom-2",
                                 color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(dmc.Stack(external_brokers, align='center')),
+                ],
+                value='external_brokers'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "External links",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:external-link",
+                                color=dmc.theme.DEFAULT_COLORS["gray"][6],
                                 width=20,
                             )
                         ],
@@ -790,10 +818,10 @@ def layout(name, is_mobile):
     Output('aladin-lite-div2', 'run'),
     [
         Input('object-data', 'children'),
-        Input(f"accordion-mobile", "state")
+        Input("accordion-mobile", "value")
     ]
 )
-def integrate_aladin_lite_mobile(object_data, states):
+def integrate_aladin_lite_mobile(object_data, accordion_value):
     """ Integrate aladin light in the mobile app.
 
     the default parameters are:
@@ -803,7 +831,7 @@ def integrate_aladin_lite_mobile(object_data, states):
 
     Callbacks
     ----------
-    Input: takes the alert ID
+    Input: data + list for accordion values
     Output: Display a sky image around the alert position from aladin.
 
     Parameters
@@ -811,35 +839,35 @@ def integrate_aladin_lite_mobile(object_data, states):
     alert_id: str
         ID of the alert
     """
-    if states['2']:
-        pdf_ = pd.read_json(object_data)
-        cols = ['i:jd', 'i:ra', 'i:dec']
-        pdf = pdf_.loc[:, cols]
-        pdf = pdf.sort_values('i:jd', ascending=False)
+    if accordion_value is not None:
+        if 'aladin' in accordion_value:
+            pdf_ = pd.read_json(object_data)
+            cols = ['i:jd', 'i:ra', 'i:dec']
+            pdf = pdf_.loc[:, cols]
+            pdf = pdf.sort_values('i:jd', ascending=False)
 
-        # Coordinate of the current alert
-        ra0 = pdf['i:ra'].values[0]
-        dec0 = pdf['i:dec'].values[0]
+            # Coordinate of the current alert
+            ra0 = pdf['i:ra'].values[0]
+            dec0 = pdf['i:dec'].values[0]
 
-        # Javascript. Note the use {{}} for dictionary
-        img = """
-        var aladin = A.aladin('#aladin-lite-div2',
-                  {{
-                    survey: 'P/PanSTARRS/DR1/color/z/zg/g',
-                    fov: 0.025,
-                    target: '{} {}',
-                    reticleColor: '#ff89ff',
-                    reticleSize: 32
-        }});
-        var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
-        var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
-        aladin.addCatalog(hips);
-        """.format(ra0, dec0)
+            # Javascript. Note the use {{}} for dictionary
+            img = """
+            var aladin = A.aladin('#aladin-lite-div2',
+                    {{
+                        survey: 'P/PanSTARRS/DR1/color/z/zg/g',
+                        fov: 0.025,
+                        target: '{} {}',
+                        reticleColor: '#ff89ff',
+                        reticleSize: 32
+            }});
+            var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
+            var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
+            aladin.addCatalog(hips);
+            """.format(ra0, dec0)
 
-        # img cannot be executed directly because of formatting
-        # We split line-by-line and remove comments
-        img_to_show = [i for i in img.split('\n') if '// ' not in i]
+            # img cannot be executed directly because of formatting
+            # We split line-by-line and remove comments
+            img_to_show = [i for i in img.split('\n') if '// ' not in i]
 
-        return " ".join(img_to_show)
-    else:
-        return ''
+            return " ".join(img_to_show)
+    return ''
