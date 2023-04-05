@@ -484,7 +484,7 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.AccordionPanel(
                         dmc.Stack(
                             [
-                                *create_external_links_brokers(objectid)
+                                create_external_links_brokers(objectid)
                             ],
                             align='center'
                         )
