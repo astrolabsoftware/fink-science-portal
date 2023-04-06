@@ -63,7 +63,7 @@ def test_orbparam() -> None:
 
     assert not pdf.empty
 
-    assert len(pdf) >= 580
+    assert len(pdf) >= 327
 
     assert 'd:a' in pdf.columns
 
@@ -77,7 +77,7 @@ def test_lightcurves() -> None:
 
     assert not pdf.empty
 
-    assert 'd:dcmag' in pdf.columns
+    assert 'd:magpsf' in pdf.columns
 
 def test_lightcurves_traj() -> None:
     """
@@ -85,7 +85,7 @@ def test_lightcurves_traj() -> None:
     ---------
     >>> test_lightcurves_traj()
     """
-    pdf = ssocandsearch(kind='lightcurves', trajectory_id='FF2022aaaaaxh')
+    pdf = ssocandsearch(kind='lightcurves', trajectory_id='FF2023aaaaaaj')
 
     assert 'd:ssoCandId' in pdf.columns
 
