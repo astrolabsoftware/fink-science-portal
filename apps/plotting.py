@@ -18,7 +18,7 @@ from gatspy import periodic
 from scipy.optimize import curve_fit
 
 import datetime
-import java
+#import java
 import copy
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
@@ -386,6 +386,54 @@ layout_sso_radec = dict(
     xaxis={
         'autorange': 'reversed',
         'title': 'Right Ascension',
+        'automargin': True
+    }
+)
+
+layout_ssocand_speed = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    yaxis={
+        'title': 'speed (arcminute/hour)',
+        'automargin': True
+    },
+    xaxis={
+        'automargin': True
+    }
+)
+
+layout_ssocand_acceleration = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        'align': "left"
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        y=1.2,
+        bgcolor='rgba(218, 223, 225, 0.3)'
+    ),
+    yaxis={
+        'title': 'speed (arcminute/hour²)',
+        'automargin': True
+    },
+    xaxis={
         'automargin': True
     }
 )

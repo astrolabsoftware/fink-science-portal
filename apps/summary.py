@@ -25,6 +25,7 @@ from dash_iconify import DashIconify
 import pandas as pd
 import numpy as np
 import requests
+import io
 
 from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 
@@ -707,7 +708,7 @@ def layout(name, is_mobile):
             'objectId': name[1:],
         }
     )
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(io.BytesIO(r.content))
 
     qrdata = "https://fink-portal.org/{}".format(name[1:])
     qrimg = generate_qr(qrdata)

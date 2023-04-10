@@ -28,7 +28,7 @@ from app import app
 from app import client
 from app import APIURL
 
-from apps import summary, about, statistics, query_cluster
+from apps import summary, about, statistics, sso_panel, ssotraj_summary, query_cluster
 from apps.api import api
 from apps import __version__ as portal_version
 
@@ -41,6 +41,7 @@ from fink_utils.xmatch.simbad import get_simbad_labels
 import requests
 import pandas as pd
 import numpy as np
+import io
 from astropy.time import Time, TimeDelta
 
 simbad_types = get_simbad_labels('old_and_new')
@@ -1052,7 +1053,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(io.BytesIO(r.content))
 
     if pdf.empty:
         text, header = text_noresults(query, query_type, dropdown_option, searchurl)
@@ -1064,7 +1065,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         ), no_update
     else:
         # Make clickable objectId
-        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
+        pdf['i:objectId'] = pdf['i:objectId'].apply(lambda objectId: markdownify_objectid(objectId, objectId))
 
         if query_type == 'Conesearch':
             data = pdf.sort_values(
@@ -1208,6 +1209,13 @@ navbar = dmc.Header(
                                         size="sm",
                                         color="gray",
                                     ),
+                                    dmc.Anchor(
+                                        'Solar System Candidates',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/ssocand',
+                                        size="sm",
+                                        color="gray",
+                                    ),
                                 ],
                                 align="left",
                                 spacing="sm",
@@ -1274,7 +1282,7 @@ navbar = dmc.Header(
                                 align="left",
                                 spacing="sm",
                                 style={"paddingLeft": 30, "paddingRight": 20},
-                            ),
+                            )
                         ],
                         title="Fink Science Portal",
                         id="drawer",
@@ -1364,10 +1372,14 @@ def display_page(pathname, is_mobile):
         return api.layout(is_mobile)
     elif pathname == '/stats':
         return statistics.layout(is_mobile)
+    elif pathname == '/ssocand':
+        return sso_panel.layout(is_mobile)
     elif pathname == '/download':
         return query_cluster.layout(is_mobile)
     elif 'ZTF' in pathname:
         return summary.layout(pathname, is_mobile)
+    elif 'trajid' in pathname:
+        return ssotraj_summary.layout(is_mobile)
     else:
         return layout
 
