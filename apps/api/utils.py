@@ -398,6 +398,11 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     else:
         jd_stop = Time(payload['stopdate']).jd
 
+    if 'color' not in payload:
+        color = False
+    else:
+        color = True
+
     if 'columns' in payload:
         cols = payload['columns'].replace(" ", "")
     else:
@@ -479,7 +484,7 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     pdfs = format_hbase_output(
         results, schema_client,
         group_alerts=group_alerts,
-        extract_color=False,
+        extract_color=color,
         truncated=truncated,
         with_constellation=True
     )

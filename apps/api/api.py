@@ -314,6 +314,11 @@ args_latest = [
         'description': 'Stopping date in UTC (iso, jd, or MJD). Default is now.'
     },
     {
+        'name': 'color',
+        'required': False,
+        'description': 'If True, extract color information for the transient (default is False).'
+    },
+    {
         'name': 'columns',
         'required': False,
         'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
