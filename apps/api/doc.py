@@ -38,7 +38,21 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/random | Draw random objects from the Fink database| &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL, APIURL)
+""".format(
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+    APIURL,
+)
 
 api_doc_object = """
 ## Retrieve object data
@@ -58,6 +72,7 @@ wget "https://fink-portal.org/api/v1/objects?objectId=ZTF21aaxtctv&output-format
 In python, you would use
 
 ```python
+import io
 import requests
 import pandas as pd
 
@@ -71,7 +86,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 You can retrieve the data for several objects at once:
@@ -89,7 +104,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 Note that for `csv` output, you need to use
@@ -155,7 +170,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 
 fig = plt.figure(figsize=(15, 6))
 
@@ -216,7 +231,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 
 columns = [
     'b:cutoutScience_stampData',
@@ -282,7 +297,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 ### Conesearch
@@ -324,7 +339,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
@@ -352,7 +367,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 Here is the performance of the service for querying a
@@ -399,7 +414,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 """
 
@@ -441,7 +456,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 Note that for `csv` output, you need to use
@@ -471,7 +486,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 There is no limit of time, but you will be limited by the
 number of alerts retrieve on the server side `n` (current max is 1000).
@@ -567,7 +582,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 print(pdf.columns)
 Index(['index', 'Date', 'LAST', 'HA', 'Az', 'H', 'Dobs', 'Dhelio', 'VMag',
        'SDSS:g', 'SDSS:r', 'Phase', 'Elong.', 'AM', 'dRAcosDEC', 'dDEC', 'RV',
@@ -672,7 +687,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 You can also specify up to the second if you know the exposure time:
 
@@ -856,7 +871,7 @@ r = requests.post(
     }
 )
 
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 array = pdf['b:cutoutScience_stampData'].values[0]
 ```
 
@@ -884,7 +899,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 The crossmatch service is a wrapper around the conesearch service.
@@ -985,7 +1000,7 @@ r = requests.post(
     }
 )
 
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 You will get a Pandas DataFrame as usual, with all alerts inside the region (within `[-1 day, +6 day]`).
@@ -1115,7 +1130,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 Note `date` can be either a given night (YYYYMMDD), month (YYYYMM), year (YYYY), or eveything (empty string).
@@ -1124,7 +1139,9 @@ The schema of the dataframe is the following:
 {}
 
 All other fields starting with `class:` are crossmatch from the SIMBAD database.
-""".format(pd.DataFrame([dic_names]).T.rename(columns={0: 'description'}).to_markdown())
+""".format(
+    pd.DataFrame([dic_names]).T.rename(columns={0: "description"}).to_markdown()
+)
 
 api_doc_random = """
 ## Draw random objects
@@ -1161,7 +1178,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 As this service is experimental, the number of random objects returned for a single
