@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2023 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
-from apps.utils import apparent_flux, dc_mag
+from fink_utils.photometry.conversion import apparent_flux, dc_mag
 from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.statistics import dic_names
@@ -459,12 +459,10 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
         mag_dc, err_dc = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'].astype(int).values,
                     pdf['i:magpsf'].astype(float).values,
                     pdf['i:sigmapsf'].astype(float).values,
                     pdf['i:magnr'].astype(float).values,
                     pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
@@ -738,12 +736,10 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         mag, err = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'].values,
                     mag.astype(float).values,
                     err.astype(float).values,
                     pdf['i:magnr'].astype(float).values,
                     pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
@@ -947,12 +943,10 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
     mag, err = np.transpose(
         [
             dc_mag(*args) for args in zip(
-                pdf['i:fid'].values,
                 mag.astype(float).values,
                 err.astype(float).values,
                 pdf['i:magnr'].astype(float).values,
                 pdf['i:sigmagnr'].astype(float).values,
-                pdf['i:magzpsci'].astype(float).values,
                 pdf['i:isdiffpos'].values
             )
         ]
@@ -1812,12 +1806,10 @@ def plot_mulens(n_clicks, object_data):
         mag_dc, err_dc = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'].astype(int).values,
                     pdf['i:magpsf'].astype(float).values,
                     pdf['i:sigmapsf'].astype(float).values,
                     pdf['i:magnr'].astype(float).values,
                     pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
