@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2023 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,13 +33,14 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
-from apps.utils import apparent_flux, dc_mag
+from fink_utils.photometry.conversion import apparent_flux, dc_mag
 from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.statistics import dic_names
 from app import APIURL
 
-from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin, add_ztf_color_correction, estimate_sso_params
+from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin
+from fink_utils.sso.spins import estimate_sso_params, compute_color_correction
 
 from pyLIMA import event
 from pyLIMA import telescopes
@@ -303,7 +304,9 @@ layout_sso_astrometry = dict(
     },
     yaxis={
         'title': '&#916;Dec (\'\')',
-        'automargin': True
+        'automargin': True,
+        'scaleanchor': "x",
+        'scaleratio': 1,
     }
 )
 
@@ -459,12 +462,10 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
         mag_dc, err_dc = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'].astype(int).values,
                     pdf['i:magpsf'].astype(float).values,
                     pdf['i:sigmapsf'].astype(float).values,
                     pdf['i:magnr'].astype(float).values,
                     pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
@@ -738,12 +739,10 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         mag, err = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'].values,
                     mag.astype(float).values,
                     err.astype(float).values,
                     pdf['i:magnr'].astype(float).values,
                     pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
@@ -947,12 +946,10 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
     mag, err = np.transpose(
         [
             dc_mag(*args) for args in zip(
-                pdf['i:fid'].values,
                 mag.astype(float).values,
                 err.astype(float).values,
                 pdf['i:magnr'].astype(float).values,
                 pdf['i:sigmagnr'].astype(float).values,
-                pdf['i:magzpsci'].astype(float).values,
                 pdf['i:isdiffpos'].values
             )
         ]
@@ -1812,12 +1809,10 @@ def plot_mulens(n_clicks, object_data):
         mag_dc, err_dc = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'].astype(int).values,
                     pdf['i:magpsf'].astype(float).values,
                     pdf['i:sigmapsf'].astype(float).values,
                     pdf['i:magnr'].astype(float).values,
                     pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
@@ -2447,76 +2442,94 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
     <extra></extra>
     """
 
-    alpha = np.deg2rad(pdf['Phase'].values)
-    ra = np.deg2rad(pdf['i:ra'].values)
-    dec = np.deg2rad(pdf['i:dec'].values)
-    pha = np.transpose([[i, j, k] for i, j, k in zip(alpha, ra, dec)])
-
     if switch_func == 'HG1G2':
         fitfunc = func_hg1g2
-        x = alpha
         params = ['H', 'G1', 'G2']
         bounds = (
             [0, 0, 0],
             [30, 1, 1]
         )
+        p0 = [15.0, 0.15, 0.15]
+        x = np.deg2rad(pdf['Phase'].values)
     elif switch_func == 'HG12':
         fitfunc = func_hg12
-        x = alpha
         params = ['H', 'G12']
         bounds = (
             [0, 0],
             [30, 1]
         )
+        p0 = [15.0, 0.15]
+        x = np.deg2rad(pdf['Phase'].values)
     elif switch_func == 'HG':
         fitfunc = func_hg
-        x = alpha
         params = ['H', 'G']
         bounds = (
             [0, 0],
             [30, 1]
         )
-    elif switch_func == 'HG1G2S':
+        p0 = [15.0, 0.15]
+        x = np.deg2rad(pdf['Phase'].values)
+    elif switch_func == 'SHG1G2':
         fitfunc = func_hg1g2_with_spin
-        params = ['H', 'G1', 'G2', 'R', 'alpha[deg]', 'beta[deg]']
-        x = pha
+        params = ['H', 'G1', 'G2', 'R', 'alpha0', 'delta0']
         bounds = (
             [0, 0, 0, 1e-1, 0, -np.pi/2],
             [30, 1, 1, 1, 2*np.pi, np.pi/2]
         )
+        p0 = [15.0, 0.15, 0.15, 0.8, np.pi, 0.0]
+        x = [
+            np.deg2rad(pdf['Phase'].values),
+            np.deg2rad(pdf['i:ra'].values),
+            np.deg2rad(pdf['i:dec'].values)
+        ]
 
     layout_sso_phasecurve['title']['text'] = 'Reduced &#967;<sup>2</sup>: '
     if switch_band == 'per-band':
-        # Add color correction in the DataFrame
-        pdf = add_ztf_color_correction(pdf, combined=False)
-
         dd = {'': [filters[f] + ' band' for f in filts]}
         dd.update({i: [''] * len(filts) for i in params})
         df_table = pd.DataFrame(
             dd,
             index=[filters[f] for f in filts]
         )
+
+        # Multi-band fit
+        try:
+            outdic = estimate_sso_params(
+                magpsf_red=pdf['i:magpsf_red'].values,
+                sigmapsf=pdf['i:sigmapsf'].values,
+                phase=np.deg2rad(pdf['Phase'].values),
+                filters=pdf['i:fid'].values,
+                ra=np.deg2rad(pdf['i:ra'].values),
+                dec=np.deg2rad(pdf['i:dec'].values),
+                p0=p0,
+                bounds=bounds,
+                model=switch_func,
+                normalise_to_V=False
+            )
+        except RuntimeError as e:
+            return dbc.Alert("The fitting procedure could not converge.", color='danger')
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
-
-            try:
-                popt, perr, chisq_red = estimate_sso_params(
-                    pdf.loc[cond],
-                    fitfunc,
-                    bounds=bounds
-                )
-            except RuntimeError as e:
-                return dbc.Alert("The fitting procedure could not converge.", color='danger')
-
+            popt = []
             for pindex, param in enumerate(params):
                 # rad2deg
-                if pindex >= 4:
-                    factor = 180. / np.pi
+                if pindex >= 3:
+                    factor = 1.0
+                    if pindex >= 4:
+                        factor = 180. / np.pi
+                    suffix = ''
                 else:
-                    factor = 1.
-                df_table[param][df_table[param].index == filters[f]] = '{:.2f} &plusmn; {:.2f}'.format(factor*popt[pindex], factor*perr[pindex])
+                    factor = 1.0
+                    suffix = '_{}'.format(f)
 
-            ydata = pdf.loc[cond, 'i:magpsf_red'] + pdf.loc[cond, 'color_corr']
+                loc = df_table[param].index == filters[f]
+                df_table[param][loc] = '{:.2f} &plusmn; {:.2f}'.format(
+                    factor * outdic[param + suffix],
+                    factor * outdic['err' + param + suffix]
+                )
+                popt.append(outdic[param + suffix])
+
+            ydata = pdf.loc[cond, 'i:magpsf_red']
 
             figs.append(
                 {
@@ -2544,8 +2557,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 }
             )
 
-            if switch_func == 'HG1G2S':
-                xx = x[:, cond]
+            if switch_func == 'SHG1G2':
+                xx = np.array(x)[:, cond]
             else:
                 xx = x[cond]
 
@@ -2582,40 +2595,55 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     }
                 }
             )
-            layout_sso_phasecurve['title']['text'] += '  {}={:.2f}  '.format(filters[f], chisq_red)
     elif switch_band == 'combined':
-        dd = {'': ['Combined']}
+        dd = {'': ['V band']}
         dd.update({i: [''] for i in params})
         df_table = pd.DataFrame(
             dd,
-            index=['Combined']
+            index=['V band']
         )
 
-        pdf = add_ztf_color_correction(pdf, combined=True)
-
         try:
-            popt, perr, chisq_red = estimate_sso_params(
-                pdf,
-                fitfunc,
-                bounds=bounds
+            outdic = estimate_sso_params(
+                magpsf_red=pdf['i:magpsf_red'].values,
+                sigmapsf=pdf['i:sigmapsf'].values,
+                phase=np.deg2rad(pdf['Phase'].values),
+                filters=pdf['i:fid'].values,
+                ra=np.deg2rad(pdf['i:ra'].values),
+                dec=np.deg2rad(pdf['i:dec'].values),
+                p0=p0,
+                bounds=bounds,
+                model=switch_func,
+                normalise_to_V=True
             )
         except RuntimeError as e:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
+        popt = []
         for pindex, param in enumerate(params):
             # rad2deg
-            if pindex >= 4:
-                factor = 180. / np.pi
+            if pindex >= 3:
+                factor = 1.0
+                if pindex >= 4:
+                    factor = 180. / np.pi
+                suffix = ''
             else:
                 factor = 1.
-            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(factor*popt[pindex], factor*perr[pindex])
+                suffix = '_V'
 
-        ydata = pdf['i:magpsf_red'] + pdf['color_corr']
+            df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(
+                factor * outdic[param + suffix],
+                factor * outdic['err' + param + suffix]
+            )
+            popt.append(outdic[param + suffix])
+
+        color = compute_color_correction(pdf['i:fid'].values)
+        ydata = pdf['i:magpsf_red'].values + color
 
         figs.append(
             {
                 'x': pdf['Phase'].values,
-                'y': ydata.values,
+                'y': ydata,
                 'error_y': {
                     'type': 'data',
                     'array': pdf['i:sigmapsf'].values,
@@ -2623,7 +2651,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
-                'name': 'combined (g & r)',
+                'name': 'V band',
                 'customdata': list(
                     zip(
                         pdf['i:objectId'],
@@ -2656,7 +2684,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         residual_figs.append(
             {
                 'x': pdf['Phase'].values,
-                'y': ydata.values - fitfunc(x, *popt),
+                'y': ydata - fitfunc(x, *popt),
                 'error_y': {
                     'type': 'data',
                     'array': pdf['i:sigmapsf'].values,
@@ -2671,7 +2699,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 }
             }
         )
-        layout_sso_phasecurve['title']['text'] += '  {:.2f}  '.format(chisq_red)
+    layout_sso_phasecurve['title']['text'] += '  {:.2f}  '.format(outdic['chi2red'])
 
     residual_figure = {
         'data': residual_figs,

@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2023 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ from astropy.time import Time
 from dash import html, dcc, Input, Output, State, no_update
 import dash_mantine_components as dmc
 
-from apps.utils import dc_mag
+from fink_utils.photometry.conversion import dc_mag
 from apps.plotting import layout_phase, COLORS_ZTF
 
 from app import app
@@ -69,12 +69,10 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
         mag_dc, err_dc = np.transpose(
             [
                 dc_mag(*args) for args in zip(
-                    pdf['i:fid'].astype(int).values,
                     pdf['i:magpsf'].astype(float).values,
                     pdf['i:sigmapsf'].astype(float).values,
                     pdf['i:magnr'].astype(float).values,
                     pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
