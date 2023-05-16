@@ -300,7 +300,9 @@ layout_sso_astrometry = dict(
     ),
     xaxis={
         'title': '&#916;RA cos(Dec) (\'\')',
-        'automargin': True
+        'automargin': True,
+        'scaleanchor': "x",
+        'scaleratio': 1,
     },
     yaxis={
         'title': '&#916;Dec (\'\')',
