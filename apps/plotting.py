@@ -2462,7 +2462,6 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         x = np.deg2rad(pdf['Phase'].values)
     elif switch_func == 'HG':
         fitfunc = func_hg
-        x = alpha
         params = ['H', 'G']
         bounds = (
             [0, 0],
