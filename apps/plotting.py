@@ -754,12 +754,10 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         mag, err = np.transpose(
             [
                 apparent_flux(*args) for args in zip(
-                    pdf['i:fid'].astype(int).values,
                     mag.astype(float).values,
                     err.astype(float).values,
                     pdf['i:magnr'].astype(float).values,
                     pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:magzpsci'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
