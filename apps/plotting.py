@@ -2491,25 +2491,25 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             dd,
             index=[filters[f] for f in filts]
         )
+
+        # Multi-band fit
+        try:
+            outdic = estimate_sso_params(
+                magpsf_red=pdf['i:magpsf_red'].values,
+                sigmapsf=pdf['i:sigmapsf'].values,
+                phase=np.deg2rad(pdf['Phase'].values),
+                filters=pdf['i:fid'].values,
+                ra=np.deg2rad(pdf['i:ra'].values),
+                dec=np.deg2rad(pdf['i:dec'].values),
+                p0=p0,
+                bounds=bounds,
+                model=switch_func,
+                normalise_to_V=False
+            )
+        except RuntimeError as e:
+            return dbc.Alert("The fitting procedure could not converge.", color='danger')
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
-
-            try:
-                outdic = estimate_sso_params(
-                    magpsf_red=pdf['i:magpsf_red'].values[cond],
-                    sigmapsf=pdf['i:sigmapsf'].values[cond],
-                    phase=np.deg2rad(pdf['Phase'].values[cond]),
-                    filters=pdf['i:fid'].values[cond],
-                    ra=np.deg2rad(pdf['i:ra'].values[cond]),
-                    dec=np.deg2rad(pdf['i:dec'].values[cond]),
-                    p0=p0,
-                    bounds=bounds,
-                    model=switch_func,
-                    normalise_to_V=False
-                )
-            except RuntimeError as e:
-                return dbc.Alert("The fitting procedure could not converge.", color='danger')
-
             popt = []
             for pindex, param in enumerate(params):
                 # rad2deg
