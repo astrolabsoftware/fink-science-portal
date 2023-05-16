@@ -2556,7 +2556,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 }
             )
 
-            if switch_func == 'HG1G2S':
+            if switch_func == 'SHG1G2':
                 xx = x[:, cond]
             else:
                 xx = x[cond]
