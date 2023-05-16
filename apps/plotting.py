@@ -2493,21 +2493,21 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         )
 
         # Multi-band fit
-        try:
-            outdic = estimate_sso_params(
-                magpsf_red=pdf['i:magpsf_red'].values,
-                sigmapsf=pdf['i:sigmapsf'].values,
-                phase=np.deg2rad(pdf['Phase'].values),
-                filters=pdf['i:fid'].values,
-                ra=np.deg2rad(pdf['i:ra'].values),
-                dec=np.deg2rad(pdf['i:dec'].values),
-                p0=p0,
-                bounds=bounds,
-                model=switch_func,
-                normalise_to_V=False
-            )
-        except RuntimeError as e:
+        outdic = estimate_sso_params(
+            magpsf_red=pdf['i:magpsf_red'].values,
+            sigmapsf=pdf['i:sigmapsf'].values,
+            phase=np.deg2rad(pdf['Phase'].values),
+            filters=pdf['i:fid'].values,
+            ra=np.deg2rad(pdf['i:ra'].values),
+            dec=np.deg2rad(pdf['i:dec'].values),
+            p0=p0,
+            bounds=bounds,
+            model=switch_func,
+            normalise_to_V=False
+        )
+        if outdic['fit'] != 0:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
+
         for i, f in enumerate(filts):
             cond = pdf['i:fid'] == f
             popt = []
@@ -2603,20 +2603,19 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             index=['V band']
         )
 
-        try:
-            outdic = estimate_sso_params(
-                magpsf_red=pdf['i:magpsf_red'].values,
-                sigmapsf=pdf['i:sigmapsf'].values,
-                phase=np.deg2rad(pdf['Phase'].values),
-                filters=pdf['i:fid'].values,
-                ra=np.deg2rad(pdf['i:ra'].values),
-                dec=np.deg2rad(pdf['i:dec'].values),
-                p0=p0,
-                bounds=bounds,
-                model=switch_func,
-                normalise_to_V=True
-            )
-        except RuntimeError as e:
+        outdic = estimate_sso_params(
+            magpsf_red=pdf['i:magpsf_red'].values,
+            sigmapsf=pdf['i:sigmapsf'].values,
+            phase=np.deg2rad(pdf['Phase'].values),
+            filters=pdf['i:fid'].values,
+            ra=np.deg2rad(pdf['i:ra'].values),
+            dec=np.deg2rad(pdf['i:dec'].values),
+            p0=p0,
+            bounds=bounds,
+            model=switch_func,
+            normalise_to_V=True
+        )
+        if outdic['fit'] != 0:
             return dbc.Alert("The fitting procedure could not converge.", color='danger')
 
         popt = []
