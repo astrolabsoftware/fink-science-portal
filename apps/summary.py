@@ -438,7 +438,11 @@ def tabs(pdf, is_mobile):
         chinr = pdf['i:chinr'].values[0]
         sharpnr = pdf['i:sharpnr'].values[0]
         if is_source_behind(distnr, chinr, sharpnr):
-            extra_div = dbc.Alert("It looks like there is a source behind. You might want to check the DC magnitude instead.", color="danger")
+            extra_div = dbc.Alert(
+                "It looks like there is a point source behind. You might want to check the DC magnitude instead.",
+                dismissable=True,
+                is_open=True,
+                color="danger")
         else:
             extra_div = html.Div()
         tabs_ = dmc.Tabs(
