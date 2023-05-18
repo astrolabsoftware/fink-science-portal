@@ -786,5 +786,5 @@ def is_source_behind(distnr: float, chinr: float, sharpnr: float) -> bool:
     cond1 = (distnr >= 0) & (distnr <= 1.5)
     cond2 = (chinr >= 0.5) & (chinr <= 1.5)
     cond3 = np.abs(sharpnr) <= 0.5
-    return cond1 & cond2 & cond3
+    return cond1 & (cond2 | cond3)
 
