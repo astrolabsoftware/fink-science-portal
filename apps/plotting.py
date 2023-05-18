@@ -70,9 +70,9 @@ colors_ = [
 ]
 
 all_radio_options = {
-    "Difference magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
-    "DC magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
-    "DC apparent flux": ["Difference magnitude", "DC magnitude", "DC apparent flux"]
+    "Difference magnitude": ["Difference magnitude", "DC magnitude", "DC flux"],
+    "DC magnitude": ["Difference magnitude", "DC magnitude", "DC flux"],
+    "DC flux": ["Difference magnitude", "DC magnitude", "DC flux"]
 }
 
 layout_lightcurve = dict(
@@ -751,7 +751,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
         scale = 1.0
-    elif switch == "DC apparent flux":
+    elif switch == "DC flux":
         # inplace replacement
         mag, err = np.transpose(
             [

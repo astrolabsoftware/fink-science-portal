@@ -72,14 +72,14 @@ def card_lightcurve_summary():
                             dmc.AccordionPanel(
                                 dcc.Markdown(
                                     """
-                                    #### Difference magnitude
+                                    ##### Difference magnitude
 
                                     Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
                                     In addition, the _Difference magnitude_ view shows:
                                     - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
                                     - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
 
-                                    #### DC magnitude
+                                    ##### DC magnitude
                                     DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
                                     differential magnitude (`magpsf`), and `isdiffpos` (positive or negative difference image detection) as follows:
                                     $$
@@ -87,13 +87,13 @@ def card_lightcurve_summary():
                                     $$
 
                                     where `sign` = 1 if `isdiffpos` = 't' or `sign` = -1 if `isdiffpos` = 'f'.
-                                    Before using the nearest reference image source magnitude (magnr), you will need
+                                    Before using the nearest reference image source magnitude (`magnr`), you will need
                                     to ensure the source is close enough to be considered an association
-                                    (e.g., `distnr` <~ 1.5 arcsec). It is also advised you check the other associated metrics
+                                    (e.g., `distnr` $\\leq$ 1.5 arcsec). It is also advised you check the other associated metrics
                                     (`chinr` and/or `sharpnr`) to ensure it is a point source. ZTF recommends
-                                    0.5 <~ `chinr` <~ 1.5 and/or -0.5 <~ `sharpnr` <~ 0.5.
+                                    0.5 $\\leq$ `chinr` $\\leq$ 1.5 and/or -0.5 $\\leq$ `sharpnr` $\\leq$ 0.5.
 
-                                    #### DC flux
+                                    ##### DC flux
                                     DC flux (in Jansky) is constructed from DC magnitude by using the following:
                                     $$
                                     f_{DC} = 3631 \\times 10^{-0.4m_{DC}}
