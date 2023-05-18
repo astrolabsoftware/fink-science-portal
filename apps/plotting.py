@@ -943,7 +943,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
-    layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
+    layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
     layout_lightcurve['yaxis']['autorange'] = 'reversed'
 
     hovertemplate = r"""
