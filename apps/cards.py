@@ -68,8 +68,8 @@ def card_lightcurve_summary():
                 children=[
                     dmc.AccordionItem(
                         [
-                            dmc.AccordionPanel("Information"),
-                            dmc.AccordionControl(
+                            dmc.AccordionControl("Information"),
+                            dmc.AccordionPanel(
                                 dcc.Markdown(
                                     """
                                     Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
