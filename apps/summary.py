@@ -76,9 +76,8 @@ def tab1_content(extra_div):
                 ),
             ], justify='around'
         ),
-        extra_div,
         dbc.Row([
-            dbc.Col(card_lightcurve_summary(), width=8),
+            dbc.Col([extra_div, card_lightcurve_summary()], width=8),
             dbc.Col(id="card_id_col", width=4)
         ]),
     ])
