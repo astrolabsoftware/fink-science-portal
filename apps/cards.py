@@ -82,11 +82,8 @@ def card_lightcurve_summary():
                                     #### DC magnitude
                                     DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
                                     differential magnitude (`magpsf`), and `isdiffpos` (positive or negative difference image detection) as follows:
-
                                     $$
-                                    \\begin{equation}
                                     m_{DC} = -2.5\\log_{10}(10^{-0.4m_{magnr}} + \\texttt{sign} 10^{-0.4m_{magpsf}})
-                                    \\end{equation}
                                     $$
 
                                     where `sign` = 1 if `isdiffpos` = 't' or `sign` = -1 if `isdiffpos` = 'f'.
@@ -98,11 +95,8 @@ def card_lightcurve_summary():
 
                                     #### DC flux
                                     DC flux (in Jansky) is constructed from DC magnitude by using the following:
-
                                     $$
-                                    \\begin{equation}
                                     f_{DC} = 3631 \\times 10^{-0.4m_{DC}}
-                                    \\end{equation}
                                     $$
 
                                     Note that we display the flux in milli-Jansky.
