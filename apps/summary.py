@@ -442,7 +442,8 @@ def tabs(pdf, is_mobile):
                 "It looks like there is a point source behind. You might want to check the DC magnitude instead.",
                 dismissable=True,
                 is_open=True,
-                color="danger")
+                color="light"
+            )
         else:
             extra_div = html.Div()
         tabs_ = dmc.Tabs(
