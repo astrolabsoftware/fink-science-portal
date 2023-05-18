@@ -765,3 +765,12 @@ def generate_qr(data):
     )
 
     return img
+
+def is_varstar(distnr, chinr, sharpnr):
+    """ Check if the alert is behind a source
+    """
+    cond1 = distnr <= 1.5
+    cond2 = (chinr >= 0.5) & (chinr <= 1.5)
+    cond3 = np.abs(sharpnr) <= 0.5
+    return cond1 & cond2 & cond3
+
