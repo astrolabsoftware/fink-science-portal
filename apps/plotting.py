@@ -943,18 +943,6 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
-    # inplace replacement
-    mag, err = np.transpose(
-        [
-            dc_mag(*args) for args in zip(
-                mag.astype(float).values,
-                err.astype(float).values,
-                pdf['i:magnr'].astype(float).values,
-                pdf['i:sigmagnr'].astype(float).values,
-                pdf['i:isdiffpos'].values
-            )
-        ]
-    )
     layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
     layout_lightcurve['yaxis']['autorange'] = 'reversed'
 
