@@ -766,10 +766,24 @@ def generate_qr(data):
 
     return img
 
-def is_varstar(distnr, chinr, sharpnr):
+def is_source_behind(distnr: float, chinr: float, sharpnr: float) -> bool:
     """ Check if the alert is behind a source
+
+    Parameters
+    ----------
+    distnr: float
+        Distance to nearest source in reference image PSF-catalog within 30 arcsec [pixels]
+    chinr: float
+        DAOPhot chi parameter of nearest source in reference image PSF-catalog within 30 arcsec
+    sharpnr: float
+        DAOPhot sharp parameter of nearest source in reference image PSF-catalog within 30 arcsec
+
+    Returns
+    ----------
+    out: bool
+        True if there is a source behind. False otherwise.
     """
-    cond1 = distnr <= 1.5
+    cond1 = (distnr >= 0) & (distnr <= 1.5)
     cond2 = (chinr >= 0.5) & (chinr <= 1.5)
     cond3 = np.abs(sharpnr) <= 0.5
     return cond1 & cond2 & cond3

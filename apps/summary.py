@@ -48,7 +48,7 @@ from apps.utils import get_miriade_data
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
-from apps.utils import is_varstar
+from apps.utils import is_source_behind
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -61,7 +61,6 @@ def tab1_content(extra_div):
     """
     tab1_content_ = html.Div([
         dmc.Space(h=10),
-        extra_div,
         dbc.Row(
             [
                 dbc.Col(
@@ -77,6 +76,7 @@ def tab1_content(extra_div):
                 ),
             ], justify='around'
         ),
+        extra_div,
         dbc.Row([
             dbc.Col(card_lightcurve_summary(), width=8),
             dbc.Col(id="card_id_col", width=4)
@@ -438,7 +438,7 @@ def tabs(pdf, is_mobile):
         distnr = pdf['i:distnr'].values[0]
         chinr = pdf['i:chinr'].values[0]
         sharpnr = pdf['i:sharpnr'].values[0]
-        if is_varstar(distnr, chinr, sharpnr):
+        if is_source_behind(distnr, chinr, sharpnr):
             extra_div = dbc.Alert("It looks like there is a source behind. You might want to check the DC magnitude instead.", color="danger")
         else:
             extra_div = html.Div()
