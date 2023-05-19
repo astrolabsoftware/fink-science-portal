@@ -331,7 +331,7 @@ layout_sso_phasecurve = dict(
     },
     yaxis={
         'autorange': 'reversed',
-        'title': 'observed V [mag]',
+        'title': 'Observed magnitude [mag]',
         'automargin': True
     },
     title={
