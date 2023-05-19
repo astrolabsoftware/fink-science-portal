@@ -981,6 +981,7 @@ import pandas as pd
 
 # LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
 # S200219ac on 2020-02-19T09:44:15.197173
+# wget https://gracedb.ligo.org/api/superevents/S200219ac/files/bayestar.fits.gz
 fn = 'bayestar.fits.gz'
 
 # GW credible region threshold to look for. Note that the values in the resulting
@@ -990,7 +991,7 @@ fn = 'bayestar.fits.gz'
 credible_level = 0.2
 
 # Query Fink
-data = gzip.open(fn, 'rb').read()
+data = open(fn, 'rb').read()
 r = requests.post(
     'https://fink-portal.org/api/v1/bayestar',
     json={
