@@ -77,7 +77,7 @@ def card_lightcurve_summary():
                                     Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
                                     In addition, the _Difference magnitude_ view shows:
                                     - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+                                    - lower triangles (&#9661;), representing 5-sigma magnitude limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
 
                                     ##### DC magnitude
                                     DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
