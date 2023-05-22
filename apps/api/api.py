@@ -1042,7 +1042,7 @@ def anomalous_objects_arguments():
         # POST from query URL
         return anomalous_objects(payload=request.args)
     else:
-        return jsonify({'args': args_latest})
+        return jsonify({'args': args_anomaly})
 
 @api_bp.route('/api/v1/anomaly', methods=['POST'])
 def anomalous_objects(payload=None):
