@@ -29,7 +29,7 @@ def anomalysearch(n=10, start_date=None, stop_date=None, output_format='json', c
         'output-format': output_format
     }
 
-    if startdate is not None:
+    if start_date is not None:
         payload.update(
             {
                 'start_date': start_date,
