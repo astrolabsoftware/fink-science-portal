@@ -16,6 +16,8 @@ import requests
 import pandas as pd
 import numpy as np
 
+from astropy.io import votable
+
 import io
 import sys
 
@@ -78,7 +80,7 @@ def test_anomaly_and_date() -> None:
     ---------
     >>> test_anomaly_and_date()
     """
-    pdf = anomalysearch(start_date='2023-01-25', stopdate='2023-01-25')
+    pdf = anomalysearch(start_date='2023-01-25', stop_date='2023-01-25')
 
     assert not pdf.empty
 
