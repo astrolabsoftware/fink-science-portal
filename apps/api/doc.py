@@ -1241,3 +1241,37 @@ Depending on `kind`, you would get information on:
 - `lightcurves`: photometry of objects related to candidate orbits
 - `orbParams`: orbital parameters for orbit candidates
 """
+
+api_doc_anomaly = """
+## Explore Anomaly detections
+
+This service lets you query the information about anomalous objects in Fink. Each night, Fink selects and stores
+the top 10 alerts with the most anomalous scores.
+
+The list of arguments for retrieving alert data can be found at https://fink-portal.org/api/v1/anomaly.
+
+In python, you would use
+
+```python
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/anomaly',
+  json={
+    'n': int, # Mandatory. Number of objects to retrieve
+    'start_date': str, # Optional. YYYY-MM-DD. Default is 2023-01-25
+    'stop_date': str, # Optional. Only for lightcurves. Default is today
+    'columns': str, # Optional. Comma-separated column names to retrieve. Default is all columns.
+    'output-format': str
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+Note that you will only have the alert data. If you want then to retrieve the object data, you
+can use the https://fink-portal.org/api/v1/object service.
+"""
