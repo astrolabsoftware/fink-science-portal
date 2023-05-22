@@ -1246,7 +1246,7 @@ api_doc_anomaly = """
 ## Explore Anomaly detections
 
 This service lets you query the information about anomalous objects in Fink. Each night, Fink selects and stores
-the top 10 alerts with the most anomalous scores.
+the top 10 alerts with the most anomalous scores. The Science module was deployed and start producing scores on 2023-01-25.
 
 The list of arguments for retrieving alert data can be found at https://fink-portal.org/api/v1/anomaly.
 
@@ -1260,9 +1260,9 @@ import pandas as pd
 r = requests.post(
   'https://fink-portal.org/api/v1/anomaly',
   json={
-    'n': int, # Mandatory. Number of objects to retrieve
+    'n': int, # Optional. Number of objects to retrieve between `stop_date` and `start_date`. Default is 10.
     'start_date': str, # Optional. YYYY-MM-DD. Default is 2023-01-25
-    'stop_date': str, # Optional. Only for lightcurves. Default is today
+    'stop_date': str, # Optional. YYYY-MM-DD. Default is today
     'columns': str, # Optional. Comma-separated column names to retrieve. Default is all columns.
     'output-format': str
   }
