@@ -1242,6 +1242,10 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     else:
         jd_stop = Time(payload['stop_date']).jd
 
+    if jd_stop == jd_start:
+        # allow to get unique day
+        jd_stop += 1
+
     if 'columns' in payload:
         cols = payload['columns'].replace(" ", "")
     else:
