@@ -95,4 +95,7 @@ clientSSOCAND.connect(args['tablename'] + ".sso_cand", args['SCHEMAVER'])
 clientSSOORB = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
 clientSSOORB.connect(args['tablename'] + ".orb_cand", args['SCHEMAVER'])
 
+clientANOMALY = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientANOMALY.connect(args['tablename'] + ".anomaly", args['SCHEMAVER'])
+
 client.setLimit(nlimit);
