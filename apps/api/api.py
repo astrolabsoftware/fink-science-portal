@@ -32,6 +32,7 @@ from apps.api.utils import return_tracklet_pdf, format_and_send_cutout
 from apps.api.utils import perform_xmatch, return_bayestar_pdf
 from apps.api.utils import return_statistics_pdf, send_data
 from apps.api.utils import return_random_pdf
+from apps.api.utils import return_anomalous_objects_pdf
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -534,6 +535,34 @@ args_ssocand = [
     }
 ]
 
+args_anomaly = [
+    {
+        'name': 'n',
+        'required': False,
+        'description': 'Last N alerts to transfer between stop and start date (going from most recent to older alerts). Default is 10'
+    },
+    {
+        'name': 'start_date',
+        'required': False,
+        'description': '[Optional] Start date in UTC YYYY-MM-DD. Default is 2019-11-01.'
+    },
+    {
+        'name': 'stop_date',
+        'required': False,
+        'description': '[Optional] Stop date in UTC YYYY-MM-DD. Default is today.'
+    },
+    {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -992,3 +1021,40 @@ def return_random(payload=None):
 
     output_format = payload.get('output-format', 'json')
     return send_data(pdf, output_format)
+
+@api_bp.route('/api/v1/anomaly', methods=['GET'])
+def anomalous_objects_arguments():
+    """ Obtain information about anomalous objects
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return anomalous_objects(payload=request.args)
+    else:
+        return jsonify({'args': args_latest})
+
+@api_bp.route('/api/v1/anomaly', methods=['POST'])
+def anomalous_objects(payload=None):
+    """ Get anomalous objects
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i['name'] for i in args_anomaly if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    pdfs = return_anomalous_objects_pdf(payload)
+
+    # Error propagation
+    if isinstance(pdfs, Response):
+        return pdfs
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdfs, output_format)

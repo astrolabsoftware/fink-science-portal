@@ -36,6 +36,7 @@ from app import clientP128, clientP4096, clientP131072
 from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
 from app import clientSSOCAND, clientSSOORB
 from app import clientStats
+from app import clientANOMALY
 from app import nlimit
 from app import APIURL
 
@@ -1210,3 +1211,71 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
     client.setLimit(nlimit)
 
     return pdf
+
+def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/anomaly
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/anomaly
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    if 'n' not in payload:
+        nalerts = 10
+    else:
+        nalerts = int(payload['n'])
+
+    if 'start_date' not in payload:
+        # start of the Fink operations
+        jd_start = Time('2019-11-01 00:00:00').jd
+    else:
+        jd_start = Time(payload['start_date']).jd
+
+    if 'stop_date' not in payload:
+        jd_stop = Time.now().jd
+    else:
+        jd_stop = Time(payload['stop_date']).jd
+
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    if cols == '*':
+        truncated = False
+    else:
+        truncated = True
+
+    clientANOMALY.setLimit(nalerts)
+    clientANOMALY.setRangeScan(True)
+    clientANOMALY.setReversed(True)
+
+    to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
+    results = clientANOMALY.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, True, True
+    )
+    schema_client = clientANOMALY.schema()
+
+    # Restore default limits
+    clientANOMALY.setLimit(nlimit)
+
+    # We want to return alerts
+    # color computation is disabled
+    pdfs = format_hbase_output(
+        results, schema_client,
+        group_alerts=False,
+        extract_color=False,
+        truncated=truncated,
+        with_constellation=True
+    )
+
+    return pdfs
