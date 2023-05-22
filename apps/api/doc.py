@@ -1241,3 +1241,126 @@ Depending on `kind`, you would get information on:
 - `lightcurves`: photometry of objects related to candidate orbits
 - `orbParams`: orbital parameters for orbit candidates
 """
+
+api_doc_anomaly = """
+## Explore Anomaly detections
+
+This service lets you query the information about anomalous objects in Fink. Each night, Fink selects and stores
+the top 10 alerts with the most anomalous scores. The Science module was deployed and start producing scores on 2023-01-25.
+
+The list of arguments for retrieving alert data can be found at https://fink-portal.org/api/v1/anomaly.
+
+In python, you would use
+
+```python
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/anomaly',
+  json={
+    'n': int, # Optional. Number of objects to retrieve between `stop_date` and `start_date`. Default is 10.
+    'start_date': str, # Optional. YYYY-MM-DD. Default is 2023-01-25
+    'stop_date': str, # Optional. YYYY-MM-DD. Default is today
+    'columns': str, # Optional. Comma-separated column names to retrieve. Default is all columns.
+    'output-format': str
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+This table has full _alert_ schema, and you can easily gets statistics, example:
+
+```python
+# retrieve all anomalies
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/anomaly',
+  json={
+    'n': 10000, # on purpose large
+    'stop_date': '2023-05-22',
+    'columns': 'i:objectId,d:cdsxmatch,i:magpsf'
+  }
+)
+pdf = pd.read_json(io.BytesIO(r.content))
+
+pdf.groupby('d:cdsxmatch').agg({'i:objectId': 'count'}).sort_values('i:objectId', ascending=False)
+
+               i:objectId
+d:cdsxmatch
+CataclyV*             191
+Unknown               170
+Mira                   65
+RRLyr                  63
+LPV*                   52
+EB*_Candidate          21
+EB*                    20
+Star                   14
+CV*_Candidate          10
+Fail 504               10
+Blazar                  6
+V*                      6
+WD*_Candidate           4
+YSO_Candidate           4
+PulsV*                  3
+Fail 500                3
+YSO                     3
+Fail 503                2
+SN                      2
+LP*_Candidate           1
+BLLac                   1
+QSO                     1
+Radio                   1
+Seyfert_1               1
+TTau*                   1
+Em*                     1
+ClG                     1
+V*?_Candidate           1
+BlueStraggler           1
+AGN                     1
+```
+Note the `Fail X` labels are when the CDS xmatch service fails with error code X (web service).
+But because this table has full _alert_ schema, if you want full object data,
+you need to call then the `/api/v1/object` service. Example:
+
+```python
+# retrieve last 10 anomaly objectIds
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/anomaly',
+  json={
+    'n': 10,
+    'columns': 'i:objectId'
+  }
+)
+
+# Format output in a DataFrame
+oids = [i['i:objectId'] for i in r.json()]
+
+# retrieve full objects data
+r = requests.post(
+  'https://fink-portal.org/api/v1/objects',
+  json={
+    'objectId': ','.join(oids),
+    'columns': 'i:objectId,i:magpsf,i:sigmapsf,d:anomaly_score,d:cdsxmatch',
+    'output-format': 'json'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+Note the first time, the `/api/v1/object` query can be long (especially if
+you are dealing with variable stars), but then data is cached on the server,
+and subsequent queries are much faster.
+"""
