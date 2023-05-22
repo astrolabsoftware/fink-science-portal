@@ -70,9 +70,9 @@ colors_ = [
 ]
 
 all_radio_options = {
-    "Difference magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
-    "DC magnitude": ["Difference magnitude", "DC magnitude", "DC apparent flux"],
-    "DC apparent flux": ["Difference magnitude", "DC magnitude", "DC apparent flux"]
+    "Difference magnitude": ["Difference magnitude", "DC magnitude", "DC flux"],
+    "DC magnitude": ["Difference magnitude", "DC magnitude", "DC flux"],
+    "DC flux": ["Difference magnitude", "DC magnitude", "DC flux"]
 }
 
 layout_lightcurve = dict(
@@ -734,6 +734,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
     if switch == "Difference magnitude":
         layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
+        scale = 1.0
     elif switch == "DC magnitude":
         # inplace replacement
         mag, err = np.transpose(
@@ -749,7 +750,8 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         )
         layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
-    elif switch == "DC apparent flux":
+        scale = 1.0
+    elif switch == "DC flux":
         # inplace replacement
         mag, err = np.transpose(
             [
@@ -762,8 +764,9 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 )
             ]
         )
-        layout_lightcurve['yaxis']['title'] = 'Apparent DC flux'
+        layout_lightcurve['yaxis']['title'] = 'Apparent DC flux (milliJansky)'
         layout_lightcurve['yaxis']['autorange'] = True
+        scale = 1e3
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
@@ -775,10 +778,10 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         'data': [
             {
                 'x': dates[pdf['i:fid'] == 1],
-                'y': mag[pdf['i:fid'] == 1],
+                'y': mag[pdf['i:fid'] == 1] * scale,
                 'error_y': {
                     'type': 'data',
-                    'array': err[pdf['i:fid'] == 1],
+                    'array': err[pdf['i:fid'] == 1] * scale,
                     'visible': True,
                     'color': COLORS_ZTF[0]
                 },
@@ -793,10 +796,10 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
             },
             {
                 'x': dates[pdf['i:fid'] == 2],
-                'y': mag[pdf['i:fid'] == 2],
+                'y': mag[pdf['i:fid'] == 2] * scale,
                 'error_y': {
                     'type': 'data',
-                    'array': err[pdf['i:fid'] == 2],
+                    'array': err[pdf['i:fid'] == 2] * scale,
                     'visible': True,
                     'color': COLORS_ZTF[1]
                 },
@@ -940,19 +943,7 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
-    # inplace replacement
-    mag, err = np.transpose(
-        [
-            dc_mag(*args) for args in zip(
-                mag.astype(float).values,
-                err.astype(float).values,
-                pdf['i:magnr'].astype(float).values,
-                pdf['i:sigmagnr'].astype(float).values,
-                pdf['i:isdiffpos'].values
-            )
-        ]
-    )
-    layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
+    layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
     layout_lightcurve['yaxis']['autorange'] = 'reversed'
 
     hovertemplate = r"""

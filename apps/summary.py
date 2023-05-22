@@ -48,6 +48,7 @@ from apps.utils import get_miriade_data
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
+from apps.utils import is_source_behind
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -55,7 +56,7 @@ from app import APIURL
 
 dcc.Location(id='url', refresh=False)
 
-def tab1_content():
+def tab1_content(extra_div):
     """ Summary tab
     """
     tab1_content_ = html.Div([
@@ -76,7 +77,7 @@ def tab1_content():
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col(card_lightcurve_summary(), width=8),
+            dbc.Col([extra_div, card_lightcurve_summary()], width=8),
             dbc.Col(id="card_id_col", width=4)
         ]),
     ])
@@ -433,6 +434,18 @@ def tabs(pdf, is_mobile):
     if is_mobile:
         tabs_ = tab_mobile_content(pdf)
     else:
+        distnr = pdf['i:distnr'].values[0]
+        chinr = pdf['i:chinr'].values[0]
+        sharpnr = pdf['i:sharpnr'].values[0]
+        if is_source_behind(distnr, chinr, sharpnr):
+            extra_div = dbc.Alert(
+                "It looks like there is a point source behind. You might want to check the DC magnitude instead.",
+                dismissable=True,
+                is_open=True,
+                color="light"
+            )
+        else:
+            extra_div = html.Div()
         tabs_ = dmc.Tabs(
             [
                 dmc.TabsList(
@@ -446,7 +459,7 @@ def tabs(pdf, is_mobile):
                         dmc.Tab("GRB", value="GRB", disabled=True)
                     ], position='right'
                 ),
-                dmc.TabsPanel(tab1_content(), value="Summary"),
+                dmc.TabsPanel(tab1_content(extra_div), value="Summary"),
                 dmc.TabsPanel(tab2_content(), value="Supernovae"),
                 dmc.TabsPanel(tab3_content(), value="Variable stars"),
                 dmc.TabsPanel(tab4_content(), value="Microlensing"),

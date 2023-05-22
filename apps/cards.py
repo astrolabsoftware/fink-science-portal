@@ -45,7 +45,7 @@ def card_lightcurve_summary():
                 id='lightcurve_cutouts',
                 style={
                     'width': '100%',
-                    'height': '25pc'
+                    'height': '30pc'
                 },
                 config={'displayModeBar': False}
             ),
@@ -68,21 +68,45 @@ def card_lightcurve_summary():
                 children=[
                     dmc.AccordionItem(
                         [
-                            dmc.AccordionPanel("Information"),
-                            dmc.AccordionControl(
+                            dmc.AccordionControl("Information"),
+                            dmc.AccordionPanel(
                                 dcc.Markdown(
                                     """
+                                    ##### Difference magnitude
+
                                     Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
                                     In addition, the _Difference magnitude_ view shows:
                                     - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                                    - lower triangles (&#9661;), representing 5-sigma mag limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-                                    """
+                                    - lower triangles (&#9661;), representing 5-sigma magnitude limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+
+                                    ##### DC magnitude
+                                    DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
+                                    differential magnitude (`magpsf`), and `isdiffpos` (positive or negative difference image detection) as follows:
+                                    $$
+                                    m_{DC} = -2.5\\log_{10}(10^{-0.4m_{magnr}} + \\texttt{sign} 10^{-0.4m_{magpsf}})
+                                    $$
+
+                                    where `sign` = 1 if `isdiffpos` = 't' or `sign` = -1 if `isdiffpos` = 'f'.
+                                    Before using the nearest reference image source magnitude (`magnr`), you will need
+                                    to ensure the source is close enough to be considered an association
+                                    (e.g., `distnr` $\\leq$ 1.5 arcsec). It is also advised you check the other associated metrics
+                                    (`chinr` and/or `sharpnr`) to ensure it is a point source. ZTF recommends
+                                    0.5 $\\leq$ `chinr` $\\leq$ 1.5 and/or -0.5 $\\leq$ `sharpnr` $\\leq$ 0.5.
+
+                                    ##### DC flux
+                                    DC flux (in Jansky) is constructed from DC magnitude by using the following:
+                                    $$
+                                    f_{DC} = 3631 \\times 10^{-0.4m_{DC}}
+                                    $$
+
+                                    Note that we display the flux in milli-Jansky.
+                                    """, mathjax=True
                                 )
                             ),
                         ],
                         value='info'
                     ),
-                ],
+                ]
             )
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
