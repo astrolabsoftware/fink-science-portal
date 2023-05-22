@@ -789,6 +789,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'name': 'g band',
                 'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
                 'hovertemplate': hovertemplate,
+                "legendgroup": "g band",
                 'marker': {
                     'size': 12,
                     'color': COLORS_ZTF[0],
@@ -807,6 +808,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'name': 'r band',
                 'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
                 'hovertemplate': hovertemplate,
+                "legendgroup": "r band",
                 'marker': {
                     'size': 12,
                     'color': COLORS_ZTF[1],
@@ -834,6 +836,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'mode': 'markers',
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 1],
                     'hovertemplate': hovertemplate_upper,
+                    "legendgroup": "g band",
                     'marker': {
                         'color': COLORS_ZTF[0],
                         'symbol': 'triangle-down-open'
@@ -848,6 +851,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'mode': 'markers',
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 2],
                     'hovertemplate': hovertemplate_upper,
+                    "legendgroup": "r band",
                     'marker': {
                         'color': COLORS_ZTF[1],
                         'symbol': 'triangle-down-open'
@@ -881,6 +885,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'mode': 'markers',
                     'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 1],
                     'hovertemplate': hovertemplate_upperv,
+                    "legendgroup": "g band",
                     'marker': {
                         'color': COLORS_ZTF[0],
                         'symbol': 'triangle-up'
@@ -901,6 +906,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'mode': 'markers',
                     'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 2],
                     'hovertemplate': hovertemplate_upperv,
+                    "legendgroup": "r band",
                     'marker': {
                         'color': COLORS_ZTF[1],
                         'symbol': 'triangle-up'
