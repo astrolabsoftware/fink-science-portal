@@ -976,7 +976,6 @@ Concretely on [S200219ac](https://gracedb.ligo.org/superevents/S200219ac/view/):
 ```python
 import io
 import requests
-import gzip
 import pandas as pd
 
 # LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
@@ -1108,6 +1107,8 @@ plt.show()
 ```
 
 ![gw](/assets/gw.png)
+
+You can also find this tutorial in the [fink-tutorials repository](https://github.com/astrolabsoftware/fink-tutorials/blob/main/MMA/gravitational_waves.ipynb).
 """
 
 api_doc_stats = """
