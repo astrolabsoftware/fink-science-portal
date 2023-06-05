@@ -224,6 +224,17 @@ def create_external_links(ra0, dec0):
                         target="_blank",
                         href="https://asas-sn.osu.edu/?ra={}&dec={}".format(ra0, dec0)
                     ),
+                ),
+                dbc.Col(
+                    dbc.Button(
+                        className='btn btn-default btn-circle btn-lg',
+                        style={'background-image': 'url(/assets/buttons/vsx.png)', 'background-size': 'cover'},
+                        color='white',
+                        outline=True,
+                        id='VSX',
+                        target="_blank",
+                        href="https://www.aavso.org/vsx/index.php?view=results.get&coords={}+{}&format=d&size=0.1".format(ra0, dec0)
+                    ),
                 )
             ], justify='around'
         ),
@@ -496,29 +507,6 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "Other brokers",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:atom-2",
-                                color=dmc.theme.DEFAULT_COLORS["green"][6],
-                                width=20,
-                            )
-                        ],
-                    ),
-                    dmc.AccordionPanel(
-                        dmc.Stack(
-                            [
-                                create_external_links_brokers(objectid)
-                            ],
-                            align='center'
-                        )
-                    ),
-                ],
-                value='external_brokers'
-            ),
-            dmc.AccordionItem(
-                [
-                    dmc.AccordionControl(
                         "Neighbourhood",
                         icon=[
                             DashIconify(
@@ -561,6 +549,29 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                 ],
                 value='external'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Other brokers",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:atom-2",
+                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        dmc.Stack(
+                            [
+                                create_external_links_brokers(objectid)
+                            ],
+                            align='center'
+                        )
+                    ),
+                ],
+                value='external_brokers'
             ),
             dmc.AccordionItem(
                 [
