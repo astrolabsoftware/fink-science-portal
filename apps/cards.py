@@ -228,7 +228,7 @@ def create_external_links(ra0, dec0):
                 dbc.Col(
                     dbc.Button(
                         className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/vsx.png)', 'background-size': 'contain'},
+                        style={'background-image': 'url(/assets/buttons/vsx.png)', 'background-size': 'contain', 'background-repeat': 'no-repeat'},
                         color='white',
                         outline=True,
                         id='VSX',
