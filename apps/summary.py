@@ -437,7 +437,7 @@ def tabs(pdf, is_mobile):
         distnr = pdf['i:distnr'].values[0]
         if is_source_behind(distnr):
             extra_div = dbc.Alert(
-                "It looks like there is a point source behind. You might want to check the DC magnitude instead.",
+                "It looks like there is a source behind. You might want to check the DC magnitude instead.",
                 dismissable=True,
                 is_open=True,
                 color="light"
