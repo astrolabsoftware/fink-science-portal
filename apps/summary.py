@@ -48,7 +48,7 @@ from apps.utils import get_miriade_data
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
-from apps.utils import is_source_behind
+from fink_utils.photometry.utils import is_source_behind
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -435,11 +435,9 @@ def tabs(pdf, is_mobile):
         tabs_ = tab_mobile_content(pdf)
     else:
         distnr = pdf['i:distnr'].values[0]
-        chinr = pdf['i:chinr'].values[0]
-        sharpnr = pdf['i:sharpnr'].values[0]
-        if is_source_behind(distnr, chinr, sharpnr):
+        if is_source_behind(distnr):
             extra_div = dbc.Alert(
-                "It looks like there is a point source behind. You might want to check the DC magnitude instead.",
+                "It looks like there is a source behind. You might want to check the DC magnitude instead.",
                 dismissable=True,
                 is_open=True,
                 color="light"
