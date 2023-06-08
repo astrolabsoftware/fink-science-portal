@@ -48,7 +48,7 @@ from apps.utils import get_miriade_data
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
-from apps.utils import is_source_behind
+from fink_utils.photometry.utils import is_source_behind
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
