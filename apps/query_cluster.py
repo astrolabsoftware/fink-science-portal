@@ -1,4 +1,4 @@
-# Copyright 2022 AstroLab Software
+# Copyright 2022-2023 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,9 +39,13 @@ simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
 
-elasticc_classes = pd.read_csv('assets/elasticc_classes.csv')
-elasticc_dates = pd.read_csv('assets/elasticc_dates.csv')
-elasticc_dates['date'] = elasticc_dates['date'].astype('str')
+elasticc_v1_classes = pd.read_csv('assets/elasticc_v1_classes.csv')
+elasticc_v1_dates = pd.read_csv('assets/elasticc_v1_dates.csv')
+elasticc_v1_dates['date'] = elasticc_v1_dates['date'].astype('str')
+
+elasticc_v2_classes = pd.read_csv('assets/elasticc_v2_classes.csv')
+elasticc_v2_dates = pd.read_csv('assets/elasticc_v2_dates.csv')
+elasticc_v2_dates['date'] = elasticc_v2_dates['date'].astype('str')
 
 coeffs_per_class = pd.read_parquet('assets/fclass_2022_060708_coeffs.parquet')
 
@@ -236,12 +240,31 @@ def display_filter_tab(trans_datasource):
                 dmc.Radio(label=l, value=k, size='sm', color='orange')
                 for l, k in zip(labels, values)
             ]
-        elif trans_datasource == 'ELASTiCC':
+        elif trans_datasource == 'ELASTiCC (v1)':
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
             data_class_select = [
                 {'label': 'All classes', 'value': 'allclasses'},
-                *[{'label': str(simtype), 'value': simtype} for simtype in sorted(elasticc_classes['classId'].values)],
+                *[{'label': str(simtype), 'value': simtype} for simtype in sorted(elasticc_v1_classes['classId'].values)],
+            ]
+            description = [
+                "One condition per line (SQL syntax), ending with semi-colon. See ",
+                dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
+                " for field description.",
+            ]
+            placeholder = "e.g. diaSource.psFlux > 0.0;"
+            labels = ["Full packet (~1.4 KB/alert)"]
+            values = ['Full packet']
+            data_content = [
+                dmc.Radio(label=l, value=k, size='sm', color='orange')
+                for l, k in zip(labels, values)
+            ]
+        elif trans_datasource == 'ELASTiCC (v2)':
+            minDate = date(2023, 11, 27)
+            maxDate = date(2026, 12, 5)
+            data_class_select = [
+                {'label': 'All classes', 'value': 'allclasses'},
+                *[{'label': str(simtype), 'value': simtype} for simtype in sorted(elasticc_v2_classes['classId'].values)],
             ]
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
@@ -362,7 +385,7 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
 
     return dic['basic:sci'], count
 
-def estimate_alert_number_elasticc(date_range_picker, class_select):
+def estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_dates, elasticc_classes):
     """ Callback to estimate the number of alerts to be transfered
     """
     dic = {'basic:sci': 0}
@@ -431,8 +454,11 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         if trans_datasource == 'ZTF':
             total, count = estimate_alert_number_ztf(date_range_picker, class_select)
             sizeGb = estimate_size_gb_ztf(trans_content)
-        elif trans_datasource == 'ELASTiCC':
-            total, count = estimate_alert_number_elasticc(date_range_picker, class_select)
+        elif trans_datasource == 'ELASTiCC (v1)':
+            total, count = estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_v1_dates, elasticc_v1_classes)
+            sizeGb = estimate_size_gb_elasticc(trans_content)
+        elif trans_datasource == 'ELASTiCC (v2)':
+            total, count = estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_v2_dates, elasticc_v2_classes)
             sizeGb = estimate_size_gb_elasticc(trans_content)
 
         if count == 0:
@@ -632,10 +658,14 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             topic_name = 'ftransfer_ztf_{}_{}'.format(d.date().isoformat(), d.microsecond)
             fn = 'assets/spark_ztf_transfer.py'
             basepath = '/user/julien.peloton/archive/science'
-        elif trans_datasource == 'ELASTiCC':
-            topic_name = 'ftransfer_elasticc_{}_{}'.format(d.date().isoformat(), d.microsecond)
+        elif trans_datasource == 'ELASTiCC (v1)':
+            topic_name = 'ftransfer_elasticc_v1_{}_{}'.format(d.date().isoformat(), d.microsecond)
             fn = 'assets/spark_elasticc_transfer.py'
             basepath = '/user/julien.peloton/elasticc_curated_truth_int'
+        elif trans_datasource == 'ELASTiCC (v2)':
+            topic_name = 'ftransfer_elasticc_v2_{}_{}'.format(d.date().isoformat(), d.microsecond)
+            fn = 'assets/spark_elasticc_transfer.py'
+            basepath = '/user/julien.peloton/elasticc-2023-training_v2'
         filename = 'stream_{}.py'.format(topic_name)
 
         with open(fn, 'r') as f:
@@ -713,7 +743,7 @@ def query_builder():
         [
             dmc.Divider(variant="solid", label='Data Source'),
             dmc.RadioGroup(
-                [dmc.Radio(k, value=k, size='sm', color='orange') for k in ['ZTF', 'ELASTiCC']],
+                [dmc.Radio(k, value=k, size='sm', color='orange') for k in ['ZTF', 'ELASTiCC (v1)', 'ELASTiCC (v2)']],
                 id="trans_datasource",
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
@@ -731,7 +761,7 @@ def mining_helper():
     Fill the fields on the right (note the changing timeline on the left when you update parameters),
     and once ready, submit your job on the Fink Apache Spark & Kafka clusters and retrieve your data.
     To retrieve the data, you need to get an account. See [fink-client](https://github.com/astrolabsoftware/fink-client) and
-    this [post](https://fink-broker.org/2023-01-17-data-transfer) for more information.
+    this [post](https://fink-broker.readthedocs.io/en/latest/services/data_transfer) for more information.
     """
 
     cite = """
