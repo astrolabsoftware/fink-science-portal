@@ -1021,7 +1021,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
         )
         results.putAll(result)
 
-    schema_client = client.schema()
+    schema_client = clientP128.schema()
 
     pdfs = format_hbase_output(
         results,
