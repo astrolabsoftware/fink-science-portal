@@ -1026,6 +1026,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     pdfs = format_hbase_output(
         results,
         schema_client,
+        truncated=True,
         group_alerts=True,
         extract_color=False
     )
