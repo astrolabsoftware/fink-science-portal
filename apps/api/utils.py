@@ -1021,29 +1021,6 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
         )
         results.putAll(result)
 
-    # extract objectId and times
-    objectids = [i[1]['i:objectId'] for i in results.items()]
-    times = [float(i[1]['key:key'].split('_')[1]) for i in results.items()]
-    pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
-
-    # Filter by time - logic to be improved...
-    pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdend)]
-
-    # groupby and keep only the last alert per objectId
-    pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
-
-    # Get data from the main table
-    results = java.util.TreeMap()
-    for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
-        to_evaluate = "key:key:{}_{}".format(oid, jd)
-
-        result = client.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, True, True
-        )
-        results.putAll(result)
     schema_client = client.schema()
 
     pdfs = format_hbase_output(
