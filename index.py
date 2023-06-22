@@ -1028,9 +1028,9 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
 
         colnames_to_display = [
             'i:objectId',
-            'v:separation',
+            'v:separation_degree',
             'd:classification',
-            'i:ndethist',
+            'd:nalerthist',
             'v:lapse'
         ]
     elif query_type == 'Date Search':
