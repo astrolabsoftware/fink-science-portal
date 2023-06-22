@@ -32,7 +32,7 @@ from astropy.table import Table
 
 from app import client
 from app import clientU, clientUV
-from app import clientP128, clientP4096, clientP131072
+from app import clientP128
 from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
 from app import clientSSOCAND, clientSSOORB
 from app import clientStats
@@ -175,6 +175,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
+    truncated = False
     if user_group == 0:
         results = java.util.TreeMap()
         for oid in payload['objectId'].split(','):
@@ -234,16 +235,17 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
 
-        # Send request
-        if float(radius) <= 30.:
-            nside = 131072
-            clientP_ = clientP131072
-        elif (float(radius) > 30.) & (float(radius) <= 1000.):
-            nside = 4096
-            clientP_ = clientP4096
-        else:
-            nside = 128
-            clientP_ = clientP128
+        # # Send request
+        # if float(radius) <= 30.:
+        #     nside = 131072
+        #     clientP_ = clientP131072
+        # elif (float(radius) > 30.) & (float(radius) <= 1000.):
+        #     nside = 4096
+        #     clientP_ = clientP4096
+        # else:
+        #     nside = 128
+        #     clientP_ = clientP128
+        nside = 128
 
         pixs = hp.query_disc(
             nside,
@@ -266,18 +268,18 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 jdstart = Time(startdate, format='mjd').jd
             jdend = jdstart + window_days
 
-            clientP_.setRangeScan(True)
+            clientP128.setRangeScan(True)
             results = java.util.TreeMap()
             for pix in pixs:
                 to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
-                result = clientP_.scan(
+                result = clientP128.scan(
                     "",
                     to_search,
                     "*",
                     0, True, True
                 )
                 results.putAll(result)
-            clientP_.setRangeScan(False)
+            clientP128.setRangeScan(False)
         else:
             to_evaluate = ",".join(
                 [
@@ -285,38 +287,15 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 ]
             )
             # Get matches in the pixel index table
-            results = clientP_.scan(
+            results = clientP128.scan(
                 "",
                 to_evaluate,
                 "*",
                 0, True, True
             )
 
-        # extract objectId and times
-        objectids = [i[1]['i:objectId'] for i in results.items()]
-        times = [float(i[1]['key:key'].split('_')[1]) for i in results.items()]
-        pdf_ = pd.DataFrame({'oid': objectids, 'jd': times})
-
-        # Filter by time - logic to be improved...
-        if startdate is not None:
-            pdf_ = pdf_[(pdf_['jd'] >= jdstart) & (pdf_['jd'] < jdstart + window_days)]
-
-        # groupby and keep only the last alert per objectId
-        pdf_ = pdf_.loc[pdf_.groupby('oid')['jd'].idxmax()]
-
-        # Get data from the main table
-        results = java.util.TreeMap()
-        for oid, jd in zip(pdf_['oid'].values, pdf_['jd'].values):
-            to_evaluate = "key:key:{}_{}".format(oid, jd)
-
-            result = client.scan(
-                "",
-                to_evaluate,
-                "*",
-                0, True, True
-            )
-            results.putAll(result)
-        schema_client = client.schema()
+        schema_client = clientP128.schema()
+        truncated = True
     elif user_group == 2:
         if int(payload['window']) > 180:
             rep = {
@@ -345,6 +324,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     pdfs = format_hbase_output(
         results,
         schema_client,
+        truncated=truncated,
         group_alerts=True,
         extract_color=False
     )
@@ -1021,6 +1001,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
         )
         results.putAll(result)
 
+    clientP128.setRangeScan(False)
     schema_client = clientP128.schema()
 
     pdfs = format_hbase_output(
