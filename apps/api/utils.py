@@ -235,16 +235,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
 
-        # # Send request
-        # if float(radius) <= 30.:
-        #     nside = 131072
-        #     clientP_ = clientP131072
-        # elif (float(radius) > 30.) & (float(radius) <= 1000.):
-        #     nside = 4096
-        #     clientP_ = clientP4096
-        # else:
-        #     nside = 128
-        #     clientP_ = clientP128
+        # Send request
         nside = 128
 
         pixs = hp.query_disc(
@@ -281,18 +272,28 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 results.putAll(result)
             clientP128.setRangeScan(False)
         else:
-            to_evaluate = ",".join(
-                [
-                    'key:key:{}'.format(i) for i in pixs
-                ]
-            )
-            # Get matches in the pixel index table
-            results = clientP128.scan(
-                "",
-                to_evaluate,
-                "*",
-                0, True, True
-            )
+            # to_evaluate = ",".join(
+            #     [
+            #         'key:key:{}'.format(i) for i in pixs
+            #     ]
+            # )
+            # # Get matches in the pixel index table
+            # results = clientP128.scan(
+            #     "",
+            #     to_evaluate,
+            #     "*",
+            #     0, True, True
+            # )
+            results = java.util.TreeMap()
+            for pix in pixs:
+                to_search = "key:key:{}".format(pix)
+                result = clientP128.scan(
+                    "",
+                    to_search,
+                    "*",
+                    0, True, True
+                )
+                results.putAll(result)
 
         schema_client = clientP128.schema()
         truncated = True
