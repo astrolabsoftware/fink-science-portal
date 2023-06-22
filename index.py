@@ -1025,6 +1025,14 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
                 'window_days_conesearch': window
             }
         )
+
+        colnames_to_display = [
+            'i:objectId',
+            'v:separation',
+            'd:classification',
+            'i:ndethist',
+            'v:lapse'
+        ]
     elif query_type == 'Date Search':
         startdate = isoify_time(query)
         if dropdown_option is None:
@@ -1067,6 +1075,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
 
         if query_type == 'Conesearch':
+            pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
             data = pdf.sort_values(
                 'v:separation_degree', ascending=True
             ).to_dict('records')

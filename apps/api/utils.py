@@ -272,18 +272,6 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 results.putAll(result)
             clientP128.setRangeScan(False)
         else:
-            # to_evaluate = ",".join(
-            #     [
-            #         'key:key:{}'.format(i) for i in pixs
-            #     ]
-            # )
-            # # Get matches in the pixel index table
-            # results = clientP128.scan(
-            #     "",
-            #     to_evaluate,
-            #     "*",
-            #     0, True, True
-            # )
             results = java.util.TreeMap()
             for pix in pixs:
                 to_search = "key:key:{}".format(pix)
