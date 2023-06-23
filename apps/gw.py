@@ -39,7 +39,7 @@ from app import app, APIURL
     [
         Input("gw-loading-button", "n_clicks"),
         Input('superevent_name', 'value'),
-        Output("request-status", "data"),
+        Input("request-status", "data"),
     ],
     prevent_initial_call=True,
 )
