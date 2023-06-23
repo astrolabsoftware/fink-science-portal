@@ -27,7 +27,7 @@ from urllib.request import urlopen
 from app import app, APIURL
 
 
-@callback(
+@app.callback(
     Output("notify-container", "children"),
     Input("gw-loading-button", "n_clicks"),
     prevent_initial_call=True,
