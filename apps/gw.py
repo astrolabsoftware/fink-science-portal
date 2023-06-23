@@ -41,21 +41,27 @@ from app import app, APIURL
         Input('superevent_name', 'value'),
         Input("request-status", "data"),
     ],
+    State("request-status", "data"),
     prevent_initial_call=True,
 )
-def notify(nc1, superevent_name, status):
+def notify(nc1, superevent_name, status, prev_status):
+    if status == prev_status:
+        raise PreventUpdate
+
+    if superevent_name == '':
+        raise PreventUpdate
+
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button" and status not in ['done', 'error']:
-        raise PreventUpdate
-    elif superevent_name == '':
-        raise PreventUpdate
+    if button_id == "gw-loading-button":
+        return "show", "orange", superevent_name, "The process has started", True, False
     else:
         if status == 'done':
             return "update", "green", superevent_name, "The process has completed", False, 5000
         elif status == 'error':
             return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, False
         else:
-            return "show", "orange", superevent_name, "The process has started", True, False
+            raise PreventUpdate
+
 
 
 # @app.callback(
