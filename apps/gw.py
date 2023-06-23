@@ -24,13 +24,13 @@ def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
     description = [
-        "Enter a event ID from the ",
+        "Enter an event ID from the ",
         dmc.Anchor("O3", href="https://gracedb.ligo.org/superevents/public/O3/", size="xs", target="_blank"),
         " or ",
         dmc.Anchor("O4", href="https://gracedb.ligo.org/superevents/public/O4/", size="xs", target="_blank"),
         " runs."
     ]
-    selector = html.Div(
+    supervent_name = html.Div(
         [
             dmc.Space(h=10),
             dmc.Divider(variant="solid", label='Superevent'),
@@ -41,7 +41,25 @@ def layout(is_mobile):
                 description=description,
                 placeholder="e.g. S200219ac",
             ),
-        ], id='gw_selector'
+        ], id='superevent_name_selector'
+    )
+
+    credible_level = html.Div(
+        [
+            dmc.Space(h=10),
+            dmc.Divider(variant="solid", label='Credible level'),
+            dmc.Space(h=10),
+            dmc.NumberInput(
+                label=None,
+                description="From 0 (most likely) to 1 (least likely)",
+                value=0.2,
+                precision=2,
+                min=0.0,
+                max=1.0,
+                step=0.05,
+                id='credible_level'
+            ),
+        ], id='credible_level_selector'
     )
 
     if is_mobile:
@@ -84,8 +102,9 @@ def layout(is_mobile):
             [
                 html.Br(),
                 html.Br(),
-                selector,
+                supervent_name,
                 html.Br(),
+                credible_level
             ], width={"size": 3},
         )
         style={
