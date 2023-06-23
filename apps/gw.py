@@ -19,6 +19,49 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
+import io
+import requests
+import pandas as pd
+from urllib.request import urlopen
+
+from app import APIURL
+
+
+@app.callback(
+    Output("gw-data", "data"),
+    [
+        Input('gw-loading-button', 'n_clicks'),
+        Input('credible_level', 'value'),
+        Input('superevent_name', 'value'),
+    ],
+    prevent_initial_call=True
+)
+def query_bayestar(submit, credible_level, superevent_name):
+    """
+    """
+    ctx = dash.callback_context
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if button_id != "gw-loading-button":
+        PreventUpdate
+
+    if superevent_name == '' or ~superevent_name.startswith('S'):
+        raise PreventUpdate
+
+    # Query Fink
+    data = urlopen(fn).read()
+    r = requests.post(
+        '{}/api/v1/bayestar'.format(APIURL),
+        json={
+            'bayestar': str(data),
+            'credible_level': float(credible_level),
+            'output-format': 'json'
+        }
+    )
+
+    pdf = pd.read_json(io.BytesIO(r.content))
+
+    return pdf.to_json()
+
 
 def layout(is_mobile):
     """ Layout for the GW counterpart search
@@ -119,7 +162,9 @@ def layout(is_mobile):
                 html.Br(),
                 credible_level,
                 html.Br(),
-                submit_gw
+                html.Br(),
+                submit_gw,
+                dcc.Store(id='gw-data')
             ], width={"size": 3},
         )
         style={
