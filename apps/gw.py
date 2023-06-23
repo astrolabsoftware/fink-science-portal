@@ -27,46 +27,6 @@ from urllib.request import urlopen, URLError
 from app import app, APIURL
 
 @app.callback(
-    Output("notify-container", "children"),
-    [
-        Input("gw-loading-button", "n_clicks"),
-        Input('superevent_name', 'value'),
-        Input('request-status', 'data'),
-    ],
-    prevent_initial_call=True,
-)
-def notify_load(nc, superevent_name, status):
-    """ Notify the user a query has been launched
-    """
-    if superevent_name == '':
-        raise PreventUpdate
-
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
-        raise PreventUpdate
-    else:
-        if status == '':
-            return dmc.Notification(
-                id="my-notification",
-                title=superevent_name,
-                message="The process has started.",
-                loading=True,
-                color="orange",
-                action="show",
-                autoClose=False,
-            )
-        else:
-            return dmc.Notification(
-                id="my-notification",
-                title=superevent_name,
-                message="The process has started.",
-                loading=True,
-                color="orange",
-                action="hide",
-                autoClose=1,
-            )
-
-@app.callback(
     [
         Output("gw-notification", "action"),
         Output("gw-notification", "color"),
@@ -263,7 +223,6 @@ def layout(is_mobile):
                     justify="around", className="g-0"
                 ),
                 html.Br(),
-                html.Div(id="notify-container"),
                 dmc.Notification(
                     id="gw-notification",
                     title="Process initiated",
