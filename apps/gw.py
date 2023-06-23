@@ -34,9 +34,12 @@ from app import app, APIURL
     ],
     prevent_initial_call=True,
 )
-def notify_load(nc1, superevent_name):
+def notify_load(nc1, superevent_name, status):
     """ Notify the user a query has been launched
     """
+    if superevent_name == '':
+        raise PreventUpdate
+
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
@@ -49,7 +52,7 @@ def notify_load(nc1, superevent_name):
             color="orange",
             action="show",
             autoClose=False,
-        )
+        ), ''
 
 @app.callback(
     [
@@ -58,7 +61,8 @@ def notify_load(nc1, superevent_name):
         Output("gw-notification", "title"),
         Output("gw-notification", "message"),
         Output("gw-notification", "loading"),
-        Output("gw-notification", "autoClose")
+        Output("gw-notification", "autoClose"),
+        Output("request-status", "data", allow_duplicate=True)
     ],
     [
         Input('superevent_name', 'value'),
@@ -68,9 +72,9 @@ def notify_load(nc1, superevent_name):
 )
 def notify_results(superevent_name, status):
     if status == 'done':
-        return "update", "green", superevent_name, "The process has completed", False, 5000
+        return "update", "green", superevent_name, "The process has completed", False, 5000, ''
     elif status == 'error':
-        return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, False
+        return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, False, ''
     else:
         raise PreventUpdate
 
