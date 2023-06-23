@@ -44,10 +44,11 @@ def query_bayestar(submit, credible_level, superevent_name):
     if button_id != "gw-loading-button":
         PreventUpdate
 
-    if superevent_name == '' or ~superevent_name.startswith('S'):
-        raise PreventUpdate
+    if superevent_name == '':
+        PreventUpdate
 
     # Query Fink
+    fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
     data = urlopen(fn).read()
     r = requests.post(
         '{}/api/v1/bayestar'.format(APIURL),
