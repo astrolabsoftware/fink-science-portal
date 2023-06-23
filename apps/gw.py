@@ -62,6 +62,17 @@ def layout(is_mobile):
         ], id='credible_level_selector'
     )
 
+    submit_gw = html.Div(
+        [
+            dmc.Button(
+                "Search for alerts matching",
+                id="gw-loading-button",
+                leftIcon=DashIconify(icon="fluent:database-plug-connected-20-filled"),
+                loaderProps={'variant': 'dots', 'color': 'orange'}
+            ),
+        ]
+    )
+
     if is_mobile:
         # width_right = 10
         # title = dbc.Row(
