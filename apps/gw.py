@@ -24,9 +24,9 @@ def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
     description = [
-        "Enter a superevent name from the ",
+        "Enter a event ID from the ",
         dmc.Anchor("O3", href="https://gracedb.ligo.org/superevents/public/O3/", size="xs", target="_blank"),
-        " or",
+        " or ",
         dmc.Anchor("O4", href="https://gracedb.ligo.org/superevents/public/O4/", size="xs", target="_blank"),
         " runs."
     ]
@@ -36,7 +36,7 @@ def layout(is_mobile):
             dmc.Divider(variant="solid", label='Superevents'),
             dmc.TextInput(
                 id="superevent_name",
-                label="Superevent",
+                label=None,
                 description=description,
                 placeholder="e.g. S200219ac",
             ),
