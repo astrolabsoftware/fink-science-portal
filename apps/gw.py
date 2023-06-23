@@ -86,7 +86,7 @@ def notify_results(superevent_name, status):
     if status == 'done':
         return "update", "green", superevent_name, "The process has completed", False, 5000, ''
     elif status == 'error':
-        return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, False, ''
+        return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, 5000, ''
     else:
         raise PreventUpdate
 
