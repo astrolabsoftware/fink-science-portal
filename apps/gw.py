@@ -34,7 +34,7 @@ from app import app, APIURL
     ],
     prevent_initial_call=True,
 )
-def notify_load(nc1, superevent_name, status):
+def notify_load(superevent_name, status):
     """ Notify the user a query has been launched
     """
     if superevent_name == '':
