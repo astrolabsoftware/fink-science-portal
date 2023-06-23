@@ -27,8 +27,33 @@ from urllib.request import urlopen
 from app import app, APIURL
 
 
+@callback(
+    Output("notify-container", "children"),
+    Input("gw-loading-button", "n_clicks"),
+    prevent_initial_call=True,
+)
+def notify(nc1):
+    if not ctx.triggered:
+        raise PreventUpdate
+    else:
+        button_id = ctx.triggered_id
+        if "gw-loading-button" in button_id:
+            return dmc.Notification(
+                id="my-notification",
+                title="Process initiated",
+                message="The process has started.",
+                loading=True,
+                color="orange",
+                action="show",
+                autoClose=False,
+                disallowClose=True,
+            )
+
 @app.callback(
-    Output("gw-data", "data"),
+    [
+        Output("gw-data", "data"),
+        Output("gw-notification", "data")
+    ],
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('credible_level', 'value'),
@@ -191,6 +216,7 @@ def layout(is_mobile):
                 justify="around", className="g-0"
             ),
             html.Br(),
+            html.Div(id="notify-container"),
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
     )
 
