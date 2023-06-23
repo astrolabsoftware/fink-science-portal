@@ -52,7 +52,6 @@ def notify(nc1):
 @app.callback(
     [
         Output("gw-data", "data"),
-        Output("gw-notification", "data")
     ],
     [
         Input('gw-loading-button', 'n_clicks'),
