@@ -24,7 +24,7 @@ import requests
 import pandas as pd
 from urllib.request import urlopen
 
-from app import APIURL
+from app import app, APIURL
 
 
 @app.callback(
