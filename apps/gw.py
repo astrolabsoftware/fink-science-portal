@@ -22,35 +22,69 @@ from dash_iconify import DashIconify
 import io
 import requests
 import pandas as pd
-from urllib.request import urlopen
+from urllib.request import urlopen, URLError
 
 from app import app, APIURL
 
 
 @app.callback(
-    Output("notify-container", "children"),
-    Input("gw-loading-button", "n_clicks"),
+    [
+        Output("gw-notification", "action"),
+        Output("gw-notification", "color"),
+        Output("gw-notification", "title"),
+        Output("gw-notification", "message"),
+        Output("gw-notification", "loading"),
+        Output("gw-notification", "autoClose")
+    ],
+    [
+        Input("gw-loading-button", "n_clicks"),
+        Input('superevent_name', 'value'),
+        Output("request-status", "data"),
+    ],
     prevent_initial_call=True,
 )
-def notify(nc1):
-    if not ctx.triggered:
+def notify(nc1, superevent_name, status):
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if button_id != "gw-loading-button":
+        raise PreventUpdate
+    elif superevent_name == '':
         raise PreventUpdate
     else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-        if button_id == "gw-loading-button":
-            return dmc.Notification(
-                id="my-notification",
-                title="Process initiated",
-                message="The process has started.",
-                loading=True,
-                color="orange",
-                action="show",
-                autoClose=False,
-                disallowClose=True,
-            )
+        if status == 'triggered':
+            return "show", "orange", superevent_name, "The process has started", True, False
+        elif status == 'done':
+            return "update", "green", superevent_name, "The process has completed", False, 1000
+        elif status == 'error':
+            return "show", "red", superevent_name, "Could not find {} on the server", False, False
+
+
+# @app.callback(
+#     Output("notify-container", "children"),
+#     Input("gw-loading-button", "n_clicks"),
+#     prevent_initial_call=True,
+# )
+# def notify(nc1):
+#     if not ctx.triggered:
+#         raise PreventUpdate
+#     else:
+#         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+#         if button_id == "gw-loading-button":
+#             return dmc.Notification(
+#                 id="my-notification",
+#                 title="Process initiated",
+#                 message="The process has started.",
+#                 loading=True,
+#                 color="orange",
+#                 action="show",
+#                 autoClose=False,
+#                 disallowClose=True,
+#             )
 
 @app.callback(
-    Output("gw-data", "data"),
+    [
+        Output("gw-data", "data"),
+        Output("request-status", "data"),
+    ],
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('credible_level', 'value'),
@@ -70,7 +104,11 @@ def query_bayestar(submit, credible_level, superevent_name):
 
     # Query Fink
     fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
-    data = urlopen(fn).read()
+    try:
+        data = urlopen(fn).read()
+    except URLError:
+        return pd.DataFrame().to_json(), 'error'
+
     r = requests.post(
         '{}/api/v1/bayestar'.format(APIURL),
         json={
@@ -186,7 +224,8 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 submit_gw,
-                dcc.Store(id='gw-data')
+                dcc.Store(id='gw-data'),
+                dcc.Store(id='request-status', data='')
             ], width={"size": 3},
         )
         style={
@@ -213,7 +252,15 @@ def layout(is_mobile):
                     justify="around", className="g-0"
                 ),
                 html.Br(),
-                html.Div(id="notify-container"),
+                dmc.Notification(
+                    id="gw-notification",
+                    title="Process initiated",
+                    message="The process has started.",
+                    loading=True,
+                    color="orange",
+                    action="hide",
+                    autoClose=False,
+                )
             ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
         )
     )
