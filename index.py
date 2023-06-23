@@ -28,7 +28,7 @@ from app import app
 from app import client
 from app import APIURL
 
-from apps import summary, about, statistics, query_cluster
+from apps import summary, about, statistics, query_cluster, gw
 from apps.api import api
 from apps import __version__ as portal_version
 
@@ -1379,6 +1379,8 @@ def display_page(pathname, is_mobile):
         return statistics.layout(is_mobile)
     elif pathname == '/download':
         return query_cluster.layout(is_mobile)
+    elif pathname == '/gw':
+        return gw.layout(is_mobile)
     elif 'ZTF' in pathname:
         return summary.layout(pathname, is_mobile)
     else:
