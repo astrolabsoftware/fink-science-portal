@@ -50,9 +50,7 @@ def notify(nc1):
             )
 
 @app.callback(
-    [
-        Output("gw-data", "data"),
-    ],
+    Output("gw-data", "data"),
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('credible_level', 'value'),
@@ -196,26 +194,28 @@ def layout(is_mobile):
             'background-size': 'cover'
         }
 
-    layout_ = html.Div(
-        [
-            html.Br(),
-            html.Br(),
-            title,
-            dbc.Row(
-                [
-                    left_side,
-                    dbc.Col(
-                        [
-                            html.Br(),
-                            html.Br(),
-                        ],
-                        width=width_right)
-                ],
-                justify="around", className="g-0"
-            ),
-            html.Br(),
-            html.Div(id="notify-container"),
-        ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
+    layout_ = dmc.NotificationsProvider(
+        html.Div(
+            [
+                html.Br(),
+                html.Br(),
+                title,
+                dbc.Row(
+                    [
+                        left_side,
+                        dbc.Col(
+                            [
+                                html.Br(),
+                                html.Br(),
+                            ],
+                            width=width_right)
+                    ],
+                    justify="around", className="g-0"
+                ),
+                html.Br(),
+                html.Div(id="notify-container"),
+            ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
+        )
     )
 
     return layout_
