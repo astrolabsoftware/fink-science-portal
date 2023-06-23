@@ -115,7 +115,9 @@ def layout(is_mobile):
                 html.Br(),
                 supervent_name,
                 html.Br(),
-                credible_level
+                credible_level,
+                html.Br(),
+                submit_gw
             ], width={"size": 3},
         )
         style={
