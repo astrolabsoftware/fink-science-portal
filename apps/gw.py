@@ -33,7 +33,8 @@ def layout(is_mobile):
     selector = html.Div(
         [
             dmc.Space(h=10),
-            dmc.Divider(variant="solid", label='Superevents'),
+            dmc.Divider(variant="solid", label='Superevent'),
+            dmc.Space(h=10),
             dmc.TextInput(
                 id="superevent_name",
                 label=None,
