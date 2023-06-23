@@ -42,10 +42,10 @@ def query_bayestar(submit, credible_level, superevent_name):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
-        PreventUpdate
+        raise PreventUpdate
 
     if superevent_name == '':
-        PreventUpdate
+        raise PreventUpdate
 
     # Query Fink
     fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
