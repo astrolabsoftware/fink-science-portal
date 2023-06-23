@@ -247,7 +247,7 @@ def layout(is_mobile):
                     justify="around", className="g-0"
                 ),
                 html.Br(),
-                html.Div("notify-container"),
+                html.Div(id="notify-container"),
                 dmc.Notification(
                     id="gw-notification",
                     title="Process initiated",
