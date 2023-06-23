@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-from dash import html, dcc, Input, Output, State, callback_context as ctx
+from dash import html, dcc, Input, Output, State, callback_context as ctx, no_update
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
