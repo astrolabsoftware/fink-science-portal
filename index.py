@@ -970,11 +970,15 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
     if empty_query and query_type != "Class Search":
         raise PreventUpdate
 
-    colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec',
-        'v:lastdate', 'v:classification', 'i:ndethist',
-        'v:lapse'
-    ]
+    colnames_to_display = {
+        'i:objectId': 'objectId',
+        'i:ra': 'RA (deg)',
+        'i:dec': 'Dec (deg)',
+        'v:lastdate': 'Last alert',
+        'v:classification': 'Classification',
+        'i:ndethist': 'Number of measurements',
+        'v:lapse': 'Time variation (day)'
+    }
 
     validation = validate_query(query, query_type)
     if (not validation['flag']) and (not empty_query):
@@ -1026,13 +1030,13 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
             }
         )
 
-        colnames_to_display = [
-            'i:objectId',
-            'v:separation_degree',
-            'd:classification',
-            'd:nalerthist',
-            'v:lapse'
-        ]
+        colnames_to_display = {
+            'i:objectId': 'objectId',
+            'v:separation_degree': 'Separation (degree)',
+            'd:classification': 'Classification',
+            'd:nalerthist': 'Number of measurements',
+            'v:lapse': 'Time variation (day)'
+        }
     elif query_type == 'Date Search':
         startdate = isoify_time(query)
         if dropdown_option is None:
@@ -1085,11 +1089,11 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         columns = [
             {
                 'id': c,
-                'name': c,
+                'name': colnames_to_display[c],
                 'type': 'text',
                 # 'hideable': True,
                 'presentation': 'markdown',
-            } for c in colnames_to_display
+            } for c in colnames_to_display.keys()
         ]
         validation = 1
 
