@@ -36,8 +36,8 @@ def notify(nc1):
     if not ctx.triggered:
         raise PreventUpdate
     else:
-        button_id = ctx.triggered_id
-        if "gw-loading-button" in button_id:
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id == "gw-loading-button":
             return dmc.Notification(
                 id="my-notification",
                 title="Process initiated",
@@ -63,7 +63,6 @@ def notify(nc1):
 def query_bayestar(submit, credible_level, superevent_name):
     """
     """
-    ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
