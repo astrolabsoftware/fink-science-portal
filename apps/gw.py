@@ -26,6 +26,30 @@ from urllib.request import urlopen, URLError
 
 from app import app, APIURL
 
+@app.callback(
+    Output("notify-container", "children"),
+    [
+        Input("gw-loading-button", "n_clicks"),
+        Input('superevent_name', 'value'),
+    ],
+    prevent_initial_call=True,
+)
+def notify_load(nc1, superevent_name):
+    """ Notify the user a query has been launched
+    """
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if button_id != "gw-loading-button":
+        raise PreventUpdate
+    else:
+        return dmc.Notification(
+            id="my-notification",
+            title=superevent_name,
+            message="The process has started.",
+            loading=True,
+            color="orange",
+            action="show",
+            autoClose=False,
+        )
 
 @app.callback(
     [
@@ -37,50 +61,18 @@ from app import app, APIURL
         Output("gw-notification", "autoClose")
     ],
     [
-        Input("gw-loading-button", "n_clicks"),
         Input('superevent_name', 'value'),
         Input("request-status", "data"),
     ],
     prevent_initial_call=True,
 )
-def notify(nc1, superevent_name, status):
-    if superevent_name == '':
-        raise PreventUpdate
-
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id == "gw-loading-button":
-        return "show", "orange", superevent_name, "The process has started", True, False
+def notify_results(superevent_name, status):
+    if status == 'done':
+        return "update", "green", superevent_name, "The process has completed", False, 5000
+    elif status == 'error':
+        return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, False
     else:
-        if status == 'done':
-            return "update", "green", superevent_name, "The process has completed", False, 5000
-        elif status == 'error':
-            return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, False
-        else:
-            raise PreventUpdate
-
-
-
-# @app.callback(
-#     Output("notify-container", "children"),
-#     Input("gw-loading-button", "n_clicks"),
-#     prevent_initial_call=True,
-# )
-# def notify(nc1):
-#     if not ctx.triggered:
-#         raise PreventUpdate
-#     else:
-#         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-#         if button_id == "gw-loading-button":
-#             return dmc.Notification(
-#                 id="my-notification",
-#                 title="Process initiated",
-#                 message="The process has started.",
-#                 loading=True,
-#                 color="orange",
-#                 action="show",
-#                 autoClose=False,
-#                 disallowClose=True,
-#             )
+        raise PreventUpdate
 
 @app.callback(
     [
@@ -255,6 +247,7 @@ def layout(is_mobile):
                     justify="around", className="g-0"
                 ),
                 html.Br(),
+                html.Div("notify-container"),
                 dmc.Notification(
                     id="gw-notification",
                     title="Process initiated",
