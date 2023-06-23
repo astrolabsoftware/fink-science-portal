@@ -41,13 +41,9 @@ from app import app, APIURL
         Input('superevent_name', 'value'),
         Input("request-status", "data"),
     ],
-    State("request-status", "data"),
     prevent_initial_call=True,
 )
-def notify(nc1, superevent_name, status, prev_status):
-    if status == prev_status:
-        raise PreventUpdate
-
+def notify(nc1, superevent_name, status):
     if superevent_name == '':
         raise PreventUpdate
 
@@ -96,14 +92,15 @@ def notify(nc1, superevent_name, status, prev_status):
         Input('credible_level', 'value'),
         Input('superevent_name', 'value'),
     ],
+    State("request-status", "data"),
     prevent_initial_call=True
 )
-def query_bayestar(submit, credible_level, superevent_name):
+def query_bayestar(submit, credible_level, superevent_name, status):
     """
     """
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
-        raise PreventUpdate
+        return no_update, ''
 
     if superevent_name == '':
         raise PreventUpdate
