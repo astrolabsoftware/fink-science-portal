@@ -45,17 +45,17 @@ from app import app, APIURL
 )
 def notify(nc1, superevent_name, status):
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
+    if button_id != "gw-loading-button" and status not in ['done', 'error']:
         raise PreventUpdate
     elif superevent_name == '':
         raise PreventUpdate
     else:
-        if status == 'triggered':
-            return "show", "orange", superevent_name, "The process has started", True, False
-        elif status == 'done':
-            return "update", "green", superevent_name, "The process has completed", False, 1000
+        if status == 'done':
+            return "update", "green", superevent_name, "The process has completed", False, 5000
         elif status == 'error':
-            return "show", "red", superevent_name, "Could not find {} on the server", False, False
+            return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, False
+        else:
+            return "show", "orange", superevent_name, "The process has started", True, False
 
 
 # @app.callback(
@@ -120,7 +120,7 @@ def query_bayestar(submit, credible_level, superevent_name):
 
     pdf = pd.read_json(io.BytesIO(r.content))
 
-    return pdf.to_json()
+    return pdf.to_json(), "done"
 
 
 def layout(is_mobile):
