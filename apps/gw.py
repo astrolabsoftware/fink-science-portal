@@ -32,7 +32,7 @@ from astropy.io import fits
 from app import app, APIURL
 from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_colors
 
-def extract_skyfrac_degree(fn):
+def extract_skyfrac_degree(fn, credible_level):
     """
     """
     payload = urlopen(fn).read()
@@ -354,17 +354,20 @@ def display_skymap_gw():
         Output("progress_bar", "value"),
         Output("progress_bar", "max")
     ],
-    state=State("superevent_name", 'value'),
+    state=[
+        State("superevent_name", 'value'),
+        State('credible_level', 'value')
+    ],
     background=True,
     prevent_initial_call=True
 )
-def callback_progress_bar(set_progress, n_clicks, superevent_name):
+def callback_progress_bar(set_progress, n_clicks, superevent_name, credible_level):
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
 
     fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
-    total = extract_skyfrac_degree(fn)
+    total = extract_skyfrac_degree(fn, credible_level)
     rate = 0.5 # second/deg2
     for i in range(int(total)):
         time.sleep(rate)
