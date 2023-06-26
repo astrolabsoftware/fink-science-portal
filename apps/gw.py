@@ -429,14 +429,15 @@ def layout(is_mobile):
                 [
                     left_side,
                     dbc.Col(
-                        dmc.Paper(
-                            [
-                                display_skymap_gw(),
-                                html.Div(id='gw-table'),
-                                card_explanation()
-                            ], radius='xl', p='md', shadow='xl', withBorder=True
-                        ),
-                        width=width_right
+                        [
+                            display_skymap_gw(),
+                            dmc.Paper(
+                                [
+                                    html.Div(id='gw-table'),
+                                    card_explanation()
+                                ], radius='xl', p='md', shadow='xl', withBorder=True
+                            ),
+                        ], width=width_right
                     ),
                 ],
                 justify="around", className="g-0"
