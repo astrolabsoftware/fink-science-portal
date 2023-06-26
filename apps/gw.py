@@ -317,7 +317,6 @@ def layout(is_mobile):
                         dmc.LoadingOverlay(
                             dmc.Paper(
                                 [
-                                    html.Br(),
                                     html.Div(id='gw-table'),
                                     card_explanation()
                                 ], radius='xl', p='md', shadow='xl', withBorder=True
