@@ -149,7 +149,9 @@ def show_table(status, gw_data):
             color="red",
             withCloseButton=True
         )
-    elif status == 'done':
+    elif status == 'error':
+        raise PreventUpdate
+    else:
         colnames_to_display = {
                 'i:objectId': 'objectId',
                 'v:separation_degree': 'Separation (degree)',
@@ -173,8 +175,6 @@ def show_table(status, gw_data):
         table = populate_result_table_gw(data, columns, is_mobile=False)
 
         return table
-    else:
-        raise PreventUpdate
 
 def layout(is_mobile):
     """ Layout for the GW counterpart search
