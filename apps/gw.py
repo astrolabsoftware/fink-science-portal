@@ -536,6 +536,7 @@ def layout(is_mobile):
 
     layout_ = html.Div(
         [
+            dmc.Space(h=10),
             dbc.Row(
                 [
                     left_side,
