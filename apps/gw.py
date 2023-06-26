@@ -318,8 +318,7 @@ def layout(is_mobile):
                             dmc.Paper(
                                 [
                                     html.Br(),
-                                    dbc.Container(id='gw-table'),
-                                    html.Br(),
+                                    html.Div(id='gw-table'),
                                     card_explanation()
                                 ], radius='xl', p='md', shadow='xl', withBorder=True
                             ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
