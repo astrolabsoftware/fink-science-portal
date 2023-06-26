@@ -481,11 +481,10 @@ def layout(is_mobile):
                 dmc.Space(h=20),
                     dmc.Stack(
                     children=[
-                        dmc.Center(
-                            dmc.Title(
-                                children='Gravitational Waves',
-                                style={'color': '#15284F'}
-                            ),
+                        dmc.Title(
+                            children='Gravitational Waves',
+                            style={'color': '#15284F'},
+                                order=2
                         ),
                         supervent_name,
                         credible_level,
