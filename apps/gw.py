@@ -185,6 +185,37 @@ def show_table(nclick, gw_data, superevent_name):
 
         return table
 
+def card_explanation():
+    """ Explain what is used to fit for variable stars
+    """
+    msg = """
+    Fill the fields on the right (or leave default), and press `Fit data` to
+    perform a time series analysis of the data:
+
+    - Number of base terms: number of frequency terms to use for the base model common to all bands (default=1)
+    - Number of band terms: number of frequency terms to use for the residuals between the base model and each individual band (default=1)
+
+    The fit is done using [gatspy](https://zenodo.org/record/47887)
+    described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
+    We use a multiband periodogram (LombScargleMultiband) to find the best period.
+    Alternatively, you can manually set the period in days.
+
+    The title of the plot will give you the fitted period, and a score for the fit.
+    The score is between 0 (poor fit) and 1 (excellent fit).
+    """
+    card = dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl("How to make a fit?"),
+                    dmc.AccordionPanel(dcc.Markdown(msg)),
+                ],
+                value="info"
+            ),
+        ], value='info'
+    )
+    return card
+
 def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
@@ -307,11 +338,16 @@ def layout(is_mobile):
                 [
                     left_side,
                     dbc.Col(
-                        [
-                            html.Br(),
-                            dbc.Container(id='gw-table'),
-                            html.Br(),
-                        ],
+                        dmc.LoadingOverlay(
+                            dmc.Paper(
+                                [
+                                    html.Br(),
+                                    dbc.Container(id='gw-table'),
+                                    html.Br(),
+                                    card_explanation()
+                                ], radius='xl', p='md', shadow='xl', withBorder=True
+                            ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                        ),
                         width=width_right
                     )
                 ],
