@@ -21,12 +21,38 @@ from dash_iconify import DashIconify
 import visdcc
 
 import io
+import gzip
 import requests
 import pandas as pd
+import healpy as hp
+import numpy as np
 from urllib.request import urlopen, URLError
+from astropy.io import fits
 
 from app import app, APIURL
 from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_colors
+
+def extract_skyfrac_degree(fn):
+    """
+    """
+    with gzip.open(fn, 'rb') as f:
+        with fits.open(io.BytesIO(f.read())) as hdul:
+            data = hdul[1].data
+            header = hdul[1].header
+
+    hpx = data['PROB']
+    if header['ORDERING'] == 'NESTED':
+        hpx = hp.reorder(hpx, n2r=True)
+
+    i = np.flipud(np.argsort(hpx))
+    sorted_credible_levels = np.cumsum(hpx[i])
+    credible_levels = np.empty_like(sorted_credible_levels)
+    credible_levels[i] = sorted_credible_levels
+
+    npix = len(hpx)
+    nside = hp.npix2nside(npix)
+    skyfrac = np.sum(credible_levels <= credible_level) * hp.nside2pixarea(nside, degrees=True)
+    return skyfrac
 
 @app.callback(
     Output("gw-data", "data"),
@@ -331,11 +357,11 @@ def callback_progress_bar(set_progress, n_clicks):
     if button_id != "gw-loading-button":
         raise PreventUpdate
 
-    total = 10
-    import time
-    for i in range(total):
-        time.sleep(0.5)
-        set_progress((str(i + 1), str(total)))
+    total = extract_skyfrac_degree(fn)
+    rate = 0.5 # second/deg2
+    for i in range(int(total)):
+        time.sleep(rate)
+        set_progress((str(i + 1), str(int(total))))
     return "Loaded!"
 
 def layout(is_mobile):
