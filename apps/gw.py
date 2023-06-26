@@ -149,7 +149,7 @@ def populate_result_table_gw(data, columns, is_mobile):
 def show_table(nclick, gw_data, superevent_name):
     """
     """
-    hide_progress = {"visibility": "hidden", 'width': '100%', 'height': '5pc'},
+    hide_progress = {"visibility": "hidden", 'width': '100%', 'height': '5pc'}
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
