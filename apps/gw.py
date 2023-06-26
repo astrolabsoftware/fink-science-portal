@@ -494,7 +494,12 @@ def layout(is_mobile):
                 )
             ]
         )
-        left_side = html.Div(id='toto', style={'display': 'none'})
+        left_side = html.Div(
+            [
+                html.Div(id="gw-trigger", style={'display': 'none'}),
+                dcc.Store(data='', id='gw-data')
+            ]
+        )
         style = {
             'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
         }
