@@ -35,7 +35,8 @@ from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_col
 def extract_skyfrac_degree(fn):
     """
     """
-    with gzip.open(fn, 'rb') as f:
+    payload = urlopen(fn).read()
+    with gzip.open(io.BytesIO(payload), 'rb') as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
             data = hdul[1].data
             header = hdul[1].header
@@ -353,7 +354,7 @@ def display_skymap_gw():
         Output("progress_bar", "value"),
         Output("progress_bar", "max")
     ],
-    states=State("superevent_name", 'value'),
+    state=State("superevent_name", 'value'),
     background=True,
     prevent_initial_call=True
 )
