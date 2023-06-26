@@ -133,14 +133,19 @@ def populate_result_table_gw(data, columns, is_mobile):
 @app.callback(
     Output("gw-table", "children"),
     [
+        Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
         Input("request-status", "data")
     ],
     prevent_initial_call=True
 )
-def show_table(gw_data, status):
+def show_table(nclick, gw_data, status):
     """
     """
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if button_id != "gw-loading-button":
+        raise PreventUpdate
+
     pdf = pd.read_json(gw_data)
     if pdf.empty:
         return dmc.Alert(
