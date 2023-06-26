@@ -1001,7 +1001,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
         extract_color=False
     )
 
-    pdfs['t_gw'] = Time(header['DATE-OBS']).jd
+    pdfs['v:jdstartgw'] = Time(header['DATE-OBS']).jd
 
     return pdfs
 
