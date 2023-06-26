@@ -408,7 +408,11 @@ def callback_progress_bar(set_progress, n_clicks, superevent_name, credible_leve
         raise PreventUpdate
 
     fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
-    total = extract_skyfrac_degree(fn, credible_level)
+    try:
+        total = extract_skyfrac_degree(fn, credible_level)
+    except URLError:
+        return "Error"
+
     rate = 0.025 # second/deg2
     for i in range(int(total)):
         time.sleep(rate)
