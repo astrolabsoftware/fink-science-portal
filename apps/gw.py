@@ -306,16 +306,14 @@ def layout(is_mobile):
             dbc.Row(
                 [
                     left_side,
-                    dmc.LoadingOverlay(
-                        dbc.Col(
-                            [
-                                html.Br(),
-                                dbc.Container(id='gw-table'),
-                                html.Br(),
-                            ],
-                            width=width_right
-                        ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
-                    ),
+                    dbc.Col(
+                        [
+                            html.Br(),
+                            dbc.Container(id='gw-table'),
+                            html.Br(),
+                        ],
+                        width=width_right
+                    )
                 ],
                 justify="around", className="g-0"
             ),
