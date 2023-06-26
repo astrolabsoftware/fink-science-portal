@@ -422,12 +422,6 @@ def callback_progress_bar(set_progress, n_clicks, superevent_name, credible_leve
 def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
-    extra_div = dbc.Alert(
-        dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.", link_target="_blank"),
-        dismissable=True,
-        is_open=True,
-        color="light"
-    )
     description = [
         "Enter an event ID from the ",
         dmc.Anchor("O3", href="https://gracedb.ligo.org/superevents/public/O3/", size="xs", target="_blank"),
@@ -500,11 +494,17 @@ def layout(is_mobile):
                 )
             ]
         )
-        left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
+        left_side = html.Div(id='toto', style={'display': 'none'})
         style = {
             'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
         }
     else:
+        extra_div = dbc.Alert(
+            dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.", link_target="_blank"),
+            dismissable=True,
+            is_open=True,
+            color="light"
+        )
         width_right = 9
         left_side = dbc.Col(
             [
