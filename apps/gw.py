@@ -26,34 +26,34 @@ from urllib.request import urlopen, URLError
 
 from app import app, APIURL
 
-@app.callback(
-    [
-        Output("gw-notification", "action"),
-        Output("gw-notification", "color"),
-        Output("gw-notification", "title"),
-        Output("gw-notification", "message"),
-        Output("gw-notification", "loading"),
-        Output("gw-notification", "autoClose"),
-        Output("request-status", "data", allow_duplicate=True)
-    ],
-    [
-        Input('superevent_name', 'value'),
-        Input("request-status", "data"),
-    ],
-    prevent_initial_call=True,
-)
-def notify_results(superevent_name, status):
-    if status == 'done':
-        return "update", "green", superevent_name, "The process has completed", False, 5000, ''
-    elif status == 'error':
-        return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, 5000, ''
-    else:
-        raise PreventUpdate
+# @app.callback(
+#     [
+#         Output("gw-notification", "action"),
+#         Output("gw-notification", "color"),
+#         Output("gw-notification", "title"),
+#         Output("gw-notification", "message"),
+#         Output("gw-notification", "loading"),
+#         Output("gw-notification", "autoClose"),
+#         Output("request-status", "data", allow_duplicate=True)
+#     ],
+#     [
+#         Input('superevent_name', 'value'),
+#         Input("request-status", "data"),
+#     ],
+#     prevent_initial_call=True,
+# )
+# def notify_results(superevent_name, status):
+#     if status == 'done':
+#         return "update", "green", superevent_name, "The process has completed", False, 5000, ''
+#     elif status == 'error':
+#         return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, 5000, ''
+#     else:
+#         raise PreventUpdate
 
 @app.callback(
     [
         Output("gw-data", "data"),
-        Output("request-status", "data"),
+        # Output("request-status", "data"),
     ],
     [
         Input('gw-loading-button', 'n_clicks'),
@@ -67,7 +67,8 @@ def query_bayestar(submit, credible_level, superevent_name):
     """
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
-        return no_update, ''
+        # return no_update, ''
+        return no_update
 
     if superevent_name == '':
         raise PreventUpdate
@@ -77,7 +78,8 @@ def query_bayestar(submit, credible_level, superevent_name):
     try:
         data = urlopen(fn).read()
     except URLError:
-        return pd.DataFrame().to_json(), 'error'
+        # return pd.DataFrame().to_json(), 'error'
+        return pd.DataFrame().to_json()
 
     r = requests.post(
         '{}/api/v1/bayestar'.format(APIURL),
@@ -90,7 +92,8 @@ def query_bayestar(submit, credible_level, superevent_name):
 
     pdf = pd.read_json(io.BytesIO(r.content))
 
-    return pdf.to_json(), "done"
+    # return pdf.to_json(), "done"
+    return pdf.to_json()
 
 def populate_result_table_gw(data, columns, is_mobile):
     """ Define options of the results table, and add data and columns
@@ -135,13 +138,14 @@ def populate_result_table_gw(data, columns, is_mobile):
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
-        Input("request-status", "data")
+        # Input("request-status", "data")
     ],
     prevent_initial_call=True
 )
-def show_table(nclick, gw_data, status):
+def show_table(nclick, gw_data):
     """
     """
+    status = 'done'
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
@@ -282,7 +286,7 @@ def layout(is_mobile):
                 html.Br(),
                 submit_gw,
                 dcc.Store(id='gw-data'),
-                dcc.Store(id='request-status', data='')
+                # dcc.Store(id='request-status', data='')
             ], width={"size": 3},
         )
         style={
