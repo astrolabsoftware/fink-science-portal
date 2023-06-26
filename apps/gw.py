@@ -168,30 +168,29 @@ def card_explanation():
     """ Explain what is used to fit for variable stars
     """
     msg = """
-    Fill the fields on the right (or leave default), and press `Fit data` to
-    perform a time series analysis of the data:
+    Enter a superevent name on the left (check [O3](https://gracedb.ligo.org/superevents/public/O3/) or [O4](https://gracedb.ligo.org/superevents/public/O4/) runs if you are unsure),
+    and enter a credible level. Note that the values in the resulting credible level map vary inversely with probability density: the most probable pixel is
+    assigned to the credible level 0.0, and the least likely pixel is assigned the credible level 1.0.
 
-    - Number of base terms: number of frequency terms to use for the base model common to all bands (default=1)
-    - Number of band terms: number of frequency terms to use for the residuals between the base model and each individual band (default=1)
+    The alerts falling into the sky map are shown in the table, with the following columns:
+    - objectId: ZTF object ID.
+    - Classification: tag according to Fink, at the time of the match.
+    - Number of measurements: Number of available measurements, at the time of the match.
+    - Delay: time delay in days between the GW trigger time `t0` and the first alert emission time (`jdstarthist`).
 
-    The fit is done using [gatspy](https://zenodo.org/record/47887)
-    described in [VanderPlas & Ivezic (2015)](https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract).
-    We use a multiband periodogram (LombScargleMultiband) to find the best period.
-    Alternatively, you can manually set the period in days.
-
-    The title of the plot will give you the fitted period, and a score for the fit.
-    The score is between 0 (poor fit) and 1 (excellent fit).
+    Note that only alerts that started varying within the time boundaries `[t0 - 1 day, t0 + 6 days]` are considered,
+    where `t0` is the GW trigger time.
     """
     card = dmc.Accordion(
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionControl("How to make a fit?"),
+                    dmc.AccordionControl("Information"),
                     dmc.AccordionPanel(dcc.Markdown(msg)),
                 ],
                 value="info"
             ),
-        ], value='info'
+        ]
     )
     return card
 
