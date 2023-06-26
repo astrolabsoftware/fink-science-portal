@@ -336,7 +336,7 @@ def display_skymap_gw():
         )
     )
 
-@app.long_callback(
+@app.callback(
     output=Output("gw-trigger", "children"),
     inputs=[
         Input("gw-loading-button", "n_clicks"),
@@ -349,8 +349,12 @@ def display_skymap_gw():
             {"visibility": "hidden", 'width': '100%', 'height': '5pc'},
         ),
     ],
-    progress=[Output("progress_bar", "value"), Output("progress_bar", "max")],
+    progress=[
+        Output("progress_bar", "value"),
+        Output("progress_bar", "max")
+    ],
     states=State("superevent_name", 'value'),
+    background=True,
     prevent_initial_call=True
 )
 def callback_progress_bar(set_progress, n_clicks, superevent_name):
