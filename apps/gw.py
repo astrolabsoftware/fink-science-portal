@@ -306,10 +306,7 @@ def display_skymap_gw():
                 visdcc.Run_js(id='aladin-lite-div-skymap-gw'),
             ],
             id='container_skymap',
-            style={
-                'width': '100%',
-                'height': '25pc'
-            }
+            style={'display': 'none'}
         )
     )
 
