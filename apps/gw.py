@@ -324,7 +324,7 @@ def display_skymap_gw():
 )
 def callback_progress_bar(set_progress, n_clicks):
     total = 10
-    from time import time
+    import time
     for i in range(total):
         time.sleep(0.5)
         set_progress((str(i + 1), str(total)))
