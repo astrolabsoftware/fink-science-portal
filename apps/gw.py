@@ -76,8 +76,7 @@ def query_bayestar(submit, credible_level, superevent_name):
     try:
         data = urlopen(fn).read()
     except URLError:
-        # return pd.DataFrame().to_json(), 'error'
-        return pd.DataFrame().to_json()
+        return "error"
 
     r = requests.post(
         '{}/api/v1/bayestar'.format(APIURL),
@@ -135,28 +134,33 @@ def populate_result_table_gw(data, columns, is_mobile):
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
-        # Input("request-status", "data")
+        Input('superevent_name', 'value'),
     ],
     prevent_initial_call=True
 )
-def show_table(nclick, gw_data):
+def show_table(nclick, gw_data, superevent_name):
     """
     """
-    status = 'done'
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
 
-    pdf = pd.read_json(gw_data)
-    if pdf.empty:
+    if gw_data == "error":
         return dmc.Alert(
-            "No counterparts in Fink found",
+            "Could not find an event named {} on GraceDB".format(superevent_name),
             title='Oops!',
             color="red",
             withCloseButton=True
         )
-    elif status == 'error':
-        raise PreventUpdate
+
+    pdf = pd.read_json(gw_data)
+    if pdf.empty:
+        return dmc.Alert(
+            "No counterparts found in Fink for the event named {}".format(superevent_name),
+            title='Oops!',
+            color="red",
+            withCloseButton=True
+        )
     else:
         colnames_to_display = {
             'i:objectId': 'objectId',
