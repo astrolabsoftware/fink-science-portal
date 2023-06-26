@@ -51,10 +51,7 @@ from app import app, APIURL
 #         raise PreventUpdate
 
 @app.callback(
-    [
-        Output("gw-data", "data"),
-        # Output("request-status", "data"),
-    ],
+    Output("gw-data", "data"),
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('credible_level', 'value'),
