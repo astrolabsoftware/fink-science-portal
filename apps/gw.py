@@ -309,6 +309,24 @@ def display_skymap_gw():
         )
     )
 
+@app.long_callback(
+    inputs=Input("gw-loading-button", "n_clicks"),
+    running=[
+        (Output("gw-loading-button", "disabled"), True, False),
+        (
+            Output("progress_bar", "style"),
+            {"visibility": "visible"},
+            {"visibility": "hidden"},
+        ),
+    ],
+    progress=[Output("progress_bar", "value"), Output("progress_bar", "max")],
+)
+def callback_progress_bar(set_progress, n_clicks):
+    total = 10
+    for i in range(total):
+        time.sleep(0.5)
+        set_progress((str(i + 1), str(total)))
+
 def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
@@ -430,6 +448,7 @@ def layout(is_mobile):
                     left_side,
                     dbc.Col(
                         [
+                            html.Progress(id="progress_bar"),
                             display_skymap_gw(),
                             dmc.Paper(
                                 [
