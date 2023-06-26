@@ -26,7 +26,7 @@ import pandas as pd
 from urllib.request import urlopen, URLError
 
 from app import app, APIURL
-from apps.utils import markdownify_objectid, convert_jd, simbad_types
+from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_colors
 
 @app.callback(
     Output("gw-data", "data"),
