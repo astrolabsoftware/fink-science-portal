@@ -52,12 +52,12 @@ from apps.utils import markdownify_objectid
 #         raise PreventUpdate
 
 @app.callback(
-    Output("gw-data", "children"),
+    Output("gw-data", "data"),
     [
         Input('gw-loading-button', 'n_clicks'),
-        Input('credible_level', 'value'),
-        Input('superevent_name', 'value'),
     ],
+    State('credible_level', 'value'),
+    State('superevent_name', 'value'),
     prevent_initial_call=True
 )
 def query_bayestar(submit, credible_level, superevent_name):
@@ -136,7 +136,7 @@ def populate_result_table_gw(data, columns, is_mobile):
     ],
     [
         Input('gw-loading-button', 'n_clicks'),
-        Input('gw-data', 'children'),
+        Input('gw-data', 'data'),
         Input('superevent_name', 'value'),
     ],
     prevent_initial_call=True
@@ -323,8 +323,7 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 submit_gw,
-                # dcc.Store(id='gw-data'),
-                html.Div(id='gw-data', style={'display': 'none'}),
+                dcc.Store(id='gw-data'),
                 # dcc.Store(id='request-status', data='')
             ], width={"size": 3},
         )
