@@ -52,7 +52,7 @@ from apps.utils import markdownify_objectid
 #         raise PreventUpdate
 
 @app.callback(
-    Output("gw-data", "data"),
+    Output("gw-data", "children"),
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('credible_level', 'value'),
@@ -136,7 +136,7 @@ def populate_result_table_gw(data, columns, is_mobile):
     ],
     [
         Input('gw-loading-button', 'n_clicks'),
-        Input('gw-data', 'data'),
+        Input('gw-data', 'children'),
         Input('superevent_name', 'value'),
     ],
     prevent_initial_call=True
@@ -323,7 +323,8 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 submit_gw,
-                dcc.Store(id='gw-data'),
+                # dcc.Store(id='gw-data'),
+                html.Div(id='gw-data', style={'display': 'none'}),
                 # dcc.Store(id='request-status', data='')
             ], width={"size": 3},
         )
