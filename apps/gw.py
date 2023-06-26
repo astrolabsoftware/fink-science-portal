@@ -310,7 +310,10 @@ def layout(is_mobile):
                         dbc.Col(
                             [
                                 html.Br(),
-                                dbc.Container(id='gw-table'),
+                                dmc.LoadingOverlay(
+                                    dbc.Container(id='gw-table'),
+                                    loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
+                                ),
                                 html.Br(),
                             ],
                             width=width_right)
