@@ -303,30 +303,23 @@ def layout(is_mobile):
             html.Br(),
             html.Br(),
             title,
-            dbc.Row(
-                [
-                    left_side,
-                    dbc.Col(
-                        [
-                            html.Br(),
-                            dbc.Container(id='gw-table'),
-                            html.Br(),
-                        ],
-                        width=width_right)
-                ],
-                justify="around", className="g-0"
+            dmc.LoadingOverlay(
+                    dbc.Row(
+                    [
+                        left_side,
+                        dbc.Col(
+                            [
+                                html.Br(),
+                                dbc.Container(id='gw-table'),
+                                html.Br(),
+                            ],
+                            width=width_right)
+                    ],
+                    justify="around", className="g-0"
+                ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
             ),
-            html.Br(),
-            dmc.Notification(
-                id="gw-notification",
-                title="Process initiated",
-                message="The process has started.",
-                loading=True,
-                color="orange",
-                action="hide",
-                autoClose=False,
-            )
+            html.Br()
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
     )
 
-    return dmc.LoadingOverlay(layout_, loaderProps={"variant": "dots", "color": "orange", "size": "xl"})
+    return layout_
