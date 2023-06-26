@@ -29,7 +29,7 @@ import healpy as hp
 import numpy as np
 from urllib.request import urlopen, URLError
 from astropy.io import fits
-from mocpy import MOC, WCS
+from mocpy import MOC
 import astropy_healpix as ah
 import astropy.units as u
 
