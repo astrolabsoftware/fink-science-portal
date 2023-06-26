@@ -272,7 +272,7 @@ def card_explanation():
     ],
 )
 def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
-    """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
+    """ Display explorer result on a sky map (Aladin lite).
 
     TODO: image is not displayed correctly the first time
 
@@ -345,7 +345,7 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
         fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.multiorder.fits'.format(superevent_name)
         mm = extract_moc(fn, credible_level)
         img += """var json = {};""".format(mm.to_string(format='json'))
-        img += """var moc = A.MOCFromJSON(json, {opacity: 0.25, color: 'magenta', lineWidth: 1}); a.addMOC(moc);"""
+        img += """var moc = A.MOCFromJSON(json, {opacity: 0.25, color: 'white', lineWidth: 1}); a.addMOC(moc);"""
 
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
