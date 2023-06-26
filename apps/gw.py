@@ -257,11 +257,11 @@ def display_skymap_gw(nclick, gw_data):
         times = pdf['v:lastdate'].values
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
-        mags = pdf['i:magpsf'].values
+        # mags = pdf['i:magpsf'].values
         classes = pdf['d:classification'].values
         n_alert_per_class = pdf.groupby('d:classification').count().to_dict()['i:objectId']
         cats = []
-        for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
+        for ra, dec, fid, time_, title, class_ in zip(ras, decs, filts, times, titles, classes):
             if class_ in simbad_types:
                 cat = 'cat_{}'.format(simbad_types.index(class_))
                 color = class_colors['Simbad']
@@ -276,7 +276,7 @@ def display_skymap_gw(nclick, gw_data):
             if cat not in cats:
                 img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ' ({})'.format(n_alert_per_class[class_]), color)
                 cats.append(cat)
-            img += """{}.addSources([A.source({}, {}, {{objectId: '{}', mag: {:.2f}, filter: '{}', time: '{}', Classification: '{}'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
+            img += """{}.addSources([A.source({}, {}, {{objectId: '{}', filter: '{}', time: '{}', Classification: '{}'}})]);""".format(cat, ra, dec, title, filts_dic[fid], time_, class_)
 
         for cat in sorted(cats):
             img += """a.addCatalog({});""".format(cat)
