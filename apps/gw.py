@@ -310,6 +310,7 @@ def display_skymap_gw():
     )
 
 @app.long_callback(
+    output=Output("gw-trigger", "children"),
     inputs=Input("gw-loading-button", "n_clicks"),
     running=[
         (Output("gw-loading-button", "disabled"), True, False),
@@ -326,6 +327,7 @@ def callback_progress_bar(set_progress, n_clicks):
     for i in range(total):
         time.sleep(0.5)
         set_progress((str(i + 1), str(total)))
+    return "Loaded!"
 
 def layout(is_mobile):
     """ Layout for the GW counterpart search
@@ -428,6 +430,7 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 submit_gw,
+                html.Div([html.P(id="gw-trigger", children=[""])]),
                 dcc.Store(data='', id='gw-data'),
                 # dcc.Store(id='request-status', data='')
             ], width={"size": 3},
