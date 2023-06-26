@@ -481,38 +481,29 @@ def layout(is_mobile):
     )
 
     if is_mobile:
-        # width_right = 10
-        # title = dbc.Row(
-        #     children=[
-        #         dmc.Space(h=20),
-        #         dmc.Stack(
-        #             children=[
-        #                 dmc.Title(
-        #                     children='Fink Data Transfer',
-        #                     style={'color': '#15284F'}
-        #                 ),
-        #                 dmc.Anchor(
-        #                     dmc.ActionIcon(
-        #                         DashIconify(icon="fluent:question-16-regular", width=20),
-        #                         size=30,
-        #                         radius="xl",
-        #                         variant="light",
-        #                         color='orange',
-        #                     ),
-        #                     href="https://fink-broker.org/2023-01-17-data-transfer",
-        #                     target="_blank"
-        #                 ),
-        #             ],
-        #             align="center",
-        #             justify="center",
-        #         )
-        #     ]
-        # )
-        # left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
-        # style = {
-        #     'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-        # }
-        pass
+        width_right = 10
+        extra_div = dbc.Row(
+            children=[
+                dmc.Space(h=20),
+                dmc.Stack(
+                    children=[
+                        dmc.Title(
+                            children='Gravitational Wave Crossmatch',
+                            style={'color': '#15284F'}
+                        ),
+                        supervent_name,
+                        credible_level,
+                        submit_gw
+                    ],
+                    align="center",
+                    justify="center",
+                )
+            ]
+        )
+        left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
+        style = {
+            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
+        }
     else:
         width_right = 9
         left_side = dbc.Col(
