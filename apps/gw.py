@@ -297,18 +297,16 @@ def display_skymap_gw():
     ---------
     out: list of objects
     """
-    return [
-        dbc.Container(
-            html.Div(
-                [
-                    visdcc.Run_js(id='aladin-lite-div-skymap-gw'),
-                ], style={
-                    'width': '100%',
-                    'height': '25pc'
-                }
-            )
+    return dbc.Container(
+        html.Div(
+            [
+                visdcc.Run_js(id='aladin-lite-div-skymap-gw'),
+            ], style={
+                'width': '100%',
+                'height': '25pc'
+            }
         )
-    ]
+    )
 
 def layout(is_mobile):
     """ Layout for the GW counterpart search
