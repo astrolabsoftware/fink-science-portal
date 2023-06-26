@@ -29,9 +29,36 @@ import healpy as hp
 import numpy as np
 from urllib.request import urlopen, URLError
 from astropy.io import fits
+from mocpy import MOC, WCS
+import astropy_healpix as ah
+import astropy.units as u
 
 from app import app, APIURL
 from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_colors
+
+def extract_moc(fn, credible_level):
+    """
+    """
+    payload = urlopen(fn).read()
+    with fits.open(io.BytesIO(payload)) as hdul:
+        data = hdul[1].data
+        header = hdul[1].header
+        max_order = hdul[1].header["MOCORDER"]
+
+    uniq = data["UNIQ"]
+    probdensity = data["PROBDENSITY"]
+
+    level, ipix = ah.uniq_to_level_ipix(uniq)
+    area = ah.nside_to_pixel_area(ah.level_to_nside(level)).to_value(u.steradian)
+
+    prob = probdensity * area
+
+
+    cumul_to = np.linspace(0.5, 0.9, 5)[::-1]
+    colors = ["blue", "green", "yellow", "orange", "red"]
+    moc = MOC.from_valued_healpix_cells(uniq, prob, max_order, cumul_to=credible_level)
+
+    return moc
 
 def extract_skyfrac_degree(fn, credible_level):
     """
@@ -313,6 +340,11 @@ def display_skymap_gw(nclick, gw_data):
         for cat in sorted(cats):
             img += """a.addCatalog({});""".format(cat)
 
+        fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.multiorder.fits'.format(superevent_name)
+        mm = extract_moc(fn, credible_level)
+        img += """var json = {};""".format(mm.to_string(format='json'))
+        img += """var moc = A.MOCFromJSON(json, {opacity: 0.25, color: 'magenta', lineWidth: 1}); a.addMOC(moc);"""
+
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
         img_to_show = [i for i in img.split('\n') if '// ' not in i]
@@ -482,7 +514,6 @@ def layout(is_mobile):
                 submit_gw,
                 html.Div(id="gw-trigger", style={'display': 'none'}),
                 dcc.Store(data='', id='gw-data'),
-                # dcc.Store(id='request-status', data='')
             ], width={"size": 3},
         )
         style={
