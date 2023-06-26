@@ -133,8 +133,7 @@ def populate_result_table_gw(data, columns, is_mobile):
     return table
 
 @app.callback(
-    Output("gw-table", "data"),
-    Output("gw-table", "columns"),
+    Output("gw-table", "children"),
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
@@ -179,7 +178,7 @@ def show_table(nclick, gw_data):
             } for c in colnames_to_display.keys()
         ]
 
-        return data, columns
+        return table
 
 def layout(is_mobile):
     """ Layout for the GW counterpart search
@@ -306,7 +305,7 @@ def layout(is_mobile):
                         dbc.Col(
                             [
                                 html.Br(),
-                                populate_result_table_gw(None, None, is_mobile=False),
+                                dbc.Container(id='gw-table'),
                                 html.Br(),
                             ],
                             width=width_right)
