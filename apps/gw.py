@@ -137,6 +137,7 @@ def populate_result_table_gw(data, columns, is_mobile):
     [
         Output("gw-table", "children"),
         Output("gw-loading-button", "children"),
+        Output("progress_bar", "style")
     ],
     [
         Input('gw-loading-button', 'n_clicks'),
@@ -148,6 +149,7 @@ def populate_result_table_gw(data, columns, is_mobile):
 def show_table(nclick, gw_data, superevent_name):
     """
     """
+    hide_progress = {"visibility": "hidden", 'width': '100%', 'height': '5pc'},
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
@@ -158,7 +160,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update
+        ), no_update, hide_progress
 
     if gw_data == "error":
         return dmc.Alert(
@@ -166,7 +168,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update
+        ), no_update, hide_progress
 
     pdf = pd.read_json(gw_data)
     if pdf.empty:
@@ -175,7 +177,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update
+        ), no_update, hide_progress
     else:
         colnames_to_display = {
             'i:objectId': 'objectId',
@@ -198,7 +200,7 @@ def show_table(nclick, gw_data, superevent_name):
 
         table = populate_result_table_gw(data, columns, is_mobile=False)
 
-        return table, no_update
+        return table, no_update, hide_progress
 
 def card_explanation():
     """ Explain what is used to fit for variable stars
