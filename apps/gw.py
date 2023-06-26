@@ -27,30 +27,6 @@ from urllib.request import urlopen, URLError
 from app import app, APIURL
 from apps.utils import markdownify_objectid
 
-# @app.callback(
-#     [
-#         Output("gw-notification", "action"),
-#         Output("gw-notification", "color"),
-#         Output("gw-notification", "title"),
-#         Output("gw-notification", "message"),
-#         Output("gw-notification", "loading"),
-#         Output("gw-notification", "autoClose"),
-#         Output("request-status", "data", allow_duplicate=True)
-#     ],
-#     [
-#         Input('superevent_name', 'value'),
-#         Input("request-status", "data"),
-#     ],
-#     prevent_initial_call=True,
-# )
-# def notify_results(superevent_name, status):
-#     if status == 'done':
-#         return "update", "green", superevent_name, "The process has completed", False, 5000, ''
-#     elif status == 'error':
-#         return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, 5000, ''
-#     else:
-#         raise PreventUpdate
-
 @app.callback(
     Output("gw-data", "data"),
     [
@@ -261,20 +237,17 @@ def layout(is_mobile):
         ], id='credible_level_selector'
     )
 
-    submit_gw = dmc.LoadingOverlay(
-        dmc.Center(
-            [
-                dmc.Button(
-                    "Search for alerts matching",
-                    id="gw-loading-button",
-                    leftIcon=DashIconify(icon="fluent:database-plug-connected-20-filled"),
-                    loaderProps={'variant': 'dots', 'color': 'orange'},
-                    variant="outline",
-                    color='indigo'
-                ),
-            ]
-        ),
-        loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
+    submit_gw = dmc.Center(
+        [
+            dmc.Button(
+                "Search for alerts matching",
+                id="gw-loading-button",
+                leftIcon=DashIconify(icon="fluent:database-plug-connected-20-filled"),
+                loaderProps={'variant': 'dots', 'color': 'orange'},
+                variant="outline",
+                color='indigo'
+            ),
+        ]
     )
 
     if is_mobile:
