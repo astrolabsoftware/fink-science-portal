@@ -162,10 +162,8 @@ def show_table(nclick, gw_data):
             'i:objectId': 'objectId',
             'd:classification': 'Classification',
             'd:nalerthist': 'Number of measurements',
-            'v:gw_lapse': '$t_0$(ZTF) - $t_0$(GW) (day)',
-            'v:lapse': 'Time variation (day)',
+            'v:gw_lapse': 'Delay (day)',
         }
-        pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
         pdf['v:gw_lapse'] = pdf['i:jdstarthist'] - pdf['v:jdstartgw']
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
         data = pdf.sort_values('v:gw_lapse', ascending=True).to_dict('records')
