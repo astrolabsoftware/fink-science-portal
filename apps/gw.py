@@ -479,20 +479,18 @@ def layout(is_mobile):
         extra_div = dbc.Row(
             children=[
                 dmc.Space(h=20),
-                dmc.Center(
                     dmc.Stack(
-                        children=[
-                            dmc.Title(
-                                children='Gravitational Wave Crossmatch',
-                                style={'color': '#15284F'}
-                            ),
-                            supervent_name,
-                            credible_level,
-                            submit_gw
-                        ],
-                        align="center",
-                        justify="center",
-                    )
+                    children=[
+                        dmc.Title(
+                            children=dmc.Center('Gravitational Waves'),
+                            style={'color': '#15284F'}
+                        ),
+                        supervent_name,
+                        credible_level,
+                        submit_gw
+                    ],
+                    align="center",
+                    justify="center",
                 )
             ]
         )
