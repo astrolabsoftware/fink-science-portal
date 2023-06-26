@@ -940,6 +940,10 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
+    # boundaries in day
+    n_day_min = 1
+    n_day_max = 6
+
     # Interpret user input
     bayestar_data = payload['bayestar']
     credible_level_threshold = float(payload['credible_level'])
@@ -975,8 +979,8 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     # grouping by later.
 
     # 1 day before the event, to 6 days after the event
-    jdstart = Time(header['DATE-OBS']).jd - 1
-    jdend = jdstart + 6
+    jdstart = Time(header['DATE-OBS']).jd - n_day_min
+    jdend = jdstart + n_day_max
 
     clientP128.setRangeScan(True)
     results = java.util.TreeMap()
@@ -1003,7 +1007,10 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
 
     pdfs['v:jdstartgw'] = Time(header['DATE-OBS']).jd
 
-    return pdfs
+    # remove alerts with clear wrong jdstarthist
+    mask = pdf['i:jd'] - pdf['i:jdstarthist'] <= n_day_max
+
+    return pdfs[mask]
 
 def return_statistics_pdf(payload: dict) -> pd.DataFrame:
     """ Extract data returned by HBase and jsonify it
