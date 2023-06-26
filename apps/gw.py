@@ -536,13 +536,12 @@ def layout(is_mobile):
 
     layout_ = html.Div(
         [
-            html.Br(),
-            html.Br(),
             dbc.Row(
                 [
                     left_side,
                     dbc.Col(
                         [
+                            dmc.Space(h=10),
                             extra_div,
                             html.Progress(id="progress_bar", style={"visibility": "hidden", 'width': '100%', 'height': '5pc'}),
                             display_skymap_gw(),
