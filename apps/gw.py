@@ -124,6 +124,14 @@ def show_table(nclick, gw_data, superevent_name):
     if button_id != "gw-loading-button":
         raise PreventUpdate
 
+    if gw_data == "":
+        return dmc.Alert(
+            "Enter a valid superevent name",
+            title='Oops!',
+            color="red",
+            withCloseButton=True
+        ), no_update
+
     if gw_data == "error":
         return dmc.Alert(
             "Could not find an event named {} on GraceDB".format(superevent_name),
