@@ -175,6 +175,8 @@ def show_table(nclick, gw_data):
             } for c in colnames_to_display.keys()
         ]
 
+        table = populate_result_table_gw(data, columns, is_mobile=False)
+
         return table
 
 def layout(is_mobile):
