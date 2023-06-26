@@ -34,7 +34,7 @@ from app import app, APIURL
         Output("gw-notification", "message"),
         Output("gw-notification", "loading"),
         Output("gw-notification", "autoClose"),
-        Output("request-status", "data", allow_duplicate=True)
+        # Output("request-status", "data", allow_duplicate=True)
     ],
     [
         Input('superevent_name', 'value'),
@@ -44,9 +44,9 @@ from app import app, APIURL
 )
 def notify_results(superevent_name, status):
     if status == 'done':
-        return "update", "green", superevent_name, "The process has completed", False, 5000, ''
+        return "update", "green", superevent_name, "The process has completed", False, 5000
     elif status == 'error':
-        return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, 5000, ''
+        return "show", "red", superevent_name, "Could not find an event named {} on GraceDB".format(superevent_name), False, 5000
     else:
         raise PreventUpdate
 
