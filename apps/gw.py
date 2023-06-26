@@ -340,7 +340,6 @@ def display_skymap_gw():
     output=Output("gw-trigger", "children"),
     inputs=[
         Input("gw-loading-button", "n_clicks"),
-        Input("superevent_name", 'value')
     ],
     running=[
         (Output("gw-loading-button", "disabled"), True, False),
@@ -351,6 +350,7 @@ def display_skymap_gw():
         ),
     ],
     progress=[Output("progress_bar", "value"), Output("progress_bar", "max")],
+    states=State("superevent_name", 'value'),
     prevent_initial_call=True
 )
 def callback_progress_bar(set_progress, n_clicks, superevent_name):
