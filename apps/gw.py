@@ -298,7 +298,7 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
     if gw_data == "error":
         raise PreventUpdate
 
-    hide_progress = {"visibility": "hidden", 'width': '100%', 'height': '5pc'}
+    hide_progress = {'display': 'none', 'width': '100%', 'height': '5pc'}
 
     pdf = pd.read_json(gw_data)
     pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
@@ -388,7 +388,7 @@ def display_skymap_gw():
         (
             Output("progress_bar", "style"),
             {"visibility": "visible", 'width': '100%', 'height': '5pc'},
-            {"visibility": "hidden", 'width': '100%', 'height': '5pc'},
+            {'display': 'none', 'width': '100%', 'height': '5pc'},
         ),
     ],
     progress=[
