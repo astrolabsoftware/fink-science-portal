@@ -19,6 +19,8 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
+from index import populate_result_table
+
 import io
 import requests
 import pandas as pd
@@ -93,6 +95,51 @@ def query_bayestar(submit, credible_level, superevent_name, status):
 
     return pdf.to_json(), "done"
 
+@app.callback(
+    Output("gw-table", "children"),
+    [
+        Input('status', 'data'),
+    ],
+    State("request-status", "data"),
+    prevent_initial_call=True
+)
+def show_table(status, gw_data):
+    """
+    """
+    pdf = pd.read_json(gw_data)
+    if pdf.empty:
+        return dmc.Alert(
+            "No counterparts in Fink found",
+            title='Oops!',
+            color="red",
+            withCloseButton=True
+        )
+    elif status == 'done':
+        colnames_to_display = {
+                'i:objectId': 'objectId',
+                'v:separation_degree': 'Separation (degree)',
+                'd:classification': 'Classification',
+                'd:nalerthist': 'Number of measurements',
+                'v:lapse': 'Time variation (day)'
+            }
+        pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
+        data = pdf.sort_values(
+            'v:separation_degree', ascending=True
+        ).to_dict('records')
+        columns = [
+            {
+                'id': c,
+                'name': colnames_to_display[c],
+                'type': 'text',
+                # 'hideable': True,
+                'presentation': 'markdown',
+            } for c in colnames_to_display.keys()
+        ]
+        table = populate_result_table(data, columns, is_mobile=False)
+
+        return table
+    else:
+        raise PreventUpdate
 
 def layout(is_mobile):
     """ Layout for the GW counterpart search
@@ -219,6 +266,7 @@ def layout(is_mobile):
                         dbc.Col(
                             [
                                 html.Br(),
+                                html.Div(id="gw-table"),
                                 html.Br(),
                             ],
                             width=width_right)
