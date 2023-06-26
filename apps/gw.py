@@ -164,7 +164,6 @@ def populate_result_table_gw(data, columns, is_mobile):
     [
         Output("gw-table", "children"),
         Output("gw-loading-button", "children"),
-        Output("progress_bar", "style")
     ],
     [
         Input('gw-loading-button', 'n_clicks'),
@@ -176,7 +175,6 @@ def populate_result_table_gw(data, columns, is_mobile):
 def show_table(nclick, gw_data, superevent_name):
     """
     """
-    hide_progress = {"visibility": "hidden", 'width': '100%', 'height': '5pc'}
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
@@ -187,7 +185,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update, hide_progress
+        ), no_update
 
     if gw_data == "error":
         return dmc.Alert(
@@ -195,7 +193,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update, hide_progress
+        ), no_update
 
     pdf = pd.read_json(gw_data)
     if pdf.empty:
@@ -204,7 +202,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update, hide_progress
+        ), no_update
     else:
         colnames_to_display = {
             'i:objectId': 'objectId',
@@ -227,7 +225,7 @@ def show_table(nclick, gw_data, superevent_name):
 
         table = populate_result_table_gw(data, columns, is_mobile=False)
 
-        return table, no_update, hide_progress
+        return table, no_update
 
 def card_explanation():
     """ Explain what is used to fit for variable stars
@@ -265,7 +263,8 @@ def card_explanation():
 @app.callback(
     [
         Output('aladin-lite-div-skymap-gw', 'run'),
-        Output('container_skymap', 'style')
+        Output('container_skymap', 'style'),
+        Output("progress_bar", "style")
     ],
     [
         Input('gw-loading-button', 'n_clicks'),
@@ -298,6 +297,8 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
 
     if gw_data == "error":
         raise PreventUpdate
+
+    hide_progress = {"visibility": "hidden", 'width': '100%', 'height': '5pc'}
 
     pdf = pd.read_json(gw_data)
     pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
@@ -354,9 +355,9 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
         # We split line-by-line and remove comments
         img_to_show = [i for i in img.split('\n') if '// ' not in i]
 
-        return " ".join(img_to_show), {'width': '100%', 'height': '25pc'}
+        return " ".join(img_to_show), {'width': '100%', 'height': '25pc'}, hide_progress
     else:
-        return "", {'display': 'none'}
+        return "", {'display': 'none'}, hide_progress
 
 def display_skymap_gw():
     """ Display the sky map in the explorer tab results (Aladin lite)
@@ -380,9 +381,7 @@ def display_skymap_gw():
 @app.callback(
     output=Output("gw-trigger", "children"),
     inputs=[
-        Input("gw-loading-button", "n_clicks"),
-        # Input("superevent_name", 'value'),
-        # Input('credible_level', 'value')
+        Input("gw-loading-button", "n_clicks")
     ],
     running=[
         (Output("gw-loading-button", "disabled"), True, False),
