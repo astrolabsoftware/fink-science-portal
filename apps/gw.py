@@ -133,12 +133,12 @@ def populate_result_table_gw(data, columns, is_mobile):
 @app.callback(
     Output("gw-table", "children"),
     [
-        Input('status', 'data'),
+        Input('gw-data', 'data'),
+        Input("request-status", "data")
     ],
-    State("request-status", "data"),
     prevent_initial_call=True
 )
-def show_table(status, gw_data):
+def show_table(gw_data, status):
     """
     """
     pdf = pd.read_json(gw_data)
