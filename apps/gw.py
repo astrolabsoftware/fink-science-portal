@@ -60,10 +60,9 @@ def notify_results(superevent_name, status):
         Input('credible_level', 'value'),
         Input('superevent_name', 'value'),
     ],
-    State("request-status", "data"),
     prevent_initial_call=True
 )
-def query_bayestar(submit, credible_level, superevent_name, status):
+def query_bayestar(submit, credible_level, superevent_name):
     """
     """
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
