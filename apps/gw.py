@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-from dash import html, dcc, Input, Output, State, callback_context as ctx, no_update
+from dash import html, dcc, Input, Output, State, callback_context as ctx, no_update, dash_table
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
@@ -131,7 +131,8 @@ def populate_result_table_gw(data, columns, is_mobile):
     return table
 
 @app.callback(
-    Output("gw-table", "children"),
+    Output("gw-table", "data"),
+    Output("gw-table", "columns"),
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
@@ -174,9 +175,8 @@ def show_table(nclick, gw_data, status):
                 'presentation': 'markdown',
             } for c in colnames_to_display.keys()
         ]
-        table = populate_result_table_gw(data, columns, is_mobile=False)
 
-        return table
+        return data, columns
 
 def layout(is_mobile):
     """ Layout for the GW counterpart search
@@ -303,7 +303,7 @@ def layout(is_mobile):
                         dbc.Col(
                             [
                                 html.Br(),
-                                html.Div(id="gw-table"),
+                                populate_result_table_gw([], [], is_mobile=False),
                                 html.Br(),
                             ],
                             width=width_right)
