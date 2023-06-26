@@ -267,9 +267,11 @@ def card_explanation():
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
+        Input('credible_level', 'value'),
+        Input('superevent_name', 'value'),
     ],
 )
-def display_skymap_gw(nclick, gw_data):
+def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
     """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
