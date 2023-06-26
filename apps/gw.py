@@ -344,6 +344,8 @@ def display_skymap_gw():
     output=Output("gw-trigger", "children"),
     inputs=[
         Input("gw-loading-button", "n_clicks"),
+        Input("superevent_name", 'value'),
+        Input('credible_level', 'value')
     ],
     running=[
         (Output("gw-loading-button", "disabled"), True, False),
@@ -357,10 +359,10 @@ def display_skymap_gw():
         Output("progress_bar", "value"),
         Output("progress_bar", "max")
     ],
-    state=[
-        State("superevent_name", 'value'),
-        State('credible_level', 'value')
-    ],
+    # state=[
+    #     State("superevent_name", 'value'),
+    #     State('credible_level', 'value')
+    # ],
     background=True,
     prevent_initial_call=True
 )
