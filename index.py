@@ -32,19 +32,14 @@ from apps import summary, about, statistics, query_cluster, gw
 from apps.api import api
 from apps import __version__ as portal_version
 
-from apps.utils import markdownify_objectid, class_colors
+from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time, validate_query, extract_query_url
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
-
-from fink_utils.xmatch.simbad import get_simbad_labels
 
 import requests
 import pandas as pd
 import numpy as np
 from astropy.time import Time, TimeDelta
-
-simbad_types = get_simbad_labels('old_and_new')
-simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
