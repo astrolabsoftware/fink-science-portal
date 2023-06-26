@@ -19,8 +19,6 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
-from index import populate_result_table
-
 import io
 import requests
 import pandas as pd
@@ -95,6 +93,43 @@ def query_bayestar(submit, credible_level, superevent_name, status):
 
     return pdf.to_json(), "done"
 
+def populate_result_table_gw(data, columns, is_mobile):
+    """ Define options of the results table, and add data and columns
+    """
+    if is_mobile:
+        page_size = 5
+        markdown_options = {'link_target': '_self'}
+    else:
+        page_size = 10
+        markdown_options = {'link_target': '_blank'}
+    table = dash_table.DataTable(
+        data=data,
+        columns=columns,
+        id='result_table_gw',
+        page_size=page_size,
+        style_as_list_view=True,
+        sort_action="native",
+        filter_action="native",
+        markdown_options=markdown_options,
+        fixed_columns={'headers': True, 'data': 1},
+        style_data={
+            'backgroundColor': 'rgb(248, 248, 248, .7)'
+        },
+        style_table={'maxWidth': '100%'},
+        style_cell={'padding': '5px', 'textAlign': 'center', 'overflow': 'hidden'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248, .7)'
+            }
+        ],
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        }
+    )
+    return table
+
 @app.callback(
     Output("gw-table", "children"),
     [
@@ -135,7 +170,7 @@ def show_table(status, gw_data):
                 'presentation': 'markdown',
             } for c in colnames_to_display.keys()
         ]
-        table = populate_result_table(data, columns, is_mobile=False)
+        table = populate_result_table_gw(data, columns, is_mobile=False)
 
         return table
     else:
