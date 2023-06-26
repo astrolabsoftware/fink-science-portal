@@ -22,6 +22,7 @@ import visdcc
 
 import io
 import gzip
+import time
 import requests
 import pandas as pd
 import healpy as hp
