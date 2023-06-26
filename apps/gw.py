@@ -130,7 +130,10 @@ def populate_result_table_gw(data, columns, is_mobile):
     return table
 
 @app.callback(
-    Output("gw-table", "children"),
+    [
+        Output("gw-table", "children"),
+        Output("gw-loading-button", "children"),
+    ],
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
@@ -151,7 +154,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        )
+        ), no_update
 
     pdf = pd.read_json(gw_data)
     if pdf.empty:
@@ -160,7 +163,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        )
+        ), no_update
     else:
         colnames_to_display = {
             'i:objectId': 'objectId',
@@ -183,7 +186,7 @@ def show_table(nclick, gw_data, superevent_name):
 
         table = populate_result_table_gw(data, columns, is_mobile=False)
 
-        return table
+        return table, no_update
 
 def card_explanation():
     """ Explain what is used to fit for variable stars
