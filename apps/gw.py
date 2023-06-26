@@ -312,7 +312,6 @@ def display_skymap_gw():
     output=Output("gw-trigger", "children"),
     inputs=[
         Input("gw-loading-button", "n_clicks"),
-        Input('superevent_name', 'value'),
     ],
     running=[
         (Output("gw-loading-button", "disabled"), True, False),
@@ -325,12 +324,9 @@ def display_skymap_gw():
     progress=[Output("progress_bar", "value"), Output("progress_bar", "max")],
     prevent_initial_call=True
 )
-def callback_progress_bar(set_progress, n_clicks, superevent_name):
+def callback_progress_bar(set_progress, n_clicks):
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
-        raise PreventUpdate
-
-    if superevent_name == '':
         raise PreventUpdate
 
     total = 10
