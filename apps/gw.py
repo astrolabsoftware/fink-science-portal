@@ -203,7 +203,10 @@ def card_explanation():
     return card
 
 @app.callback(
-    Output('aladin-lite-div-skymap-gw', 'run'),
+    [
+        Output('aladin-lite-div-skymap-gw', 'run'),
+        Output('container_skymap', 'style')
+    ],
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
@@ -284,9 +287,9 @@ def display_skymap_gw(nclick, gw_data):
         # We split line-by-line and remove comments
         img_to_show = [i for i in img.split('\n') if '// ' not in i]
 
-        return " ".join(img_to_show)
+        return " ".join(img_to_show), {'width': '100%', 'height': '25pc'}
     else:
-        return ""
+        return "", {'display': 'none'}
 
 def display_skymap_gw():
     """ Display the sky map in the explorer tab results (Aladin lite)
@@ -301,7 +304,9 @@ def display_skymap_gw():
         html.Div(
             [
                 visdcc.Run_js(id='aladin-lite-div-skymap-gw'),
-            ], style={
+            ],
+            id='container_skymap',
+            style={
                 'width': '100%',
                 'height': '25pc'
             }
@@ -458,7 +463,7 @@ def layout(is_mobile):
                     left_side,
                     dbc.Col(
                         [
-                            html.Progress(id="progress_bar"),
+                            html.Progress(id="progress_bar", style={'width': '100%', 'height': '5pc'}),
                             display_skymap_gw(),
                             dmc.Paper(
                                 [
