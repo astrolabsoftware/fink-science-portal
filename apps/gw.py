@@ -373,7 +373,7 @@ def callback_progress_bar(set_progress, n_clicks, superevent_name, credible_leve
 
     fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
     total = extract_skyfrac_degree(fn, credible_level)
-    rate = 0.01 # second/deg2
+    rate = 0.025 # second/deg2
     for i in range(int(total)):
         time.sleep(rate)
         set_progress((str(i + 1), str(int(total))))
