@@ -25,6 +25,7 @@ import pandas as pd
 from urllib.request import urlopen, URLError
 
 from app import app, APIURL
+from apps.utils import markdownify_objectid
 
 # @app.callback(
 #     [
@@ -164,6 +165,7 @@ def show_table(nclick, gw_data):
             'v:lapse': 'Time variation (day)'
         }
         pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
+        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
         data = pdf.sort_values('v:lapse', ascending=False).to_dict('records')
         columns = [
             {
