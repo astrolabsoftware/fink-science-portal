@@ -340,6 +340,7 @@ def display_skymap_gw():
     output=Output("gw-trigger", "children"),
     inputs=[
         Input("gw-loading-button", "n_clicks"),
+        Input("superevent_name", 'value')
     ],
     running=[
         (Output("gw-loading-button", "disabled"), True, False),
@@ -352,11 +353,12 @@ def display_skymap_gw():
     progress=[Output("progress_bar", "value"), Output("progress_bar", "max")],
     prevent_initial_call=True
 )
-def callback_progress_bar(set_progress, n_clicks):
+def callback_progress_bar(set_progress, n_clicks, superevent_name):
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
 
+    fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
     total = extract_skyfrac_degree(fn)
     rate = 0.5 # second/deg2
     for i in range(int(total)):
