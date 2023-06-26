@@ -252,7 +252,7 @@ def card_explanation():
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl("Information"),
-                    dmc.AccordionPanel(dcc.Markdown(msg)),
+                    dmc.AccordionPanel(dcc.Markdown(msg, link_target="_blank")),
                 ],
                 value="info"
             ),
@@ -423,7 +423,7 @@ def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
     extra_div = dbc.Alert(
-        dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions."),
+        dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.", link_target="_blank"),
         dismissable=True,
         is_open=True,
         color="light"
@@ -545,7 +545,7 @@ def layout(is_mobile):
                         [
                             dmc.Space(h=10),
                             extra_div,
-                            html.Progress(id="progress_bar", style={"visibility": "hidden", 'width': '100%', 'height': '5pc'}),
+                            html.Progress(id="progress_bar", style={'display': 'none', 'width': '100%', 'height': '5pc'}),
                             display_skymap_gw(),
                             dmc.Space(h=10),
                             dmc.Paper(
