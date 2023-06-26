@@ -309,10 +309,7 @@ def layout(is_mobile):
                     dbc.Col(
                         [
                             html.Br(),
-                            dmc.LoadingOverlay(
-                                dbc.Container(id='gw-table'),
-                                loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
-                            ),
+                            dbc.Container(id='gw-table'),
                             html.Br(),
                         ],
                         width=width_right)
@@ -332,4 +329,4 @@ def layout(is_mobile):
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
     )
 
-    return layout_
+    return dmc.LoadingOverlay(layout_, loaderProps={"variant": "dots", "color": "orange", "size": "xl"})
