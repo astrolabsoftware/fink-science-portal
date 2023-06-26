@@ -1008,7 +1008,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     pdfs['v:jdstartgw'] = Time(header['DATE-OBS']).jd
 
     # remove alerts with clear wrong jdstarthist
-    mask = pdf['i:jd'] - pdf['i:jdstarthist'] <= n_day_max
+    mask = (pdfs['i:jd'] - pdfs['i:jdstarthist']) <= n_day_max
 
     return pdfs[mask]
 
