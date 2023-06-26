@@ -25,7 +25,7 @@ import pandas as pd
 from urllib.request import urlopen, URLError
 
 from app import app, APIURL
-from apps.utils import markdownify_objectid
+from apps.utils import markdownify_objectid, convert_jd
 
 @app.callback(
     Output("gw-data", "data"),
@@ -202,6 +202,114 @@ def card_explanation():
     )
     return card
 
+@app.callback(
+    Output('aladin-lite-div-skymap-gw', 'run'),
+    [
+        Input('gw-loading-button', 'n_clicks'),
+        Input('gw-data', 'data'),
+        Input('superevent_name', 'value'),
+    ],
+)
+def display_skymap_gw(data, columns, activetab):
+    """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
+
+    TODO: image is not displayed correctly the first time
+
+    the default parameters are:
+        * PanSTARRS colors
+        * FoV = 360 deg
+        * Fink alerts overlayed
+
+    Callbacks
+    ----------
+    Input: takes the validation flag (0: no results, 1: results) and table data
+    Output: Display a sky image around the alert position from aladin.
+    """
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if button_id != "gw-loading-button":
+        raise PreventUpdate
+
+    if gw_data == "":
+        raise PreventUpdate
+
+    if gw_data == "error":
+        raise PreventUpdate
+
+    pdf = pd.read_json(gw_data)
+    pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
+    if len(pdf) > 0:
+        # Coordinate of the first alert
+        ra0 = pdf['i:ra'].values[0]
+        dec0 = pdf['i:dec'].values[0]
+
+        # Javascript. Note the use {{}} for dictionary
+        # Force redraw of the Aladin lite window
+        img = """var container = document.getElementById('aladin-lite-div-skymap');var txt = ''; container.innerHTML = txt;"""
+
+        # Aladin lite
+        img += """var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});""".format(ra0, dec0)
+
+        ras = pdf['i:ra'].values
+        decs = pdf['i:dec'].values
+        filts = pdf['i:fid'].values
+        filts_dic = {1: 'g', 2: 'r'}
+        times = pdf['v:lastdate'].values
+        link = '<a target="_blank" href="{}/{}">{}</a>'
+        titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
+        mags = pdf['i:magpsf'].values
+        classes = pdf['d:classification'].values
+        n_alert_per_class = pdf.groupby('d:classification').count().to_dict()['i:objectId']
+        cats = []
+        for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
+            if class_ in simbad_types:
+                cat = 'cat_{}'.format(simbad_types.index(class_))
+                color = class_colors['Simbad']
+            elif class_ in class_colors.keys():
+                cat = 'cat_{}'.format(class_.replace(' ', '_'))
+                color = class_colors[class_]
+            else:
+                # Sometimes SIMBAD mess up names :-)
+                cat = 'cat_{}'.format(class_)
+                color = class_colors['Simbad']
+
+            if cat not in cats:
+                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ' ({})'.format(n_alert_per_class[class_]), color)
+                cats.append(cat)
+            img += """{}.addSources([A.source({}, {}, {{objectId: '{}', mag: {:.2f}, filter: '{}', time: '{}', Classification: '{}'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
+
+        for cat in sorted(cats):
+            img += """a.addCatalog({});""".format(cat)
+
+        # img cannot be executed directly because of formatting
+        # We split line-by-line and remove comments
+        img_to_show = [i for i in img.split('\n') if '// ' not in i]
+
+        return " ".join(img_to_show)
+    else:
+        return ""
+
+def display_skymap_gw():
+    """ Display the sky map in the explorer tab results (Aladin lite)
+
+    It uses `visdcc` to execute javascript directly.
+
+    Returns
+    ---------
+    out: list of objects
+    """
+    return [
+        dbc.Container(
+            html.Div(
+                [
+                    visdcc.Run_js(id='aladin-lite-div-skymap-gw'),
+                ], style={
+                    'width': '100%',
+                    'height': '25pc'
+                }
+            )
+        )
+    ]
+
 def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
@@ -322,16 +430,15 @@ def layout(is_mobile):
                 [
                     left_side,
                     dbc.Col(
-                        dmc.LoadingOverlay(
-                            dmc.Paper(
-                                [
-                                    html.Div(id='gw-table'),
-                                    card_explanation()
-                                ], radius='xl', p='md', shadow='xl', withBorder=True
-                            ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                        dmc.Paper(
+                            [
+                                display_skymap_gw(),
+                                html.Div(id='gw-table'),
+                                card_explanation()
+                            ], radius='xl', p='md', shadow='xl', withBorder=True
                         ),
                         width=width_right
-                    )
+                    ),
                 ],
                 justify="around", className="g-0"
             ),
