@@ -311,7 +311,10 @@ def display_skymap_gw():
 
 @app.long_callback(
     output=Output("gw-trigger", "children"),
-    inputs=Input("gw-loading-button", "n_clicks"),
+    inputs=[
+        Input("gw-loading-button", "n_clicks"),
+        Input('superevent_name', 'value'),
+    ],
     running=[
         (Output("gw-loading-button", "disabled"), True, False),
         (
@@ -322,7 +325,15 @@ def display_skymap_gw():
     ],
     progress=[Output("progress_bar", "value"), Output("progress_bar", "max")],
 )
-def callback_progress_bar(set_progress, n_clicks):
+def callback_progress_bar(set_progress, n_clicks, superevent_name):
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if button_id != "gw-loading-button":
+        # return no_update, ''
+        return no_update
+
+    if superevent_name == '':
+        raise PreventUpdate
+
     total = 10
     import time
     for i in range(total):
@@ -431,7 +442,7 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 submit_gw,
-                html.Div([html.P(id="gw-trigger", children=[""])]),
+                html.Div(id="gw-trigger", style={'display': 'none'}),
                 dcc.Store(data='', id='gw-data'),
                 # dcc.Store(id='request-status', data='')
             ], width={"size": 3},
