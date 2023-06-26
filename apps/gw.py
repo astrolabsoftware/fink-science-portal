@@ -322,8 +322,8 @@ def display_skymap_gw():
         (Output("gw-loading-button", "disabled"), True, False),
         (
             Output("progress_bar", "style"),
-            {"visibility": "visible"},
-            {"visibility": "hidden"},
+            {"visibility": "visible", 'width': '100%', 'height': '5pc'},
+            {"visibility": "hidden", 'width': '100%', 'height': '5pc'},
         ),
     ],
     progress=[Output("progress_bar", "value"), Output("progress_bar", "max")],
@@ -463,7 +463,7 @@ def layout(is_mobile):
                     left_side,
                     dbc.Col(
                         [
-                            html.Progress(id="progress_bar", style={'width': '100%', 'height': '5pc'}),
+                            html.Progress(id="progress_bar", style={"visibility": "hidden", 'width': '100%', 'height': '5pc'}),
                             display_skymap_gw(),
                             dmc.Paper(
                                 [
