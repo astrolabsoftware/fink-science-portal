@@ -31,9 +31,9 @@ from apps.utils import markdownify_objectid
     Output("gw-data", "data"),
     [
         Input('gw-loading-button', 'n_clicks'),
+        Input('credible_level', 'value'),
+        Input('superevent_name', 'value'),
     ],
-    State('credible_level', 'value'),
-    State('superevent_name', 'value'),
     prevent_initial_call=True
 )
 def query_bayestar(submit, credible_level, superevent_name):
@@ -295,7 +295,7 @@ def layout(is_mobile):
                 html.Br(),
                 html.Br(),
                 submit_gw,
-                dcc.Store(id='gw-data'),
+                dcc.Store(data='', id='gw-data'),
                 # dcc.Store(id='request-status', data='')
             ], width={"size": 3},
         )
