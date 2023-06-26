@@ -303,20 +303,21 @@ def layout(is_mobile):
             html.Br(),
             html.Br(),
             title,
-            dmc.LoadingOverlay(
-                    dbc.Row(
-                    [
-                        left_side,
+            dbc.Row(
+                [
+                    left_side,
+                    dmc.LoadingOverlay(
                         dbc.Col(
                             [
                                 html.Br(),
                                 dbc.Container(id='gw-table'),
                                 html.Br(),
                             ],
-                            width=width_right)
-                    ],
-                    justify="around", className="g-0"
-                ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
+                            width=width_right
+                        ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
+                    ),
+                ],
+                justify="around", className="g-0"
             ),
             html.Br()
         ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
