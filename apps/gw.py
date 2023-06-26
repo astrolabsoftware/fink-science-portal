@@ -462,6 +462,7 @@ def layout(is_mobile):
                         [
                             html.Progress(id="progress_bar", style={"visibility": "hidden", 'width': '100%', 'height': '5pc'}),
                             display_skymap_gw(),
+                            html.Br(),
                             dmc.Paper(
                                 [
                                     html.Div(id='gw-table'),
