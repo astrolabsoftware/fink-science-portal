@@ -245,6 +245,9 @@ def card_explanation():
 
     Note that only alerts that started varying within the time boundaries `[t0 - 1 day, t0 + 6 days]` are considered,
     where `t0` is the GW trigger time.
+
+    Finally we provide a visualisation of the alerts on the sky using Aladin Lite,
+    along with a Multi-Ordered Coverage ([MOC](https://arxiv.org/abs/2201.05191)) of the GW event.
     """
     card = dmc.Accordion(
         children=[
@@ -502,7 +505,7 @@ def layout(is_mobile):
         # }
         pass
     else:
-        width_right = 8
+        width_right = 9
         title = html.Div()
         left_side = dbc.Col(
             [
@@ -516,7 +519,7 @@ def layout(is_mobile):
                 submit_gw,
                 html.Div(id="gw-trigger", style={'display': 'none'}),
                 dcc.Store(data='', id='gw-data'),
-            ], width={"size": 3},
+            ], width={"size": 2},
         )
         style={
             'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
