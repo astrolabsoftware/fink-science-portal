@@ -26,6 +26,8 @@ import pandas as pd
 import numpy as np
 import requests
 
+import rocks
+
 from app import app, client, clientU, clientUV, clientSSO, clientTRCK
 
 from apps.supernovae.cards import card_sn_scores
@@ -690,6 +692,8 @@ def store_query(name):
             pdfsso = pd.DataFrame()
         else:
             # Extract miriade information as well
+            name = rocks.id(payload)[0]
+            pdfsso['i:ssnamenr'] = name
             pdfsso = get_miriade_data(pdfsso)
     else:
         pdfsso = pd.DataFrame()
