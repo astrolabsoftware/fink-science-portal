@@ -1080,7 +1080,7 @@ def anomalous_objects(payload=None):
     output_format = payload.get('output-format', 'json')
     return send_data(pdfs, output_format)
 
-api_bp.route('/api/v1/fft', methods=['GET'])
+@api_bp.route('/api/v1/fft', methods=['GET'])
 def fft_arguments():
     """ Obtain information about the Fink Flat Table
     """
