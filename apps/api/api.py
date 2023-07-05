@@ -575,6 +575,14 @@ args_anomaly = [
     }
 ]
 
+args_fft = [
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -1063,6 +1071,43 @@ def anomalous_objects(payload=None):
             return Response(str(rep), 400)
 
     pdfs = return_anomalous_objects_pdf(payload)
+
+    # Error propagation
+    if isinstance(pdfs, Response):
+        return pdfs
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdfs, output_format)
+
+api_bp.route('/api/v1/fft', methods=['GET'])
+def fft_arguments():
+    """ Obtain information about the Fink Flat Table
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return fft_table(payload=request.args)
+    else:
+        return jsonify({'args': args_fft})
+
+@api_bp.route('/api/v1/fft', methods=['POST'])
+def fft_table(payload=None):
+    """ Get the Fink Flat Table
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i['name'] for i in args_fft if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    pdfs = return_fft_pdf(payload)
 
     # Error propagation
     if isinstance(pdfs, Response):

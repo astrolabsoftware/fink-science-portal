@@ -1280,3 +1280,30 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     )
 
     return pdfs
+
+def return_fft_pdf(payload: dict) -> pd.DataFrame:
+    """ Send the Fink Flat Table
+
+    Data is from /api/v1/fft
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/fft
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
+    r = requests.get(
+        '{}/sso_fink_bft.parquet?op=OPEN&user.name={}&namenoderpcaddress={}'.format(
+            input_args['WEBHDFS'],
+            input_args['USER'],
+            input_args['NAMENODE']
+        )
+    )
+
+    pdf = pd.read_parquet(io.BytesIO(r.content))
+
+    return pdf
