@@ -34,6 +34,7 @@ from apps.api.utils import perform_xmatch, return_bayestar_pdf
 from apps.api.utils import return_statistics_pdf, send_data
 from apps.api.utils import return_random_pdf
 from apps.api.utils import return_anomalous_objects_pdf
+from apps.api.utils import return_fft_pdf
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
