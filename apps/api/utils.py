@@ -15,6 +15,7 @@
 import io
 import java
 import gzip
+import yaml
 import requests
 
 import pandas as pd
