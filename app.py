@@ -68,12 +68,6 @@ clientT.connect(args['tablename'] + ".jd", args['SCHEMAVER'])
 clientP128 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
 clientP128.connect(args['tablename'] + ".pixel128", args['SCHEMAVER'])
 
-clientP4096 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
-clientP4096.connect(args['tablename'] + ".pixel4096", args['SCHEMAVER'])
-
-clientP131072 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
-clientP131072.connect(args['tablename'] + ".pixel131072", args['SCHEMAVER'])
-
 clientS = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
 clientS.connect(args['tablename'] + ".class", args['SCHEMAVER'])
 
