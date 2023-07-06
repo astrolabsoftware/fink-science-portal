@@ -1210,6 +1210,13 @@ navbar = dmc.Header(
                                         color="gray",
                                     ),
                                     dmc.Anchor(
+                                        'Gravitational Waves',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/gw',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                    dmc.Anchor(
                                         'Statistics',
                                         style={"textTransform": "capitalize", "textDecoration": "none"},
                                         href='/stats',
