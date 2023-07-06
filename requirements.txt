@@ -57,7 +57,7 @@ fastavro==1.6.0
 fink-client==3.1
 fink-filters==3.11
 fink-science==3.6.0
-fink-utils==0.13.3
+fink-utils==0.13.5
 Flask==1.1.2
 Flask-Caching==1.10.1
 Flask-Compress==1.5.0
