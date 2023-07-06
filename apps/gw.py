@@ -413,7 +413,7 @@ def callback_progress_bar(set_progress, n_clicks, superevent_name, credible_leve
     except URLError:
         return "Error"
 
-    rate = 0.05 # second/deg2
+    rate = 0.15 # second/deg2
     for i in range(int(total)):
         time.sleep(rate)
         set_progress((str(i + 1), str(int(total))))
