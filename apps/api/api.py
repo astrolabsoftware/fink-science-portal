@@ -24,7 +24,7 @@ from apps.api.doc import api_doc_summary, api_doc_object, api_doc_explorer
 from apps.api.doc import api_doc_latests, api_doc_sso, api_doc_tracklets
 from apps.api.doc import api_doc_cutout, api_doc_xmatch, api_doc_bayestar
 from apps.api.doc import api_doc_stats, api_doc_random, api_doc_ssocand
-from apps.api.doc import api_doc_anomaly
+from apps.api.doc import api_doc_anomaly, api_doc_ssoft
 
 from apps.api.utils import return_object_pdf, return_explorer_pdf
 from apps.api.utils import return_latests_pdf, return_sso_pdf
@@ -34,8 +34,10 @@ from apps.api.utils import perform_xmatch, return_bayestar_pdf
 from apps.api.utils import return_statistics_pdf, send_data
 from apps.api.utils import return_random_pdf
 from apps.api.utils import return_anomalous_objects_pdf
+from apps.api.utils import return_ssoft_pdf
 
 from fink_utils.xmatch.simbad import get_simbad_labels
+from fink_spins.ssoft import COLUMNS as SSOFT_COLUMNS
 
 import io
 import requests
@@ -130,6 +132,17 @@ def layout(is_mobile):
                                         }
                                     ),
                                 ], label="Candidate Solar System objects", label_style = {"color": "#000"}
+                            ),
+                            dbc.Tab(
+                                [
+                                    dbc.Card(
+                                        dbc.CardBody(
+                                            dcc.Markdown(api_doc_ssoft)
+                                        ), style={
+                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
+                                        }
+                                    ),
+                                ], label="Solar System object parameters table", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
@@ -567,6 +580,29 @@ args_anomaly = [
         'name': 'columns',
         'required': False,
         'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
+    }
+]
+
+args_ssoft = [
+    {
+        'name': 'sso_name',
+        'required': False,
+        'description': 'Official name or provisional designation of the SSO.'
+    },
+    {
+        'name': 'sso_number',
+        'required': False,
+        'description': 'IAU number of the SSO'
+    },
+    {
+        'name': 'schema',
+        'required': False,
+        'description': 'If specified, return the schema of the table in json format.'
     },
     {
         'name': 'output-format',
@@ -1063,6 +1099,47 @@ def anomalous_objects(payload=None):
             return Response(str(rep), 400)
 
     pdfs = return_anomalous_objects_pdf(payload)
+
+    # Error propagation
+    if isinstance(pdfs, Response):
+        return pdfs
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdfs, output_format)
+
+@api_bp.route('/api/v1/ssoft', methods=['GET'])
+def ssoft_arguments():
+    """ Obtain information about the Fink Flat Table
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return ssoft_table(payload=request.args)
+    else:
+        return jsonify({'args': args_ssoft})
+
+@api_bp.route('/api/v1/ssoft', methods=['POST'])
+def ssoft_table(payload=None):
+    """ Get the Fink Flat Table
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i['name'] for i in args_ssoft if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    if 'schema' in payload:
+        # return the schema of the table
+        return jsonify({'args': SSOFT_COLUMNS})
+
+    pdfs = return_ssoft_pdf(payload)
 
     # Error propagation
     if isinstance(pdfs, Response):

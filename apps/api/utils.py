@@ -15,6 +15,7 @@
 import io
 import java
 import gzip
+import yaml
 import requests
 
 import pandas as pd
@@ -1237,3 +1238,39 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     )
 
     return pdfs
+
+def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
+    """ Send the Fink Flat Table
+
+    Data is from /api/v1/ssoft
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/ssoft
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
+    r = requests.get(
+        '{}/ssoft.parquet?op=OPEN&user.name={}&namenoderpcaddress={}'.format(
+            input_args['WEBHDFS'],
+            input_args['USER'],
+            input_args['NAMENODE']
+        )
+    )
+
+    pdf = pd.read_parquet(io.BytesIO(r.content))
+
+    if 'sso_name' in payload:
+        mask = pdf['sso_name'] == pdf['sso_name']
+        pdf = pdf[mask]
+        pdf = pdf[pdf['sso_name'].astype('str') == payload['sso_name']]
+    elif 'sso_number' in payload:
+        mask = pdf['sso_number'] == pdf['sso_number']
+        pdf = pdf[mask]
+        pdf = pdf[pdf['sso_number'].astype('int') == int(payload['sso_number'])]
+
+    return pdf
