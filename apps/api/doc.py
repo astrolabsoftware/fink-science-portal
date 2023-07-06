@@ -1408,11 +1408,11 @@ fitted parameters (absolute magnitude, phase parameters, spin parameters, ...), 
 You can also retrieve information about a single object, using its name or IAU number:
 
 ```
-curl...
+# using name
+curl -H "Content-Type: application/json" -X POST -d '{"output-format":"json", "sso_name": "Autonoma"}' https://fink-portal.org/api/v1/ssoft
 
-
-curl...
-
+# using number
+curl -H "Content-Type: application/json" -X POST -d '{"output-format":"json", "sso_number": "1465"}' https://fink-portal.org/api/v1/ssoft
 ```
 
 You can retrieve the schema of the table using using the schema argument:
@@ -1435,6 +1435,6 @@ schema = r.json()['args']
 or view it in your browser:
 
 ```
-https://...
+https://fink-portal.org/api/v1/ssoft?schema
 ```
 """

@@ -1264,9 +1264,13 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
 
     pdf = pd.read_parquet(io.BytesIO(r.content))
 
-    if 'name' in payload:
-        pdf = pdf[pdf['sso_name'].astype('str') == payload['name']]
-    elif 'number' in payload:
-        pdf = pdf[pdf['sso_number'].astype('int') == int(payload['number'])]
+    if 'sso_name' in payload:
+        mask = pdf['sso_name'] == pdf['sso_name']
+        pdf = pdf[mask]
+        pdf = pdf[pdf['sso_name'].astype('str') == payload['sso_name']]
+    elif 'sso_number' in payload:
+        mask = pdf['sso_number'] == pdf['sso_number']
+        pdf = pdf[mask]
+        pdf = pdf[pdf['sso_number'].astype('int') == int(payload['sso_number'])]
 
     return pdf

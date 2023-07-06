@@ -590,12 +590,12 @@ args_anomaly = [
 
 args_ssoft = [
     {
-        'name': 'name',
+        'name': 'sso_name',
         'required': False,
         'description': 'Official name or provisional designation of the SSO.'
     },
     {
-        'name': 'number',
+        'name': 'sso_number',
         'required': False,
         'description': 'IAU number of the SSO'
     },
