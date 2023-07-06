@@ -37,9 +37,11 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/statistics | Statistics concerning Fink alert data| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/anomaly | Fink alerts with large anomaly score| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/random | Draw random objects from the Fink database| &#x2611;&#xFE0F; |
+| POST/GET  | {}/api/v1/ssoft  | Get the Fink Solar System table | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
 """.format(
+    APIURL,
     APIURL,
     APIURL,
     APIURL,
@@ -1365,4 +1367,58 @@ pdf = pd.read_json(io.BytesIO(r.content))
 Note the first time, the `/api/v1/object` query can be long (especially if
 you are dealing with variable stars), but then data is cached on the server,
 and subsequent queries are much faster.
+"""
+
+api_doc_ssoft = """
+## Get the Fink Solar System Table
+
+This service lets you query the table containing aggregated parameters for Solar System objects in Fink.
+
+The list of arguments for retrieving alert data can be found at https://fink-portal.org/api/v1/ssoft,
+and the schema of the table (json) can be found at https://fink-portal.org/api/v1/ssoft?schema
+
+In python, you would use
+
+```python
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/ssoft',
+  json={
+    'output-format': 'parquet'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_parquet(io.BytesIO(r.content))
+```
+
+or e.g. with curl:
+
+```
+curl -H "Content-Type: application/json" -X POST -d '{"output-format":"parquet"}' https://fink-portal.org/api/v1/ssoft -o ssoft.parquet
+```
+
+This table contains basic statistics (e.g. coverage in time for each object, name, number, ...),
+fitted parameters (absolute magnitude, phase parameters, spin parameters, ...), quality statuses, and version number.
+If you want to retrieve the schema, you would use:
+
+```python
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/ssoft',
+  json={
+    'schema': True
+  }
+)
+
+schema = r.json()['args']
+```
+
+This table is updated once a month, with all data in Fink.
 """
