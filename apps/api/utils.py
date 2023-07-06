@@ -1282,15 +1282,15 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
 
     return pdfs
 
-def return_fft_pdf(payload: dict) -> pd.DataFrame:
+def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
     """ Send the Fink Flat Table
 
-    Data is from /api/v1/fft
+    Data is from /api/v1/ssoft
 
     Parameters
     ----------
     payload: dict
-        See https://fink-portal.org/api/v1/fft
+        See https://fink-portal.org/api/v1/ssoft
 
     Return
     ----------

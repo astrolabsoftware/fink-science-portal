@@ -34,9 +34,63 @@ from apps.api.utils import perform_xmatch, return_bayestar_pdf
 from apps.api.utils import return_statistics_pdf, send_data
 from apps.api.utils import return_random_pdf
 from apps.api.utils import return_anomalous_objects_pdf
-from apps.api.utils import return_fft_pdf
+from apps.api.utils import return_ssoft_pdf
 
 from fink_utils.xmatch.simbad import get_simbad_labels
+# from fink_spins.bft import COLUMNS as SSOFT_COLUMNS
+
+SSOFT_COLUMNS = {
+    'ssnamenr': {'type': 'str', 'description': 'Designation (name or number) of the object from MPC archive as given by ZTF'},
+    'sso_name': {'type': 'str', 'description': 'Official name or provisional designation of the SSO'},
+    'sso_number': {'type': 'int', 'description': 'IAU number of the SSO'},
+    'last_jd': {'type': 'double', 'description': 'Julian Date for the last detection in Fink, in UTC'},
+    'H_1': {'type': 'double', 'description': 'Absolute magnitude for the ZTF filter band g'},
+    'H_2': {'type': 'double', 'description': 'Absolute magnitude for the ZTF filter band r'},
+    'G1_1': {'type': 'double', 'description': 'G1 phase parameter for the ZTF filter band g'},
+    'G1_2': {'type': 'double', 'description': 'G1 phase parameter for the ZTF filter band r'},
+    'G2_1': {'type': 'double', 'description': 'G2 phase parameter for the ZTF filter band g'},
+    'G2_2': {'type': 'double', 'description': 'G2 phase parameter for the ZTF filter band r'},
+    'R': {'type': 'double', 'description': 'Oblateness of the object'},
+    'alpha0': {'type': 'double', 'description': 'Right ascension of the spin axis (EQJ2000), in degree'}, # degree
+    'delta0': {'type': 'double', 'description': 'Declination of the spin axis (EQJ2000), in degree'}, # degree
+    'obliquity': {'type': 'double', 'description': 'Obliquity of the spin axis, in degree'}, # degree
+    'err_H_1': {'type': 'double', 'description': 'Uncertainty on the absolute magnitude for the ZTF filter band g'},
+    'err_H_2': {'type': 'double', 'description': 'Uncertainty on the absolute magnitude for the ZTF filter band r'},
+    'err_G1_1': {'type': 'double', 'description': 'Uncertainty on the G1 phase parameter for the ZTF filter band g'},
+    'err_G1_2': {'type': 'double', 'description': 'Uncertainty on the G1 phase parameter for the ZTF filter band r'},
+    'err_G2_1': {'type': 'double', 'description': 'Uncertainty on the G2 phase parameter for the ZTF filter band g'},
+    'err_G2_2': {'type': 'double', 'description': 'Uncertainty on the G2 phase parameter for the ZTF filter band r'},
+    'err_R': {'type': 'double', 'description': 'Uncertainty on the oblateness'},
+    'err_alpha0': {'type': 'double', 'description': 'Uncertainty on the right ascension of the spin axis (EQJ2000), in degree'}, # degree
+    'err_delta0': {'type': 'double', 'description': 'Uncertainty on the declination of the spin axis (EQJ2000), in degree'}, # degree
+    'max_cos_lambda': {'type': 'double', 'description': 'Maximum of the absolute value of the cosine for the aspect angle'},
+    'mean_cos_lambda': {'type': 'double', 'description': 'Mean of the absolute value of the cosine for the aspect angle'},
+    'min_cos_lambda': {'type': 'double', 'description': 'Minimum of the absolute value of the cosine for the aspect angle'},
+    'min_phase': {'type': 'double', 'description': 'Minimum phase angle of the observations used to compute the phase function, in degree'}, # degree
+    'min_phase_1': {'type': 'double', 'description': 'Minimum phase angle of the observations used to compute the phase function for the ZTF filter band g, in degree'}, # degree
+    'min_phase_2': {'type': 'double', 'description': 'Minimum phase angle of the observations used to compute the phase function for the ZTF filter band r, in degree'}, # degree
+    'max_hase': {'type': 'double', 'description': 'Maximum phase angle of the observations used to compute the phase function, in degree'}, # degree
+    'max_phase_1': {'type': 'double', 'description': 'Maximum phase angle of the observations used to compute the phase function for the ZTF filter band g, in degree'}, # degree
+    'max_phase_2': {'type': 'double', 'description': 'Maximum phase angle of the observations used to compute the phase function for the ZTF filter band r, in degree'}, # degree
+    'chi2red': {'type': 'double', 'description': 'Reduced chi-square of the fit'},
+    'rms': {'type': 'double', 'description': 'RMS of the fit, in magnitude'},
+    'rms_1': {'type': 'double', 'description': 'RMS of the fit for the filter band g, in magnitude'},
+    'rms_2': {'type': 'double', 'description': 'RMS of the fit for the filter band r, in magnitude'},
+    'mean_astrometry': {'type': 'double', 'description': 'Astrometry: mean of the angular separation between observations and ephemerides, in arcsecond'}, # arcsecond
+    'std_astrometry': {'type': 'double', 'description': 'Astrometry: standard deviation of the angular separation between observations and ephemerides, in arcsecond'}, # arcsecond
+    'skew_astrometry': {'type': 'double', 'description': 'Astrometry: skewness of the angular separation between observations and ephemerides'}, # arcsecond-2
+    'kurt_astrometry': {'type': 'double', 'description': 'Astrometry: kurtosis of the angular separation between observations and ephemerides'}, # arcsecond-3
+    'n_obs': {'type': 'int', 'description': 'Number of observations in Fink'},
+    'n_obs_1': {'type': 'int', 'description': 'Number of observations for the ZTF filter band g in Fink'},
+    'n_obs_2': {'type': 'int', 'description': 'Number of observations for the ZTF filter band r in Fink'},
+    'n_days': {'type': 'int', 'description': 'Number of days between the first and the last observations in Fink'},
+    'n_days_1': {'type': 'int', 'description': 'Number of days between the first and the last observations in Fink, for the ZTF filter band g'},
+    'n_days_2': {'type': 'int', 'description': 'Number of days between the first and the last observations in Fink, for the ZTF filter band r'},
+    'fit': {'type': 'int', 'description': 'Code to assess the quality of the fit: 0: success, 1: bad_vals, 2: MiriadeFail, 3: RunTimError, 4: LinalgError'},
+    'status': {'type': 'int', 'description': 'Code for quality `status` (least square convergence): -2: failure, -1 : improper input parameters status returned from MINPACK, 0 : the maximum number of function evaluations is exceeded, 1 : gtol termination condition is satisfied, 2 : ftol termination condition is satisfied, 3 : xtol termination condition is satisfied, 4 : Both ftol and xtol termination conditions are satisfied.'},
+    'flag': {'type': 'int', 'description': 'TBD'},
+    'version': {'type': 'str', 'description': 'Version of the SSOFT'},
+}
 
 import io
 import requests
@@ -576,7 +630,12 @@ args_anomaly = [
     }
 ]
 
-args_fft = [
+args_ssoft = [
+    {
+        'name': 'schema',
+        'required': False,
+        'description': 'If specified, return the schema of the table in json format.'
+    },
     {
         'name': 'output-format',
         'required': False,
@@ -1080,18 +1139,18 @@ def anomalous_objects(payload=None):
     output_format = payload.get('output-format', 'json')
     return send_data(pdfs, output_format)
 
-@api_bp.route('/api/v1/fft', methods=['GET'])
-def fft_arguments():
+@api_bp.route('/api/v1/ssoft', methods=['GET'])
+def ssoft_arguments():
     """ Obtain information about the Fink Flat Table
     """
     if len(request.args) > 0:
         # POST from query URL
-        return fft_table(payload=request.args)
+        return ssoft_table(payload=request.args)
     else:
-        return jsonify({'args': args_fft})
+        return jsonify({'args': args_ssoft})
 
-@api_bp.route('/api/v1/fft', methods=['POST'])
-def fft_table(payload=None):
+@api_bp.route('/api/v1/ssoft', methods=['POST'])
+def ssoft_table(payload=None):
     """ Get the Fink Flat Table
     """
     # get payload from the JSON
@@ -1099,7 +1158,7 @@ def fft_table(payload=None):
         payload = request.json
 
     # Check all required args are here
-    required_args = [i['name'] for i in args_fft if i['required'] is True]
+    required_args = [i['name'] for i in args_ssoft if i['required'] is True]
     for required_arg in required_args:
         if required_arg not in payload:
             rep = {
@@ -1108,7 +1167,11 @@ def fft_table(payload=None):
             }
             return Response(str(rep), 400)
 
-    pdfs = return_fft_pdf(payload)
+    if 'schema' in payload:
+        # return the schema of the table
+        return jsonify({'args': SSOFT_COLUMNS})
+
+    pdfs = return_ssoft_pdf(payload)
 
     # Error propagation
     if isinstance(pdfs, Response):
