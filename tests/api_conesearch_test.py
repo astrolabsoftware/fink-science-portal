@@ -97,7 +97,7 @@ def test_conesearch_with_dates() -> None:
         ra='175.3242473',
         dec='36.5429392',
         radius='5',
-        startdate_conesearch='2021-11-01 00:00:00',
+        startdate_conesearch='2021-11-03 10:00:00',
         window_days_conesearch='1'
     )
 
@@ -106,8 +106,8 @@ def test_conesearch_with_dates() -> None:
         ra='175.3242473',
         dec='36.5429392',
         radius='5',
-        startdate_conesearch='2021-11-06 00:00:00',
-        window_days_conesearch='2'
+        startdate_conesearch='2021-11-05 10:00:00',
+        window_days_conesearch='1'
     )
 
     assert pdf1.empty

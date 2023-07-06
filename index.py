@@ -28,23 +28,18 @@ from app import app
 from app import client
 from app import APIURL
 
-from apps import summary, about, statistics, query_cluster
+from apps import summary, about, statistics, query_cluster, gw
 from apps.api import api
 from apps import __version__ as portal_version
 
-from apps.utils import markdownify_objectid, class_colors
+from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time, validate_query, extract_query_url
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
-
-from fink_utils.xmatch.simbad import get_simbad_labels
 
 import requests
 import pandas as pd
 import numpy as np
 from astropy.time import Time, TimeDelta
-
-simbad_types = get_simbad_labels('old_and_new')
-simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
@@ -970,11 +965,15 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
     if empty_query and query_type != "Class Search":
         raise PreventUpdate
 
-    colnames_to_display = [
-        'i:objectId', 'i:ra', 'i:dec',
-        'v:lastdate', 'v:classification', 'i:ndethist',
-        'v:lapse'
-    ]
+    colnames_to_display = {
+        'i:objectId': 'objectId',
+        'i:ra': 'RA (deg)',
+        'i:dec': 'Dec (deg)',
+        'v:lastdate': 'Last alert',
+        'v:classification': 'Classification',
+        'i:ndethist': 'Number of measurements',
+        'v:lapse': 'Time variation (day)'
+    }
 
     validation = validate_query(query, query_type)
     if (not validation['flag']) and (not empty_query):
@@ -1025,6 +1024,14 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
                 'window_days_conesearch': window
             }
         )
+
+        colnames_to_display = {
+            'i:objectId': 'objectId',
+            'v:separation_degree': 'Separation (degree)',
+            'd:classification': 'Classification',
+            'd:nalerthist': 'Number of measurements',
+            'v:lapse': 'Time variation (day)'
+        }
     elif query_type == 'Date Search':
         startdate = isoify_time(query)
         if dropdown_option is None:
@@ -1067,6 +1074,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
 
         if query_type == 'Conesearch':
+            pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
             data = pdf.sort_values(
                 'v:separation_degree', ascending=True
             ).to_dict('records')
@@ -1076,11 +1084,11 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         columns = [
             {
                 'id': c,
-                'name': c,
+                'name': colnames_to_display[c],
                 'type': 'text',
                 # 'hideable': True,
                 'presentation': 'markdown',
-            } for c in colnames_to_display
+            } for c in colnames_to_display.keys()
         ]
         validation = 1
 
@@ -1198,6 +1206,13 @@ navbar = dmc.Header(
                                         'Data Transfer',
                                         style={"textTransform": "capitalize", "textDecoration": "none"},
                                         href='/download',
+                                        size="sm",
+                                        color="gray",
+                                    ),
+                                    dmc.Anchor(
+                                        'Gravitational Waves',
+                                        style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        href='/gw',
                                         size="sm",
                                         color="gray",
                                     ),
@@ -1366,6 +1381,8 @@ def display_page(pathname, is_mobile):
         return statistics.layout(is_mobile)
     elif pathname == '/download':
         return query_cluster.layout(is_mobile)
+    elif pathname == '/gw':
+        return gw.layout(is_mobile)
     elif 'ZTF' in pathname:
         return summary.layout(pathname, is_mobile)
     else:
