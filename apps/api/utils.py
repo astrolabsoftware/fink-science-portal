@@ -1298,7 +1298,7 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
     """
     input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
     r = requests.get(
-        '{}/sso_fink_bft.parquet?op=OPEN&user.name={}&namenoderpcaddress={}'.format(
+        '{}/ssoft.parquet?op=OPEN&user.name={}&namenoderpcaddress={}'.format(
             input_args['WEBHDFS'],
             input_args['USER'],
             input_args['NAMENODE']
