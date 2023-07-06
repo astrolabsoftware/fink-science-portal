@@ -195,7 +195,7 @@ def layout(is_mobile):
                                             'backgroundColor': 'rgb(248, 248, 248, .7)'
                                         }
                                     ),
-                                ], label="Fink Solar System object parameters table", label_style = {"color": "#000"}
+                                ], label="Solar System object parameters table", label_style = {"color": "#000"}
                             ),
                             dbc.Tab(
                                 [
