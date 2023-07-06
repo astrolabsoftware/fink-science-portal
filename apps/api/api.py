@@ -590,6 +590,16 @@ args_anomaly = [
 
 args_ssoft = [
     {
+        'name': 'name',
+        'required': False,
+        'description': 'Official name or provisional designation of the SSO.'
+    },
+    {
+        'name': 'number',
+        'required': False,
+        'description': 'IAU number of the SSO'
+    },
+    {
         'name': 'schema',
         'required': False,
         'description': 'If specified, return the schema of the table in json format.'

@@ -1373,6 +1373,7 @@ api_doc_ssoft = """
 ## Get the Fink Solar System Table
 
 This service lets you query the table containing aggregated parameters for Solar System objects in Fink.
+This table is updated once a month, with all data in Fink.
 
 The list of arguments for retrieving alert data can be found at https://fink-portal.org/api/v1/ssoft,
 and the schema of the table (json) can be found at https://fink-portal.org/api/v1/ssoft?schema
@@ -1403,7 +1404,18 @@ curl -H "Content-Type: application/json" -X POST -d '{"output-format":"parquet"}
 
 This table contains basic statistics (e.g. coverage in time for each object, name, number, ...),
 fitted parameters (absolute magnitude, phase parameters, spin parameters, ...), quality statuses, and version number.
-If you want to retrieve the schema, you would use:
+
+You can also retrieve information about a single object, using its name or IAU number:
+
+```
+curl...
+
+
+curl...
+
+```
+
+You can retrieve the schema of the table using using the schema argument:
 
 ```python
 import io
@@ -1420,5 +1432,9 @@ r = requests.post(
 schema = r.json()['args']
 ```
 
-This table is updated once a month, with all data in Fink.
+or view it in your browser:
+
+```
+https://...
+```
 """
