@@ -54,7 +54,7 @@ def test_bayestar() -> None:
         .sort_values('i:objectId', ascending=False)['i:objectId']\
         .to_dict()
 
-    assert a['QSO'] == 18, a
+    assert a['Unknown'] == 4, a
 
 
 if __name__ == "__main__":
