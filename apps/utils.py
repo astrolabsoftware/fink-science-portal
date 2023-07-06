@@ -41,6 +41,10 @@ from astropy.time import Time
 from fink_filters.classification import extract_fink_classification_
 from fink_utils.sso.utils import get_miriade_data, query_miriade
 from fink_utils.photometry.conversion import dc_mag
+from fink_utils.xmatch.simbad import get_simbad_labels
+
+simbad_types = get_simbad_labels('old_and_new')
+simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
 hbase_type_converter = {
     'integer': int,

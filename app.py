@@ -1,11 +1,16 @@
 import dash
 import dash_bootstrap_components as dbc
+from dash.long_callback import DiskcacheLongCallbackManager
 
 import jpype
 import jpype.imports
 from jpype import JImplements, JOverride, JImplementationFor
 
 import yaml
+import diskcache
+
+cache = diskcache.Cache("./cache")
+long_callback_manager = DiskcacheLongCallbackManager(cache)
 
 args = yaml.load(open('config.yml'), yaml.Loader)
 
@@ -30,7 +35,8 @@ app = dash.Dash(
     meta_tags=[{
         "name": "viewport",
         "content": "width=device-width, initial-scale=1"
-    }]
+    }],
+    long_callback_manager=long_callback_manager
 )
 
 
@@ -61,12 +67,6 @@ clientT.connect(args['tablename'] + ".jd", args['SCHEMAVER'])
 
 clientP128 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
 clientP128.connect(args['tablename'] + ".pixel128", args['SCHEMAVER'])
-
-clientP4096 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
-clientP4096.connect(args['tablename'] + ".pixel4096", args['SCHEMAVER'])
-
-clientP131072 = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
-clientP131072.connect(args['tablename'] + ".pixel131072", args['SCHEMAVER'])
 
 clientS = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
 clientS.connect(args['tablename'] + ".class", args['SCHEMAVER'])
