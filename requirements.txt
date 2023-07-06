@@ -27,10 +27,8 @@ cffi==1.14.0
 chardet==3.0.4
 charset-normalizer==2.1.1
 click==7.1.2
-codecov==2.1.12
 colorama==0.4.5
 commonmark==0.9.1
-conda==4.11.0
 confluent-kafka==1.9.2
 coverage==6.5.0
 coveralls==3.3.1
