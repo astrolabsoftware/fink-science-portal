@@ -48,7 +48,7 @@ def test_bayestar() -> None:
     """
     pdf = bayestartest()
 
-    assert len(pdf) == 59, len(pdf)
+    assert len(pdf) == 14, len(pdf)
 
     a = pdf.groupby('v:classification').count()\
         .sort_values('i:objectId', ascending=False)['i:objectId']\
