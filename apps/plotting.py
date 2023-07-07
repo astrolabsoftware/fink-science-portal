@@ -2520,7 +2520,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 loc = df_table[param].index == filters[f]
                 df_table[param][loc] = '{:.2f} &plusmn; {:.2f}'.format(
                     factor * outdic[param + suffix],
-                    factor * outdic['err' + param + suffix]
+                    factor * outdic['err_' + param + suffix]
                 )
                 popt.append(outdic[param + suffix])
 
@@ -2627,7 +2627,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
 
             df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(
                 factor * outdic[param + suffix],
-                factor * outdic['err' + param + suffix]
+                factor * outdic['err_' + param + suffix]
             )
             popt.append(outdic[param + suffix])
 
