@@ -2509,18 +2509,14 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             for pindex, param in enumerate(params):
                 # rad2deg
                 if pindex >= 3:
-                    factor = 1.0
-                    if pindex >= 4:
-                        factor = 180. / np.pi
                     suffix = ''
                 else:
-                    factor = 1.0
                     suffix = '_{}'.format(f)
 
                 loc = df_table[param].index == filters[f]
                 df_table[param][loc] = '{:.2f} &plusmn; {:.2f}'.format(
-                    factor * outdic[param + suffix],
-                    factor * outdic['err_' + param + suffix]
+                    outdic[param + suffix],
+                    outdic['err_' + param + suffix]
                 )
                 popt.append(outdic[param + suffix])
 
@@ -2617,17 +2613,13 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
         for pindex, param in enumerate(params):
             # rad2deg
             if pindex >= 3:
-                factor = 1.0
-                if pindex >= 4:
-                    factor = 180. / np.pi
                 suffix = ''
             else:
-                factor = 1.
                 suffix = '_V'
 
             df_table[param] = '{:.2f} &plusmn; {:.2f}'.format(
-                factor * outdic[param + suffix],
-                factor * outdic['err_' + param + suffix]
+                outdic[param + suffix],
+                outdic['err_' + param + suffix]
             )
             popt.append(outdic[param + suffix])
 
