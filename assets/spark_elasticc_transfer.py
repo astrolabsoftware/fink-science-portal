@@ -1,3 +1,17 @@
+# Copyright 2023 AstroLab Software
+# Author: Julien Peloton
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from pyspark import SparkContext
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.column import Column, _to_java_column
@@ -7,6 +21,7 @@ from pyspark.sql.functions import pandas_udf, PandasUDFType
 from pyspark.sql.types import StringType
 
 from fink_filters.classification import extract_fink_classification
+from fink_utils.spark import schema_converter
 
 from time import time
 import pandas as pd
@@ -108,101 +123,6 @@ def to_avro(dfcol: Column) -> Column:
     avro = sc._jvm.org.apache.spark.sql.avro
     f = getattr(getattr(avro, "package$"), "MODULE$").to_avro
     return Column(f(_to_java_column(dfcol)))
-
-def save_avro_schema(df: DataFrame, schema_path: str):
-    """Writes the avro schema to a file at schema_path
-
-    This routine checks if an avro schema file exist at the given path
-    and creates one if it doesn't.
-
-    To automatically change the schema with changing requirements, ensure to
-    delete the schema file at the given path whenever the structure of DF
-    read from science db or the contents to be distributed are changed.
-
-    Parameters
-    ----------
-    df: DataFrame
-        A Spark DataFrame
-    schema_path: str
-        Path where to store the avro schema
-    """
-
-    # Check if the file exists
-    if not os.path.isfile(schema_path):
-        # Store the df as an avro file
-        path_for_avro = os.path.join(os.environ["PWD"], "flatten_hbase.avro")
-        if os.path.exists(path_for_avro):
-            shutil.rmtree(path_for_avro)
-        df.write.format("avro").save(path_for_avro)
-
-        # Read the avro schema from .avro file
-        avro_file = glob.glob(path_for_avro + "/part*")[0]
-        avro_schema = readschemafromavrofile(avro_file)
-
-        # Write the schema to a file for decoding Kafka messages
-        with open(schema_path, 'w') as f:
-            json.dump(avro_schema, f, indent=2)
-
-        # Remove .avro files and directory
-        shutil.rmtree(path_for_avro)
-    else:
-        msg = """
-            {} already exists - cannot write the new schema
-        """.format(schema_path)
-        print(msg)
-
-def readschemadata(bytes_io: io._io.BytesIO) -> fastavro._read.reader:
-    """Read data that already has an Avro schema.
-
-    Parameters
-    ----------
-    bytes_io : `_io.BytesIO`
-        Data to be decoded.
-
-    Returns
-    -------
-    `fastavro._read.reader`
-        Iterator over records (`dict`) in an avro file.
-
-    Examples
-    ----------
-    Open an avro file, and read the schema and the records
-    >>> with open(ztf_alert_sample, mode='rb') as file_data:
-    ...   data = readschemadata(file_data)
-    ...   # Read the schema
-    ...   schema = data.schema
-    ...   # data is an iterator
-    ...   for record in data:
-    ...     print(type(record))
-    <class 'dict'>
-    """
-    bytes_io.seek(0)
-    message = fastavro.reader(bytes_io)
-    return message
-
-def readschemafromavrofile(fn: str) -> dict:
-    """ Reach schema from a binary avro file.
-
-    Parameters
-    ----------
-    fn: str
-        Input Avro file with schema.
-
-    Returns
-    ----------
-    schema: dict
-        Dictionary (JSON) describing the schema.
-
-    Examples
-    ----------
-    >>> schema = readschemafromavrofile(ztf_alert_sample)
-    >>> print(schema['version'])
-    3.3
-    """
-    with open(fn, mode='rb') as file_data:
-        data = readschemadata(file_data)
-        schema = data.schema
-    return schema
 
 def write_to_kafka(sdf, key, kafka_bootstrap_servers, kafka_sasl_username, kafka_sasl_password, topic_name, npart=10):
     """ Send data to a Kafka cluster using Apache Spark
@@ -339,27 +259,9 @@ def main(args):
     # Wrap alert data
     df = df.selectExpr(cnames)
 
-    # save schema
+    # extract schema
     log.info("Determining data schema...")
-    path_for_avro = 'new_schema_{}.avro'.format(time())
-    df.coalesce(1).limit(1).write.format("avro").save(path_for_avro)
-
-    # retrieve data on local disk
-    subprocess.run(["hdfs", "dfs", '-get', path_for_avro])
-
-    # Read the avro schema from .avro file
-    avro_file = glob.glob(path_for_avro + "/part*")[0]
-    avro_schema = readschemafromavrofile(avro_file)
-
-    # Write the schema to a file for decoding Kafka messages
-    with open('/tmp/{}'.format(path_for_avro.replace('.avro', '.avsc')), 'w') as f:
-        json.dump(avro_schema, f, indent=2)
-
-    # reload the schema
-    with open('/tmp/{}'.format(path_for_avro.replace('.avro', '.avsc')), 'r') as f:
-        schema_ = json.dumps(f.read())
-
-    schema = json.loads(schema_)
+    schema = schema_converter.to_avro(df.coalesce(1).limit(1).schema)
 
     log.info("Schema OK...")
 
