@@ -768,7 +768,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         pmax = 99.5
         if 'pmax' in payload:
             pmax = float(payload['pmax'])
-        array = legacy_normalizer(array, stretch=stretch, pmin=pmin, pmax=pmax)
+        array = legacy_normalizer(np.nan_to_num(np.array(array, dtype=float)), stretch=stretch, pmin=pmin, pmax=pmax)
 
     if 'convolution_kernel' in payload:
         assert payload['convolution_kernel'] in ['gauss', 'box']
