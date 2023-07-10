@@ -499,7 +499,6 @@ if __name__ == "__main__":
     parser.add_argument('-kafka_sasl_username')
     parser.add_argument('-kafka_sasl_password')
     parser.add_argument('-path_to_tns')
-    parser.add_argument('--limit_output', action='store_true', default=False)
 
     args = parser.parse_args()
     main(args)

@@ -506,14 +506,7 @@ def make_buttons():
                 variant="outline",
                 color='indigo',
                 leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
-            ),
-            dmc.Button(
-                "Test job (LIMIT 10)",
-                id='submit_datatransfer_test',
-                variant="outline",
-                color='orange',
-                leftIcon=[DashIconify(icon="fluent:battery-2-24-regular")],
-            ),
+            )
         ]
     )
     return buttons
@@ -629,14 +622,12 @@ def update_final_accordion1(topic_name):
 
 @app.callback(
     Output("submit_datatransfer", "disabled"),
-    Output("submit_datatransfer_test", "disabled"),
     Output("streaming_info", "children"),
     Output("batch_id", "children"),
     Output("topic_name", "children"),
     Output("final_accordion", "style"),
     [
         Input('submit_datatransfer', 'n_clicks'),
-        Input('submit_datatransfer_test', 'n_clicks'),
     ],
     [
         State('trans_content', 'value'),
@@ -647,10 +638,10 @@ def update_final_accordion1(topic_name):
     ],
     prevent_initial_call=True
 )
-def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
+def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
     """ Submit a job to the Apache Spark cluster via Livy
     """
-    if n_clicks or n_clicks_test:
+    if n_clicks:
         # define unique topic name
         d = datetime.utcnow()
 
@@ -683,7 +674,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
 
         if status_code != 201:
             text = "[Status code {}] Unable to upload resources on HDFS, with error: {}. Contact an administrator at contact@fink-broker.org.".format(status_code, hdfs_log)
-            return True, True, text, "", "", {'display': 'none'}
+            return True, text, "", "", {'display': 'none'}
 
         # get the job args
         job_args = [
@@ -706,8 +697,6 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             for elem in extra_cond_list:
                 job_args.append('-extraCond={}'.format(elem.strip()))
 
-        if n_clicks_test and not (n_clicks is not None):
-            job_args.append('--limit_output')
         # submit the job
         filepath = 'hdfs:///user/{}/{}'.format(input_args['USER'], filename)
         batchid, status_code, spark_log = submit_spark_job(
@@ -719,7 +708,7 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
 
         if status_code != 201:
             text = "[Batch ID {}][Status code {}] Unable to submit job on the Spark cluster, with error: {}. Contact an administrator at contact@fink-broker.org.".format(batchid, status_code, spark_log)
-            return True, True, text, "", "", {'display': 'none'}
+            return True, text, "", "", {'display': 'none'}
 
         text = dmc.Blockquote(
             "Your topic name is: {}".format(
@@ -729,11 +718,11 @@ def submit_job(n_clicks, n_clicks_test, trans_content, trans_datasource, date_ra
             color="green",
         )
         if n_clicks:
-            return True, True, text, batchid, topic_name, {}
+            return True, text, batchid, topic_name, {}
         else:
-            return False, True, text, batchid, topic_name, {}
+            return False, text, batchid, topic_name, {}
     else:
-        return False, False, "", "", "", {'display': 'none'}
+        return False, "", "", "", {'display': 'none'}
 
 
 def query_builder():
