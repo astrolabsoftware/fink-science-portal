@@ -288,11 +288,6 @@ def main(args):
 
     log.info('Starting to send data to topic {}'.format(args.topic_name))
 
-    # Send data
-    if args.limit_output:
-        log.info('Limiting to 10 first entries...')
-        df = df.coalesce(1).limit(10)
-
     write_to_kafka(
         df,
         lit(args.topic_name),
