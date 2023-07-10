@@ -759,9 +759,10 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     elif output_format == 'array':
         return pdf[['b:cutout{}_stampData'.format(payload['kind'])]].to_json(orient='records')
 
+    array = np.nan_to_num(np.array(array, dtype=float))
     if stretch == 'sigmoid':
         array = sigmoid_normalizer(array, 0, 1)
-    else:
+    elif stretch is not None:
         pmin = 0.5
         if 'pmin' in payload:
             pmin = float(payload['pmin'])
