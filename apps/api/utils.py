@@ -683,7 +683,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     if 'stretch' in payload:
         stretch = payload['stretch']
     else:
-        stretch = 'sigmoid'
+        stretch = None
 
     # default name based on parameters
     filename = '{}_{}'.format(
@@ -761,7 +761,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
 
     if stretch == 'sigmoid':
         array = sigmoid_normalizer(array, 0, 1)
-    else:
+    elif stretch is not None:
         pmin = 0.5
         if 'pmin' in payload:
             pmin = float(payload['pmin'])
