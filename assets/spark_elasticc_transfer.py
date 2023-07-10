@@ -269,7 +269,7 @@ def main(args):
     df_schema = spark.createDataFrame(
         pd.DataFrame(
             {
-                'schema': [path_for_avro.replace('.avro', '.avsc')] * 1000
+                'schema': ['new_schema_{}.avsc'.format(time())] * 1000
             }
         )
     )
