@@ -683,7 +683,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     if 'stretch' in payload:
         stretch = payload['stretch']
     else:
-        stretch = None
+        stretch = 'sigmoid'
 
     # default name based on parameters
     filename = '{}_{}'.format(
@@ -759,6 +759,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     elif output_format == 'array':
         return pdf[['b:cutout{}_stampData'.format(payload['kind'])]].to_json(orient='records')
 
+    array = np.nan_to_num(np.array(array, dtype=float))
     if stretch == 'sigmoid':
         array = sigmoid_normalizer(array, 0, 1)
     elif stretch is not None:
@@ -768,7 +769,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         pmax = 99.5
         if 'pmax' in payload:
             pmax = float(payload['pmax'])
-        array = legacy_normalizer(np.nan_to_num(np.array(array, dtype=float)), stretch=stretch, pmin=pmin, pmax=pmax)
+        array = legacy_normalizer(array, stretch=stretch, pmin=pmin, pmax=pmax)
 
     if 'convolution_kernel' in payload:
         assert payload['convolution_kernel'] in ['gauss', 'box']
