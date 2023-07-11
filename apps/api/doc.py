@@ -975,7 +975,7 @@ Let's assume you want get all alerts falling inside a given LIGO/Virgo/Kagra cre
 (retrieved from the GraceDB event page, or distributed via GCN). You would
 simply upload the sky map with a threshold, and Fink returns all alerts emitted
 within `[-1 day, +6 day]` from the GW event inside the chosen credible region.
-Concretely on [S200219ac](https://gracedb.ligo.org/superevents/S230709bi/view/):
+Concretely on [S230709bi](https://gracedb.ligo.org/superevents/S230709bi/view/):
 
 ```python
 import io

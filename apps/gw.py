@@ -434,7 +434,7 @@ def layout(is_mobile):
                 id="superevent_name",
                 label=None,
                 description=description,
-                placeholder="e.g. S200219ac",
+                placeholder="e.g. S230709bi",
             ),
         ], id='superevent_name_selector'
     )
