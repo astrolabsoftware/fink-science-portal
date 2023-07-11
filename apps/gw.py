@@ -298,15 +298,12 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
     if gw_data == "error":
         raise PreventUpdate
 
-    if gw_data.empty:
-        raise PreventUpdate
-
     hide_progress = {'display': 'none', 'width': '100%', 'height': '5pc'}
 
     pdf = pd.read_json(gw_data)
-    pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
-    pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
     if len(pdf) > 0:
+        pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
+        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
         # Coordinate of the first alert
         ra0 = pdf['i:ra'].values[0]
         dec0 = pdf['i:dec'].values[0]
