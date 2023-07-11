@@ -298,6 +298,9 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
     if gw_data == "error":
         raise PreventUpdate
 
+    if gw_data.empty:
+        raise PreventUpdate
+
     hide_progress = {'display': 'none', 'width': '100%', 'height': '5pc'}
 
     pdf = pd.read_json(gw_data)
