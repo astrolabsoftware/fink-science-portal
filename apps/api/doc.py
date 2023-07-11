@@ -971,11 +971,11 @@ api_doc_bayestar = """
 
 The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/bayestar.
 
-Let's assume you want get all alerts falling inside a given LIGO/Virgo credible region sky map
+Let's assume you want get all alerts falling inside a given LIGO/Virgo/Kagra credible region sky map
 (retrieved from the GraceDB event page, or distributed via GCN). You would
 simply upload the sky map with a threshold, and Fink returns all alerts emitted
 within `[-1 day, +6 day]` from the GW event inside the chosen credible region.
-Concretely on [S200219ac](https://gracedb.ligo.org/superevents/S200219ac/view/):
+Concretely on [S200219ac](https://gracedb.ligo.org/superevents/S230709bi/view/):
 
 ```python
 import io
@@ -983,8 +983,7 @@ import requests
 import pandas as pd
 
 # LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
-# S200219ac on 2020-02-19T09:44:15.197173
-# wget https://gracedb.ligo.org/api/superevents/S200219ac/files/bayestar.fits.gz
+# wget https://gracedb.ligo.org/api/superevents/S230709bi/files/bayestar.fits.gz
 fn = 'bayestar.fits.gz'
 
 # GW credible region threshold to look for. Note that the values in the resulting
@@ -1008,83 +1007,18 @@ pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 You will get a Pandas DataFrame as usual, with all alerts inside the region (within `[-1 day, +6 day]`).
-Here are some statistics on this specific event:
-
-```markdown
-| `credible_level` | Sky area | number of alerts returned | Execution time |
-|-----------|----------|---------------------------|----------------------|
-| 0.2 | 81 deg2 | 232 | 2 to 5 seconds |
-| 0.5 | 317 deg2 | 3183 | about a minute (timeout might apply -- resend if need be)|
-```
-
-The performance is currently not great, and we are working to implement a better service! Here is the details of alert classification for a credible level of 0.5:
+Here is the details of alert classification for a credible level of 0.4:
 
 ```
-v:classification
-Unknown                    1882
-Solar System MPC            420
-QSO                         420
-RRLyr                        85
-Solar System candidate       79
-Seyfert_1                    65
-Star                         51
-SN candidate                 46
-EB*                          45
-V*                           22
-BLLac                        14
-Candidate_EB*                 7
-AGN                           4
-PulsV*delSct                  4
-Radio                         4
-HB*                           4
-Candidate_RRLyr               4
-Seyfert_2                     3
-LINER                         3
-PM*                           2
-RadioG                        2
-BlueStraggler                 2
-SN                            2
-Blue                          2
-PulsV*                        1
-QSO_Candidate                 1
-PulsV*WVir                    1
-Ambiguous                     1
-Nova                          1
-Mira                          1
-LPV*                          1
-Candidate_LP*                 1
-C*                            1
-BClG                          1
-WD*                           1
-```
-Most of the alerts are actually catalogued. If we focus on alerts that appeared _exactly_ in this time window:
-
-```python
-flow = pdf['i:jdstarthist'] >= (Time('2020-02-19T09:44:15.197173').jd - 1)
-fhigh = pdf['i:jdstarthist'] <= (Time('2020-02-19T09:44:15.197173').jd + 6)
-pdf[flow & fhigh].groupby('v:classification').count().sort_values('v:lapse', ascending=False)
-
-v:classification
-Solar System MPC            416
-Unknown                     122
-Solar System candidate       79
-Star                          4
-SN candidate                  3
-Ambiguous                     1
-WD*                           1
+pdf.groupby('d:classification').size()
+d:classification
+SN candidate               2
+Solar System MPC           2
+Solar System candidate    42
+Unknown                   35
 ```
 
-and then only unknown or extra-galactic alerts:
-
-```
-v:classification
-Unknown                     122
-Solar System candidate       79
-SN candidate                  3
-Ambiguous                     1
-```
-
-Note that `Solar System candidate` can also be genuine new extra-galactic transients that we misclassified. Finally, you can overplot alerts on the sky map:
+You can safely ignore `Solar System MPC`, but `Solar System candidate` can also be genuine new extra-galactic transients that we misclassified. Finally, you can overplot alerts on the sky map:
 
 ```python
 import healpy as hp
