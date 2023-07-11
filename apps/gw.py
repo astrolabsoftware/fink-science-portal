@@ -161,10 +161,7 @@ def populate_result_table_gw(data, columns, is_mobile):
     return table
 
 @app.callback(
-    [
-        Output("gw-table", "children"),
-        Output("gw-loading-button", "children"),
-    ],
+    Output("gw-table", "children"),
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
@@ -185,7 +182,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update
+        )
 
     if gw_data == "error":
         return dmc.Alert(
@@ -193,7 +190,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update
+        )
 
     pdf = pd.read_json(gw_data)
     if pdf.empty:
@@ -202,7 +199,7 @@ def show_table(nclick, gw_data, superevent_name):
             title='Oops!',
             color="red",
             withCloseButton=True
-        ), no_update
+        )
     else:
         colnames_to_display = {
             'i:objectId': 'objectId',
@@ -225,7 +222,7 @@ def show_table(nclick, gw_data, superevent_name):
 
         table = populate_result_table_gw(data, columns, is_mobile=False)
 
-        return table, no_update
+        return table
 
 def card_explanation():
     """ Explain what is used to fit for variable stars
@@ -301,9 +298,9 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
     hide_progress = {'display': 'none', 'width': '100%', 'height': '5pc'}
 
     pdf = pd.read_json(gw_data)
-    pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
-    pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
     if len(pdf) > 0:
+        pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
+        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
         # Coordinate of the first alert
         ra0 = pdf['i:ra'].values[0]
         dec0 = pdf['i:dec'].values[0]
@@ -384,7 +381,6 @@ def display_skymap_gw():
         Input("gw-loading-button", "n_clicks")
     ],
     running=[
-        (Output("gw-loading-button", "disabled"), True, False),
         (
             Output("progress_bar", "style"),
             {"visibility": "visible", 'width': '100%', 'height': '5pc'},
