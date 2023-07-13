@@ -1298,8 +1298,8 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     name = payload['name']
 
     if resolver == 'tns':
-        # TNS poll
-        clientTNSRESOL.setLimit(nalerts)
+        # TNS poll -- take the first 10 occurences
+        clientTNSRESOL.setLimit(10)
         to_evaluate = "key:key:{}".format(name)
         results = clientTNSRESOL.scan(
             "",
