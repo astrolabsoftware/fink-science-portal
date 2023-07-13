@@ -653,7 +653,7 @@ def display_skymap(data, columns, activetab):
             if 'd:classification' in pdf.columns:
                 pdf['v:classification'] = pdf['d:classification']
             else:
-                pdf['v:classification'] = 'Alert'
+                pdf['v:classification'] = 'Unknown'
         classes = pdf['v:classification'].values
         n_alert_per_class = pdf.groupby('v:classification').count().to_dict()['i:objectId']
         cats = []
