@@ -35,6 +35,7 @@ from apps.api.utils import return_statistics_pdf, send_data
 from apps.api.utils import return_random_pdf
 from apps.api.utils import return_anomalous_objects_pdf
 from apps.api.utils import return_ssoft_pdf
+from apps.api.utils import return_resolver_pdf
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 from fink_spins.ssoft import COLUMNS as SSOFT_COLUMNS
@@ -611,6 +612,34 @@ args_ssoft = [
     }
 ]
 
+args_resolver = [
+    {
+        'name': 'resolver',
+        'required': True,
+        'description': 'Resolver among: `simbad`, `ssodnet`, `tns`'
+    },
+    {
+        'name': 'name',
+        'required': True,
+        'description': 'Object name to resolve'
+    },
+    # {
+    #     'name': 'conesearch',
+    #     'required': False,
+    #     'description': 'If specified, perform a conesearch around (`simbad` and `tns` only)'
+    # },
+    # {
+    #     'name': 'radius',
+    #     'required': False,
+    #     'description': 'If `conesearch` specified, perform a conesearch around the position found with a `radius` in arcsec. Maximum is 36,000 arcseconds (10 degrees).'
+    # },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -1140,6 +1169,43 @@ def ssoft_table(payload=None):
         return jsonify({'args': SSOFT_COLUMNS})
 
     pdfs = return_ssoft_pdf(payload)
+
+    # Error propagation
+    if isinstance(pdfs, Response):
+        return pdfs
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(pdfs, output_format)
+
+@api_bp.route('/api/v1/resolver', methods=['GET'])
+def resolver_arguments():
+    """ Obtain information about the resolver service
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return resolver_table(payload=request.args)
+    else:
+        return jsonify({'args': args_resolver})
+
+@api_bp.route('/api/v1/resolver', methods=['POST'])
+def resolver_table(payload=None):
+    """ Get information about an object name
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i['name'] for i in args_resolver if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    pdfs = return_resolver_pdf(payload)
 
     # Error propagation
     if isinstance(pdfs, Response):

@@ -38,6 +38,7 @@ from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
 from app import clientSSOCAND, clientSSOORB
 from app import clientStats
 from app import clientANOMALY
+from app import clientTNSRESOL
 from app import nlimit
 from app import APIURL
 
@@ -1278,3 +1279,43 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
         pdf = pdf[pdf['sso_number'].astype('int') == int(payload['sso_number'])]
 
     return pdf
+
+def return_resolver_pdf(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/resolver
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/resolver
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    kind = payload['kind']
+    name = payload['name']
+
+    if kind == 'tns':
+        # TNS poll
+        clientTNSRESOL.setLimit(nalerts)
+        to_evaluate = "key:key:{}".format(name)
+        results = clientTNSRESOL.scan(
+            "",
+            to_evaluate,
+            "*",
+            0, False, False
+        )
+        schema_client = clientTNSRESOL.schema()
+
+        # Restore default limits
+        clientTNSRESOL.setLimit(nlimit)
+
+        pdfs = pd.DataFrame.from_dict(results, orient='index')
+    elif kind == 'simbad':
+        pass
+    elif kind == 'ssodnet':
+        pass
+
+    return pdfs
