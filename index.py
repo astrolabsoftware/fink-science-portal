@@ -34,6 +34,7 @@ from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time, validate_query, extract_query_url
+from apps.utils import convert_jd
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
 import requests
@@ -639,10 +640,20 @@ def display_skymap(data, columns, activetab):
         decs = pdf['i:dec'].values
         filts = pdf['i:fid'].values
         filts_dic = {1: 'g', 2: 'r'}
+
+        if 'v:lastdate' not in pdf.columns:
+            # conesearch does not expose v:lastdate
+            pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
         times = pdf['v:lastdate'].values
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
         mags = pdf['i:magpsf'].values
+
+        if 'v:classification' not in pdf.columns:
+            if 'd:classification' in pdf.columns:
+                pdf['v:classification'] = pdf['d:classification']
+            else:
+                pdf['v:classification'] = 'Unknown'
         classes = pdf['v:classification'].values
         n_alert_per_class = pdf.groupby('v:classification').count().to_dict()['i:objectId']
         cats = []
