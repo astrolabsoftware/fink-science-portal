@@ -1294,10 +1294,10 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    kind = payload['kind']
+    resolver = payload['resolver']
     name = payload['name']
 
-    if kind == 'tns':
+    if resolver == 'tns':
         # TNS poll
         clientTNSRESOL.setLimit(nalerts)
         to_evaluate = "key:key:{}".format(name)
@@ -1313,9 +1313,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
         clientTNSRESOL.setLimit(nlimit)
 
         pdfs = pd.DataFrame.from_dict(results, orient='index')
-    elif kind == 'simbad':
+    elif resolver == 'simbad':
         pass
-    elif kind == 'ssodnet':
+    elif resolver == 'ssodnet':
         pass
 
     return pdfs
