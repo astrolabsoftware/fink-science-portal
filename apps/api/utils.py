@@ -1323,14 +1323,21 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "*",
                 0, False, False
             )
-        schema_client = clientTNSRESOL.schema()
 
         # Restore default limits
         clientTNSRESOL.setLimit(nlimit)
 
         pdfs = pd.DataFrame.from_dict(results, orient='index')
     elif resolver == 'simbad':
-        pass
+        r = requests.get(
+            'http://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/~S?{}'.format(name)
+        )
+
+        check = pd.read_xml(io.BytesIO(r.content))
+        if 'INFO' in check.columns:
+            return pd.DataFrame()
+        elif 'Resolver' in check.columns:
+            pdfs = pd.read_xml(io.BytesIO(r.content), xpath='.//Resolver')
     elif resolver == 'ssodnet':
         pass
 
