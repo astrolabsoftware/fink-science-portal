@@ -174,14 +174,16 @@ def populate_result_table_gw(data, columns, is_mobile):
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
         Input('superevent_name', 'value'),
+        Input('url', 'search'),
     ],
 )
-def show_table(nclick, gw_data, superevent_name):
+def show_table(nclick, gw_data, superevent_name, searchurl):
     """
     """
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
-        raise PreventUpdate
+    if searchurl == '':
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id != "gw-loading-button":
+            raise PreventUpdate
 
     if gw_data == "":
         return dmc.Alert(
@@ -275,9 +277,10 @@ def card_explanation():
         Input('gw-data', 'data'),
         Input('credible_level', 'value'),
         Input('superevent_name', 'value'),
+        Input('url', 'search'),
     ],
 )
-def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
+def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchurl):
     """ Display explorer result on a sky map (Aladin lite).
 
     TODO: image is not displayed correctly the first time
@@ -292,9 +295,10 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
     Input: takes the validation flag (0: no results, 1: results) and table data
     Output: Display a sky image around the alert position from aladin.
     """
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
-        raise PreventUpdate
+    if searchurl == '':
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id != "gw-loading-button":
+            raise PreventUpdate
 
     if gw_data == "":
         raise PreventUpdate
