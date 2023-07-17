@@ -415,7 +415,7 @@ def display_skymap_gw():
     prevent_initial_call=True
 )
 def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, credible_level):
-    if search == '':
+    if searchurl == '':
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if button_id != "gw-loading-button":
             raise PreventUpdate
