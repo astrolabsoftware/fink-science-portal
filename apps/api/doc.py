@@ -1010,7 +1010,6 @@ import pandas as pd
 r = requests.get('https://gracedb.ligo.org/api/superevents/S230709bi/files/bayestar.fits.gz')
 
 # Query Fink
-data = open(fn, 'rb').read()
 r = requests.post(
     'https://fink-portal.org/api/v1/bayestar',
     json={
