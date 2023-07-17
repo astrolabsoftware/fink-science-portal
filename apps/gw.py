@@ -175,7 +175,6 @@ def populate_result_table_gw(data, columns, is_mobile):
         Input('gw-data', 'data'),
         Input('superevent_name', 'value'),
     ],
-    prevent_initial_call=True
 )
 def show_table(nclick, gw_data, superevent_name):
     """
