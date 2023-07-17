@@ -998,7 +998,7 @@ r = requests.post(
 pdf = pd.read_json(io.BytesIO(r.content))
 ```
 Fink returns all alerts emitted within `[-1 day, +6 day]` from the GW event inside the chosen credible region.
-Alternatively, you can input a sky map retrieved from the GraceDB event page, or distributed via GCN).
+Alternatively, you can input a sky map retrieved from the GraceDB event page, or distributed via GCN.
 Concretely on [S230709bi](https://gracedb.ligo.org/superevents/S230709bi/view/):
 
 ```python
@@ -1007,13 +1007,13 @@ import requests
 import pandas as pd
 
 # LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
-r = requests.get('https://gracedb.ligo.org/api/superevents/S230709bi/files/bayestar.fits.gz')
+data = requests.get('https://gracedb.ligo.org/api/superevents/S230709bi/files/bayestar.fits.gz')
 
 # Query Fink
 r = requests.post(
     'https://fink-portal.org/api/v1/bayestar',
     json={
-        'bayestar': str(r.content),
+        'bayestar': str(data.content),
         'credible_level': 0.2,
         'output-format': 'json'
     }
