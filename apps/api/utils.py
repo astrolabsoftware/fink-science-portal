@@ -1307,8 +1307,8 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     if resolver == 'tns':
         # TNS poll -- take the first 10 occurences
         clientTNSRESOL.setLimit(10)
-        if 'internal_tns_name' in payload:
-            to_evaluate = "d:internalname:{}".format(payload['internal_tns_name'])
+        if 'reverse' in payload:
+            to_evaluate = "d:internalname:{}".format(name)
             results = clientTNSRESOL.scan(
                 "",
                 to_evaluate,

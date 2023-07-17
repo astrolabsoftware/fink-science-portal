@@ -629,9 +629,9 @@ args_resolver = [
         'description': 'Object name to resolve'
     },
     {
-        'name': 'internal_tns_name',
-        'required': True,
-        'description': 'ZTF name to resolve in TNS'
+        'name': 'reverse',
+        'required': False,
+        'description': 'If True, resolve ZTF* name. Only work with the TNS resolver.'
     },
     # {
     #     'name': 'conesearch',
