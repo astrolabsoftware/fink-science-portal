@@ -1307,12 +1307,14 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     if resolver == 'tns':
         if name == "":
             # return the full table
+            clientTNSRESOL.setEvaluation("ra >= 0")
             results = clientTNSRESOL.scan(
                 "",
-                "key:key:",
+                "",
                 "*",
                 0, False, False
             )
+            clientTNSRESOL.setEvaluation("")
         else:
             # TNS poll -- take the first 10 occurences
             clientTNSRESOL.setLimit(10)

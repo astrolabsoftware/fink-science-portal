@@ -625,7 +625,7 @@ args_resolver = [
     },
     {
         'name': 'name',
-        'required': False,
+        'required': True,
         'description': 'Object name to resolve'
     },
     {
