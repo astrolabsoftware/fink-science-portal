@@ -971,20 +971,13 @@ api_doc_bayestar = """
 
 The list of arguments for retrieving object data can be found at https://fink-portal.org/api/v1/bayestar.
 
-Let's assume you want get all alerts falling inside a given LIGO/Virgo/Kagra credible region sky map
-(retrieved from the GraceDB event page, or distributed via GCN). You would
-simply upload the sky map with a threshold, and Fink returns all alerts emitted
-within `[-1 day, +6 day]` from the GW event inside the chosen credible region.
-Concretely on [S230709bi](https://gracedb.ligo.org/superevents/S230709bi/view/):
+Let's assume you want get all alerts falling inside a given LIGO/Virgo/Kagra
+credible region sky map, just use the event name:
 
 ```python
 import io
 import requests
 import pandas as pd
-
-# LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
-# wget https://gracedb.ligo.org/api/superevents/S230709bi/files/bayestar.fits.gz
-fn = 'bayestar.fits.gz'
 
 # GW credible region threshold to look for. Note that the values in the resulting
 # credible level map vary inversely with probability density: the most probable pixel is
@@ -993,12 +986,35 @@ fn = 'bayestar.fits.gz'
 credible_level = 0.2
 
 # Query Fink
-data = open(fn, 'rb').read()
 r = requests.post(
     'https://fink-portal.org/api/v1/bayestar',
     json={
-        'bayestar': str(data),
+        'event_name': 'S230709bi',
         'credible_level': credible_level,
+        'output-format': 'json'
+    }
+)
+
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+Fink returns all alerts emitted within `[-1 day, +6 day]` from the GW event inside the chosen credible region.
+Alternatively, you can input a sky map retrieved from the GraceDB event page, or distributed via GCN.
+Concretely on [S230709bi](https://gracedb.ligo.org/superevents/S230709bi/view/):
+
+```python
+import io
+import requests
+import pandas as pd
+
+# LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)
+data = requests.get('https://gracedb.ligo.org/api/superevents/S230709bi/files/bayestar.fits.gz')
+
+# Query Fink
+r = requests.post(
+    'https://fink-portal.org/api/v1/bayestar',
+    json={
+        'bayestar': str(data.content),
+        'credible_level': 0.2,
         'output-format': 'json'
     }
 )
@@ -1047,6 +1063,28 @@ plt.show()
 ![gw](/assets/gw.png)
 
 You can also find this tutorial in the [fink-tutorials repository](https://github.com/astrolabsoftware/fink-tutorials/blob/main/MMA/gravitational_waves.ipynb).
+Note that you can also use any map with the same structure than LVK skymaps:
+
+```python
+import io
+import requests
+import pandas as pd
+
+fn = 'my.fits.gz'
+
+# Query Fink
+data = open(fn, 'rb').read()
+r = requests.post(
+    'https://fink-portal.org/api/v1/bayestar',
+    json={
+        'bayestar': str(data),
+        'credible_level': credible_level,
+        'output-format': 'json'
+    }
+)
+
+pdf = pd.read_json(io.BytesIO(r.content))
+```
 """
 
 api_doc_stats = """

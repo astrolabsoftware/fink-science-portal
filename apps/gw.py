@@ -35,6 +35,8 @@ import astropy.units as u
 
 from app import app, APIURL
 from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_colors
+from apps.utils import extract_bayestar_query_url
+
 
 def extract_moc(fn, credible_level):
     """
@@ -89,15 +91,21 @@ def extract_skyfrac_degree(fn, credible_level):
         Input('gw-loading-button', 'n_clicks'),
         Input('credible_level', 'value'),
         Input('superevent_name', 'value'),
-    ],
-    prevent_initial_call=True
+        Input('url', 'search'),
+    ]
 )
-def query_bayestar(submit, credible_level, superevent_name):
+def query_bayestar(submit, credible_level, superevent_name, searchurl):
     """
     """
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
-        raise PreventUpdate
+    if searchurl != '':
+        credible_level, superevent_name = extract_bayestar_query_url(searchurl)
+        empty_query = (superevent_name is None) or (superevent_name == '') or (credible_level is None) or (credible_level == '')
+        if empty_query:
+            raise PreventUpdate
+    else:
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id != "gw-loading-button":
+            raise PreventUpdate
 
     if superevent_name == '':
         raise PreventUpdate
@@ -166,15 +174,18 @@ def populate_result_table_gw(data, columns, is_mobile):
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
         Input('superevent_name', 'value'),
+        Input('url', 'search'),
     ],
-    prevent_initial_call=True
 )
-def show_table(nclick, gw_data, superevent_name):
+def show_table(nclick, gw_data, superevent_name, searchurl):
     """
     """
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
-        raise PreventUpdate
+    if searchurl == '':
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id != "gw-loading-button":
+            raise PreventUpdate
+    else:
+        credible_level, superevent_name = extract_bayestar_query_url(searchurl)
 
     if gw_data == "":
         return dmc.Alert(
@@ -268,9 +279,10 @@ def card_explanation():
         Input('gw-data', 'data'),
         Input('credible_level', 'value'),
         Input('superevent_name', 'value'),
+        Input('url', 'search'),
     ],
 )
-def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
+def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchurl):
     """ Display explorer result on a sky map (Aladin lite).
 
     TODO: image is not displayed correctly the first time
@@ -285,9 +297,12 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name):
     Input: takes the validation flag (0: no results, 1: results) and table data
     Output: Display a sky image around the alert position from aladin.
     """
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
-        raise PreventUpdate
+    if searchurl == '':
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id != "gw-loading-button":
+            raise PreventUpdate
+    else:
+        credible_level, superevent_name = extract_bayestar_query_url(searchurl)
 
     if gw_data == "":
         raise PreventUpdate
@@ -378,7 +393,8 @@ def display_skymap_gw():
 @app.callback(
     output=Output("gw-trigger", "children"),
     inputs=[
-        Input("gw-loading-button", "n_clicks")
+        Input("gw-loading-button", "n_clicks"),
+        Input('url', 'search'),
     ],
     running=[
         (
@@ -396,12 +412,14 @@ def display_skymap_gw():
         State('credible_level', 'value')
     ],
     background=True,
-    prevent_initial_call=True
 )
-def callback_progress_bar(set_progress, n_clicks, superevent_name, credible_level):
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
-        raise PreventUpdate
+def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, credible_level):
+    if searchurl == '':
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id != "gw-loading-button":
+            raise PreventUpdate
+    else:
+        credible_level, superevent_name = extract_bayestar_query_url(searchurl)
 
     fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
     try:
@@ -419,7 +437,7 @@ def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
     description = [
-        "Enter an event ID from the ",
+        "Enter an event name from the ",
         dmc.Anchor("O3", href="https://gracedb.ligo.org/superevents/public/O3/", size="xs", target="_blank"),
         " or ",
         dmc.Anchor("O4", href="https://gracedb.ligo.org/superevents/public/O4/", size="xs", target="_blank"),

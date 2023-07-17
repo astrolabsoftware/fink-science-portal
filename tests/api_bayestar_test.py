@@ -21,15 +21,22 @@ import sys
 
 APIURL = sys.argv[1]
 
-def bayestartest(bayestar='bayestar.fits.gz', credible_level=0.1, output_format='json'):
+def bayestartest(bayestar='bayestar.fits.gz', event_name='', credible_level=0.1, output_format='json'):
     """ Perform a GW search in the Science Portal using the Fink REST API
     """
-    data = open(bayestar, 'rb').read()
-    payload = {
-        'bayestar': str(data),
-        'credible_level': credible_level,
-        'output-format': output_format
-    }
+    if event_name != '':
+        payload = {
+            'event_name': event_name,
+            'credible_level': credible_level,
+            'output-format': output_format
+        }
+    else:
+        data = open(bayestar, 'rb').read()
+        payload = {
+            'bayestar': str(data),
+            'credible_level': credible_level,
+            'output-format': output_format
+        }
 
     r = requests.post(
         '{}/api/v1/bayestar'.format(APIURL),
@@ -55,6 +62,17 @@ def test_bayestar() -> None:
         .to_dict()
 
     assert a['Unknown'] == 4, a
+
+def test_name_bayestar() -> None:
+    """
+    Examples
+    ---------
+    >>> test_name_bayestar()
+    """
+    pdf1 = bayestartest(event_name='S200219ac')
+    pdf2 = bayestartest()
+
+    assert pdf1.equals(pdf2)
 
 
 if __name__ == "__main__":
