@@ -1351,6 +1351,26 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             else:
                 pdfs = pd.DataFrame()
     elif resolver == 'ssodnet':
-        pass
+        if 'reverse' in payload:
+            to_evaluate = "d:objectId:{}".format(name)
+            clientSSO.setLimit(10)
+            results = clientSSO.scan(
+                "",
+                to_evaluate,
+                "i:ssnamenr,d:cdsxmatch,i:ra,i:dec",
+                0, False, False
+            )
+            clientSSO.setLimit(nlimit)
+            pdfs = pd.DataFrame.from_dict(results, orient='index')
+        else:
+            r = requests.get(
+                'https://api.ssodnet.imcce.fr/quaero/1/sso/instant-search?q={}'.format(name)
+            )
+
+            total = r.json()['total']
+            if total > 0:
+                pdfs = pd.DataFrame(r.json()['data'])
+            else:
+                pdfs = pd.DataFrame()
 
     return pdfs
