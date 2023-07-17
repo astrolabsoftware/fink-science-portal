@@ -92,8 +92,7 @@ def extract_skyfrac_degree(fn, credible_level):
         Input('credible_level', 'value'),
         Input('superevent_name', 'value'),
         Input('url', 'search'),
-    ],
-    prevent_initial_call=True
+    ]
 )
 def query_bayestar(submit, credible_level, superevent_name, searchurl):
     """
@@ -103,10 +102,10 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
         empty_query = (superevent_name is None) or (superevent_name == '') or (credible_level is None) or (credible_level == '')
         if empty_query:
             raise PreventUpdate
-
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
-        raise PreventUpdate
+    else:
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id != "gw-loading-button":
+            raise PreventUpdate
 
     if superevent_name == '':
         raise PreventUpdate
