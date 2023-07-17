@@ -184,6 +184,8 @@ def show_table(nclick, gw_data, superevent_name, searchurl):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if button_id != "gw-loading-button":
             raise PreventUpdate
+    else:
+        credible_level, superevent_name = extract_bayestar_query_url(searchurl)
 
     if gw_data == "":
         return dmc.Alert(
@@ -299,6 +301,8 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if button_id != "gw-loading-button":
             raise PreventUpdate
+    else:
+        credible_level, superevent_name = extract_bayestar_query_url(searchurl)
 
     if gw_data == "":
         raise PreventUpdate
@@ -411,9 +415,12 @@ def display_skymap_gw():
     prevent_initial_call=True
 )
 def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, credible_level):
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if (button_id != "gw-loading-button") and (searchurl == ''):
-        raise PreventUpdate
+    if search == '':
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if button_id != "gw-loading-button":
+            raise PreventUpdate
+    else:
+        credible_level, superevent_name = extract_bayestar_query_url(searchurl)
 
     fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
     try:
