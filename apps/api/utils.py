@@ -1352,15 +1352,15 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 pdfs = pd.DataFrame()
     elif resolver == 'ssodnet':
         if 'reverse' in payload:
-            to_evaluate = "d:objectId:{}".format(name)
-            clientSSO.setLimit(10)
-            results = clientSSO.scan(
+            to_evaluate = "key:key:{}".format(name)
+            client.setLimit(10)
+            results = client.scan(
                 "",
                 to_evaluate,
-                "i:ssnamenr,d:cdsxmatch,i:ra,i:dec",
+                "i:objectId,i:ssnamenr,i:ra,i:dec",
                 0, False, False
             )
-            clientSSO.setLimit(nlimit)
+            client.setLimit(nlimit)
             pdfs = pd.DataFrame.from_dict(results, orient='index')
         else:
             r = requests.get(
