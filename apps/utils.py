@@ -712,6 +712,15 @@ def extract_query_url(search: str):
 
     return query, query_type.replace('%20', ' '), dropdown_option
 
+def is_float(s: str) -> bool:
+    """ Check if s can be transformed as a float
+    """
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 def extract_bayestar_query_url(search: str):
     """ try to infer the query from an URL (GW search)
 
@@ -739,6 +748,8 @@ def extract_bayestar_query_url(search: str):
 
     credible_level = extract_parameter_value_from_url(param_dic, 'credible_level', '')
     event_name = extract_parameter_value_from_url(param_dic, 'event_name', '')
+    if is_float(credible_level):
+        credible_level = float(credible_level)
 
     return credible_level, event_name
 
