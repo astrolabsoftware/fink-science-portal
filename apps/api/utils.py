@@ -1307,6 +1307,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     if resolver == 'tns':
         # TNS poll -- take the first 10 occurences
         clientTNSRESOL.setLimit(10)
+        clientTNSRESOL.setReversed(True)
         if 'reverse' in payload:
             to_evaluate = "d:internalname:{}".format(name)
             results = clientTNSRESOL.scan(
@@ -1326,18 +1327,34 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
 
         # Restore default limits
         clientTNSRESOL.setLimit(nlimit)
+        clientTNSRESOL.setReversed(False)
 
         pdfs = pd.DataFrame.from_dict(results, orient='index')
     elif resolver == 'simbad':
-        r = requests.get(
-            'http://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/~S?{}'.format(name)
-        )
 
-        check = pd.read_xml(io.BytesIO(r.content))
-        if 'Resolver' in check.columns:
-            pdfs = pd.read_xml(io.BytesIO(r.content), xpath='.//Resolver')
+        if 'reverse' in payload:
+            to_evaluate = "key:key:{}".format(name)
+            client.setLimit(10)
+            client.setReversed(True)
+            results = client.scan(
+                "",
+                to_evaluate,
+                "i:objectId,d:cdsxmatch",
+                0, False, False
+            )
+            client.setLimit(nlimit)
+            client.setReversed(False)
+            pdfs = pd.DataFrame.from_dict(results, orient='index')
         else:
-            pdfs = pd.DataFrame()
+            r = requests.get(
+                'http://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/~S?{}'.format(name)
+            )
+
+            check = pd.read_xml(io.BytesIO(r.content))
+            if 'Resolver' in check.columns:
+                pdfs = pd.read_xml(io.BytesIO(r.content), xpath='.//Resolver')
+            else:
+                pdfs = pd.DataFrame()
     elif resolver == 'ssodnet':
         pass
 
