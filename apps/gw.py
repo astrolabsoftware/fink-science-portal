@@ -389,7 +389,8 @@ def display_skymap_gw():
 @app.callback(
     output=Output("gw-trigger", "children"),
     inputs=[
-        Input("gw-loading-button", "n_clicks")
+        Input("gw-loading-button", "n_clicks"),
+        Input('url', 'search'),
     ],
     running=[
         (
@@ -409,9 +410,9 @@ def display_skymap_gw():
     background=True,
     prevent_initial_call=True
 )
-def callback_progress_bar(set_progress, n_clicks, superevent_name, credible_level):
+def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, credible_level):
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if button_id != "gw-loading-button":
+    if (button_id != "gw-loading-button") and (searchurl == ''):
         raise PreventUpdate
 
     fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
