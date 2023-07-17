@@ -437,7 +437,7 @@ def layout(is_mobile):
     """ Layout for the GW counterpart search
     """
     description = [
-        "Enter an event ID from the ",
+        "Enter an event name from the ",
         dmc.Anchor("O3", href="https://gracedb.ligo.org/superevents/public/O3/", size="xs", target="_blank"),
         " or ",
         dmc.Anchor("O4", href="https://gracedb.ligo.org/superevents/public/O4/", size="xs", target="_blank"),
