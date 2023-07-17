@@ -951,7 +951,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
         bayestar_data = payload['bayestar']
     elif 'event_name' in payload:
         r = requests.get('https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(payload['event_name']))
-        if r.status == 200:
+        if r.status_code == 200:
             bayestar_data = str(r.content)
         else:
             return pd.DataFrame([{'status': r.content}])
