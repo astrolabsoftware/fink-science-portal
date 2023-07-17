@@ -1334,10 +1334,10 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
         )
 
         check = pd.read_xml(io.BytesIO(r.content))
-        if 'INFO' in check.columns:
-            return pd.DataFrame()
-        elif 'Resolver' in check.columns:
+        if 'Resolver' in check.columns:
             pdfs = pd.read_xml(io.BytesIO(r.content), xpath='.//Resolver')
+        else:
+            pdfs = pd.DataFrame()
     elif resolver == 'ssodnet':
         pass
 
