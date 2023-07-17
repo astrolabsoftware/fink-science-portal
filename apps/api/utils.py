@@ -1339,7 +1339,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             results = client.scan(
                 "",
                 to_evaluate,
-                "i:objectId,d:cdsxmatch",
+                "i:objectId,d:cdsxmatch,i:ra,i:dec",
                 0, False, False
             )
             client.setLimit(nlimit)
