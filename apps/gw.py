@@ -35,6 +35,8 @@ import astropy.units as u
 
 from app import app, APIURL
 from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_colors
+from apps.utils import extract_bayestar_query_url
+
 
 def extract_moc(fn, credible_level):
     """
@@ -89,12 +91,19 @@ def extract_skyfrac_degree(fn, credible_level):
         Input('gw-loading-button', 'n_clicks'),
         Input('credible_level', 'value'),
         Input('superevent_name', 'value'),
+        Input('url', 'search'),
     ],
     prevent_initial_call=True
 )
-def query_bayestar(submit, credible_level, superevent_name):
+def query_bayestar(submit, credible_level, superevent_name, searchurl):
     """
     """
+    if searchurl != '':
+        credible_level, superevent_name = extract_bayestar_query_url(searchurl)
+        empty_query = (superevent_name is None) or (superevent_name == '') or (credible_level is None) or (credible_level == '')
+        if empty_query:
+            raise PreventUpdate
+
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if button_id != "gw-loading-button":
         raise PreventUpdate
