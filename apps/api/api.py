@@ -471,8 +471,13 @@ args_xmatch = [
 args_bayestar = [
     {
         'name': 'bayestar',
-        'required': True,
-        'description': 'LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz)'
+        'required': False,
+        'description': 'LIGO/Virgo probability sky maps, as gzipped FITS (bayestar.fits.gz). Not compatible with `event_name`.'
+    },
+    {
+        'name': 'event_name',
+        'required': False,
+        'description': 'If provided, directly query GraceDB with the `event_name`. Not compatible with the argument `bayestar`.'
     },
     {
         'name': 'credible_level',

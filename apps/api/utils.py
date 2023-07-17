@@ -947,7 +947,14 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     n_day_max = 6
 
     # Interpret user input
-    bayestar_data = payload['bayestar']
+    if 'bayestar' in payload:
+        bayestar_data = payload['bayestar']
+    elif 'event_name' in payload:
+        r = requests.get('https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(payload['event_name']))
+        if r.status == 200:
+            bayestar_data = str(r.content)
+        else:
+            return pd.DataFrame([{'status': r.content}])
     credible_level_threshold = float(payload['credible_level'])
 
     with gzip.open(io.BytesIO(eval(bayestar_data)), 'rb') as f:
