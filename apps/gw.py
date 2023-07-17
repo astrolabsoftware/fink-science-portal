@@ -412,7 +412,6 @@ def display_skymap_gw():
         State('credible_level', 'value')
     ],
     background=True,
-    prevent_initial_call=True
 )
 def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, credible_level):
     if searchurl == '':
