@@ -628,6 +628,11 @@ args_resolver = [
         'required': True,
         'description': 'Object name to resolve'
     },
+    {
+        'name': 'internal_tns_name',
+        'required': True,
+        'description': 'ZTF name to resolve in TNS'
+    },
     # {
     #     'name': 'conesearch',
     #     'required': False,

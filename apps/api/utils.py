@@ -1307,13 +1307,22 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     if resolver == 'tns':
         # TNS poll -- take the first 10 occurences
         clientTNSRESOL.setLimit(10)
-        to_evaluate = "key:key:{}".format(name)
-        results = clientTNSRESOL.scan(
-            "",
-            to_evaluate,
-            "*",
-            0, False, False
-        )
+        if 'internal_tns_name' in payload:
+            to_evaluate = "d:internalname:{}".format(payload['internal_tns_name'])
+            results = clientTNSRESOL.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, False, False
+            )
+        else:
+            to_evaluate = "key:key:{}".format(name)
+            results = clientTNSRESOL.scan(
+                "",
+                to_evaluate,
+                "*",
+                0, False, False
+            )
         schema_client = clientTNSRESOL.schema()
 
         # Restore default limits
