@@ -1305,27 +1305,36 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     name = payload['name']
 
     if resolver == 'tns':
-        # TNS poll -- take the first 10 occurences
-        clientTNSRESOL.setLimit(10)
-        if 'reverse' in payload:
-            to_evaluate = "d:internalname:{}".format(name)
+        if name == "":
+            # return the full table
             results = clientTNSRESOL.scan(
                 "",
-                to_evaluate,
+                "key:key:",
                 "*",
                 0, False, False
             )
         else:
-            to_evaluate = "key:key:{}".format(name)
-            results = clientTNSRESOL.scan(
-                "",
-                to_evaluate,
-                "*",
-                0, False, False
-            )
+            # TNS poll -- take the first 10 occurences
+            clientTNSRESOL.setLimit(10)
+            if 'reverse' in payload:
+                to_evaluate = "d:internalname:{}".format(name)
+                results = clientTNSRESOL.scan(
+                    "",
+                    to_evaluate,
+                    "*",
+                    0, False, False
+                )
+            else:
+                to_evaluate = "key:key:{}".format(name)
+                results = clientTNSRESOL.scan(
+                    "",
+                    to_evaluate,
+                    "*",
+                    0, False, False
+                )
 
-        # Restore default limits
-        clientTNSRESOL.setLimit(nlimit)
+            # Restore default limits
+            clientTNSRESOL.setLimit(nlimit)
 
         pdfs = pd.DataFrame.from_dict(results, orient='index')
     elif resolver == 'simbad':
@@ -1357,7 +1366,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             results = client.scan(
                 "",
                 to_evaluate,
-                "i:objectId,i:ssnamenr,i:ra,i:dec",
+                "i:objectId,i:ssnamenr",
                 0, False, False
             )
             client.setLimit(nlimit)

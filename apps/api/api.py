@@ -625,24 +625,14 @@ args_resolver = [
     },
     {
         'name': 'name',
-        'required': True,
+        'required': False,
         'description': 'Object name to resolve'
     },
     {
         'name': 'reverse',
         'required': False,
-        'description': 'If True, resolve ZTF* name. Only work with the TNS resolver.'
+        'description': 'If True, resolve ZTF* name.'
     },
-    # {
-    #     'name': 'conesearch',
-    #     'required': False,
-    #     'description': 'If specified, perform a conesearch around (`simbad` and `tns` only)'
-    # },
-    # {
-    #     'name': 'radius',
-    #     'required': False,
-    #     'description': 'If `conesearch` specified, perform a conesearch around the position found with a `radius` in arcsec. Maximum is 36,000 arcseconds (10 degrees).'
-    # },
     {
         'name': 'output-format',
         'required': False,
