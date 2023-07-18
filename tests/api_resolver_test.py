@@ -92,6 +92,20 @@ def test_reverse_tns_resolver() -> None:
 
     assert pdf['d:fullname'].values[0] == 'SN 2023Q', pdf.columns
 
+def test_nmax() -> None:
+    """
+    Examples
+    ---------
+    >>> test_nmax()
+    """
+    pdf = resolver(resolver='tns', name='SN 2023', nmax=20)
+
+    # Not empty
+    assert not pdf.empty
+
+    # One object found
+    assert len(pdf) == 20
+
 def test_simbad_resolver() -> None:
     """
     Examples
