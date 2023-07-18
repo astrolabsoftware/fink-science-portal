@@ -634,6 +634,11 @@ args_resolver = [
         'description': 'If True, resolve ZTF* name.'
     },
     {
+        'name': 'nmax',
+        'required': False,
+        'description': 'Maximum number of match to return. Default is 10.'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet, votable'
