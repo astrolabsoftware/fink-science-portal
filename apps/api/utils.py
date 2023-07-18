@@ -38,6 +38,7 @@ from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
 from app import clientSSOCAND, clientSSOORB
 from app import clientStats
 from app import clientANOMALY
+from app import clientTNSRESOL
 from app import nlimit
 from app import APIURL
 
@@ -1285,3 +1286,104 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
         pdf = pdf[pdf['sso_number'].astype('int') == int(payload['sso_number'])]
 
     return pdf
+
+def return_resolver_pdf(payload: dict) -> pd.DataFrame:
+    """ Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/resolver
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/resolver
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    resolver = payload['resolver']
+    name = payload['name']
+    if 'nmax' in payload:
+        nmax = payload['nmax']
+    else:
+        nmax = 10
+
+    if resolver == 'tns':
+        if name == "":
+            # return the full table
+            results = clientTNSRESOL.scan(
+                "",
+                "",
+                "*",
+                0, False, False
+            )
+        else:
+            # TNS poll -- take the first nmax occurences
+            clientTNSRESOL.setLimit(nmax)
+            if 'reverse' in payload:
+                to_evaluate = "d:internalname:{}".format(name)
+                results = clientTNSRESOL.scan(
+                    "",
+                    to_evaluate,
+                    "*",
+                    0, False, False
+                )
+            else:
+                to_evaluate = "key:key:{}".format(name)
+                results = clientTNSRESOL.scan(
+                    "",
+                    to_evaluate,
+                    "*",
+                    0, False, False
+                )
+
+            # Restore default limits
+            clientTNSRESOL.setLimit(nlimit)
+
+        pdfs = pd.DataFrame.from_dict(results, orient='index')
+    elif resolver == 'simbad':
+        if 'reverse' in payload:
+            to_evaluate = "key:key:{}".format(name)
+            client.setLimit(nmax)
+            results = client.scan(
+                "",
+                to_evaluate,
+                "i:objectId,d:cdsxmatch,i:ra,i:dec",
+                0, False, False
+            )
+            client.setLimit(nlimit)
+            pdfs = pd.DataFrame.from_dict(results, orient='index')
+        else:
+            r = requests.get(
+                'http://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/~S?{}'.format(name)
+            )
+
+            check = pd.read_xml(io.BytesIO(r.content))
+            if 'Resolver' in check.columns:
+                pdfs = pd.read_xml(io.BytesIO(r.content), xpath='.//Resolver')
+            else:
+                pdfs = pd.DataFrame()
+    elif resolver == 'ssodnet':
+        if 'reverse' in payload:
+            to_evaluate = "key:key:{}".format(name)
+            client.setLimit(nmax)
+            results = client.scan(
+                "",
+                to_evaluate,
+                "i:objectId,i:ssnamenr",
+                0, False, False
+            )
+            client.setLimit(nlimit)
+            pdfs = pd.DataFrame.from_dict(results, orient='index')
+        else:
+            r = requests.get(
+                'https://api.ssodnet.imcce.fr/quaero/1/sso/instant-search?q={}'.format(name)
+            )
+
+            total = r.json()['total']
+            if total > 0:
+                pdfs = pd.DataFrame(r.json()['data'])
+            else:
+                pdfs = pd.DataFrame()
+
+    return pdfs
