@@ -23,13 +23,12 @@ import sys
 
 APIURL = sys.argv[1]
 
-def resolver(resolver='', name='', nmax=10, reverse=None, output_format='json'):
+def resolver(resolver='', name='', nmax=None, reverse=None, output_format='json'):
     """ Perform a conesearch in the Science Portal using the Fink REST API
     """
     payload = {
         'resolver': resolver,
         'name': name,
-        'nmax': nmax,
         'output-format': output_format
     }
 
@@ -37,6 +36,13 @@ def resolver(resolver='', name='', nmax=10, reverse=None, output_format='json'):
         payload.update(
             {
                 'reverse': True,
+            }
+        )
+
+    if nmax is not None:
+        payload.update(
+            {
+                'nmax': nmax,
             }
         )
 
