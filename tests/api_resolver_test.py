@@ -166,7 +166,7 @@ def test_ssodnet_resolver() -> None:
     # One object found
     assert len(pdf) == 10
 
-    assert '1999 VK210' in pdf['name'].values, pdf['name'].values
+    assert 'Julienpeloton' in pdf['name'].values, pdf['name'].values
 
     cols = [
         'type', 'system', 'class', 'updated',
