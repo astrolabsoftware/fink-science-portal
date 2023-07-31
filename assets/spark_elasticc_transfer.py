@@ -254,6 +254,7 @@ def main(args):
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index('timestamp')] = 'cast(timestamp as string) as timestamp'
+        cnames[cnames.index('brokerIngestTimestamp')] = 'cast(brokerIngestTimestamp as string) as brokerIngestTimestamp'
         cnames[cnames.index('classId')] = 'cast(classId as integer) as classId'
 
     # Wrap alert data
