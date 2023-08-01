@@ -23,6 +23,9 @@ from pyspark.sql.types import StringType
 
 from fink_filters.classification import extract_fink_classification
 from fink_utils.spark import schema_converter
+from fink_utils.spark.utils import concat_col
+from pyspark.sql import functions as F
+from fink_science.ad_features.processor import extract_features_ad
 
 from time import time
 import pandas as pd
@@ -383,6 +386,38 @@ def main(args):
             if cond == '':
                 continue
             df = df.filter(cond)
+
+    # Features
+    if 'lc_features_g' not in df.columns:
+        what = [
+            'jd', 'fid', 'magpsf', 'sigmapsf',
+            'magnr', 'sigmagnr', 'isdiffpos', 'distnr'
+        ]
+        prefix = 'c'
+        what_prefix = [prefix + i for i in what]
+        for colname in what:
+            df = concat_col(df, colname, prefix=prefix)
+
+        ad_args = [
+            'cmagpsf', 'cjd', 'csigmapsf', 'cfid', 'objectId',
+            'cdistnr', 'cmagnr', 'csigmagnr', 'cisdiffpos'
+        ]
+
+        # Temporary fix -- add 100 do distnr to pretend
+        # extra-galactic and skip dcmag
+        df = df\
+            .withColumn('tmp', F.expr('TRANSFORM(cdistnr, el -> el + 100)'))\
+            .drop('cdistnr').withColumnRenamed('tmp', 'cdistnr')
+
+        df = df.withColumn('lc_features', extract_features_ad(*ad_args))
+
+        # split features
+        df = df.withColumn("lc_features_g", df['lc_features'].getItem("1"))\
+            .withColumn("lc_features_r", df['lc_features'].getItem("2"))\
+            .drop('lc_features')
+
+        # Drop temp columns
+        df = df.drop(*what_prefix)
 
     if args.content == 'Full packet':
         # Cast fields to ease the distribution
