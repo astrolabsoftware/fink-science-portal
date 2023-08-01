@@ -23,6 +23,9 @@ from pyspark.sql.types import StringType
 
 from fink_filters.classification import extract_fink_classification
 from fink_utils.spark import schema_converter
+from fink_utils.spark.utils import concat_col
+from pyspark.sql import functions as F
+from fink_science.ad_features.processor import extract_features_ad
 
 from time import time
 import pandas as pd
@@ -383,6 +386,20 @@ def main(args):
             if cond == '':
                 continue
             df = df.filter(cond)
+
+    # Features
+    if 'lc_features_g' not in df.columns:
+        what = ['magpsf', 'jd', 'sigmapsf', 'fid']
+        prefix = 'c'
+        what_prefix = [prefix + i for i in what]
+        for colname in what:
+            df = concat_col(df, colname, prefix=prefix)
+
+        df = df.withColumn('lc_features', extract_features_ad(*what_prefix, 'objectId'))
+        # split features
+        df = df.withColumn("lc_features_g", df['lc_features'].getItem("1"))\
+            .withColumn("lc_features_r", df['lc_features'].getItem("2"))\
+            .drop('lc_features')
 
     if args.content == 'Full packet':
         # Cast fields to ease the distribution
