@@ -389,17 +389,35 @@ def main(args):
 
     # Features
     if 'lc_features_g' not in df.columns:
-        what = ['magpsf', 'jd', 'sigmapsf', 'fid']
+        what = [
+            'jd', 'fid', 'magpsf', 'sigmapsf',
+            'magnr', 'sigmagnr', 'isdiffpos', 'distnr'
+        ]
         prefix = 'c'
         what_prefix = [prefix + i for i in what]
         for colname in what:
             df = concat_col(df, colname, prefix=prefix)
 
-        df = df.withColumn('lc_features', extract_features_ad(*what_prefix, 'objectId'))
+        ad_args = [
+            'cmagpsf', 'cjd', 'csigmapsf', 'cfid', 'objectId',
+            'cdistnr', 'cmagnr', 'csigmagnr', 'cisdiffpos'
+        ]
+
+        # Temporary fix -- add 100 do distnr to pretend
+        # extra-galactic and skip dcmag
+        df = df\
+            .withColumn('tmp', F.expr('TRANSFORM(cdistnr, el -> el + 100)'))\
+            .drop('cdistnr').withColumnRenamed('tmp', 'cdistnr')
+
+        df = df.withColumn('lc_features', extract_features_ad(*ad_args))
+
         # split features
         df = df.withColumn("lc_features_g", df['lc_features'].getItem("1"))\
             .withColumn("lc_features_r", df['lc_features'].getItem("2"))\
             .drop('lc_features')
+
+        # Drop temp columns
+        df = df.drop(*what_prefix)
 
     if args.content == 'Full packet':
         # Cast fields to ease the distribution
