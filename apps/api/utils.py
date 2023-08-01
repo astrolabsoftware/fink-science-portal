@@ -1308,6 +1308,11 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     else:
         nmax = 10
 
+    reverse = False
+    if 'reverse' in payload:
+        if payload['reverse'] is True:
+            reverse = True
+
     if resolver == 'tns':
         if name == "":
             # return the full table
@@ -1320,7 +1325,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
         else:
             # TNS poll -- take the first nmax occurences
             clientTNSRESOL.setLimit(nmax)
-            if 'reverse' in payload:
+            if reverse:
                 to_evaluate = "d:internalname:{}".format(name)
                 results = clientTNSRESOL.scan(
                     "",
@@ -1342,7 +1347,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
 
         pdfs = pd.DataFrame.from_dict(results, orient='index')
     elif resolver == 'simbad':
-        if 'reverse' in payload:
+        if reverse:
             to_evaluate = "key:key:{}".format(name)
             client.setLimit(nmax)
             results = client.scan(
@@ -1364,7 +1369,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             else:
                 pdfs = pd.DataFrame()
     elif resolver == 'ssodnet':
-        if 'reverse' in payload:
+        if reverse:
             to_evaluate = "key:key:{}".format(name)
             client.setLimit(nmax)
             results = client.scan(
