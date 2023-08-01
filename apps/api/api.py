@@ -631,7 +631,7 @@ args_resolver = [
     {
         'name': 'reverse',
         'required': False,
-        'description': 'If True, resolve ZTF* name.'
+        'description': 'If True, resolve ZTF* name. Default is False.'
     },
     {
         'name': 'nmax',
