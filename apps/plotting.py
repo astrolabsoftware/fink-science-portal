@@ -3004,6 +3004,7 @@ def plot_heatmap(pathname, object_stats):
         Time('{}-12-31'.format(np.max(years))).datetime
     )
     pdf.index = pd.DatetimeIndex(pdf.date)
+    pdf = pdf.drop(columns='date')
     pdf = pdf.reindex(idx, fill_value=0)
     pdf['date'] = pdf.index.values
 
