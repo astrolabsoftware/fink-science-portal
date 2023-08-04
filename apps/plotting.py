@@ -2995,7 +2995,7 @@ def plot_heatmap(pathname, object_stats):
     pdf = pd.read_json(object_stats)
     pdf['date'] = [
         Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
-        for x in pdf.index.values
+        for x in pdf['key:key'].values
     ]
     years = np.unique(pdf['date'].apply(lambda x: x.year)).tolist()
 
