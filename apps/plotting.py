@@ -2518,7 +2518,11 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     outdic[param + suffix],
                     outdic['err_' + param + suffix]
                 )
-                popt.append(outdic[param + suffix])
+
+                if pindex <= 3:
+                    popt.append(outdic[param + suffix])
+                else:
+                    popt.append(np.deg2rad(outdic[param + suffix]))
 
             ydata = pdf.loc[cond, 'i:magpsf_red']
 
@@ -2621,7 +2625,11 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                 outdic[param + suffix],
                 outdic['err_' + param + suffix]
             )
-            popt.append(outdic[param + suffix])
+
+            if pindex <= 3:
+                popt.append(outdic[param + suffix])
+            else:
+                popt.append(np.deg2rad(outdic[param + suffix]))
 
         color = compute_color_correction(pdf['i:fid'].values)
         ydata = pdf['i:magpsf_red'].values + color
