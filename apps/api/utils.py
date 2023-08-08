@@ -1270,7 +1270,7 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
         version = payload['version']
 
         # version needs YYYY.MM
-        yyyymm = version.split(',')
+        yyyymm = version.split('.')
         if (len(yyyymm[0]) != 4) or (len(yyyymm[1]) != 2):
             rep = {
                 'status': 'error',
