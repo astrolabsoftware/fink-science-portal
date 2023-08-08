@@ -611,6 +611,16 @@ args_ssoft = [
         'description': 'If specified, return the schema of the table in json format.'
     },
     {
+        'name': 'flavor',
+        'required': False,
+        'description': 'Data model among SHG1G2 (default), HG1G2, HG.'
+    },
+    {
+        'name': 'version',
+        'required': False,
+        'description': 'Version of the SSOFT YYYY.MM. By default it uses the latest one. Starts at 2023.07'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet, votable'
