@@ -1441,7 +1441,7 @@ https://fink-portal.org/api/v1/ssoft?flavor=HG&schema
 
 ### Version
 
-The table is versioned (`YYYY.MM`), and you can access previous version (starts at 2023.07):
+The table is versioned (`YYYY.MM`), and you can access previous versions (starts at 2023.07):
 
 ```python
 import io
