@@ -1347,6 +1347,8 @@ api_doc_ssoft = """
 This service lets you query the table containing aggregated parameters for Solar System objects in Fink.
 This table is updated once a month, with all data in Fink.
 
+### Basic usage
+
 The list of arguments for retrieving alert data can be found at https://fink-portal.org/api/v1/ssoft,
 and the schema of the table (json) can be found at https://fink-portal.org/api/v1/ssoft?schema
 
@@ -1376,6 +1378,8 @@ curl -H "Content-Type: application/json" -X POST -d '{"output-format":"parquet"}
 
 This table contains basic statistics (e.g. coverage in time for each object, name, number, ...),
 fitted parameters (absolute magnitude, phase parameters, spin parameters, ...), quality statuses, and version number.
+
+### Single object
 
 You can also retrieve information about a single object, using its name or IAU number:
 
@@ -1409,4 +1413,49 @@ or view it in your browser:
 ```
 https://fink-portal.org/api/v1/ssoft?schema
 ```
+
+### Flavors
+
+By default, we expose the parameters from the sHG1G2 model (paper coming!), that is HG1G2
+augmented with shape and spin parameters. You can also choose standard `HG` or `HG1G2` models:
+
+```python
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/ssoft',
+  json={
+    'flavor': 'HG',
+    'output-format': 'parquet'
+  }
+)
+```
+
+Idem for the schema of the table:
+
+```
+https://fink-portal.org/api/v1/ssoft?flavor=HG&schema
+```
+
+### Version
+
+The table is versioned (`YYYY.MM`), and you can access previous version (starts at 2023.07):
+
+```python
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/ssoft',
+  json={
+    'version': '2023.07',
+    'output-format': 'parquet'
+  }
+)
+```
+
+By default (that is `version` unspecified), the service will return the latest one.
 """
