@@ -38,7 +38,7 @@ from apps.api.utils import return_ssoft_pdf
 from apps.api.utils import return_resolver_pdf
 
 from fink_utils.xmatch.simbad import get_simbad_labels
-from fink_spins.ssoft import COLUMNS as SSOFT_COLUMNS
+from fink_spins.ssoft import COLUMNS, COLUMNS_SHG1G2, COLUMNS_HG1G2, COLUMNS_HG
 
 import io
 import requests
@@ -611,6 +611,16 @@ args_ssoft = [
         'description': 'If specified, return the schema of the table in json format.'
     },
     {
+        'name': 'flavor',
+        'required': False,
+        'description': 'Data model among SHG1G2 (default), HG1G2, HG.'
+    },
+    {
+        'name': 'version',
+        'required': False,
+        'description': 'Version of the SSOFT YYYY.MM. By default it uses the latest one. Starts at 2023.07'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet, votable'
@@ -1170,6 +1180,22 @@ def ssoft_table(payload=None):
             return Response(str(rep), 400)
 
     if 'schema' in payload:
+        if 'flavor' in payload:
+            flavor = payload['flavor']
+            if flavor not in ['SHG1G2', 'HG1G2', 'HG']:
+                rep = {
+                    'status': 'error',
+                    'text': "flavor needs to be in ['SHG1G2', 'HG1G2', 'HG']\n"
+                }
+                return Response(str(rep), 400)
+            elif flavor == 'SHG1G2':
+                SSOFT_COLUMNS = {**COLUMNS, **COLUMNS_SHG1G2}
+            elif flavor == 'HG1G2':
+                SSOFT_COLUMNS = {**COLUMNS, **COLUMNS_HG1G2}
+            elif flavor == 'HG':
+                SSOFT_COLUMNS = {**COLUMNS, **COLUMNS_HG}
+        else:
+            SSOFT_COLUMNS = {**COLUMNS, **COLUMNS_SHG1G2}
         # return the schema of the table
         return jsonify({'args': SSOFT_COLUMNS})
 

@@ -17,6 +17,7 @@ import java
 import gzip
 import yaml
 import requests
+import datetime
 
 import pandas as pd
 import numpy as np
@@ -1265,10 +1266,44 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
+    if 'version' in payload:
+        version = payload['version']
+
+        # version needs YYYY.MM
+        yyyymm = version.split('.')
+        if (len(yyyymm[0]) != 4) or (len(yyyymm[1]) != 2):
+            rep = {
+                'status': 'error',
+                'text': "version needs to be YYYY.MM\n"
+            }
+            return Response(str(rep), 400)
+        if version < '2023.07':
+            rep = {
+                'status': 'error',
+                'text': "version starts on 2023.07\n"
+            }
+            return Response(str(rep), 400)
+    else:
+        now = datetime.datetime.now()
+        version = '{}.{:02d}'.format(now.year, now.month)
+
+    if 'flavor' in payload:
+        flavor = payload['flavor']
+        if flavor not in ['SHG1G2', 'HG1G2', 'HG']:
+            rep = {
+                'status': 'error',
+                'text': "flavor needs to be in ['SHG1G2', 'HG1G2', 'HG']\n"
+            }
+            return Response(str(rep), 400)
+    else:
+        flavor = 'SHG1G2'
+
     input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
     r = requests.get(
-        '{}/ssoft.parquet?op=OPEN&user.name={}&namenoderpcaddress={}'.format(
+        '{}/SSOFT/ssoft_{}_{}.parquet?op=OPEN&user.name={}&namenoderpcaddress={}'.format(
             input_args['WEBHDFS'],
+            flavor,
+            version,
             input_args['USER'],
             input_args['NAMENODE']
         )
