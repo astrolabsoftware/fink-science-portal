@@ -1189,15 +1189,15 @@ def ssoft_table(payload=None):
                 }
                 return Response(str(rep), 400)
             elif flavor == 'SHG1G2':
-                SSOFT_COLUMNS = COLUMNS + COLUMNS_SHG1G2
+                COLUMNS.update(COLUMNS_SHG1G2)
             elif flavor == 'HG1G2':
-                SSOFT_COLUMNS = COLUMNS + COLUMNS_HG1G2
+                COLUMNS.update(COLUMNS_HG1G2)
             elif flavor == 'HG':
-                SSOFT_COLUMNS = COLUMNS + COLUMNS_HG
+                COLUMNS.update(COLUMNS_HG)
         else:
-            SSOFT_COLUMNS = COLUMNS + COLUMNS_SHG1G2
+            COLUMNS.update(COLUMNS_SHG1G2)
         # return the schema of the table
-        return jsonify({'args': SSOFT_COLUMNS})
+        return jsonify({'args': COLUMNS})
 
     pdfs = return_ssoft_pdf(payload)
 
