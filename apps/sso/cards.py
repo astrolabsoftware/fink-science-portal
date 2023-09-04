@@ -349,7 +349,7 @@ def card_sso_rocks_params(data):
             style={"marginTop": 20, "marginBottom": 10},
         ),
         html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.phase_function.generic_johnson_V.H.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
+        html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.absolute_magnitude.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
         html.H6("Diameter (km): {}".format(data.parameters.physical.diameter.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
         dmc.Divider(
             label='Dynamical parameters',
