@@ -67,7 +67,9 @@ COLS_FINK = [
     'x3hsp',
     'mangrove',
     't2',
-    'anomaly_score'
+    'anomaly_score',
+    'lc_features_g',
+    'lc_features_r'
 ]
 
 def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
@@ -447,6 +449,9 @@ def main(args):
             if col in df.columns:
                 cnames.append(col)
 
+        cnames[cnames.index('lc_features_g')] = 'struct(lc_features_g.*) as lc_features_g'
+        cnames[cnames.index('lc_features_r')] = 'struct(lc_features_r.*) as lc_features_r'
+
     elif args.content == 'Cutouts':
         cnames = [
             'objectId',
@@ -468,6 +473,8 @@ def main(args):
         cnames[cnames.index('cutoutScience')] = 'struct(cutoutScience.*) as cutoutScience'
         cnames[cnames.index('cutoutTemplate')] = 'struct(cutoutTemplate.*) as cutoutTemplate'
         cnames[cnames.index('cutoutDifference')] = 'struct(cutoutDifference.*) as cutoutDifference'
+        cnames[cnames.index('lc_features_g')] = 'struct(lc_features_g.*) as lc_features_g'
+        cnames[cnames.index('lc_features_r')] = 'struct(lc_features_r.*) as lc_features_r'
 
     # Wrap alert data
     df = df.selectExpr(cnames)
