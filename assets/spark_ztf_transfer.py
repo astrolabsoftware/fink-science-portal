@@ -67,7 +67,9 @@ COLS_FINK = [
     'x3hsp',
     'mangrove',
     't2',
-    'anomaly_score'
+    'anomaly_score',
+    'struct(lc_features_g.*) as lc_features_g',
+    'struct(lc_features_r.*) as lc_features_r'
 ]
 
 def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
