@@ -658,9 +658,29 @@ args_resolver = [
 
 args_euclidin = [
     {
-        'name': 'ssopipe',
-        'required': False,
-        'description': 'Input file from SSOPipe (.txt format)'
+        'name': 'IDEuclid',
+        'required': True,
+        'description': 'ID from Euclid'
+    },
+    {
+        'name': 'processor',
+        'required': True,
+        'description': '`SSOPipe`, `streakdet`, `DL`'
+    },
+    {
+        'name': 'processingVersion',
+        'required': True,
+        'description': 'Version of the processing'
+    },
+    {
+        'name': 'date',
+        'required': True,
+        'description': 'Date of the processing'
+    },
+    {
+        'name': 'payload',
+        'required': True,
+        'description': 'Data file'
     }
 ]
 

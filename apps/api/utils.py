@@ -1443,33 +1443,40 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     out: pandas dataframe
     """
     # Interpret user input
-    if 'ssopipe' in payload:
-        data = payload['ssopipe']
+    data = payload['payload']
 
-    HEADER = [
-        'Index',
-        'RA',
-        'DEC',
-        'MU',
-        'NDet',
-        'Catalogue',
-        'X_WORLD',
-        'Y_WORLD',
-        'ERRA_WORLD',
-        'ERRB_WORLD',
-        'FLUX_AUTO',
-        'FLUXERR_AUTO',
-        'MAG_AUTO',
-        'MAGERR_AUTO',
-        'ELONGATION',
-        'ELLIPTICITY',
-        'MJD'
-    ]
+    if payload['processor'].lower() == 'ssopipe':
+        HEADER = [
+            'Index',
+            'RA',
+            'DEC',
+            'MU',
+            'NDet',
+            'Catalogue',
+            'X_WORLD',
+            'Y_WORLD',
+            'ERRA_WORLD',
+            'ERRB_WORLD',
+            'FLUX_AUTO',
+            'FLUXERR_AUTO',
+            'MAG_AUTO',
+            'MAGERR_AUTO',
+            'ELONGATION',
+            'ELLIPTICITY',
+            'MJD'
+        ]
 
-    pdf = pd.read_csv(io.BytesIO(eval(data)), header=None, sep=' ', skiprows=2)
+        pdf = pd.read_csv(io.BytesIO(eval(data)), header=None, sep=' ', skiprows=2)
 
-    pdf.columns = HEADER
+        pdf.columns = HEADER
 
-    print(pdf)
+        print(pdf)
 
-    return Response('Uploaded!', 200)
+    return Response(
+        '{} - {} - {} - {} - Uploaded!'.format(
+            payload['IDEuclid'],
+            payload['processor'],
+            payload['processorVersion'],
+            payload['date']
+        ), 200
+    )
