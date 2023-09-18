@@ -1466,7 +1466,29 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
             'MJD'
         ]
 
-        pdf = pd.read_csv(io.BytesIO(eval(data)), header=None, sep=' ', skiprows=2)
+        pdf = pd.read_csv(io.BytesIO(eval(data)), header=None, sep=' ', skiprows=1)
+
+        pdf.columns = HEADER
+
+        print(pdf)
+    elif payload['processor'].lower() == 'streakdet':
+        HEADER = [
+            'Index',
+            'NDet',
+            'RA_middle',
+            'DEC_middle',
+            'RA_start',
+            'DEC_start',
+            'RA_end',
+            'DEC_end',
+            'MJD_middle',
+            'MJD_start',
+            'MJD_end',
+            'FLUX_AUTO',
+            'MAG_AUTO'
+        ]
+
+        pdf = pd.read_csv(io.BytesIO(eval(data)), header=None, sep=' ', skiprows=1)
 
         pdf.columns = HEADER
 
