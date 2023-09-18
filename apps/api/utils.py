@@ -1466,8 +1466,7 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
         'MJD'
     ]
 
-    with open(eval(data)) as data_:
-        pdf = pd.read_csv(data_, header=None, sep=' ', skiprows=2)
+    pdf = pd.read_csv(io.BytesIO(eval(data)), header=None, sep=' ', skiprows=2)
 
     pdf.columns = HEADER
 
