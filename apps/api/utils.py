@@ -1476,7 +1476,7 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
         '{} - {} - {} - {} - Uploaded!'.format(
             payload['IDEuclid'],
             payload['processor'],
-            payload['processorVersion'],
+            payload['processingVersion'],
             payload['date']
         ), 200
     )
