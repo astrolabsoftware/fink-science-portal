@@ -36,6 +36,7 @@ from apps.api.utils import return_random_pdf
 from apps.api.utils import return_anomalous_objects_pdf
 from apps.api.utils import return_ssoft_pdf
 from apps.api.utils import return_resolver_pdf
+from apps.api.utils import upload_euclid_data
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 from fink_spins.ssoft import COLUMNS, COLUMNS_SHG1G2, COLUMNS_HG1G2, COLUMNS_HG
@@ -655,6 +656,14 @@ args_resolver = [
     }
 ]
 
+args_euclidin = [
+    {
+        'name': 'ssopipe',
+        'required': False,
+        'description': 'Input file from SSOPipe (.txt format)'
+    }
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -1244,3 +1253,25 @@ def resolver_table(payload=None):
 
     output_format = payload.get('output-format', 'json')
     return send_data(pdfs, output_format)
+
+@api_bp.route('/api/v1/euclidin', methods=['GET'])
+def query_euclidin_arguments():
+    """ Obtain information about Euclid input files
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return query_euclidin(payload=request.args)
+    else:
+        return jsonify({'args': args_euclidin})
+
+@api_bp.route('/api/v1/euclidin', methods=['POST'])
+def query_euclidin(payload=None):
+    """ Upload Euclid data in Fink
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    out = upload_euclid_data(payload)
+
+    return out

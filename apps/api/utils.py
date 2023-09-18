@@ -1427,3 +1427,25 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 pdfs = pd.DataFrame()
 
     return pdfs
+
+def upload_euclid_data(payload: dict) -> pd.DataFrame:
+    """ Upload Euclid data
+
+    Data is from /api/v1/euclidin
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/euclidin
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    # Interpret user input
+    if 'ssopipe' in payload:
+        data = payload['ssopipe']
+
+    print(data)
+
+    return Response('Uploaded!', 200)
