@@ -1446,6 +1446,30 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     if 'ssopipe' in payload:
         data = payload['ssopipe']
 
-    print(data)
+    HEADER = [
+        'Index',
+        'RA',
+        'DEC',
+        'MU',
+        'NDet',
+        'Catalogue',
+        'X_WORLD',
+        'Y_WORLD',
+        'ERRA_WORLD',
+        'ERRB_WORLD',
+        'FLUX_AUTO',
+        'FLUXERR_AUTO',
+        'MAG_AUTO',
+        'MAGERR_AUTO',
+        'ELONGATION',
+        'ELLIPTICITY',
+        'MJD'
+    ]
+
+    pdf = pd.read_csv(data, header=None, sep=' ', skiprows=2)
+
+    pdf.columns = HEADER
+
+    print(pdf)
 
     return Response('Uploaded!', 200)
