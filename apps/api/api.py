@@ -658,17 +658,17 @@ args_resolver = [
 
 args_euclidin = [
     {
-        'name': 'IDEuclid',
+        'name': 'EID',
         'required': True,
         'description': 'ID from Euclid'
     },
     {
-        'name': 'processor',
+        'name': 'pipeline',
         'required': True,
         'description': '`SSOPipe`, `streakdet`, `DL`'
     },
     {
-        'name': 'processingVersion',
+        'name': 'version',
         'required': True,
         'description': 'Version of the processing'
     },

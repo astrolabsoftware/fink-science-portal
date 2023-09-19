@@ -1445,7 +1445,7 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     # Interpret user input
     data = payload['payload']
 
-    if payload['processor'].lower() == 'ssopipe':
+    if payload['pipeline'].lower() == 'ssopipe':
         HEADER = [
             'Index',
             'RA',
@@ -1466,12 +1466,9 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
             'MJD'
         ]
 
-        pdf = pd.read_csv(io.BytesIO(eval(data)), header=None, sep=' ', skiprows=1)
+        pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
 
-        pdf.columns = HEADER
-
-        print(pdf)
-    elif payload['processor'].lower() == 'streakdet':
+    elif payload['pipeline'].lower() == 'streakdet':
         HEADER = [
             'Index',
             'NDet',
@@ -1488,17 +1485,26 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
             'MAG_AUTO'
         ]
 
-        pdf = pd.read_csv(io.BytesIO(eval(data)), header=None, sep=' ', skiprows=1)
+        pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
 
-        pdf.columns = HEADER
-
-        print(pdf)
+    # BUG: look for element-wise comparison method
+    if ~np.all(pdf.columns == np.array(HEADER)):
+          missingfields = [field for field in HEADER if field not in pdf.columns]
+          newfields = [field for field in pdf.columns if field not in HEADER]
+          msg = """
+          WARNING: we detected a change in the schema.
+          Missing fields: {}
+          New fields: {}
+          """.format(missingfields, newfields)
+    else:
+          msg = 'Uploaded!'
 
     return Response(
-        '{} - {} - {} - {} - Uploaded!'.format(
-            payload['IDEuclid'],
-            payload['processor'],
-            payload['processingVersion'],
-            payload['date']
+        '{} - {} - {} - {} - {}'.format(
+            payload['EID'],
+            payload['pipeline'],
+            payload['version'],
+            payload['date'],
+            msg
         ), 200
     )
