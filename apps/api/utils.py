@@ -1466,8 +1466,6 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
             'MJD'
         ]
 
-        pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
-
     elif payload['pipeline'].lower() == 'streakdet':
         HEADER = [
             'Obj_id',
@@ -1486,7 +1484,26 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
             'MAG_AUTO'
         ]
 
-        pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
+    elif payload['pipeline'].lower() == 'dl':
+        HEADER = [
+            'Obj_id',
+            'Dither',
+            'NDet',
+            'RA_middle',
+            'DEC_middle',
+            'RA_start',
+            'DEC_start',
+            'RA_end',
+            'DEC_end',
+            'MJD_middle',
+            'MJD_start',
+            'MJD_end',
+            'FLUX_AUTO',
+            'MAG_AUTO',
+            'Score'
+        ]
+
+    pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
 
     # BUG: look for element-wise comparison method
     if ~np.all(pdf.columns == np.array(HEADER)):
