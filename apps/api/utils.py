@@ -1451,7 +1451,7 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
             'RA',
             'DEC',
             'PROP_MOT',
-            'NDET',
+            'N_DET',
             'CATALOG',
             'X_WORLD',
             'Y_WORLD',
