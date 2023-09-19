@@ -1447,12 +1447,12 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
 
     if payload['pipeline'].lower() == 'ssopipe':
         HEADER = [
-            'Index',
+            'INDEX',
             'RA',
             'DEC',
-            'MU',
-            'NDet',
-            'Catalogue',
+            'PROP_MOT',
+            'NDET',
+            'CATALOG',
             'X_WORLD',
             'Y_WORLD',
             'ERRA_WORLD',
