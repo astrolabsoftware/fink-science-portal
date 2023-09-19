@@ -57,7 +57,8 @@ fastavro==1.6.0
 fink-client==3.1
 fink-filters==3.11
 fink-science==3.6.0
-fink-utils==0.13.5
+fink-utils==0.13.8
+fink-spins==0.3.2
 Flask==1.1.2
 Flask-Caching==1.10.1
 Flask-Compress==1.5.0
@@ -166,7 +167,7 @@ SecretStorage==3.3.1
 six==1.14.0
 snowballstemmer==2.2.0
 soupsieve==2.2.1
-space-rocks==1.6.14
+space-rocks==1.8.5
 Sphinx==5.2.3
 sphinx-basic-ng==1.0.0b1
 sphinx-copybutton==0.5.0
