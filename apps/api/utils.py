@@ -1470,7 +1470,8 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
 
     elif payload['pipeline'].lower() == 'streakdet':
         HEADER = [
-            'Index',
+            'Obj_id',
+            'Dither',
             'NDet',
             'RA_middle',
             'DEC_middle',
