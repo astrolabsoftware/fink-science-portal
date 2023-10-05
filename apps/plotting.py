@@ -3702,4 +3702,4 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         dmc.Prism(children=coords_hms, language="python", style={'width': '80%'})
     )
 
-    return html.Div([card1, html.Br(), card2, html.Br(), card3])
+    return html.Div([card1, html.Br(), card2, card3])
