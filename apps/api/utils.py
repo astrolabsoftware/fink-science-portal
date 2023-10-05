@@ -1534,9 +1534,9 @@ def upload_metadata(payload: dict) -> pd.DataFrame:
     clientMeta.put(
         payload['objectId'].strip(),
         [
-            'd:internal_name:{}'.format(),
-            'd:comments:{}'.format(),
-            'd:username:{}'.format()
+            'd:internal_name:{}'.format(payload['internal_name']),
+            'd:comments:{}'.format(payload['comments']),
+            'd:username:{}'.format(payload['username'])
         ]
     )
 
