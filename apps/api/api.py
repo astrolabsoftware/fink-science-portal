@@ -1354,7 +1354,11 @@ def upload_metadata(payload=None):
         out = send_data(pdf, 'json')
     elif len(payload) == 1 and 'internal_name' in payload:
         # return the associated data
-        pdf = retrieve_oid(payload['internal_name'])
+        pdf = retrieve_oid(payload['internal_name'], 'internal_name')
+        out = send_data(pdf, 'json')
+    elif len(payload) == 1 and 'internal_name_encoded' in payload:
+        # return the associated data
+        pdf = retrieve_oid(payload['internal_name_encoded'], 'internal_name_encoded')
         out = send_data(pdf, 'json')
     else:
         # Check all required args are here

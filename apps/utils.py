@@ -819,7 +819,7 @@ def retrieve_oid_from_metaname(name):
     r = requests.post(
         '{}/api/v1/metadata'.format(APIURL),
         json={
-            'internal_name': name,
+            'internal_name_encoded': name,
         }
     )
 

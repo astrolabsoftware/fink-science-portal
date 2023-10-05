@@ -1531,10 +1531,12 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
 def post_metadata(payload: dict) -> Response:
     """ Upload metadata in Fink
     """
+    encoded = payload['internal_name'].replace(' ', '')
     clientMeta.put(
         payload['objectId'].strip(),
         [
             'd:internal_name:{}'.format(payload['internal_name']),
+            'd:internal_name_encoded:{}'.format(encoded),
             'd:comments:{}'.format(payload['comments']),
             'd:username:{}'.format(payload['username'])
         ]
@@ -1544,7 +1546,7 @@ def post_metadata(payload: dict) -> Response:
         'Thanks {} - You can visit {}/{}'.format(
             payload['username'],
             APIURL,
-            payload['internal_name'],
+            payload['internal_name_encoded'],
         ), 200
     )
 
@@ -1562,10 +1564,10 @@ def retrieve_metadata(objectId: str) -> pd.DataFrame:
 
     return pdf
 
-def retrieve_oid(metaname: str) -> pd.DataFrame:
+def retrieve_oid(metaname: str, field: str) -> pd.DataFrame:
     """ Retrieve a ZTF object ID given metadata in Fink
     """
-    to_evaluate = "d:internal_name:{}:exact".format(metaname)
+    to_evaluate = "d:{}:{}:exact".format(field, metaname)
     results = clientMeta.scan(
         "",
         to_evaluate,
