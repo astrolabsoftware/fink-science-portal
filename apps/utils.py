@@ -43,6 +43,8 @@ from fink_utils.sso.utils import get_miriade_data, query_miriade
 from fink_utils.photometry.conversion import dc_mag
 from fink_utils.xmatch.simbad import get_simbad_labels
 
+from app import APIURL
+
 simbad_types = get_simbad_labels('old_and_new')
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
