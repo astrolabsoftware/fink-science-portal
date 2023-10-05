@@ -718,18 +718,18 @@ def card_id1(object_data, object_uppervalid, object_upper):
     for c in np.unique(pdf['v:classification']):
         if c in simbad_types:
             color = class_colors['Simbad']
-            c = 'Simbad: ' + c
+            name = 'Simbad: ' + c
         elif c in class_colors.keys():
             color = class_colors[c]
-            c = 'Fink: ' + c
+            name = 'Fink: ' + c
         else:
             # Sometimes SIMBAD mess up names :-)
             color = class_colors['Simbad']
-            c = 'Simbad: ' + c
+            name = 'Simbad: ' + c
 
         badges.append(
             dmc.Badge(
-                c,
+                name,
                 color=color,
                 variant="dot",
             )
