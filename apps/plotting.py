@@ -3680,19 +3680,26 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     )
     card1 = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
 
+    coord = SkyCoord(mean_ra, mean_dec, unit='deg')
+
+    # degrees
     if kind == 'GAL':
-        coord = SkyCoord(mean_ra, mean_dec, unit='deg')
-        x = coord.galactic.l.deg
-        y = coord.galactic.b.deg
+        coords_deg = coord.galactic.to_string('decimal', precision=6)
     else:
-        x = mean_ra
-        y = mean_dec
-    coords = """
-    {} {}
-    """.format(np.round(x, 6), np.round(y, 6))
+        coords_deg = coord.to_string('decimal', precision=6)
+
+    # hmsdms
+    if kind == 'GAL':
+        coords_hms = coord.galactic.to_string('hmsdms', precision=2)
+    else:
+        coords_hms = coord.to_string('hmsdms', precision=2)
 
     card2 = dmc.Center(
-        dmc.Prism(children=coords, language="python", style={'width': '60%'})
+        dmc.Prism(children=coords_deg, language="python", style={'width': '60%'})
     )
 
-    return html.Div([card1, html.Br(), card2])
+    card3 = dmc.Center(
+        dmc.Prism(children=coords_hms, language="python", style={'width': '60%'})
+    )
+
+    return html.Div([card1, html.Br(), card2, html.Br(), card3])
