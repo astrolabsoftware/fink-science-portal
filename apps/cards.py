@@ -643,7 +643,7 @@ def generate_tns_badge(oid):
         if payload['d:type'] != 'nan':
             msg = 'TNS: {}'.format(payload['d:type'])
         else:
-            msg = 'reported'
+            msg = 'TNS: reported'
         badge = dmc.Badge(
             msg,
             color='red',
@@ -718,11 +718,14 @@ def card_id1(object_data, object_uppervalid, object_upper):
     for c in np.unique(pdf['v:classification']):
         if c in simbad_types:
             color = class_colors['Simbad']
+            c = 'Simbad: ' + c
         elif c in class_colors.keys():
             color = class_colors[c]
+            c = 'Fink: ' + c
         else:
             # Sometimes SIMBAD mess up names :-)
             color = class_colors['Simbad']
+            c = 'Simbad: ' + c
 
         badges.append(
             dmc.Badge(
@@ -740,7 +743,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
     if meta_name is not None:
         extra_div = dbc.Row(
             [
-                dbc.Col(dmc.Title(meta_name, order=2, style={'color': '#15284F'}), width=10),
+                dbc.Col(dmc.Title(meta_name, order=3, style={'color': '#15284F'}), width=10),
             ], justify='start', align="center"
         )
     else:
