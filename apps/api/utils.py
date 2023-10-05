@@ -1552,14 +1552,12 @@ def retrieve_metadata(objectId: str) -> pd.DataFrame:
     """ Upload metadata in Fink
     """
     to_evaluate = "key:key:{}".format(objectId)
-    clientMeta.setLimit(nmax)
     results = clientMeta.scan(
         "",
         to_evaluate,
         "*",
         0, False, False
     )
-    clientMeta.setLimit(nlimit)
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
     return pdf
