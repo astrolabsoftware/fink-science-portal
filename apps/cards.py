@@ -641,9 +641,9 @@ def generate_tns_badge(oid):
         payload = r.json()[0]
 
         if payload['d:type'] != 'nan':
-            msg = 'TNS: {} ({})'.format(payload['d:fullname'], payload['d:type'])
+            msg = 'TNS: {}'.format(payload['d:type'])
         else:
-            msg = 'TNS: {}'.format(payload['d:fullname'])
+            msg = 'reported'
         badge = dmc.Badge(
             msg,
             color='red',
@@ -654,8 +654,8 @@ def generate_tns_badge(oid):
 
     return badge
 
-def generate_metadata_badge(oid):
-    """ Generate badge using metadata
+def generate_metadata_name(oid):
+    """ Generate name from metadata
 
     Parameters
     ----------
@@ -664,7 +664,7 @@ def generate_metadata_badge(oid):
 
     Returns
     ----------
-    badge: dmc.Badge or None
+    name: str
     """
     r = requests.post(
         '{}/api/v1/metadata'.format(APIURL),
@@ -674,16 +674,11 @@ def generate_metadata_badge(oid):
     )
 
     if r.json() != []:
-        badge = dmc.Badge(
-            '{}'.format(r.json()[0]['d:internal_name']),
-            color='dark',
-            variant='dot'
-        )
+        name = r.json()[0]['d:internal_name']
     else:
-        badge = None
+        name = None
 
-    return badge
-
+    return name
 
 @app.callback(
     Output('card_id_left', 'children'),
@@ -741,9 +736,15 @@ def card_id1(object_data, object_uppervalid, object_upper):
     if tns_badge is not None:
         badges.append(tns_badge)
 
-    meta_badge = generate_metadata_badge(pdf['i:objectId'].values[0])
-    if meta_badge is not None:
-        badges.append(meta_badge)
+    meta_name = generate_metadata_name(pdf['i:objectId'].values[0])
+    if meta_name is not None:
+        extra_div = dbc.Row(
+            [
+                dbc.Col(dmc.Title(meta_name, order=2, style={'color': '#15284F'}), width=10),
+            ], justify='start', align="center"
+        )
+    else:
+        extra_div = html.Div()
 
     card = dmc.Paper(
         [
@@ -753,6 +754,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
                 ], justify='start', align="center"
             ),
+            extra_div,
             html.Div(badges),
             dcc.Markdown(
                 """
