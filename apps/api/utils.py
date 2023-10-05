@@ -1549,9 +1549,23 @@ def post_metadata(payload: dict) -> Response:
     )
 
 def retrieve_metadata(objectId: str) -> pd.DataFrame:
-    """ Upload metadata in Fink
+    """ Retrieve metadata in Fink given a ZTF object ID
     """
     to_evaluate = "key:key:{}".format(objectId)
+    results = clientMeta.scan(
+        "",
+        to_evaluate,
+        "*",
+        0, False, False
+    )
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    return pdf
+
+def retrieve_oid(metaname: str) -> pd.DataFrame:
+    """ Retrieve a ZTF object ID given metadata in Fink
+    """
+    to_evaluate = "d:internal_name:{}:exact".format(metaname)
     results = clientMeta.scan(
         "",
         to_evaluate,

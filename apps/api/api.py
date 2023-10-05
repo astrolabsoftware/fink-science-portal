@@ -37,7 +37,7 @@ from apps.api.utils import return_anomalous_objects_pdf
 from apps.api.utils import return_ssoft_pdf
 from apps.api.utils import return_resolver_pdf
 from apps.api.utils import upload_euclid_data
-from apps.api.utils import retrieve_metadata, post_metadata
+from apps.api.utils import retrieve_metadata, post_metadata, retrieve_oid
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 from fink_spins.ssoft import COLUMNS, COLUMNS_SHG1G2, COLUMNS_HG1G2, COLUMNS_HG
@@ -1351,6 +1351,10 @@ def upload_metadata(payload=None):
     if len(payload) == 1 and 'objectId' in payload:
         # return the associated data
         pdf = retrieve_metadata(payload['objectId'])
+        out = send_data(pdf, 'json')
+    elif len(payload) == 1 and 'internal_name' in payload:
+        # return the associated data
+        pdf = retrieve_oid(payload['internal_name'])
         out = send_data(pdf, 'json')
     else:
         # Check all required args are here
