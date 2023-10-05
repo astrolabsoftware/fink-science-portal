@@ -40,6 +40,7 @@ from app import clientSSOCAND, clientSSOORB
 from app import clientStats
 from app import clientANOMALY
 from app import clientTNSRESOL
+from app import clientMeta
 from app import nlimit
 from app import APIURL
 
@@ -1524,5 +1525,25 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
             payload['version'],
             payload['date'],
             msg
+        ), 200
+    )
+
+def upload_metadata(payload: dict) -> pd.DataFrame:
+    """ Upload metadata in Fink
+    """
+    clientMeta.put(
+        payload['objectId'].strip(),
+        [
+            'd:internal_name:{}'.format(),
+            'd:comments:{}'.format(),
+            'd:username:{}'.format()
+        ]
+    )
+
+    return Response(
+        'Thanks {} - You can visit {}/{}'.format(
+            payload['username'],
+            APIURL,
+            payload['internal_name'],
         ), 200
     )
