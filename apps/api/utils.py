@@ -1546,7 +1546,7 @@ def post_metadata(payload: dict) -> Response:
         'Thanks {} - You can visit {}/{}'.format(
             payload['username'],
             APIURL,
-            payload['internal_name_encoded'],
+            encoded,
         ), 200
     )
 
