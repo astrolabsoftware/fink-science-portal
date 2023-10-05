@@ -810,3 +810,17 @@ def generate_qr(data):
     )
 
     return img
+
+def retrieve_oid_from_metaname(name):
+    """ Search for the corresponding ZTF objectId given a metaname
+    """
+    r = requests.post(
+        '{}/api/v1/metadata'.format(APIURL),
+        json={
+            'internal_name': name,
+        }
+    )
+
+    if r.json() != []:
+        return r.json()[0]['key:key']
+    return None
