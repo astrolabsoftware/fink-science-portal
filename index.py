@@ -1341,7 +1341,10 @@ app.clientside_callback(
 
 @app.callback(
     Output('page-content', 'children'),
-    [Input('url', 'pathname'), Input('is-mobile', 'children')]
+    [
+        Input('url', 'pathname'),
+        Input('is-mobile', 'children')
+    ]
 )
 def display_page(pathname, is_mobile):
     if is_mobile:
