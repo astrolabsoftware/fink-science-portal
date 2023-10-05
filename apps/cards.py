@@ -27,6 +27,7 @@ from apps.utils import class_colors
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
+import requests
 import pandas as pd
 import numpy as np
 import urllib
@@ -664,6 +665,24 @@ def card_id1(object_data, object_uppervalid, object_upper):
                 c,
                 color=color,
                 variant="dot",
+            )
+        )
+
+    r = requests.post(
+        '{}/api/v1/resolver'.format(APIURL),
+        json={
+            'resolver': 'tns',
+            'name': pdf['i:objectId'].values[0],
+            'reverse': True
+        }
+    )
+
+    if r.json() != []:
+        badges.append(
+            dmc.Badge(
+                'TNS: {}'.format(r.json()[0]['d:fullname']),
+                color='red',
+                variant='dot'
             )
         )
 
