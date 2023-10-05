@@ -441,7 +441,7 @@ def layout(is_mobile):
         dmc.Anchor("O3", href="https://gracedb.ligo.org/superevents/public/O3/", size="xs", target="_blank"),
         " or ",
         dmc.Anchor("O4", href="https://gracedb.ligo.org/superevents/public/O4/", size="xs", target="_blank"),
-        " runs."
+        " runs (e.g. S230709bi)."
     ]
     supervent_name = html.Div(
         [
