@@ -670,7 +670,7 @@ def generate_metadata_badge(oid):
     if r.json() != []:
         badge = dmc.Badge(
             'Alt: {}'.format(r.json()[0]['d:internal_name']),
-            color='black',
+            color='dark',
             variant='dot'
         )
     else:
