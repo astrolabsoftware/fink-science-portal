@@ -1570,7 +1570,7 @@ def retrieve_oid(metaname: str) -> pd.DataFrame:
         "",
         to_evaluate,
         "*",
-        0, False, False
+        0, True, True
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
