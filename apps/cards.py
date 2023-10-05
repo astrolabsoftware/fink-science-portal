@@ -638,8 +638,14 @@ def generate_tns_badge(oid):
     )
 
     if r.json() != []:
+        payload = r.json()[0]
+
+        if payload['d:type'] != 'nan':
+            msg = 'TNS: {} ({})'.format(payload['d:fullname'], payload['d:type'])
+        else:
+            msg = 'TNS: {}'.format(payload['d:fullname'])
         badge = dmc.Badge(
-            'TNS: {}'.format(r.json()[0]['d:fullname']),
+            msg,
             color='red',
             variant='dot'
         )
@@ -669,7 +675,7 @@ def generate_metadata_badge(oid):
 
     if r.json() != []:
         badge = dmc.Badge(
-            'Alt: {}'.format(r.json()[0]['d:internal_name']),
+            '{}'.format(r.json()[0]['d:internal_name']),
             color='dark',
             variant='dot'
         )
