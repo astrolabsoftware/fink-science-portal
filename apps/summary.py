@@ -664,8 +664,8 @@ def store_query(name):
         oid = retrieve_oid_from_metaname(name[1:])
         if oid is None:
             raise PreventUpdate
-        else:
-            oid = name[1:]
+    else:
+        oid = name[1:]
     results = client.scan("", "key:key:{}".format(oid), "*", 0, True, True)
     schema_client = client.schema()
     pdfs = format_hbase_output(results, schema_client, group_alerts=False)
