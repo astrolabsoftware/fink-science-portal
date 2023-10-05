@@ -1528,7 +1528,7 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
         ), 200
     )
 
-def upload_metadata(payload: dict) -> pd.DataFrame:
+def post_metadata(payload: dict) -> Response:
     """ Upload metadata in Fink
     """
     clientMeta.put(
@@ -1547,3 +1547,19 @@ def upload_metadata(payload: dict) -> pd.DataFrame:
             payload['internal_name'],
         ), 200
     )
+
+def retrieve_metadata(objectId: str) -> pd.DataFrame:
+    """ Upload metadata in Fink
+    """
+    to_evaluate = "key:key:{}".format(objectId)
+    clientMeta.setLimit(nmax)
+    results = clientMeta.scan(
+        "",
+        to_evaluate,
+        "*",
+        0, False, False
+    )
+    clientMeta.setLimit(nlimit)
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    return pdf

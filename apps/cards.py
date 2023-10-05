@@ -616,6 +616,69 @@ curl -H "Content-Type: application/json" -X POST \\
 def modal_stamps(nc1, nc2, nc3, opened):
     return not opened
 
+def generate_tns_badge(oid):
+    """ Generate TNS badge
+
+    Parameters
+    ----------
+    oid: str
+        ZTF object ID
+
+    Returns
+    ----------
+    badge: dmc.Badge or None
+    """
+    r = requests.post(
+        '{}/api/v1/resolver'.format(APIURL),
+        json={
+            'resolver': 'tns',
+            'name': oid,
+            'reverse': True
+        }
+    )
+
+    if r.json() != []:
+        badge = dmc.Badge(
+            'TNS: {}'.format(r.json()[0]['d:fullname']),
+            color='red',
+            variant='dot'
+        )
+    else:
+        badge = None
+
+    return badge
+
+def generate_metadata_badge(oid):
+    """ Generate badge using metadata
+
+    Parameters
+    ----------
+    oid: str
+        ZTF object ID
+
+    Returns
+    ----------
+    badge: dmc.Badge or None
+    """
+    r = requests.post(
+        '{}/api/v1/metadata'.format(APIURL),
+        json={
+            'objectId': oid,
+        }
+    )
+
+    if r.json() != []:
+        badge = dmc.Badge(
+            'Alt: {}'.format(r.json()[0]['d:internal_name']),
+            color='black',
+            variant='dot'
+        )
+    else:
+        badge = None
+
+    return badge
+
+
 @app.callback(
     Output('card_id_left', 'children'),
     [
@@ -668,23 +731,13 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
-    r = requests.post(
-        '{}/api/v1/resolver'.format(APIURL),
-        json={
-            'resolver': 'tns',
-            'name': pdf['i:objectId'].values[0],
-            'reverse': True
-        }
-    )
+    tns_badge = generate_tns_badge(pdf['i:objectId'].values[0])
+    if tns_badge is not None:
+        badges.append(tns_badge)
 
-    if r.json() != []:
-        badges.append(
-            dmc.Badge(
-                'TNS: {}'.format(r.json()[0]['d:fullname']),
-                color='red',
-                variant='dot'
-            )
-        )
+    meta_badge = generate_metadata_badge(pdf['i:objectId'].values[0])
+    if meta_badge is not None:
+        badges.append(meta_badge)
 
     card = dmc.Paper(
         [
