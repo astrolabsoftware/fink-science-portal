@@ -3695,11 +3695,11 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         coords_hms = coord.to_string('hmsdms', precision=2)
 
     card2 = dmc.Center(
-        dmc.Prism(children=coords_deg, language="python", style={'width': '60%'})
+        dmc.Prism(children=coords_deg, language="python", style={'width': '80%'})
     )
 
     card3 = dmc.Center(
-        dmc.Prism(children=coords_hms, language="python", style={'width': '60%'})
+        dmc.Prism(children=coords_hms, language="python", style={'width': '80%'})
     )
 
     return html.Div([card1, html.Br(), card2, html.Br(), card3])
