@@ -101,4 +101,7 @@ clientANOMALY.connect(args['tablename'] + ".anomaly", args['SCHEMAVER'])
 clientTNSRESOL = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
 clientTNSRESOL.connect(args['tablename'] + ".tns_resolver", args['SCHEMAVER'])
 
+clientMeta = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
+clientMeta.connect(args['tablename'] + ".metadata", 'schema')
+
 client.setLimit(nlimit);

@@ -27,6 +27,7 @@ from apps.utils import class_colors
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
+import requests
 import pandas as pd
 import numpy as np
 import urllib
@@ -615,6 +616,70 @@ curl -H "Content-Type: application/json" -X POST \\
 def modal_stamps(nc1, nc2, nc3, opened):
     return not opened
 
+def generate_tns_badge(oid):
+    """ Generate TNS badge
+
+    Parameters
+    ----------
+    oid: str
+        ZTF object ID
+
+    Returns
+    ----------
+    badge: dmc.Badge or None
+    """
+    r = requests.post(
+        '{}/api/v1/resolver'.format(APIURL),
+        json={
+            'resolver': 'tns',
+            'name': oid,
+            'reverse': True
+        }
+    )
+
+    if r.json() != []:
+        payload = r.json()[0]
+
+        if payload['d:type'] != 'nan':
+            msg = 'TNS: {}'.format(payload['d:type'])
+        else:
+            msg = 'TNS: reported'
+        badge = dmc.Badge(
+            msg,
+            color='red',
+            variant='dot'
+        )
+    else:
+        badge = None
+
+    return badge
+
+def generate_metadata_name(oid):
+    """ Generate name from metadata
+
+    Parameters
+    ----------
+    oid: str
+        ZTF object ID
+
+    Returns
+    ----------
+    name: str
+    """
+    r = requests.post(
+        '{}/api/v1/metadata'.format(APIURL),
+        json={
+            'objectId': oid,
+        }
+    )
+
+    if r.json() != []:
+        name = r.json()[0]['d:internal_name']
+    else:
+        name = None
+
+    return name
+
 @app.callback(
     Output('card_id_left', 'children'),
     [
@@ -667,6 +732,20 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
+    tns_badge = generate_tns_badge(pdf['i:objectId'].values[0])
+    if tns_badge is not None:
+        badges.append(tns_badge)
+
+    meta_name = generate_metadata_name(pdf['i:objectId'].values[0])
+    if meta_name is not None:
+        extra_div = dbc.Row(
+            [
+                dbc.Col(dmc.Title(meta_name, order=4, style={'color': '#15284F'}), width=10),
+            ], justify='start', align="center"
+        )
+    else:
+        extra_div = html.Div()
+
     card = dmc.Paper(
         [
             dbc.Row(
@@ -675,6 +754,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
                     dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
                 ], justify='start', align="center"
             ),
+            extra_div,
             html.Div(badges),
             dcc.Markdown(
                 """

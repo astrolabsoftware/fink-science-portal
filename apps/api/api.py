@@ -37,6 +37,7 @@ from apps.api.utils import return_anomalous_objects_pdf
 from apps.api.utils import return_ssoft_pdf
 from apps.api.utils import return_resolver_pdf
 from apps.api.utils import upload_euclid_data
+from apps.api.utils import retrieve_metadata, post_metadata, retrieve_oid
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 from fink_spins.ssoft import COLUMNS, COLUMNS_SHG1G2, COLUMNS_HG1G2, COLUMNS_HG
@@ -684,6 +685,29 @@ args_euclidin = [
     }
 ]
 
+args_metadata = [
+    {
+        'name': 'objectId',
+        'required': True,
+        'description': 'ZTF object ID'
+    },
+    {
+        'name': 'internal_name',
+        'required': True,
+        'description': 'Internal name to be given'
+    },
+    {
+        'name': 'username',
+        'required': True,
+        'description': 'The username of the submitter'
+    },
+    {
+        'name': 'comments',
+        'required': False,
+        'description': 'Any relevant comments for the object'
+    },
+]
+
 @api_bp.route('/api/v1/objects', methods=['GET'])
 def return_object_arguments():
     """ Obtain information about retrieving object data
@@ -1292,6 +1316,61 @@ def query_euclidin(payload=None):
     if payload is None:
         payload = request.json
 
+    # Check all required args are here
+    required_args = [i['name'] for i in args_euclidin if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
     out = upload_euclid_data(payload)
+
+    return out
+
+@api_bp.route('/api/v1/metadata', methods=['GET'])
+def metadata_arguments():
+    """ Obtain information about uploading metadata
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return upload_metadata(payload=request.args)
+    else:
+        return jsonify({'args': args_metadata})
+
+@api_bp.route('/api/v1/metadata', methods=['POST'])
+def upload_metadata(payload=None):
+    """ Upload metadata in Fink
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    if len(payload) == 1 and 'objectId' in payload:
+        # return the associated data
+        pdf = retrieve_metadata(payload['objectId'])
+        out = send_data(pdf, 'json')
+    elif len(payload) == 1 and 'internal_name' in payload:
+        # return the associated data
+        pdf = retrieve_oid(payload['internal_name'], 'internal_name')
+        out = send_data(pdf, 'json')
+    elif len(payload) == 1 and 'internal_name_encoded' in payload:
+        # return the associated data
+        pdf = retrieve_oid(payload['internal_name_encoded'], 'internal_name_encoded')
+        out = send_data(pdf, 'json')
+    else:
+        # Check all required args are here
+        required_args = [i['name'] for i in args_metadata if i['required'] is True]
+        for required_arg in required_args:
+            if required_arg not in payload:
+                rep = {
+                    'status': 'error',
+                    'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+                }
+                return Response(str(rep), 400)
+
+        out = post_metadata(payload)
 
     return out
