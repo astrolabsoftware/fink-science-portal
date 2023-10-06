@@ -740,7 +740,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
     if meta_name is not None:
         extra_div = dbc.Row(
             [
-                dbc.Col(dmc.Title(meta_name, order=3, style={'color': '#15284F'}), width=10),
+                dbc.Col(dmc.Title(meta_name, order=4, style={'color': '#15284F'}), width=10),
             ], justify='start', align="center"
         )
     else:
