@@ -638,12 +638,12 @@ def generate_tns_badge(oid):
     )
 
     if r.json() != []:
-        payload = r.json()[0]
+        payload = r.json()[-1]
 
         if payload['d:type'] != 'nan':
-            msg = 'TNS: {}'.format(payload['d:type'])
+            msg = 'TNS: {} ({})'.format(payload['d:fullname'], payload['d:type'])
         else:
-            msg = 'TNS: reported'
+            msg = 'TNS: {}'.format(payload['d:fullname'])
         badge = dmc.Badge(
             msg,
             color='red',
