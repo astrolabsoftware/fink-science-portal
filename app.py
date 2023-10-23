@@ -49,7 +49,7 @@ server = app.server
 app.config.suppress_callback_exceptions = True
 
 if not jpype.isJVMStarted():
-    jarpath = "-Djava.class.path=bin/bin/FinkBrowser_20102023.exe.jar"
+    jarpath = "-Djava.class.path=bin/FinkBrowser_20102023.exe.jar"
     jpype.startJVM(jpype.getDefaultJVMPath(), "-ea", jarpath, convertStrings=True)
 
 jpype.attachThreadToJVM()
