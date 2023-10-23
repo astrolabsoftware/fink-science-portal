@@ -68,8 +68,9 @@ def test_multiple_objects() -> None:
     >>> test_multiple_objects()
     """
     pdf = get_an_object(number=3)
+    nobjects = len(pdf.groupby('i:objectId').count())
 
-    assert len(pdf.groupby('i:objectId').count()) == 3
+    assert nobjects == 3, nobjects
 
 def test_seed() -> None:
     """

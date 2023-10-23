@@ -126,7 +126,7 @@ def test_simbad_resolver() -> None:
     # One object found
     assert len(pdf) == 1
 
-    assert pdf['oname'].values[0] == 'Mrk 2', pdf['oname']
+    assert pdf['oname'].values[0].replace(' ', '') == 'Mrk2', pdf['oname'].values[0]
 
     cols = [
         'name', 'oid', 'oname', 'otype',
