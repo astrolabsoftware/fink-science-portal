@@ -88,8 +88,10 @@ def format_hbase_output(
         pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
 
     # Remove hbase specific fields
-    if 'key:key' in pdfs.columns or 'key:time' in pdfs.columns:
-        pdfs = pdfs.drop(columns=['key:key', 'key:time'])
+    if 'key:key' in pdfs.columns:
+        pdfs = pdfs.drop(columns=['key:key'])
+    if 'key:time' in pdfs.columns:
+        pdfs = pdfs.drop(columns=['key:time'])
 
     # Type conversion
     pdfs = pdfs.astype(
