@@ -18,7 +18,6 @@ from gatspy import periodic
 from scipy.optimize import curve_fit
 
 import datetime
-import java
 import copy
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
