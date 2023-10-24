@@ -121,7 +121,7 @@ def store_stat_query(name):
     name = 'ztf_'
 
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown'
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:{}".format(name),
@@ -341,7 +341,7 @@ def daily_stats():
 def generate_night_list():
     """ Generate the list of available nights (last night first)
     """
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -375,7 +375,7 @@ def generate_night_list():
 def generate_col_list():
     """ Generate the list of available columns
     """
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     schema = clientStats.schema()
     clientStats.close()
     schema_list = list(schema.columnNames())
@@ -410,7 +410,7 @@ def get_data_one_night(night):
     """ Get the statistics for one night
     """
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:{}".format(night),
