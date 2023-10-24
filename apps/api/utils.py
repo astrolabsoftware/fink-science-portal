@@ -31,16 +31,6 @@ from astropy.time import Time, TimeDelta
 from astropy.io import fits, votable
 from astropy.table import Table
 
-from app import client
-from app import clientU, clientUV
-from app import clientP128
-from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
-from app import clientSSOCAND, clientSSOORB
-from app import clientStats
-from app import clientANOMALY
-from app import clientTNSRESOL
-from app import clientMeta
-from app import nlimit
 from app import APIURL
 
 from apps.utils import get_miriade_data
@@ -111,9 +101,6 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
         results.update(result)
 
     schema_client = client.schema()
-
-    # reset the limit in case it has been changed above
-    client.setLimit(nlimit)
 
     pdf = format_hbase_output(
         results, schema_client, group_alerts=False, truncated=truncated
@@ -202,9 +189,6 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 0, True, True
             )
             results.update(result)
-
-        # reset the limit in case it has been changed above
-        client.setLimit(nlimit)
 
         schema_client = client.schema()
     if user_group == 1:
