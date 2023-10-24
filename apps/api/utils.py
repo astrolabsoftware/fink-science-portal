@@ -49,6 +49,8 @@ from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
 
+from apps.euclid.utils import load_euclid_header, load_fink_header
+
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
 from flask import Response
@@ -1448,78 +1450,29 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     """
     # Interpret user input
     data = payload['payload']
+    pipeline_name = payload['pipeline'].lower()
 
-    if payload['pipeline'].lower() == 'ssopipe':
-        HEADER = [
-            'INDEX',
-            'RA',
-            'DEC',
-            'PROP_MOT',
-            'N_DET',
-            'CATALOG',
-            'X_WORLD',
-            'Y_WORLD',
-            'ERRA_WORLD',
-            'ERRB_WORLD',
-            'FLUX_AUTO',
-            'FLUXERR_AUTO',
-            'MAG_AUTO',
-            'MAGERR_AUTO',
-            'ELONGATION',
-            'ELLIPTICITY',
-            'MJD'
-        ]
-
-    elif payload['pipeline'].lower() == 'streakdet':
-        HEADER = [
-            'Obj_id',
-            'Dither',
-            'NDet',
-            'RA_middle',
-            'DEC_middle',
-            'RA_start',
-            'DEC_start',
-            'RA_end',
-            'DEC_end',
-            'MJD_middle',
-            'MJD_start',
-            'MJD_end',
-            'FLUX_AUTO',
-            'MAG_AUTO'
-        ]
-
-    elif payload['pipeline'].lower() == 'dl':
-        HEADER = [
-            'Obj_id',
-            'Dither',
-            'NDet',
-            'RA_middle',
-            'DEC_middle',
-            'RA_start',
-            'DEC_start',
-            'RA_end',
-            'DEC_end',
-            'MJD_middle',
-            'MJD_start',
-            'MJD_end',
-            'FLUX_AUTO',
-            'MAG_AUTO',
-            'Score'
-        ]
+    header = load_euclid_header(pipeline_name)
+    euclid_header = header.keys()
 
     pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
 
     # BUG: look for element-wise comparison method
-    if ~np.all(pdf.columns == np.array(HEADER)):
-          missingfields = [field for field in HEADER if field not in pdf.columns]
-          newfields = [field for field in pdf.columns if field not in HEADER]
+    if ~np.all(pdf.columns == np.array(euclid_header)):
+          missingfields = [field for field in euclid_header if field not in pdf.columns]
+          newfields = [field for field in pdf.columns if field not in euclid_header]
           msg = """
           WARNING: we detected a change in the schema.
           Missing fields: {}
           New fields: {}
           """.format(missingfields, newfields)
     else:
-          msg = 'Uploaded!'
+        # add a column with the name of the pipeline
+        pdf['pipeline'] = pipeline_name
+
+
+
+        msg = 'Uploaded!'
 
     return Response(
         '{} - {} - {} - {} - {}'.format(
