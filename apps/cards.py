@@ -20,7 +20,7 @@ import visdcc
 
 from app import app, APIURL
 
-from apps.plotting import all_radio_options
+from apps.plotting import all_radio_options, draw_cutouts
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
@@ -376,7 +376,8 @@ curl -H "Content-Type: application/json" -X POST \\
                         [
                             dmc.Paper(
                                 [
-                                    dbc.Row(id='stamps', justify='around', className="g-0"),
+                                    # dbc.Row(id='stamps', justify='around', className="g-0"),
+                                    dbc.Row(draw_cutouts(None, object_data), justify='around', className="g-0"),
                                     dbc.Modal(
                                         [
                                             dbc.ModalHeader(
