@@ -25,7 +25,6 @@ from dash_iconify import DashIconify
 
 from app import server
 from app import app
-# from app import client
 from app import APIURL
 
 from apps import summary, about, statistics, query_cluster, gw

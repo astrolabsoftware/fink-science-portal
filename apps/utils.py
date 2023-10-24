@@ -77,7 +77,7 @@ def format_hbase_output(
         extract_color: bool = True, with_constellation: bool = True):
     """
     """
-    if hbase_output.isEmpty():
+    if len(hbase_output) == 0:
         return pd.DataFrame({})
 
     # Construct the dataframe
