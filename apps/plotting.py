@@ -50,7 +50,7 @@ from astropy.modeling.fitting import LevMarLSQFitter
 import astropy.units as u
 from sbpy.data import Obs
 
-from app import client, app, clientSSO, clientStats
+from app import app
 
 COLORS_ZTF = ['#15284F', '#F5622E']
 COLORS_ZTF_RGB = ['rgba(21, 40, 79, 1, 0.2)', 'rgba(245, 98, 46, 1, 0.2)']
@@ -1529,11 +1529,13 @@ def extract_cutout(object_data, time0, kind):
         position = np.where(jds == jd0)[0][0]
 
     # Grab the cutout data
+    client = connect_to_hbase_table('ztf')
     cutout = readstamp(
         client.repository().get(
             pdfs['b:cutout{}_stampData'.format(kind.capitalize())].values[position]
         )
     )
+    client.close()
     return cutout
 
 @app.callback(
@@ -3052,6 +3054,7 @@ def plot_stat_evolution(pathname, param_name, switch):
     else:
         param_name_ = param_name
 
+    clientStats = connect_to_hbase_table('ztf.statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3060,6 +3063,7 @@ def plot_stat_evolution(pathname, param_name, switch):
         False,
         False
     )
+    clientStats.close()
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
@@ -3398,6 +3402,7 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
 def hist_sci_raw(pathname, dropdown_days):
     """ Make an histogram
     """
+    clientStats = connect_to_hbase_table('ztf.statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3406,6 +3411,7 @@ def hist_sci_raw(pathname, dropdown_days):
         False,
         False
     )
+    clientStats.close()
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
@@ -3438,6 +3444,7 @@ def hist_sci_raw(pathname, dropdown_days):
 def hist_catalogued(pathname, dropdown_days):
     """ Make an histogram
     """
+    clientStats = connect_to_hbase_table('ztf.statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3446,6 +3453,7 @@ def hist_catalogued(pathname, dropdown_days):
         False,
         False
     )
+    clientStats.close()
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
@@ -3480,6 +3488,7 @@ def hist_catalogued(pathname, dropdown_days):
 def hist_classified(pathname, dropdown_days):
     """ Make an histogram
     """
+    clientStats = connect_to_hbase_table('ztf.statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3488,6 +3497,7 @@ def hist_classified(pathname, dropdown_days):
         False,
         False
     )
+    clientStats.close()
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
@@ -3525,6 +3535,7 @@ def hist_classified(pathname, dropdown_days):
 def hist_candidates(pathname, dropdown_days):
     """ Make an histogram
     """
+    clientStats = connect_to_hbase_table('ztf.statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3533,6 +3544,7 @@ def hist_candidates(pathname, dropdown_days):
         False,
         False
     )
+    clientStats.close()
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
@@ -3570,6 +3582,7 @@ def hist_candidates(pathname, dropdown_days):
 def fields_exposures(pathname, dropdown_days):
     """ Make an histogram
     """
+    clientStats = connect_to_hbase_table('ztf.statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3578,6 +3591,7 @@ def fields_exposures(pathname, dropdown_days):
         False,
         False
     )
+    clientStats.close()
 
     # Construct the dataframe
     pdf = pd.DataFrame.from_dict(results, orient='index')
