@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from apps import __file__ as apps_loc
+import os
 import jpype
 import jpype.imports
 
@@ -22,7 +24,8 @@ def initialise_jvm():
     """
     """
     if not jpype.isJVMStarted():
-        jarpath = "-Djava.class.path=../bin/FinkBrowser.exe.jar"
+        path = os.path.dirname(apps_loc) + '/../bin/FinkBrowser.exe.jar'
+        jarpath = "-Djava.class.path={}".format(path)
         jpype.startJVM(jpype.getDefaultJVMPath(), "-ea", jarpath, convertStrings=True)
 
     jpype.attachThreadToJVM()
@@ -37,7 +40,10 @@ def connect_to_hbase_table(tablename: str, nlimit=10000):
     """
     initialise_jvm()
 
-    args = yaml.load(open('../config.yml'), yaml.Loader)
+    args = yaml.load(
+        open(os.path.dirname(apps_loc) + '/../config.yml'),
+        yaml.Loader
+    )
 
     import com.Lomikel.HBaser
     from com.astrolabsoftware.FinkBrowser.Utils import Init
