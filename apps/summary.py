@@ -28,7 +28,8 @@ import requests
 
 import rocks
 
-from app import app, client, clientU, clientUV, clientSSO, clientTRCK
+from app import app
+#, client, clientU, clientUV, clientSSO, clientTRCK
 
 from apps.supernovae.cards import card_sn_scores
 from apps.varstars.cards import card_explanation_variable, card_variable_button
@@ -667,19 +668,26 @@ def store_query(name):
             raise PreventUpdate
     else:
         oid = name[1:]
+    client = connect_to_hbase_table('ztf')
     results = client.scan("", "key:key:{}".format(oid), "*", 0, True, True)
     schema_client = client.schema()
     pdfs = format_hbase_output(results, schema_client, group_alerts=False)
+    client.close()
 
+    clientU = connect_to_hbase_table('ztf.upper')
     uppers = clientU.scan("", "key:key:{}".format(oid), "*", 0, True, True)
     pdfsU = pd.DataFrame.from_dict(uppers, orient='index')
+    clientU.close()
 
+    clientUV = connect_to_hbase_table('ztf.uppervalid')
     uppersV = clientUV.scan("", "key:key:{}".format(oid), "*", 0, True, True)
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
+    clientUV.close()
 
     payload = pdfs['i:ssnamenr'].values[0]
     is_sso = np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values])
     if str(payload) != 'null' and is_sso:
+        clientSSO = connect_to_hbase_table('ztf.ssnamenr')
         results = clientSSO.scan(
             "",
             "key:key:{}_".format(payload),
@@ -691,6 +699,7 @@ def store_query(name):
             results, schema_client_sso,
             group_alerts=False, truncated=False, extract_color=False
         )
+        clientSSO.close()
 
         if pdfsso.empty:
             # This can happen for SSO candidate with a ssnamenr
@@ -707,6 +716,7 @@ def store_query(name):
     payload = pdfs['d:tracklet'].values[0]
 
     if str(payload).startswith('TRCK'):
+        clientTRCK = connect_to_hbase_table('ztf.tracklet')
         results = clientTRCK.scan(
             "",
             "key:key:{}".format(payload),
@@ -718,6 +728,7 @@ def store_query(name):
             results, schema_client_tracklet,
             group_alerts=False, truncated=False, extract_color=False
         )
+        clientTRCK.close()
     else:
         pdftracklet = pd.DataFrame()
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json(), pdftracklet.to_json()
