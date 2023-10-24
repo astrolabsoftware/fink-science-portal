@@ -157,9 +157,10 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
         else:
             pdf = pdf_
 
+        clientU.close()
+        clientUV.close()
+
     client.close()
-    clientU.close()
-    clientUV.close()
 
     return pdf
 
