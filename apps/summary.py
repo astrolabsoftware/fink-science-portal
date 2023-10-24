@@ -39,7 +39,7 @@ from apps.mulens.cards import card_mulens_button
 from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
-from apps.cards import card_id1
+from apps.cards import card_id
 from apps.cards import create_external_links, create_external_links_brokers
 
 from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
@@ -61,7 +61,7 @@ from app import APIURL
 
 dcc.Location(id='url', refresh=False)
 
-def tab1_content(extra_div):
+def tab1_content(pdf, extra_div):
     """ Summary tab
     """
     tab1_content_ = html.Div([
@@ -83,7 +83,7 @@ def tab1_content(extra_div):
         ),
         dbc.Row([
             dbc.Col([extra_div, card_lightcurve_summary()], width=8),
-            dbc.Col(id="card_id_col", width=4)
+            dbc.Col(card_id(pdf), width=4)
         ]),
     ])
 
@@ -462,7 +462,7 @@ def tabs(pdf, is_mobile):
                         dmc.Tab("GRB", value="GRB", disabled=True)
                     ], position='right'
                 ),
-                dmc.TabsPanel(tab1_content(extra_div), value="Summary"),
+                dmc.TabsPanel(tab1_content(pdf, extra_div), value="Summary"),
                 dmc.TabsPanel(tab2_content(), value="Supernovae"),
                 dmc.TabsPanel(tab3_content(), value="Variable stars"),
                 dmc.TabsPanel(tab4_content(), value="Microlensing"),

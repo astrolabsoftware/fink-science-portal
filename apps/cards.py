@@ -20,7 +20,7 @@ import visdcc
 
 from app import app, APIURL
 
-from apps.plotting import all_radio_options, draw_cutouts
+from apps.plotting import all_radio_options
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
@@ -289,15 +289,15 @@ def create_external_links_brokers(objectId):
     )
     return buttons
 
-@app.callback(
-    Output('card_id_col', 'children'),
-    [
-        Input('object-data', 'children'),
-    ])
-def card_id(object_data):
+# @app.callback(
+#     Output('card_id_col', 'children'),
+#     [
+#         Input('object-data', 'children'),
+#     ])
+def card_id(pdf):
     """ Add a card containing basic alert data
     """
-    pdf = pd.read_json(object_data)
+    # pdf = pd.read_json(object_data)
     objectid = pdf['i:objectId'].values[0]
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
@@ -376,8 +376,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         [
                             dmc.Paper(
                                 [
-                                    # dbc.Row(id='stamps', justify='around', className="g-0"),
-                                    dbc.Row(draw_cutouts(None, object_data), justify='around', className="g-0"),
+                                    dbc.Row(id='stamps', justify='around', className="g-0"),
                                     dbc.Modal(
                                         [
                                             dbc.ModalHeader(
