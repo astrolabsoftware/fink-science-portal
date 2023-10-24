@@ -29,7 +29,8 @@ import requests
 import rocks
 
 from app import app
-#, client, clientU, clientUV, clientSSO, clientTRCK
+
+from apps.client import connect_to_hbase_table
 
 from apps.supernovae.cards import card_sn_scores
 from apps.varstars.cards import card_explanation_variable, card_variable_button

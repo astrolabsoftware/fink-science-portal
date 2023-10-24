@@ -36,6 +36,8 @@ from fink_utils.photometry.conversion import apparent_flux, dc_mag
 from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.statistics import dic_names
+from apps.client import connect_to_hbase_table
+
 from app import APIURL
 
 from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin

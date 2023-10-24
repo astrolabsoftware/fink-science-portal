@@ -33,6 +33,8 @@ from astropy.table import Table
 
 from app import APIURL
 
+from apps.client import connect_to_hbase_table
+
 from apps.utils import get_miriade_data
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts

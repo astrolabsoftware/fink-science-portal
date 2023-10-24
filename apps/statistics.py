@@ -16,6 +16,7 @@ from dash import html, dcc, Input, Output
 import dash_bootstrap_components as dbc
 
 from app import app
+from apps.client import connect_to_hbase_table
 
 import numpy as np
 import pandas as pd
