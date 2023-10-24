@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import io
-import jpype.imports
-import java
 import gzip
 import yaml
 import requests
@@ -99,8 +97,10 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
     else:
         truncated = True
 
+    client = connect_to_hbase_table('ztf')
+
     # Get data from the main table
-    results = java.util.TreeMap()
+    results = {}
     for to_evaluate in objectids:
         result = client.scan(
             "",
@@ -108,7 +108,7 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             cols,
             0, True, True
         )
-        results.putAll(result)
+        results.update(result)
 
     schema_client = client.schema()
 
@@ -123,8 +123,9 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
         pdf = extract_cutouts(pdf, client)
 
     if withupperlim:
+        clientU = connect_to_hbase_table('ztf.upper')
         # upper limits
-        resultsU = java.util.TreeMap()
+        resultsU = {}
         for to_evaluate in objectids:
             resultU = clientU.scan(
                 "",
@@ -132,10 +133,11 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 "*",
                 0, False, False
             )
-            resultsU.putAll(resultU)
+            resultsU.update(resultU)
 
         # bad quality
-        resultsUP = java.util.TreeMap()
+        clientUV = connect_to_hbase_table('ztf.uppervalid')
+        resultsUP = {}
         for to_evaluate in objectids:
             resultUP = clientUV.scan(
                 "",
@@ -143,7 +145,7 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 "*",
                 0, False, False
             )
-            resultsUP.putAll(resultUP)
+            resultsUP.update(resultUP)
 
         pdfU = pd.DataFrame.from_dict(resultsU, orient='index')
         pdfUP = pd.DataFrame.from_dict(resultsUP, orient='index')
@@ -166,6 +168,10 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
         else:
             pdf = pdf_
 
+    client.close()
+    clientU.close()
+    clientUV.close()
+
     return pdf
 
 def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
@@ -184,7 +190,8 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     """
     truncated = False
     if user_group == 0:
-        results = java.util.TreeMap()
+        client = connect_to_hbase_table('ztf')
+        results = {}
         for oid in payload['objectId'].split(','):
             # objectId search
             to_evaluate = "key:key:{}".format(oid.strip())
@@ -194,7 +201,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 "*",
                 0, True, True
             )
-            results.putAll(result)
+            results.update(result)
 
         # reset the limit in case it has been changed above
         client.setLimit(nlimit)
@@ -267,7 +274,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
             jdend = jdstart + window_days
 
             clientP128.setRangeScan(True)
-            results = java.util.TreeMap()
+            results = {}
             for pix in pixs:
                 to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
                 result = clientP128.scan(
@@ -276,10 +283,10 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                     "*",
                     0, True, True
                 )
-                results.putAll(result)
+                results.update(result)
             clientP128.setRangeScan(False)
         else:
-            results = java.util.TreeMap()
+            results = {}
             for pix in pixs:
                 to_search = "key:key:{}".format(pix)
                 result = clientP128.scan(
@@ -288,7 +295,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                     "*",
                     0, True, True
                 )
-                results.putAll(result)
+                results.update(result)
 
         schema_client = clientP128.schema()
         truncated = True
@@ -504,7 +511,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         names = ["key:key:{}_".format(payload['n_or_d'].replace(' ', ''))]
 
     # Get data from the main table
-    results = java.util.TreeMap()
+    results = {}
     for to_evaluate in names:
         result = clientSSO.scan(
             "",
@@ -512,7 +519,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             cols,
             0, True, True
         )
-        results.putAll(result)
+        results.update(result)
 
     schema_client = clientSSO.schema()
 
@@ -1001,7 +1008,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     jdend = jdstart + n_day_max
 
     clientP128.setRangeScan(True)
-    results = java.util.TreeMap()
+    results = {}
     for pix in pixs:
         to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
         result = clientP128.scan(
@@ -1010,7 +1017,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
             "*",
             0, True, True
         )
-        results.putAll(result)
+        results.update(result)
 
     clientP128.setRangeScan(False)
     schema_client = clientP128.schema()
@@ -1171,7 +1178,7 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
 
     client.setLimit(2000)
     # Get data from the main table
-    results = java.util.TreeMap()
+    results = {}
     for oid_ in oid:
         result = client.scan(
             "",
@@ -1179,7 +1186,7 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             "{}".format(cols),
             0, False, False
         )
-        results.putAll(result)
+        results.update(result)
 
     pdf = format_hbase_output(
         results, client.schema(), group_alerts=False, truncated=truncated
