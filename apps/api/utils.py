@@ -38,7 +38,7 @@ from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
 
-from apps.euclid.utils import load_euclid_header, load_fink_header
+from apps.euclid.utils import load_euclid_header
 
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
