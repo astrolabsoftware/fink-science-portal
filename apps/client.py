@@ -30,13 +30,18 @@ def initialise_jvm():
 
     jpype.attachThreadToJVM()
 
-def connect_to_hbase_table(tablename: str, nlimit=10000):
+def connect_to_hbase_table(tablename: str, nlimit=10000, setphysicalrepo=False):
     """ Return a client connected to a HBase table
 
     Parameters
     ----------
     tablename: str
         The name of the table
+    nlimit: int, optional
+        Maximum number of objects to return. Default is 10000
+    setphysicalrepo: bool
+        If True, store cutouts queried on disk ("/tmp/Lomikel/HBaseClientBinaryDataRepository")
+        Needs client 02.01+. Default is False
     """
     initialise_jvm()
 
@@ -52,6 +57,9 @@ def connect_to_hbase_table(tablename: str, nlimit=10000):
 
     client = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT']);
     client.connect(tablename, args['SCHEMAVER'])
+    if setphysicalrepo:
+        import com.Lomikel.HBaser.FilesBinaryDataRepository
+        client.setRepository(com.Lomikel.HBaser.FilesBinaryDataRepository())
     client.setLimit(nlimit)
 
     return client

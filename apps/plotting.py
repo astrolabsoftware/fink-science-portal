@@ -1532,6 +1532,16 @@ def extract_cutout(object_data, time0, kind):
 
     # Grab the cutout data
     client = connect_to_hbase_table('ztf')
+
+    # Fire the client to trigger cutout data retrieval
+    _ = client.scan(
+        "",
+        "key:key:{}".format(pdf_['i:objectId'].values[0]),
+        "*i:candid,{}".format(kind.capitalize()),
+        0, False, False
+    )
+
+    # actually grab the data
     cutout = readstamp(
         client.repository().get(
             pdfs['b:cutout{}_stampData'.format(kind.capitalize())].values[position]
