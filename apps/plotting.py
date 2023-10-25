@@ -1537,7 +1537,7 @@ def extract_cutout(object_data, time0, kind):
     _ = client.scan(
         "",
         "key:key:{}".format(pdf_['i:objectId'].values[0]),
-        "*i:candid,{}".format(kind.capitalize()),
+        "*i:candid,b:cutout{}_stampData".format(kind.capitalize()),
         0, False, False
     )
 
