@@ -501,7 +501,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         names = ["key:key:{}_".format(payload['n_or_d'].replace(' ', ''))]
 
     # Get data from the main table
-    client = connect_to_hbase_table('ztf.sso')
+    client = connect_to_hbase_table('ztf.ssnamenr')
     results = {}
     for to_evaluate in names:
         result = client.scan(
