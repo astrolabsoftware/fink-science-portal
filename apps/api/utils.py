@@ -656,7 +656,7 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
     schema_client = client.schema()
 
     # reset the limit in case it has been changed above
-    clientTRCK.close()
+    client.close()
 
     pdf = format_hbase_output(
         results,
