@@ -686,7 +686,7 @@ def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, cla
         elif trans_datasource == 'ELASTiCC (v2.1)':
             topic_name = 'ftransfer_elasticc_v2p1_{}_{}'.format(d.date().isoformat(), d.microsecond)
             fn = 'assets/spark_elasticc_transfer.py'
-            basepath = '/user/julien.peloton/elasticc_training_v2_partitioned'
+            basepath = '/user/julien.peloton/elasticc_training_v2p1_partitioned'
         filename = 'stream_{}.py'.format(topic_name)
 
         with open(fn, 'r') as f:
