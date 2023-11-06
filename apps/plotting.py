@@ -1016,7 +1016,6 @@ def draw_lightcurve_preview(name) -> dict:
     """
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:candid'
     ]
     r = requests.post(
       '{}/api/v1/objects'.format(APIURL),
@@ -1028,7 +1027,6 @@ def draw_lightcurve_preview(name) -> dict:
       }
     )
     pdf_ = pd.read_json(r.content)
-    pdf = pdf_.loc[:, cols]
 
     # Mask upper-limits (but keep measurements with bad quality)
     mag_ = pdf['i:magpsf']
@@ -1633,6 +1631,7 @@ def draw_cutouts_quickview(name):
         try:
             # transfer only necessary columns
             cols = [
+                'i:objectId',
                 'i:jd',
                 'b:cutout{}_stampData'.format(kind.capitalize()),
             ]
