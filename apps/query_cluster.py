@@ -47,6 +47,10 @@ elasticc_v2_classes = pd.read_csv('assets/elasticc_v2_classes.csv')
 elasticc_v2_dates = pd.read_csv('assets/elasticc_v2_dates.csv')
 elasticc_v2_dates['date'] = elasticc_v2_dates['date'].astype('str')
 
+elasticc_v2p1_classes = pd.read_csv('assets/elasticc_v2p1_classes.csv')
+elasticc_v2p1_dates = pd.read_csv('assets/elasticc_v2p1_dates.csv')
+elasticc_v2p1_dates['date'] = elasticc_v2p1_dates['date'].astype('str')
+
 coeffs_per_class = pd.read_parquet('assets/fclass_2022_060708_coeffs.parquet')
 
 @app.callback(
@@ -259,12 +263,31 @@ def display_filter_tab(trans_datasource):
                 dmc.Radio(label=l, value=k, size='sm', color='orange')
                 for l, k in zip(labels, values)
             ]
-        elif trans_datasource == 'ELASTiCC (v2)':
+        elif trans_datasource == 'ELASTiCC (v2.0)':
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
             data_class_select = [
                 {'label': 'All classes', 'value': 'allclasses'},
                 *[{'label': str(simtype), 'value': simtype} for simtype in sorted(elasticc_v2_classes['classId'].values)],
+            ]
+            description = [
+                "One condition per line (SQL syntax), ending with semi-colon. See ",
+                dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
+                " for field description.",
+            ]
+            placeholder = "e.g. diaSource.psFlux > 0.0;"
+            labels = ["Full packet (~1.4 KB/alert)"]
+            values = ['Full packet']
+            data_content = [
+                dmc.Radio(label=l, value=k, size='sm', color='orange')
+                for l, k in zip(labels, values)
+            ]
+        elif trans_datasource == 'ELASTiCC (v2.1)':
+            minDate = date(2023, 11, 27)
+            maxDate = date(2026, 12, 5)
+            data_class_select = [
+                {'label': 'All classes', 'value': 'allclasses'},
+                *[{'label': str(simtype), 'value': simtype} for simtype in sorted(elasticc_v2p1_classes['classId'].values)],
             ]
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
@@ -457,8 +480,11 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         elif trans_datasource == 'ELASTiCC (v1)':
             total, count = estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_v1_dates, elasticc_v1_classes)
             sizeGb = estimate_size_gb_elasticc(trans_content)
-        elif trans_datasource == 'ELASTiCC (v2)':
+        elif trans_datasource == 'ELASTiCC (v2.0)':
             total, count = estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_v2_dates, elasticc_v2_classes)
+            sizeGb = estimate_size_gb_elasticc(trans_content)
+        elif trans_datasource == 'ELASTiCC (v2.1)':
+            total, count = estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_v2p1_dates, elasticc_v2p1_classes)
             sizeGb = estimate_size_gb_elasticc(trans_content)
 
         if count == 0:
@@ -653,10 +679,14 @@ def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, cla
             topic_name = 'ftransfer_elasticc_v1_{}_{}'.format(d.date().isoformat(), d.microsecond)
             fn = 'assets/spark_elasticc_transfer.py'
             basepath = '/user/julien.peloton/elasticc_curated_truth_int'
-        elif trans_datasource == 'ELASTiCC (v2)':
+        elif trans_datasource == 'ELASTiCC (v2.0)':
             topic_name = 'ftransfer_elasticc_v2_{}_{}'.format(d.date().isoformat(), d.microsecond)
             fn = 'assets/spark_elasticc_transfer.py'
             basepath = '/user/julien.peloton/elasticc-2023-training_v2'
+        elif trans_datasource == 'ELASTiCC (v2.1)':
+            topic_name = 'ftransfer_elasticc_v2p1_{}_{}'.format(d.date().isoformat(), d.microsecond)
+            fn = 'assets/spark_elasticc_transfer.py'
+            basepath = '/user/julien.peloton/elasticc_training_v2p1_partitioned'
         filename = 'stream_{}.py'.format(topic_name)
 
         with open(fn, 'r') as f:
@@ -732,7 +762,7 @@ def query_builder():
         [
             dmc.Divider(variant="solid", label='Data Source'),
             dmc.RadioGroup(
-                [dmc.Radio(k, value=k, size='sm', color='orange') for k in ['ZTF', 'ELASTiCC (v1)', 'ELASTiCC (v2)']],
+                [dmc.Radio(k, value=k, size='sm', color='orange') for k in ['ZTF', 'ELASTiCC (v1)', 'ELASTiCC (v2.0)', 'ELASTiCC (v2.1)']],
                 id="trans_datasource",
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
