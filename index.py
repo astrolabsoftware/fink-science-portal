@@ -25,11 +25,11 @@ from dash_iconify import DashIconify
 
 from app import server
 from app import app
-from app import client
 from app import APIURL
 
 from apps import summary, about, statistics, query_cluster, gw
 from apps.api import api
+from apps.client import connect_to_hbase_table
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
@@ -453,7 +453,9 @@ def display_table_results(table, is_mobile):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
+    client = connect_to_hbase_table('ztf')
     schema = client.schema()
+    client.close()
     schema_list = list(schema.columnNames())
     fink_fields = [i for i in schema_list if i.startswith('d:')]
     ztf_fields = [i for i in schema_list if i.startswith('i:')]

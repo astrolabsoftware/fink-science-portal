@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import io
-import java
 import gzip
 import yaml
 import requests
@@ -32,22 +31,16 @@ from astropy.time import Time, TimeDelta
 from astropy.io import fits, votable
 from astropy.table import Table
 
-from app import client
-from app import clientU, clientUV
-from app import clientP128
-from app import clientT, clientTNS, clientS, clientSSO, clientTRCK
-from app import clientSSOCAND, clientSSOORB
-from app import clientStats
-from app import clientANOMALY
-from app import clientTNSRESOL
-from app import clientMeta
-from app import nlimit
 from app import APIURL
+
+from apps.client import connect_to_hbase_table
 
 from apps.utils import get_miriade_data
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
+
+from apps.euclid.utils import load_euclid_header
 
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
@@ -96,8 +89,10 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
     else:
         truncated = True
 
+    client = connect_to_hbase_table('ztf')
+
     # Get data from the main table
-    results = java.util.TreeMap()
+    results = {}
     for to_evaluate in objectids:
         result = client.scan(
             "",
@@ -105,12 +100,9 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             cols,
             0, True, True
         )
-        results.putAll(result)
+        results.update(result)
 
     schema_client = client.schema()
-
-    # reset the limit in case it has been changed above
-    client.setLimit(nlimit)
 
     pdf = format_hbase_output(
         results, schema_client, group_alerts=False, truncated=truncated
@@ -120,8 +112,9 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
         pdf = extract_cutouts(pdf, client)
 
     if withupperlim:
+        clientU = connect_to_hbase_table('ztf.upper')
         # upper limits
-        resultsU = java.util.TreeMap()
+        resultsU = {}
         for to_evaluate in objectids:
             resultU = clientU.scan(
                 "",
@@ -129,10 +122,11 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 "*",
                 0, False, False
             )
-            resultsU.putAll(resultU)
+            resultsU.update(resultU)
 
         # bad quality
-        resultsUP = java.util.TreeMap()
+        clientUV = connect_to_hbase_table('ztf.uppervalid')
+        resultsUP = {}
         for to_evaluate in objectids:
             resultUP = clientUV.scan(
                 "",
@@ -140,7 +134,7 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 "*",
                 0, False, False
             )
-            resultsUP.putAll(resultUP)
+            resultsUP.update(resultUP)
 
         pdfU = pd.DataFrame.from_dict(resultsU, orient='index')
         pdfUP = pd.DataFrame.from_dict(resultsUP, orient='index')
@@ -163,6 +157,11 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
         else:
             pdf = pdf_
 
+        clientU.close()
+        clientUV.close()
+
+    client.close()
+
     return pdf
 
 def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
@@ -181,7 +180,8 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     """
     truncated = False
     if user_group == 0:
-        results = java.util.TreeMap()
+        client = connect_to_hbase_table('ztf')
+        results = {}
         for oid in payload['objectId'].split(','):
             # objectId search
             to_evaluate = "key:key:{}".format(oid.strip())
@@ -191,13 +191,11 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 "*",
                 0, True, True
             )
-            results.putAll(result)
-
-        # reset the limit in case it has been changed above
-        client.setLimit(nlimit)
+            results.update(result)
 
         schema_client = client.schema()
     if user_group == 1:
+        client = connect_to_hbase_table('ztf.pixel128')
         # Interpret user input
         ra, dec = payload['ra'], payload['dec']
         radius = payload['radius']
@@ -249,7 +247,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
             inclusive=True
         )
 
-        # For the future: we could set clientP_.setRangeScan(True)
+        # For the future: we could set client.setRangeScan(True)
         # and pass directly the time boundaries here instead of
         # grouping by later.
 
@@ -263,33 +261,35 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 jdstart = Time(startdate, format='mjd').jd
             jdend = jdstart + window_days
 
-            clientP128.setRangeScan(True)
-            results = java.util.TreeMap()
+            client.setRangeScan(True)
+            results = {}
             for pix in pixs:
                 to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
-                result = clientP128.scan(
+                result = client.scan(
                     "",
                     to_search,
                     "*",
                     0, True, True
                 )
-                results.putAll(result)
-            clientP128.setRangeScan(False)
+                results.update(result)
+            client.setRangeScan(False)
         else:
-            results = java.util.TreeMap()
+            client = connect_to_hbase_table('ztf.pixel128')
+            results = {}
             for pix in pixs:
                 to_search = "key:key:{}".format(pix)
-                result = clientP128.scan(
+                result = client.scan(
                     "",
                     to_search,
                     "*",
                     0, True, True
                 )
-                results.putAll(result)
+                results.update(result)
 
-        schema_client = clientP128.schema()
+        schema_client = client.schema()
         truncated = True
     elif user_group == 2:
+        client = connect_to_hbase_table('ztf.jd')
         if int(payload['window']) > 180:
             rep = {
                 'status': 'error',
@@ -301,18 +301,17 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
         jd_end = jd_start + TimeDelta(int(payload['window']) * 60, format='sec').jd
 
         # Send the request. RangeScan.
-        clientT.setRangeScan(True)
+        client.setRangeScan(True)
         to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_end)
-        results = clientT.scan(
+        results = client.scan(
             "",
             to_evaluate,
             "*",
             0, True, True
         )
-        schema_client = clientT.schema()
+        schema_client = client.schema()
 
-    # reset the limit in case it has been changed above
-    client.setLimit(nlimit)
+    client.close()
 
     pdfs = format_hbase_output(
         results,
@@ -391,12 +390,13 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
     is_tns = payload['class'].startswith('(TNS)') and (payload['class'].split('(TNS) ')[1] in tns_classes)
     if is_tns:
+        client = connect_to_hbase_table('ztf.tns')
         classname = payload['class'].split('(TNS) ')[1]
-        clientTNS.setLimit(nalerts)
-        clientTNS.setRangeScan(True)
-        clientTNS.setReversed(True)
+        client.setLimit(nalerts)
+        client.setRangeScan(True)
+        client.setReversed(True)
 
-        results = clientTNS.scan(
+        results = client.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
                 classname,
@@ -406,20 +406,21 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
             ),
             cols, 0, True, True
         )
-        schema_client = clientTNS.schema()
+        schema_client = client.schema()
         group_alerts = True
-        clientTNS.setLimit(nlimit)
     elif payload['class'].startswith('(SIMBAD)') or payload['class'] != 'allclasses':
         if payload['class'].startswith('(SIMBAD)'):
             classname = payload['class'].split('(SIMBAD) ')[1]
         else:
             classname = payload['class']
 
-        clientS.setLimit(nalerts)
-        clientS.setRangeScan(True)
-        clientS.setReversed(True)
+        client = connect_to_hbase_table('ztf.class')
 
-        results = clientS.scan(
+        client.setLimit(nalerts)
+        client.setRangeScan(True)
+        client.setReversed(True)
+
+        results = client.scan(
             "",
             "key:key:{}_{},key:key:{}_{}".format(
                 classname,
@@ -429,26 +430,25 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
             ),
             cols, 0, False, False
         )
-        schema_client = clientS.schema()
+        schema_client = client.schema()
         group_alerts = False
-        clientS.setLimit(nlimit)
     elif payload['class'] == 'allclasses':
-        clientT.setLimit(nalerts)
-        clientT.setRangeScan(True)
-        clientT.setReversed(True)
+        client = connect_to_hbase_table('ztf.jd')
+        client.setLimit(nalerts)
+        client.setRangeScan(True)
+        client.setReversed(True)
 
         to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
-        results = clientT.scan(
+        results = client.scan(
             "",
             to_evaluate,
             cols,
             0, True, True
         )
-        schema_client = clientT.schema()
+        schema_client = client.schema()
         group_alerts = False
 
-        # Restore default limits
-        clientT.setLimit(nlimit)
+    client.close()
 
     if return_raw:
         return results
@@ -501,20 +501,21 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         names = ["key:key:{}_".format(payload['n_or_d'].replace(' ', ''))]
 
     # Get data from the main table
-    results = java.util.TreeMap()
+    client = connect_to_hbase_table('ztf.ssnamenr')
+    results = {}
     for to_evaluate in names:
-        result = clientSSO.scan(
+        result = client.scan(
             "",
             to_evaluate,
             cols,
             0, True, True
         )
-        results.putAll(result)
+        results.update(result)
 
-    schema_client = clientSSO.schema()
+    schema_client = client.schema()
 
     # reset the limit in case it has been changed above
-    clientSSO.setLimit(nlimit)
+    client.close()
 
     pdf = format_hbase_output(
         results,
@@ -554,14 +555,14 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     payload_name = payload['kind']
 
     if payload_name == 'orbParams':
-        gen_client = clientSSOORB
+        gen_client = connect_to_hbase_table('ztf.orb_cand')
 
         if trajectory_id is not None:
             to_evaluate = "key:key:cand_{}".format(trajectory_id)
         else:
             to_evaluate = "key:key:cand_"
     elif payload_name == 'lightcurves':
-        gen_client = clientSSOCAND
+        gen_client = connect_to_hbase_table('ztf.sso_cand')
 
         if 'start_date' in payload:
             start_date = Time(payload['start_date'], format='iso').jd
@@ -588,10 +589,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     )
 
     schema_client = gen_client.schema()
-
-    # reset the limit in case it has been changed above
-    gen_client.setLimit(nlimit)
-    gen_client.setEvaluation("")
+    gen_client.close()
 
     if results.isEmpty():
         return pd.DataFrame({})
@@ -647,17 +645,18 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
     # Note the trailing _
     to_evaluate = "key:key:{}".format(payload_name)
 
-    results = clientTRCK.scan(
+    client = connect_to_hbase_table('ztf.tracklet')
+    results = client.scan(
         "",
         to_evaluate,
         cols,
         0, True, True
     )
 
-    schema_client = clientTRCK.schema()
+    schema_client = client.schema()
 
     # reset the limit in case it has been changed above
-    clientTRCK.setLimit(nlimit)
+    client.close()
 
     pdf = format_hbase_output(
         results,
@@ -705,6 +704,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         filename = filename + '.fits'
 
     # Query the Database (object query)
+    client = connect_to_hbase_table('ztf')
     results = client.scan(
         "",
         "key:key:{}".format(payload['objectId']),
@@ -714,6 +714,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
 
     # Format the results
     schema_client = client.schema()
+
     pdf = format_hbase_output(
         results, schema_client,
         group_alerts=False,
@@ -750,6 +751,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             col='b:cutout{}_stampData'.format(payload['kind']),
             return_type='array'
         )
+    client.close()
 
     array = pdf['b:cutout{}_stampData'.format(payload['kind'])].values[0]
 
@@ -997,20 +999,21 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     jdstart = Time(header['DATE-OBS']).jd - n_day_min
     jdend = jdstart + n_day_max
 
-    clientP128.setRangeScan(True)
-    results = java.util.TreeMap()
+    client = connect_to_hbase_table('ztf.pixel128')
+    client.setRangeScan(True)
+    results = {}
     for pix in pixs:
         to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
-        result = clientP128.scan(
+        result = client.scan(
             "",
             to_search,
             "*",
             0, True, True
         )
-        results.putAll(result)
+        results.update(result)
 
-    clientP128.setRangeScan(False)
-    schema_client = clientP128.schema()
+    schema_client = client.schema()
+    client.close()
 
     pdfs = format_hbase_output(
         results,
@@ -1053,12 +1056,14 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
 
     to_evaluate = "key:key:ztf_{}".format(payload_date)
 
-    results = clientStats.scan(
+    client = connect_to_hbase_table('statistics_class')
+    results = client.scan(
         "",
         to_evaluate,
         cols,
         0, True, True
     )
+    client.close()
 
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
@@ -1129,9 +1134,10 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
         np.random.seed(int(payload['seed']))
 
     # logic
+    client = connect_to_hbase_table('ztf.jd')
     results = []
-    clientT.setLimit(1000)
-    clientT.setRangeScan(True)
+    client.setLimit(1000)
+    client.setRangeScan(True)
 
     jd_low = Time('2019-11-02 03:00:00.0').jd
     jd_high = Time.now().jd
@@ -1154,7 +1160,7 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             }
             results = return_latests_pdf(payload_data, return_raw=True)
         else:
-            results = clientT.scan(
+            results = client.scan(
                 "",
                 "key:key:{},key:key:{}".format(jdstart, jdstop),
                 "", 0, False, False
@@ -1165,10 +1171,12 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
 
     index_oid = np.random.randint(0, len(oids), number)
     oid = oids[index_oid]
+    client.close()
 
+    client = connect_to_hbase_table('ztf')
     client.setLimit(2000)
     # Get data from the main table
-    results = java.util.TreeMap()
+    results = {}
     for oid_ in oid:
         result = client.scan(
             "",
@@ -1176,14 +1184,13 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             "{}".format(cols),
             0, False, False
         )
-        results.putAll(result)
+        results.update(result)
 
     pdf = format_hbase_output(
         results, client.schema(), group_alerts=False, truncated=truncated
     )
 
-    clientT.setLimit(nlimit)
-    client.setLimit(nlimit)
+    client.close()
 
     return pdf
 
@@ -1228,21 +1235,20 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     else:
         truncated = True
 
-    clientANOMALY.setLimit(nalerts)
-    clientANOMALY.setRangeScan(True)
-    clientANOMALY.setReversed(True)
+    client = connect_to_hbase_table('ztf.anomaly')
+    client.setLimit(nalerts)
+    client.setRangeScan(True)
+    client.setReversed(True)
 
     to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
-    results = clientANOMALY.scan(
+    results = client.scan(
         "",
         to_evaluate,
         cols,
         0, True, True
     )
-    schema_client = clientANOMALY.schema()
-
-    # Restore default limits
-    clientANOMALY.setLimit(nlimit)
+    schema_client = client.schema()
+    client.close()
 
     # We want to return alerts
     # color computation is disabled
@@ -1353,9 +1359,10 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             reverse = True
 
     if resolver == 'tns':
+        client = connect_to_hbase_table('ztf.tns_resolver')
         if name == "":
             # return the full table
-            results = clientTNSRESOL.scan(
+            results = client.scan(
                 "",
                 "",
                 "*",
@@ -1363,10 +1370,10 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             )
         else:
             # TNS poll -- take the first nmax occurences
-            clientTNSRESOL.setLimit(nmax)
+            client.setLimit(nmax)
             if reverse:
                 to_evaluate = "d:internalname:{}".format(name)
-                results = clientTNSRESOL.scan(
+                results = client.scan(
                     "",
                     to_evaluate,
                     "*",
@@ -1374,18 +1381,19 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 )
             else:
                 to_evaluate = "key:key:{}".format(name)
-                results = clientTNSRESOL.scan(
+                results = client.scan(
                     "",
                     to_evaluate,
                     "*",
                     0, False, False
                 )
 
-            # Restore default limits
-            clientTNSRESOL.setLimit(nlimit)
+        # Restore default limits
+        client.close()
 
         pdfs = pd.DataFrame.from_dict(results, orient='index')
     elif resolver == 'simbad':
+        client = connect_to_hbase_table('ztf')
         if reverse:
             to_evaluate = "key:key:{}".format(name)
             client.setLimit(nmax)
@@ -1395,7 +1403,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "i:objectId,d:cdsxmatch,i:ra,i:dec",
                 0, False, False
             )
-            client.setLimit(nlimit)
+            client.close()
             pdfs = pd.DataFrame.from_dict(results, orient='index')
         else:
             r = requests.get(
@@ -1408,6 +1416,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             else:
                 pdfs = pd.DataFrame()
     elif resolver == 'ssodnet':
+        client = connect_to_hbase_table('ztf')
         if reverse:
             to_evaluate = "key:key:{}".format(name)
             client.setLimit(nmax)
@@ -1417,7 +1426,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "i:objectId,i:ssnamenr",
                 0, False, False
             )
-            client.setLimit(nlimit)
+            client.close()
             pdfs = pd.DataFrame.from_dict(results, orient='index')
         else:
             r = requests.get(
@@ -1448,78 +1457,29 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     """
     # Interpret user input
     data = payload['payload']
+    pipeline_name = payload['pipeline'].lower()
 
-    if payload['pipeline'].lower() == 'ssopipe':
-        HEADER = [
-            'INDEX',
-            'RA',
-            'DEC',
-            'PROP_MOT',
-            'N_DET',
-            'CATALOG',
-            'X_WORLD',
-            'Y_WORLD',
-            'ERRA_WORLD',
-            'ERRB_WORLD',
-            'FLUX_AUTO',
-            'FLUXERR_AUTO',
-            'MAG_AUTO',
-            'MAGERR_AUTO',
-            'ELONGATION',
-            'ELLIPTICITY',
-            'MJD'
-        ]
-
-    elif payload['pipeline'].lower() == 'streakdet':
-        HEADER = [
-            'Obj_id',
-            'Dither',
-            'NDet',
-            'RA_middle',
-            'DEC_middle',
-            'RA_start',
-            'DEC_start',
-            'RA_end',
-            'DEC_end',
-            'MJD_middle',
-            'MJD_start',
-            'MJD_end',
-            'FLUX_AUTO',
-            'MAG_AUTO'
-        ]
-
-    elif payload['pipeline'].lower() == 'dl':
-        HEADER = [
-            'Obj_id',
-            'Dither',
-            'NDet',
-            'RA_middle',
-            'DEC_middle',
-            'RA_start',
-            'DEC_start',
-            'RA_end',
-            'DEC_end',
-            'MJD_middle',
-            'MJD_start',
-            'MJD_end',
-            'FLUX_AUTO',
-            'MAG_AUTO',
-            'Score'
-        ]
+    header = load_euclid_header(pipeline_name)
+    euclid_header = header.keys()
 
     pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
 
     # BUG: look for element-wise comparison method
-    if ~np.all(pdf.columns == np.array(HEADER)):
-          missingfields = [field for field in HEADER if field not in pdf.columns]
-          newfields = [field for field in pdf.columns if field not in HEADER]
+    if ~np.all(pdf.columns == np.array(euclid_header)):
+          missingfields = [field for field in euclid_header if field not in pdf.columns]
+          newfields = [field for field in pdf.columns if field not in euclid_header]
           msg = """
           WARNING: we detected a change in the schema.
           Missing fields: {}
           New fields: {}
           """.format(missingfields, newfields)
     else:
-          msg = 'Uploaded!'
+        # add a column with the name of the pipeline
+        pdf['pipeline'] = pipeline_name
+
+
+
+        msg = 'Uploaded!'
 
     return Response(
         '{} - {} - {} - {} - {}'.format(
@@ -1534,8 +1494,9 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
 def post_metadata(payload: dict) -> Response:
     """ Upload metadata in Fink
     """
+    client = connect_to_hbase_table('ztf.metadata')
     encoded = payload['internal_name'].replace(' ', '')
-    clientMeta.put(
+    client.put(
         payload['objectId'].strip(),
         [
             'd:internal_name:{}'.format(payload['internal_name']),
@@ -1544,6 +1505,7 @@ def post_metadata(payload: dict) -> Response:
             'd:username:{}'.format(payload['username'])
         ]
     )
+    client.close()
 
     return Response(
         'Thanks {} - You can visit {}/{}'.format(
@@ -1556,27 +1518,30 @@ def post_metadata(payload: dict) -> Response:
 def retrieve_metadata(objectId: str) -> pd.DataFrame:
     """ Retrieve metadata in Fink given a ZTF object ID
     """
+    client = connect_to_hbase_table('ztf.metadata')
     to_evaluate = "key:key:{}".format(objectId)
-    results = clientMeta.scan(
+    results = client.scan(
         "",
         to_evaluate,
         "*",
         0, False, False
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
-
+    client.close()
     return pdf
 
 def retrieve_oid(metaname: str, field: str) -> pd.DataFrame:
     """ Retrieve a ZTF object ID given metadata in Fink
     """
+    client = connect_to_hbase_table('ztf.metadata')
     to_evaluate = "d:{}:{}:exact".format(field, metaname)
-    results = clientMeta.scan(
+    results = client.scan(
         "",
         to_evaluate,
         "*",
         0, True, True
     )
     pdf = pd.DataFrame.from_dict(results, orient='index')
+    client.close()
 
     return pdf

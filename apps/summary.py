@@ -28,7 +28,9 @@ import requests
 
 import rocks
 
-from app import app, client, clientU, clientUV, clientSSO, clientTRCK
+from app import app
+
+from apps.client import connect_to_hbase_table
 
 from apps.supernovae.cards import card_sn_scores
 from apps.varstars.cards import card_explanation_variable, card_variable_button
@@ -37,7 +39,7 @@ from apps.mulens.cards import card_mulens_button
 from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
-from apps.cards import card_id1
+from apps.cards import card_id
 from apps.cards import create_external_links, create_external_links_brokers
 
 from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
@@ -59,7 +61,7 @@ from app import APIURL
 
 dcc.Location(id='url', refresh=False)
 
-def tab1_content(extra_div):
+def tab1_content(pdf, extra_div):
     """ Summary tab
     """
     tab1_content_ = html.Div([
@@ -81,7 +83,7 @@ def tab1_content(extra_div):
         ),
         dbc.Row([
             dbc.Col([extra_div, card_lightcurve_summary()], width=8),
-            dbc.Col(id="card_id_col", width=4)
+            dbc.Col(card_id(pdf), width=4)
         ]),
     ])
 
@@ -460,7 +462,7 @@ def tabs(pdf, is_mobile):
                         dmc.Tab("GRB", value="GRB", disabled=True)
                     ], position='right'
                 ),
-                dmc.TabsPanel(tab1_content(extra_div), value="Summary"),
+                dmc.TabsPanel(tab1_content(pdf, extra_div), value="Summary"),
                 dmc.TabsPanel(tab2_content(), value="Supernovae"),
                 dmc.TabsPanel(tab3_content(), value="Variable stars"),
                 dmc.TabsPanel(tab4_content(), value="Microlensing"),
@@ -667,19 +669,26 @@ def store_query(name):
             raise PreventUpdate
     else:
         oid = name[1:]
+    client = connect_to_hbase_table('ztf')
     results = client.scan("", "key:key:{}".format(oid), "*", 0, True, True)
     schema_client = client.schema()
     pdfs = format_hbase_output(results, schema_client, group_alerts=False)
+    client.close()
 
+    clientU = connect_to_hbase_table('ztf.upper')
     uppers = clientU.scan("", "key:key:{}".format(oid), "*", 0, True, True)
     pdfsU = pd.DataFrame.from_dict(uppers, orient='index')
+    clientU.close()
 
+    clientUV = connect_to_hbase_table('ztf.uppervalid')
     uppersV = clientUV.scan("", "key:key:{}".format(oid), "*", 0, True, True)
     pdfsUV = pd.DataFrame.from_dict(uppersV, orient='index')
+    clientUV.close()
 
     payload = pdfs['i:ssnamenr'].values[0]
     is_sso = np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values])
     if str(payload) != 'null' and is_sso:
+        clientSSO = connect_to_hbase_table('ztf.ssnamenr')
         results = clientSSO.scan(
             "",
             "key:key:{}_".format(payload),
@@ -691,6 +700,7 @@ def store_query(name):
             results, schema_client_sso,
             group_alerts=False, truncated=False, extract_color=False
         )
+        clientSSO.close()
 
         if pdfsso.empty:
             # This can happen for SSO candidate with a ssnamenr
@@ -707,6 +717,7 @@ def store_query(name):
     payload = pdfs['d:tracklet'].values[0]
 
     if str(payload).startswith('TRCK'):
+        clientTRCK = connect_to_hbase_table('ztf.tracklet')
         results = clientTRCK.scan(
             "",
             "key:key:{}".format(payload),
@@ -718,6 +729,7 @@ def store_query(name):
             results, schema_client_tracklet,
             group_alerts=False, truncated=False, extract_color=False
         )
+        clientTRCK.close()
     else:
         pdftracklet = pd.DataFrame()
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json(), pdftracklet.to_json()

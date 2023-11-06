@@ -289,15 +289,15 @@ def create_external_links_brokers(objectId):
     )
     return buttons
 
-@app.callback(
-    Output('card_id_col', 'children'),
-    [
-        Input('object-data', 'children'),
-    ])
-def card_id(object_data):
+# @app.callback(
+#     Output('card_id_col', 'children'),
+#     [
+#         Input('object-data', 'children'),
+#     ])
+def card_id(pdf):
     """ Add a card containing basic alert data
     """
-    pdf = pd.read_json(object_data)
+    # pdf = pd.read_json(object_data)
     objectid = pdf['i:objectId'].values[0]
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
