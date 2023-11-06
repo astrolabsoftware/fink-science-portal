@@ -3066,7 +3066,7 @@ def plot_stat_evolution(pathname, param_name, switch):
     else:
         param_name_ = param_name
 
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3414,7 +3414,7 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
 def hist_sci_raw(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3456,7 +3456,7 @@ def hist_sci_raw(pathname, dropdown_days):
 def hist_catalogued(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3500,7 +3500,7 @@ def hist_catalogued(pathname, dropdown_days):
 def hist_classified(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3547,7 +3547,7 @@ def hist_classified(pathname, dropdown_days):
 def hist_candidates(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
@@ -3594,7 +3594,7 @@ def hist_candidates(pathname, dropdown_days):
 def fields_exposures(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('ztf.statistics_class')
+    clientStats = connect_to_hbase_table('statistics_class')
     results = clientStats.scan(
         "",
         "key:key:ztf_",
