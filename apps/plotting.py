@@ -1026,7 +1026,7 @@ def draw_lightcurve_preview(name) -> dict:
         'output-format': 'json'
       }
     )
-    pdf_ = pd.read_json(r.content)
+    pdf = pd.read_json(r.content)
 
     # Mask upper-limits (but keep measurements with bad quality)
     mag_ = pdf['i:magpsf']
