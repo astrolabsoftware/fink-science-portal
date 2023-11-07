@@ -119,7 +119,7 @@ def add_columns(pdf, pipeline: str, version: str, date: int, eid: str):
     pdf['pipeline'] = pipeline
     pdf['version'] = version
     pdf['date'] = date
-    pdf['eid'] = eid
+    pdf['EID'] = eid
 
     return pdf
 
