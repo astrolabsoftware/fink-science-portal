@@ -156,7 +156,9 @@ def check_header(pdf, euclid_header):
     euclid_header: list
         List of column names for a given pipeline
     """
-    if ~np.all(pdf.columns == np.array(euclid_header)):
+    cols1 = np.sort(pdf.columns)
+    cols2 = np.sort(euclid_header)
+    if ~np.all(cols1 == cols2):
         missingfields = [field for field in euclid_header if field not in pdf.columns]
         newfields = [field for field in pdf.columns if field not in euclid_header]
         msg = """
