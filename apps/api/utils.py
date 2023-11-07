@@ -1469,7 +1469,7 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     header = load_euclid_header(pipeline_name)
     euclid_header = header.keys()
 
-    msg = check_header(pdf, euclid_header)
+    msg = check_header(pdf, list(euclid_header))
     if msg != 'ok':
         return Response(msg, 400)
 
