@@ -95,7 +95,7 @@ def load_euclid_header(pipeline=None):
 
     return HEADER
 
-def add_columns(pdf, header, pipeline: str, version: str, date: int, eid: str):
+def add_columns(pdf, pipeline: str, version: str, date: int, eid: str):
     """ Add Fink based column names to an incoming Euclid dataFrame
 
     Parameters
