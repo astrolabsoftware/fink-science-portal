@@ -95,15 +95,13 @@ def load_euclid_header(pipeline=None):
 
     return HEADER
 
-def add_columns_and_update_schema(pdf, header, pipeline: str, version: str, date: int, eid: str):
-    """ Format column names of an incoming Euclid dataFrame
+def add_columns(pdf, header, pipeline: str, version: str, date: int, eid: str):
+    """ Add Fink based column names to an incoming Euclid dataFrame
 
     Parameters
     ----------
     pdf: pd.DataFrame
         Incoming data from Euclid
-    header: dict
-        Keys are Euclid pipeline names, values are column types
     pipeline: str
         Name of the pipeline: ssopipe, streakdet, dl
     version: str
@@ -116,7 +114,6 @@ def add_columns_and_update_schema(pdf, header, pipeline: str, version: str, date
     Returns
     ----------
     pdf: pd.DataFrame
-    header: dict
     """
     # add a column with the name of the pipeline
     pdf['pipeline'] = pipeline
@@ -124,7 +121,7 @@ def add_columns_and_update_schema(pdf, header, pipeline: str, version: str, date
     pdf['date'] = date
     pdf['eid'] = eid
 
-    return pdf, header
+    return pdf
 
 def compute_rowkey(row: dict):
     """ Compute the row key based on a formatted dataframe
