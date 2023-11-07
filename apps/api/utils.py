@@ -1484,7 +1484,7 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     )
 
     # Push data in the HBase table
-    client = connect_to_hbase_table('euclid_sso')
+    client = connect_to_hbase_table('euclid_sso', schema_name='schema_{}'.format(pipeline_name))
     for _, row in pdf.iterrows():
         # Compute the row key
         rowkey = compute_rowkey(row)
