@@ -41,6 +41,9 @@ from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
 
 from apps.euclid.utils import load_euclid_header
+from apps.euclid.utils import add_columns_and_update_schema
+from apps.euclid.utils import compute_rowkey
+from apps.euclid.utils import check_header
 
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
@@ -1459,35 +1462,48 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     data = payload['payload']
     pipeline_name = payload['pipeline'].lower()
 
+    # Read data into pandas DataFrame
+    pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
+
+    # Load official headers for HBase
     header = load_euclid_header(pipeline_name)
     euclid_header = header.keys()
 
-    pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
+    msg = check_header(pdf, euclid_header)
+    if msg != 'ok':
+        return Response(msg, 400)
 
-    # BUG: look for element-wise comparison method
-    if ~np.all(pdf.columns == np.array(euclid_header)):
-          missingfields = [field for field in euclid_header if field not in pdf.columns]
-          newfields = [field for field in pdf.columns if field not in euclid_header]
-          msg = """
-          WARNING: we detected a change in the schema.
-          Missing fields: {}
-          New fields: {}
-          """.format(missingfields, newfields)
-    else:
-        # add a column with the name of the pipeline
-        pdf['pipeline'] = pipeline_name
+    # Add columns, and update the header
+    pdf = add_columns_and_update_schema(
+        pdf,
+        header,
+        pipeline_name,
+        payload['version'],
+        payload['date'],
+        payload['EID']
+    )
 
+    # Push data in the HBase table
+    client = connect_to_hbase_table('euclid_sso')
+    for _, row in pdf.iterrows():
+        # Compute the row key
+        rowkey = compute_rowkey(row)
 
+        # Compute the payload
+        out = ['d:{}:{}'.format(name, value) for name, value in row.items()]
 
-        msg = 'Uploaded!'
+        client.put(
+            rowkey,
+            out
+        )
+    client.close()
 
     return Response(
-        '{} - {} - {} - {} - {}'.format(
+        '{} - {} - {} - {} - Uploaded!'.format(
             payload['EID'],
             payload['pipeline'],
             payload['version'],
             payload['date'],
-            msg
         ), 200
     )
 
