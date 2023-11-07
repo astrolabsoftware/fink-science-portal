@@ -1465,6 +1465,15 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     # Read data into pandas DataFrame
     pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
 
+    # Add Fink defined columns
+    pdf = add_columns(
+        pdf,
+        pipeline_name,
+        payload['version'],
+        payload['date'],
+        payload['EID']
+    )
+
     # Load official headers for HBase
     header = load_euclid_header(pipeline_name)
     euclid_header = header.keys()
@@ -1472,16 +1481,6 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     msg = check_header(pdf, list(euclid_header))
     if msg != 'ok':
         return Response(msg, 400)
-
-    # Add columns, and update the header
-    pdf = add_columns_and_update_schema(
-        pdf,
-        header,
-        pipeline_name,
-        payload['version'],
-        payload['date'],
-        payload['EID']
-    )
 
     # Push data in the HBase table
     client = connect_to_hbase_table('euclid_sso', schema_name='schema_{}'.format(pipeline_name))

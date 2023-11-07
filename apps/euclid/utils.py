@@ -87,6 +87,12 @@ def load_euclid_header(pipeline=None):
         print('Pipeline name {} not understood'.format(pipeline))
         HEADER = {}
 
+    # Fink added columns
+    HEADER.update({'pipeline': 'string'})
+    HEADER.update({'version': 'string'})
+    HEADER.update({'date': 'int'})
+    HEADER.update({'EID': 'string'})
+
     return HEADER
 
 def add_columns_and_update_schema(pdf, header, pipeline: str, version: str, date: int, eid: str):
@@ -117,11 +123,6 @@ def add_columns_and_update_schema(pdf, header, pipeline: str, version: str, date
     pdf['version'] = version
     pdf['date'] = date
     pdf['eid'] = eid
-
-    header.update({'pipeline': 'string'})
-    header.update({'version': 'string'})
-    header.update({'date': 'int'})
-    header.update({'EID': 'string'})
 
     return pdf, header
 
