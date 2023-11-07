@@ -135,7 +135,7 @@ def compute_rowkey(row: dict):
     eid: str
         Unique ID for a detection
     """
-    if pipeline == 'ssopipe':
+    if row['pipeline'] == 'ssopipe':
         t0 = row['MJD']
     else:
         t0 = row['MJD_start']
