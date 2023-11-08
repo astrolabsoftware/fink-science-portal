@@ -1486,10 +1486,7 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     client = connect_to_hbase_table('euclid.in', schema_name='schema_{}'.format(pipeline_name))
     for index, row in pdf.iterrows():
         # Compute the row key
-        rowkey = compute_rowkey(row)
-
-        # Hack to make the rowkey truly unique
-        rowkey += '_{}'.format(index)
+        rowkey = compute_rowkey(row, index)
 
         # Compute the payload
         out = ['d:{}:{}'.format(name, value) for name, value in row.items()]

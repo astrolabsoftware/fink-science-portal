@@ -123,24 +123,22 @@ def add_columns(pdf, pipeline: str, version: str, date: int, eid: str):
 
     return pdf
 
-def compute_rowkey(row: dict):
+def compute_rowkey(row: dict, index: int):
     """ Compute the row key based on a formatted dataframe
 
     Parameters
     ----------
-    pdf: pd.DataFrame
-        Euclid dataFrame formatted (see `format_incoming_dataframe`)
-    pipeline: str
-        Name of the pipeline: ssopipe, streakdet, dl
-    eid: str
-        Unique ID for a detection
-    """
-    if row['pipeline'] == 'ssopipe':
-        t0 = row['MJD']
-    else:
-        t0 = row['MJD_start']
+    row: dict
+        Row of the Euclid dataframe
+    index: int
+        Index of the row
 
-    rowkey = '{}_{}_{}'.format(row['pipeline'], t0, row['EID'])
+    Returns
+    ----------
+    rowkey: string
+        <pipeline>_<date>_<EID>_<index>
+    """
+    rowkey = '{}_{}_{}_{}'.format(row['pipeline'], row['date'], row['EID'], index)
 
     return rowkey
 
