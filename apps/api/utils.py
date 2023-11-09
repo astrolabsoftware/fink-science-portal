@@ -1534,7 +1534,14 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
     else:
         cols = '*'
 
-    client = connect_to_hbase_table('euclid.in', schema_name='schema_{}'.format(pipeline))
+    # Push data in the HBase table
+    mode = payload.get('mode', 'production')
+    if mode == 'production':
+        table = 'euclid.in'
+    elif mode == 'sandbox':
+        table = 'euclid.test'
+
+    client = connect_to_hbase_table(table, schema_name='schema_{}'.format(pipeline))
 
     # TODO: put a regex instead?
     if ":" in payload['dates']:

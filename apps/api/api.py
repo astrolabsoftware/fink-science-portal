@@ -708,6 +708,11 @@ args_eucliddata = [
         'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
     },
     {
+        'name': 'mode',
+        'required': False,
+        'description': 'Execution mode among production[default], or sandbox. Choose sandbox if you just want to connect to the test table.'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet, votable'
