@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2023 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ from apps.api.utils import return_anomalous_objects_pdf
 from apps.api.utils import return_ssoft_pdf
 from apps.api.utils import return_resolver_pdf
 from apps.api.utils import upload_euclid_data
+from apps.api.utils import download_euclid_data
 from apps.api.utils import retrieve_metadata, post_metadata, retrieve_oid
 
 from fink_utils.xmatch.simbad import get_simbad_labels
@@ -682,6 +683,39 @@ args_euclidin = [
         'name': 'payload',
         'required': True,
         'description': 'Data file'
+    },
+    {
+        'name': 'mode',
+        'required': False,
+        'description': 'Execution mode among production[default], or sandbox. Choose sandbox if you just want to test the upload without touching the tables.'
+    },
+]
+
+args_eucliddata = [
+    {
+        'name': 'pipeline',
+        'required': True,
+        'description': '`SSOPipe`, `streakdet`, `DL`'
+    },
+    {
+        'name': 'dates',
+        'required': True,
+        'description': 'Observation dates. It can be a single date (YYYYMMDD), and range (YYYYMMDD:YYYYMMDD), or any superset (e.g. YYYY)'
+    },
+    {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
+        'name': 'mode',
+        'required': False,
+        'description': 'Execution mode among production[default], or sandbox. Choose sandbox if you just want to connect to the test table.'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
     }
 ]
 
@@ -1329,6 +1363,43 @@ def query_euclidin(payload=None):
     out = upload_euclid_data(payload)
 
     return out
+
+@api_bp.route('/api/v1/eucliddata', methods=['GET'])
+def query_eucliddata_arguments():
+    """ Obtain information about Euclid stored data
+    """
+    if len(request.args) > 0:
+        # POST from query URL
+        return query_eucliddata(payload=request.args)
+    else:
+        return jsonify({'args': args_eucliddata})
+
+@api_bp.route('/api/v1/eucliddata', methods=['POST'])
+def query_eucliddata(payload=None):
+    """ Download Euclid data in Fink
+    """
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i['name'] for i in args_eucliddata if i['required'] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                'status': 'error',
+                'text': "A value for `{}` is required. Use GET to check arguments.\n".format(required_arg)
+            }
+            return Response(str(rep), 400)
+
+    out = download_euclid_data(payload)
+
+    # Error propagation
+    if isinstance(out, Response):
+        return out
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(out, output_format)
 
 @api_bp.route('/api/v1/metadata', methods=['GET'])
 def metadata_arguments():

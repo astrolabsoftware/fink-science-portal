@@ -41,6 +41,9 @@ from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
 
 from apps.euclid.utils import load_euclid_header
+from apps.euclid.utils import add_columns
+from apps.euclid.utils import compute_rowkey
+from apps.euclid.utils import check_header
 
 from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
 
@@ -1459,37 +1462,121 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     data = payload['payload']
     pipeline_name = payload['pipeline'].lower()
 
+    # Read data into pandas DataFrame
+    pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
+
+    # Add Fink defined columns
+    pdf = add_columns(
+        pdf,
+        pipeline_name,
+        payload['version'],
+        payload['date'],
+        payload['EID']
+    )
+
+    # Load official headers for HBase
     header = load_euclid_header(pipeline_name)
     euclid_header = header.keys()
 
-    pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
+    msg = check_header(pdf, list(euclid_header))
+    if msg != 'ok':
+        return Response(msg, 400)
 
-    # BUG: look for element-wise comparison method
-    if ~np.all(pdf.columns == np.array(euclid_header)):
-          missingfields = [field for field in euclid_header if field not in pdf.columns]
-          newfields = [field for field in pdf.columns if field not in euclid_header]
-          msg = """
-          WARNING: we detected a change in the schema.
-          Missing fields: {}
-          New fields: {}
-          """.format(missingfields, newfields)
-    else:
-        # add a column with the name of the pipeline
-        pdf['pipeline'] = pipeline_name
+    # Push data in the HBase table
+    mode = payload.get('mode', 'production')
+    if mode == 'production':
+        table = 'euclid.in'
+    elif mode == 'sandbox':
+        table = 'euclid.test'
+    client = connect_to_hbase_table(table, schema_name='schema_{}'.format(pipeline_name))
 
+    for index, row in pdf.iterrows():
+        # Compute the row key
+        rowkey = compute_rowkey(row, index)
 
+        # Compute the payload
+        out = ['d:{}:{}'.format(name, value) for name, value in row.items()]
 
-        msg = 'Uploaded!'
+        client.put(
+            rowkey,
+            out
+        )
+    client.close()
 
     return Response(
-        '{} - {} - {} - {} - {}'.format(
+        '{} - {} - {} - {} - Uploaded!'.format(
             payload['EID'],
             payload['pipeline'],
             payload['version'],
             payload['date'],
-            msg
         ), 200
     )
+
+def download_euclid_data(payload: dict) -> pd.DataFrame:
+    """ Download Euclid data
+
+    Data is from /api/v1/eucliddata
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/eucliddata
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    # Interpret user input
+    pipeline = payload['pipeline'].lower()
+
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
+    # Push data in the HBase table
+    mode = payload.get('mode', 'production')
+    if mode == 'production':
+        table = 'euclid.in'
+    elif mode == 'sandbox':
+        table = 'euclid.test'
+
+    client = connect_to_hbase_table(table, schema_name='schema_{}'.format(pipeline))
+
+    # TODO: put a regex instead?
+    if ":" in payload['dates']:
+        start, stop = payload['dates'].split(':')
+        to_evaluate = "key:key:{}_{},key:key:{}_{}".format(pipeline, start, pipeline, stop)
+        client.setRangeScan(True)
+    elif payload['dates'].replace(' ', '') == '*':
+        to_evaluate = "key:key:{}".format(pipeline)
+    else:
+        start = payload['dates']
+        to_evaluate = "key:key:{}_{}".format(pipeline, start)
+
+    results = client.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, False, False
+    )
+
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    # Remove hbase specific fields
+    if 'key:key' in pdf.columns:
+        pdf = pdf.drop(columns=['key:key'])
+    if 'key:time' in pdf.columns:
+        pdf = pdf.drop(columns=['key:time'])
+
+    # Type conversion
+    schema = client.schema()
+    pdf = pdf.astype(
+        {i: hbase_type_converter[schema.type(i)] for i in pdf.columns})
+
+    client.close()
+
+    return pdf
 
 def post_metadata(payload: dict) -> Response:
     """ Upload metadata in Fink
