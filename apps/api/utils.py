@@ -1523,6 +1523,11 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
     # Interpret user input
     pipeline = payload['pipeline'].lower()
 
+    if 'columns' in payload:
+        cols = payload['columns'].replace(" ", "")
+    else:
+        cols = '*'
+
     client = connect_to_hbase_table('euclid.in', schema_name='schema_{}'.format(pipeline))
 
     # TODO: put a regex instead?
@@ -1534,8 +1539,8 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
         results = client.scan(
             "",
             to_evaluate,
-            "*",
-            0, True, True
+            cols,
+            0, False, False
         )
 
     else:
@@ -1545,8 +1550,8 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
         results = client.scan(
             "",
             to_evaluate,
-            "*",
-            0, True, True
+            cols,
+            0, False, False
         )
 
     pdf = pd.DataFrame.from_dict(results, orient='index')

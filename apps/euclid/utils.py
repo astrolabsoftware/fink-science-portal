@@ -14,6 +14,8 @@
 # limitations under the License.
 import numpy as np
 
+from astropy.time import Time
+
 
 def load_euclid_header(pipeline=None):
     """ Load the header from a Euclid pipeline (names, types)
@@ -90,12 +92,12 @@ def load_euclid_header(pipeline=None):
     # Fink added columns
     HEADER.update({'pipeline': 'string'})
     HEADER.update({'version': 'string'})
-    HEADER.update({'date': 'integer'})
+    HEADER.update({'submission_date': 'integer'})
     HEADER.update({'EID': 'string'})
 
     return HEADER
 
-def add_columns(pdf, pipeline: str, version: str, date: int, eid: str):
+def add_columns(pdf, pipeline: str, version: str, submission_date: int, eid: str):
     """ Add Fink based column names to an incoming Euclid dataFrame
 
     Parameters
@@ -118,7 +120,7 @@ def add_columns(pdf, pipeline: str, version: str, date: int, eid: str):
     # add a column with the name of the pipeline
     pdf['pipeline'] = pipeline
     pdf['version'] = version
-    pdf['date'] = date
+    pdf['submission_date'] = date
     pdf['EID'] = eid
 
     return pdf
@@ -138,7 +140,14 @@ def compute_rowkey(row: dict, index: int):
     rowkey: string
         <pipeline>_<date>_<EID>_<index>
     """
-    rowkey = '{}_{}_{}_{}'.format(row['pipeline'], row['date'], row['EID'], index)
+    if row['pipeline'] == 'ssopipe':
+        t0 = row['MJD']
+    else:
+        t0 = row['MJD_start']
+
+    iso = Time(t0, format='mjd').strftime('%Y%m%d')
+
+    rowkey = '{}_{}_{}_{}'.format(row['pipeline'], iso, row['EID'], index)
 
     return rowkey
 

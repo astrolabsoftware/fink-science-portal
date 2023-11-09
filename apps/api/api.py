@@ -698,6 +698,11 @@ args_eucliddata = [
         'description': 'Observation dates. It can be a single date (YYYYMMDD), and range (YYYYMMDD:YYYYMMDD), or any superset (e.g. YYYY)'
     },
     {
+        'name': 'columns',
+        'required': False,
+        'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet, votable'
