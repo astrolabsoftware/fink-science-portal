@@ -696,6 +696,11 @@ args_eucliddata = [
         'name': 'dates',
         'required': True,
         'description': 'Observation dates. It can be a single date (YYYYMMDD), and range (YYYYMMDD:YYYYMMDD), or any superset (e.g. YYYY)'
+    },
+    {
+        'name': 'output-format',
+        'required': False,
+        'description': 'Output format among json[default], csv, parquet, votable'
     }
 ]
 
@@ -1374,7 +1379,12 @@ def query_eucliddata(payload=None):
 
     out = download_euclid_data(payload)
 
-    return out
+    # Error propagation
+    if isinstance(out, Response):
+        return out
+
+    output_format = payload.get('output-format', 'json')
+    return send_data(out, output_format)
 
 @api_bp.route('/api/v1/metadata', methods=['GET'])
 def metadata_arguments():
