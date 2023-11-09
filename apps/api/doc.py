@@ -1342,9 +1342,28 @@ and subsequent queries are much faster. By default, `features` are string arrays
 cast them into proper arrays using the `json` package:
 
 ```python
+import json
+
 for col in ['d:lc_features_g', 'd:lc_features_r']:
   pdf[col] =  pdf[col].apply(lambda x: json.loads(x))
 ```
+
+The anomaly header can be found [here](https://github.com/astrolabsoftware/fink-science/blob/master/fink_science/ad_features/processor.py#L74), and
+programmatically accessed via:
+
+```python
+from fink_science.ad_features.processor import FEATURES_COLS
+print(FEATURES_COLS)
+[
+  'mean', 'weighted_mean', 'standard_deviation', 'median', 'amplitude', 'beyond_1_std',
+  'cusum', 'inter_percentile_range_10', 'kurtosis', 'linear_trend', 'linear_trend_sigma',
+  'linear_trend_noise', 'linear_fit_slope', 'linear_fit_slope_sigma', 'linear_fit_reduced_chi2',
+  'magnitude_percentage_ratio_40_5', 'magnitude_percentage_ratio_20_10', 'maximum_slope',
+  'median_absolute_deviation', 'median_buffer_range_percentage_10', 'percent_amplitude',
+  'mean_variance', 'anderson_darling_normal', 'chi2', 'skew', 'stetson_K'
+]
+```
+
 """
 
 api_doc_ssoft = """
