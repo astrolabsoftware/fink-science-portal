@@ -1506,6 +1506,54 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
         ), 200
     )
 
+def download_euclid_data(payload: dict) -> pd.DataFrame:
+    """ Download Euclid data
+
+    Data is from /api/v1/eucliddata
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/eucliddata
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    # Interpret user input
+    pipeline = payload['pipeline'].lower()
+
+    client = connect_to_hbase_table('euclid.in')
+
+    # TODO: put a regex instead?
+    if ":" in payload['dates']:
+        start, stop = payload['dates'].split(':')
+        client.setRangeScan(True)
+
+        to_evaluate = "key:key:{}_{},key:key:{}_{}".format(pipeline, start, pipeline, stop)
+        results = client.scan(
+            "",
+            to_evaluate,
+            "*",
+            0, True, True
+        )
+
+    else:
+        start = payload['dates']
+
+        to_evaluate = "key:key:{}_{}".format(pipeline, start)
+        results = client.scan(
+            "",
+            to_evaluate,
+            "*",
+            0, True, True
+        )
+
+    # Schema?
+    pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    return pdf
+
 def post_metadata(payload: dict) -> Response:
     """ Upload metadata in Fink
     """
