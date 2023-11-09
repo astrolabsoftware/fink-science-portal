@@ -1345,7 +1345,7 @@ def query_euclidin(payload=None):
     return out
 
 @api_bp.route('/api/v1/eucliddata', methods=['GET'])
-def query_euclidin_arguments():
+def query_eucliddata_arguments():
     """ Obtain information about Euclid stored data
     """
     if len(request.args) > 0:
