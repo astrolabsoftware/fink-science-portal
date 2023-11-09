@@ -1554,7 +1554,7 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
     # Remove hbase specific fields
     if 'key:key' in pdf.columns:
         pdf = pdf.drop(columns=['key:key'])
-    if 'key:time' in pdfs.columns:
+    if 'key:time' in pdf.columns:
         pdf = pdf.drop(columns=['key:time'])
 
     # Type conversion
