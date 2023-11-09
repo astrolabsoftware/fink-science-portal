@@ -94,14 +94,14 @@ def format_hbase_output(
     if 'key:time' in pdfs.columns:
         pdfs = pdfs.drop(columns=['key:time'])
 
+    # Type conversion
+    pdfs = pdfs.astype(
+        {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
+
     # cast 'nan' into `[]` for easier json decoding
     for col in ['d:lc_features_g', 'd:lc_features_r']:
         if col in pdfs.columns:
             pdfs[col] = pdfs[col].replace('nan', '[]')
-
-    # Type conversion
-    pdfs = pdfs.astype(
-        {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
 
     if not truncated:
         # Fink final classification
