@@ -108,7 +108,7 @@ def add_columns(pdf, pipeline: str, version: str, submission_date: int, eid: str
         Name of the pipeline: ssopipe, streakdet, dl
     version: str
         Pipeline version
-    date: int
+    submission_date: int
         Date provided by the user
     eid: str
         Unique ID for a detection
@@ -120,7 +120,7 @@ def add_columns(pdf, pipeline: str, version: str, submission_date: int, eid: str
     # add a column with the name of the pipeline
     pdf['pipeline'] = pipeline
     pdf['version'] = version
-    pdf['submission_date'] = date
+    pdf['submission_date'] = submission_date
     pdf['EID'] = eid
 
     return pdf
