@@ -35,7 +35,7 @@ def load_euclid_header(pipeline=None):
             'DEC': 'double',
             'PROP_MOT': 'double',
             'N_DET': 'int',
-            'CATALOG': 'str',
+            'CATALOG': 'string',
             'X_WORLD': 'double',
             'Y_WORLD': 'double',
             'ERRA_WORLD': 'double',
