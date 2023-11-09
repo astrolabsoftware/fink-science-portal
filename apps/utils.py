@@ -98,6 +98,11 @@ def format_hbase_output(
     pdfs = pdfs.astype(
         {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
 
+    # cast 'nan' into `[]` for easier json decoding
+    for col in ['d:lc_features_g', 'd:lc_features_r']:
+        if col in pdfs.columns:
+            pdfs[col] = pdfs[col].replace('nan', '[]')
+
     if not truncated:
         # Fink final classification
         classifications = extract_fink_classification_(
