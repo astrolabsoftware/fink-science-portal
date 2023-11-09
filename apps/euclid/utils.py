@@ -30,11 +30,11 @@ def load_euclid_header(pipeline=None):
     """
     if pipeline == 'ssopipe':
         HEADER = {
-            'INDEX': 'int',
+            'INDEX': 'integer',
             'RA': 'double',
             'DEC': 'double',
             'PROP_MOT': 'double',
-            'N_DET': 'int',
+            'N_DET': 'integer',
             'CATALOG': 'string',
             'X_WORLD': 'double',
             'Y_WORLD': 'double',
@@ -50,9 +50,9 @@ def load_euclid_header(pipeline=None):
         }
     elif pipeline == 'streakdet':
         HEADER = {
-            'Obj_id': 'int',
+            'Obj_id': 'integer',
             'Dither': 'double',
-            'NDet': 'int',
+            'NDet': 'integer',
             'RA_middle': 'double',
             'DEC_middle': 'double',
             'RA_start': 'double',
@@ -67,9 +67,9 @@ def load_euclid_header(pipeline=None):
         }
     elif pipeline == 'dl':
         HEADER = {
-            'Obj_id': 'int',
+            'Obj_id': 'integer',
             'Dither': 'double',
-            'NDet': 'int',
+            'NDet': 'integer',
             'RA_middle': 'double',
             'DEC_middle': 'double',
             'RA_start': 'double',
@@ -90,7 +90,7 @@ def load_euclid_header(pipeline=None):
     # Fink added columns
     HEADER.update({'pipeline': 'string'})
     HEADER.update({'version': 'string'})
-    HEADER.update({'date': 'int'})
+    HEADER.update({'date': 'integer'})
     HEADER.update({'EID': 'string'})
 
     return HEADER
