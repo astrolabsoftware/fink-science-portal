@@ -1523,7 +1523,7 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
     # Interpret user input
     pipeline = payload['pipeline'].lower()
 
-    client = connect_to_hbase_table('euclid.in')
+    client = connect_to_hbase_table('euclid.in', schema_name='schema_{}'.format(pipeline))
 
     # TODO: put a regex instead?
     if ":" in payload['dates']:
@@ -1558,8 +1558,9 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
         pdf = pdf.drop(columns=['key:time'])
 
     # Type conversion
+    schema = client.schema()
     pdf = pdf.astype(
-        {i: hbase_type_converter[client.schema().type(i)] for i in pdf.columns})
+        {i: hbase_type_converter[schema.type(i)] for i in pdf.columns})
 
     client.close()
 
