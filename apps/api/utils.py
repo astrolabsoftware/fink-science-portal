@@ -1483,7 +1483,13 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
         return Response(msg, 400)
 
     # Push data in the HBase table
-    client = connect_to_hbase_table('euclid.in', schema_name='schema_{}'.format(pipeline_name))
+    mode = payload.get('mode', 'production')
+    if mode == 'production':
+        table = 'euclid.in'
+    elif mode == 'sandbox':
+        table = 'euclid.test'
+    client = connect_to_hbase_table(table, schema_name='schema_{}'.format(pipeline_name))
+
     for index, row in pdf.iterrows():
         # Compute the row key
         rowkey = compute_rowkey(row, index)
@@ -1528,12 +1534,7 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
     else:
         cols = '*'
 
-    mode = payload.get('mode', 'production')
-    if mode == 'production':
-        table = 'euclid.in'
-    elif mode == 'sandbox':
-        table = 'euclid.test'
-    client = connect_to_hbase_table(table, schema_name='schema_{}'.format(pipeline))
+    client = connect_to_hbase_table('euclid.in', schema_name='schema_{}'.format(pipeline))
 
     # TODO: put a regex instead?
     if ":" in payload['dates']:
