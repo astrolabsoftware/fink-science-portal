@@ -1549,8 +1549,13 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
             0, True, True
         )
 
-    # Schema?
     pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    # Remove hbase specific fields
+    if 'key:key' in pdf.columns:
+        pdf = pdf.drop(columns=['key:key'])
+    if 'key:time' in pdfs.columns:
+        pdf = pdf.drop(columns=['key:time'])
 
     # Type conversion
     pdf = pdf.astype(
