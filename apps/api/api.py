@@ -683,7 +683,12 @@ args_euclidin = [
         'name': 'payload',
         'required': True,
         'description': 'Data file'
-    }
+    },
+    {
+        'name': 'mode',
+        'required': False,
+        'description': 'Execution mode among production[default], or sandbox. Choose sandbox if you just want to test the upload without touching the tables.'
+    },
 ]
 
 args_eucliddata = [
