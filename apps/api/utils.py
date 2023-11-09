@@ -1552,6 +1552,12 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
     # Schema?
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
+    # Type conversion
+    pdf = pdf.astype(
+        {i: hbase_type_converter[client.schema().type(i)] for i in pdf.columns})
+
+    client.close()
+
     return pdf
 
 def post_metadata(payload: dict) -> Response:
