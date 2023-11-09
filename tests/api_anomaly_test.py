@@ -20,6 +20,7 @@ from astropy.io import votable
 
 import io
 import sys
+import json
 
 APIURL = sys.argv[1]
 
@@ -141,6 +142,23 @@ def test_various_outputs() -> None:
 
         isclose = np.isclose(pdf1[cols1], pdf2[cols2])
         assert np.alltrue(isclose), fmt
+
+def test_feature_array() -> None:
+    """
+    Examples
+    ---------
+    >>> test_feature_array()
+    """
+    pdf = anomalysearch()
+
+    a_feature = pdf['d:lc_features_g'].values[0]
+    assert isinstance(a_feature, str), a_feature
+
+    for col in ['d:lc_features_g', 'd:lc_features_r']:
+        pdf[col] =  pdf[col].apply(lambda x: json.loads(x))
+
+    a_feature = pdf['d:lc_features_g'].values[0]
+    assert isinstance(a_feature, list), a_feature
 
 
 if __name__ == "__main__":

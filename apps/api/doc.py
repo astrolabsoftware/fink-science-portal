@@ -1327,7 +1327,7 @@ r = requests.post(
   'https://fink-portal.org/api/v1/objects',
   json={
     'objectId': ','.join(oids),
-    'columns': 'i:objectId,i:magpsf,i:sigmapsf,d:anomaly_score,d:cdsxmatch',
+    'columns': 'i:objectId,i:magpsf,i:sigmapsf,d:anomaly_score,d:cdsxmatch,d:lc_features_g,d:lc_features_r',
     'output-format': 'json'
   }
 )
@@ -1338,7 +1338,13 @@ pdf = pd.read_json(io.BytesIO(r.content))
 
 Note the first time, the `/api/v1/object` query can be long (especially if
 you are dealing with variable stars), but then data is cached on the server,
-and subsequent queries are much faster.
+and subsequent queries are much faster. By default, `features` are string arrays. You can easily
+cast them into proper arrays using the `json` package:
+
+```python
+for col in ['d:lc_features_g', 'd:lc_features_r']:
+  pdf[col] =  pdf[col].apply(lambda x: json.loads(x))
+```
 """
 
 api_doc_ssoft = """
