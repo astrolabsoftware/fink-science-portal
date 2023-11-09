@@ -1533,26 +1533,20 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
     # TODO: put a regex instead?
     if ":" in payload['dates']:
         start, stop = payload['dates'].split(':')
-        client.setRangeScan(True)
-
         to_evaluate = "key:key:{}_{},key:key:{}_{}".format(pipeline, start, pipeline, stop)
-        results = client.scan(
-            "",
-            to_evaluate,
-            cols,
-            0, False, False
-        )
-
+        client.setRangeScan(True)
+    elif payload['dates'].replace(' ', '') == '*':
+        to_evaluate = "key:key:{}".format(pipeline)
     else:
         start = payload['dates']
-
         to_evaluate = "key:key:{}_{}".format(pipeline, start)
-        results = client.scan(
-            "",
-            to_evaluate,
-            cols,
-            0, False, False
-        )
+
+    results = client.scan(
+        "",
+        to_evaluate,
+        cols,
+        0, False, False
+    )
 
     pdf = pd.DataFrame.from_dict(results, orient='index')
 
