@@ -1205,6 +1205,7 @@ r = requests.post(
     'ssoCandId': int, # optional, if you know a trajectory ID. Otherwise returns all.
     'start_date': str, # optional. Only for lightcurves. Default is 2019-11-01
     'stop_date': str, # optional. Only for lightcurves. Default is today.
+    'maxnumber': int, # optional. Max number of entries to retrieve. Default is 10,000.
     'output-format': str
   }
 )
