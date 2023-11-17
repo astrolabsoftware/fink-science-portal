@@ -23,7 +23,7 @@ import sys
 
 APIURL = sys.argv[1]
 
-def ssocandsearch(kind='orbParams', trajectory_id=None, start_date=None, stop_date=None, output_format='json'):
+def ssocandsearch(kind='orbParams', trajectory_id=None, start_date=None, stop_date=None, maxnumber=None, output_format='json'):
     """ Perform a sso candidate search in the Science Portal using the Fink REST API
     """
     payload = {
@@ -37,6 +37,8 @@ def ssocandsearch(kind='orbParams', trajectory_id=None, start_date=None, stop_da
         payload.update({'start_date': start_date})
     if stop_date is not None:
         payload.update({'stop_date': stop_date})
+    if maxnumber is not None:
+        payload.update({'maxnumber': maxnumber})
 
     r = requests.post(
         '{}/api/v1/ssocand'.format(APIURL),
@@ -78,6 +80,22 @@ def test_lightcurves() -> None:
     assert not pdf.empty
 
     assert 'd:magpsf' in pdf.columns
+
+
+def test_lightcurves_max() -> None:
+    """
+    Examples
+    ---------
+    >>> test_lightcurves_max()
+    """
+    pdf = ssocandsearch(kind='lightcurves')
+
+    assert len(pdf) == 10000, len(pdf)
+
+    pdf2 = ssocandsearch(kind='lightcurves', maxnumber=20000)
+
+    assert len(pdf2) > 10000, len(pdf2)
+
 
 def test_lightcurves_traj() -> None:
     """
