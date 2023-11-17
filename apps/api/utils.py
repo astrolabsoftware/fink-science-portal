@@ -555,6 +555,11 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     else:
         trajectory_id = None
 
+    if 'maxnumber' in payload:
+        maxnumber = payload['maxnumber']
+    else:
+        maxnumber = 10000
+
     payload_name = payload['kind']
 
     if payload_name == 'orbParams':
@@ -578,6 +583,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
             stop_date = Time.now().jd
 
         gen_client.setRangeScan(True)
+        gen_client.setLimit(maxnumber)
 
         if trajectory_id is not None:
             gen_client.setEvaluation("ssoCandId.equals('{}')".format(trajectory_id))

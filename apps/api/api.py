@@ -563,6 +563,11 @@ args_ssocand = [
         'description': '[Optional] Stop date in UTC YYYY-MM-DD. Only used for `kind=lightcurves`. Default is today.'
     },
     {
+        'name': 'maxnumber',
+        'required': False,
+        'description': 'Maximum number of entries (observations or orbital parameters) to retrieve. Default is 10,000.'
+    },
+    {
         'name': 'output-format',
         'required': False,
         'description': 'Output format among json[default], csv, parquet, votable'
