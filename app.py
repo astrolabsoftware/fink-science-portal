@@ -18,6 +18,7 @@ from dash.long_callback import DiskcacheLongCallbackManager
 
 # import jpype
 
+import os
 import yaml
 import diskcache
 
@@ -40,7 +41,14 @@ external_scripts = [
     '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
 ]
 
-app = dash.Dash(
+# Enable verbose logging on callbacks, if requested
+if 'DASH_TELEMETRY' in os.environ:
+    from telemetry import DashWithTelemetry
+    factory = DashWithTelemetry
+else:
+    factory = dash.Dash
+
+app = factory(
     __name__,
     external_stylesheets=external_stylesheets,
     external_scripts=external_scripts,
