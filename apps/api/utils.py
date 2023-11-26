@@ -644,15 +644,6 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
     else:
         truncated = True
 
-    if 'date' in payload:
-        designation = payload['date']
-    else:
-        rep = {
-            'status': 'error',
-            'text': "You need to specify a date at the format YYYY-MM-DD hh:mm:ss\n"
-        }
-        return Response(str(rep), 400)
-
     if 'id' in payload:
         payload_name = payload['id']
     elif 'date' in payload:

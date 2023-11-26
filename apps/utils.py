@@ -256,7 +256,7 @@ def readstamp(stamp: str, return_type='array', gzipped=True) -> np.array:
 
     if gzipped:
         with gzip.open(io.BytesIO(stamp), 'rb') as f:
-            return extract_stamp(f.read())
+            return extract_stamp(io.BytesIO(f.read()))
     else:
         return extract_stamp(io.BytesIO(stamp))
 
