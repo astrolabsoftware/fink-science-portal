@@ -390,6 +390,11 @@ args_tracklet = [
         'description': 'A date. Format: YYYY-MM-DD hh:mm:dd. You can use short versions like YYYY-MM-DD only, or YYYY-MM-DD hh.'
     },
     {
+        'name': 'id',
+        'required': False,
+        'description': 'Tracklet ID, in the format TRCK_YYYYMMDD_HHMMSS_NN',
+    },
+    {
         'name': 'columns',
         'required': False,
         'description': 'Comma-separated data columns to transfer. Default is all columns. See {}/api/v1/columns for more information.'.format(APIURL)
@@ -505,6 +510,11 @@ args_stats = [
         'name': 'columns',
         'required': False,
         'description': 'Comma-separated data columns to transfer. Default is all columns.'
+    },
+    {
+        'name': 'schema',
+        'required': False,
+        'description': 'If True, return just the schema of statistics table instead of actual data'
     },
     {
         'name': 'output-format',

@@ -151,6 +151,10 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             mask = np.array([False if float(i) in pdf['i:jd'].values else True for i in pdfUP['i:jd'].values])
             pdfUP = pdfUP[mask]
 
+        # Hacky way to avoid converting concatenated column to float
+        pdfU['i:candid'] = -1 # None
+        pdfUP['i:candid'] = -1 # None
+
         pdf_ = pd.concat((pdf, pdfU, pdfUP), axis=0)
 
         # replace
@@ -645,11 +649,21 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
     else:
         rep = {
             'status': 'error',
-            'text': "You need tp specify a date at the format YYYY-MM-DD hh:mm:ss\n"
+            'text': "You need to specify a date at the format YYYY-MM-DD hh:mm:ss\n"
         }
         return Response(str(rep), 400)
 
-    payload_name = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
+    if 'id' in payload:
+        payload_name = payload['id']
+    elif 'date' in payload:
+        designation = payload['date']
+        payload_name = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
+    else:
+        rep = {
+            'status': 'error',
+            'text': "You need to specify a date at the format YYYY-MM-DD hh:mm:ss\n"
+        }
+        return Response(str(rep), 400)
 
     # Note the trailing _
     to_evaluate = "key:key:{}".format(payload_name)
@@ -1061,20 +1075,24 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
     else:
         cols = '*'
 
-    payload_date = payload['date']
-
-    to_evaluate = "key:key:ztf_{}".format(payload_date)
-
     client = connect_to_hbase_table('statistics_class')
-    results = client.scan(
-        "",
-        to_evaluate,
-        cols,
-        0, True, True
-    )
-    client.close()
+    if 'schema' in payload and str(payload['schema']) == 'True':
+        schema = client.schema()
+        results = list(schema.columnNames())
+        pdf = pd.DataFrame({'schema': results})
+    else:
+        payload_date = payload['date']
 
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+        to_evaluate = "key:key:ztf_{}".format(payload_date)
+        results = client.scan(
+            "",
+            to_evaluate,
+            cols,
+            0, True, True
+        )
+        pdf = pd.DataFrame.from_dict(results, orient='index')
+
+    client.close()
 
     return pdf
 

@@ -17,9 +17,12 @@ import dash_bootstrap_components as dbc
 
 from app import app
 from apps.client import connect_to_hbase_table
+from app import APIURL
 
 import numpy as np
 import pandas as pd
+
+import requests
 
 dcc.Location(id='url', refresh=False)
 
@@ -118,23 +121,20 @@ def store_stat_query(name):
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
-    # Query everything
-    name = 'ztf_'
-
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown'
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:{}".format(name),
-        cols,
-        0,
-        True,
-        True
-    )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': '',
+            'output-format': 'json',
+            'columns': cols
+        }
+    )
+
+    pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key', drop=False)
+
     return pdf.to_json()
 
 @app.callback(
@@ -342,21 +342,19 @@ def daily_stats():
 def generate_night_list():
     """ Generate the list of available nights (last night first)
     """
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:ztf_",
-        '',
-        0,
-        True,
-        True
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': '',
+            'output-format': 'json',
+            'columns': ''
+        }
     )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
 
-    labels = pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12])
+    labels = list(pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12]))
 
     dropdown = dcc.Dropdown(
         options=[
@@ -376,10 +374,15 @@ def generate_night_list():
 def generate_col_list():
     """ Generate the list of available columns
     """
-    clientStats = connect_to_hbase_table('statistics_class')
-    schema = clientStats.schema()
-    clientStats.close()
-    schema_list = list(schema.columnNames())
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'output-format': 'json',
+            'schema': True
+        }
+    )
+    pdf = pd.read_json(r.content)
+    schema_list = list(pdf['schema'])
 
     labels = [
         i.replace('class', 'SIMBAD')
@@ -411,19 +414,18 @@ def get_data_one_night(night):
     """ Get the statistics for one night
     """
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:{}".format(night),
-        "*",
-        0,
-        True,
-        True
-    )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': night,
+            'output-format': 'json',
+            'columns': ''
+        }
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
 
     return pdf
 
