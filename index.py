@@ -1173,10 +1173,15 @@ def create_home_link(label):
 @app.callback(
     Output("drawer", "opened"),
     Input("drawer-button", "n_clicks"),
+    Input('url', 'pathname'),
     prevent_initial_call=True,
 )
-def drawer_switch(n_clicks):
-    return True
+def drawer_switch(n_clicks, pathname):
+    ctx = dash.callback_context
+    if ctx.triggered[0]['prop_id'].split('.')[0] == 'drawer-button':
+        return True
+    else:
+        return False
 
 navbar = dmc.Header(
     height=55,
