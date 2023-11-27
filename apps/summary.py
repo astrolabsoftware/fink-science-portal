@@ -744,7 +744,7 @@ def layout(name, is_mobile):
                         dbc.Alert("{} not found. Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).".format(name[1:]), color="danger"),
                     ],
                 )
-            ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)', 'background-size': 'contain'}
+            ], className='home summary_empty'
         )
     elif is_mobile:
         layout_ = html.Div(
@@ -789,10 +789,7 @@ def layout(name, is_mobile):
             html.Div(id='object-sso', style={'display': 'none'}),
             html.Div(id='object-tracklet', style={'display': 'none'}),
             ],
-            className='home',
-            style={
-                'background-image': 'linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/assets/background.png)'
-            }
+            className='home summary_mobile',
         )
     else:
         layout_ = html.Div(
@@ -832,7 +829,7 @@ def layout(name, is_mobile):
                 html.Div(id='object-uppervalid', style={'display': 'none'}),
                 html.Div(id='object-sso', style={'display': 'none'}),
                 html.Div(id='object-tracklet', style={'display': 'none'}),
-            ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
+            ], className='home summary'
         )
 
     return layout_

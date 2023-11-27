@@ -859,9 +859,6 @@ def layout(is_mobile):
             ]
         )
         left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
-        style = {
-            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-        }
     else:
         width_right = 8
         title = html.Div()
@@ -874,10 +871,6 @@ def layout(is_mobile):
                 mining_helper(),
             ], width={"size": 3},
         )
-        style={
-            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
-            'background-size': 'cover'
-        }
 
     layout_ = html.Div(
         [
@@ -910,7 +903,7 @@ def layout(is_mobile):
                 justify="around", className="g-0"
             ),
             html.Br(),
-        ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
+        ], className='home query_cluster'
     )
 
     return layout_

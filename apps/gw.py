@@ -515,9 +515,6 @@ def layout(is_mobile):
                 dcc.Store(data='', id='gw-data')
             ]
         )
-        style = {
-            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-        }
     else:
         extra_div = dbc.Alert(
             dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.", link_target="_blank"),
@@ -540,10 +537,6 @@ def layout(is_mobile):
                 dcc.Store(data='', id='gw-data'),
             ], width={"size": 2},
         )
-        style={
-            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
-            'background-size': 'cover'
-        }
 
     layout_ = html.Div(
         [
@@ -571,7 +564,7 @@ def layout(is_mobile):
                 justify="around", className="g-0"
             ),
             html.Br()
-        ], className='home', style={'background-image': 'linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png)', 'background-size': 'cover'}
+        ], className='home gw'
     )
 
     return layout_

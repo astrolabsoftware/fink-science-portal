@@ -218,9 +218,7 @@ def create_stat_row(object_stats):
         dbc.Card(
             dbc.CardBody(
                 dcc.Markdown('_Connect with a bigger screen to explore more statistics_')
-            ), style={
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
-            }
+            )
         ),
     ]
 
@@ -444,9 +442,7 @@ def layout(is_mobile):
                     dbc.Card(
                         dbc.CardBody(
                             dcc.Markdown(stat_doc)
-                        ), style={
-                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                        }
+                        )
                     ),
                     label="Help",
                     label_style=label_style
@@ -464,10 +460,6 @@ def layout(is_mobile):
                 html.Div(id='object-stats', style={'display': 'none'}),
             ],
             className='home',
-            style={
-                'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
-                'background-size': 'contain'
-            }
         )
     else:
         layout_ = html.Div(
@@ -487,10 +479,6 @@ def layout(is_mobile):
                 html.Div(id='object-stats', style={'display': 'none'}),
             ],
             className='home',
-            style={
-                'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
-                'background-size': 'cover'
-            }
         )
 
     return layout_

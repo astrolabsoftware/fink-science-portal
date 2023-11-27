@@ -23,8 +23,87 @@ h2 {
 	color: var(--primary);
 }
 
-.classNameExample {
-    background: var(--terciary);
-    border: 1px solid var(--secondary);
+/* Styling of various elements, moved from inline */
+
+.home {
+  background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png);
+  background-size: cover;
 }
 
+/* Summary */
+.home.summary_empty {
+  background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png);
+  background-size: cover;
+}
+.home.summary_mobile {
+  background-image: linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/assets/background.png);
+}
+.home.summary {
+  background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png);
+  background-size: cover;
+}
+
+/* Query cluster */
+.home.query_cluster {
+  background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png);
+  background-size: cover;
+}
+
+/* GW */
+.home.gw {
+  background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png);
+  background-size: cover;
+}
+
+/* Quickview modal */
+#modal_quickview .modal-body {
+  background: #000;
+  background-image: linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png);
+}
+
+#modal_quickview .card {
+  background: #000;
+  background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.9)), url(/assets/background.png);
+}
+
+#navbar {
+  background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png);
+  background-size: cover;
+}
+
+/* Main search bar */
+#search_bar {
+  border: 0.5px grey solid;
+  background: rgba(255, 255, 255, .75);
+}
+
+#search_bar_input {
+  border: 0px black solid;
+  background: rgba(255, 255, 255, 0.0);
+  color: grey;
+}
+
+/* Help modal */
+#open {
+  border: 0px black solid;
+  background: rgba(255, 255, 255, 0.0);
+  color: grey;
+}
+
+#modal {
+}
+
+/* Cards */
+.card {
+  background-color: rgb(248, 248, 248, .7);
+}
+
+/* Stamps modal */
+#stamps_modal .modal-header {
+  background-image: linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3));
+}
+
+#stamps_modal .modal-body {
+  background: rgba(255, 255, 255,0.0);
+  background-image: linear-gradient(rgba(255, 255, 255,0.0), rgba(255,255,255,0.0));
+}

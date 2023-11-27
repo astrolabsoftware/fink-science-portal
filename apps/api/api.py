@@ -73,9 +73,7 @@ def layout(is_mobile):
                             dbc.Card(
                                 dbc.CardBody(
                                     dcc.Markdown(api_doc_summary)
-                                ), style={
-                                    'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                }
+                                )
                             ),
                         ]
                     ),
@@ -87,9 +85,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_object)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Retrieve object data", label_style = {"color": "#000"}
                             ),
@@ -98,9 +94,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_explorer)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Query the database", label_style = {"color": "#000"}
                             ),
@@ -109,9 +103,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_latests)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Get latest alerts", label_style = {"color": "#000"}
                             ),
@@ -120,9 +112,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_sso)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Solar System objects from MPC", label_style = {"color": "#000"}
                             ),
@@ -131,9 +121,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_ssocand)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Candidate Solar System objects", label_style = {"color": "#000"}
                             ),
@@ -142,9 +130,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_ssoft)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Solar System object parameters table", label_style = {"color": "#000"}
                             ),
@@ -153,9 +139,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_tracklets)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Get Tracklet Objects", label_style = {"color": "#000"}
                             ),
@@ -164,9 +148,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_cutout)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Get Image data", label_style = {"color": "#000"}
                             ),
@@ -175,9 +157,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_xmatch)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Xmatch", label_style = {"color": "#000"}
                             ),
@@ -186,9 +166,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_bayestar)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Gravitational Waves", label_style = {"color": "#000"}
                             ),
@@ -197,9 +175,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_stats)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Statistics", label_style = {"color": "#000"}
                             ),
@@ -208,9 +184,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_anomaly)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Anomaly detection", label_style = {"color": "#000"}
                             ),
@@ -219,9 +193,7 @@ def layout(is_mobile):
                                     dbc.Card(
                                         dbc.CardBody(
                                             dcc.Markdown(api_doc_random)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
+                                        )
                                     ),
                                 ], label="Random objects", label_style = {"color": "#000"}
                             ),
@@ -229,10 +201,7 @@ def layout(is_mobile):
                     )
                 ], className="mb-8", fluid=True, style={'width': width}
             )
-        ], className='home', style={
-            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
-            'background-size': 'cover'
-        }
+        ], className='home'
     )
     return layout_
 

@@ -157,11 +157,6 @@ modal = html.Div(
             id="open",
             color='light',
             outline=True,
-            style={
-                "border": "0px black solid",
-                'background': 'rgba(255, 255, 255, 0.0)',
-                'color': 'grey'
-            }
         ),
         dbc.Modal(
             [
@@ -192,7 +187,6 @@ fink_search_bar = dbc.InputGroup(
             id="search_bar_input",
             autoFocus=True,
             type='search',
-            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
             className='inputbar',
             debounce=True
         ),
@@ -207,7 +201,7 @@ fink_search_bar = dbc.InputGroup(
             loaderProps={'variant': 'dots', 'color': 'orange'}
         ),
         modal
-    ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
+    ], id="search_bar", className='rcorners2'
 )
 
 def print_msg_info():
@@ -324,7 +318,7 @@ def simple_card(
                     href='{}/{}'.format(APIURL, name)
                 )
             )
-        ], style={'background': '#000', 'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.9)), url(/assets/background.png)'}
+        ]
     )
     return simple_card_
 
@@ -399,10 +393,7 @@ def modal_quickview(is_mobile):
                             id='carousel',
                             fluid=True,
                             style={'width': '95%'}
-                        ), style={
-                            'background': '#000',
-                            'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-                        }
+                        )
                     ),
                     dbc.ModalFooter(
                         dbc.Button(
@@ -1184,11 +1175,11 @@ def drawer_switch(n_clicks, pathname):
         return False
 
 navbar = dmc.Header(
+    id='navbar',
     height=55,
     fixed=True,
     p=0,
     m=0,
-    style={'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'},
     children=[
         dmc.Space(h=10),
         dmc.Container(
@@ -1356,10 +1347,9 @@ app.clientside_callback(
 def display_page(pathname, is_mobile):
     if is_mobile:
         width = '95%'
-        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
     else:
         width = '60%'
-        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'}
+
     layout = html.Div(
         [
             html.Br(),
@@ -1392,8 +1382,7 @@ def display_page(pathname, is_mobile):
             ),
             dbc.Container(id='results'),
         ],
-        className='home',
-        style=style
+        className='home'
     )
     if pathname == '/about':
         return about.layout
