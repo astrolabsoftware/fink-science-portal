@@ -131,7 +131,7 @@ def test_simbad_resolver() -> None:
     cols = [
         'name', 'oid', 'oname', 'otype',
         'jpos', 'jradeg', 'jdedeg',
-        'refPos', 'Vel', 'MType', 'nrefs'
+        'refPos', 'MType', 'nrefs'
     ]
     for col in cols:
         assert col in pdf.columns, [col, pdf.columns]
