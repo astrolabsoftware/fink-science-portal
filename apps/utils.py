@@ -227,15 +227,13 @@ def extract_row(key: str, clientresult) -> dict:
     data = clientresult[key]
     return dict(data)
 
-def readstamp(stamp: str, return_type='array') -> np.array:
+def readstamp(stamp: str, return_type='array', gzipped=True) -> np.array:
     """ Read the stamp data inside an alert.
 
     Parameters
     ----------
-    alert: dictionary
-        dictionary containing alert data
-    field: string
-        Name of the stamps: cutoutScience, cutoutTemplate, cutoutDifference
+    stamp: str
+        String containing binary data for the stamp
     return_type: str
         Data block of HDU 0 (`array`) or original FITS uncompressed (`FITS`) as file-object.
         Default is `array`.
@@ -245,15 +243,22 @@ def readstamp(stamp: str, return_type='array') -> np.array:
     data: np.array
         2D array containing image data (`array`) or FITS file uncompressed as file-object (`FITS`)
     """
-    with gzip.open(io.BytesIO(stamp), 'rb') as f:
-        with fits.open(io.BytesIO(f.read())) as hdul:
+
+    def extract_stamp(fitsdata):
+        with fits.open(fitsdata, ignore_missing_simple=True) as hdul:
             if return_type == 'array':
                 data = hdul[0].data
             elif return_type == 'FITS':
                 data = io.BytesIO()
                 hdul.writeto(data)
                 data.seek(0)
-    return data
+        return data
+
+    if gzipped:
+        with gzip.open(io.BytesIO(stamp), 'rb') as f:
+            return extract_stamp(io.BytesIO(f.read()))
+    else:
+        return extract_stamp(io.BytesIO(stamp))
 
 def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') -> pd.DataFrame:
     """ Query and uncompress cutout data from the HBase table

@@ -30,13 +30,13 @@ from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
+from dash.exceptions import PreventUpdate
 
 from apps.utils import convert_jd, readstamp, _data_stretch, convolve
 from fink_utils.photometry.conversion import apparent_flux, dc_mag
 from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.statistics import dic_names
-from apps.client import connect_to_hbase_table
 
 from app import APIURL
 
@@ -1528,24 +1528,19 @@ def extract_cutout(object_data, time0, kind):
         jd0 = np.round(Time(time0, format='iso').jd, 3)
         position = np.where(jds == jd0)[0][0]
 
-    # Grab the cutout data
-    client = connect_to_hbase_table('ztf')
-
-    # Fire the client to trigger cutout data retrieval
-    _ = client.scan(
-        "",
-        "key:key:{}".format(pdf_['i:objectId'].values[0]),
-        "*i:candid,b:cutout{}_stampData".format(kind.capitalize()),
-        0, False, False
+    # Extract the cutout data
+    r = requests.post(
+        '{}/api/v1/cutouts'.format(APIURL),
+        json={
+            'objectId': pdf_['i:objectId'].values[0],
+            'candid': str(pdf_['i:candid'].values[position]),
+            'kind': kind.capitalize(),
+            'output-format': 'FITS',
+        }
     )
 
-    # actually grab the data
-    cutout = readstamp(
-        client.repository().get(
-            pdfs['b:cutout{}_stampData'.format(kind.capitalize())].values[position]
-        )
-    )
-    client.close()
+    cutout = readstamp(r.content, gzipped=False)
+
     return cutout
 
 @app.callback(
@@ -1578,11 +1573,15 @@ def draw_cutouts(clickData, object_data):
     [
         Input('object-data', 'children'),
         Input('date_modal_select', 'value'),
-    ]
+        Input("stamps_modal", "is_open")
+    ],
 )
-def draw_cutouts_modal(object_data, date_modal_select):
+def draw_cutouts_modal(object_data, date_modal_select, is_open):
     """ Draw cutouts data based on lightcurve data
     """
+    if not is_open:
+        raise PreventUpdate
+
     figs = []
     for kind in ['science', 'template', 'difference']:
         try:
@@ -1632,6 +1631,7 @@ def draw_cutouts_quickview(name):
             # transfer only necessary columns
             cols = [
                 'i:objectId',
+                'i:candid',
                 'i:jd',
                 'b:cutout{}_stampData'.format(kind.capitalize()),
             ]
@@ -3065,20 +3065,18 @@ def plot_stat_evolution(pathname, param_name, switch):
     else:
         param_name_ = param_name
 
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:ztf_",
-        param_name_,
-        0,
-        False,
-        False
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': '',
+            'output-format': 'json',
+            'columns': param_name_
+        }
     )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
-    pdf = pdf.fillna(0).astype(int)
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
 
     pdf['date'] = [
         Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
@@ -3413,19 +3411,21 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
 def hist_sci_raw(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:ztf_",
-        'basic:raw,basic:sci',
-        0,
-        False,
-        False
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': '',
+            'output-format': 'json',
+            'columns': 'basic:raw,basic:sci'
+        }
     )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
+    # Remove hbase specific fields
+    if 'key:time' in pdf.columns:
+        pdf = pdf.drop(columns=['key:time'])
 
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
@@ -3455,19 +3455,21 @@ def hist_sci_raw(pathname, dropdown_days):
 def hist_catalogued(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:ztf_",
-        'class:Solar System MPC,class:simbad_tot,basic:sci',
-        0,
-        False,
-        False
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': '',
+            'output-format': 'json',
+            'columns': 'class:Solar System MPC,class:simbad_tot,basic:sci'
+        }
     )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
+    # Remove hbase specific fields
+    if 'key:time' in pdf.columns:
+        pdf = pdf.drop(columns=['key:time'])
 
     pdf = pdf.rename(columns={'class:Solar System MPC': 'MPC', 'class:simbad_tot': 'SIMBAD'})
 
@@ -3499,19 +3501,21 @@ def hist_catalogued(pathname, dropdown_days):
 def hist_classified(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:ztf_",
-        'basic:sci,class:Unknown',
-        0,
-        False,
-        False
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': '',
+            'output-format': 'json',
+            'columns': 'basic:sci,class:Unknown'
+        }
     )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
+    # Remove hbase specific fields
+    if 'key:time' in pdf.columns:
+        pdf = pdf.drop(columns=['key:time'])
 
     # In case class:unknown contains NaN (see https://github.com/astrolabsoftware/fink-utils/issues/25)
     pdf['class:Unknown'] = pdf['class:Unknown'].replace(np.nan, 0)
@@ -3546,19 +3550,21 @@ def hist_classified(pathname, dropdown_days):
 def hist_candidates(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:ztf_",
-        'class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate',
-        0,
-        False,
-        False
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': '',
+            'output-format': 'json',
+            'columns': 'class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate'
+        }
     )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
+    # Remove hbase specific fields
+    if 'key:time' in pdf.columns:
+        pdf = pdf.drop(columns=['key:time'])
 
     pdf = pdf.rename(
         columns={
@@ -3593,19 +3599,21 @@ def hist_candidates(pathname, dropdown_days):
 def fields_exposures(pathname, dropdown_days):
     """ Make an histogram
     """
-    clientStats = connect_to_hbase_table('statistics_class')
-    results = clientStats.scan(
-        "",
-        "key:key:ztf_",
-        '*',
-        0,
-        False,
-        False
+    r = requests.post(
+        '{}/api/v1/statistics'.format(APIURL),
+        json={
+            'date': '',
+            'output-format': 'json',
+            'columns': '*'
+        }
     )
-    clientStats.close()
 
-    # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    # Format output in a DataFrame
+    pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
+    # Remove hbase specific fields
+    if 'key:time' in pdf.columns:
+        pdf = pdf.drop(columns=['key:time'])
 
     to_drop = [i for i in pdf.columns if i.startswith('basic:')]
     pdf = pdf.drop(columns=to_drop)
