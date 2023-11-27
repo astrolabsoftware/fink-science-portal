@@ -677,7 +677,12 @@ def store_query(name):
         }
     )
 
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(
+        r.content,
+        dtype={'i:ssnamenr':str} # Force reading this field as string
+    )
+
+    pdf['i:ssnamenr'].replace('None', 'null', inplace=True) # For backwards compatibility
 
     pdfs = pdf[pdf['d:tag'] == 'valid']
     pdfsU = pdf[pdf['d:tag'] == 'upperlim']
@@ -689,7 +694,7 @@ def store_query(name):
         r = requests.post(
             '{}/api/v1/sso'.format(APIURL),
             json={
-                'n_or_d': str(int(payload)), # FIXME: may it be something other than an int?..
+                'n_or_d': payload,
             }
         )
 
