@@ -3422,9 +3422,8 @@ def hist_sci_raw(pathname, dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
-    if 'key:key' in pdf.columns:
-        pdf = pdf.drop(columns=['key:key'])
     if 'key:time' in pdf.columns:
         pdf = pdf.drop(columns=['key:time'])
 
@@ -3467,9 +3466,8 @@ def hist_catalogued(pathname, dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
-    if 'key:key' in pdf.columns:
-        pdf = pdf.drop(columns=['key:key'])
     if 'key:time' in pdf.columns:
         pdf = pdf.drop(columns=['key:time'])
 
@@ -3514,9 +3512,8 @@ def hist_classified(pathname, dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
-    if 'key:key' in pdf.columns:
-        pdf = pdf.drop(columns=['key:key'])
     if 'key:time' in pdf.columns:
         pdf = pdf.drop(columns=['key:time'])
 
@@ -3564,11 +3561,11 @@ def hist_candidates(pathname, dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
-    if 'key:key' in pdf.columns:
-        pdf = pdf.drop(columns=['key:key'])
     if 'key:time' in pdf.columns:
         pdf = pdf.drop(columns=['key:time'])
+
     pdf = pdf.rename(
         columns={
             'class:Solar System candidate': 'SSO',
@@ -3613,9 +3610,8 @@ def fields_exposures(pathname, dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
+    pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
-    if 'key:key' in pdf.columns:
-        pdf = pdf.drop(columns=['key:key'])
     if 'key:time' in pdf.columns:
         pdf = pdf.drop(columns=['key:time'])
 
