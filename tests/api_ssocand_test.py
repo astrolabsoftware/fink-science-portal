@@ -117,13 +117,13 @@ def test_time_boundaries() -> None:
     >>> test_time_boundaries()
     """
     pdf = ssocandsearch(
-        kind='lightcurves', start_date='2020-01-01', stop_date='2020-12-31'
+        kind='lightcurves', start_date='2023-01-01', stop_date='2023-12-31'
     )
 
     assert not pdf.empty
 
-    assert np.alltrue(pdf['d:jd'].values >= Time('2020-01-01', format='iso').jd)
-    assert np.alltrue(pdf['d:jd'].values <= Time('2020-12-31', format='iso').jd)
+    assert np.alltrue(pdf['d:jd'].values >= Time('2023-01-01', format='iso').jd)
+    assert np.alltrue(pdf['d:jd'].values <= Time('2023-12-31', format='iso').jd)
 
 
 if __name__ == "__main__":
