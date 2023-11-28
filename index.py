@@ -1322,7 +1322,7 @@ navbar = dmc.Header(
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar,
-    html.Div(id='page-content'),
+    html.Div(id='page-content', className='home', style={'padding-top': '55px'}),
     html.Div(children=False, id='is-mobile', hidden=True),
 ])
 

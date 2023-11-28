@@ -3039,7 +3039,7 @@ def plot_heatmap(pathname, object_stats):
     )
 
     card = dbc.Card(
-        dbc.CardBody(graph),
+        dbc.CardBody(graph, className="m-0 p-0"),
         className="mt-3"
     )
     return card
@@ -3384,7 +3384,23 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
     myid = '{}_stat'.format(title.split(' ')[0])
     card = dbc.Card(
         [
-            dbc.CardBody([html.H6([title, '   ', html.I(className="fas fa-question fa-1x", style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'})], id=myid, className="card-subtitle"), graph]),
+            dbc.CardBody(
+                [
+                    html.H6(
+                        [
+                            title,
+                            html.I(
+                                className="fa fa-question-circle fa-1x",
+                                style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90', 'float': 'right'},
+                                id=myid
+                            )
+                        ],
+                        # id=myid,
+                        className="card-subtitle"
+                    ),
+                    graph
+                ]
+            ),
             dbc.Popover(
                 [dbc.PopoverBody(description)],
                 target=myid,
