@@ -158,6 +158,8 @@ modal = html.Div(
             id="open",
             color='light',
             outline=True,
+            # Hide on screen sizes smaller than md
+            className="d-none d-md-inline"
         ),
         dbc.Modal(
             [
@@ -199,7 +201,9 @@ fink_search_bar = dbc.InputGroup(
             variant="transparent",
             radius='xl',
             size='lg',
-            loaderProps={'variant': 'dots', 'color': 'orange'}
+            loaderProps={'variant': 'dots', 'color': 'orange'},
+            # Hide on screen sizes smaller than sm
+            className="d-none d-sm-flex"
         ),
         modal
     ], id="search_bar", className='rcorners2'
@@ -260,10 +264,10 @@ def simple_card(
         ]
     )
 
-    if is_mobile:
+    if is_mobile and False:
         cardbody = dbc.CardBody(
             [
-                html.H4("{}".format(finkclass), className="card-title"),
+                html.H4("{} - {}".format(name, finkclass), className="card-title"),
                 l1,
                 l2,
                 l3,
@@ -281,7 +285,7 @@ def simple_card(
     else:
         cardbody = dbc.CardBody(
             [
-                html.H4("{}".format(finkclass), className="card-title"),
+                html.H4("{} - {}".format(name, finkclass), className="card-title"),
                 html.P("Constellation: {}".format(constellation), className="card-title"),
                 dcc.Graph(
                     figure=draw_lightcurve_preview(name),
@@ -289,7 +293,8 @@ def simple_card(
                     style={
                         'width': '100%',
                         'height': '15pc'
-                    }
+                    },
+                    className="d-none d-sm-block"
                 )
             ]
         )
@@ -297,9 +302,9 @@ def simple_card(
         header = dbc.CardHeader(
             dbc.Row(
                 [
-                    dbc.Col(draw_cutouts_quickview(name), width=2),
-                    dbc.Col([l1, l2], width=5),
-                    dbc.Col([l3, l4], width=5)
+                    dbc.Col(draw_cutouts_quickview(name), md=2),
+                    dbc.Col([l1, l2], md=5),
+                    dbc.Col([l3, l4], md=5)
                 ],
                 id='stamps_quickview',
                 justify='around'
@@ -316,7 +321,7 @@ def simple_card(
                     "Go to {}".format(name),
                     color="primary",
                     outline=True,
-                    href='{}/{}'.format(APIURL, name)
+                    href='/{}'.format(name)
                 )
             )
         ]
@@ -389,13 +394,15 @@ def modal_quickview(is_mobile):
             button,
             dbc.Modal(
                 [
-                    dbc.ModalBody(
-                        dbc.Container(
+                    loading(dbc.ModalBody(
+                        html.Div(
                             id='carousel',
-                            fluid=True,
-                            style={'width': '95%'}
-                        )
-                    ),
+                            # fluid=True,
+                            # style={'width': '95%'}
+                            className="ps-2 pe-2"
+                        ),
+                        className="ps-4 pe-4"
+                    )),
                     dbc.ModalFooter(
                         dbc.Button(
                             "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
@@ -404,7 +411,7 @@ def modal_quickview(is_mobile):
                 ],
                 id="modal_quickview",
                 is_open=False,
-                size="lg",
+                size="lg"
             ),
         ]
     )
@@ -473,7 +480,7 @@ def display_table_results(table, is_mobile):
     )
 
     switch = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
         label="Unique objects",
         color="orange",
@@ -483,9 +490,9 @@ def display_table_results(table, is_mobile):
     switch_description = "Toggle the switch to list each object only once. Only the latest alert will be displayed."
 
     switch_sso = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
-        label="Unique Solar System objects",
+        label="Unique SSO",
         color="orange",
         checked=False,
         id="alert-sso-switch"
@@ -493,7 +500,7 @@ def display_table_results(table, is_mobile):
     switch_sso_description = "Toggle the switch to list each Solar System Object only once. Only the latest alert will be displayed."
 
     switch_tracklet = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
         label="Unique tracklets",
         color="orange",
@@ -502,92 +509,58 @@ def display_table_results(table, is_mobile):
     )
     switch_tracklet_description = "Toggle the switch to list each Tracklet only once (fast moving objects). Only the latest alert will be displayed."
 
-    if is_mobile:
-        width_options = 12
-    else:
-        width_options = 4
-
-    return dbc.Container([
-        html.Br(),
-        dmc.Grid(
+    return [
+        dbc.Row(
             [
-                dmc.Col(
-                    dmc.Accordion(
-                        children=[
-                            dmc.AccordionItem(
-                                children=[
-                                    dmc.AccordionControl(
-                                        "Table options",
-                                        icon=[
-                                            DashIconify(
-                                                icon="tabler:arrow-bar-to-down",
-                                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                                                width=20,
-                                            )
-                                        ],
-                                    ),
-                                    dmc.AccordionPanel(
-                                        [
-                                            dbc.Row(
-                                                dbc.Col(
-                                                    [
-                                                        dmc.Paper(
-                                                            [
-                                                                dmc.Stack(
-                                                                    [
-                                                                        dropdown,
-                                                                        dmc.Tooltip(
-                                                                            children=switch,
-                                                                            width=220,
-                                                                            multiline=True,
-                                                                            withArrow=True,
-                                                                            transition="fade",
-                                                                            transitionDuration=200,
-                                                                            label=switch_description
-                                                                        ),
-                                                                        dmc.Tooltip(
-                                                                            children=switch_sso,
-                                                                            width=220,
-                                                                            multiline=True,
-                                                                            withArrow=True,
-                                                                            transition="fade",
-                                                                            transitionDuration=200,
-                                                                            label=switch_sso_description
-                                                                        ),
-                                                                        dmc.Tooltip(
-                                                                            children=switch_tracklet,
-                                                                            width=220,
-                                                                            multiline=True,
-                                                                            withArrow=True,
-                                                                            transition="fade",
-                                                                            transitionDuration=200,
-                                                                            label=switch_tracklet_description
-                                                                        ),
-                                                                    ], spacing='xs'
-                                                                )
-
-                                                            ],
-                                                            radius='xl', p='md', shadow='xl', withBorder=True
-                                                        )
-                                                    ],
-                                                    width=width_options
-                                                )
-                                            )
-                                        ]
-                                    )
-                                ],
-                                value='table_option'
-                            )
-                        ]
-                    ),
-                    span=10
+                dbc.Col(
+                    dropdown,
+                    md=4
                 ),
-                dmc.Col(modal_quickview(is_mobile), span=2)
+                dbc.Col(
+                    dmc.Tooltip(
+                    children=switch,
+                        width=220,
+                        multiline=True,
+                        withArrow=True,
+                        transition="fade",
+                        transitionDuration=200,
+                        label=switch_description
+                    ),
+                    md=2,
+                ),
+                dbc.Col(
+                    dmc.Tooltip(
+                        children=switch_sso,
+                        width=220,
+                        multiline=True,
+                        withArrow=True,
+                        transition="fade",
+                        transitionDuration=200,
+                        label=switch_sso_description
+                    ),
+                    md=2
+                ),
+                dbc.Col(
+                    dmc.Tooltip(
+                        children=switch_tracklet,
+                        width=220,
+                        multiline=True,
+                        withArrow=True,
+                        transition="fade",
+                        transitionDuration=200,
+                        label=switch_tracklet_description
+                    ),
+                    md=2
+                ),
+                dbc.Col(
+                    modal_quickview(is_mobile),
+                    md=2
+                )
             ],
             align='center'
         ),
         table
-    ], fluid=True)
+    ]
 
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
@@ -799,8 +772,6 @@ def logo(ns, nss, options, searchurl):
     ctx = dash.callback_context
 
     logo = [
-        html.Br(),
-        html.Br(),
         dbc.Row(
             dbc.Col(
                 html.Img(
@@ -808,9 +779,8 @@ def logo(ns, nss, options, searchurl):
                     height='100%',
                     width='60%'
                 )
-            ), style={'textAlign': 'center'}
+            ), style={'textAlign': 'center'}, className="mt-3"
         ),
-        html.Br()
     ]
     if nss is None and (not ctx.triggered) and (searchurl == ''):
         return logo
@@ -858,14 +828,14 @@ def populate_result_table(data, columns, is_mobile):
         markdown_options=markdown_options,
         fixed_columns={'headers': True, 'data': 1},
         style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
+            'backgroundColor': 'rgb(248, 248, 248, 1.0)'
         },
         style_table={'maxWidth': '100%'},
         style_cell={'padding': '5px', 'textAlign': 'center', 'overflow': 'hidden'},
         style_data_conditional=[
             {
                 'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                'backgroundColor': 'rgb(248, 248, 248, 1.0)'
             }
         ],
         style_header={
@@ -1346,19 +1316,11 @@ app.clientside_callback(
     ]
 )
 def display_page(pathname, is_mobile):
-    if is_mobile:
-        width = '95%'
-    else:
-        width = '60%'
-
     layout = html.Div(
         [
-            html.Br(),
-            html.Br(),
             dbc.Container(
                 [
                     html.Div(id='logo'),
-                    html.Br(),
                     dmc.ChipGroup(
                         [
                             dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
@@ -1369,21 +1331,20 @@ def display_page(pathname, is_mobile):
                         spacing="xl",
                         position='center',
                         multiple=False,
+                        className="mt-3"
                     ),
-                    html.Br(),
-                    dbc.Row(fink_search_bar),
-                    html.Br(),
+                    dbc.Row(fink_search_bar, className="mt-3 mb-3"),
                     dcc.Dropdown(
                         id='select',
                         searchable=True,
                         clearable=True,
+                        className="mb-3"
                     ),
-                    html.Br(),
-                ], id='trash', fluid=True, style={'width': width}
+                ], id='trash', className="container-lg"
             ),
             loading(dbc.Container(id='results'))
         ],
-        className='home'
+        # className='home'
     )
     if pathname == '/about':
         return about.layout

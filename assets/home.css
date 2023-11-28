@@ -145,6 +145,7 @@ html, body {
 input[type="search"] {
   border: 1px solid gray;
   padding: .2em .4em;
+  padding-left: 25px;
   border-radius: .2em;
 }
 
@@ -201,4 +202,11 @@ img[alt=logoexp] { width: 200px; horizontal-align: middle; display: block; margi
   -webkit-animation: spinner-border 0.75s linear infinite;
   animation: spinner-border 0.75s linear infinite;
   margin-top: 2rem;
+}
+
+/* So that there is always something to overlay during loading */
+#results[data-dash-is-loading="true"]::after {
+  content: " ";
+  display: inline-block;
+  visibility: visible;
 }
