@@ -778,7 +778,7 @@ def logo(ns, nss, options, searchurl):
                 html.Img(
                     src="/assets/Fink_PrimaryLogo_WEB.png",
                     height='100%',
-                    width='60%'
+                    width='40%'
                 )
             ), style={'textAlign': 'center'}, className="mt-3"
         ),
@@ -812,7 +812,7 @@ def construct_results_layout(table, is_mobile):
 def populate_result_table(data, columns, is_mobile):
     """ Define options of the results table, and add data and columns
     """
-    if is_mobile:
+    if is_mobile and False:
         page_size = 5
         markdown_options = {'link_target': '_self'}
     else:
@@ -829,20 +829,22 @@ def populate_result_table(data, columns, is_mobile):
         markdown_options=markdown_options,
         fixed_columns={'headers': True, 'data': 1},
         style_data={
-            'backgroundColor': 'rgb(248, 248, 248, 1.0)'
+            'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
         style_table={'maxWidth': '100%'},
-        style_cell={'padding': '5px', 'textAlign': 'center', 'overflow': 'hidden'},
+        style_cell={'padding': '5px', 'textAlign': 'right', 'overflow': 'hidden'},
         style_data_conditional=[
             {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, 1.0)'
+                'if': {'column_id': 'i:objectId'},
+                'backgroundColor': 'rgb(240, 240, 240, 1.0)',
             }
         ],
         style_header={
             'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
+            'fontWeight': 'bold', 'textAlign': 'center'
+        },
+        # Align the text in Markdown cells
+        css=[dict(selector="p", rule="margin: 0; text-align: left")]
     )
     return table
 
@@ -1067,7 +1069,7 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
                 'name': colnames_to_display[c],
                 'type': 'text',
                 # 'hideable': True,
-                'presentation': 'markdown',
+                'presentation': 'markdown' if c == 'i:objectId' else 'input',
             } for c in colnames_to_display.keys()
         ]
         validation = 1
@@ -1337,14 +1339,21 @@ def display_page(pathname, is_mobile):
                         multiple=False,
                         className="mt-3"
                     ),
-                    dbc.Row(fink_search_bar, className="mt-3 mb-3"),
-                    dcc.Dropdown(
-                        id='select',
-                        searchable=True,
-                        clearable=True,
-                        className="mb-3"
+                    dbc.Row(
+                        dbc.Col(
+                            [
+                                dbc.Row(fink_search_bar, className="mt-3 mb-3"),
+                                dcc.Dropdown(
+                                    id='select',
+                                    searchable=True,
+                                    clearable=True,
+                                    className="mb-3"
+                                ),
+                            ],
+                            md={'size':8, 'offset':2}
+                        ),
                     ),
-                ], id='trash', className="container-lg"
+                ], id='trash', fluid="md"
             ),
             loading(dbc.Container(id='results'))
         ],
