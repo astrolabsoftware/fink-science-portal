@@ -741,6 +741,7 @@ def chips_values(chip_value, val):
     """
 
     default = "    Enter a valid ZTF object ID or choose another query type"
+    val = "" # Clear the input
 
     if chip_value == "objectId":
         return default, val
@@ -912,16 +913,17 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         Output("submit", "children")
     ],
     [
-        Input("search_bar_input", "value"),
+        State("search_bar_input", "value"),
         Input("dropdown-query", "value"),
         Input("select", "value"),
         Input("is-mobile", "children"),
         Input('url', 'search'),
-        Input('submit', 'n_clicks')
+        Input('submit', 'n_clicks'),
+        Input('search_bar_input', 'n_submit')
     ],
     State("results", "children")
 )
-def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n_clicks):
+def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n_clicks, n_sumbits):
     """ Query the database from the search input
 
     Returns
@@ -939,7 +941,9 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
     empty_query = (query is None) or (query == '')
 
     if empty_query and query_type != "Class Search":
-        raise PreventUpdate
+        # raise PreventUpdate
+        # Clear old results on changing query type
+        return "", no_update
 
     colnames_to_display = {
         'i:objectId': 'objectId',
