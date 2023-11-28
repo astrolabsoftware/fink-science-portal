@@ -839,3 +839,14 @@ def retrieve_oid_from_metaname(name):
     if r.json() != []:
         return r.json()[0]['key:key']
     return None
+
+# TODO: split these UI snippets into separate file?..
+import dash_mantine_components as dmc
+
+def loading(item):
+    return dmc.LoadingOverlay(
+        item,
+        loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+        overlayOpacity=0.0,
+        zIndex=100000
+    )

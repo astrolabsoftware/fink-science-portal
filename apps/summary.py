@@ -51,6 +51,7 @@ from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
 from apps.utils import retrieve_oid_from_metaname
+from apps.utils import loading
 from fink_utils.photometry.utils import is_source_behind
 
 from fink_utils.xmatch.simbad import get_simbad_labels
@@ -85,10 +86,8 @@ def tab1_content(pdf, extra_div):
         ]),
     ])
 
-    out = dmc.LoadingOverlay(
-        tab1_content_,
-        loaderProps={"variant": "dots", "color": "orange", "size": "xl"}
-    )
+    out = loading(tab1_content_)
+
     return out
 
 def tab2_content():
@@ -154,14 +153,14 @@ def tab3_content():
         dmc.Space(h=10),
         dbc.Row([
             dbc.Col(
-                dmc.LoadingOverlay(
+                loading(
                     dmc.Paper(
                         [
                             html.Div(id='variable_plot'),
                             html.Br(),
                             card_explanation_variable()
                         ], radius='xl', p='md', shadow='xl', withBorder=True
-                    ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                    )
                 ), width=8
             ),
             dbc.Col(
@@ -191,14 +190,14 @@ def tab4_content():
         dmc.Space(h=10),
         dbc.Row([
             dbc.Col(
-                dmc.LoadingOverlay(
+                loading(
                     dmc.Paper(
                         [
                             html.Div(id='mulens_plot'),
                             html.Br(),
                             card_explanation_mulens()
                         ], radius='xl', p='md', shadow='xl', withBorder=True
-                    ), loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                    )
                 ), width=8
             ),
             dbc.Col(

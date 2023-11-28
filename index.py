@@ -35,6 +35,7 @@ from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time, validate_query, extract_query_url
 from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
+from apps.utils import loading
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
 import requests
@@ -1380,7 +1381,7 @@ def display_page(pathname, is_mobile):
                     html.Br(),
                 ], id='trash', fluid=True, style={'width': width}
             ),
-            dbc.Container(id='results'),
+            loading(dbc.Container(id='results'))
         ],
         className='home'
     )
