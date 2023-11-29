@@ -351,11 +351,6 @@ curl -H "Content-Type: application/json" -X POST \\
         color="red", value="Python"
     )
 
-    qrdata = "https://fink-portal.org/{}".format(objectid)
-    qrimg = generate_qr(qrdata)
-
-    qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
-
     card = dmc.AccordionMultiple(
         children=[
             dmc.AccordionItem(
@@ -585,7 +580,7 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Center(qrcode, style={'width': '100%', 'height': '200'})
+                            dmc.Center(html.Div(id='qrcode'), style={'width': '100%', 'height': '200'})
                         ],
                     ),
                 ],

@@ -726,6 +726,18 @@ def store_query(name):
         pdftracklet = pd.DataFrame()
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json(), pdftracklet.to_json()
 
+@app.callback(
+    Output('qrcode', 'children'),
+    [
+        Input('url', 'pathname'),
+    ]
+)
+def make_qrcode(path):
+    qrdata = "https://fink-portal.org/{}".format(path[1:])
+    qrimg = generate_qr(qrdata)
+
+    return html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg))
+
 def layout(name, is_mobile):
     # even if there is one object ID, this returns  several alerts
     r = requests.post(
@@ -735,9 +747,6 @@ def layout(name, is_mobile):
         }
     )
     pdf = pd.read_json(r.content)
-
-    qrdata = "https://fink-portal.org/{}".format(name[1:])
-    qrimg = generate_qr(qrdata)
 
     if pdf.empty:
         layout_ = html.Div(
@@ -782,7 +791,7 @@ def layout(name, is_mobile):
                         html.Br(),
                         dbc.Row(
                             [
-                                html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='50%', width='50%'),
+                                html.Div(id='qrcode', style={'width': '100%', 'height': '200'})
                             ], justify="center"
                         ),
                     ], id='webinprog', fluid=True, style={'width': '100%'}
