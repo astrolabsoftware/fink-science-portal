@@ -1561,11 +1561,20 @@ def draw_cutouts(clickData, object_data):
     figs = []
     for kind in ['science', 'template', 'difference']:
         try:
-            data = extract_cutout(object_data, jd0, kind=kind)
-            figs.append(draw_cutout(data, kind))
+            cutout = extract_cutout(object_data, jd0, kind=kind)
+            data = draw_cutout(cutout, kind)
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
-            figs.append(data)
+
+        figs.append(
+            dbc.Col(
+                data,
+                sm=4,
+                className="p-0",
+                # style={'border':'1px solid orange'}
+            )
+        )
+
     return figs
 
 @app.callback(
@@ -1729,20 +1738,21 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
     data = sigmoid_normalizer(data, lower_bound, upper_bound)
 
     data = data[::-1]
-    data = convolve(data, smooth=1, kernel='gauss')
+    # data = convolve(data, smooth=1, kernel='gauss')
+    shape = data.shape
 
-    if is_mobile:
+    if is_mobile and False:
         mask = create_circular_mask(len(data), len(data[0]), center=None, radius=None)
         data[~mask] = np.nan
 
-    if is_mobile:
+    if is_mobile and False:
         zsmooth = 'fast'
     else:
         zsmooth = False
 
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, hoverinfo='skip', colorscale='Greys_r', zsmooth=zsmooth
+            z=data, showscale=False, hoverinfo='skip', colorscale='Hot', zsmooth=zsmooth
         )
     )
     # Greys_r
@@ -1754,7 +1764,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
         ticks='')
 
     fig.update_layout(
-        title='',
+        title=title,
         margin=dict(t=0, r=0, b=0, l=0),
         xaxis=axis_template,
         yaxis=axis_template,
@@ -1764,18 +1774,20 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
     )
 
     if not modal:
-        style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
-        classname = 'roundimg zoom'
-        if not is_mobile:
-            fig.update_layout(width=75, height=75)
-            classname = 'roundimg'
+        style = {'display':'block', 'aspect-ratio': '1', 'margin': '1px'}
+        classname = 'zoom'
+        if not is_mobile or True:
+            fig.update_layout(width=shape[1], height=shape[0])
+            fig.update_layout(yaxis={'scaleanchor':'x', 'scaleratio':1})
+            classname = ''
 
         graph = dcc.Graph(
             id='{}-stamps'.format(title),
             figure=fig,
             style=style,
             config={'displayModeBar': False},
-            className=classname
+            className=classname,
+            responsive=True
         )
     else:
         style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
@@ -1783,7 +1795,8 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
             id='{}-stamps'.format(title),
             figure=fig,
             style=style,
-            config={'displayModeBar': False}
+            config={'displayModeBar': False},
+            responsive=True
         )
 
     return graph

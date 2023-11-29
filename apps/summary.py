@@ -81,12 +81,12 @@ def tab1_content(pdf, extra_div):
             ], justify='around'
         ),
         dbc.Row([
-            dbc.Col([extra_div, card_lightcurve_summary()], width=8),
-            dbc.Col(card_id(pdf), width=4)
+            dbc.Col([extra_div, loading(card_lightcurve_summary())], md=8),
+            dbc.Col(card_id(pdf), md=4)
         ]),
     ])
 
-    out = loading(tab1_content_)
+    out = tab1_content_
 
     return out
 
@@ -96,8 +96,8 @@ def tab2_content():
     tab2_content_ = html.Div([
         dmc.Space(h=10),
         dbc.Row([
-            dbc.Col(card_sn_scores(), width=8),
-            dbc.Col(id='card_sn_properties', width=4)
+            dbc.Col(card_sn_scores(), md=8),
+            dbc.Col(id='card_sn_properties', md=4)
         ]),
     ])
     return tab2_content_
@@ -161,7 +161,7 @@ def tab3_content():
                             card_explanation_variable()
                         ], radius='xl', p='md', shadow='xl', withBorder=True
                     )
-                ), width=8
+                ), md=8
             ),
             dbc.Col(
                 [
@@ -170,7 +170,7 @@ def tab3_content():
                     card2,
                     html.Br(),
                     submit_varstar_button
-                ], width=4
+                ], md=4
             )
         ]),
     ])
@@ -198,7 +198,7 @@ def tab4_content():
                             card_explanation_mulens()
                         ], radius='xl', p='md', shadow='xl', withBorder=True
                     )
-                ), width=8
+                ), md=8
             ),
             dbc.Col(
                 [
@@ -207,7 +207,7 @@ def tab4_content():
                     html.Div(id='mulens_params'),
                     html.Br(),
                     submit_mulens_button
-                ], width=4
+                ], md=4
             )
         ]),
     ])
@@ -360,13 +360,13 @@ def tab5_content(object_soo):
                     dmc.TabsPanel(tab2, value="Astrometry"),
                     dmc.TabsPanel(tab3, value="Phase curve")
                 ], variant="outline", value="Lightcurve"
-            ), width=8
+            ), md=8
         )
     else:
         msg = """
         Object not referenced in the Minor Planet Center
         """
-        left_side = dbc.Col([html.Br(), dbc.Alert(msg, color="danger")], width=8)
+        left_side = dbc.Col([html.Br(), dbc.Alert(msg, color="danger")], md=8)
 
     tab5_content_ = dbc.Row(
         [
@@ -375,7 +375,7 @@ def tab5_content(object_soo):
             dbc.Col(
                 [
                     card_sso_left(ssnamenr)
-                ], width=4
+                ], md=4
             )
         ]
     )
@@ -433,7 +433,7 @@ def tab_mobile_content(pdf):
     return html.Div(badges)
 
 def tabs(pdf, is_mobile):
-    if is_mobile:
+    if is_mobile and False:
         tabs_ = tab_mobile_content(pdf)
     else:
         distnr = pdf['i:distnr'].values[0]
@@ -638,7 +638,7 @@ def accordion_mobile():
                 value='external'
             ),
         ],
-        id="accordion-mobile",
+        id="accordion-mobile"
     )
 
     return accordion
@@ -757,13 +757,13 @@ def layout(name, is_mobile):
                         dbc.Alert("{} not found. Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).".format(name[1:]), color="danger"),
                     ],
                 )
-            ], className='home summary_empty'
+            ], className='summary_empty'
         )
-    elif is_mobile:
+    elif is_mobile and False:
         layout_ = html.Div(
             [
-                html.Br(),
-                html.Br(),
+                # html.Br(),
+                # html.Br(),
                 dbc.Container(
                     [
                         dbc.Row(
@@ -802,37 +802,32 @@ def layout(name, is_mobile):
             html.Div(id='object-sso', style={'display': 'none'}),
             html.Div(id='object-tracklet', style={'display': 'none'}),
             ],
-            className='home summary_mobile',
+            className='summary_mobile',
         )
     else:
         layout_ = html.Div(
             [
-                html.Br(),
-                html.Br(),
                 dbc.Row(
                     [
                         dbc.Col(
                             [
-                                html.Br(),
-                                html.Div(id="card_id_left"),
-                                html.Br(),
-                                html.Br(),
+                                html.Div(id="card_id_left", className="p-2"),
                                 html.Div(
                                     [visdcc.Run_js(id='aladin-lite-div')],
                                     style={
                                         'width': '100%',
                                         'height': '27pc',
-                                    }
+                                    },
+                                    className="p-2 d-none d-md-block"
                                 ),
-                                html.Br(),
-                            ], width={"size": 3},
+                            ], lg=3
                         ),
                         dbc.Col(
                             [
                                 dmc.Space(h=10),
                                 tabs(pdf, is_mobile),
                             ],
-                            width=8
+                            lg=9
                         )
                     ],
                     justify="around", className="g-0"
@@ -842,7 +837,7 @@ def layout(name, is_mobile):
                 html.Div(id='object-uppervalid', style={'display': 'none'}),
                 html.Div(id='object-sso', style={'display': 'none'}),
                 html.Div(id='object-tracklet', style={'display': 'none'}),
-            ], className='home summary'
+            ], className='summary'
         )
 
     return layout_

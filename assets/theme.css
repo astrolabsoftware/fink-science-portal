@@ -31,14 +31,14 @@ h2 {
 }
 
 /* Summary */
-.home.summary_empty {
+.home .summary_empty {
   background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png);
   background-size: cover;
 }
 .home.summary_mobile {
   background-image: linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/assets/background.png);
 }
-.home.summary {
+.home .summary {
   background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png);
   background-size: cover;
 }

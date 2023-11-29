@@ -24,6 +24,7 @@ from apps.plotting import all_radio_options
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
+from apps.utils import loading
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -367,46 +368,48 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Paper(
-                                [
-                                    dbc.Row(id='stamps', justify='around', className="g-0"),
-                                    dbc.Modal(
-                                        [
-                                            dbc.ModalHeader(
-                                                dmc.Select(
-                                                    label="",
-                                                    placeholder="Select a date",
-                                                    searchable=True,
-                                                    nothingFound="No options found",
-                                                    id="date_modal_select",
-                                                    value=None,
-                                                    data=[
-                                                        {"value": i, "label": i} for i in pdf['v:lastdate'].values
-                                                    ],
-                                                    # style={"width": 200, "marginBottom": 10},
-                                                    zIndex=10000000,
-                                                ),
-                                                close_button=True,
-                                            ),
-                                            dbc.ModalBody(
-                                                [
-                                                    dmc.Group(
-                                                        id="stamps_modal_content",
-                                                        position='center',
-                                                        spacing='xl'
-                                                    ),
-                                                ]
-                                            ),
-                                        ],
-                                        id="stamps_modal",
-                                        scrollable=True,
-                                        centered=True,
-                                        size='xl'
-                                    ),
-                                ],
-                                radius='xl', p='md', shadow='xl', withBorder=True
+                            loading(
+                                dmc.Paper(
+                                    [
+                                        dbc.Row(id='stamps', justify='around', className="g-0"),
+                                    ],
+                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'padding':'5px'}
+                                )
                             ),
                             dmc.Space(h=4),
+                            dbc.Modal(
+                                [
+                                    dbc.ModalHeader(
+                                        dmc.Select(
+                                            label="",
+                                            placeholder="Select a date",
+                                            searchable=True,
+                                            nothingFound="No options found",
+                                            id="date_modal_select",
+                                            value=None,
+                                            data=[
+                                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
+                                            ],
+                                            # style={"width": 200, "marginBottom": 10},
+                                            zIndex=10000000,
+                                        ),
+                                        close_button=True,
+                                    ),
+                                    loading(dbc.ModalBody(
+                                        [
+                                            dmc.Group(
+                                                id="stamps_modal_content",
+                                                position='center',
+                                                spacing='xl'
+                                            ),
+                                        ]
+                                    )),
+                                ],
+                                id="stamps_modal",
+                                scrollable=True,
+                                centered=True,
+                                size='xl'
+                            ),
                             dmc.Center(
                                 dmc.ActionIcon(
                                     DashIconify(icon="tabler:arrows-maximize"),
@@ -595,12 +598,10 @@ curl -H "Content-Type: application/json" -X POST \\
 @app.callback(
     Output("stamps_modal", "is_open"),
     Input("maximise_stamps", "n_clicks"),
-    Input("maximise_stamps", "n_clicks"),
-    Input("maximise_stamps", "n_clicks"),
     State("stamps_modal", "is_open"),
     prevent_initial_call=True,
 )
-def modal_stamps(nc1, nc2, nc3, opened):
+def modal_stamps(nc, opened):
     return not opened
 
 def generate_tns_badge(oid):
