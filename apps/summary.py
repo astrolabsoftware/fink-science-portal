@@ -407,78 +407,40 @@ def tab6_content(object_tracklet):
     ])
     return tab6_content_
 
-def tab_mobile_content(pdf):
-    """ Content for mobile application
-    """
-    simbad_types = get_simbad_labels('old_and_new')
-    simbad_types = sorted(simbad_types, key=lambda s: s.lower())
-
-    badges = []
-    for c in np.unique(pdf['v:classification']):
-        if c in simbad_types:
-            color = class_colors['Simbad']
-        elif c in class_colors.keys():
-            color = class_colors[c]
-        else:
-            # Sometimes SIMBAD mess up names :-)
-            color = class_colors['Simbad']
-
-        badges.append(
-            dmc.Badge(
-                c,
-                color=color,
-                variant="dot",
-            )
+def tabs(pdf):
+    distnr = pdf['i:distnr'].values[0]
+    if is_source_behind(distnr):
+        extra_div = dbc.Alert(
+            "It looks like there is a source behind. You might want to check the DC magnitude instead.",
+            dismissable=True,
+            is_open=True,
+            color="light"
         )
-    return html.Div(badges)
-
-def tabs(pdf, is_mobile):
-    if is_mobile and False:
-        tabs_ = tab_mobile_content(pdf)
     else:
-        distnr = pdf['i:distnr'].values[0]
-        if is_source_behind(distnr):
-            extra_div = dbc.Alert(
-                "It looks like there is a source behind. You might want to check the DC magnitude instead.",
-                dismissable=True,
-                is_open=True,
-                color="light"
-            )
-        else:
-            extra_div = html.Div()
-        tabs_ = dmc.Tabs(
-            [
-                dmc.TabsList(
-                    [
-                        dmc.Tab("Summary", value="Summary"),
-                        dmc.Tab("Supernovae", value="Supernovae"),
-                        dmc.Tab("Variable stars", value="Variable stars"),
-                        dmc.Tab("Microlensing", value="Microlensing"),
-                        dmc.Tab("Solar System", value="Solar System"),
-                        dmc.Tab("Tracklets", value="Tracklets"),
-                        dmc.Tab("GRB", value="GRB", disabled=True)
-                    ], position='right'
-                ),
-                dmc.TabsPanel(tab1_content(pdf, extra_div), value="Summary"),
-                dmc.TabsPanel(tab2_content(), value="Supernovae"),
-                dmc.TabsPanel(tab3_content(), value="Variable stars"),
-                dmc.TabsPanel(tab4_content(), value="Microlensing"),
-                dmc.TabsPanel(id="tab_sso", value="Solar System"),
-                dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
-            ], value="Summary"
-        )
-    return tabs_
+        extra_div = html.Div()
+    tabs_ = dmc.Tabs(
+        [
+            dmc.TabsList(
+                [
+                    dmc.Tab("Summary", value="Summary"),
+                    dmc.Tab("Supernovae", value="Supernovae"),
+                    dmc.Tab("Variable stars", value="Variable stars"),
+                    dmc.Tab("Microlensing", value="Microlensing"),
+                    dmc.Tab("Solar System", value="Solar System"),
+                    dmc.Tab("Tracklets", value="Tracklets"),
+                    dmc.Tab("GRB", value="GRB", disabled=True)
+                ], position='right'
+            ),
+            dmc.TabsPanel(tab1_content(pdf, extra_div), value="Summary"),
+            dmc.TabsPanel(tab2_content(), value="Supernovae"),
+            dmc.TabsPanel(tab3_content(), value="Variable stars"),
+            dmc.TabsPanel(tab4_content(), value="Microlensing"),
+            dmc.TabsPanel(id="tab_sso", value="Solar System"),
+            dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
+        ], value="Summary"
+    )
 
-def title_mobile(name):
-    header = [
-        html.Br(),
-        dbc.Row(
-            [
-                dmc.Center(dmc.Title(children='{}'.format(name[1:]), style={'color': '#15284F'}))
-            ]
-        ),
-    ]
-    return html.Div(header)
+    return tabs_
 
 @app.callback(
     Output('external_links', 'children'),
@@ -738,7 +700,7 @@ def make_qrcode(path):
 
     return html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg))
 
-def layout(name, is_mobile):
+def layout(name):
     # even if there is one object ID, this returns  several alerts
     r = requests.post(
         '{}/api/v1/objects'.format(APIURL),
@@ -758,51 +720,6 @@ def layout(name, is_mobile):
                     ],
                 )
             ], className='summary_empty'
-        )
-    elif is_mobile and False:
-        layout_ = html.Div(
-            [
-                # html.Br(),
-                # html.Br(),
-                dbc.Container(
-                    [
-                        dbc.Row(
-                            [
-                                dbc.Col(title_mobile(name), width={"size": 12, "offset": 0},),
-                            ]
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Col(dmc.Center(tabs(pdf, is_mobile)), width=12)
-                            ]
-                        ),
-                        html.Br(),
-                        dbc.Row(
-                            [
-                                dbc.Col([html.Br(), dbc.Row(id='stamps_mobile', justify='around')], width={"size": 12, "offset": 0},),
-                            ]
-                        ),
-                        html.Br(),
-                        dbc.Row(
-                            [
-                                dbc.Col(accordion_mobile(), width=12)
-                            ]
-                        ),
-                        html.Br(),
-                        dbc.Row(
-                            [
-                                html.Div(id='qrcode', style={'width': '100%', 'height': '200'})
-                            ], justify="center"
-                        ),
-                    ], id='webinprog', fluid=True, style={'width': '100%'}
-                ),
-            html.Div(id='object-data', style={'display': 'none'}),
-            html.Div(id='object-upper', style={'display': 'none'}),
-            html.Div(id='object-uppervalid', style={'display': 'none'}),
-            html.Div(id='object-sso', style={'display': 'none'}),
-            html.Div(id='object-tracklet', style={'display': 'none'}),
-            ],
-            className='summary_mobile',
         )
     else:
         layout_ = html.Div(
@@ -825,7 +742,7 @@ def layout(name, is_mobile):
                         dbc.Col(
                             [
                                 dmc.Space(h=10),
-                                tabs(pdf, is_mobile),
+                                tabs(pdf),
                             ],
                             lg=9
                         )

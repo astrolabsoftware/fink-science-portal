@@ -411,7 +411,7 @@ def get_data_one_night(night):
 
     return pdf
 
-def layout(is_mobile):
+def layout():
     """
     """
     label_style = {"color": "#000"}
@@ -444,7 +444,7 @@ def layout(is_mobile):
             ),
             html.Div(id='object-stats', style={'display': 'none'}),
         ],
-        className='container-lg',
+        fluid='lg',
     )
 
     return layout_

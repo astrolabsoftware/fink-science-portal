@@ -148,24 +148,17 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
 
     return timeline
 
-def filter_tab(is_mobile):
+def filter_tab():
     """ Section containing filtering options
     """
-    if is_mobile:
-        width = '100%'
-        amountOfMonths = 1
-    else:
-        width = '50%'
-        amountOfMonths = 2
     options = html.Div(
         [
             dmc.DateRangePicker(
                 id="date-range-picker",
                 label="Date Range",
                 description="Pick up start and stop dates (included).",
-                style={"width": width},
                 hideOutsideDates=True,
-                amountOfMonths=amountOfMonths,
+                amountOfMonths=2,
                 allowSingleDateInRange=True,
                 required=True
             ),
@@ -176,13 +169,11 @@ def filter_tab(is_mobile):
                 placeholder="start typing...",
                 id="class_select",
                 searchable=True,
-                style={"width": width},
             ),
             dmc.Space(h=10),
             dmc.Textarea(
                 id="extra_cond",
                 label="Extra conditions",
-                style={"width": width},
                 autosize=True,
                 minRows=2,
             ),
@@ -821,69 +812,57 @@ def mining_helper():
     )
     return accordion
 
-def layout(is_mobile):
+def layout():
     """ Layout for the data transfer service
     """
     qb = query_builder()
-    ft = filter_tab(is_mobile)
+    ft = filter_tab()
     ct = content_tab()
     btns = make_buttons()
     fh = make_final_helper()
 
-    if is_mobile:
-        width_right = 10
-        title = dbc.Row(
-            children=[
-                dmc.Space(h=20),
-                dmc.Stack(
-                    children=[
-                        dmc.Title(
-                            children='Fink Data Transfer',
-                            style={'color': '#15284F'}
+    title = dbc.Row(
+        children=[
+            dmc.Space(h=20),
+            dmc.Stack(
+                children=[
+                    dmc.Title(
+                        children='Fink Data Transfer',
+                        style={'color': '#15284F'}
+                    ),
+                    dmc.Anchor(
+                        dmc.ActionIcon(
+                            DashIconify(icon="fluent:question-16-regular", width=20),
+                            size=30,
+                            radius="xl",
+                            variant="light",
+                            color='orange',
                         ),
-                        dmc.Anchor(
-                            dmc.ActionIcon(
-                                DashIconify(icon="fluent:question-16-regular", width=20),
-                                size=30,
-                                radius="xl",
-                                variant="light",
-                                color='orange',
-                            ),
-                            href="https://fink-broker.org/2023-01-17-data-transfer",
-                            target="_blank"
-                        ),
-                    ],
-                    align="center",
-                    justify="center",
-                )
-            ]
-        )
-        left_side = html.Div(id='timeline_data_transfer', style={'display': 'none'})
-    else:
-        width_right = 8
-        title = html.Div()
-        left_side = dbc.Col(
-            [
-                html.Br(),
-                html.Br(),
-                html.Div(id='timeline_data_transfer'),
-                html.Br(),
-                mining_helper(),
-            ], width={"size": 3},
-        )
+                        href="https://fink-broker.org/2023-01-17-data-transfer",
+                        target="_blank",
+                        className="d-block d-md-none"
+                    ),
+                ],
+                align="center",
+                justify="center",
+            )
+        ]
+    )
 
-    layout_ = html.Div(
+    layout_ = dbc.Container(
         [
-            html.Br(),
-            html.Br(),
             title,
             dbc.Row(
                 [
-                    left_side,
                     dbc.Col(
                         [
+                            html.Div(id='timeline_data_transfer'),
                             html.Br(),
-                            html.Br(),
+                            mining_helper(),
+                        ], md=3, className="d-none d-md-block",
+                    ),
+                    dbc.Col(
+                        [
                             qb,
                             ft,
                             ct,
@@ -898,12 +877,11 @@ def layout(is_mobile):
                             html.Br(),
 
                         ],
-                        width=width_right)
+                        md=9)
                 ],
-                justify="around", className="g-0"
+                justify="around", className="g-0 mt-2"
             ),
-            html.Br(),
-        ], className='home query_cluster'
+        ], className='query_cluster', fluid="lg"
     )
 
     return layout_

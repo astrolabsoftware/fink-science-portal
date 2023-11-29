@@ -131,15 +131,12 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
     # return pdf.to_json(), "done"
     return pdf.to_json()
 
-def populate_result_table_gw(data, columns, is_mobile):
+def populate_result_table_gw(data, columns):
     """ Define options of the results table, and add data and columns
     """
-    if is_mobile:
-        page_size = 5
-        markdown_options = {'link_target': '_self'}
-    else:
-        page_size = 10
-        markdown_options = {'link_target': '_blank'}
+    page_size = 10
+    markdown_options = {'link_target': '_blank'}
+
     table = dash_table.DataTable(
         data=data,
         columns=columns,
@@ -231,7 +228,7 @@ def show_table(nclick, gw_data, superevent_name, searchurl):
             } for c in colnames_to_display.keys()
         ]
 
-        table = populate_result_table_gw(data, columns, is_mobile=False)
+        table = populate_result_table_gw(data, columns)
 
         return table
 
@@ -433,7 +430,7 @@ def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, cr
         set_progress((str(i + 1), str(int(total))))
     return "Loaded!"
 
-def layout(is_mobile):
+def layout():
     """ Layout for the GW counterpart search
     """
     description = [
@@ -454,7 +451,8 @@ def layout(is_mobile):
                 description=description,
                 placeholder="e.g. S230709bi",
             ),
-        ], id='superevent_name_selector'
+        ], id='superevent_name_selector',
+        className='mb-2'
     )
 
     credible_level = html.Div(
@@ -472,7 +470,8 @@ def layout(is_mobile):
                 step=0.05,
                 id='credible_level'
             ),
-        ], id='credible_level_selector'
+        ], id='credible_level_selector',
+        className='mb-4'
     )
 
     submit_gw = dmc.Center(
@@ -485,70 +484,52 @@ def layout(is_mobile):
                 variant="outline",
                 color='indigo'
             ),
+        ],
+        className='mb-4'
+    )
+
+    title_div = dbc.Row(
+        children=[
+            dmc.Space(h=20),
+            dmc.Stack(
+                children=[
+                    dmc.Title(
+                        children='Gravitational Waves',
+                        style={'color': '#15284F'},
+                            order=2
+                    ),
+                ],
+                align="center",
+                justify="center",
+            ),
+            dbc.Alert(
+                dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.", link_target="_blank"),
+                dismissable=True,
+                is_open=True,
+                color="light",
+                className="d-none d-md-block"
+            )
         ]
     )
 
-    if is_mobile:
-        width_right = 10
-        extra_div = dbc.Row(
-            children=[
-                dmc.Space(h=20),
-                    dmc.Stack(
-                    children=[
-                        dmc.Title(
-                            children='Gravitational Waves',
-                            style={'color': '#15284F'},
-                                order=2
-                        ),
-                        supervent_name,
-                        credible_level,
-                        submit_gw
-                    ],
-                    align="center",
-                    justify="center",
-                )
-            ]
-        )
-        left_side = html.Div(
-            [
-                html.Div(id="gw-trigger", style={'display': 'none'}),
-                dcc.Store(data='', id='gw-data')
-            ]
-        )
-    else:
-        extra_div = dbc.Alert(
-            dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.", link_target="_blank"),
-            dismissable=True,
-            is_open=True,
-            color="light"
-        )
-        width_right = 9
-        left_side = dbc.Col(
-            [
-                html.Br(),
-                html.Br(),
-                supervent_name,
-                html.Br(),
-                credible_level,
-                html.Br(),
-                html.Br(),
-                submit_gw,
-                html.Div(id="gw-trigger", style={'display': 'none'}),
-                dcc.Store(data='', id='gw-data'),
-            ], width={"size": 2},
-        )
-
-    layout_ = html.Div(
+    layout_ = dbc.Container(
         [
-            html.Br(),
-            html.Br(),
+            title_div,
             dbc.Row(
                 [
-                    left_side,
+                    dbc.Col(
+                        [
+                            supervent_name,
+                            credible_level,
+                            submit_gw,
+                            html.Div(id="gw-trigger", style={'display': 'none'}),
+                            dcc.Store(data='', id='gw-data'),
+                        ], md=3,
+                        # className="d-none d-md-block"
+                    ),
                     dbc.Col(
                         [
                             dmc.Space(h=10),
-                            extra_div,
                             html.Progress(id="progress_bar", style={'display': 'none', 'width': '100%', 'height': '5pc'}),
                             display_skymap_gw(),
                             dmc.Space(h=10),
@@ -558,13 +539,13 @@ def layout(is_mobile):
                                     card_explanation()
                                 ], radius='xl', p='md', shadow='xl', withBorder=True
                             ),
-                        ], width=width_right
+                        ], md=9
                     ),
                 ],
-                justify="around", className="g-0"
+                justify="around", className="g-2"
             ),
             html.Br()
-        ], className='home gw'
+        ], className='gw', fluid='lg'
     )
 
     return layout_

@@ -593,17 +593,14 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
     Output('classbar', 'figure'),
     [
         Input('object-data', 'children'),
-        Input('is-mobile', 'children')
     ])
-def plot_classbar(object_data, is_mobile):
+def plot_classbar(object_data):
     """ Display a bar chart with individual alert classifications
 
     Parameters
     ----------
     object_data: json data
         cached alert data
-    is_mobile: bool
-        True if mobile plateform, False otherwise.
     """
     pdf = pd.read_json(object_data)
     grouped = pdf.groupby('v:classification').count()
@@ -631,10 +628,7 @@ def plot_classbar(object_data, is_mobile):
             is_seen.append(top_labels[i])
 
             percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(int)
-            if is_mobile:
-                name_legend = top_labels[i]
-            else:
-                name_legend = top_labels[i] + ': {}%'.format(percent)
+            name_legend = top_labels[i] + ': {}%'.format(percent)
             fig.add_trace(
                 go.Bar(
                     x=[xd[i]], y=[yd],
@@ -651,10 +645,7 @@ def plot_classbar(object_data, is_mobile):
                 )
             )
 
-    if is_mobile:
-        legend_shift = 0.0
-    else:
-        legend_shift = 0.2
+    legend_shift = 0.2
     fig.update_layout(
         xaxis=dict(
             showgrid=False,
@@ -684,13 +675,11 @@ def plot_classbar(object_data, is_mobile):
         plot_bgcolor='rgb(248, 248, 255, 0.0)',
         margin=dict(l=0, r=0, b=0, t=0)
     )
-    if not is_mobile:
-        fig.update_layout(title_text='Individual alert classification')
-        fig.update_layout(title_y=0.15)
-        fig.update_layout(title_x=0.0)
-        fig.update_layout(title_font_size=12)
-    if is_mobile:
-        fig.update_layout(legend=dict(font=dict(size=10)))
+    fig.update_layout(title_text='Individual alert classification')
+    fig.update_layout(title_y=0.15)
+    fig.update_layout(title_x=0.0)
+    fig.update_layout(title_font_size=12)
+
     return fig
 
 @app.callback(
@@ -1612,25 +1601,6 @@ def draw_cutouts_modal(object_data, date_modal_select, is_open):
             figs.append(data)
     return figs
 
-@app.callback(
-    Output("stamps_mobile", "children"),
-    [
-        Input('object-data', 'children'),
-        Input('is-mobile', 'children')
-    ])
-def draw_cutouts_mobile(object_data, is_mobile):
-    """ Draw cutouts data based on lightcurve data
-    """
-    figs = []
-    for kind in ['science', 'template', 'difference']:
-        try:
-            data = extract_cutout(object_data, None, kind=kind)
-            figs.append(draw_cutout(data, kind, is_mobile=is_mobile))
-        except OSError:
-            data = dcc.Markdown("Load fail, refresh the page")
-            figs.append(data)
-    return figs
-
 def draw_cutouts_quickview(name):
     """ Draw Science cutout data for the preview service
     """
@@ -1654,7 +1624,7 @@ def draw_cutouts_quickview(name):
             )
             object_data = r.content
             data = extract_cutout(object_data, None, kind=kind)
-            figs.append(draw_cutout(data, kind, is_mobile=True))
+            figs.append(draw_cutout(data, kind))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
@@ -1729,7 +1699,7 @@ def legacy_normalizer(data: list, stretch='asinh', pmin=0.5, pmax=99.5) -> list:
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, modal=False):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -1741,14 +1711,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
     # data = convolve(data, smooth=1, kernel='gauss')
     shape = data.shape
 
-    if is_mobile and False:
-        mask = create_circular_mask(len(data), len(data[0]), center=None, radius=None)
-        data[~mask] = np.nan
-
-    if is_mobile and False:
-        zsmooth = 'fast'
-    else:
-        zsmooth = False
+    zsmooth = False
 
     fig = go.Figure(
         data=go.Heatmap(
@@ -1776,10 +1739,9 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
     if not modal:
         style = {'display':'block', 'aspect-ratio': '1', 'margin': '1px'}
         classname = 'zoom'
-        if not is_mobile or True:
-            fig.update_layout(width=shape[1], height=shape[0])
-            fig.update_layout(yaxis={'scaleanchor':'x', 'scaleratio':1})
-            classname = ''
+        fig.update_layout(width=shape[1], height=shape[0])
+        fig.update_layout(yaxis={'scaleanchor':'x', 'scaleratio':1})
+        classname = ''
 
         graph = dcc.Graph(
             id='{}-stamps'.format(title),

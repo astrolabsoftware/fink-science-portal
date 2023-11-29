@@ -221,7 +221,7 @@ def print_msg_info():
 
 def simple_card(
         name, finkclass, lastdate, fid,
-        mag, jd, jdstarthist, ndethist, constellation, is_mobile):
+        mag, jd, jdstarthist, ndethist, constellation):
     """ Preview card
 
     The laptop version shows Science cutout + metadata + lightcurve
@@ -264,52 +264,33 @@ def simple_card(
         ]
     )
 
-    if is_mobile and False:
-        cardbody = dbc.CardBody(
-            [
-                html.H4("{} - {}".format(name, finkclass), className="card-title"),
-                l1,
-                l2,
-                l3,
-                l4,
-                l5
-            ]
-        )
-        header = dbc.CardHeader(
-            dbc.Row(
-                draw_cutouts_quickview(name),
-                id='stamps_quickview',
-                justify='around'
+    cardbody = dbc.CardBody(
+        [
+            html.H4("{} - {}".format(name, finkclass), className="card-title"),
+            html.P("Constellation: {}".format(constellation), className="card-title"),
+            dcc.Graph(
+                figure=draw_lightcurve_preview(name),
+                config={'displayModeBar': False},
+                style={
+                    'width': '100%',
+                    'height': '15pc'
+                },
+                className="d-none d-sm-block"
             )
-        )
-    else:
-        cardbody = dbc.CardBody(
-            [
-                html.H4("{} - {}".format(name, finkclass), className="card-title"),
-                html.P("Constellation: {}".format(constellation), className="card-title"),
-                dcc.Graph(
-                    figure=draw_lightcurve_preview(name),
-                    config={'displayModeBar': False},
-                    style={
-                        'width': '100%',
-                        'height': '15pc'
-                    },
-                    className="d-none d-sm-block"
-                )
-            ]
-        )
+        ]
+    )
 
-        header = dbc.CardHeader(
-            dbc.Row(
-                [
-                    dbc.Col(draw_cutouts_quickview(name), md=2),
-                    dbc.Col([l1, l2], md=5),
-                    dbc.Col([l3, l4], md=5)
-                ],
-                id='stamps_quickview',
-                justify='around'
-            )
+    header = dbc.CardHeader(
+        dbc.Row(
+            [
+                dbc.Col(draw_cutouts_quickview(name), md=2),
+                dbc.Col([l1, l2], md=5),
+                dbc.Col([l3, l4], md=5)
+            ],
+            id='stamps_quickview',
+            justify='around'
         )
+    )
 
 
     simple_card_ = dbc.Card(
@@ -333,10 +314,9 @@ def simple_card(
     [
         Input("open_modal_quickview", "n_clicks"),
         Input("result_table", "data"),
-        Input('is-mobile', 'children')
     ],
 )
-def carousel(nclick, data, is_mobile):
+def carousel(nclick, data):
     """ Carousel that shows alert preview
     """
     if nclick > 0:
@@ -350,10 +330,9 @@ def carousel(nclick, data, is_mobile):
         jdstarthists = pdf['i:jdstarthist'].values[0:10]
         ndethists = pdf['i:ndethist'].values[0:10]
         constellations = pdf['v:constellation'][0:10]
-        is_mobiles = [is_mobile] * 10
         carousel = dtc.Carousel(
             [
-                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, constellations, is_mobiles)
+                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, constellations)
             ],
             slides_to_scroll=1,
             slides_to_show=1,
@@ -368,27 +347,18 @@ def carousel(nclick, data, is_mobile):
     return carousel
 
 
-def modal_quickview(is_mobile):
-    if not is_mobile:
-        button = dmc.Button(
-            "Preview",
-            id="open_modal_quickview",
-            n_clicks=0,
-            leftIcon=[DashIconify(icon="tabler:eye")],
-            color="gray",
-            fullWidth=True,
-            variant='outline',
-            radius='xl'
-        )
-    else:
-        button = dmc.ActionIcon(
-            [DashIconify(icon="tabler:eye")],
-            id="open_modal_quickview",
-            n_clicks=0,
-            color="gray",
-            variant='outline',
-            radius='xl'
-        )
+def modal_quickview():
+    button = dmc.Button(
+        "Preview",
+        id="open_modal_quickview",
+        n_clicks=0,
+        leftIcon=[DashIconify(icon="tabler:eye")],
+        color="gray",
+        fullWidth=True,
+        variant='outline',
+        radius='xl'
+    )
+
     modal = html.Div(
         [
             button,
@@ -431,7 +401,7 @@ def toggle_modal_preview(n1, n2, is_open):
         return not is_open
     return is_open
 
-def display_table_results(table, is_mobile):
+def display_table_results(table):
     """ Display explorer results in the form of a table with a dropdown
     menu on top to insert more data columns.
 
@@ -553,7 +523,7 @@ def display_table_results(table, is_mobile):
                     md=2
                 ),
                 dbc.Col(
-                    modal_quickview(is_mobile),
+                    modal_quickview(),
                     md=2
                 )
             ],
@@ -793,14 +763,14 @@ def logo(ns, nss, options, searchurl):
     else:
         return logo
 
-def construct_results_layout(table, is_mobile):
+def construct_results_layout(table):
     """ Construct the tabs containing explorer query results
     """
     results_ = [
         dbc.Tabs(
             [
                 dbc.Tab(print_msg_info(), label='Info', tab_id='t0', label_style = {"color": "#000"}),
-                dbc.Tab(display_table_results(table, is_mobile), label="Table", tab_id='t1', label_style = {"color": "#000"}),
+                dbc.Tab(display_table_results(table), label="Table", tab_id='t1', label_style = {"color": "#000"}),
                 dbc.Tab(display_skymap(), label="Sky map", tab_id='t2', label_style = {"color": "#000"}),
             ],
             id="tabs",
@@ -809,15 +779,12 @@ def construct_results_layout(table, is_mobile):
     ]
     return results_
 
-def populate_result_table(data, columns, is_mobile):
+def populate_result_table(data, columns):
     """ Define options of the results table, and add data and columns
     """
-    if is_mobile and False:
-        page_size = 5
-        markdown_options = {'link_target': '_self'}
-    else:
-        page_size = 10
-        markdown_options = {'link_target': '_blank'}
+    page_size = 10
+    markdown_options = {'link_target': '_blank'}
+
     table = dash_table.DataTable(
         data=data,
         columns=columns,
@@ -918,14 +885,13 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         State("search_bar_input", "value"),
         Input("dropdown-query", "value"),
         Input("select", "value"),
-        Input("is-mobile", "children"),
         Input('url', 'search'),
         Input('submit', 'n_clicks'),
         Input('search_bar_input', 'n_submit')
     ],
     State("results", "children")
 )
-def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n_clicks, n_sumbits):
+def results(query, query_type, dropdown_option, searchurl, results, n_clicks, n_sumbits):
     """ Query the database from the search input
 
     Returns
@@ -1074,8 +1040,8 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
         ]
         validation = 1
 
-    table = populate_result_table(data, columns, is_mobile)
-    return construct_results_layout(table, is_mobile), no_update
+    table = populate_result_table(data, columns)
+    return construct_results_layout(table), no_update
 
 def text_noresults(query, query_type, dropdown_option, searchurl):
     """ Toast to warn the user about the fact that we found no results
@@ -1299,29 +1265,15 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar,
     html.Div(id='page-content', className='home', style={'padding-top': '55px'}),
-    html.Div(children=False, id='is-mobile', hidden=True),
 ])
-
-app.clientside_callback(
-    """
-    function(href) {
-        var cond1 = ( ( window.innerWidth <= 820 ) && ( window.innerHeight <= 600 ) )
-        var cond2 = ( ( window.innerWidth <= 600 ) && ( window.innerHeight <= 820 ) )
-        return ( ( cond1 ) || ( cond2 ) );
-    }
-    """,
-    Output('is-mobile', 'children'),
-    Input('url', 'href')
-)
 
 @app.callback(
     Output('page-content', 'children'),
     [
         Input('url', 'pathname'),
-        Input('is-mobile', 'children')
     ]
 )
-def display_page(pathname, is_mobile):
+def display_page(pathname):
     layout = html.Div(
         [
             dbc.Container(
@@ -1362,21 +1314,21 @@ def display_page(pathname, is_mobile):
     if pathname == '/about':
         return about.layout
     elif pathname == '/api':
-        return api.layout(is_mobile)
+        return api.layout()
     elif pathname == '/stats':
-        return statistics.layout(is_mobile)
+        return statistics.layout()
     elif pathname == '/download':
-        return query_cluster.layout(is_mobile)
+        return query_cluster.layout()
     elif pathname == '/gw':
-        return gw.layout(is_mobile)
+        return gw.layout()
     elif pathname.startswith('/ZTF'):
-        return summary.layout(pathname, is_mobile)
+        return summary.layout(pathname)
     else:
         if pathname[1:]:
             # check this is not a name generated by a user
             oid = retrieve_oid_from_metaname(pathname[1:])
             if oid is not None:
-                return summary.layout('/' + oid, is_mobile)
+                return summary.layout('/' + oid)
         return layout
 
 # register the API
