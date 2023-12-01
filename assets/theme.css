@@ -1,5 +1,6 @@
 :root {
     --bgColor: #fff;
+    --bgColorTriplet: 255, 255, 255;
     --textDefault: #000;
     --primary: #0B4CFF;
     --secondary: #FF0B70;
@@ -8,6 +9,7 @@
 
 :root[data-theme='dark'] {
     --bgColor: #000;
+    --bgColorTriplet: 0, 0, 0;
     --textDefault: #000;
     --primary: #ACC2FF;
     --secondary: #FFAFD0;
@@ -30,29 +32,28 @@ h2 {
   background-size: cover;
 }
 
-/* Summary */
-.home .summary_empty {
-  background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png);
-  background-size: cover;
-}
-.home .summary_mobile {
-  background-image: linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/assets/background.png);
-}
-.home .summary {
-  background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png);
-  background-size: cover;
+/* Quasi-generic backgrounds, meant to be used in wrapper divs to override parent colors of the whole page */
+.bg-opaque-90 {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(var(--bgColorTriplet), 0.9)
 }
 
-/* Query cluster */
-.home > .query_cluster {
-  background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png);
-  background-size: cover;
+/* Quasi-generic backgrounds, meant to be used in wrapper divs to override parent colors of the whole page */
+.bg-opaque-60 {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(var(--bgColorTriplet), 0.6)
 }
 
-/* GW */
-.home .gw {
-  background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(/assets/background.png);
-  background-size: cover;
+/* Quasi-generic backgrounds, meant to be used in wrapper divs to override parent colors of the whole page */
+.bg-opaque-30 {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(var(--bgColorTriplet), 0.3)
 }
 
 /* Quickview modal */

@@ -879,9 +879,15 @@ def layout():
                         ],
                         md=9)
                 ],
-                justify="around", className="g-0 mt-2"
+                justify="around", className="g-2 mt-2"
             ),
-        ], className='query_cluster', fluid="lg"
+        ], fluid="lg"
+    )
+
+    # Wrap it to re-define the background
+    layout_ = html.Div(
+        layout_,
+        className="bg-opaque-90"
     )
 
     return layout_

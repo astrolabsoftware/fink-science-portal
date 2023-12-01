@@ -719,7 +719,7 @@ def layout(name):
                         dbc.Alert("{} not found. Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).".format(name[1:]), color="danger"),
                     ],
                 )
-            ], className='summary_empty'
+            ], className="bg-opaque-60"
         )
     else:
         layout_ = html.Div(
@@ -754,7 +754,7 @@ def layout(name):
                 html.Div(id='object-uppervalid', style={'display': 'none'}),
                 html.Div(id='object-sso', style={'display': 'none'}),
                 html.Div(id='object-tracklet', style={'display': 'none'}),
-            ], className='summary'
+            ], className='bg-opaque-90'
         )
 
     return layout_

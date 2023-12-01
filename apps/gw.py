@@ -545,7 +545,13 @@ def layout():
                 justify="around", className="g-2"
             ),
             html.Br()
-        ], className='gw', fluid='lg'
+        ], fluid='lg'
+    )
+
+    # Wrap it to re-define the background
+    layout_ = html.Div(
+        layout_,
+        className="bg-opaque-90"
     )
 
     return layout_
