@@ -527,7 +527,8 @@ def display_table_results(table):
                     md=2
                 )
             ],
-            align='center'
+            align='center',
+            className='pt-2 pb-1'
         ),
         table
     ]
@@ -799,7 +800,12 @@ def populate_result_table(data, columns):
             'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
         style_table={'maxWidth': '100%'},
-        style_cell={'padding': '5px', 'textAlign': 'right', 'overflow': 'hidden'},
+        style_cell={
+            'padding': '5px',
+            'textAlign': 'right',
+            'overflow': 'hidden',
+            'font-family': 'sans-serif',
+            'fontSize': 14},
         style_data_conditional=[
             {
                 'if': {'column_id': 'i:objectId'},
@@ -848,8 +854,8 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         columns.append({
             'name': field_dropdown,
             'id': field_dropdown,
-            'type': 'text',
-            'presentation': 'markdown'
+            'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
+            'presentation': 'markdown' if field_dropdown == 'i:objectId' else 'input',
             # 'hideable': True,
         })
 
@@ -1033,7 +1039,7 @@ def results(query, query_type, dropdown_option, searchurl, results, n_clicks, n_
             {
                 'id': c,
                 'name': colnames_to_display[c],
-                'type': 'text',
+                'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
                 # 'hideable': True,
                 'presentation': 'markdown' if c == 'i:objectId' else 'input',
             } for c in colnames_to_display.keys()
