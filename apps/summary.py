@@ -426,8 +426,8 @@ def tabs(pdf):
                     dmc.Tab("Supernovae", value="Supernovae"),
                     dmc.Tab("Variable stars", value="Variable stars"),
                     dmc.Tab("Microlensing", value="Microlensing"),
-                    dmc.Tab("Solar System", value="Solar System"),
-                    dmc.Tab("Tracklets", value="Tracklets"),
+                    dmc.Tab("Solar System", value="Solar System", disabled=not is_sso(pdf)),
+                    dmc.Tab("Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)),
                     dmc.Tab("GRB", value="GRB", disabled=True)
                 ], position='right'
             ),
@@ -441,6 +441,26 @@ def tabs(pdf):
     )
 
     return tabs_
+
+def is_sso(pdfs):
+    """Auxiliary function to check whether the object is a SSO"""
+    payload = pdfs['i:ssnamenr'].values[0]
+    if str(payload) == 'null' or str(payload) == 'None':
+        return False
+
+    if np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values]):
+        return True
+
+    return False
+
+def is_tracklet(pdfs):
+    """Auxiliary function to check whether the object is a tracklet"""
+    payload = pdfs['d:tracklet'].values[0]
+
+    if str(payload).startswith('TRCK'):
+        return True
+
+    return False
 
 @app.callback(
     Output('external_links', 'children'),
