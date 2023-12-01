@@ -381,7 +381,8 @@ def modal_quickview():
                 ],
                 id="modal_quickview",
                 is_open=False,
-                size="lg"
+                size="lg",
+                fullscreen="lg-down",
             ),
         ]
     )
@@ -1311,9 +1312,9 @@ def display_page(pathname):
                             md={'size':8, 'offset':2}
                         ),
                     ),
-                ], id='trash', fluid="md"
+                ], id='trash', fluid="lg"
             ),
-            loading(dbc.Container(id='results'))
+            loading(dbc.Container(id='results', fluid="lg"))
         ],
         # className='home'
     )
