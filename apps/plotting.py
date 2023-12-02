@@ -1521,7 +1521,10 @@ def extract_cutout(object_data, time0, kind):
         # Round to avoid numerical precision issues
         jds = pdfs['i:jd'].apply(lambda x: np.round(x, 3)).values
         jd0 = np.round(Time(time0, format='iso').jd, 3)
-        position = np.where(jds == jd0)[0][0]
+        if jd0 in jds:
+            position = np.where(jds == jd0)[0][0]
+        else:
+            return None
 
     # Extract the cutout data
     r = requests.post(
@@ -1557,6 +1560,9 @@ def draw_cutouts(clickData, object_data):
     for kind in ['science', 'template', 'difference']:
         try:
             cutout = extract_cutout(object_data, jd0, kind=kind)
+            if cutout is None:
+                return no_update
+
             data = draw_cutout(cutout, kind)
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
@@ -2998,10 +3004,22 @@ def draw_tracklet_radec(pdf) -> dict:
 @app.callback(
     Output('alert_table', 'children'),
     [
-        Input('object-data', 'children')
+        Input('object-data', 'children'),
+        Input('lightcurve_cutouts', 'clickData')
     ])
-def alert_properties(object_data):
+def alert_properties(object_data, clickData):
     pdf_ = pd.read_json(object_data)
+
+    if clickData is not None:
+        time0 = clickData['points'][0]['x']
+        # Round to avoid numerical precision issues
+        jds = pdf_['i:jd'].apply(lambda x: np.round(x, 3)).values
+        jd0 = np.round(Time(time0, format='iso').jd, 3)
+        if jd0 in jds:
+            pdf_ = pdf_[jds == jd0]
+        else:
+            return no_update
+
     pdf = pdf_.head(1)
     pdf = pdf.drop(
         columns=[
