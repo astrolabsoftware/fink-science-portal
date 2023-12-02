@@ -421,7 +421,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                     color='gray'
                                 ),
                             ),
-                        ],
+                        ]
                     ),
                 ],
                 value='stamps'
@@ -590,7 +590,8 @@ curl -H "Content-Type: application/json" -X POST \\
                 value='qr'
             ),
         ],
-        value='stamps'
+        value='stamps',
+        styles={'content':{'padding':'5px'}}
     )
 
     return card

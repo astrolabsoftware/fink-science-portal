@@ -21,12 +21,17 @@ def callback_telemetry(func):
             module = inspect.getmodule(func_ref)
             return f"{module.__name__.split('.')[-1]}:{func_ref.__name__}"
 
+        def flatten(arg):
+            if not isinstance(arg, list): # if not list
+                return [arg]
+            return [x for sub in arg for x in flatten(sub)]
+
         def generate_results_dict(function_output, outputs_list):
             if isinstance(function_output, tuple):
                 output_strs = [
-                    f"{output['id']}.{output['property']}" for output in outputs_list
+                    f"{output}.{output['property']}" for output in flatten(outputs_list)
                 ]
-                return dict(zip(output_strs, function_output))
+                return dict(zip(output_strs, flatten(function_output)))
             return {f"{outputs_list['id']}.{outputs_list['property']}": function_output}
 
         def format_callback_dict(data):

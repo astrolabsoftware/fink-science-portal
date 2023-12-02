@@ -1564,9 +1564,8 @@ def draw_cutouts(clickData, object_data):
         figs.append(
             dbc.Col(
                 data,
-                sm=4,
+                xs=4,
                 className="p-0",
-                # style={'border':'1px solid orange'}
             )
         )
 
@@ -1705,13 +1704,34 @@ def legacy_normalizer(data: list, stretch='asinh', pmin=0.5, pmax=99.5) -> list:
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
 
+def plain_normalizer(img: list, vmin: float, vmax: float, stretch='linear', pmin=0.5, pmax=99.5) -> list:
+    """ Image normalisation between vmin and vmax
+
+    Parameters
+    -----------
+    img: float array
+        a float array representing a non-normalized image
+
+    Returns
+    -----------
+    out: float array where data are bounded between vmin and vmax
+    """
+    limits = np.percentile(img, [pmin, pmax])
+    data = _data_stretch(img, vmin=limits[0], vmax=limits[1], stretch=stretch, vmid=0.1, exponent=2)
+    data = (vmax - vmin) * data + vmin
+
+    return data
+
 def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
     """ Draw a cutout data
     """
     # Update graph data for stamps
     data = np.nan_to_num(data)
 
-    data = sigmoid_normalizer(data, lower_bound, upper_bound)
+    # data = sigmoid_normalizer(data, lower_bound, upper_bound)
+    data = plain_normalizer(data, lower_bound, upper_bound,
+                            stretch='linear' if title in ['difference'] else 'asinh',
+                            pmin=0.5, pmax=99.95)
 
     data = data[::-1]
     # data = convolve(data, smooth=1, kernel='gauss')
@@ -1721,7 +1741,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
 
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, hoverinfo='skip', colorscale='Hot', zsmooth=zsmooth
+            z=data, showscale=False, hoverinfo='skip', colorscale='Blues_r', zsmooth=zsmooth
         )
     )
     # Greys_r
@@ -1742,15 +1762,16 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
         plot_bgcolor='rgba(0,0,0,0)'
     )
 
+    fig.update_layout(width=shape[1], height=shape[0])
+    fig.update_layout(yaxis={'scaleanchor':'x', 'scaleratio':1})
+
     if not modal:
         style = {'display':'block', 'aspect-ratio': '1', 'margin': '1px'}
         classname = 'zoom'
-        fig.update_layout(width=shape[1], height=shape[0])
-        fig.update_layout(yaxis={'scaleanchor':'x', 'scaleratio':1})
         classname = ''
 
         graph = dcc.Graph(
-            id='{}-stamps'.format(title),
+            id={'type':'stamp', 'id':title},
             figure=fig,
             style=style,
             config={'displayModeBar': False},
@@ -1760,7 +1781,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
     else:
         style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
         graph = dcc.Graph(
-            id='{}-stamps'.format(title),
+            id={'type':'stamp_modal', 'id':title},
             figure=fig,
             style=style,
             config={'displayModeBar': False},
@@ -1768,6 +1789,63 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
         )
 
     return graph
+
+from dash import ALL
+# @app.callback(
+#     [
+#         Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
+#         Output({'type': 'stamp', 'id': ALL}, 'figure'),
+#     ],
+#     [
+#         Input({'type': 'stamp', 'id': ALL}, 'relayoutData'),
+#     ],
+#     State({'type': 'stamp', 'id': ALL}, 'figure'),
+#     prevent_initial_call=True
+# )
+def zoom_cutouts(relayout_data, figure_states):
+    # Code from https://stackoverflow.com/a/70405707
+    unique_data = None
+    for data in relayout_data:
+        if relayout_data.count(data) == 1:
+            unique_data = data
+
+    if unique_data:
+        for figure_state in figure_states:
+            if unique_data.get('xaxis.autorange'):
+                figure_state['layout']['xaxis']['autorange'] = True
+                figure_state['layout']['yaxis']['autorange'] = True
+            else:
+                figure_state['layout']['xaxis']['range'] = [
+                    unique_data['xaxis.range[0]'], unique_data['xaxis.range[1]']]
+                figure_state['layout']['xaxis']['autorange'] = False
+                figure_state['layout']['yaxis']['range'] = [
+                    unique_data['yaxis.range[0]'], unique_data['yaxis.range[1]']]
+                figure_state['layout']['yaxis']['autorange'] = False
+        return [unique_data] * len(relayout_data), figure_states
+
+    return relayout_data, figure_states
+
+app.callback([
+        Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
+        Output({'type': 'stamp', 'id': ALL}, 'figure'),
+    ],
+    [
+        Input({'type': 'stamp', 'id': ALL}, 'relayoutData'),
+    ],
+    State({'type': 'stamp', 'id': ALL}, 'figure'),
+    prevent_initial_call=True
+)(zoom_cutouts)
+
+app.callback([
+        Output({'type': 'stamp_modal', 'id': ALL}, 'relayoutData'),
+        Output({'type': 'stamp_modal', 'id': ALL}, 'figure'),
+    ],
+    [
+        Input({'type': 'stamp_modal', 'id': ALL}, 'relayoutData'),
+    ],
+    State({'type': 'stamp_modal', 'id': ALL}, 'figure'),
+    prevent_initial_call=True
+)(zoom_cutouts)
 
 @app.callback(
     [
