@@ -869,6 +869,7 @@ def help_popover(text, id):
                     style={'overflow-y': 'auto', 'white-space': 'pre-wrap', 'max-height': '80vh'}),
                 target=id,
                 trigger='legacy',
+                placement='auto',
                 style={'width': '80vw', 'max-width': '800px'},
                 className='shadow-lg'
             ),
