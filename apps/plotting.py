@@ -780,6 +780,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
                 'hovertemplate': hovertemplate,
                 "legendgroup": "g band",
+                'legendrank': 110,
                 'marker': {
                     'size': 12,
                     'color': COLORS_ZTF[0],
@@ -796,6 +797,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 },
                 'mode': 'markers',
                 'name': 'r band',
+                'legendrank': 120,
                 'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
                 'hovertemplate': hovertemplate,
                 "legendgroup": "r band",
@@ -824,14 +826,16 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'x': dates2[pdf_upper['i:fid'] == 1],
                     'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 1],
                     'mode': 'markers',
+                    'name': '',
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 1],
                     'hovertemplate': hovertemplate_upper,
-                    "legendgroup": "g band",
+                    "legendgroup": "g band upper",
+                    'legendrank': 111,
                     'marker': {
                         'color': COLORS_ZTF[0],
                         'symbol': 'triangle-down-open'
                     },
-                    'showlegend': False
+                    # 'showlegend': False
                 }
             )
             figure['data'].append(
@@ -839,14 +843,16 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'x': dates2[pdf_upper['i:fid'] == 2],
                     'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 2],
                     'mode': 'markers',
+                    'name': '',
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 2],
                     'hovertemplate': hovertemplate_upper,
-                    "legendgroup": "r band",
+                    "legendgroup": "r band upper",
+                    'legendrank': 121,
                     'marker': {
                         'color': COLORS_ZTF[1],
                         'symbol': 'triangle-down-open'
                     },
-                    'showlegend': False
+                    # 'showlegend': False
                 }
             )
         pdf_upperv = pd.read_json(object_uppervalid)
