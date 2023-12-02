@@ -3015,9 +3015,9 @@ def alert_properties(object_data):
         {
             'id': c,
             'name': c,
-            'type': 'text',
             # 'hideable': True,
-            'presentation': 'markdown',
+            'presentation': 'input',
+            'type': 'text' if c == 'Name' else 'numeric', 'format': dash_table.Format.Format(precision=8),
         } for c in pdf.columns
     ]
     data = pdf.to_dict('records')
@@ -3025,27 +3025,54 @@ def alert_properties(object_data):
         data=data,
         columns=columns,
         id='result_table_alert',
-        page_size=5,
+        # page_size=10,
+        page_action='none',
         style_as_list_view=True,
         filter_action="native",
         markdown_options={'link_target': '_blank'},
-        fixed_columns={'headers': True, 'data': 1},
+        # fixed_columns={'headers': True},#, 'data': 1},
         style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
+            'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
-        style_table={'maxWidth': '100%'},
-        style_cell={'padding': '5px', 'textAlign': 'left', 'overflow': 'hidden'},
-        style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
+        style_table={'maxWidth': '100%', 'maxHeight': '300px', 'overflow': 'auto'},
+        style_cell={
+            'padding': '5px',
+            'textAlign': 'left',
+            'overflow': 'hidden',
+            'overflow-wrap': 'anywhere',
+            'max-width': '100%',
+            'font-family': 'sans-serif',
+            'fontSize': 14},
+        style_filter={'backgroundColor': 'rgb(238, 238, 238, 1.0)'},
+        style_filter_conditional=[
+            {
+                'if': {'column_id': 'Value'},
+                'textAlign': 'left',
+            }
+        ],
         style_data_conditional=[
             {
                 'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                'backgroundColor': 'rgb(248, 248, 248, 1.0)'
+            },
+            {
+                'if': {'column_id': 'Name'},
+                'backgroundColor': 'rgb(240, 240, 240, 1.0)',
+                'white-space': 'normal',
+                'min-width': '10pc',
+            },
+            {
+                'if': {'column_id': 'Value'},
+                'white-space': 'normal',
+                'min-width': '10pc',
             }
         ],
         style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
+            'backgroundColor': 'rgb(230, 230, 230, 1.0)',
+            'fontWeight': 'bold', 'textAlign': 'center'
+        },
+        # Align the text in Markdown cells
+        css=[dict(selector="p", rule="margin: 0; text-align: left")]
     )
     return table
 
@@ -3442,7 +3469,6 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
                                 id=myid
                             )
                         ],
-                        # id=myid,
                         className="card-subtitle"
                     ),
                     graph
