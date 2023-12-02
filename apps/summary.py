@@ -486,145 +486,6 @@ def create_external_links_brokers_(object_data):
     buttons = create_external_links_brokers(pdf['i:objectId'].values[0])
     return buttons
 
-def accordion_mobile():
-    """
-    """
-    lightcurve = html.Div(
-        [
-            dcc.Graph(
-                id='lightcurve_cutouts',
-                style={
-                    'width': '100%',
-                    'height': '15pc'
-                },
-                config={'displayModeBar': False}
-            ),
-            html.Div(
-                dbc.RadioItems(
-                    options=[{'label': k, 'value': k} for k in all_radio_options.keys()],
-                    value="Difference magnitude",
-                    id="switch-mag-flux",
-                    inline=True
-                ), style={'display': 'none'}
-            )
-        ]
-    )
-
-    message = """
-    Here are the fields contained in the last alert. Note you can filter the
-    table results using the first row (enter text and hit enter).
-    - Fields starting with `i:` are original fields from ZTF.
-    - Fields starting with `d:` are live added values by Fink.
-    - Fields starting with `v:` are added values by Fink (post-processing).
-
-    See {}/api/v1/columns for more information.
-    """.format(APIURL)
-
-    information = html.Div(
-        [
-            dcc.Markdown(message),
-            html.Div([], id='alert_table')
-        ]
-    )
-
-    aladin = html.Div(
-        visdcc.Run_js(id='aladin-lite-div2'),
-        style={
-            'width': '100%',
-            'height': '20pc'
-        }
-    )
-    external = dbc.CardBody(id='external_links')
-    external_brokers = dbc.CardBody(id='external_links_brokers')
-
-    accordion = dmc.AccordionMultiple(
-        children=[
-            dmc.AccordionItem(
-                [
-                    dmc.AccordionControl(
-                        "Lightcurve",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:graph",
-                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                                width=20,
-                            )
-                        ],
-                    ),
-                    dmc.AccordionPanel(lightcurve),
-                ],
-                value="lightcurve"
-            ),
-            dmc.AccordionItem(
-                [
-                    dmc.AccordionControl(
-                        "Last alert properties",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:file-description",
-                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
-                                width=20,
-                            )
-                        ],
-                    ),
-                    dmc.AccordionPanel(information),
-                ],
-                value='info'
-            ),
-            dmc.AccordionItem(
-                [
-                    dmc.AccordionControl(
-                        "Aladin Lite",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:map-2",
-                                color=dmc.theme.DEFAULT_COLORS["orange"][6],
-                                width=20,
-                            )
-                        ],
-                    ),
-                    dmc.AccordionPanel(aladin),
-                ],
-                value='aladin'
-            ),
-            dmc.AccordionItem(
-                [
-                    dmc.AccordionControl(
-                        "Other brokers",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:atom-2",
-                                color=dmc.theme.DEFAULT_COLORS["green"][6],
-                                width=20,
-                            )
-                        ],
-                    ),
-                    dmc.AccordionPanel(dmc.Stack(external_brokers, align='center')),
-                ],
-                value='external_brokers'
-            ),
-            dmc.AccordionItem(
-                [
-                    dmc.AccordionControl(
-                        "External links",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:external-link",
-                                color=dmc.theme.DEFAULT_COLORS["gray"][6],
-                                width=20,
-                            )
-                        ],
-                    ),
-                    dmc.AccordionPanel(external),
-                ],
-                value='external'
-            ),
-        ],
-        id="accordion-mobile"
-    )
-
-    return accordion
-
 @app.callback(
     [
         Output('object-data', 'children'),
@@ -747,17 +608,21 @@ def layout(name):
                 dbc.Row(
                     [
                         dbc.Col(
-                            [
-                                html.Div(id="card_id_left", className="p-2"),
-                                html.Div(
-                                    [visdcc.Run_js(id='aladin-lite-div')],
-                                    style={
-                                        'width': '100%',
-                                        'height': '27pc',
-                                    },
-                                    className="p-2 d-none d-md-block"
-                                ),
-                            ], lg=3
+                            dbc.Row(
+                                [
+                                    dbc.Col(id="card_id_left", className="p-2", lg=12, md=6, sm=12),
+                                    dbc.Col(
+                                        html.Div(
+                                            [visdcc.Run_js(id='aladin-lite-div')],
+                                            style={
+                                                'width': '100%',
+                                                'height': '27pc',
+                                            },
+                                            className="p-2 d-none d-md-block"
+                                        ), lg=12, md=6, sm=12
+                                    )
+                                ]
+                            ), lg=3
                         ),
                         dbc.Col(
                             [
@@ -778,61 +643,3 @@ def layout(name):
         )
 
     return layout_
-
-@app.callback(
-    Output('aladin-lite-div2', 'run'),
-    [
-        Input('object-data', 'children'),
-        Input("accordion-mobile", "value")
-    ]
-)
-def integrate_aladin_lite_mobile(object_data, accordion_value):
-    """ Integrate aladin light in the mobile app.
-
-    the default parameters are:
-        * PanSTARRS colors
-        * FoV = 0.02 deg
-        * SIMBAD catalig overlayed.
-
-    Callbacks
-    ----------
-    Input: data + list for accordion values
-    Output: Display a sky image around the alert position from aladin.
-
-    Parameters
-    ----------
-    alert_id: str
-        ID of the alert
-    """
-    if accordion_value is not None:
-        if 'aladin' in accordion_value:
-            pdf_ = pd.read_json(object_data)
-            cols = ['i:jd', 'i:ra', 'i:dec']
-            pdf = pdf_.loc[:, cols]
-            pdf = pdf.sort_values('i:jd', ascending=False)
-
-            # Coordinate of the current alert
-            ra0 = pdf['i:ra'].values[0]
-            dec0 = pdf['i:dec'].values[0]
-
-            # Javascript. Note the use {{}} for dictionary
-            img = """
-            var aladin = A.aladin('#aladin-lite-div2',
-                    {{
-                        survey: 'P/PanSTARRS/DR1/color/z/zg/g',
-                        fov: 0.025,
-                        target: '{} {}',
-                        reticleColor: '#ff89ff',
-                        reticleSize: 32
-            }});
-            var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
-            var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
-            aladin.addCatalog(hips);
-            """.format(ra0, dec0)
-
-            # img cannot be executed directly because of formatting
-            # We split line-by-line and remove comments
-            img_to_show = [i for i in img.split('\n') if '// ' not in i]
-
-            return " ".join(img_to_show)
-    return ''
