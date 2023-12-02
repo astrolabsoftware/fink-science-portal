@@ -18,6 +18,7 @@ import dash_bootstrap_components as dbc
 
 from app import app
 from apps.utils import class_colors
+from apps.utils import help_popover
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -107,40 +108,37 @@ def card_sn_scores() -> html.Div:
             dmc.Paper(graph_lc, radius='xl', p='md', shadow='xl', withBorder=True),
             html.Br(),
             dmc.Paper(
-                dbc.Tabs(
-                    [
-                        dbc.Tab(
-                            graph_scores,
-                            label='SN scores',
-                            tab_id='snt0',
-                            label_style=label_style
-                        ),
-                        dbc.Tab(
-                            graph_t2,
-                            label='T2 scores',
-                            tab_id='snt0a',
-                            label_style=label_style
-                        ),
-                        dbc.Tab(
-                            [graph_color, html.Br(), color_explanation],
-                            label='Color and mag evolution',
-                            tab_id='snt1',
-                            label_style=label_style
-                        ),
-                        dbc.Tab(
-                            [graph_color_rate, html.Br(), color_rate_explanation],
-                            label='Color and mag rate',
-                            tab_id='snt2',
-                            label_style=label_style
-                        ),
-                        dbc.Tab(
-                            msg,
-                            label='Info',
-                            tab_id='snt3',
-                            label_style=label_style
-                        ),
-                    ]
-                ), radius='xl', p='md', shadow='xl', withBorder=True
+                [
+                    dbc.Tabs(
+                        [
+                            dbc.Tab(
+                                graph_scores,
+                                label='SN scores',
+                                tab_id='snt0',
+                                label_style=label_style
+                            ),
+                            dbc.Tab(
+                                graph_t2,
+                                label='T2 scores',
+                                tab_id='snt0a',
+                                label_style=label_style
+                            ),
+                            dbc.Tab(
+                                [graph_color, html.Br(), color_explanation],
+                                label='Color and mag evolution',
+                                tab_id='snt1',
+                                label_style=label_style
+                            ),
+                            dbc.Tab(
+                                [graph_color_rate, html.Br(), color_rate_explanation],
+                                label='Color and mag rate',
+                                tab_id='snt2',
+                                label_style=label_style
+                            ),
+                        ]
+                    ),
+                    help_popover(msg, 'help_sn'),
+                ], radius='xl', p='md', shadow='xl', withBorder=True
             ),
         ]
     )

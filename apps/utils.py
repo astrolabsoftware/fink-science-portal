@@ -842,6 +842,8 @@ def retrieve_oid_from_metaname(name):
 
 # TODO: split these UI snippets into separate file?..
 import dash_mantine_components as dmc
+import dash_bootstrap_components as dbc
+from dash import html
 
 def loading(item):
     return dmc.LoadingOverlay(
@@ -849,4 +851,26 @@ def loading(item):
         loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
         overlayOpacity=0.0,
         zIndex=100000
+    )
+
+def help_popover(text, id):
+    """
+    Make clickable help icon with popover at the bottom right corner of current element
+    """
+    return html.Div(
+        [
+            html.I(
+                className="fa fa-question-circle fa-1x",
+                id=id,
+            ),
+            dbc.Popover(
+                dbc.PopoverBody(
+                    text,
+                    style={'overflow-y': 'auto', 'white-space': 'pre-wrap', 'max-height': '80vh'}),
+                target=id,
+                trigger='legacy',
+                style={'width': '80vw', 'max-width': '800px'},
+                className='shadow-lg'
+            ),
+        ], className="d-flex align-items-end justify-content-end"
     )
