@@ -83,7 +83,7 @@ def tab1_content(pdf, extra_div):
         dbc.Row([
             dbc.Col([extra_div, loading(card_lightcurve_summary())], md=8),
             dbc.Col(card_id(pdf), md=4)
-        ]),
+        ], className='g-1'),
     ])
 
     out = tab1_content_
@@ -610,7 +610,7 @@ def layout(name):
                         dbc.Col(
                             dbc.Row(
                                 [
-                                    dbc.Col(id="card_id_left", className="p-2", lg=12, md=6, sm=12),
+                                    dbc.Col(id="card_id_left", className="p-1", lg=12, md=6, sm=12),
                                     dbc.Col(
                                         html.Div(
                                             [visdcc.Run_js(id='aladin-lite-div')],
@@ -618,18 +618,19 @@ def layout(name):
                                                 'width': '100%',
                                                 'height': '27pc',
                                             },
-                                            className="p-2 d-none d-md-block"
+                                            className="p-1 d-none d-md-block"
                                         ), lg=12, md=6, sm=12
                                     )
-                                ]
-                            ), lg=3
+                                ],
+                                className="g-0"
+                            ), lg=3, className="p-1"
                         ),
                         dbc.Col(
                             [
                                 dmc.Space(h=10),
                                 tabs(pdf),
                             ],
-                            lg=9
+                            lg=9, className="p-1"
                         )
                     ],
                     justify="around", className="g-0"

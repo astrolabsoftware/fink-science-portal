@@ -23,7 +23,7 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord
 import requests
 
-from dash import html, dcc, dash_table, Input, Output, State, no_update
+from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -1790,18 +1790,6 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
 
     return graph
 
-from dash import ALL
-# @app.callback(
-#     [
-#         Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
-#         Output({'type': 'stamp', 'id': ALL}, 'figure'),
-#     ],
-#     [
-#         Input({'type': 'stamp', 'id': ALL}, 'relayoutData'),
-#     ],
-#     State({'type': 'stamp', 'id': ALL}, 'figure'),
-#     prevent_initial_call=True
-# )
 def zoom_cutouts(relayout_data, figure_states):
     # Code from https://stackoverflow.com/a/70405707
     unique_data = None
@@ -3771,15 +3759,26 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         ],
         "layout": layout_sso_astrometry
     }
+    # Force equal aspect ratio
+    figure['layout']['yaxis']['scaleanchor'] = 'x'
+    # figure['layout']['yaxis']['scaleratio'] = 1
+
     graph = dcc.Graph(
         figure=figure,
         style={
             'width': '100%',
-            'height': '20pc'
+            'height': '20pc',
+            # Prevent occupying more than 60% of the screen height
+            'max-height': '60vh',
+            # Force equal aspect
+            # 'display':'block',
+            # 'aspect-ratio': '1',
+            # 'margin': '1px'
         },
-        config={'displayModeBar': False}
+        config={'displayModeBar': False},
+        responsive=True
     )
-    card1 = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+    card1 = dmc.Paper(graph, radius='sm', p='xs', shadow='sm', withBorder=True, className="mb-1")
 
     coord = SkyCoord(mean_ra, mean_dec, unit='deg')
 
@@ -3791,7 +3790,8 @@ def draw_alert_astrometry(object_data, kind) -> dict:
 
     # hmsdms
     if kind == 'GAL':
-        coords_hms = coord.galactic.to_string('hmsdms', precision=2)
+        # Galactic coordinates are in DMS only
+        coords_hms = coord.galactic.to_string('dms', precision=2)
     else:
         coords_hms = coord.to_string('hmsdms', precision=2)
 
@@ -3803,4 +3803,4 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         dmc.Prism(children=coords_hms, language="python", style={'width': '80%'})
     )
 
-    return html.Div([card1, html.Br(), card2, card3])
+    return html.Div([card1, card2, card3])
