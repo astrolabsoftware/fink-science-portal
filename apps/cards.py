@@ -318,7 +318,7 @@ def card_id(pdf):
 import pandas as pd
 import io
 
-# get data for ZTF19acnjwgm
+# get data for {}
 r = requests.post(
     '{}/api/v1/objects',
     json={{
@@ -329,6 +329,7 @@ r = requests.post(
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))""".format(
+        objectid,
         APIURL,
         objectid
     )
@@ -494,10 +495,37 @@ curl -H "Content-Type: application/json" -X POST \\
                         ],
                     ),
                     dmc.AccordionPanel(
-                        [
-                            download_tab,
-                            dcc.Markdown('See {}/api for more options'.format(APIURL)),
-                        ],
+                        html.Div(
+                            [
+                                dmc.Group(
+                                    [
+                                        dmc.Button(
+                                            "JSON",
+                                            id='download_json',
+                                            variant="outline",
+                                            color='indigo',
+                                            leftIcon=[DashIconify(icon="mdi:code-json")],
+                                        ),
+                                        dmc.Button(
+                                            "VOTable",
+                                            id='download_votable',
+                                            variant="outline",
+                                            color='indigo',
+                                            leftIcon=[DashIconify(icon="mdi:xml")],
+                                        ),
+                                        html.Div(objectid, id='download_objectid', className='d-none'),
+                                        html.Div(APIURL, id='download_apiurl', className='d-none'),
+                                    ], position="center"
+                                ),
+                                help_popover(
+                                    [
+                                        dcc.Markdown('You may also download the data programmatically.'),
+                                        download_tab,
+                                        dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                                    ], 'help_download'
+                                )
+                            ],
+                        ),
                     ),
                 ],
                 value='api'
@@ -596,6 +624,50 @@ curl -H "Content-Type: application/json" -X POST \\
     )
 
     return card
+
+# Downloads handling. Requires CORS to be enabled on the server.
+# TODO: We are mostly using it like this until GET requests properly initiate
+# downloads instead of just opening the file (so, Content-Disposition etc)
+download_js = """
+function(n_clicks, name, apiurl){
+    if(n_clicks > 0){
+        fetch(apiurl + '/api/v1/objects', {
+            method: 'POST',
+            body: JSON.stringify({
+                 'objectId': name,
+                 'withupperlim': true,
+                 'output-format': '$FORMAT'
+            }),
+            headers: {
+                'Content-type': 'application/json'
+            }
+        }).then(function(response) {
+            return response.blob();
+        }).then(function(data) {
+            window.saveAs(data, name + '.$EXTENSION');
+        }).catch(error => console.error('Error:', error));
+    };
+    return true;
+}
+"""
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'json').replace('$EXTENSION', 'json'),
+    Output('download_json', 'n_clicks'),
+    [
+        Input('download_json', 'n_clicks'),
+        Input('download_objectid', 'children'),
+        Input('download_apiurl', 'children'),
+    ]
+)
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'votable').replace('$EXTENSION', 'vot'),
+    Output('download_votable', 'n_clicks'),
+    [
+        Input('download_votable', 'n_clicks'),
+        Input('download_objectid', 'children'),
+        Input('download_apiurl', 'children'),
+    ]
+)
 
 @app.callback(
     Output("stamps_modal", "is_open"),

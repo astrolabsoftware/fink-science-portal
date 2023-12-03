@@ -56,6 +56,14 @@ from flask import Blueprint
 
 api_bp = Blueprint('', __name__)
 
+# Enable CORS for this blueprint only
+@api_bp.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 def layout():
     layout_ = dbc.Container(
         [
