@@ -3049,6 +3049,7 @@ def alert_properties(object_data, clickData):
         filter_action="native",
         markdown_options={'link_target': '_blank'},
         # fixed_columns={'headers': True},#, 'data': 1},
+        persistence=True,
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
@@ -3077,12 +3078,12 @@ def alert_properties(object_data, clickData):
                 'if': {'column_id': 'Name'},
                 'backgroundColor': 'rgb(240, 240, 240, 1.0)',
                 'white-space': 'normal',
-                'min-width': '10pc',
+                'min-width': '8pc',
             },
             {
                 'if': {'column_id': 'Value'},
                 'white-space': 'normal',
-                'min-width': '10pc',
+                'min-width': '8pc',
             }
         ],
         style_header={
