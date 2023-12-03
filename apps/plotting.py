@@ -721,6 +721,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
+
     if switch == "Difference magnitude":
         layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
@@ -759,9 +760,9 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         scale = 1e3
 
     hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{yaxis.title.text}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
+    <b>mjd</b>: %{customdata[0]}
     <extra></extra>
     """
     figure = {
@@ -777,7 +778,12 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'customdata': np.stack(
+                    (
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[pdf['i:fid'] == 1],
+                    ), axis=-1
+                ),
                 'hovertemplate': hovertemplate,
                 "legendgroup": "g band",
                 'legendrank': 110,
@@ -798,7 +804,12 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'mode': 'markers',
                 'name': 'r band',
                 'legendrank': 120,
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                'customdata':  np.stack(
+                    (
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[pdf['i:fid'] == 2],
+                    ), axis=-1
+                ),
                 'hovertemplate': hovertemplate,
                 "legendgroup": "r band",
                 'marker': {
@@ -814,7 +825,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         pdf_upper = pd.read_json(object_upper)
         # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
         hovertemplate_upper = r"""
-        <b>diffmaglim</b>: %{y:.2f}<br>
+        <b>Upper limit</b>: %{y:.2f}<br>
         <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
         <b>mjd</b>: %{customdata}
         <extra></extra>
@@ -858,7 +869,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         pdf_upperv = pd.read_json(object_uppervalid)
         # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
         hovertemplate_upperv = r"""
-        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{yaxis.title.text} (low quality)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
         <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
         <b>mjd</b>: %{customdata}
         <extra></extra>
@@ -1538,6 +1549,10 @@ def extract_cutout(object_data, time0, kind):
     )
 
     cutout = readstamp(r.content, gzipped=False)
+
+    if pdf_['i:isdiffpos'].values[position] == 'f' and kind == 'difference':
+        # Negative event, let's invert the diff cutout
+        cutout *= -1
 
     return cutout
 
