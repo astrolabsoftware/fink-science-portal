@@ -154,6 +154,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='TNS',
+                        title='TNS',
                         target="_blank",
                         href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
                     )
@@ -165,6 +166,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='SIMBAD',
+                        title='SIMBAD',
                         target="_blank",
                         href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
                     )
@@ -176,6 +178,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='SNAD',
+                        title='SNAD',
                         target="_blank",
                         href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
                     )
@@ -191,6 +194,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='NED',
+                        title='NED',
                         target="_blank",
                         href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
                     ),
@@ -202,6 +206,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='SDSS',
+                        title='SDSS',
                         target="_blank",
                         href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
                     ),
@@ -213,6 +218,7 @@ def create_external_links(ra0, dec0):
                         color='white',
                         outline=True,
                         id='ASAS-SN',
+                        title='ASAS-SN',
                         target="_blank",
                         href="https://asas-sn.osu.edu/?ra={}&dec={}".format(ra0, dec0)
                     ),
@@ -229,6 +235,7 @@ def create_external_links(ra0, dec0):
                         color='white',
                         outline=True,
                         id='VSX',
+                        title='AAVSO VSX',
                         target="_blank",
                         href="https://www.aavso.org/vsx/index.php?view=results.get&coords={}+{}&format=d&size=0.1".format(ra0, dec0)
                     ),
@@ -250,6 +257,7 @@ def create_external_links_brokers(objectId):
                     color='dark',
                     outline=True,
                     id='alerce',
+                    title='ALeRCE',
                     target="_blank",
                     href='https://alerce.online/object/{}'.format(objectId)
                 )
@@ -261,6 +269,7 @@ def create_external_links_brokers(objectId):
                     color='dark',
                     outline=True,
                     id='antares',
+                    title='ANTARES',
                     target="_blank",
                     href='https://antares.noirlab.edu/loci?query=%7B%22currentPage%22%3A1,%22filters%22%3A%5B%7B%22type%22%3A%22query_string%22,%22field%22%3A%7B%22query%22%3A%22%2a{}%2a%22,%22fields%22%3A%5B%22properties.ztf_object_id%22,%22locus_id%22%5D%7D,%22value%22%3Anull,%22text%22%3A%22ID%20Lookup%3A%20ZTF21abfmbix%22%7D%5D,%22sortBy%22%3A%22properties.newest_alert_observation_time%22,%22sortDesc%22%3Atrue,%22perPage%22%3A25%7D'.format(objectId)
                 )
@@ -272,6 +281,7 @@ def create_external_links_brokers(objectId):
                     color='dark',
                     outline=True,
                     id='lasair',
+                    title='Lasair',
                     target="_blank",
                     href='https://lasair-ztf.lsst.ac.uk/objects/{}'.format(objectId)
                 )
@@ -524,12 +534,11 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 constellation,
                                                 cdsxmatch, ssnamenr, gaianame,
                                                 float(neargaia), float(distpsnr1), float(distnr)
-                                            )
+                                            ), className="p-0 m-0"
                                         ),
                                     ],
-                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'},
                                 ),
-                                html.Br(),
                                 *create_external_links(ra0, dec0)
                             ],
                             align='center'
