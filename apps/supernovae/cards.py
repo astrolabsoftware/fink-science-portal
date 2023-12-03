@@ -209,17 +209,13 @@ def card_sn_properties(clickData, object_data):
 
     card = html.Div(
         [
-            dmc.Paper(
-                [
-                    dcc.Markdown(
-                        """
-                        Click on a point in the lightcurve to update parameters below.
-                        """
-                    )
-                ],
-                radius='xl', p='md', shadow='xl', withBorder=True
+            dcc.Markdown(
+                """
+                Click on a point in the lightcurve to update parameters below.
+                """,
+                className="m-2"
             ),
-            html.Br(),
+            # html.Br(),
             dmc.Paper(
                 [
                     badge,
@@ -260,7 +256,7 @@ def card_sn_properties(clickData, object_data):
                         ),
                     ),
                 ],
-                radius='xl', p='md', shadow='xl', withBorder=True
+                radius='sm', p='xs', shadow='sm', withBorder=True
             ),
         ],
     )

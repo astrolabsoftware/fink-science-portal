@@ -105,7 +105,7 @@ def tab2_content():
 def tab3_content():
     """ Variable stars tab
     """
-    nterms_base = dbc.Row(
+    nterms_base = dmc.Container(
         [
             dbc.Label("Number of base terms"),
             dbc.Input(
@@ -133,7 +133,7 @@ def tab3_content():
                 id='manual_period',
                 debounce=True
             )
-        ], className='mb-3', style={'width': '100%', 'display': 'inline-block'}
+        ], className='mb-3'#, style={'width': '100%', 'display': 'inline-block'}
     )
 
     submit_varstar_button = dmc.Button(
@@ -146,7 +146,7 @@ def tab3_content():
     card2 = dmc.Paper(
         [
             nterms_base,
-        ], radius='xl', p='md', shadow='xl', withBorder=True
+        ], radius='sm', p='xs', shadow='sm', withBorder=True
     )
 
     tab3_content_ = html.Div([

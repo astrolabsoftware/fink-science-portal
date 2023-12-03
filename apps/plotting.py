@@ -2048,7 +2048,7 @@ def plot_mulens(n_clicks, object_data):
         mulens_params = dmc.Paper(
             [
                 dcc.Markdown(mulens_params),
-            ], radius='xl', p='md', shadow='xl', withBorder=True
+            ], radius='sm', p='xs', shadow='sm', withBorder=True
         )
 
         return graph, mulens_params, no_update

@@ -82,14 +82,15 @@ def card_mulens_button(object_data):
                                         )
                                     ),
                                 ],
-                                radius='xl', p='md', shadow='xl', withBorder=True
+                                radius='sm', p='xs', shadow='sm', withBorder=True
                             ),
                         ],
                     ),
                 ],
-                value='neighbourhood'
+                value='neighbourhood',
             ),
-        ]
+        ],
+        styles={'content':{'padding':'5px'}}
     )
 
     return card1
