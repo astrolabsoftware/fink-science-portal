@@ -360,7 +360,7 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "Last alert cutouts",
+                        "Alert cutouts",
                         icon=[
                             DashIconify(
                                 icon="tabler:flare",
@@ -467,7 +467,7 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "Last alert content",
+                        "Alert content",
                         icon=[
                             DashIconify(
                                 icon="tabler:file-description",
