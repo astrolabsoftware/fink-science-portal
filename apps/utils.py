@@ -853,16 +853,22 @@ def loading(item):
         zIndex=100000
     )
 
-def help_popover(text, id):
+def help_popover(text, id, trigger=None, className=None):
     """
     Make clickable help icon with popover at the bottom right corner of current element
     """
+
+    if trigger is None:
+        trigger = html.I(
+            className="fa fa-question-circle fa-1x",
+            id=id,
+        )
+        if className is None:
+            className = "d-flex align-items-end justify-content-end"
+
     return html.Div(
         [
-            html.I(
-                className="fa fa-question-circle fa-1x",
-                id=id,
-            ),
+            trigger,
             dbc.Popover(
                 dbc.PopoverBody(
                     text,
@@ -873,5 +879,5 @@ def help_popover(text, id):
                 style={'width': '80vw', 'max-width': '800px'},
                 className='shadow-lg'
             ),
-        ], className="d-flex align-items-end justify-content-end"
+        ], className=className
     )

@@ -504,6 +504,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                             id='download_json',
                                             variant="outline",
                                             color='indigo',
+                                            compact=True,
                                             leftIcon=[DashIconify(icon="mdi:code-json")],
                                         ),
                                         dmc.Button(
@@ -511,18 +512,26 @@ curl -H "Content-Type: application/json" -X POST \\
                                             id='download_votable',
                                             variant="outline",
                                             color='indigo',
+                                            compact=True,
                                             leftIcon=[DashIconify(icon="mdi:xml")],
+                                        ),
+                                        help_popover(
+                                            [
+                                                dcc.Markdown('You may also download the data programmatically.'),
+                                                download_tab,
+                                                dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                                            ],
+                                            'help_download',
+                                            trigger=dmc.ActionIcon(
+                                                    DashIconify(icon="mdi:help"),
+                                                    id='help_download',
+                                                    variant="outline",
+                                                    color='indigo',
+                                            ),
                                         ),
                                         html.Div(objectid, id='download_objectid', className='d-none'),
                                         html.Div(APIURL, id='download_apiurl', className='d-none'),
                                     ], position="center"
-                                ),
-                                help_popover(
-                                    [
-                                        dcc.Markdown('You may also download the data programmatically.'),
-                                        download_tab,
-                                        dcc.Markdown('See {}/api for more options'.format(APIURL)),
-                                    ], 'help_download'
                                 )
                             ],
                         ),
