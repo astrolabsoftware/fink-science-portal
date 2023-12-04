@@ -1638,6 +1638,7 @@ def draw_cutouts_quickview(name):
                 'i:objectId',
                 'i:candid',
                 'i:jd',
+                'i:isdiffpos',
                 'b:cutout{}_stampData'.format(kind.capitalize()),
             ]
             # Transfer cutout name data
