@@ -791,7 +791,8 @@ def populate_result_table(data, columns):
         data=data,
         columns=columns,
         id='result_table',
-        page_size=page_size,
+        # page_size=page_size,
+        page_action='none',
         style_as_list_view=True,
         sort_action="native",
         filter_action="native",
@@ -1314,7 +1315,7 @@ def display_page(pathname):
                     ),
                 ], id='trash', fluid="lg"
             ),
-            loading(dbc.Container(id='results', fluid="lg"))
+            loading(dbc.Container(id='results', fluid="xxl"))
         ],
         # className='home'
     )
