@@ -1129,6 +1129,7 @@ navbar = dmc.Header(
     id='navbar',
     height=55,
     fixed=True,
+    zIndex=1000,
     p=0,
     m=0,
     children=[
