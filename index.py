@@ -1132,17 +1132,126 @@ navbar = dmc.Header(
     zIndex=1000,
     p=0,
     m=0,
+    className="shadow-sm",
     children=[
         dmc.Space(h=10),
         dmc.Container(
             fluid=True,
             children=dmc.Group(
                 position="apart",
-                align="flex-start",
+                align="flex-end",
                 children=[
-                    dmc.ActionIcon(
-                        DashIconify(icon="dashicons:menu", width=30), id="drawer-button", n_clicks=0
+                    # Right menu
+                    dmc.Group(
+                        position="left",
+                        align="flex-start",
+                        children=[
+                            # Burger
+                            dmc.ActionIcon(
+                                DashIconify(icon="dashicons:menu", width=30), id="drawer-button", n_clicks=0
+                            ),
+                            dmc.Anchor(
+                                dmc.Group([
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:search-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=32,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    dmc.MediaQuery(
+                                        "Search",
+                                        smallerThan="sm",
+                                        styles={"display": "none"},
+                                    ),
+                                ], spacing='xs'),
+                                href='/',
+                                variant='text',
+                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                color="gray",
+                            ),
+                            dmc.Anchor(
+                                dmc.Group([
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:cloud-download-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=32,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    dmc.MediaQuery(
+                                        "Data Transfer",
+                                        smallerThan="sm",
+                                        styles={"display": "none"},
+                                    ),
+                                ], spacing='xs'),
+                                href='/download',
+                                variant='text',
+                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                color="gray",
+                            ),
+                            dmc.Anchor(
+                                dmc.Group([
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:infinite-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=32,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    dmc.MediaQuery(
+                                        "Gravitational Waves",
+                                        smallerThan="sm",
+                                        styles={"display": "none"},
+                                    ),
+                                ], spacing='xs'),
+                                href='/gw',
+                                variant='text',
+                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                color="gray",
+                            ),
+                        ],
                     ),
+                    # Left menu
+                    dmc.Group(
+                        position="right",
+                        align="flex-end",
+                        children=[
+                            dmc.Anchor(
+                                dmc.Group([
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:stats-chart-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=32,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    dmc.MediaQuery(
+                                        "Statistics",
+                                        smallerThan="sm",
+                                        styles={"display": "none"},
+                                    ),
+                                ], spacing='xs'),
+                                href='/stats',
+                                variant='text',
+                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                color="gray",
+                            ),
+                        ]
+                    ),
+                    # Sidebar
                     dmc.Drawer(
                         children=[
                             dmc.Divider(
