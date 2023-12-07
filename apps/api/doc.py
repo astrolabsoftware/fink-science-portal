@@ -1485,3 +1485,433 @@ r = requests.post(
 
 By default (that is `version` unspecified), the service will return the latest one.
 """
+
+api_doc_resolver = """
+## Resolving names
+
+Giving names is a complex process, and often objects end up with multiple names or designations.
+At the era of big data, this is especially harder as the need to names million of
+objects quickly lead to non-intuitive designation process.
+We will not come up with a new naming scheme here, but rather offer a
+new service to explore existing names for a given object.
+Currently, you will be able to resolve ZTF object names in SIMBAD,
+the Transient Name Server, and Solar System databases known by
+the Quaero service from SSODNET -- and vice versa meaning given an object in
+one of those 3 databases, you will know if there is a corresponding ZTF objects.
+This service is expanding, and we will keep adding new source of information.
+
+The list of arguments for retrieving alert data can be found at https://fink-portal.org/api/v1/resolver
+
+### TNS to ZTF
+
+I have a TNS identifier, are there ZTF objects corresponding?
+
+```python
+import io
+import requests
+import pandas as pd
+
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'tns',
+    'name': 'SN 2023vwy'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>d:declination</th>
+      <th>d:fullname</th>
+      <th>d:internalname</th>
+      <th>d:ra</th>
+      <th>d:type</th>
+      <th>key:time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>52.219894</td>
+      <td>SN 2023vwy</td>
+      <td>ATLAS23url</td>
+      <td>47.765951</td>
+      <td>SN Ia</td>
+      <td>1701889538816</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>52.219894</td>
+      <td>SN 2023vwy</td>
+      <td>ZTF23abmwsrw</td>
+      <td>47.765951</td>
+      <td>SN Ia</td>
+      <td>1701889538816</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+### ZTF to TNS
+
+I have a ZTF object name, are there counterparts in TNS?
+
+
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'tns',
+    'reverse': True,
+    'name': 'ZTF23abmwsrw'
+  }
+)
+
+# Format output in a DataFrame
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>d:declination</th>
+      <th>d:fullname</th>
+      <th>d:internalname</th>
+      <th>d:ra</th>
+      <th>d:type</th>
+      <th>key:time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>52.219904</td>
+      <td>AT 2023vwy</td>
+      <td>ZTF23abmwsrw</td>
+      <td>47.765935</td>
+      <td>nan</td>
+      <td>1698788550829</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>52.219894</td>
+      <td>SN 2023vwy</td>
+      <td>ZTF23abmwsrw</td>
+      <td>47.765951</td>
+      <td>SN Ia</td>
+      <td>1701889538816</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+### SIMBAD to ZTF
+
+I have an astronomical object name referenced in SIMBAD, are there counterparts in ZTF? As these objects can be extended, we typically provide coordinates, and then you need to run a conesearch:
+
+
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'simbad',
+    'name': 'Markarian 2'
+  }
+)
+
+if r.json() != []:
+    print('Object found!')
+    print(r.json())
+    print()
+
+    r = requests.post(
+      'https://fink-portal.org/api/v1/explorer',
+      json={
+        'ra': r.json()[0]['jradeg'],
+        'dec': r.json()[0]['jdedeg'],
+        'radius': 60
+      }
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(io.BytesIO(r.content))
+    print('Object(s) in ZTF: {}'.format(pdf['i:objectId'].values))
+else:
+    print('No objects found')
+```
+
+    Object found!
+    [{'name': 'Si=Simbad, all IDs (via url)', 'oid': 1579005, 'oname': 'Mrk 2', 'otype': 'GiG', 'jpos': '01:54:53.80 +36:55:04.6', 'jradeg': 28.7241958, 'jdedeg': 36.9179556, 'refPos': '2006AJ....131.1163S', 'z': None, 'MType': 'SBa', 'nrefs': 138}]
+
+    Object(s) in ZTF: ['ZTF18aabfjoi']
+
+### ZTF to SIMBAD
+
+I have a ZTF object name, are there counterparts in SIMBAD?
+
+
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'simbad',
+    'reverse': True,
+    'name': 'ZTF18aabfjoi'
+  }
+)
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>d:cdsxmatch</th>
+      <th>i:dec</th>
+      <th>i:objectId</th>
+      <th>i:ra</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>GinGroup</td>
+      <td>36.917909</td>
+      <td>ZTF18aabfjoi</td>
+      <td>28.724092</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>GinGroup</td>
+      <td>36.917912</td>
+      <td>ZTF18aabfjoi</td>
+      <td>28.724130</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>GinGroup</td>
+      <td>36.917924</td>
+      <td>ZTF18aabfjoi</td>
+      <td>28.724110</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>GinGroup</td>
+      <td>36.917913</td>
+      <td>ZTF18aabfjoi</td>
+      <td>28.724100</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>GinGroup</td>
+      <td>36.917892</td>
+      <td>ZTF18aabfjoi</td>
+      <td>28.724094</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+### SSO to ZTF
+
+I have a SSO name or number, are there ZTF objects corresponding?
+Note that by default the search has a `contain` strategy -- namely we will look for
+all objects whose name _contains_ the provided search term (this is not a exact name search).
+By default, we only returns the first 10 matches.
+We will add in the future an option to specify exact search as well.
+
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'ssodnet',
+    'name': '1999 VK210'
+  }
+)
+
+pdf = pd.read_json(io.BytesIO(r.content))
+```
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>type</th>
+      <th>system</th>
+      <th>class</th>
+      <th>updated</th>
+      <th>ephemeris</th>
+      <th>id</th>
+      <th>aliases</th>
+      <th>links</th>
+      <th>physical-ephemeris</th>
+      <th>name</th>
+      <th>parent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Asteroid</td>
+      <td>Sun</td>
+      <td>[MB, Inner]</td>
+      <td>2023-07-24</td>
+      <td>True</td>
+      <td>Julienpeloton</td>
+      <td>[1976 SU10, 1998 HC30, 1999 VK210, 2001 DR108,...</td>
+      <td>{'self': 'https://api.ssodnet.imcce.fr/quaero/...</td>
+      <td>False</td>
+      <td>Julienpeloton</td>
+      <td>Sun</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+```python
+print(pdf['aliases'].values)
+```
+
+    [list(['1976 SU10', '1998 HC30', '1999 VK210', '2001 DR108', '2001 FA193', '2001 FY172', '2033803', '33803', 'J76S10U', 'J98H30C', 'J99VL0K', 'K01DA8R', 'K01FH2Y', 'K01FJ3A'])]
+
+
+```python
+for name in pdf['aliases'].values[0]:
+    r = requests.post(
+      'https://fink-portal.org/api/v1/sso',
+      json={
+        'n_or_d': name,
+      }
+    )
+
+    if r.json() != []:
+        print('{} found in ZTF with {} alerts'.format(name, len(r.json())))
+```
+
+    33803 found in ZTF with 92 alerts
+
+
+### ZTF to SSO
+
+I have a ZTF object name, is there a counterpart in the SsODNet quaero database, and what are all the aliases?
+
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'ssodnet',
+    'reverse': True,
+    'name': 'ZTF23abpkzcn'
+  }
+)
+
+if r.json() != []:
+    name = r.json()[0]['i:ssnamenr']
+    print('Asteroid counterpart found with designation {}'.format(name))
+    print()
+
+    r = requests.post(
+      'https://fink-portal.org/api/v1/resolver',
+      json={
+        'resolver': 'ssodnet',
+        'name': name
+      }
+    )
+
+    pdf = pd.read_json(io.BytesIO(r.content))
+    print('In the quaero database, this corresponds to: ')
+    print(pdf[['type', 'name', 'class', 'aliases']])
+```
+
+    Asteroid counterpart found with designation 8467
+
+    In the quaero database, this corresponds to:
+             type         name                    class
+    0  Spacecraft     OPS 4428  [LEO, Payload, Decayed]  \
+    1    Asteroid  Benoitcarry              [MB, Outer]
+    2    Asteroid    2002 VG84             [MB, Middle]
+    3    Asteroid    2002 VW87              [MB, Outer]
+    4    Asteroid    2002 VT88             [MB, Middle]
+    5    Asteroid    2002 VW88             [MB, Middle]
+    6    Asteroid    2002 VT87             [MB, Middle]
+    7    Asteroid    2002 VS83             [MB, Middle]
+    8    Asteroid    2002 VM88             [MB, Middle]
+    9    Asteroid    2002 VF83             [MB, Middle]
+
+                                              aliases
+    0                               [1975-114A, 8467]
+    1      [08467, 1981 ES35, 2008467, 8467, J81E35S]
+    2                       [2084672, 84672, K02V84G]
+    3                       [2084675, 84675, K02V87W]
+    4                       [2084677, 84677, K02V88T]
+    5    [2084678, 4562 P-L, 84678, K02V88W, PLS4562]
+    6    [1997 RL5, 2084674, 84674, J97R05L, K02V87T]
+    7   [2001 OP30, 2084671, 84671, K01O30P, K02V83S]
+    8  [2000 GR160, 2084676, 84676, K00GG0R, K02V88M]
+    9  [2000 EB174, 2084670, 84670, K00EH4B, K02V83F]
+"""
