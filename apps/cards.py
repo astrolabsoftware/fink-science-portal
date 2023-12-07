@@ -24,6 +24,7 @@ from apps.plotting import all_radio_options
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
+from apps.utils import loading, help_popover
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -40,6 +41,40 @@ def card_lightcurve_summary():
     card: dbc.Card
         Card with the cutouts drawn inside
     """
+
+    lc_help = dcc.Markdown(
+        """
+        ##### Difference magnitude
+
+        Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+        In addition, the _Difference magnitude_ view shows:
+        - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+        - lower triangles (&#9661;), representing 5-sigma magnitude limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+
+        ##### DC magnitude
+        DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
+        differential magnitude (`magpsf`), and `isdiffpos` (positive or negative difference image detection) as follows:
+        $$
+        m_{DC} = -2.5\\log_{10}(10^{-0.4m_{magnr}} + \\texttt{sign} 10^{-0.4m_{magpsf}})
+        $$
+
+        where `sign` = 1 if `isdiffpos` = 't' or `sign` = -1 if `isdiffpos` = 'f'.
+        Before using the nearest reference image source magnitude (`magnr`), you will need
+        to ensure the source is close enough to be considered an association
+        (e.g., `distnr` $\\leq$ 1.5 arcsec). It is also advised you check the other associated metrics
+        (`chinr` and/or `sharpnr`) to ensure it is a point source. ZTF recommends
+        0.5 $\\leq$ `chinr` $\\leq$ 1.5 and/or -0.5 $\\leq$ `sharpnr` $\\leq$ 0.5.
+
+        ##### DC flux
+        DC flux (in Jansky) is constructed from DC magnitude by using the following:
+        $$
+        f_{DC} = 3631 \\times 10^{-0.4m_{DC}}
+        $$
+
+        Note that we display the flux in milli-Jansky.
+        """, mathjax=True
+    )
+
     card = dmc.Paper(
         [
             dcc.Graph(
@@ -48,7 +83,8 @@ def card_lightcurve_summary():
                     'width': '100%',
                     'height': '30pc'
                 },
-                config={'displayModeBar': False}
+                config={'displayModeBar': False},
+                className="mb-2"
             ),
             dbc.Row(
                 dbc.Col(
@@ -65,50 +101,7 @@ def card_lightcurve_summary():
                     )
                 )
             ),
-            dmc.Accordion(
-                children=[
-                    dmc.AccordionItem(
-                        [
-                            dmc.AccordionControl("Information"),
-                            dmc.AccordionPanel(
-                                dcc.Markdown(
-                                    """
-                                    ##### Difference magnitude
-
-                                    Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
-                                    In addition, the _Difference magnitude_ view shows:
-                                    - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-                                    - lower triangles (&#9661;), representing 5-sigma magnitude limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-
-                                    ##### DC magnitude
-                                    DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
-                                    differential magnitude (`magpsf`), and `isdiffpos` (positive or negative difference image detection) as follows:
-                                    $$
-                                    m_{DC} = -2.5\\log_{10}(10^{-0.4m_{magnr}} + \\texttt{sign} 10^{-0.4m_{magpsf}})
-                                    $$
-
-                                    where `sign` = 1 if `isdiffpos` = 't' or `sign` = -1 if `isdiffpos` = 'f'.
-                                    Before using the nearest reference image source magnitude (`magnr`), you will need
-                                    to ensure the source is close enough to be considered an association
-                                    (e.g., `distnr` $\\leq$ 1.5 arcsec). It is also advised you check the other associated metrics
-                                    (`chinr` and/or `sharpnr`) to ensure it is a point source. ZTF recommends
-                                    0.5 $\\leq$ `chinr` $\\leq$ 1.5 and/or -0.5 $\\leq$ `sharpnr` $\\leq$ 0.5.
-
-                                    ##### DC flux
-                                    DC flux (in Jansky) is constructed from DC magnitude by using the following:
-                                    $$
-                                    f_{DC} = 3631 \\times 10^{-0.4m_{DC}}
-                                    $$
-
-                                    Note that we display the flux in milli-Jansky.
-                                    """, mathjax=True
-                                )
-                            ),
-                        ],
-                        value='info'
-                    ),
-                ]
-            )
+            help_popover(lc_help, 'help_lc'),
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return card
@@ -144,9 +137,7 @@ def card_explanation_xmatch():
     card = dbc.Card(
         dbc.CardBody(
             dcc.Markdown(msg)
-        ), style={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
-        }
+        )
     )
     return card
 
@@ -163,6 +154,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='TNS',
+                        title='TNS',
                         target="_blank",
                         href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
                     )
@@ -174,6 +166,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='SIMBAD',
+                        title='SIMBAD',
                         target="_blank",
                         href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
                     )
@@ -185,6 +178,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='SNAD',
+                        title='SNAD',
                         target="_blank",
                         href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
                     )
@@ -200,6 +194,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='NED',
+                        title='NED',
                         target="_blank",
                         href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
                     ),
@@ -211,6 +206,7 @@ def create_external_links(ra0, dec0):
                         color='dark',
                         outline=True,
                         id='SDSS',
+                        title='SDSS',
                         target="_blank",
                         href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
                     ),
@@ -222,6 +218,7 @@ def create_external_links(ra0, dec0):
                         color='white',
                         outline=True,
                         id='ASAS-SN',
+                        title='ASAS-SN',
                         target="_blank",
                         href="https://asas-sn.osu.edu/?ra={}&dec={}".format(ra0, dec0)
                     ),
@@ -238,6 +235,7 @@ def create_external_links(ra0, dec0):
                         color='white',
                         outline=True,
                         id='VSX',
+                        title='AAVSO VSX',
                         target="_blank",
                         href="https://www.aavso.org/vsx/index.php?view=results.get&coords={}+{}&format=d&size=0.1".format(ra0, dec0)
                     ),
@@ -259,6 +257,7 @@ def create_external_links_brokers(objectId):
                     color='dark',
                     outline=True,
                     id='alerce',
+                    title='ALeRCE',
                     target="_blank",
                     href='https://alerce.online/object/{}'.format(objectId)
                 )
@@ -270,6 +269,7 @@ def create_external_links_brokers(objectId):
                     color='dark',
                     outline=True,
                     id='antares',
+                    title='ANTARES',
                     target="_blank",
                     href='https://antares.noirlab.edu/loci?query=%7B%22currentPage%22%3A1,%22filters%22%3A%5B%7B%22type%22%3A%22query_string%22,%22field%22%3A%7B%22query%22%3A%22%2a{}%2a%22,%22fields%22%3A%5B%22properties.ztf_object_id%22,%22locus_id%22%5D%7D,%22value%22%3Anull,%22text%22%3A%22ID%20Lookup%3A%20ZTF21abfmbix%22%7D%5D,%22sortBy%22%3A%22properties.newest_alert_observation_time%22,%22sortDesc%22%3Atrue,%22perPage%22%3A25%7D'.format(objectId)
                 )
@@ -281,6 +281,7 @@ def create_external_links_brokers(objectId):
                     color='dark',
                     outline=True,
                     id='lasair',
+                    title='Lasair',
                     target="_blank",
                     href='https://lasair-ztf.lsst.ac.uk/objects/{}'.format(objectId)
                 )
@@ -317,7 +318,7 @@ def card_id(pdf):
 import pandas as pd
 import io
 
-# get data for ZTF19acnjwgm
+# get data for {}
 r = requests.post(
     '{}/api/v1/objects',
     json={{
@@ -328,6 +329,7 @@ r = requests.post(
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))""".format(
+        objectid,
         APIURL,
         objectid
     )
@@ -353,17 +355,12 @@ curl -H "Content-Type: application/json" -X POST \\
         color="red", value="Python"
     )
 
-    qrdata = "https://fink-portal.org/{}".format(objectid)
-    qrimg = generate_qr(qrdata)
-
-    qrcode = html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg), height='20%')
-
     card = dmc.AccordionMultiple(
         children=[
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "Last alert cutouts",
+                        "Alert cutouts",
                         icon=[
                             DashIconify(
                                 icon="tabler:flare",
@@ -374,52 +371,48 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Paper(
-                                [
-                                    dbc.Row(id='stamps', justify='around', className="g-0"),
-                                    dbc.Modal(
-                                        [
-                                            dbc.ModalHeader(
-                                                dmc.Select(
-                                                    label="",
-                                                    placeholder="Select a date",
-                                                    searchable=True,
-                                                    nothingFound="No options found",
-                                                    id="date_modal_select",
-                                                    value=None,
-                                                    data=[
-                                                        {"value": i, "label": i} for i in pdf['v:lastdate'].values
-                                                    ],
-                                                    style={"width": 200, "marginBottom": 10},
-                                                    zIndex=10000000,
-                                                ),
-                                                close_button=True,
-                                                style={
-                                                    'background-image': 'linear-gradient(rgba(150, 150, 150,0.3), rgba(255,255,255,0.3))'
-                                                }
-                                            ),
-                                            dbc.ModalBody(
-                                                [
-                                                    dmc.Group(
-                                                        id="stamps_modal_content",
-                                                        position='center',
-                                                        spacing='xl'
-                                                    ),
-                                                ], style={
-                                                    'background': 'rgba(255, 255, 255,0.0)',
-                                                    'background-image': 'linear-gradient(rgba(255, 255, 255,0.0), rgba(255,255,255,0.0))'
-                                                }
-                                            ),
-                                        ],
-                                        id="stamps_modal",
-                                        scrollable=True,
-                                        centered=True,
-                                        size='xl'
-                                    ),
-                                ],
-                                radius='xl', p='md', shadow='xl', withBorder=True
+                            loading(
+                                dmc.Paper(
+                                    [
+                                        dbc.Row(id='stamps', justify='around', className="g-0"),
+                                    ],
+                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'padding':'5px'}
+                                )
                             ),
                             dmc.Space(h=4),
+                            dbc.Modal(
+                                [
+                                    dbc.ModalHeader(
+                                        dmc.Select(
+                                            label="",
+                                            placeholder="Select a date",
+                                            searchable=True,
+                                            nothingFound="No options found",
+                                            id="date_modal_select",
+                                            value=None,
+                                            data=[
+                                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
+                                            ],
+                                            # style={"width": 200, "marginBottom": 10},
+                                            zIndex=10000000,
+                                        ),
+                                        close_button=True,
+                                    ),
+                                    loading(dbc.ModalBody(
+                                        [
+                                            dmc.Group(
+                                                id="stamps_modal_content",
+                                                position='center',
+                                                spacing='xl'
+                                            ),
+                                        ]
+                                    )),
+                                ],
+                                id="stamps_modal",
+                                scrollable=True,
+                                centered=True,
+                                size='xl'
+                            ),
                             dmc.Center(
                                 dmc.ActionIcon(
                                     DashIconify(icon="tabler:arrows-maximize"),
@@ -431,7 +424,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                     color='gray'
                                 ),
                             ),
-                        ],
+                        ]
                     ),
                 ],
                 value='stamps'
@@ -474,7 +467,7 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "Last alert content",
+                        "Alert content",
                         icon=[
                             DashIconify(
                                 icon="tabler:file-description",
@@ -502,10 +495,46 @@ curl -H "Content-Type: application/json" -X POST \\
                         ],
                     ),
                     dmc.AccordionPanel(
-                        [
-                            download_tab,
-                            dcc.Markdown('See {}/api for more options'.format(APIURL)),
-                        ],
+                        html.Div(
+                            [
+                                dmc.Group(
+                                    [
+                                        dmc.Button(
+                                            "JSON",
+                                            id='download_json',
+                                            variant="outline",
+                                            color='indigo',
+                                            compact=True,
+                                            leftIcon=[DashIconify(icon="mdi:code-json")],
+                                        ),
+                                        dmc.Button(
+                                            "VOTable",
+                                            id='download_votable',
+                                            variant="outline",
+                                            color='indigo',
+                                            compact=True,
+                                            leftIcon=[DashIconify(icon="mdi:xml")],
+                                        ),
+                                        help_popover(
+                                            [
+                                                dcc.Markdown('You may also download the data programmatically.'),
+                                                download_tab,
+                                                dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                                            ],
+                                            'help_download',
+                                            trigger=dmc.ActionIcon(
+                                                    DashIconify(icon="mdi:help"),
+                                                    id='help_download',
+                                                    variant="outline",
+                                                    color='indigo',
+                                            ),
+                                        ),
+                                        html.Div(objectid, id='download_objectid', className='d-none'),
+                                        html.Div(APIURL, id='download_apiurl', className='d-none'),
+                                    ], position="center"
+                                )
+                            ],
+                        ),
                     ),
                 ],
                 value='api'
@@ -542,12 +571,11 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 constellation,
                                                 cdsxmatch, ssnamenr, gaianame,
                                                 float(neargaia), float(distpsnr1), float(distnr)
-                                            )
+                                            ), className="p-0 m-0"
                                         ),
                                     ],
-                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'},
                                 ),
-                                html.Br(),
                                 *create_external_links(ra0, dec0)
                             ],
                             align='center'
@@ -593,27 +621,70 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Center(qrcode, style={'width': '100%', 'height': '200'})
+                            dmc.Center(html.Div(id='qrcode'), style={'width': '100%', 'height': '200'})
                         ],
                     ),
                 ],
                 value='qr'
             ),
         ],
-        value='stamps'
+        value='stamps',
+        styles={'content':{'padding':'5px'}}
     )
 
     return card
 
+# Downloads handling. Requires CORS to be enabled on the server.
+# TODO: We are mostly using it like this until GET requests properly initiate
+# downloads instead of just opening the file (so, Content-Disposition etc)
+download_js = """
+function(n_clicks, name, apiurl){
+    if(n_clicks > 0){
+        fetch(apiurl + '/api/v1/objects', {
+            method: 'POST',
+            body: JSON.stringify({
+                 'objectId': name,
+                 'withupperlim': true,
+                 'output-format': '$FORMAT'
+            }),
+            headers: {
+                'Content-type': 'application/json'
+            }
+        }).then(function(response) {
+            return response.blob();
+        }).then(function(data) {
+            window.saveAs(data, name + '.$EXTENSION');
+        }).catch(error => console.error('Error:', error));
+    };
+    return true;
+}
+"""
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'json').replace('$EXTENSION', 'json'),
+    Output('download_json', 'n_clicks'),
+    [
+        Input('download_json', 'n_clicks'),
+        Input('download_objectid', 'children'),
+        Input('download_apiurl', 'children'),
+    ]
+)
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'votable').replace('$EXTENSION', 'vot'),
+    Output('download_votable', 'n_clicks'),
+    [
+        Input('download_votable', 'n_clicks'),
+        Input('download_objectid', 'children'),
+        Input('download_apiurl', 'children'),
+    ]
+)
+
 @app.callback(
     Output("stamps_modal", "is_open"),
-    Input("maximise_stamps", "n_clicks"),
-    Input("maximise_stamps", "n_clicks"),
     Input("maximise_stamps", "n_clicks"),
     State("stamps_modal", "is_open"),
     prevent_initial_call=True,
 )
-def modal_stamps(nc1, nc2, nc3, opened):
+def modal_stamps(nc, opened):
     return not opened
 
 def generate_tns_badge(oid):

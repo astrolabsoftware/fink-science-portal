@@ -56,183 +56,149 @@ from flask import Blueprint
 
 api_bp = Blueprint('', __name__)
 
-def layout(is_mobile):
-    if is_mobile:
-        width = '95%'
-    else:
-        width = '80%'
-    layout_ = html.Div(
+# Enable CORS for this blueprint only
+@api_bp.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+def layout():
+    layout_ = dbc.Container(
         [
-            html.Br(),
-            html.Br(),
-            html.Br(),
-            dbc.Container(
+            dbc.Row(
                 [
-                    dbc.Row(
+                    dbc.Card(
+                        dbc.CardBody(
+                            dcc.Markdown(api_doc_summary)
+                        )
+                    ),
+                ],
+                className="mb-4"
+            ),
+            dbc.Tabs(
+                [
+                    dbc.Tab(
                         [
                             dbc.Card(
                                 dbc.CardBody(
-                                    dcc.Markdown(api_doc_summary)
-                                ), style={
-                                    'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                }
+                                    dcc.Markdown(api_doc_object)
+                                )
                             ),
-                        ]
+                        ], label="Retrieve object data", label_style = {"color": "#000"}
                     ),
-                    html.Br(),
-                    dbc.Tabs(
+                    dbc.Tab(
                         [
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_object)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Retrieve object data", label_style = {"color": "#000"}
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_explorer)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_explorer)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Query the database", label_style = {"color": "#000"}
+                        ], label="Query the database", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_latests)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_latests)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Get latest alerts", label_style = {"color": "#000"}
+                        ], label="Get latest alerts", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_sso)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_sso)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Solar System objects from MPC", label_style = {"color": "#000"}
+                        ], label="Solar System objects from MPC", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_ssocand)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_ssocand)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Candidate Solar System objects", label_style = {"color": "#000"}
+                        ], label="Candidate Solar System objects", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_ssoft)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_ssoft)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Solar System object parameters table", label_style = {"color": "#000"}
+                        ], label="Solar System object parameters table", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_tracklets)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_tracklets)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Get Tracklet Objects", label_style = {"color": "#000"}
+                        ], label="Get Tracklet Objects", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_cutout)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_cutout)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Get Image data", label_style = {"color": "#000"}
+                        ], label="Get Image data", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_xmatch)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_xmatch)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Xmatch", label_style = {"color": "#000"}
+                        ], label="Xmatch", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_bayestar)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_bayestar)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Gravitational Waves", label_style = {"color": "#000"}
+                        ], label="Gravitational Waves", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_stats)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_stats)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Statistics", label_style = {"color": "#000"}
+                        ], label="Statistics", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_anomaly)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_anomaly)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Anomaly detection", label_style = {"color": "#000"}
+                        ], label="Anomaly detection", label_style = {"color": "#000"}
+                    ),
+                    dbc.Tab(
+                        [
+                            dbc.Card(
+                                dbc.CardBody(
+                                    dcc.Markdown(api_doc_random)
+                                )
                             ),
-                            dbc.Tab(
-                                [
-                                    dbc.Card(
-                                        dbc.CardBody(
-                                            dcc.Markdown(api_doc_random)
-                                        ), style={
-                                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                                        }
-                                    ),
-                                ], label="Random objects", label_style = {"color": "#000"}
-                            ),
-                        ]
-                    )
-                ], className="mb-8", fluid=True, style={'width': width}
+                        ], label="Random objects", label_style = {"color": "#000"}
+                    ),
+                ]
             )
-        ], className='home', style={
-            'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
-            'background-size': 'cover'
-        }
+        ], className='api mb-4 mt-4', fluid='lg'
     )
     return layout_
 

@@ -23,7 +23,7 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord
 import requests
 
-from dash import html, dcc, dash_table, Input, Output, State, no_update
+from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -593,17 +593,14 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
     Output('classbar', 'figure'),
     [
         Input('object-data', 'children'),
-        Input('is-mobile', 'children')
     ])
-def plot_classbar(object_data, is_mobile):
+def plot_classbar(object_data):
     """ Display a bar chart with individual alert classifications
 
     Parameters
     ----------
     object_data: json data
         cached alert data
-    is_mobile: bool
-        True if mobile plateform, False otherwise.
     """
     pdf = pd.read_json(object_data)
     grouped = pdf.groupby('v:classification').count()
@@ -631,10 +628,7 @@ def plot_classbar(object_data, is_mobile):
             is_seen.append(top_labels[i])
 
             percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(int)
-            if is_mobile:
-                name_legend = top_labels[i]
-            else:
-                name_legend = top_labels[i] + ': {}%'.format(percent)
+            name_legend = top_labels[i] + ': {}%'.format(percent)
             fig.add_trace(
                 go.Bar(
                     x=[xd[i]], y=[yd],
@@ -651,10 +645,7 @@ def plot_classbar(object_data, is_mobile):
                 )
             )
 
-    if is_mobile:
-        legend_shift = 0.0
-    else:
-        legend_shift = 0.2
+    legend_shift = 0.2
     fig.update_layout(
         xaxis=dict(
             showgrid=False,
@@ -684,13 +675,11 @@ def plot_classbar(object_data, is_mobile):
         plot_bgcolor='rgb(248, 248, 255, 0.0)',
         margin=dict(l=0, r=0, b=0, t=0)
     )
-    if not is_mobile:
-        fig.update_layout(title_text='Individual alert classification')
-        fig.update_layout(title_y=0.15)
-        fig.update_layout(title_x=0.0)
-        fig.update_layout(title_font_size=12)
-    if is_mobile:
-        fig.update_layout(legend=dict(font=dict(size=10)))
+    fig.update_layout(title_text='Individual alert classification')
+    fig.update_layout(title_y=0.15)
+    fig.update_layout(title_x=0.0)
+    fig.update_layout(title_font_size=12)
+
     return fig
 
 @app.callback(
@@ -732,6 +721,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
+
     if switch == "Difference magnitude":
         layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
         layout_lightcurve['yaxis']['autorange'] = 'reversed'
@@ -770,9 +760,9 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         scale = 1e3
 
     hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{yaxis.title.text}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
+    <b>mjd</b>: %{customdata[0]}
     <extra></extra>
     """
     figure = {
@@ -788,9 +778,15 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'customdata': np.stack(
+                    (
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[pdf['i:fid'] == 1],
+                    ), axis=-1
+                ),
                 'hovertemplate': hovertemplate,
                 "legendgroup": "g band",
+                'legendrank': 110,
                 'marker': {
                     'size': 12,
                     'color': COLORS_ZTF[0],
@@ -807,7 +803,13 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                'legendrank': 120,
+                'customdata':  np.stack(
+                    (
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[pdf['i:fid'] == 2],
+                    ), axis=-1
+                ),
                 'hovertemplate': hovertemplate,
                 "legendgroup": "r band",
                 'marker': {
@@ -823,7 +825,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         pdf_upper = pd.read_json(object_upper)
         # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
         hovertemplate_upper = r"""
-        <b>diffmaglim</b>: %{y:.2f}<br>
+        <b>Upper limit</b>: %{y:.2f}<br>
         <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
         <b>mjd</b>: %{customdata}
         <extra></extra>
@@ -835,14 +837,16 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'x': dates2[pdf_upper['i:fid'] == 1],
                     'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 1],
                     'mode': 'markers',
+                    'name': '',
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 1],
                     'hovertemplate': hovertemplate_upper,
-                    "legendgroup": "g band",
+                    "legendgroup": "g band upper",
+                    'legendrank': 111,
                     'marker': {
                         'color': COLORS_ZTF[0],
                         'symbol': 'triangle-down-open'
                     },
-                    'showlegend': False
+                    # 'showlegend': False
                 }
             )
             figure['data'].append(
@@ -850,20 +854,22 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'x': dates2[pdf_upper['i:fid'] == 2],
                     'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 2],
                     'mode': 'markers',
+                    'name': '',
                     'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 2],
                     'hovertemplate': hovertemplate_upper,
-                    "legendgroup": "r band",
+                    "legendgroup": "r band upper",
+                    'legendrank': 121,
                     'marker': {
                         'color': COLORS_ZTF[1],
                         'symbol': 'triangle-down-open'
                     },
-                    'showlegend': False
+                    # 'showlegend': False
                 }
             )
         pdf_upperv = pd.read_json(object_uppervalid)
         # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
         hovertemplate_upperv = r"""
-        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{yaxis.title.text} (low quality)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
         <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
         <b>mjd</b>: %{customdata}
         <extra></extra>
@@ -1526,7 +1532,10 @@ def extract_cutout(object_data, time0, kind):
         # Round to avoid numerical precision issues
         jds = pdfs['i:jd'].apply(lambda x: np.round(x, 3)).values
         jd0 = np.round(Time(time0, format='iso').jd, 3)
-        position = np.where(jds == jd0)[0][0]
+        if jd0 in jds:
+            position = np.where(jds == jd0)[0][0]
+        else:
+            return None
 
     # Extract the cutout data
     r = requests.post(
@@ -1540,6 +1549,10 @@ def extract_cutout(object_data, time0, kind):
     )
 
     cutout = readstamp(r.content, gzipped=False)
+
+    if pdf_['i:isdiffpos'].values[position] == 'f' and kind == 'difference':
+        # Negative event, let's invert the diff cutout
+        cutout *= -1
 
     return cutout
 
@@ -1561,11 +1574,22 @@ def draw_cutouts(clickData, object_data):
     figs = []
     for kind in ['science', 'template', 'difference']:
         try:
-            data = extract_cutout(object_data, jd0, kind=kind)
-            figs.append(draw_cutout(data, kind))
+            cutout = extract_cutout(object_data, jd0, kind=kind)
+            if cutout is None:
+                return no_update
+
+            data = draw_cutout(cutout, kind)
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
-            figs.append(data)
+
+        figs.append(
+            dbc.Col(
+                data,
+                xs=4,
+                className="p-0",
+            )
+        )
+
     return figs
 
 @app.callback(
@@ -1603,25 +1627,6 @@ def draw_cutouts_modal(object_data, date_modal_select, is_open):
             figs.append(data)
     return figs
 
-@app.callback(
-    Output("stamps_mobile", "children"),
-    [
-        Input('object-data', 'children'),
-        Input('is-mobile', 'children')
-    ])
-def draw_cutouts_mobile(object_data, is_mobile):
-    """ Draw cutouts data based on lightcurve data
-    """
-    figs = []
-    for kind in ['science', 'template', 'difference']:
-        try:
-            data = extract_cutout(object_data, None, kind=kind)
-            figs.append(draw_cutout(data, kind, is_mobile=is_mobile))
-        except OSError:
-            data = dcc.Markdown("Load fail, refresh the page")
-            figs.append(data)
-    return figs
-
 def draw_cutouts_quickview(name):
     """ Draw Science cutout data for the preview service
     """
@@ -1633,6 +1638,7 @@ def draw_cutouts_quickview(name):
                 'i:objectId',
                 'i:candid',
                 'i:jd',
+                'i:isdiffpos',
                 'b:cutout{}_stampData'.format(kind.capitalize()),
             ]
             # Transfer cutout name data
@@ -1645,7 +1651,7 @@ def draw_cutouts_quickview(name):
             )
             object_data = r.content
             data = extract_cutout(object_data, None, kind=kind)
-            figs.append(draw_cutout(data, kind, is_mobile=True))
+            figs.append(draw_cutout(data, kind))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
@@ -1720,29 +1726,44 @@ def legacy_normalizer(data: list, stretch='asinh', pmin=0.5, pmax=99.5) -> list:
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
     return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, modal=False):
+def plain_normalizer(img: list, vmin: float, vmax: float, stretch='linear', pmin=0.5, pmax=99.5) -> list:
+    """ Image normalisation between vmin and vmax
+
+    Parameters
+    -----------
+    img: float array
+        a float array representing a non-normalized image
+
+    Returns
+    -----------
+    out: float array where data are bounded between vmin and vmax
+    """
+    limits = np.percentile(img, [pmin, pmax])
+    data = _data_stretch(img, vmin=limits[0], vmax=limits[1], stretch=stretch, vmid=0.1, exponent=2)
+    data = (vmax - vmin) * data + vmin
+
+    return data
+
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
     """ Draw a cutout data
     """
     # Update graph data for stamps
     data = np.nan_to_num(data)
 
-    data = sigmoid_normalizer(data, lower_bound, upper_bound)
+    # data = sigmoid_normalizer(data, lower_bound, upper_bound)
+    data = plain_normalizer(data, lower_bound, upper_bound,
+                            stretch='linear' if title in ['difference'] else 'asinh',
+                            pmin=0.5, pmax=99.95)
 
     data = data[::-1]
-    data = convolve(data, smooth=1, kernel='gauss')
+    # data = convolve(data, smooth=1, kernel='gauss')
+    shape = data.shape
 
-    if is_mobile:
-        mask = create_circular_mask(len(data), len(data[0]), center=None, radius=None)
-        data[~mask] = np.nan
-
-    if is_mobile:
-        zsmooth = 'fast'
-    else:
-        zsmooth = False
+    zsmooth = False
 
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, hoverinfo='skip', colorscale='Greys_r', zsmooth=zsmooth
+            z=data, showscale=False, hoverinfo='skip', colorscale='Blues_r', zsmooth=zsmooth
         )
     )
     # Greys_r
@@ -1754,7 +1775,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
         ticks='')
 
     fig.update_layout(
-        title='',
+        title=title,
         margin=dict(t=0, r=0, b=0, l=0),
         xaxis=axis_template,
         yaxis=axis_template,
@@ -1763,30 +1784,78 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, is_mobile=False, moda
         plot_bgcolor='rgba(0,0,0,0)'
     )
 
+    fig.update_layout(width=shape[1], height=shape[0])
+    fig.update_layout(yaxis={'scaleanchor':'x', 'scaleratio':1})
+
     if not modal:
-        style = {'display': 'inline-block', 'height': '5pc', 'width': '5pc'}
-        classname = 'roundimg zoom'
-        if not is_mobile:
-            fig.update_layout(width=75, height=75)
-            classname = 'roundimg'
+        style = {'display':'block', 'aspect-ratio': '1', 'margin': '1px'}
+        classname = 'zoom'
+        classname = ''
 
         graph = dcc.Graph(
-            id='{}-stamps'.format(title),
+            id={'type':'stamp', 'id':title},
             figure=fig,
             style=style,
             config={'displayModeBar': False},
-            className=classname
+            className=classname,
+            responsive=True
         )
     else:
         style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
         graph = dcc.Graph(
-            id='{}-stamps'.format(title),
+            id={'type':'stamp_modal', 'id':title},
             figure=fig,
             style=style,
-            config={'displayModeBar': False}
+            config={'displayModeBar': False},
+            responsive=True
         )
 
     return graph
+
+def zoom_cutouts(relayout_data, figure_states):
+    # Code from https://stackoverflow.com/a/70405707
+    unique_data = None
+    for data in relayout_data:
+        if relayout_data.count(data) == 1:
+            unique_data = data
+
+    if unique_data:
+        for figure_state in figure_states:
+            if unique_data.get('xaxis.autorange'):
+                figure_state['layout']['xaxis']['autorange'] = True
+                figure_state['layout']['yaxis']['autorange'] = True
+            else:
+                figure_state['layout']['xaxis']['range'] = [
+                    unique_data['xaxis.range[0]'], unique_data['xaxis.range[1]']]
+                figure_state['layout']['xaxis']['autorange'] = False
+                figure_state['layout']['yaxis']['range'] = [
+                    unique_data['yaxis.range[0]'], unique_data['yaxis.range[1]']]
+                figure_state['layout']['yaxis']['autorange'] = False
+        return [unique_data] * len(relayout_data), figure_states
+
+    return relayout_data, figure_states
+
+app.callback([
+        Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
+        Output({'type': 'stamp', 'id': ALL}, 'figure'),
+    ],
+    [
+        Input({'type': 'stamp', 'id': ALL}, 'relayoutData'),
+    ],
+    State({'type': 'stamp', 'id': ALL}, 'figure'),
+    prevent_initial_call=True
+)(zoom_cutouts)
+
+app.callback([
+        Output({'type': 'stamp_modal', 'id': ALL}, 'relayoutData'),
+        Output({'type': 'stamp_modal', 'id': ALL}, 'figure'),
+    ],
+    [
+        Input({'type': 'stamp_modal', 'id': ALL}, 'relayoutData'),
+    ],
+    State({'type': 'stamp_modal', 'id': ALL}, 'figure'),
+    prevent_initial_call=True
+)(zoom_cutouts)
 
 @app.callback(
     [
@@ -1980,7 +2049,7 @@ def plot_mulens(n_clicks, object_data):
         mulens_params = dmc.Paper(
             [
                 dcc.Markdown(mulens_params),
-            ], radius='xl', p='md', shadow='xl', withBorder=True
+            ], radius='sm', p='xs', shadow='sm', withBorder=True
         )
 
         return graph, mulens_params, no_update
@@ -2951,10 +3020,22 @@ def draw_tracklet_radec(pdf) -> dict:
 @app.callback(
     Output('alert_table', 'children'),
     [
-        Input('object-data', 'children')
+        Input('object-data', 'children'),
+        Input('lightcurve_cutouts', 'clickData')
     ])
-def alert_properties(object_data):
+def alert_properties(object_data, clickData):
     pdf_ = pd.read_json(object_data)
+
+    if clickData is not None:
+        time0 = clickData['points'][0]['x']
+        # Round to avoid numerical precision issues
+        jds = pdf_['i:jd'].apply(lambda x: np.round(x, 3)).values
+        jd0 = np.round(Time(time0, format='iso').jd, 3)
+        if jd0 in jds:
+            pdf_ = pdf_[jds == jd0]
+        else:
+            return no_update
+
     pdf = pdf_.head(1)
     pdf = pdf.drop(
         columns=[
@@ -2968,9 +3049,9 @@ def alert_properties(object_data):
         {
             'id': c,
             'name': c,
-            'type': 'text',
             # 'hideable': True,
-            'presentation': 'markdown',
+            'presentation': 'input',
+            'type': 'text' if c == 'Name' else 'numeric', 'format': dash_table.Format.Format(precision=8),
         } for c in pdf.columns
     ]
     data = pdf.to_dict('records')
@@ -2978,27 +3059,55 @@ def alert_properties(object_data):
         data=data,
         columns=columns,
         id='result_table_alert',
-        page_size=5,
+        # page_size=10,
+        page_action='none',
         style_as_list_view=True,
         filter_action="native",
         markdown_options={'link_target': '_blank'},
-        fixed_columns={'headers': True, 'data': 1},
+        # fixed_columns={'headers': True},#, 'data': 1},
+        persistence=True,
         style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
+            'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
-        style_table={'maxWidth': '100%'},
-        style_cell={'padding': '5px', 'textAlign': 'left', 'overflow': 'hidden'},
-        style_filter={'backgroundColor': 'rgb(238, 238, 238, .7)'},
+        style_table={'maxWidth': '100%', 'maxHeight': '300px', 'overflow': 'auto'},
+        style_cell={
+            'padding': '5px',
+            'textAlign': 'left',
+            'overflow': 'hidden',
+            'overflow-wrap': 'anywhere',
+            'max-width': '100%',
+            'font-family': 'sans-serif',
+            'fontSize': 14},
+        style_filter={'backgroundColor': 'rgb(238, 238, 238, 1.0)'},
+        style_filter_conditional=[
+            {
+                'if': {'column_id': 'Value'},
+                'textAlign': 'left',
+            }
+        ],
         style_data_conditional=[
             {
                 'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                'backgroundColor': 'rgb(248, 248, 248, 1.0)'
+            },
+            {
+                'if': {'column_id': 'Name'},
+                'backgroundColor': 'rgb(240, 240, 240, 1.0)',
+                'white-space': 'normal',
+                'min-width': '8pc',
+            },
+            {
+                'if': {'column_id': 'Value'},
+                'white-space': 'normal',
+                'min-width': '8pc',
             }
         ],
         style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
+            'backgroundColor': 'rgb(230, 230, 230, 1.0)',
+            'fontWeight': 'bold', 'textAlign': 'center'
+        },
+        # Align the text in Markdown cells
+        css=[dict(selector="p", rule="margin: 0; text-align: left")]
     )
     return table
 
@@ -3039,7 +3148,7 @@ def plot_heatmap(pathname, object_stats):
     )
 
     card = dbc.Card(
-        dbc.CardBody(graph),
+        dbc.CardBody(graph, className="m-0 p-0"),
         className="mt-3"
     )
     return card
@@ -3131,9 +3240,6 @@ def plot_stat_evolution(pathname, param_name, switch):
     card = dbc.Card(
         dbc.CardBody(graph),
         className="mt-3",
-        style={
-            'backgroundColor': 'rgb(248, 248, 248, .9)'
-        }
     )
     return card
 
@@ -3387,7 +3493,22 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
     myid = '{}_stat'.format(title.split(' ')[0])
     card = dbc.Card(
         [
-            dbc.CardBody([html.H6([title, '   ', html.I(className="fas fa-question fa-1x", style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90'})], id=myid, className="card-subtitle"), graph]),
+            dbc.CardBody(
+                [
+                    html.H6(
+                        [
+                            title,
+                            html.I(
+                                className="fa fa-question-circle fa-1x",
+                                style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': '#15284F90', 'float': 'right'},
+                                id=myid
+                            )
+                        ],
+                        className="card-subtitle"
+                    ),
+                    graph
+                ]
+            ),
             dbc.Popover(
                 [dbc.PopoverBody(description)],
                 target=myid,
@@ -3395,9 +3516,6 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
             ),
         ],
         className="mt-3",
-        style={
-            'backgroundColor': 'rgb(248, 248, 248, .8)'
-        }
     )
     return card
 
@@ -3702,15 +3820,26 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         ],
         "layout": layout_sso_astrometry
     }
+    # Force equal aspect ratio
+    figure['layout']['yaxis']['scaleanchor'] = 'x'
+    # figure['layout']['yaxis']['scaleratio'] = 1
+
     graph = dcc.Graph(
         figure=figure,
         style={
             'width': '100%',
-            'height': '20pc'
+            'height': '20pc',
+            # Prevent occupying more than 60% of the screen height
+            'max-height': '60vh',
+            # Force equal aspect
+            # 'display':'block',
+            # 'aspect-ratio': '1',
+            # 'margin': '1px'
         },
-        config={'displayModeBar': False}
+        config={'displayModeBar': False},
+        responsive=True
     )
-    card1 = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+    card1 = dmc.Paper(graph, radius='sm', p='xs', shadow='sm', withBorder=True, className="mb-1")
 
     coord = SkyCoord(mean_ra, mean_dec, unit='deg')
 
@@ -3722,7 +3851,8 @@ def draw_alert_astrometry(object_data, kind) -> dict:
 
     # hmsdms
     if kind == 'GAL':
-        coords_hms = coord.galactic.to_string('hmsdms', precision=2)
+        # Galactic coordinates are in DMS only
+        coords_hms = coord.galactic.to_string('dms', precision=2)
     else:
         coords_hms = coord.to_string('hmsdms', precision=2)
 
@@ -3734,4 +3864,4 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         dmc.Prism(children=coords_hms, language="python", style={'width': '80%'})
     )
 
-    return html.Div([card1, html.Br(), card2, card3])
+    return html.Div([card1, card2, card3])

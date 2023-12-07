@@ -123,6 +123,7 @@ def card_variable_button(object_data):
                                                     color='dark',
                                                     outline=True,
                                                     id='asas-sn',
+                                                    title='ASAS-SN',
                                                     target="_blank",
                                                     href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
                                                 ), width=4),
@@ -133,20 +134,22 @@ def card_variable_button(object_data):
                                                     color='dark',
                                                     outline=True,
                                                     id='SNAD-var-star',
+                                                    title='SNAD',
                                                     target="_blank",
                                                     href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
                                                 ), width=4),
                                         ], justify='around'
                                     ),
                                 ],
-                                radius='xl', p='md', shadow='xl', withBorder=True
+                                radius='sm', p='xs', shadow='sm', withBorder=True
                             ),
                         ],
                     ),
                 ],
                 value="external"
             ),
-        ]
+        ],
+        styles={'content':{'padding':'5px'}}
     )
 
     return card1

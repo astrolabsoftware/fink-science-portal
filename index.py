@@ -35,6 +35,7 @@ from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time, validate_query, extract_query_url
 from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
+from apps.utils import loading
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 
 import requests
@@ -157,11 +158,8 @@ modal = html.Div(
             id="open",
             color='light',
             outline=True,
-            style={
-                "border": "0px black solid",
-                'background': 'rgba(255, 255, 255, 0.0)',
-                'color': 'grey'
-            }
+            # Hide on screen sizes smaller than md
+            className="d-none d-md-inline"
         ),
         dbc.Modal(
             [
@@ -192,7 +190,6 @@ fink_search_bar = dbc.InputGroup(
             id="search_bar_input",
             autoFocus=True,
             type='search',
-            style={"border": "0px black solid", 'background': 'rgba(255, 255, 255, 0.0)', 'color': 'grey'},
             className='inputbar',
             debounce=True
         ),
@@ -204,10 +201,12 @@ fink_search_bar = dbc.InputGroup(
             variant="transparent",
             radius='xl',
             size='lg',
-            loaderProps={'variant': 'dots', 'color': 'orange'}
+            loaderProps={'variant': 'dots', 'color': 'orange'},
+            # Hide on screen sizes smaller than sm
+            className="d-none d-sm-flex"
         ),
         modal
-    ], style={"border": "0.5px grey solid", 'background': 'rgba(255, 255, 255, .75)'}, className='rcorners2'
+    ], id="search_bar", className='rcorners2'
 )
 
 def print_msg_info():
@@ -222,7 +221,7 @@ def print_msg_info():
 
 def simple_card(
         name, finkclass, lastdate, fid,
-        mag, jd, jdstarthist, ndethist, constellation, is_mobile):
+        mag, jd, jdstarthist, ndethist, constellation):
     """ Preview card
 
     The laptop version shows Science cutout + metadata + lightcurve
@@ -265,51 +264,33 @@ def simple_card(
         ]
     )
 
-    if is_mobile:
-        cardbody = dbc.CardBody(
-            [
-                html.H4("{}".format(finkclass), className="card-title"),
-                l1,
-                l2,
-                l3,
-                l4,
-                l5
-            ]
-        )
-        header = dbc.CardHeader(
-            dbc.Row(
-                draw_cutouts_quickview(name),
-                id='stamps_quickview',
-                justify='around'
+    cardbody = dbc.CardBody(
+        [
+            html.H4("{} - {}".format(name, finkclass), className="card-title"),
+            html.P("Constellation: {}".format(constellation), className="card-title"),
+            dcc.Graph(
+                figure=draw_lightcurve_preview(name),
+                config={'displayModeBar': False},
+                style={
+                    'width': '100%',
+                    'height': '15pc'
+                },
+                className="d-none d-sm-block"
             )
-        )
-    else:
-        cardbody = dbc.CardBody(
-            [
-                html.H4("{}".format(finkclass), className="card-title"),
-                html.P("Constellation: {}".format(constellation), className="card-title"),
-                dcc.Graph(
-                    figure=draw_lightcurve_preview(name),
-                    config={'displayModeBar': False},
-                    style={
-                        'width': '100%',
-                        'height': '15pc'
-                    }
-                )
-            ]
-        )
+        ]
+    )
 
-        header = dbc.CardHeader(
-            dbc.Row(
-                [
-                    dbc.Col(draw_cutouts_quickview(name), width=2),
-                    dbc.Col([l1, l2], width=5),
-                    dbc.Col([l3, l4], width=5)
-                ],
-                id='stamps_quickview',
-                justify='around'
-            )
+    header = dbc.CardHeader(
+        dbc.Row(
+            [
+                dbc.Col(draw_cutouts_quickview(name), md=2),
+                dbc.Col([l1, l2], md=5),
+                dbc.Col([l3, l4], md=5)
+            ],
+            id='stamps_quickview',
+            justify='around'
         )
+    )
 
 
     simple_card_ = dbc.Card(
@@ -321,10 +302,10 @@ def simple_card(
                     "Go to {}".format(name),
                     color="primary",
                     outline=True,
-                    href='{}/{}'.format(APIURL, name)
+                    href='/{}'.format(name)
                 )
             )
-        ], style={'background': '#000', 'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.9)), url(/assets/background.png)'}
+        ]
     )
     return simple_card_
 
@@ -333,10 +314,9 @@ def simple_card(
     [
         Input("open_modal_quickview", "n_clicks"),
         Input("result_table", "data"),
-        Input('is-mobile', 'children')
     ],
 )
-def carousel(nclick, data, is_mobile):
+def carousel(nclick, data):
     """ Carousel that shows alert preview
     """
     if nclick > 0:
@@ -350,10 +330,9 @@ def carousel(nclick, data, is_mobile):
         jdstarthists = pdf['i:jdstarthist'].values[0:10]
         ndethists = pdf['i:ndethist'].values[0:10]
         constellations = pdf['v:constellation'][0:10]
-        is_mobiles = [is_mobile] * 10
         carousel = dtc.Carousel(
             [
-                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, constellations, is_mobiles)
+                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, constellations)
             ],
             slides_to_scroll=1,
             slides_to_show=1,
@@ -368,42 +347,32 @@ def carousel(nclick, data, is_mobile):
     return carousel
 
 
-def modal_quickview(is_mobile):
-    if not is_mobile:
-        button = dmc.Button(
-            "Preview",
-            id="open_modal_quickview",
-            n_clicks=0,
-            leftIcon=[DashIconify(icon="tabler:eye")],
-            color="gray",
-            fullWidth=True,
-            variant='outline',
-            radius='xl'
-        )
-    else:
-        button = dmc.ActionIcon(
-            [DashIconify(icon="tabler:eye")],
-            id="open_modal_quickview",
-            n_clicks=0,
-            color="gray",
-            variant='outline',
-            radius='xl'
-        )
+def modal_quickview():
+    button = dmc.Button(
+        "Preview",
+        id="open_modal_quickview",
+        n_clicks=0,
+        leftIcon=[DashIconify(icon="tabler:eye")],
+        color="gray",
+        fullWidth=True,
+        variant='outline',
+        radius='xl'
+    )
+
     modal = html.Div(
         [
             button,
             dbc.Modal(
                 [
-                    dbc.ModalBody(
-                        dbc.Container(
+                    loading(dbc.ModalBody(
+                        html.Div(
                             id='carousel',
-                            fluid=True,
-                            style={'width': '95%'}
-                        ), style={
-                            'background': '#000',
-                            'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'
-                        }
-                    ),
+                            # fluid=True,
+                            # style={'width': '95%'}
+                            className="ps-2 pe-2"
+                        ),
+                        className="ps-4 pe-4"
+                    )),
                     dbc.ModalFooter(
                         dbc.Button(
                             "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
@@ -413,6 +382,7 @@ def modal_quickview(is_mobile):
                 id="modal_quickview",
                 is_open=False,
                 size="lg",
+                fullscreen="lg-down",
             ),
         ]
     )
@@ -432,7 +402,7 @@ def toggle_modal_preview(n1, n2, is_open):
         return not is_open
     return is_open
 
-def display_table_results(table, is_mobile):
+def display_table_results(table):
     """ Display explorer results in the form of a table with a dropdown
     menu on top to insert more data columns.
 
@@ -481,7 +451,7 @@ def display_table_results(table, is_mobile):
     )
 
     switch = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
         label="Unique objects",
         color="orange",
@@ -491,9 +461,9 @@ def display_table_results(table, is_mobile):
     switch_description = "Toggle the switch to list each object only once. Only the latest alert will be displayed."
 
     switch_sso = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
-        label="Unique Solar System objects",
+        label="Unique SSO",
         color="orange",
         checked=False,
         id="alert-sso-switch"
@@ -501,7 +471,7 @@ def display_table_results(table, is_mobile):
     switch_sso_description = "Toggle the switch to list each Solar System Object only once. Only the latest alert will be displayed."
 
     switch_tracklet = dmc.Switch(
-        size="md",
+        size="xs",
         radius="xl",
         label="Unique tracklets",
         color="orange",
@@ -510,92 +480,59 @@ def display_table_results(table, is_mobile):
     )
     switch_tracklet_description = "Toggle the switch to list each Tracklet only once (fast moving objects). Only the latest alert will be displayed."
 
-    if is_mobile:
-        width_options = 12
-    else:
-        width_options = 4
-
-    return dbc.Container([
-        html.Br(),
-        dmc.Grid(
+    return [
+        dbc.Row(
             [
-                dmc.Col(
-                    dmc.Accordion(
-                        children=[
-                            dmc.AccordionItem(
-                                children=[
-                                    dmc.AccordionControl(
-                                        "Table options",
-                                        icon=[
-                                            DashIconify(
-                                                icon="tabler:arrow-bar-to-down",
-                                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
-                                                width=20,
-                                            )
-                                        ],
-                                    ),
-                                    dmc.AccordionPanel(
-                                        [
-                                            dbc.Row(
-                                                dbc.Col(
-                                                    [
-                                                        dmc.Paper(
-                                                            [
-                                                                dmc.Stack(
-                                                                    [
-                                                                        dropdown,
-                                                                        dmc.Tooltip(
-                                                                            children=switch,
-                                                                            width=220,
-                                                                            multiline=True,
-                                                                            withArrow=True,
-                                                                            transition="fade",
-                                                                            transitionDuration=200,
-                                                                            label=switch_description
-                                                                        ),
-                                                                        dmc.Tooltip(
-                                                                            children=switch_sso,
-                                                                            width=220,
-                                                                            multiline=True,
-                                                                            withArrow=True,
-                                                                            transition="fade",
-                                                                            transitionDuration=200,
-                                                                            label=switch_sso_description
-                                                                        ),
-                                                                        dmc.Tooltip(
-                                                                            children=switch_tracklet,
-                                                                            width=220,
-                                                                            multiline=True,
-                                                                            withArrow=True,
-                                                                            transition="fade",
-                                                                            transitionDuration=200,
-                                                                            label=switch_tracklet_description
-                                                                        ),
-                                                                    ], spacing='xs'
-                                                                )
-
-                                                            ],
-                                                            radius='xl', p='md', shadow='xl', withBorder=True
-                                                        )
-                                                    ],
-                                                    width=width_options
-                                                )
-                                            )
-                                        ]
-                                    )
-                                ],
-                                value='table_option'
-                            )
-                        ]
-                    ),
-                    span=10
+                dbc.Col(
+                    dropdown,
+                    md=4
                 ),
-                dmc.Col(modal_quickview(is_mobile), span=2)
+                dbc.Col(
+                    dmc.Tooltip(
+                    children=switch,
+                        width=220,
+                        multiline=True,
+                        withArrow=True,
+                        transition="fade",
+                        transitionDuration=200,
+                        label=switch_description
+                    ),
+                    md=2,
+                ),
+                dbc.Col(
+                    dmc.Tooltip(
+                        children=switch_sso,
+                        width=220,
+                        multiline=True,
+                        withArrow=True,
+                        transition="fade",
+                        transitionDuration=200,
+                        label=switch_sso_description
+                    ),
+                    md=2
+                ),
+                dbc.Col(
+                    dmc.Tooltip(
+                        children=switch_tracklet,
+                        width=220,
+                        multiline=True,
+                        withArrow=True,
+                        transition="fade",
+                        transitionDuration=200,
+                        label=switch_tracklet_description
+                    ),
+                    md=2
+                ),
+                dbc.Col(
+                    modal_quickview(),
+                    md=2
+                )
             ],
-            align='center'
+            align='center',
+            className='pt-2 pb-1'
         ),
         table
-    ], fluid=True)
+    ]
 
 @app.callback(
     Output('aladin-lite-div-skymap', 'run'),
@@ -776,6 +713,7 @@ def chips_values(chip_value, val):
     """
 
     default = "    Enter a valid ZTF object ID or choose another query type"
+    val = "" # Clear the input
 
     if chip_value == "objectId":
         return default, val
@@ -807,18 +745,15 @@ def logo(ns, nss, options, searchurl):
     ctx = dash.callback_context
 
     logo = [
-        html.Br(),
-        html.Br(),
         dbc.Row(
             dbc.Col(
                 html.Img(
                     src="/assets/Fink_PrimaryLogo_WEB.png",
                     height='100%',
-                    width='60%'
+                    width='40%'
                 )
-            ), style={'textAlign': 'center'}
+            ), style={'textAlign': 'center'}, className="mt-3"
         ),
-        html.Br()
     ]
     if nss is None and (not ctx.triggered) and (searchurl == ''):
         return logo
@@ -830,14 +765,14 @@ def logo(ns, nss, options, searchurl):
     else:
         return logo
 
-def construct_results_layout(table, is_mobile):
+def construct_results_layout(table):
     """ Construct the tabs containing explorer query results
     """
     results_ = [
         dbc.Tabs(
             [
                 dbc.Tab(print_msg_info(), label='Info', tab_id='t0', label_style = {"color": "#000"}),
-                dbc.Tab(display_table_results(table, is_mobile), label="Table", tab_id='t1', label_style = {"color": "#000"}),
+                dbc.Tab(display_table_results(table), label="Table", tab_id='t1', label_style = {"color": "#000"}),
                 dbc.Tab(display_skymap(), label="Sky map", tab_id='t2', label_style = {"color": "#000"}),
             ],
             id="tabs",
@@ -846,40 +781,45 @@ def construct_results_layout(table, is_mobile):
     ]
     return results_
 
-def populate_result_table(data, columns, is_mobile):
+def populate_result_table(data, columns):
     """ Define options of the results table, and add data and columns
     """
-    if is_mobile:
-        page_size = 5
-        markdown_options = {'link_target': '_self'}
-    else:
-        page_size = 10
-        markdown_options = {'link_target': '_blank'}
+    page_size = 10
+    markdown_options = {'link_target': '_blank'}
+
     table = dash_table.DataTable(
         data=data,
         columns=columns,
         id='result_table',
-        page_size=page_size,
+        # page_size=page_size,
+        page_action='none',
         style_as_list_view=True,
         sort_action="native",
         filter_action="native",
         markdown_options=markdown_options,
         fixed_columns={'headers': True, 'data': 1},
         style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
+            'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
         style_table={'maxWidth': '100%'},
-        style_cell={'padding': '5px', 'textAlign': 'center', 'overflow': 'hidden'},
+        style_cell={
+            'padding': '5px',
+            'textAlign': 'right',
+            'overflow': 'hidden',
+            'font-family': 'sans-serif',
+            'fontSize': 14},
         style_data_conditional=[
             {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
+                'if': {'column_id': 'i:objectId'},
+                'backgroundColor': 'rgb(240, 240, 240, 1.0)',
             }
         ],
         style_header={
             'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
+            'fontWeight': 'bold', 'textAlign': 'center'
+        },
+        # Align the text in Markdown cells
+        css=[dict(selector="p", rule="margin: 0; text-align: left")]
     )
     return table
 
@@ -916,8 +856,8 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         columns.append({
             'name': field_dropdown,
             'id': field_dropdown,
-            'type': 'text',
-            'presentation': 'markdown'
+            'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
+            'presentation': 'markdown' if field_dropdown == 'i:objectId' else 'input',
             # 'hideable': True,
         })
 
@@ -950,16 +890,16 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         Output("submit", "children")
     ],
     [
-        Input("search_bar_input", "value"),
+        State("search_bar_input", "value"),
         Input("dropdown-query", "value"),
         Input("select", "value"),
-        Input("is-mobile", "children"),
         Input('url', 'search'),
-        Input('submit', 'n_clicks')
+        Input('submit', 'n_clicks'),
+        Input('search_bar_input', 'n_submit')
     ],
     State("results", "children")
 )
-def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n_clicks):
+def results(query, query_type, dropdown_option, searchurl, results, n_clicks, n_sumbits):
     """ Query the database from the search input
 
     Returns
@@ -977,7 +917,9 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
     empty_query = (query is None) or (query == '')
 
     if empty_query and query_type != "Class Search":
-        raise PreventUpdate
+        # raise PreventUpdate
+        # Clear old results on changing query type
+        return "", no_update
 
     colnames_to_display = {
         'i:objectId': 'objectId',
@@ -1099,15 +1041,15 @@ def results(query, query_type, dropdown_option, is_mobile, searchurl, results, n
             {
                 'id': c,
                 'name': colnames_to_display[c],
-                'type': 'text',
+                'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
                 # 'hideable': True,
-                'presentation': 'markdown',
+                'presentation': 'markdown' if c == 'i:objectId' else 'input',
             } for c in colnames_to_display.keys()
         ]
         validation = 1
 
-    table = populate_result_table(data, columns, is_mobile)
-    return construct_results_layout(table, is_mobile), no_update
+    table = populate_result_table(data, columns)
+    return construct_results_layout(table), no_update
 
 def text_noresults(query, query_type, dropdown_option, searchurl):
     """ Toast to warn the user about the fact that we found no results
@@ -1173,17 +1115,23 @@ def create_home_link(label):
 @app.callback(
     Output("drawer", "opened"),
     Input("drawer-button", "n_clicks"),
+    Input('url', 'pathname'),
     prevent_initial_call=True,
 )
-def drawer_switch(n_clicks):
-    return True
+def drawer_switch(n_clicks, pathname):
+    ctx = dash.callback_context
+    if ctx.triggered[0]['prop_id'].split('.')[0] == 'drawer-button':
+        return True
+    else:
+        return False
 
 navbar = dmc.Header(
+    id='navbar',
     height=55,
     fixed=True,
+    zIndex=1000,
     p=0,
     m=0,
-    style={'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'},
     children=[
         dmc.Space(h=10),
         dmc.Container(
@@ -1325,44 +1273,21 @@ navbar = dmc.Header(
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar,
-    html.Div(id='page-content'),
-    html.Div(children=False, id='is-mobile', hidden=True),
+    html.Div(id='page-content', className='home', style={'padding-top': '55px'}),
 ])
-
-app.clientside_callback(
-    """
-    function(href) {
-        var cond1 = ( ( window.innerWidth <= 820 ) && ( window.innerHeight <= 600 ) )
-        var cond2 = ( ( window.innerWidth <= 600 ) && ( window.innerHeight <= 820 ) )
-        return ( ( cond1 ) || ( cond2 ) );
-    }
-    """,
-    Output('is-mobile', 'children'),
-    Input('url', 'href')
-)
 
 @app.callback(
     Output('page-content', 'children'),
     [
         Input('url', 'pathname'),
-        Input('is-mobile', 'children')
     ]
 )
-def display_page(pathname, is_mobile):
-    if is_mobile:
-        width = '95%'
-        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)'}
-    else:
-        width = '60%'
-        style = {'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)', 'background-size': 'cover'}
+def display_page(pathname):
     layout = html.Div(
         [
-            html.Br(),
-            html.Br(),
             dbc.Container(
                 [
                     html.Div(id='logo'),
-                    html.Br(),
                     dmc.ChipGroup(
                         [
                             dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
@@ -1373,41 +1298,46 @@ def display_page(pathname, is_mobile):
                         spacing="xl",
                         position='center',
                         multiple=False,
+                        className="mt-3"
                     ),
-                    html.Br(),
-                    dbc.Row(fink_search_bar),
-                    html.Br(),
-                    dcc.Dropdown(
-                        id='select',
-                        searchable=True,
-                        clearable=True,
+                    dbc.Row(
+                        dbc.Col(
+                            [
+                                dbc.Row(fink_search_bar, className="mt-3 mb-3"),
+                                dcc.Dropdown(
+                                    id='select',
+                                    searchable=True,
+                                    clearable=True,
+                                    className="mb-3"
+                                ),
+                            ],
+                            md={'size':8, 'offset':2}
+                        ),
                     ),
-                    html.Br(),
-                ], id='trash', fluid=True, style={'width': width}
+                ], id='trash', fluid="lg"
             ),
-            dbc.Container(id='results'),
+            loading(dbc.Container(id='results', fluid="xxl"))
         ],
-        className='home',
-        style=style
+        # className='home'
     )
     if pathname == '/about':
         return about.layout
     elif pathname == '/api':
-        return api.layout(is_mobile)
+        return api.layout()
     elif pathname == '/stats':
-        return statistics.layout(is_mobile)
+        return statistics.layout()
     elif pathname == '/download':
-        return query_cluster.layout(is_mobile)
+        return query_cluster.layout()
     elif pathname == '/gw':
-        return gw.layout(is_mobile)
+        return gw.layout()
     elif pathname.startswith('/ZTF'):
-        return summary.layout(pathname, is_mobile)
+        return summary.layout(pathname)
     else:
         if pathname[1:]:
             # check this is not a name generated by a user
             oid = retrieve_oid_from_metaname(pathname[1:])
             if oid is not None:
-                return summary.layout('/' + oid, is_mobile)
+                return summary.layout('/' + oid)
         return layout
 
 # register the API

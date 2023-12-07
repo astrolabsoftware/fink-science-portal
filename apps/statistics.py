@@ -16,8 +16,8 @@ from dash import html, dcc, Input, Output
 import dash_bootstrap_components as dbc
 
 from app import app
-from apps.client import connect_to_hbase_table
 from app import APIURL
+from apps.utils import loading
 
 import numpy as np
 import pandas as pd
@@ -147,43 +147,27 @@ def create_stat_row(object_stats):
     pdf = pd.read_json(object_stats)
     c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
 
-    c0 = dbc.Col(
-        children=c0_,
-        width=2,
-        style={
-            'border-left': '1px solid #c4c0c0',
-            'border-bottom': '1px solid #c4c0c0',
-            'border-radius': '0px 0px 0px 25px',
-            "text-align": "center"
-        }
-    )
-
-    c1 = dbc.Col(
-        children=c1_,
-        width=2,
-        style={
-            'border-bottom': '1px solid #c4c0c0',
-            'border-right': '1px solid #c4c0c0',
-            'border-radius': '0px 0px 25px 0px',
-            "text-align": "center"
-        }
-    )
-    c2 = dbc.Col(
-        children=c2_, width=2, style={"text-align": "center"}
-    )
-
-    c3 = dbc.Col(
-        children=c3_, width=2, style={"text-align": "center"}
-    )
-
-    c4 = dbc.Col(
-        children=c4_, width=2, style={"text-align": "center"}
-    )
-
-    row = [
-        dbc.Col(width=1), c0, c1, c2, c3, c4, dbc.Col(width=1)
+    return [
+        dbc.Col(
+            dbc.Row(
+                [
+                    dbc.Col(c0_, md=6),
+                    dbc.Col(c1_, md=6),
+                ],
+                style={
+                    'border-left': '1px solid #c4c0c0',
+                    'border-bottom': '1px solid #c4c0c0',
+                    'border-right': '1px solid #c4c0c0',
+                    'border-radius': '0px 0px 25px 25px',
+                    "text-align": "center"
+                }
+            ),
+            md=5,
+        ),
+        dbc.Col(c2_, md=3, style={'text-align': 'center'}),
+        dbc.Col(c3_, md=2, style={'text-align': 'center'}),
+        dbc.Col(c4_, md=2, style={'text-align': 'center'}),
     ]
-    return row
 
 @app.callback(
     Output('stat_row_mobile', 'children'),
@@ -218,9 +202,7 @@ def create_stat_row(object_stats):
         dbc.Card(
             dbc.CardBody(
                 dcc.Markdown('_Connect with a bigger screen to explore more statistics_')
-            ), style={
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
-            }
+            )
         ),
     ]
 
@@ -266,12 +248,12 @@ def create_stat_generic(pdf):
 def heatmap_content():
     """
     """
+
     layout_ = html.Div(
         [
-            html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(id='heatmap_stat', width=10)
+                    dbc.Col(id='heatmap_stat')
                 ], justify="center", className="g-0"
             ),
         ],
@@ -300,15 +282,15 @@ def timelines():
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(generate_col_list(), width=10),
-                    dbc.Col(switch, width=2)
+                    dbc.Col(generate_col_list(), md=10),
+                    dbc.Col(switch, md=2)
                 ], justify='around'
             ),
-            dbc.Row(
+            loading(dbc.Row(
                 [
-                    dbc.Col(id='evolution', width=10)
+                    dbc.Col(id='evolution')
                 ], justify="center", className="g-0"
-            ),
+            )),
         ],
     )
 
@@ -321,19 +303,19 @@ def daily_stats():
         [
             html.Br(),
             dbc.Row(dbc.Col(generate_night_list())),
-            dbc.Row(
+            loading(dbc.Row(
                 [
-                    dbc.Col(id="hist_sci_raw", width=3),
-                    dbc.Col(id="hist_classified", width=3),
-                    dbc.Col(id="hist_catalogued", width=3),
-                    dbc.Col(id="hist_candidates", width=3)
+                    dbc.Col(id="hist_sci_raw", md=3),
+                    dbc.Col(id="hist_classified", md=3),
+                    dbc.Col(id="hist_catalogued", md=3),
+                    dbc.Col(id="hist_candidates", md=3)
                 ], justify='around'
-            ),
-            dbc.Row(
+            )),
+            loading(dbc.Row(
                 [
-                    dbc.Col(id="daily_classification", width=10)
+                    dbc.Col(id="daily_classification")
                 ], justify='around'
-            )
+            ))
         ],
     )
 
@@ -429,68 +411,40 @@ def get_data_one_night(night):
 
     return pdf
 
-def layout(is_mobile):
+def layout():
     """
     """
-    if not is_mobile:
-        label_style = {"color": "#000"}
-        tabs_ = dbc.Tabs(
-            [
-                dbc.Tab(heatmap_content(), label="Heatmap", label_style=label_style),
-                dbc.Tab(daily_stats(), label="Daily statistics", label_style=label_style),
-                dbc.Tab(timelines(), label="Timelines", label_style=label_style),
-                dbc.Tab(label="TNS", disabled=True),
-                dbc.Tab(
-                    dbc.Card(
-                        dbc.CardBody(
-                            dcc.Markdown(stat_doc)
-                        ), style={
-                            'backgroundColor': 'rgb(248, 248, 248, .7)'
-                        }
-                    ),
-                    label="Help",
-                    label_style=label_style
+    label_style = {"color": "#000"}
+    tabs_ = dbc.Tabs(
+        [
+            dbc.Tab(heatmap_content(), label="Heatmap", label_style=label_style),
+            dbc.Tab(daily_stats(), label="Daily statistics", label_style=label_style),
+            dbc.Tab(timelines(), label="Timelines", label_style=label_style),
+            dbc.Tab(label="TNS", disabled=True),
+            dbc.Tab(
+                dbc.Card(
+                    dbc.CardBody(
+                        dcc.Markdown(stat_doc)
+                    )
                 ),
-            ]
-        )
+                label="Help",
+                label_style=label_style
+            ),
+        ]
+    )
 
-    if is_mobile:
-        layout_ = html.Div(
-            [
-                html.Br(),
-                html.Br(),
-                dbc.Container(id='stat_row_mobile'),
-                html.Br(),
-                html.Div(id='object-stats', style={'display': 'none'}),
-            ],
-            className='home',
-            style={
-                'background-image': 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/assets/background.png)',
-                'background-size': 'contain'
-            }
-        )
-    else:
-        layout_ = html.Div(
-            [
-                html.Br(),
-                html.Br(),
-                html.Br(),
-                dbc.Row(id='stat_row'),
-                html.Br(),
-                dbc.Row(
-                    [
-                        html.Br(),
-                        dbc.Col(tabs_, width=10)
-                    ],
-                    justify="center", className="g-0"
-                ),
-                html.Div(id='object-stats', style={'display': 'none'}),
-            ],
-            className='home',
-            style={
-                'background-image': 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png)',
-                'background-size': 'cover'
-            }
-        )
+    layout_ = dbc.Container(
+        [
+            dbc.Row(id='stat_row', className="mt-3", justify="center"),
+            dbc.Row(
+                [
+                    dbc.Col(tabs_),
+                ],
+                justify="center", className="mt-3"
+            ),
+            html.Div(id='object-stats', style={'display': 'none'}),
+        ],
+        fluid='lg',
+    )
 
     return layout_
