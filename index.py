@@ -1141,10 +1141,15 @@ navbar = dmc.Header(
                 position="apart",
                 align="flex-end",
                 children=[
+                    # Right menu
                     dmc.Group(
                         position="left",
                         align="flex-start",
                         children=[
+                            # Burger
+                            dmc.ActionIcon(
+                                DashIconify(icon="dashicons:menu", width=30), id="drawer-button", n_clicks=0
+                            ),
                             dmc.Anchor(
                                 dmc.Group([
                                     dmc.ThemeIcon(
@@ -1214,6 +1219,13 @@ navbar = dmc.Header(
                                 style={"textTransform": "capitalize", "textDecoration": "none"},
                                 color="gray",
                             ),
+                        ],
+                    ),
+                    # Left menu
+                    dmc.Group(
+                        position="right",
+                        align="flex-end",
+                        children=[
                             dmc.Anchor(
                                 dmc.Group([
                                     dmc.ThemeIcon(
@@ -1239,9 +1251,7 @@ navbar = dmc.Header(
                             ),
                         ]
                     ),
-                    dmc.ActionIcon(
-                        DashIconify(icon="dashicons:menu", width=30), id="drawer-button", n_clicks=0
-                    ),
+                    # Sidebar
                     dmc.Drawer(
                         children=[
                             dmc.Divider(
