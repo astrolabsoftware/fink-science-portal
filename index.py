@@ -1132,14 +1132,113 @@ navbar = dmc.Header(
     zIndex=1000,
     p=0,
     m=0,
+    className="shadow-sm",
     children=[
         dmc.Space(h=10),
         dmc.Container(
             fluid=True,
             children=dmc.Group(
                 position="apart",
-                align="flex-start",
+                align="flex-end",
                 children=[
+                    dmc.Group(
+                        position="left",
+                        align="flex-start",
+                        children=[
+                            dmc.Anchor(
+                                dmc.Group([
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:search-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=32,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    dmc.MediaQuery(
+                                        "Search",
+                                        smallerThan="sm",
+                                        styles={"display": "none"},
+                                    ),
+                                ], spacing='xs'),
+                                href='/',
+                                variant='text',
+                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                color="gray",
+                            ),
+                            dmc.Anchor(
+                                dmc.Group([
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:cloud-download-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=32,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    dmc.MediaQuery(
+                                        "Data Transfer",
+                                        smallerThan="sm",
+                                        styles={"display": "none"},
+                                    ),
+                                ], spacing='xs'),
+                                href='/download',
+                                variant='text',
+                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                color="gray",
+                            ),
+                            dmc.Anchor(
+                                dmc.Group([
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:infinite-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=32,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    dmc.MediaQuery(
+                                        "Gravitational Waves",
+                                        smallerThan="sm",
+                                        styles={"display": "none"},
+                                    ),
+                                ], spacing='xs'),
+                                href='/gw',
+                                variant='text',
+                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                color="gray",
+                            ),
+                            dmc.Anchor(
+                                dmc.Group([
+                                    dmc.ThemeIcon(
+                                        DashIconify(
+                                            icon="ion:stats-chart-outline",
+                                            width=22,
+                                        ),
+                                        radius=30,
+                                        size=32,
+                                        variant="outline",
+                                        color="gray",
+                                    ),
+                                    dmc.MediaQuery(
+                                        "Statistics",
+                                        smallerThan="sm",
+                                        styles={"display": "none"},
+                                    ),
+                                ], spacing='xs'),
+                                href='/stats',
+                                variant='text',
+                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                color="gray",
+                            ),
+                        ]
+                    ),
                     dmc.ActionIcon(
                         DashIconify(icon="dashicons:menu", width=30), id="drawer-button", n_clicks=0
                     ),
