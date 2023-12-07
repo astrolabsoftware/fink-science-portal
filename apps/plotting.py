@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import pandas as pd
 import numpy as np
 from gatspy import periodic
@@ -3184,8 +3185,9 @@ def plot_stat_evolution(pathname, param_name, switch):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(io.BytesIO(r.content))
     pdf = pdf.set_index('key:key')
+    pdf = pdf.fillna(0)
 
     pdf['date'] = [
         Time(x[4:8] + '-' + x[8:10] + '-' + x[10:12]).datetime
@@ -3198,7 +3200,7 @@ def plot_stat_evolution(pathname, param_name, switch):
         newcol = param_name.replace('class', 'SIMBAD')
 
     if 1 in switch:
-        pdf[param_name] = pdf[param_name].fillna(0).astype(int).cumsum()
+        pdf[param_name] = pdf[param_name].astype(int).cumsum()
         if param_name != 'basic:sci':
             pdf['basic:sci'] = pdf['basic:sci'].astype(int).cumsum()
     if 2 in switch:
