@@ -127,11 +127,15 @@ from parse import parse_query
 
 clientside_callback(
     """
-    function start_suggestion_debounce_timer(value, n_submit) {
+    function start_suggestion_debounce_timer(value, n_submit, n_intervals) {
         const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
         if (triggered == 'magic_search.n_submit')
             return [dash_clientside.no_update, true];
-        return [0, false];
+
+        if (n_intervals > 0)
+            return [0, false];
+        else
+            return [dash_clientside.no_update, false];
     }
     """,
     [
@@ -140,6 +144,7 @@ clientside_callback(
     ],
     Input('magic_search', 'value'),
     Input('magic_search', 'n_submit'),
+    State('magic_timer', 'n_intervals'),
     prevent_initial_call=True,
 )
 
