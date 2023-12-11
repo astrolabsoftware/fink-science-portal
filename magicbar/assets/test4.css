@@ -1,0 +1,13 @@
+.inputbar:focus {
+  outline: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+#magic_suggest .list-group-item {
+  background: rgba(248, 248, 248, 1);
+}
+
+ul.react-autocomplete-input {
+  /* position: absolute; */
+}
