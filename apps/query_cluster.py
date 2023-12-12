@@ -226,7 +226,9 @@ def display_filter_tab(trans_datasource):
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
                 dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
-                " for field description.",
+                " for fields description and ",
+                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
+                " for examples."
             ]
             placeholder = "e.g. candidate.magpsf > 19.5;"
             labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
@@ -245,7 +247,9 @@ def display_filter_tab(trans_datasource):
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
                 dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
-                " for field description.",
+                " for fields description and ",
+                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
+                " for examples."
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
@@ -264,7 +268,9 @@ def display_filter_tab(trans_datasource):
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
                 dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
-                " for field description.",
+                " for fields description and ",
+                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
+                " for examples."
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
@@ -283,7 +289,9 @@ def display_filter_tab(trans_datasource):
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
                 dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
-                " for field description.",
+                " for fields description and ",
+                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
+                " for examples."
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
