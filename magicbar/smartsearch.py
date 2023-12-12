@@ -74,9 +74,12 @@ fink_search_bar = dbc.Row(dbc.Col(
                 AutocompleteInput(
                     id='magic_search',
                     component='input',
-                    trigger=['class:'],
-                    # options={'class:':['class1', 'new class', 'next class', "type of all things"]},
-                    options={'class:':finkclasses},
+                    trigger=[
+                        'class:', 'class=',
+                    ],
+                    options={
+                        'class:':finkclasses, 'class=':finkclasses,
+                    },
                     maxOptions=0,
                     className="inputbar form-control border-0",
                     quoteWhitespaces=True,

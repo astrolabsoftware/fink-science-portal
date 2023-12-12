@@ -58,13 +58,13 @@ name_patterns = [
     {
         'type': 'ztf',
         'pattern': '^ZTF[12]\d\w{7}$',
-        'hint': 'ZTF objectId: ZTFyyccccccc',
+        'hint': 'ZTF objectId (format ZTFyyccccccc)',
         'min': 3
     },
     {
         'type': 'tracklet',
         'pattern': '^TRCK_\d{8}_\d{6}_\d{2}$',
-        'hint': 'tracklet: TRCK_YYYYMMDD_HHMMSS_NN',
+        'hint': 'tracklet (format TRCK_YYYYMMDD_HHMMSS_NN)',
         'min': 4
     },
     # {
@@ -141,6 +141,9 @@ def parse_query(string, timeout=None):
                     query['hint'] = pattern['hint']
                     query['partial'] = m.partial
                     is_parsed = True
+
+                    if m.partial:
+                        query['hint'] = query['hint'] + ' (partial)'
                     break
 
         if is_parsed:
@@ -268,6 +271,10 @@ def parse_query(string, timeout=None):
 
     elif query['type'] == 'ssodnet':
         query['action'] = 'sso'
+
+    elif 'class' in query['params']:
+        query['action'] = 'class'
+        query['hint'] = 'Class based search'
 
     else:
         query['action'] = 'unknown'
