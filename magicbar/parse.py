@@ -26,9 +26,9 @@ def call_resolver(data, kind, timeout=None, reverse=False):
 
     if kind == 'tns':
         # Normalize AT name to have whitespace before year
-        m = re.match('^(AT)\s*(2\w+)$', data)
+        m = re.match('^(AT|SN)\s*([12]\w+)$', data, re.IGNORECASE)
         if m:
-            data = m[1] + ' ' + m[2]
+            data = m[1].upper() + ' ' + m[2]
 
     try:
         if kind == 'ztf':
@@ -242,7 +242,7 @@ def parse_query(string, timeout=None):
                 if res:
                     query['object'] = res[0]['d:fullname']
                     query['type'] = 'tns'
-                    query['hint'] = 'TNS object'
+                    query['hint'] = 'TNS object / {}'.format(res[0]['d:internalname'])
                     query['params']['ra'] = res[0]['d:ra']
                     query['params']['dec'] = res[0]['d:declination']
 

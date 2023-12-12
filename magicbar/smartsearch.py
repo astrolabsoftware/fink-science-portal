@@ -180,16 +180,14 @@ def update_suggestions(n_intervals, value):
                     [
                         html.Span('Did you mean:', className='text-secondary'),
                     ] + [
-                        dmc.Button(
+                        html.A(
                             __,
                             id={'type': 'magic_completion', 'index': _},
-                            variant='subtle',
-                            size='sm',
-                            compact=True,
-                            n_clicks=0
+                            n_clicks=0,
+                            className='ms-2 link text-decoration-none'
                         ) for _,__ in enumerate(query['completions'])
                     ],
-                    className="border-bottom mb-1"
+                    className="border-bottom p-1 mb-1 mt-1"
                 )
             ]
 
