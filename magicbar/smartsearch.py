@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, Input, Output, State, dash_table, no_update, ctx, clientside_callback
+from dash import html, dcc, Input, Output, State, dash_table, no_update, ctx, clientside_callback, ALL
 import requests
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
@@ -172,7 +172,28 @@ def update_suggestions(n_intervals, value):
         if not query['action']:
             return None, no_update
 
-        content = [
+        content = []
+
+        if query['completions']:
+            content += [
+                html.Div(
+                    [
+                        html.Span('Did you mean:', className='text-secondary'),
+                    ] + [
+                        dmc.Button(
+                            __,
+                            id={'type': 'magic_completion', 'index': _},
+                            variant='subtle',
+                            size='sm',
+                            compact=True,
+                            n_clicks=0
+                        ) for _,__ in enumerate(query['completions'])
+                    ],
+                    className="border-bottom mb-1"
+                )
+            ]
+
+        content += [
             dmc.Group([
                 html.Strong(query['object']) if query['object'] else None,
                 dmc.Badge(query['type'], variant="outline", color='blue') if query['type'] else None,
@@ -182,9 +203,9 @@ def update_suggestions(n_intervals, value):
         ]
 
         if len(params):
-            content.append(
+            content += [
                 html.Small(" ".join(["{}={}".format(_,params[_]) for _ in params]))
-            )
+            ]
 
         suggestion = dbc.ListGroupItem(
             content,
@@ -197,6 +218,21 @@ def update_suggestions(n_intervals, value):
         return suggestions, no_update
     else:
         return no_update, no_update
+
+# Completion clicked
+@app.callback(
+    Output('magic_search', 'value'),
+    Input({'type': 'magic_completion', 'index': ALL}, 'n_clicks'),
+    State({'type': 'magic_completion', 'index': ALL}, 'children'),
+    prevent_initial_call=True
+)
+def on_completion(n_clicks, values):
+    if ctx.triggered[0]['value']:
+        # print(ctx.triggered_id)
+        # print(values[ctx.triggered_id['index']])
+        return values[ctx.triggered_id['index']]
+
+    return no_update
 
 # Submit the results
 @app.callback(

@@ -3,10 +3,12 @@ import regex as re # For partial matching
 import requests
 import functools
 
+import numpy as np
+
 APIURL = 'https://fink-portal.org'
 
 @functools.lru_cache(maxsize=320)
-def call_resolver(data, kind, timeout=None):
+def call_resolver(data, kind, timeout=None, reverse=False):
     """ Call Fink resolver
 
     Parameters
@@ -44,6 +46,7 @@ def call_resolver(data, kind, timeout=None):
                 json={
                     'resolver': kind,
                     'name': str(data),
+                    'reverse': reverse,
                 },
                 timeout=timeout
             )
@@ -117,6 +120,7 @@ def parse_query(string, timeout=None):
         'hint': None,
         'action': None,
         'params': {},
+        'completions': [],
         'string': string,
     }
 
@@ -231,8 +235,29 @@ def parse_query(string, timeout=None):
             query['params']['dec'] = res[0]['i:dec']
 
     if query['object'] and query['type'] not in ['ztf', 'tracklet', 'coordinates', None]:
-        # Simbad
-        if query['object'][0].isalpha():
+        for reverse in [False, True]:
+            if 'ra' not in query['params'] and query['object'][0].isalpha():
+                # TNS
+                res = call_resolver(query['object'], 'tns', timeout=timeout, reverse=reverse)
+                if res:
+                    query['object'] = res[0]['d:fullname']
+                    query['type'] = 'tns'
+                    query['hint'] = 'TNS object'
+                    query['params']['ra'] = res[0]['d:ra']
+                    query['params']['dec'] = res[0]['d:declination']
+
+                    if len(res) > 1:
+                        # Make list of unique names not equal to the first one
+                        query['completions'] = list(
+                            np.unique(
+                                [_['d:fullname'] for _ in res if _['d:fullname'] != res[0]['d:fullname']]
+                            )
+                        )
+
+                    break
+
+        if 'ra' not in query['params'] and query['object'][0].isalpha():
+            # Simbad
             res = call_resolver(query['object'], 'simbad', timeout=timeout)
             if res:
                 query['object'] = res[0]['oname']
@@ -241,16 +266,6 @@ def parse_query(string, timeout=None):
                 query['params']['ra'] = res[0]['jradeg']
                 query['params']['dec'] = res[0]['jdedeg']
 
-        if 'ra' not in query['params'] and query['object'][0].isalpha():
-            # TNS
-            res = call_resolver(query['object'], 'tns', timeout=timeout)
-            if res:
-                query['object'] = res[0]['d:fullname']
-                query['type'] = 'tns'
-                query['hint'] = 'TNS object'
-                query['params']['ra'] = res[0]['d:ra']
-                query['params']['dec'] = res[0]['d:declination']
-
         if 'ra' not in query['params']:
                 # SSO - final test
                 res = call_resolver(query['object'], 'ssodnet', timeout=timeout)
@@ -258,6 +273,9 @@ def parse_query(string, timeout=None):
                     query['object'] = res[0]['name']
                     query['type'] = 'ssodnet'
                     query['hint'] = 'SSO object / {}'.format(res[0]['type'])
+
+                    if len(res) > 1:
+                        query['completions'] = [_['name'] for _ in res]
 
     # Guess the kind of query
     if 'ra' in query['params'] and 'dec' in query['params']:
