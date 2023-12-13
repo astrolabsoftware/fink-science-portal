@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-from dash import html, dcc, Input, Output, State, dash_table, no_update
+from dash import html, dcc, Input, Output, State, dash_table, no_update, clientside_callback
 from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
@@ -171,18 +171,19 @@ modal = html.Div(
     ]
 )
 
-@app.callback(
+clientside_callback(
+    """
+    function toggle_modal(n1, is_open) {
+        if (n1)
+            return !is_open;
+        else
+            return dash_clientside.no_update;
+    }
+    """,
     Output("modal", "is_open"),
     [Input("open", "n_clicks")],
     [State("modal", "is_open")],
 )
-def toggle_modal(n1, is_open):
-    """ Callback for the modal (open/close)
-    """
-    if n1:
-        return not is_open
-    return is_open
-
 
 fink_search_bar = dbc.InputGroup(
     [
@@ -1105,25 +1106,21 @@ def text_noresults(query, query_type, dropdown_option, searchurl):
         )
     return text, header
 
-def create_home_link(label):
-    return dmc.Text(
-        label,
-        size="xl",
-        color="gray",
-    )
-
-@app.callback(
+clientside_callback(
+    """
+    function drawer_switch(n_clicks, pathname) {
+        const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
+        if (triggered == 'drawer-button.n_clicks')
+            return true;
+        else
+            return false;
+    }
+    """,
     Output("drawer", "opened"),
     Input("drawer-button", "n_clicks"),
     Input('url', 'pathname'),
     prevent_initial_call=True,
 )
-def drawer_switch(n_clicks, pathname):
-    ctx = dash.callback_context
-    if ctx.triggered[0]['prop_id'].split('.')[0] == 'drawer-button':
-        return True
-    else:
-        return False
 
 navbar = dmc.Header(
     id='navbar',
