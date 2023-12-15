@@ -183,6 +183,7 @@ fink_search_bar = dbc.Row(
                 [
                     AutocompleteInput(
                         id='search_bar_input',
+                        placeholder='Search, and you will find',
                         component='input',
                         trigger=[
                             'class:', 'class=',
@@ -933,6 +934,7 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         Input('search_bar_submit', 'n_clicks'),
     ],
     State('search_bar_input', 'value'),
+    prevent_initial_call=True
 )
 def results(n_submit, n_clicks, value):
     """ Parse the search string and query the database
@@ -1021,11 +1023,13 @@ def results(n_submit, n_clicks, value):
         if not alert_class or alert_class == 'All classes':
             alert_class = 'allclasses'
 
+        n_last = int(query['params'].get('last', 100))
+
         r = requests.post(
             '{}/api/v1/latests'.format(APIURL),
             json={
                 'class': alert_class,
-                'n': '100'
+                'n': n_last
             }
         )
 
