@@ -804,10 +804,11 @@ def display_skymap():
         )
     ]
 
-def construct_results_layout(table):
+def construct_results_layout(table, msg):
     """ Construct the tabs containing explorer query results
     """
     results_ = [
+        dbc.Alert(msg, color='light'),
         dbc.Tabs(
             [
                 dbc.Tab(print_msg_info(), label='Info', tab_id='t0', label_style = {"color": "#000"}),
@@ -965,10 +966,11 @@ def results(n_submit, n_clicks, value):
         return None, no_update
 
     if query['action'] == 'unknown':
-        return dmc.Alert('Cannot parse the query', color='red', withCloseButton=True), False
+        return dbc.Alert('Cannot parse the query: {}'.format(query), color='danger', dismissable=True), no_update
 
     elif query['action'] == 'objectid':
         # Search objects by objectId
+        msg = "ObjectId search with {} name {}".format('partial' if query['partial'] else 'exact', query['object'])
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
@@ -978,6 +980,7 @@ def results(n_submit, n_clicks, value):
 
     elif query['action'] == 'sso':
         # Solar System Objects
+        msg = "Solar System object search with ID {}".format(query['object'])
         r = requests.post(
             '{}/api/v1/sso'.format(APIURL),
             json={
@@ -987,6 +990,7 @@ def results(n_submit, n_clicks, value):
 
     elif query['action'] == 'tracklet':
         # Tracklet by (partial) name
+        msg = "Tracklet search with {} name {}".format('partial' if query['partial'] else 'exact', query['object'])
         payload = {
             'id': query['object']
         }
@@ -998,12 +1002,18 @@ def results(n_submit, n_clicks, value):
 
     elif query['action'] == 'conesearch':
         # Conesearch
+        ra = float(query['params'].get('ra'))
+        dec = float(query['params'].get('dec'))
+        sr = float(query['params'].get('r', 10/3600)) * 3600
+
+        msg = "Cone search with center at {:.4f} {:.3f} and radius {:.1f} arcsec".format(ra, dec, sr)
+
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
             json={
-                'ra': float(query['params']['ra']),
-                'dec': float(query['params']['dec']),
-                'radius': float(query['params'].get('r', 10/3600))*3600,
+                'ra': ra,
+                'dec': dec,
+                'radius': sr
                 # 'startdate_conesearch': startdate,
                 # 'window_days_conesearch': window
             }
@@ -1025,6 +1035,8 @@ def results(n_submit, n_clicks, value):
 
         n_last = int(query['params'].get('last', 100))
 
+        msg = "Last {} objects with class '{}'".format(n_last, alert_class)
+
         r = requests.post(
             '{}/api/v1/latests'.format(APIURL),
             json={
@@ -1034,19 +1046,20 @@ def results(n_submit, n_clicks, value):
         )
 
     else:
-        return dmc.Alert('Unhandled query: {}'.format(query), color='red', withCloseButton=True), False
+        return dbc.Alert('Unhandled query: {}'.format(query), color='danger', dismissable=True), no_update
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
 
+    msg = [msg, html.Br(), "{} found".format('Nothing' if pdf.empty else str(len(pdf.index)) + ' objects')]
+
     if pdf.empty:
         # text, header = text_noresults(query, query_type, dropdown_option, searchurl)
-        text = 'Nothing found'
-        return dmc.Alert(
-            text,
-            color="red",
-            withCloseButton=True
-        ), False
+        return dbc.Alert(
+            msg,
+            color="warning",
+            dismissable=True
+        ), no_update
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
@@ -1068,10 +1081,9 @@ def results(n_submit, n_clicks, value):
                 'presentation': 'markdown' if c == 'i:objectId' else 'input',
             } for c in colnames_to_display.keys()
         ]
-        validation = 1
 
     table = populate_result_table(data, columns)
-    return construct_results_layout(table), False
+    return construct_results_layout(table, msg), False
 
 clientside_callback(
     """
