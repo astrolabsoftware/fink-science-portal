@@ -173,88 +173,86 @@ about the first 10 alerts (science cutout, and basic information). Note you can
 swipe between alerts (or use arrows on a laptop).
 """.format(APIURL)
 
-fink_search_bar = dbc.Row(
-    dbc.Col(
-        className='p-0 m-0 border border-dark rounded-3',
-        id="search_bar",
-        # className='rcorners2',
-        children=[
-            dbc.InputGroup(
-                [
-                    AutocompleteInput(
-                        id='search_bar_input',
-                        placeholder='Search, and you will find',
-                        component='input',
-                        trigger=[
-                            'class:', 'class=',
-                        ],
-                        options={
-                            'class:':fink_classes, 'class=':fink_classes,
-                        },
-                        maxOptions=0,
-                        className="inputbar form-control border-0",
-                        quoteWhitespaces=True,
-                        regex='^([a-zA-Z0-9_\-()]+|"[a-zA-Z0-9_\- ]*|\'[a-zA-Z0-9_\- ]*)$',
-                        autoFocus=True,
-                    ),
-
-                    dbc.Spinner(
-                        dmc.ActionIcon(
-                            DashIconify(icon="tabler:search", width=20),
-                            n_clicks=0,
-                            id="search_bar_submit",
-                            color='gray',
-                            variant="transparent",
-                            radius='xl',
-                            size='lg',
-                            loaderProps={'variant': 'dots', 'color': 'orange'},
-                            # Hide on screen sizes smaller than sm
-                            className="d-none d-sm-flex"
-                        ), size='sm',
-                    ),
-                    # modal
-                    help_popover(
-                        [
-                            dcc.Markdown(message_help)
-                        ],
-                        'help_search',
-                        trigger=dmc.ActionIcon(
-                            DashIconify(icon="mdi:help"),
-                            id='help_search',
-                            color='gray',
-                            variant="transparent",
-                            radius='xl',
-                            size='lg',
-                            className="d-none d-sm-flex"
-                        ),
-                    ),
-                ]
-            ),
-            # Search suggestions
-            dbc.Collapse(
-                dbc.ListGroup(
-                    id='search_bar_suggestions',
+fink_search_bar = html.Div(
+    className='p-0 m-0 border shadow-sm rounded-3',
+    id="search_bar",
+    # className='rcorners2',
+    children=[
+        dbc.InputGroup(
+            [
+                AutocompleteInput(
+                    id='search_bar_input',
+                    placeholder='Search, and you will find',
+                    component='input',
+                    trigger=[
+                        'class:', 'class=',
+                    ],
+                    options={
+                        'class:':fink_classes, 'class=':fink_classes,
+                    },
+                    maxOptions=0,
+                    className="inputbar form-control border-0",
+                    quoteWhitespaces=True,
+                    regex='^([a-zA-Z0-9_\-()]+|"[a-zA-Z0-9_\- ]*|\'[a-zA-Z0-9_\- ]*)$',
+                    autoFocus=True,
                 ),
-                id='search_bar_suggestions_collapser',
-                is_open=False,
+
+                dbc.Spinner(
+                    dmc.ActionIcon(
+                        DashIconify(icon="tabler:search", width=20),
+                        n_clicks=0,
+                        id="search_bar_submit",
+                        color='gray',
+                        variant="transparent",
+                        radius='xl',
+                        size='lg',
+                        loaderProps={'variant': 'dots', 'color': 'orange'},
+                        # Hide on screen sizes smaller than sm
+                        # className="d-none d-sm-flex"
+                    ), size='sm', color='warning'
+                ),
+                # modal
+                help_popover(
+                    [
+                        dcc.Markdown(message_help)
+                    ],
+                    'help_search',
+                    trigger=dmc.ActionIcon(
+                        DashIconify(icon="mdi:help"),
+                        id='help_search',
+                        color='gray',
+                        variant="transparent",
+                        radius='xl',
+                        size='lg',
+                        # className="d-none d-sm-flex"
+                    ),
+                ),
+            ]
+        ),
+        # Search suggestions
+        dbc.Collapse(
+            dbc.ListGroup(
+                id='search_bar_suggestions',
             ),
-            # Debounce timer
-            dcc.Interval(
-                id="search_bar_timer",
-                interval=2000,
-                max_intervals=1,
-                disabled=True
-            )
-        ],
-    )
+            id='search_bar_suggestions_collapser',
+            is_open=False,
+        ),
+        # Debounce timer
+        dcc.Interval(
+            id="search_bar_timer",
+            interval=2000,
+            max_intervals=1,
+            disabled=True
+        )
+    ],
 )
 
 # Time-based debounce from https://joetatusko.com/2023/07/11/time-based-debouncing-with-plotly-dash/
 clientside_callback(
     """
-    function start_suggestion_debounce_timer(value, n_submit, n_intervals) {
+    function start_suggestion_debounce_timer(value, n_submit, n_clicks, n_intervals) {
         const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
-        if (triggered == 'search_bar_input.n_submit')
+        if (triggered == 'search_bar_input.n_submit' || triggered == 'search_bar_submit.n_clicks')
             return [dash_clientside.no_update, true];
 
         if (n_intervals > 0)
@@ -269,6 +267,7 @@ clientside_callback(
     ],
     Input('search_bar_input', 'value'),
     Input('search_bar_input', 'n_submit'),
+    Input('search_bar_submit', 'n_clicks'),
     State('search_bar_timer', 'n_intervals'),
     prevent_initial_call=True,
 )
@@ -532,7 +531,7 @@ def modal_quickview():
                     dbc.ModalFooter(
                         dbc.Button(
                             "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
-                        ), style={'display': 'None'}
+                        ), className="d-block d-lg-none"
                     ),
                 ],
                 id="modal_quickview",
@@ -641,11 +640,48 @@ def display_table_results(table):
             [
                 dbc.Col(
                     dropdown,
-                    md=4
+                    lg=5, md=6
                 ),
                 dbc.Col(
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                modal_quickview(),
+                                md='auto'
+                            ),
+                            dbc.Col(
+                                modal_skymap(),
+                                md='auto'
+                            ),
+                            dbc.Col(
+                                help_popover(
+                                    dcc.Markdown(msg_info),
+                                    id='help_msg_info',
+                                    trigger=dmc.ActionIcon(
+                                        DashIconify(icon="mdi:help"),
+                                        id='help_msg_info',
+                                        color='gray',
+                                        variant="outline",
+                                        radius='xl',
+                                        size='lg',
+                                    ),
+                                ),
+                                md='auto'
+                            ),
+                        ],
+                        align='center', justify='end',
+                    ),
+                    md='auto',
+                )
+            ],
+            align='center', justify='between',
+            className='pt-1 pb-1 ps-2 pe-2'
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
                     dmc.Tooltip(
-                    children=switch,
+                        children=switch,
                         width=220,
                         multiline=True,
                         withArrow=True,
@@ -653,7 +689,7 @@ def display_table_results(table):
                         transitionDuration=200,
                         label=switch_description
                     ),
-                    md=2,
+                    md='auto',
                 ),
                 dbc.Col(
                     dmc.Tooltip(
@@ -665,7 +701,7 @@ def display_table_results(table):
                         transitionDuration=200,
                         label=switch_sso_description
                     ),
-                    md=2
+                    md='auto'
                 ),
                 dbc.Col(
                     dmc.Tooltip(
@@ -677,15 +713,11 @@ def display_table_results(table):
                         transitionDuration=200,
                         label=switch_tracklet_description
                     ),
-                    md=2
+                    md='auto'
                 ),
-                dbc.Col(
-                    modal_quickview(),
-                    md=2
-                )
             ],
-            align='center',
-            className='pt-2 pb-1'
+            align='center', justify='start',
+            className='pt-1 pb-1 ps-2 pe-2',
         ),
         table
     ]
@@ -695,10 +727,10 @@ def display_table_results(table):
     [
         Input("result_table", "data"),
         Input("result_table", "columns"),
-        Input('tabs', 'active_tab')
+        Input("modal_skymap", "is_open"),
     ],
 )
-def display_skymap(data, columns, activetab):
+def display_skymap(data, columns, is_open):
     """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
@@ -715,10 +747,15 @@ def display_skymap(data, columns, activetab):
     """
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if len(data) > 1000:
-        msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
-        return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
-    if len(data) > 0 and (activetab == 't2'):
+
+    if not is_open:
+        return no_update
+
+    if len(data) > 0:
+        if len(data) > 1000:
+            # Silently limit the size of list we display
+            data = data[:1000]
+
         pdf = pd.DataFrame(data)
 
         # Coordinate of the first alert
@@ -781,44 +818,80 @@ def display_skymap(data, columns, activetab):
     else:
         return ""
 
-def display_skymap():
-    """ Display the sky map in the explorer tab results (Aladin lite)
+def modal_skymap():
+    button = dmc.Button(
+        "Sky Map",
+        id="open_modal_skymap",
+        n_clicks=0,
+        leftIcon=[DashIconify(icon="bi:stars")],
+        color="gray",
+        fullWidth=True,
+        variant='outline',
+        radius='xl'
+    )
 
-    It uses `visdcc` to execute javascript directly.
-
-    Returns
-    ---------
-    out: list of objects
-    """
-    return [
-        dbc.Container(
-            html.Div(
+    modal = html.Div(
+        [
+            button,
+            dbc.Modal(
                 [
-                    visdcc.Run_js(id='aladin-lite-div-skymap'),
-                    dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
-                ], style={
-                    'width': '100%',
-                    'height': '25pc'
-                }
-            )
-        )
-    ]
+                    loading(
+                        dbc.ModalBody(
+                            html.Div(
+                                [
+                                    visdcc.Run_js(id='aladin-lite-div-skymap'),
+                                    # dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
+                                ], style={
+                                    'width': '100%',
+                                    'height': '100%',
+                                }
+                            ),
+                            className="ps-4 pe-4",
+                            style={'height': '30pc'},
+                        )
+                    ),
+                    dbc.ModalFooter(
+                        dbc.Button(
+                            "Close", id="close_modal_skymap", className="ml-auto", n_clicks=0
+                        ),
+                    ),
+                ],
+                id="modal_skymap",
+                is_open=False,
+                size="lg",
+                # fullscreen="lg-down",
+            ),
+        ]
+    )
+
+    return modal
+
+@app.callback(
+    Output("modal_skymap", "is_open"),
+    [
+        Input("open_modal_skymap", "n_clicks"),
+        Input("close_modal_skymap", "n_clicks")
+    ],
+    [State("modal_skymap", "is_open")],
+)
+def toggle_modal_preview(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
 
 def construct_results_layout(table, msg):
     """ Construct the tabs containing explorer query results
     """
-    results_ = [
-        dbc.Alert(msg, color='light'),
-        dbc.Tabs(
-            [
-                dbc.Tab(print_msg_info(), label='Info', tab_id='t0', label_style = {"color": "#000"}),
-                dbc.Tab(display_table_results(table), label="Table", tab_id='t1', label_style = {"color": "#000"}),
-                dbc.Tab(display_skymap(), label="Sky map", tab_id='t2', label_style = {"color": "#000"}),
-            ],
-            id="tabs",
-            active_tab="t1",
-        )
-    ]
+    results_ = html.Div(
+        className='bg-opaque-100 mb-2 shadow-sm border rounded-3',
+        children=[
+            html.P(
+                msg,
+                className='p-3 m-0'
+            ),
+        ] + display_table_results(table)
+    )
+
     return results_
 
 def populate_result_table(data, columns):
@@ -837,11 +910,11 @@ def populate_result_table(data, columns):
         sort_action="native",
         filter_action="native",
         markdown_options=markdown_options,
-        fixed_columns={'headers': True, 'data': 1},
+        # fixed_columns={'headers': True, 'data': 1},
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
-        style_table={'maxWidth': '100%'},
+        style_table={'maxWidth': '100%', 'overflowX': 'scroll'},
         style_cell={
             'padding': '5px',
             'textAlign': 'right',
@@ -929,6 +1002,7 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
     [
         Output('results', 'children'),
         Output('logo', 'is_open'),
+        Output('search_bar_submit', 'children', allow_duplicate=True),
     ],
     [
         Input('search_bar_input', 'n_submit'),
@@ -946,7 +1020,7 @@ def results(n_submit, n_clicks, value):
 
     if not value:
         # TODO: show back the logo?..
-        return None, no_update
+        return None, no_update, no_update
 
     # TODO: catch parameters sent from URL
 
@@ -963,10 +1037,14 @@ def results(n_submit, n_clicks, value):
     query = parse_query(value)
 
     if not query:
-        return None, no_update
+        return None, no_update, no_update
 
     if query['action'] == 'unknown':
-        return dbc.Alert('Cannot parse the query: {}'.format(query), color='danger', dismissable=True), no_update
+        return dbc.Alert(
+            'Cannot parse the query: {}'.format(value),
+            color='danger',
+            className='shadow-sm'
+        ), no_update, no_update
 
     elif query['action'] == 'objectid':
         # Search objects by objectId
@@ -1046,20 +1124,24 @@ def results(n_submit, n_clicks, value):
         )
 
     else:
-        return dbc.Alert('Unhandled query: {}'.format(query), color='danger', dismissable=True), no_update
+        return dbc.Alert(
+            'Unhandled query: {}'.format(query),
+            color='danger',
+            className='shadow-sm'
+        ), no_update, no_update
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
 
-    msg = [msg, html.Br(), "{} found".format('Nothing' if pdf.empty else str(len(pdf.index)) + ' objects')]
+    msg = "{} - {} found".format(msg, 'nothing' if pdf.empty else str(len(pdf.index)) + ' objects')
 
     if pdf.empty:
         # text, header = text_noresults(query, query_type, dropdown_option, searchurl)
         return dbc.Alert(
             msg,
             color="warning",
-            dismissable=True
-        ), no_update
+            className='shadow-sm'
+        ), no_update, no_update
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
@@ -1083,7 +1165,7 @@ def results(n_submit, n_clicks, value):
         ]
 
     table = populate_result_table(data, columns)
-    return construct_results_layout(table, msg), False
+    return construct_results_layout(table, msg), False, no_update
 
 clientside_callback(
     """
@@ -1386,13 +1468,13 @@ def display_page(pathname):
                     ),
                     dbc.Row(
                         dbc.Col(
-                            dbc.Row(fink_search_bar),
+                            fink_search_bar,
                             md={'size':8, 'offset':2}
                         ), className="mt-3 mb-3"
                     ),
                 ], fluid="lg"
             ),
-            loading(dbc.Container(id='results', fluid="xxl"))
+            dbc.Container(id='results', fluid="xxl")
         ],
     )
     if pathname == '/about':
