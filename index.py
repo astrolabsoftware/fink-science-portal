@@ -34,7 +34,7 @@ from apps.api import api
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
-from apps.utils import isoify_time, validate_query, extract_query_url
+from apps.utils import isoify_time
 from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
 from apps.utils import loading, help_popover
@@ -152,10 +152,6 @@ any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`. E.g. try:
 """
 
 msg_info = """
-![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
-
-Fill the search bar and hit the search button. You can access help by clicking on the Help button at the right of the bar.
-
 By default, the table shows:
 
 - i:objectId: Unique identifier for this object
@@ -173,7 +169,31 @@ about the first 10 alerts (science cutout, and basic information). Note you can
 swipe between alerts (or use arrows on a laptop).
 """.format(APIURL)
 
-fink_search_bar = html.Div(
+# Smart search field
+quick_fields = [
+    ['class', 'Alert class'],
+    ['last', 'Number of latest alerts to show'],
+    ['r', 'Radius for cone search'],
+    ['after', 'Lower timit on alert time'],
+]
+
+fink_search_bar = [
+        html.Div(
+            [
+                html.Span('Quick fields:', className='text-secondary'),
+            ] + [
+                html.A(
+                    __[0],
+                    title=__[1],
+                    id={'type': 'search_bar_quick_field', 'index': _},
+                    n_clicks=0,
+                    className='ms-2 link text-decoration-none'
+                ) for _,__ in enumerate(quick_fields)
+            ],
+            className="p-1 mb-1 mt-1"
+        ),
+
+] + [html.Div(
     className='p-0 m-0 border shadow-sm rounded-3',
     id="search_bar",
     # className='rcorners2',
@@ -245,7 +265,7 @@ fink_search_bar = html.Div(
             disabled=True
         )
     ],
-)
+)]
 
 # Time-based debounce from https://joetatusko.com/2023/07/11/time-based-debouncing-with-plotly-dash/
 clientside_callback(
@@ -363,6 +383,39 @@ def on_completion(n_clicks, values):
 
     return no_update
 
+# Quick field clicked
+# clientside_callback(
+#     """
+#     function on_quickfield(n_clicks, values, value) {
+#         const ctx = dash_clientside.callback_context;
+#         window['ctx'] = ctx;
+#         return window.dash_clientside.callback_context.triggered[0].prop_id.split('.')[0];
+#     }
+#     """,
+#     Output('search_bar_input', 'value'),
+#     Input({'type': 'search_bar_quick_field', 'index': ALL}, 'n_clicks'),
+#     State({'type': 'search_bar_quick_field', 'index': ALL}, 'children'),
+#     State('search_bar_input', 'value'),
+#     prevent_initial_call=True
+# )
+
+# TODO: convert to clientside callback, if pattern matching is supported for them
+@app.callback(
+    Output('search_bar_input', 'value', allow_duplicate=True),
+    Input({'type': 'search_bar_quick_field', 'index': ALL}, 'n_clicks'),
+    State({'type': 'search_bar_quick_field', 'index': ALL}, 'children'),
+    State('search_bar_input', 'value'),
+    prevent_initial_call=True
+)
+def on_quickfield(n_clicks, values, value):
+    if not value:
+        value = ''
+
+    ctx = dash.callback_context
+    if ctx.triggered[0]['value']:
+        return value + ' ' + values[ctx.triggered_id['index']] + '='
+
+    return no_update
 
 def print_msg_info():
     """ Display the explorer info message
