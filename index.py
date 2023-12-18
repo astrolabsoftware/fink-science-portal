@@ -46,6 +46,7 @@ import requests
 import pandas as pd
 import numpy as np
 from astropy.time import Time, TimeDelta
+import urllib
 
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
@@ -1063,18 +1064,20 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
     [
         Input('search_bar_input', 'n_submit'),
         Input('search_bar_submit', 'n_clicks'),
+        Input('url', 'search'),
     ],
     State('search_bar_input', 'value'),
-    prevent_initial_call=True
+    # prevent_initial_call=True
+    prevent_initial_call='initial_duplicate',
 )
-def results(n_submit, n_clicks, value):
+def results(n_submit, n_clicks, searchurl, value):
     """ Parse the search string and query the database
     """
 
-    if not n_submit and not n_clicks:
+    if not n_submit and not n_clicks and not searchurl:
         raise PreventUpdate
 
-    if not value:
+    if not value and not searchurl:
         # TODO: show back the logo?..
         return None, no_update, no_update
 
@@ -1090,7 +1093,18 @@ def results(n_submit, n_clicks, value):
         'v:lapse': 'Time variation (day)'
     }
 
-    query = parse_query(value)
+    if searchurl:
+        # Parse GET parameters from url
+        params = dict(
+            urllib.parse.parse_qsl(
+                urllib.parse.urlparse(searchurl).query
+            )
+        )
+        # Construct the query from them
+        query = {'action': params.pop('action')}
+        query['params'] = params
+    else:
+        query = parse_query(value)
 
     if not query:
         return None, no_update, no_update
@@ -1138,7 +1152,8 @@ def results(n_submit, n_clicks, value):
         # Conesearch
         ra = float(query['params'].get('ra'))
         dec = float(query['params'].get('dec'))
-        sr = float(query['params'].get('r', 10/3600)) * 3600
+        # Default is 10 arcsec, max is 5 degrees
+        sr = max(float(query['params'].get('r', 10)), 18000)
 
         msg = "Cone search with center at {:.4f} {:.3f} and radius {:.1f} arcsec".format(ra, dec, sr)
 

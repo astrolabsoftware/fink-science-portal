@@ -171,15 +171,15 @@ def parse_query(string, timeout=None):
             if m:
                 value = float(m[1])
                 if m[4] == 'd':
-                    value /= 1
+                    value *= 3600
                 elif m[4] == 'm' or m[4] == '\'':
-                    value /= 60
+                    value *= 60
                 elif m[4] == 's' or m[4] == '"':
-                    value /= 3600
+                    value *= 1
                 else:
                     # Default is no change, except for 'r' key
                     if key == 'r':
-                        value /= 3600
+                        value *= 1
 
             query['params'][key] = value
 
@@ -196,7 +196,7 @@ def parse_query(string, timeout=None):
             query['params']['ra'] = float(m[1])
             query['params']['dec'] = float(m[2])
             if m[4] is not None:
-                query['params']['r'] = float(m[4])/3600
+                query['params']['r'] = float(m[4])
 
             query['object'] = string
             query['type'] = 'coordinates'
@@ -222,7 +222,7 @@ def parse_query(string, timeout=None):
                     query['params']['dec'] *= -1
 
                 if m[9] is not None:
-                    query['params']['r'] = float(m[9])/3600
+                    query['params']['r'] = float(m[9])
 
                 query['object'] = string
                 query['type'] = 'coordinates'
