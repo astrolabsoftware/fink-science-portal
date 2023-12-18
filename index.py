@@ -1153,7 +1153,7 @@ def results(n_submit, n_clicks, searchurl, value):
         ra = float(query['params'].get('ra'))
         dec = float(query['params'].get('dec'))
         # Default is 10 arcsec, max is 5 degrees
-        sr = max(float(query['params'].get('r', 10)), 18000)
+        sr = min(float(query['params'].get('r', 10)), 18000)
 
         msg = "Cone search with center at {:.4f} {:.3f} and radius {:.1f} arcsec".format(ra, dec, sr)
 
