@@ -171,10 +171,12 @@ swipe between alerts (or use arrows on a laptop).
 
 # Smart search field
 quick_fields = [
-    ['class', 'Alert class'],
+    ['class', 'Alert class\nSelect one of Fink supported classes from the menu'],
     ['last', 'Number of latest alerts to show'],
-    ['r', 'Radius for cone search'],
-    ['after', 'Lower timit on alert time'],
+    ['r', 'Radius for cone search\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly'],
+    # ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
+    ['after', 'Lower timit on alert time\nISO time, MJD or JD'],
+    ['window', 'Time window length\nDays']
 ]
 
 fink_search_bar = [
@@ -190,7 +192,7 @@ fink_search_bar = [
                     className='ms-2 link text-decoration-none'
                 ) for _,__ in enumerate(quick_fields)
             ],
-            className="p-1 mb-1 mt-1"
+            className="ps-2 pe-2 mb-0 mt-1"
         ),
 
 ] + [html.Div(
@@ -1139,15 +1141,24 @@ def results(n_submit, n_clicks, value):
 
         msg = "Cone search with center at {:.4f} {:.3f} and radius {:.1f} arcsec".format(ra, dec, sr)
 
+        payload = {
+            'ra': ra,
+            'dec': dec,
+            'radius': sr,
+        }
+
+        if 'after' in query['params']:
+            startdate = isoify_time(query['params']['after'])
+            window = float(query['params'].get('window', 1.0))
+
+            msg += ' within {} days after {}'.format(window, startdate)
+
+            payload['startdate_conesearch'] = startdate
+            payload['window_days_conesearch'] = window
+
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
-            json={
-                'ra': ra,
-                'dec': dec,
-                'radius': sr
-                # 'startdate_conesearch': startdate,
-                # 'window_days_conesearch': window
-            }
+            json=payload
         )
 
         colnames_to_display = {

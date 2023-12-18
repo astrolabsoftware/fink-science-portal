@@ -26,7 +26,7 @@ def call_resolver(data, kind, timeout=None, reverse=False):
 
     if kind == 'tns':
         # Normalize AT name to have whitespace before year
-        m = re.match('^(AT|SN)\s*([12]\w+)$', data, re.IGNORECASE)
+        m = re.match(r'^(AT|SN)\s*([12]\w+)$', data, re.IGNORECASE)
         if m:
             data = m[1].upper() + ' ' + m[2]
 
@@ -60,13 +60,13 @@ def call_resolver(data, kind, timeout=None, reverse=False):
 name_patterns = [
     {
         'type': 'ztf',
-        'pattern': '^ZTF[12]\d\w{7}$',
+        'pattern': r'^ZTF[12]\d\w{7}$',
         'hint': 'ZTF objectId (format ZTFyyccccccc)',
         'min': 3
     },
     {
         'type': 'tracklet',
-        'pattern': '^TRCK_\d{8}_\d{6}_\d{2}$',
+        'pattern': r'^TRCK_\d{8}_\d{6}_\d{2}$',
         'hint': 'tracklet (format TRCK_YYYYMMDD_HHMMSS_NN)',
         'min': 4
     },
@@ -126,6 +126,14 @@ def parse_query(string, timeout=None):
 
     string = string.replace(',', ' ') # TODO: preserve quoted commas?..
 
+    # Sanitize the times to ISO format so that they parse as single tokens
+    string = re.sub(
+        r'\b([12]\d{3})[.-]([012]\d{1})[.-]([0123]\d{1})\s+([012]\d{1})[:]([012345]\d{1})[:]([012345]\d{1})(\.\d*)?\b',
+        r'\1-\2-\3T\4:\5:\6\7',
+        string
+    )
+
+    # Split the string into tokens
     try:
         tokens = shlex.split(string, posix=True) # It will also handle quoted strings
     except:
@@ -154,12 +162,12 @@ def parse_query(string, timeout=None):
             continue
 
         # Try to parse keyword parameters, either as key:value or key=value
-        m = re.match('^(\w+)[=:]([^:=]*?)$', token)
+        m = re.match(r'^(\w+)[=:](.*?)$', token)
         if m:
             key = m[1]
             value = m[2]
             # Special handling for numbers, possibly ending with d/m/s for degrees etc
-            m = re.match('^([+-]?(\d+)(.\d+)?)([dms\'"]?)$', value)
+            m = re.match(r'^([+-]?(\d+)(.\d+)?)([dms\'"]?)$', value)
             if m:
                 value = float(m[1])
                 if m[4] == 'd':
@@ -183,7 +191,7 @@ def parse_query(string, timeout=None):
     # Parse the rest of the query string as coordinates, if any
     if len(string) and not query['object']:
         # Pair of decimal degrees
-        m = re.search("^(\d+\.?\d*)\s+([+-]?\d+\.?\d*)(\s+(\d+\.?\d*))?$", string)
+        m = re.search(r"^(\d+\.?\d*)\s+([+-]?\d+\.?\d*)(\s+(\d+\.?\d*))?$", string)
         if m:
             query['params']['ra'] = float(m[1])
             query['params']['dec'] = float(m[2])
@@ -200,10 +208,10 @@ def parse_query(string, timeout=None):
         else:
             # HMS DMS
             m = re.search(
-                "^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}\.?\d*)\s+([+-])?\s*(\d{1,3})\s+(\d{1,2})\s+(\d{1,2}\.?\d*)(\s+(\d+\.?\d*))?$",
+                r"^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}\.?\d*)\s+([+-])?\s*(\d{1,3})\s+(\d{1,2})\s+(\d{1,2}\.?\d*)(\s+(\d+\.?\d*))?$",
                 string
             ) or re.search(
-                "^(\d{1,2})[:h](\d{1,2})[:m](\d{1,2}\.?\d*)[s]?\s+([+-])?\s*(\d{1,3})[d:](\d{1,2})[m:](\d{1,2}\.?\d*)[s]?(\s+(\d+\.?\d*))?$",
+                r"^(\d{1,2})[:h](\d{1,2})[:m](\d{1,2}\.?\d*)[s]?\s+([+-])?\s*(\d{1,3})[d:](\d{1,2})[m:](\d{1,2}\.?\d*)[s]?(\s+(\d+\.?\d*))?$",
                 string
             )
             if m:
@@ -293,6 +301,11 @@ def parse_query(string, timeout=None):
     elif 'class' in query['params']:
         query['action'] = 'class'
         query['hint'] = 'Class based search'
+
+    elif 'last' in query['params']:
+        query['action'] = 'class'
+        query['params']['class'] = 'All classes'
+        query['hint'] = 'Latest objects'
 
     else:
         query['action'] = 'unknown'
