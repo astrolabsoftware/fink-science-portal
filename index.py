@@ -176,6 +176,7 @@ quick_fields = [
     ['r', 'Radius for cone search\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly'],
     # ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
     ['after', 'Lower timit on alert time\nISO time, MJD or JD'],
+    ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
     ['window', 'Time window length\nDays']
 ]
 
@@ -1179,12 +1180,28 @@ def results(n_submit, n_clicks, value):
 
         msg = "Last {} objects with class '{}'".format(n_last, alert_class)
 
+        payload = {
+            'class': alert_class,
+            'n': n_last
+        }
+
+        if 'after' in query['params']:
+            startdate = isoify_time(query['params']['after'])
+
+            msg += ' after {}'.format(startdate)
+
+            payload['startdate'] = startdate
+
+        if 'before' in query['params']:
+            stopdate = isoify_time(query['params']['before'])
+
+            msg += ' before {}'.format(stopdate)
+
+            payload['stopdate'] = stopdate
+
         r = requests.post(
             '{}/api/v1/latests'.format(APIURL),
-            json={
-                'class': alert_class,
-                'n': n_last
-            }
+            json=payload
         )
 
     else:
