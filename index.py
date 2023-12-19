@@ -186,12 +186,17 @@ fink_search_bar = [
             [
                 html.Span('Quick fields:', className='text-secondary'),
             ] + [
-                html.A(
-                    __[0],
-                    title=__[1],
-                    id={'type': 'search_bar_quick_field', 'index': _},
-                    n_clicks=0,
-                    className='ms-2 link text-decoration-none'
+                html.Span(
+                    [
+                        html.A(
+                            __[0],
+                            title=__[1],
+                            id={'type': 'search_bar_quick_field', 'index': _},
+                            n_clicks=0,
+                            className='ms-2 link text-decoration-none'
+                        ),
+                        " "
+                    ]
                 ) for _,__ in enumerate(quick_fields)
             ],
             className="ps-2 pe-2 mb-0 mt-1"
@@ -1558,7 +1563,8 @@ def display_page(pathname):
                                     html.Img(
                                         src="/assets/Fink_PrimaryLogo_WEB.png",
                                         height='100%',
-                                        width='40%'
+                                        width='40%',
+                                        style={'min-width': '250px'},
                                     )
                                 ), style={'textAlign': 'center'}, className="mt-3",
                             ),
