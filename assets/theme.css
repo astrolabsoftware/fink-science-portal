@@ -77,10 +77,14 @@ h2 {
 }
 
 #search_bar_input {
+  margin-left: 25px;
+  padding: 0;
 }
 
 #search_bar_suggestions .list-group-item {
   background: rgba(248, 248, 248, 1);
+  border-radius: 0 0 25px 25px;
+  border-bottom: 2px solid black;
 }
 
 /* Cards */
