@@ -1562,7 +1562,7 @@ def display_page(pathname):
                                     )
                                 ), style={'textAlign': 'center'}, className="mt-3",
                             ),
-                            query="(max-height: 400px) or (max-width: 500px)",
+                            query="(max-height: 400px) or (max-width: 300px)",
                             styles={'display': 'none'},
                         ), is_open=True, id='logo',
                     ),
