@@ -1552,14 +1552,18 @@ def display_page(pathname):
                 [
                     # Logo shown by default
                     dbc.Collapse(
-                        dbc.Row(
-                            dbc.Col(
-                                html.Img(
-                                    src="/assets/Fink_PrimaryLogo_WEB.png",
-                                    height='100%',
-                                    width='40%'
-                                )
-                            ), style={'textAlign': 'center'}, className="mt-3",
+                        dmc.MediaQuery(
+                            dbc.Row(
+                                dbc.Col(
+                                    html.Img(
+                                        src="/assets/Fink_PrimaryLogo_WEB.png",
+                                        height='100%',
+                                        width='40%'
+                                    )
+                                ), style={'textAlign': 'center'}, className="mt-3",
+                            ),
+                            query="(max-height: 400px) or (max-width: 500px)",
+                            styles={'display': 'none'},
                         ), is_open=True, id='logo',
                     ),
                     dbc.Row(
