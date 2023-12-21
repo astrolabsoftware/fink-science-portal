@@ -1449,7 +1449,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             pdfs = pd.DataFrame.from_dict(results, orient='index')
 
             # ssnmanenr -> MPC name & number
-            if not pdfs.empty():
+            if not pdfs.empty:
                 client = connect_to_hbase_table('ztf.sso_resolver')
                 ssnamenrs = np.unique(pdfs['i:ssnamenr'].values)
                 results = {}
