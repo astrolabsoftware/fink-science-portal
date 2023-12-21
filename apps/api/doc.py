@@ -1660,7 +1660,7 @@ and then search for corresponding alerts:
 r = requests.post(
   'https://fink-portal.org/api/v1/sso',
   json={
-    'n_or_d': pdf['i:ssnamenr'].astype(str).values[0],
+    'n_or_d': pdf['i:ssnamenr'].values[0],
     'columns': 'i:objectId,i:ra,i:dec,i:magpsf,i:sigmapsf'
   }
 )
