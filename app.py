@@ -15,6 +15,7 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash.long_callback import DiskcacheLongCallbackManager
+from dash import DiskcacheManager
 
 # import jpype
 
@@ -24,6 +25,7 @@ import diskcache
 
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
+background_callback_manager = DiskcacheManager(cache)
 
 args = yaml.load(open('config.yml'), yaml.Loader)
 
@@ -56,7 +58,8 @@ app = factory(
         "name": "viewport",
         "content": "width=device-width, initial-scale=1"
     }],
-    long_callback_manager=long_callback_manager
+    long_callback_manager=long_callback_manager,
+    background_callback_manager=background_callback_manager,
 )
 
 

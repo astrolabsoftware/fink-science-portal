@@ -101,7 +101,31 @@ def card_lightcurve_summary():
                     )
                 )
             ),
-            help_popover(lc_help, 'help_lc'),
+            dmc.Group(
+                [
+                    dmc.Button(
+                        "Request data release photometry",
+                        id='lightcurve_request_release',
+                        variant="outline",
+                        color='gray',
+                        radius='xl', size='xs',
+                        compact=False,
+                    ),
+                    help_popover(
+                        lc_help,
+                        'help_lc',
+                        trigger=dmc.ActionIcon(
+                            DashIconify(icon="mdi:help"),
+                            id='help_lc',
+                            color='gray',
+                            variant="outline",
+                            radius='xl',
+                            size='md',
+                        )
+                    ),
+                ],
+                position='center',
+            )
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return card
