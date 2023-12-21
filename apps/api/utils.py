@@ -496,16 +496,18 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     else:
         truncated = True
 
-    if ',' in payload['n_or_d']:
+    n_or_d = str(payload['n_or_d'])
+
+    if ',' in n_or_d:
         # multi-objects search
-        splitids = payload['n_or_d'].replace(' ', '').split(',')
+        splitids = n_or_d.replace(' ', '').split(',')
 
         # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
         names = ['key:key:{}_'.format(i.strip()) for i in splitids]
     else:
         # single object search
         # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = ["key:key:{}_".format(str(payload['n_or_d']).replace(' ', ''))]
+        names = ["key:key:{}_".format(n_or_d.replace(' ', ''))]
 
     # Get data from the main table
     client = connect_to_hbase_table('ztf.ssnamenr')
