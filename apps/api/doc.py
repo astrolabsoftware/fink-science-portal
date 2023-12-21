@@ -1608,12 +1608,12 @@ r = requests.post(
 )
 pdf = pd.read_json(io.BytesIO(r.content))
 
-  d:cdsxmatch      i:dec    i:objectId       i:ra
-0    GinGroup  36.917909  ZTF18aabfjoi  28.724092
-1    GinGroup  36.917912  ZTF18aabfjoi  28.724130
-2    GinGroup  36.917924  ZTF18aabfjoi  28.724110
-3    GinGroup  36.917913  ZTF18aabfjoi  28.724100
-4    GinGroup  36.917892  ZTF18aabfjoi  28.724094
+  d:cdsxmatch             i:candid      i:dec          i:jd    i:objectId       i:ra
+0    GinGroup  1045306711115010048  36.917909  2.458800e+06  ZTF18aabfjoi  28.724092
+1    GinGroup  1400219061115010048  36.917912  2.459155e+06  ZTF18aabfjoi  28.724130
+2    GinGroup  1626461821115010048  36.917924  2.459381e+06  ZTF18aabfjoi  28.724110
+3    GinGroup  1977476361115010048  36.917913  2.459732e+06  ZTF18aabfjoi  28.724100
+4    GinGroup  2119325081115010048  36.917892  2.459874e+06  ZTF18aabfjoi  28.724094
 ```
 
 5 different alerts from the same object (`ZTF18aabfjoi`).
@@ -1621,99 +1621,54 @@ pdf = pd.read_json(io.BytesIO(r.content))
 ### SSO to ZTF
 
 I have a SSO name or number, are there ZTF objects corresponding?
-Note that by default the search has a `contain` strategy -- namely we will look for
-all objects whose name _contains_ the provided search term (this is not a exact name search).
-By default, we only returns the first 10 matches.
-We will add in the future an option to specify exact search as well.
+You first need to resolve the corresponding ZTF `ssnamenr`:
 
 ```python
 r = requests.post(
   'https://fink-portal.org/api/v1/resolver',
   json={
     'resolver': 'ssodnet',
-    'name': '1999 VK210'
+    'name': 'Benoitcarry'
   }
 )
 
 pdf = pd.read_json(io.BytesIO(r.content))
+
+  i:source  i:ssnamenr
+0     name        8467
 ```
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>type</th>
-      <th>system</th>
-      <th>class</th>
-      <th>updated</th>
-      <th>ephemeris</th>
-      <th>id</th>
-      <th>aliases</th>
-      <th>links</th>
-      <th>physical-ephemeris</th>
-      <th>name</th>
-      <th>parent</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>Asteroid</td>
-      <td>Sun</td>
-      <td>[MB, Inner]</td>
-      <td>2023-07-24</td>
-      <td>True</td>
-      <td>Julienpeloton</td>
-      <td>[1976 SU10, 1998 HC30, 1999 VK210, 2001 DR108,...</td>
-      <td>{'self': 'https://api.ssodnet.imcce.fr/quaero/...</td>
-      <td>False</td>
-      <td>Julienpeloton</td>
-      <td>Sun</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+and then search for correspondind alerts:
 
 ```python
-print(pdf['aliases'].values)
+r = requests.post(
+  'https://fink-portal.org/api/v1/sso',
+  json={
+    'n_or_d': pdf['i:ssnamenr'].astype(str).values[0],
+    'columns': 'i:objectId,i:ra,i:dec,i:magpsf,i:sigmapsf'
+  }
+)
+sso = pd.read_json(io.BytesIO(r.content))
+
+         i:dec   i:magpsf    i:objectId        i:ra  i:sigmapsf
+0    36.161248  18.611034  ZTF19acobkas   77.294453    0.083834
+1    36.331305  18.620789  ZTF19acpqeds   76.876430    0.094948
+2    36.486187  18.402218  ZTF19acrdtum   76.405307    0.122535
+3    36.488667  18.515806  ZTF19acreebv   76.397151    0.105453
+4    36.537212  17.863874  ZTF19acrptft   76.226673    0.059307
+..         ...        ...           ...         ...         ...
+139 -27.313561  19.024980  ZTF23abmhbto  305.778251    0.149182
+140 -26.954849  19.046757  ZTF23abnctrh  306.352687    0.151236
+141 -26.676200  19.217007  ZTF23abnpgnk  306.832111    0.161494
+142 -25.915354  19.193588  ZTF23abovwcw  308.263112    0.148075
+143 -25.721885  19.228273  ZTF23abpkzcn  308.651113    0.122658
+
+[144 rows x 5 columns]
 ```
-
-    [list(['1976 SU10', '1998 HC30', '1999 VK210', '2001 DR108', '2001 FA193', '2001 FY172', '2033803', '33803', 'J76S10U', 'J98H30C', 'J99VL0K', 'K01DA8R', 'K01FH2Y', 'K01FJ3A'])]
-
-
-```python
-for name in pdf['aliases'].values[0]:
-    r = requests.post(
-      'https://fink-portal.org/api/v1/sso',
-      json={
-        'n_or_d': name,
-      }
-    )
-
-    if r.json() != []:
-        print('{} found in ZTF with {} alerts'.format(name, len(r.json())))
-```
-
-    33803 found in ZTF with 92 alerts
-
 
 ### ZTF to SSO
 
-I have a ZTF object name, is there a counterpart in the SsODNet quaero database, and what are all the aliases?
+I have a ZTF object name, is there a counterpart in the SsODNet quaero database, and what are all the known aliases to Fink?
 
 ```python
 r = requests.post(
@@ -1721,7 +1676,7 @@ r = requests.post(
   json={
     'resolver': 'ssodnet',
     'reverse': True,
-    'name': 'ZTF23abpkzcn'
+    'name': 'ZTF23abidfxt'
   }
 )
 
@@ -1730,7 +1685,7 @@ if r.json() != []:
     print('Asteroid counterpart found with designation {}'.format(name))
     print()
 
-    r = requests.post(
+    r2 = requests.post(
       'https://fink-portal.org/api/v1/resolver',
       json={
         'resolver': 'ssodnet',
@@ -1738,35 +1693,19 @@ if r.json() != []:
       }
     )
 
-    pdf = pd.read_json(io.BytesIO(r.content))
-    print('In the quaero database, this corresponds to: ')
-    print(pdf[['type', 'name', 'class', 'aliases']])
+    pdf = pd.read_json(io.BytesIO(r2.content))
+    print('In the Fink database, {} also corresponds to: '.format(name))
+    print(pdf)
 ```
 
-    Asteroid counterpart found with designation 8467
+Leading to:
 
-    In the quaero database, this corresponds to:
-             type         name                    class
-    0  Spacecraft     OPS 4428  [LEO, Payload, Decayed]  \
-    1    Asteroid  Benoitcarry              [MB, Outer]
-    2    Asteroid    2002 VG84             [MB, Middle]
-    3    Asteroid    2002 VW87              [MB, Outer]
-    4    Asteroid    2002 VT88             [MB, Middle]
-    5    Asteroid    2002 VW88             [MB, Middle]
-    6    Asteroid    2002 VT87             [MB, Middle]
-    7    Asteroid    2002 VS83             [MB, Middle]
-    8    Asteroid    2002 VM88             [MB, Middle]
-    9    Asteroid    2002 VF83             [MB, Middle]
+    Asteroid counterpart found with designation 624188
 
-                                              aliases
-    0                               [1975-114A, 8467]
-    1      [08467, 1981 ES35, 2008467, 8467, J81E35S]
-    2                       [2084672, 84672, K02V84G]
-    3                       [2084675, 84675, K02V87W]
-    4                       [2084677, 84677, K02V88T]
-    5    [2084678, 4562 P-L, 84678, K02V88W, PLS4562]
-    6    [1997 RL5, 2084674, 84674, J97R05L, K02V87T]
-    7   [2001 OP30, 2084671, 84671, K01O30P, K02V83S]
-    8  [2000 GR160, 2084676, 84676, K00GG0R, K02V88M]
-    9  [2000 EB174, 2084670, 84670, K00EH4B, K02V83F]
+    In the Fink database, 624188 also corresponds to:
+      i:source i:ssnamenr
+    0    number   2002MA06
+    1    number    2002MA6
+    2    number     624188
+    3  ssnamenr     624188
 """
