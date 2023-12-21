@@ -200,7 +200,7 @@ def layout():
                         [
                             dbc.Card(
                                 dbc.CardBody(
-                                    dcc.Markdown(api_doc_resolver)
+                                    dcc.Markdown(api_doc_resolver, dangerously_allow_html=True)
                                 )
                             ),
                         ], label="Name resolver", label_style = {"color": "#000"}
