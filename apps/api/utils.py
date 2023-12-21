@@ -1434,8 +1434,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             else:
                 pdfs = pd.DataFrame()
     elif resolver == 'ssodnet':
-        client = connect_to_hbase_table('ztf')
         if reverse:
+            # ZTF alerts -> ssnmanenr
+            client = connect_to_hbase_table('ztf')
             to_evaluate = "key:key:{}".format(name)
             client.setLimit(nmax)
             results = client.scan(
@@ -1446,16 +1447,39 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             )
             client.close()
             pdfs = pd.DataFrame.from_dict(results, orient='index')
-        else:
-            r = requests.get(
-                'https://api.ssodnet.imcce.fr/quaero/1/sso/instant-search?q={}'.format(name)
-            )
 
-            total = r.json()['total']
-            if total > 0:
-                pdfs = pd.DataFrame(r.json()['data'])
-            else:
-                pdfs = pd.DataFrame()
+            # ssnmanenr -> MPC name & number
+            if not pdfs.empty():
+                client = connect_to_hbase_table('ztf.sso_resolver')
+                ssnamenrs = np.unique(pdfs['i:ssnamenr'].values)
+                results = {}
+                for ssnamenr in ssnamenrs:
+                    result = client.scan(
+                        "",
+                        "i:ssnamenr:{}".format(ssnamenr),
+                        "i:source,i:ssnamenr",
+                        0, False, False
+                    )
+                    results.update(result)
+                client.close()
+                pdfs = pd.DataFrame.from_dict(results, orient='index')
+
+                # Remove internal deduplication markers
+                pdfs = pdfs.reset_index().rename(columns={'index': 'SSO ID'})
+                pdfs['SSO ID'] = pdfs['SSO ID'].apply(lambda x: x.split('_')[0])
+
+        else:
+            # MPC -> ssnamenr -> ZTF alerts
+            client = connect_to_hbase_table('ztf.sso_resolver')
+            to_evaluate = "key:key:{}_".format(name)
+            results = client.scan(
+                "",
+                to_evaluate,
+                "i:ssnamenr,i:source",
+                0, False, False
+            )
+            client.close()
+            pdfs = pd.DataFrame.from_dict(results, orient='index')
 
     return pdfs
 
