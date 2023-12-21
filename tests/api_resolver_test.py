@@ -158,23 +158,15 @@ def test_ssodnet_resolver() -> None:
     ---------
     >>> test_ssodnet_resolver()
     """
-    pdf = resolver(resolver='ssodnet', name='33803')
+    pdf = resolver(resolver='ssodnet', name='624188')
 
     # Not empty
     assert not pdf.empty
 
     # One object found
-    assert len(pdf) == 10
+    assert len(pdf) == 4, pdf
 
-    assert 'Julienpeloton' in pdf['name'].values, pdf['name'].values
-
-    cols = [
-        'type', 'system', 'class', 'updated',
-        'ephemeris', 'physical-ephemeris',
-        'aliases', 'links', 'id', 'name', 'parent'
-    ]
-    for col in cols:
-        assert col in pdf.columns, [col, pdf.columns]
+    assert '2002MA06' in pdf['i:ssnamenr'].values, pdf
 
 def test_reverse_ssodnet_resolver() -> None:
     """
@@ -188,9 +180,10 @@ def test_reverse_ssodnet_resolver() -> None:
     assert not pdf.empty
 
     # One object found
-    assert len(pdf) == 1, len(pdf)
+    assert len(pdf) == 3, len(pdf)
 
-    assert pdf['i:ssnamenr'].values[0] == 33803, pdf['i:ssnamenr'].values
+    assert 'Julienpeloton' in pdf['SSO ID'].values, pdf
+    assert '33803' in pdf['SSO ID'].values, pdf
 
 
 if __name__ == "__main__":
