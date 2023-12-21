@@ -1456,7 +1456,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 for ssnamenr in ssnamenrs:
                     result = client.scan(
                         "",
-                        "i:ssnamenr:{}".format(ssnamenr),
+                        "i:ssnamenr:{}:exact".format(ssnamenr),
                         "i:source,i:ssnamenr",
                         0, False, False
                     )
