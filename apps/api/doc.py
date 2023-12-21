@@ -1587,10 +1587,26 @@ else:
 
 Leading in this example to:
 
-    Object found!
-    [{'name': 'Si=Simbad, all IDs (via url)', 'oid': 1579005, 'oname': 'Mrk 2', 'otype': 'GiG', 'jpos': '01:54:53.80 +36:55:04.6', 'jradeg': 28.7241958, 'jdedeg': 36.9179556, 'refPos': '2006AJ....131.1163S', 'z': None, 'MType': 'SBa', 'nrefs': 138}]
+```
+Object found!
+[
+  {
+    'name': 'Si=Simbad, all IDs (via url)',
+    'oid': 1579005,
+    'oname': 'Mrk 2',
+    'otype': 'GiG',
+    'jpos': '01:54:53.80 +36:55:04.6',
+    'jradeg': 28.7241958,
+    'jdedeg': 36.9179556,
+    'refPos': '2006AJ....131.1163S',
+    'z': None,
+    'MType': 'SBa',
+    'nrefs': 138
+  }
+]
 
-    Object(s) in ZTF: ['ZTF18aabfjoi']
+Object(s) in ZTF: ['ZTF18aabfjoi']
+```
 
 ### ZTF to SIMBAD
 
@@ -1638,7 +1654,7 @@ pdf = pd.read_json(io.BytesIO(r.content))
 0     name        8467
 ```
 
-and then search for correspondind alerts:
+and then search for corresponding alerts:
 
 ```python
 r = requests.post(
@@ -1700,12 +1716,14 @@ if r.json() != []:
 
 Leading to:
 
-    Asteroid counterpart found with designation 624188
+```
+Asteroid counterpart found with designation 624188
 
-    In the Fink database, 624188 also corresponds to:
-      i:source i:ssnamenr
-    0    number   2002MA06
-    1    number    2002MA6
-    2    number     624188
-    3  ssnamenr     624188
+In the Fink database, 624188 also corresponds to:
+  i:source i:ssnamenr
+0    number   2002MA06
+1    number    2002MA6
+2    number     624188
+3  ssnamenr     624188
+```
 """
