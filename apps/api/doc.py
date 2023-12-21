@@ -1644,42 +1644,63 @@ r = requests.post(
   'https://fink-portal.org/api/v1/resolver',
   json={
     'resolver': 'ssodnet',
-    'name': 'Benoitcarry'
+    'name': '624188'
   }
 )
 
 pdf = pd.read_json(io.BytesIO(r.content))
 
-  i:source  i:ssnamenr
-0     name        8467
+   i:source i:ssnamenr
+0    number   2002MA06
+1    number    2002MA6
+2    number     624188
+3  ssnamenr     624188
 ```
 
-and then search for corresponding alerts:
+and then search for corresponding alerts for all `ssnamenr`:
 
 ```python
 r = requests.post(
   'https://fink-portal.org/api/v1/sso',
   json={
-    'n_or_d': pdf['i:ssnamenr'].values[0],
-    'columns': 'i:objectId,i:ra,i:dec,i:magpsf,i:sigmapsf'
+    'n_or_d': ','.join(pdf['i:ssnamenr'].values),
+    'columns': 'i:objectId,i:ra,i:dec,i:magpsf,i:sigmapsf,i:ssnamenr'
   }
 )
 sso = pd.read_json(io.BytesIO(r.content))
 
-         i:dec   i:magpsf    i:objectId        i:ra  i:sigmapsf
-0    36.161248  18.611034  ZTF19acobkas   77.294453    0.083834
-1    36.331305  18.620789  ZTF19acpqeds   76.876430    0.094948
-2    36.486187  18.402218  ZTF19acrdtum   76.405307    0.122535
-3    36.488667  18.515806  ZTF19acreebv   76.397151    0.105453
-4    36.537212  17.863874  ZTF19acrptft   76.226673    0.059307
-..         ...        ...           ...         ...         ...
-139 -27.313561  19.024980  ZTF23abmhbto  305.778251    0.149182
-140 -26.954849  19.046757  ZTF23abnctrh  306.352687    0.151236
-141 -26.676200  19.217007  ZTF23abnpgnk  306.832111    0.161494
-142 -25.915354  19.193588  ZTF23abovwcw  308.263112    0.148075
-143 -25.721885  19.228273  ZTF23abpkzcn  308.651113    0.122658
-
-[144 rows x 5 columns]
+        i:dec   i:magpsf    i:objectId       i:ra  i:sigmapsf i:ssnamenr
+0   38.761579  19.651100  ZTF19acrplsa  84.760898    0.201959   2002MA06
+1   35.097359  19.678823  ZTF19adagirr  74.131671    0.154512   2002MA06
+2   32.709072  20.320038  ZTF23aazubcu  38.761726    0.181345    2002MA6
+3   36.039245  20.226397  ZTF23abcakzn  42.951283    0.208451    2002MA6
+4   37.399041  20.620817  ZTF23abecthp  44.314170    0.181139    2002MA6
+5   37.412476  19.931238  ZTF23abeeoen  44.324915    0.122155    2002MA6
+6   38.092562  19.839323  ZTF23abfvtyr  44.875277    0.110749    2002MA6
+7   38.102591  20.627150  ZTF23abfxptv  44.881451    0.182423    2002MA6
+8   39.028132  19.811459  ZTF23abhahgo  45.412434    0.116035    2002MA6
+9   40.087669  19.518000  ZTF23abidfxt  45.472807    0.134570     624188
+10  40.253863  20.037786  ZTF23abilvaz  45.374426    0.172761     624188
+11  40.263377  19.517801  ZTF23abiotst  45.365776    0.116226     624188
+12  40.717564  19.452196  ZTF23abkempy  44.508594    0.087599     624188
+13  40.718352  19.871597  ZTF23abkfquu  44.504111    0.144978     624188
+14  40.760788  19.485823  ZTF23abkwjee  44.211183    0.093203     624188
+15  40.777337  19.365993  ZTF23ablsjlg  43.858879    0.078582     624188
+16  40.777324  19.830032  ZTF23ablthyz  43.850151    0.109873     624188
+17  40.046433  19.359879  ZTF23abogmeh  40.809196    0.127990     624188
+18  39.832539  19.788800  ZTF23aboqpks  40.349063    0.139298     624188
+19  39.153497  19.270357  ZTF23abpqqiz  39.155381    0.140963     624188
+20  39.134613  19.803095  ZTF23abpsedk  39.124796    0.165054     624188
+21  38.846470  19.866776  ZTF23abqbtrv  38.709943    0.139531     624188
+22  38.826889  19.179682  ZTF23abqdzil  38.680996    0.095241     624188
+23  38.508815  19.166033  ZTF23abqphse  38.268334    0.072787     624188
+24  33.059517  19.892330  ZTF23absmjqg  35.439591    0.186579     624188
+25  32.477462  19.840815  ZTF23abtpaxv  35.544006    0.173815     624188
+26  32.294998  19.863436  ZTF23abtxgba  35.595829    0.105220     624188
+27  32.292988  19.976093  ZTF23abtxjux  35.596339    0.081324     624188
+28  32.094647  20.584602  ZTF23abuivpe  35.662240    0.160992     624188
+29  31.925860  20.086443  ZTF23abuppio  35.728953    0.138072     624188
+30  31.916201  20.444067  ZTF23abuqdev  35.732460    0.172873     624188
 ```
 
 ### ZTF to SSO
