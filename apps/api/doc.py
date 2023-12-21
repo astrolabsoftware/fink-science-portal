@@ -1521,56 +1521,11 @@ r = requests.post(
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))
+
+   d:declination  d:fullname d:internalname       d:ra d:type       key:time
+0      52.219894  SN 2023vwy     ATLAS23url  47.765951  SN Ia  1702926332847
+1      52.219894  SN 2023vwy   ZTF23abmwsrw  47.765951  SN Ia  1702926332847
 ```
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>d:declination</th>
-      <th>d:fullname</th>
-      <th>d:internalname</th>
-      <th>d:ra</th>
-      <th>d:type</th>
-      <th>key:time</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>52.219894</td>
-      <td>SN 2023vwy</td>
-      <td>ATLAS23url</td>
-      <td>47.765951</td>
-      <td>SN Ia</td>
-      <td>1701889538816</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>52.219894</td>
-      <td>SN 2023vwy</td>
-      <td>ZTF23abmwsrw</td>
-      <td>47.765951</td>
-      <td>SN Ia</td>
-      <td>1701889538816</td>
-    </tr>
-  </tbody>
-</table>
-</div>
 
 ### ZTF to TNS
 
@@ -1589,58 +1544,11 @@ r = requests.post(
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))
+
+   d:declination  d:fullname d:internalname       d:ra d:type       key:time
+0      52.219904  AT 2023vwy   ZTF23abmwsrw  47.765935    nan  1698788550829
+1      52.219894  SN 2023vwy   ZTF23abmwsrw  47.765951  SN Ia  1702926332847
 ```
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>d:declination</th>
-      <th>d:fullname</th>
-      <th>d:internalname</th>
-      <th>d:ra</th>
-      <th>d:type</th>
-      <th>key:time</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>52.219904</td>
-      <td>AT 2023vwy</td>
-      <td>ZTF23abmwsrw</td>
-      <td>47.765935</td>
-      <td>nan</td>
-      <td>1698788550829</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>52.219894</td>
-      <td>SN 2023vwy</td>
-      <td>ZTF23abmwsrw</td>
-      <td>47.765951</td>
-      <td>SN Ia</td>
-      <td>1701889538816</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
 
 ### SIMBAD to ZTF
 
@@ -1677,6 +1585,8 @@ else:
     print('No objects found')
 ```
 
+Leading in this example to:
+
     Object found!
     [{'name': 'Si=Simbad, all IDs (via url)', 'oid': 1579005, 'oname': 'Mrk 2', 'otype': 'GiG', 'jpos': '01:54:53.80 +36:55:04.6', 'jradeg': 28.7241958, 'jdedeg': 36.9179556, 'refPos': '2006AJ....131.1163S', 'z': None, 'MType': 'SBa', 'nrefs': 138}]
 
@@ -1697,71 +1607,16 @@ r = requests.post(
   }
 )
 pdf = pd.read_json(io.BytesIO(r.content))
+
+  d:cdsxmatch      i:dec    i:objectId       i:ra
+0    GinGroup  36.917909  ZTF18aabfjoi  28.724092
+1    GinGroup  36.917912  ZTF18aabfjoi  28.724130
+2    GinGroup  36.917924  ZTF18aabfjoi  28.724110
+3    GinGroup  36.917913  ZTF18aabfjoi  28.724100
+4    GinGroup  36.917892  ZTF18aabfjoi  28.724094
 ```
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>d:cdsxmatch</th>
-      <th>i:dec</th>
-      <th>i:objectId</th>
-      <th>i:ra</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>GinGroup</td>
-      <td>36.917909</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724092</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>GinGroup</td>
-      <td>36.917912</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724130</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>GinGroup</td>
-      <td>36.917924</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724110</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>GinGroup</td>
-      <td>36.917913</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724100</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>GinGroup</td>
-      <td>36.917892</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724094</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+5 different alerts from the same object (`ZTF18aabfjoi`).
 
 ### SSO to ZTF
 

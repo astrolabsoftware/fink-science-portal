@@ -1418,7 +1418,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             results = client.scan(
                 "",
                 to_evaluate,
-                "i:objectId,d:cdsxmatch,i:ra,i:dec",
+                "i:objectId,d:cdsxmatch,i:ra,i:dec,i:candid,i:jd",
                 0, False, False
             )
             client.close()
