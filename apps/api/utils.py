@@ -505,7 +505,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     else:
         # single object search
         # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = ["key:key:{}_".format(payload['n_or_d'].replace(' ', ''))]
+        names = ["key:key:{}_".format(str(payload['n_or_d']).replace(' ', ''))]
 
     # Get data from the main table
     client = connect_to_hbase_table('ztf.ssnamenr')
