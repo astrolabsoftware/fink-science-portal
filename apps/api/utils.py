@@ -1471,16 +1471,19 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 pdfs['SSO ID'] = pdfs['SSO ID'].apply(lambda x: x.split('_')[0])
 
         else:
-            # MPC -> ssnamenr -> ZTF alerts
-            client = connect_to_hbase_table('ztf.sso_resolver')
-
-            # Hardcode the limit to 20 max
-            # This should be enough for autocompletion tasks
-            client.setLimit(20)
-
+            # MPC -> ssnamenr
             # keys follow the pattern <prefix>_<name>_<deduplication>
             # where the <prefix> is a five-letter string
-            to_evaluate = "key:key:_{}:substring".format(name)
+            client = connect_to_hbase_table('ztf.sso_resolver')
+
+            if nmax == 1:
+                # enclose the name exactly
+                to_evaluate = "key:key:_{}_:substring".format(name)
+            elif nmax > 1:
+                # This enables e.g. autocompletion tasks
+                client.setLimit(nmax)
+                to_evaluate = "key:key:_{}:substring".format(name)
+
             results = client.scan(
                 "",
                 to_evaluate,
