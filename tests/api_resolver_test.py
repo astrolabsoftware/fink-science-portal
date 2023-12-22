@@ -182,8 +182,8 @@ def test_reverse_ssodnet_resolver() -> None:
     # One object found
     assert len(pdf) == 3, len(pdf)
 
-    assert 'Julienpeloton' in pdf['SSO ID'].values, pdf
-    assert '33803' in pdf['SSO ID'].values, pdf
+    assert 'Julienpeloton' in pdf['i:name'].values, pdf
+    assert '33803' in pdf['i:number'].values, pdf
 
 
 if __name__ == "__main__":

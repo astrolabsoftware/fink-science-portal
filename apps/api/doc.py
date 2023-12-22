@@ -1650,11 +1650,11 @@ r = requests.post(
 
 pdf = pd.read_json(io.BytesIO(r.content))
 
-   i:source i:ssnamenr
-0    number   2002MA06
-1    number    2002MA6
-2    number     624188
-3  ssnamenr     624188
+     i:name  i:number i:ssnamenr
+0  2002 MA6    624188    2002MA6
+1  2002 MA6    624188     624188
+2  2002 MA6    624188   2002MA06
+3  2002 MA6    624188     624188
 ```
 
 and then search for corresponding alerts for all `ssnamenr`:
@@ -1718,18 +1718,19 @@ r = requests.post(
 
 pdf = pd.read_json(io.BytesIO(r.content))
 
-   i:source  i:ssnamenr
-0  ssnamenr          33
-1    number          33
-2  ssnamenr         330
-3    number         330
-4    number         331
-5  ssnamenr         331
-6    number         332
-7  ssnamenr         332
-8    number         333
-9  ssnamenr         333
+          i:name  i:number  i:ssnamenr
+0     Polyhymnia        33          33
+1     Polyhymnia        33          33
+2      Adalberta       330         330
+3      Adalberta       330         330
+4       3300 T-1     17325       17325
+5       3300 T-2     69209       69209
+6       3300 T-3     79071       79071
+7      McGlasson      3300        3300
+8      McGlasson      3300        3300
+9  Chenjiansheng     33000       33000
 ```
+Note that there are duplicates, as data is indexed by `name`, `number`, and `ssnamenr`.
 If you want to perform an _exact_ search, just put `nmax=1`:
 
 ```python
@@ -1744,9 +1745,9 @@ r = requests.post(
 
 pdf = pd.read_json(io.BytesIO(r.content))
 
-   i:source  i:ssnamenr
-0  ssnamenr          33
-1    number          33
+       i:name  i:number  i:ssnamenr
+0  Polyhymnia        33          33
+1  Polyhymnia        33          33
 ```
 
 ### ZTF to SSO
