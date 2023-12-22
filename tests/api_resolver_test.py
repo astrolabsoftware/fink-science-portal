@@ -183,7 +183,7 @@ def test_reverse_ssodnet_resolver() -> None:
     assert len(pdf) == 3, len(pdf)
 
     assert 'Julienpeloton' in pdf['i:name'].values, pdf
-    assert '33803' in pdf['i:number'].values, pdf
+    assert 33803 in pdf['i:number'].values, pdf
 
 
 if __name__ == "__main__":
