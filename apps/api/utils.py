@@ -1466,9 +1466,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 client.close()
                 pdfs = pd.DataFrame.from_dict(results, orient='index')
 
-                # Remove internal deduplication markers
+                # Remove internal prefix & deduplication markers
                 pdfs = pdfs.reset_index().rename(columns={'index': 'SSO ID'})
-                pdfs['SSO ID'] = pdfs['SSO ID'].apply(lambda x: x.split('_')[0])
+                pdfs['SSO ID'] = pdfs['SSO ID'].apply(lambda x: x.split('_')[1])
 
         else:
             # MPC -> ssnamenr
