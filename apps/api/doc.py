@@ -1521,56 +1521,11 @@ r = requests.post(
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))
+
+   d:declination  d:fullname d:internalname       d:ra d:type       key:time
+0      52.219894  SN 2023vwy     ATLAS23url  47.765951  SN Ia  1702926332847
+1      52.219894  SN 2023vwy   ZTF23abmwsrw  47.765951  SN Ia  1702926332847
 ```
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>d:declination</th>
-      <th>d:fullname</th>
-      <th>d:internalname</th>
-      <th>d:ra</th>
-      <th>d:type</th>
-      <th>key:time</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>52.219894</td>
-      <td>SN 2023vwy</td>
-      <td>ATLAS23url</td>
-      <td>47.765951</td>
-      <td>SN Ia</td>
-      <td>1701889538816</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>52.219894</td>
-      <td>SN 2023vwy</td>
-      <td>ZTF23abmwsrw</td>
-      <td>47.765951</td>
-      <td>SN Ia</td>
-      <td>1701889538816</td>
-    </tr>
-  </tbody>
-</table>
-</div>
 
 ### ZTF to TNS
 
@@ -1589,58 +1544,11 @@ r = requests.post(
 
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))
+
+   d:declination  d:fullname d:internalname       d:ra d:type       key:time
+0      52.219904  AT 2023vwy   ZTF23abmwsrw  47.765935    nan  1698788550829
+1      52.219894  SN 2023vwy   ZTF23abmwsrw  47.765951  SN Ia  1702926332847
 ```
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>d:declination</th>
-      <th>d:fullname</th>
-      <th>d:internalname</th>
-      <th>d:ra</th>
-      <th>d:type</th>
-      <th>key:time</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>52.219904</td>
-      <td>AT 2023vwy</td>
-      <td>ZTF23abmwsrw</td>
-      <td>47.765935</td>
-      <td>nan</td>
-      <td>1698788550829</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>52.219894</td>
-      <td>SN 2023vwy</td>
-      <td>ZTF23abmwsrw</td>
-      <td>47.765951</td>
-      <td>SN Ia</td>
-      <td>1701889538816</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
 
 ### SIMBAD to ZTF
 
@@ -1677,10 +1585,28 @@ else:
     print('No objects found')
 ```
 
-    Object found!
-    [{'name': 'Si=Simbad, all IDs (via url)', 'oid': 1579005, 'oname': 'Mrk 2', 'otype': 'GiG', 'jpos': '01:54:53.80 +36:55:04.6', 'jradeg': 28.7241958, 'jdedeg': 36.9179556, 'refPos': '2006AJ....131.1163S', 'z': None, 'MType': 'SBa', 'nrefs': 138}]
+Leading in this example to:
 
-    Object(s) in ZTF: ['ZTF18aabfjoi']
+```
+Object found!
+[
+  {
+    'name': 'Si=Simbad, all IDs (via url)',
+    'oid': 1579005,
+    'oname': 'Mrk 2',
+    'otype': 'GiG',
+    'jpos': '01:54:53.80 +36:55:04.6',
+    'jradeg': 28.7241958,
+    'jdedeg': 36.9179556,
+    'refPos': '2006AJ....131.1163S',
+    'z': None,
+    'MType': 'SBa',
+    'nrefs': 138
+  }
+]
+
+Object(s) in ZTF: ['ZTF18aabfjoi']
+```
 
 ### ZTF to SIMBAD
 
@@ -1697,168 +1623,136 @@ r = requests.post(
   }
 )
 pdf = pd.read_json(io.BytesIO(r.content))
+
+  d:cdsxmatch             i:candid      i:dec          i:jd    i:objectId       i:ra
+0    GinGroup  1045306711115010048  36.917909  2.458800e+06  ZTF18aabfjoi  28.724092
+1    GinGroup  1400219061115010048  36.917912  2.459155e+06  ZTF18aabfjoi  28.724130
+2    GinGroup  1626461821115010048  36.917924  2.459381e+06  ZTF18aabfjoi  28.724110
+3    GinGroup  1977476361115010048  36.917913  2.459732e+06  ZTF18aabfjoi  28.724100
+4    GinGroup  2119325081115010048  36.917892  2.459874e+06  ZTF18aabfjoi  28.724094
 ```
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>d:cdsxmatch</th>
-      <th>i:dec</th>
-      <th>i:objectId</th>
-      <th>i:ra</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>GinGroup</td>
-      <td>36.917909</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724092</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>GinGroup</td>
-      <td>36.917912</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724130</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>GinGroup</td>
-      <td>36.917924</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724110</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>GinGroup</td>
-      <td>36.917913</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724100</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>GinGroup</td>
-      <td>36.917892</td>
-      <td>ZTF18aabfjoi</td>
-      <td>28.724094</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+5 different alerts from the same object (`ZTF18aabfjoi`).
 
 ### SSO to ZTF
 
 I have a SSO name or number, are there ZTF objects corresponding?
-Note that by default the search has a `contain` strategy -- namely we will look for
-all objects whose name _contains_ the provided search term (this is not a exact name search).
-By default, we only returns the first 10 matches.
-We will add in the future an option to specify exact search as well.
+You first need to resolve the corresponding ZTF `ssnamenr`:
 
 ```python
 r = requests.post(
   'https://fink-portal.org/api/v1/resolver',
   json={
     'resolver': 'ssodnet',
-    'name': '1999 VK210'
+    'name': '624188'
   }
 )
 
 pdf = pd.read_json(io.BytesIO(r.content))
+
+     i:name  i:number i:ssnamenr
+0  2002 MA6    624188    2002MA6
+1  2002 MA6    624188     624188
+2  2002 MA6    624188   2002MA06
+3  2002 MA6    624188     624188
 ```
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>type</th>
-      <th>system</th>
-      <th>class</th>
-      <th>updated</th>
-      <th>ephemeris</th>
-      <th>id</th>
-      <th>aliases</th>
-      <th>links</th>
-      <th>physical-ephemeris</th>
-      <th>name</th>
-      <th>parent</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>Asteroid</td>
-      <td>Sun</td>
-      <td>[MB, Inner]</td>
-      <td>2023-07-24</td>
-      <td>True</td>
-      <td>Julienpeloton</td>
-      <td>[1976 SU10, 1998 HC30, 1999 VK210, 2001 DR108,...</td>
-      <td>{'self': 'https://api.ssodnet.imcce.fr/quaero/...</td>
-      <td>False</td>
-      <td>Julienpeloton</td>
-      <td>Sun</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+and then search for corresponding alerts for all `ssnamenr`:
 
 ```python
-print(pdf['aliases'].values)
+r = requests.post(
+  'https://fink-portal.org/api/v1/sso',
+  json={
+    'n_or_d': ','.join(pdf['i:ssnamenr'].values),
+    'columns': 'i:objectId,i:ra,i:dec,i:magpsf,i:sigmapsf,i:ssnamenr'
+  }
+)
+sso = pd.read_json(io.BytesIO(r.content))
+
+        i:dec   i:magpsf    i:objectId       i:ra  i:sigmapsf i:ssnamenr
+0   38.761579  19.651100  ZTF19acrplsa  84.760898    0.201959   2002MA06
+1   35.097359  19.678823  ZTF19adagirr  74.131671    0.154512   2002MA06
+2   32.709072  20.320038  ZTF23aazubcu  38.761726    0.181345    2002MA6
+3   36.039245  20.226397  ZTF23abcakzn  42.951283    0.208451    2002MA6
+4   37.399041  20.620817  ZTF23abecthp  44.314170    0.181139    2002MA6
+5   37.412476  19.931238  ZTF23abeeoen  44.324915    0.122155    2002MA6
+6   38.092562  19.839323  ZTF23abfvtyr  44.875277    0.110749    2002MA6
+7   38.102591  20.627150  ZTF23abfxptv  44.881451    0.182423    2002MA6
+8   39.028132  19.811459  ZTF23abhahgo  45.412434    0.116035    2002MA6
+9   40.087669  19.518000  ZTF23abidfxt  45.472807    0.134570     624188
+10  40.253863  20.037786  ZTF23abilvaz  45.374426    0.172761     624188
+11  40.263377  19.517801  ZTF23abiotst  45.365776    0.116226     624188
+12  40.717564  19.452196  ZTF23abkempy  44.508594    0.087599     624188
+13  40.718352  19.871597  ZTF23abkfquu  44.504111    0.144978     624188
+14  40.760788  19.485823  ZTF23abkwjee  44.211183    0.093203     624188
+15  40.777337  19.365993  ZTF23ablsjlg  43.858879    0.078582     624188
+16  40.777324  19.830032  ZTF23ablthyz  43.850151    0.109873     624188
+17  40.046433  19.359879  ZTF23abogmeh  40.809196    0.127990     624188
+18  39.832539  19.788800  ZTF23aboqpks  40.349063    0.139298     624188
+19  39.153497  19.270357  ZTF23abpqqiz  39.155381    0.140963     624188
+20  39.134613  19.803095  ZTF23abpsedk  39.124796    0.165054     624188
+21  38.846470  19.866776  ZTF23abqbtrv  38.709943    0.139531     624188
+22  38.826889  19.179682  ZTF23abqdzil  38.680996    0.095241     624188
+23  38.508815  19.166033  ZTF23abqphse  38.268334    0.072787     624188
+24  33.059517  19.892330  ZTF23absmjqg  35.439591    0.186579     624188
+25  32.477462  19.840815  ZTF23abtpaxv  35.544006    0.173815     624188
+26  32.294998  19.863436  ZTF23abtxgba  35.595829    0.105220     624188
+27  32.292988  19.976093  ZTF23abtxjux  35.596339    0.081324     624188
+28  32.094647  20.584602  ZTF23abuivpe  35.662240    0.160992     624188
+29  31.925860  20.086443  ZTF23abuppio  35.728953    0.138072     624188
+30  31.916201  20.444067  ZTF23abuqdev  35.732460    0.172873     624188
 ```
 
-    [list(['1976 SU10', '1998 HC30', '1999 VK210', '2001 DR108', '2001 FA193', '2001 FY172', '2033803', '33803', 'J76S10U', 'J98H30C', 'J99VL0K', 'K01DA8R', 'K01FH2Y', 'K01FJ3A'])]
+### Exact/inexact searches
 
+By default, the SSO resolver will perform an _inexact_ search, meaning it will return the exact search plus closest matches. The number of closest matches is controlled by the parameter `nmax`, with default `nmax=10`:
 
 ```python
-for name in pdf['aliases'].values[0]:
-    r = requests.post(
-      'https://fink-portal.org/api/v1/sso',
-      json={
-        'n_or_d': name,
-      }
-    )
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'ssodnet',
+    'name': '33'
+  }
+)
 
-    if r.json() != []:
-        print('{} found in ZTF with {} alerts'.format(name, len(r.json())))
+pdf = pd.read_json(io.BytesIO(r.content))
+
+          i:name  i:number  i:ssnamenr
+0     Polyhymnia        33          33
+1     Polyhymnia        33          33
+2      Adalberta       330         330
+3      Adalberta       330         330
+4       3300 T-1     17325       17325
+5       3300 T-2     69209       69209
+6       3300 T-3     79071       79071
+7      McGlasson      3300        3300
+8      McGlasson      3300        3300
+9  Chenjiansheng     33000       33000
 ```
+Note that there are duplicates, as data is indexed by `name`, `number`, and `ssnamenr`.
+If you want to perform an _exact_ search, just put `nmax=1`:
 
-    33803 found in ZTF with 92 alerts
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'ssodnet',
+    'name': '33',
+    'nmax': 1
+  }
+)
 
+pdf = pd.read_json(io.BytesIO(r.content))
+
+       i:name  i:number  i:ssnamenr
+0  Polyhymnia        33          33
+1  Polyhymnia        33          33
+```
 
 ### ZTF to SSO
 
-I have a ZTF object name, is there a counterpart in the SsODNet quaero database, and what are all the aliases?
+I have a ZTF object name, is there a counterpart in the SsODNet quaero database, and what are all the known aliases to Fink?
 
 ```python
 r = requests.post(
@@ -1866,7 +1760,7 @@ r = requests.post(
   json={
     'resolver': 'ssodnet',
     'reverse': True,
-    'name': 'ZTF23abpkzcn'
+    'name': 'ZTF23abidfxt'
   }
 )
 
@@ -1875,43 +1769,30 @@ if r.json() != []:
     print('Asteroid counterpart found with designation {}'.format(name))
     print()
 
-    r = requests.post(
+    r2 = requests.post(
       'https://fink-portal.org/api/v1/resolver',
       json={
         'resolver': 'ssodnet',
-        'name': name
+        'name': name,
+        'nmax': 1
       }
     )
 
-    pdf = pd.read_json(io.BytesIO(r.content))
-    print('In the quaero database, this corresponds to: ')
-    print(pdf[['type', 'name', 'class', 'aliases']])
+    pdf = pd.read_json(io.BytesIO(r2.content))
+    print('In the Fink database, {} also corresponds to: '.format(name))
+    print(pdf)
 ```
 
-    Asteroid counterpart found with designation 8467
+Leading to:
 
-    In the quaero database, this corresponds to:
-             type         name                    class
-    0  Spacecraft     OPS 4428  [LEO, Payload, Decayed]  \
-    1    Asteroid  Benoitcarry              [MB, Outer]
-    2    Asteroid    2002 VG84             [MB, Middle]
-    3    Asteroid    2002 VW87              [MB, Outer]
-    4    Asteroid    2002 VT88             [MB, Middle]
-    5    Asteroid    2002 VW88             [MB, Middle]
-    6    Asteroid    2002 VT87             [MB, Middle]
-    7    Asteroid    2002 VS83             [MB, Middle]
-    8    Asteroid    2002 VM88             [MB, Middle]
-    9    Asteroid    2002 VF83             [MB, Middle]
+```
+Asteroid counterpart found with designation 624188
 
-                                              aliases
-    0                               [1975-114A, 8467]
-    1      [08467, 1981 ES35, 2008467, 8467, J81E35S]
-    2                       [2084672, 84672, K02V84G]
-    3                       [2084675, 84675, K02V87W]
-    4                       [2084677, 84677, K02V88T]
-    5    [2084678, 4562 P-L, 84678, K02V88W, PLS4562]
-    6    [1997 RL5, 2084674, 84674, J97R05L, K02V87T]
-    7   [2001 OP30, 2084671, 84671, K01O30P, K02V83S]
-    8  [2000 GR160, 2084676, 84676, K00GG0R, K02V88M]
-    9  [2000 EB174, 2084670, 84670, K00EH4B, K02V83F]
+In the Fink database, 624188 also corresponds to:
+  i:source i:ssnamenr
+0    number   2002MA06
+1    number    2002MA6
+2    number     624188
+3  ssnamenr     624188
+```
 """
