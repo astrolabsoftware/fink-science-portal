@@ -1473,7 +1473,14 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
         else:
             # MPC -> ssnamenr -> ZTF alerts
             client = connect_to_hbase_table('ztf.sso_resolver')
-            to_evaluate = "key:key:{}_".format(name)
+
+            # Hardcode the limit to 20 max
+            # This should be enough for autocompletion tasks
+            client.setLimit(20)
+
+            # keys follow the pattern <prefix>_<name>_<deduplication>
+            # where the <prefix> is a five-letter string
+            to_evaluate = "key:key:_{}:substring".format(name)
             results = client.scan(
                 "",
                 to_evaluate,
