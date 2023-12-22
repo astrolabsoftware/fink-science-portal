@@ -97,7 +97,7 @@ def tab1_content(pdf):
                 dbc.Col(
                     [
                         extra_div,
-                        loading(card_lightcurve_summary())
+                        card_lightcurve_summary()
                     ],
                     md=8
                 ),
@@ -584,36 +584,48 @@ def store_query(name):
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json(), pdftracklet.to_json()
 
 @app.callback(
-    Output('object-release', 'children'),
+    [
+        Output('object-release', 'children'),
+        Output('lightcurve_request_release', 'children'),
+    ],
     Input('lightcurve_request_release', 'n_clicks'),
     State('object-data', 'children'),
     prevent_initial_call=True,
     background=True,
     running=[
-        (Output('lightcurve_request_release', 'disabled'), True, False),
+        (Output('lightcurve_request_release', 'disabled'), True, True),
         (Output('lightcurve_request_release', 'loading'), True, False),
-        # (Output('lightcurve_request_release', 'children'), 'Requesting data release photometry...', 'Data release photometry requested'),
     ],
 )
 def store_release_photometry(n_clicks, object_data):
     if not n_clicks or not object_data:
-        return no_update
+        raise PreventUpdate
 
     pdf = pd.read_json(object_data)
 
     mean_ra = np.mean(pdf['i:ra'])
     mean_dec = np.mean(pdf['i:dec'])
 
-    pdf_release = pd.read_csv(
-        'https://irsa.ipac.caltech.edu/cgi-bin/ZTF/nph_light_curves?POS=CIRCLE%20{}%20{}%20{}&BAD_CATFLAGS_MASK=32768&FORMAT=CSV'.format(
-            mean_ra,
-            mean_dec,
-            2/3600
+    try:
+        pdf_release = pd.read_csv(
+            'https://irsa.ipac.caltech.edu/cgi-bin/ZTF/nph_light_curves?POS=CIRCLE%20{}%20{}%20{}&BAD_CATFLAGS_MASK=32768&FORMAT=CSV'.format(
+                mean_ra,
+                mean_dec,
+                2/3600
+            )
         )
-    )
-    pdf_release = pdf_release[['mjd', 'mag', 'magerr', 'filtercode']]
 
-    return pdf_release.to_json()
+        if not pdf_release.empty:
+            pdf_release = pdf_release[['mjd', 'mag', 'magerr', 'filtercode']]
+
+            return pdf_release.to_json(), "DR photometry: {} points".format(len(pdf_release.index))
+
+    except:
+        import traceback
+        traceback.print_exc()
+        pass
+
+    return no_update, "No DR photometry"
 
 @app.callback(
     Output('qrcode', 'children'),

@@ -33,6 +33,41 @@ import pandas as pd
 import numpy as np
 import urllib
 
+lc_help = r"""
+##### Difference magnitude
+
+Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
+In addition, the _Difference magnitude_ view shows:
+- upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
+- lower triangles (&#9661;), representing 5-sigma magnitude limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
+
+##### DC magnitude
+DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
+differential magnitude (`magpsf`), and `isdiffpos` (positive or negative difference image detection) as follows:
+$$
+m_{DC} = -2.5\log_{10}(10^{-0.4m_{magnr}} + \texttt{sign} 10^{-0.4m_{magpsf}})
+$$
+
+where `sign` = 1 if `isdiffpos` = 't' or `sign` = -1 if `isdiffpos` = 'f'.
+Before using the nearest reference image source magnitude (`magnr`), you will need
+to ensure the source is close enough to be considered an association
+(e.g., `distnr` $\leq$ 1.5 arcsec). It is also advised you check the other associated metrics
+(`chinr` and/or `sharpnr`) to ensure it is a point source. ZTF recommends
+0.5 $\leq$ `chinr` $\leq$ 1.5 and/or -0.5 $\leq$ `sharpnr` $\leq$ 0.5.
+
+The view also shows, with dashed horizontal lines, the levels corresponding to the magnitudes of the nearest reference image catalog entry (`magnr`) used in computing DC magnitudes.
+
+This view may be augmented with the photometric points from [ZTF Data Releases](https://www.ztf.caltech.edu/ztf-public-releases.html) by clicking **Get DR photometry** button. The points will be shown with semi-transparent dots (&#8226;).
+
+##### DC flux
+DC flux (in Jansky) is constructed from DC magnitude by using the following:
+$$
+f_{DC} = 3631 \times 10^{-0.4m_{DC}}
+$$
+
+Note that we display the flux in milli-Jansky.
+"""
+
 def card_lightcurve_summary():
     """ Add a card containing the lightcurve
 
@@ -41,50 +76,18 @@ def card_lightcurve_summary():
     card: dbc.Card
         Card with the cutouts drawn inside
     """
-
-    lc_help = dcc.Markdown(
-        """
-        ##### Difference magnitude
-
-        Circles (&#9679;) with error bars show valid alerts that pass the Fink quality cuts.
-        In addition, the _Difference magnitude_ view shows:
-        - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
-        - lower triangles (&#9661;), representing 5-sigma magnitude limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
-
-        ##### DC magnitude
-        DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
-        differential magnitude (`magpsf`), and `isdiffpos` (positive or negative difference image detection) as follows:
-        $$
-        m_{DC} = -2.5\\log_{10}(10^{-0.4m_{magnr}} + \\texttt{sign} 10^{-0.4m_{magpsf}})
-        $$
-
-        where `sign` = 1 if `isdiffpos` = 't' or `sign` = -1 if `isdiffpos` = 'f'.
-        Before using the nearest reference image source magnitude (`magnr`), you will need
-        to ensure the source is close enough to be considered an association
-        (e.g., `distnr` $\\leq$ 1.5 arcsec). It is also advised you check the other associated metrics
-        (`chinr` and/or `sharpnr`) to ensure it is a point source. ZTF recommends
-        0.5 $\\leq$ `chinr` $\\leq$ 1.5 and/or -0.5 $\\leq$ `sharpnr` $\\leq$ 0.5.
-
-        ##### DC flux
-        DC flux (in Jansky) is constructed from DC magnitude by using the following:
-        $$
-        f_{DC} = 3631 \\times 10^{-0.4m_{DC}}
-        $$
-
-        Note that we display the flux in milli-Jansky.
-        """, mathjax=True
-    )
-
     card = dmc.Paper(
         [
-            dcc.Graph(
-                id='lightcurve_cutouts',
-                style={
-                    'width': '100%',
-                    'height': '30pc'
-                },
-                config={'displayModeBar': False},
-                className="mb-2"
+            loading(
+                dcc.Graph(
+                    id='lightcurve_cutouts',
+                    style={
+                        'width': '100%',
+                        'height': '30pc'
+                    },
+                    config={'displayModeBar': False},
+                    className="mb-2"
+                )
             ),
             dbc.Row(
                 dbc.Col(
@@ -104,7 +107,7 @@ def card_lightcurve_summary():
             dmc.Group(
                 [
                     dmc.Button(
-                        "Request data release photometry",
+                        "Get DR photometry",
                         id='lightcurve_request_release',
                         variant="outline",
                         color='gray',
@@ -112,7 +115,9 @@ def card_lightcurve_summary():
                         compact=False,
                     ),
                     help_popover(
-                        lc_help,
+                        dcc.Markdown(
+                            lc_help, mathjax=True
+                        ),
                         'help_lc',
                         trigger=dmc.ActionIcon(
                             DashIconify(icon="mdi:help"),
