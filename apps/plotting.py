@@ -906,19 +906,21 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         elif switch == "DC magnitude":
             if is_dc_corrected:
                 # Overplot the levels of nearby source magnitudes
-                ref = np.mean(pdf['i:magnr'][pdf['i:fid'] == fid])
+                idx = pdf['i:fid'] == fid
+                if np.sum(idx):
+                    ref = np.mean(pdf['i:magnr'][idx])
 
-                figure['layout']['shapes'].append(
-                    {
-                        'type': 'line',
-                        'yref': 'y',
-                        'y0': ref, 'y1': ref,   # adding a horizontal line
-                        'xref': 'paper', 'x0': 0, 'x1': 1,
-                        'line': {'color': color, 'dash': 'dash', 'width': 1},
-                        'legendgroup': '{} band'.format(fname),
-                        'opacity': 0.3,
-                    }
-                )
+                    figure['layout']['shapes'].append(
+                        {
+                            'type': 'line',
+                            'yref': 'y',
+                            'y0': ref, 'y1': ref,   # adding a horizontal line
+                            'xref': 'paper', 'x0': 0, 'x1': 1,
+                            'line': {'color': color, 'dash': 'dash', 'width': 1},
+                            'legendgroup': '{} band'.format(fname),
+                            'opacity': 0.3,
+                        }
+                    )
 
             # Data release photometry
             if not pdf_release.empty:
