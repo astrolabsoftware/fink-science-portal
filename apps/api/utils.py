@@ -496,16 +496,18 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     else:
         truncated = True
 
-    if ',' in payload['n_or_d']:
+    n_or_d = str(payload['n_or_d'])
+
+    if ',' in n_or_d:
         # multi-objects search
-        splitids = payload['n_or_d'].replace(' ', '').split(',')
+        splitids = n_or_d.replace(' ', '').split(',')
 
         # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
         names = ['key:key:{}_'.format(i.strip()) for i in splitids]
     else:
         # single object search
         # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = ["key:key:{}_".format(payload['n_or_d'].replace(' ', ''))]
+        names = ["key:key:{}_".format(n_or_d.replace(' ', ''))]
 
     # Get data from the main table
     client = connect_to_hbase_table('ztf.ssnamenr')
@@ -1418,7 +1420,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             results = client.scan(
                 "",
                 to_evaluate,
-                "i:objectId,d:cdsxmatch,i:ra,i:dec",
+                "i:objectId,d:cdsxmatch,i:ra,i:dec,i:candid,i:jd",
                 0, False, False
             )
             client.close()
@@ -1434,8 +1436,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             else:
                 pdfs = pd.DataFrame()
     elif resolver == 'ssodnet':
-        client = connect_to_hbase_table('ztf')
         if reverse:
+            # ZTF alerts -> ssnmanenr
+            client = connect_to_hbase_table('ztf')
             to_evaluate = "key:key:{}".format(name)
             client.setLimit(nmax)
             results = client.scan(
@@ -1446,16 +1449,43 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             )
             client.close()
             pdfs = pd.DataFrame.from_dict(results, orient='index')
-        else:
-            r = requests.get(
-                'https://api.ssodnet.imcce.fr/quaero/1/sso/instant-search?q={}'.format(name)
-            )
 
-            total = r.json()['total']
-            if total > 0:
-                pdfs = pd.DataFrame(r.json()['data'])
-            else:
-                pdfs = pd.DataFrame()
+            # ssnmanenr -> MPC name & number
+            if not pdfs.empty:
+                client = connect_to_hbase_table('ztf.sso_resolver')
+                ssnamenrs = np.unique(pdfs['i:ssnamenr'].values)
+                results = {}
+                for ssnamenr in ssnamenrs:
+                    result = client.scan(
+                        "",
+                        "i:ssnamenr:{}:exact".format(ssnamenr),
+                        "i:number,i:name,i:ssnamenr",
+                        0, False, False
+                    )
+                    results.update(result)
+                client.close()
+                pdfs = pd.DataFrame.from_dict(results, orient='index')
+        else:
+            # MPC -> ssnamenr
+            # keys follow the pattern <name>-<deduplication>
+            client = connect_to_hbase_table('ztf.sso_resolver')
+
+            if nmax == 1:
+                # Prefix with internal marker
+                to_evaluate = "key:key:{}-".format(name)
+            elif nmax > 1:
+                # This enables e.g. autocompletion tasks
+                client.setLimit(nmax)
+                to_evaluate = "key:key:{}".format(name)
+
+            results = client.scan(
+                "",
+                to_evaluate,
+                "i:ssnamenr,i:name,i:number",
+                0, False, False
+            )
+            client.close()
+            pdfs = pd.DataFrame.from_dict(results, orient='index')
 
     return pdfs
 

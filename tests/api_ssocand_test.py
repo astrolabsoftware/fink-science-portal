@@ -103,7 +103,7 @@ def test_lightcurves_traj() -> None:
     ---------
     >>> test_lightcurves_traj()
     """
-    pdf = ssocandsearch(kind='lightcurves', trajectory_id='FF2023aaaaaaj')
+    pdf = ssocandsearch(kind='lightcurves', trajectory_id='FF20230725aaaacgw')
 
     assert 'd:ssoCandId' in pdf.columns
 
