@@ -587,6 +587,7 @@ def store_query(name):
     [
         Output('object-release', 'children'),
         Output('lightcurve_request_release', 'children'),
+        Output('switch-mag-flux', 'value'),
     ],
     Input('lightcurve_request_release', 'n_clicks'),
     State('object-data', 'children'),
@@ -618,14 +619,14 @@ def store_release_photometry(n_clicks, object_data):
         if not pdf_release.empty:
             pdf_release = pdf_release[['mjd', 'mag', 'magerr', 'filtercode']]
 
-            return pdf_release.to_json(), "DR photometry: {} points".format(len(pdf_release.index))
+            return pdf_release.to_json(), "DR photometry: {} points".format(len(pdf_release.index)), 'DC magnitude'
 
     except:
         import traceback
         traceback.print_exc()
         pass
 
-    return no_update, "No DR photometry"
+    return no_update, "No DR photometry", no_update
 
 @app.callback(
     Output('qrcode', 'children'),
