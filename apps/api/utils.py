@@ -1459,35 +1459,29 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                     result = client.scan(
                         "",
                         "i:ssnamenr:{}:exact".format(ssnamenr),
-                        "i:source,i:ssnamenr",
+                        "i:number,i:name,i:ssnamenr",
                         0, False, False
                     )
                     results.update(result)
                 client.close()
                 pdfs = pd.DataFrame.from_dict(results, orient='index')
-
-                # Remove internal prefix & deduplication markers
-                pdfs = pdfs.reset_index().rename(columns={'index': 'SSO ID'})
-                pdfs['SSO ID'] = pdfs['SSO ID'].apply(lambda x: x.split('_')[1])
-
         else:
             # MPC -> ssnamenr
-            # keys follow the pattern <prefix>_<name>_<deduplication>
-            # where the <prefix> is a five-letter string
+            # keys follow the pattern <name>-<deduplication>
             client = connect_to_hbase_table('ztf.sso_resolver')
 
             if nmax == 1:
-                # enclose the name exactly
-                to_evaluate = "key:key:_{}_:substring".format(name)
+                # Prefix with internal marker
+                to_evaluate = "key:key:{}-".format(name)
             elif nmax > 1:
                 # This enables e.g. autocompletion tasks
                 client.setLimit(nmax)
-                to_evaluate = "key:key:_{}:substring".format(name)
+                to_evaluate = "key:key:{}".format(name)
 
             results = client.scan(
                 "",
                 to_evaluate,
-                "i:ssnamenr,i:source",
+                "i:ssnamenr,i:name,i:number",
                 0, False, False
             )
             client.close()
