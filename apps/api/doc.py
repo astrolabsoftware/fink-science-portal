@@ -1703,6 +1703,52 @@ sso = pd.read_json(io.BytesIO(r.content))
 30  31.916201  20.444067  ZTF23abuqdev  35.732460    0.172873     624188
 ```
 
+### Exact/inexact searches
+
+By default, the SSO resolver will perform an _inexact_ search, meaning it will return the exact search plus closest matches. The number of closest matches is controlled by the parameter `nmax`, with default `nmax=10`:
+
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'ssodnet',
+    'name': '33'
+  }
+)
+
+pdf = pd.read_json(io.BytesIO(r.content))
+
+   i:source  i:ssnamenr
+0  ssnamenr          33
+1    number          33
+2  ssnamenr         330
+3    number         330
+4    number         331
+5  ssnamenr         331
+6    number         332
+7  ssnamenr         332
+8    number         333
+9  ssnamenr         333
+```
+If you want to perform an _exact_ search, just put `nmax=1`:
+
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'ssodnet',
+    'name': '33',
+    'nmax': 1
+  }
+)
+
+pdf = pd.read_json(io.BytesIO(r.content))
+
+   i:source  i:ssnamenr
+0  ssnamenr          33
+1    number          33
+```
+
 ### ZTF to SSO
 
 I have a ZTF object name, is there a counterpart in the SsODNet quaero database, and what are all the known aliases to Fink?
@@ -1726,7 +1772,8 @@ if r.json() != []:
       'https://fink-portal.org/api/v1/resolver',
       json={
         'resolver': 'ssodnet',
-        'name': name
+        'name': name,
+        'nmax': 1
       }
     )
 
