@@ -8,7 +8,7 @@ import numpy as np
 from app import APIURL
 
 @functools.lru_cache(maxsize=320)
-def call_resolver(data, kind, timeout=None, reverse=False):
+def call_resolver(data, kind, timeout=None, reverse=False, **kwargs):
     """ Call Fink resolver
 
     Parameters
@@ -29,7 +29,11 @@ def call_resolver(data, kind, timeout=None, reverse=False):
         m = re.match(r'^(AT|SN)\s*([12]\w+)$', data, re.IGNORECASE)
         if m:
             data = m[1].upper() + ' ' + m[2]
-
+    elif kind == 'ssodnet':
+        data = str(data)
+        # Try to capitalize proper names if they start with lower letter
+        if len(data) and data[0].isalpha() and data[0].islower():
+            data = data.capitalize()
     try:
         if kind == 'ztf':
             r = requests.post(
@@ -41,13 +45,16 @@ def call_resolver(data, kind, timeout=None, reverse=False):
                 timeout=timeout
             )
         else:
+            params = {
+                'resolver': kind,
+                'name': str(data),
+                'reverse': reverse,
+            }
+            params.update(kwargs)
+
             r = requests.post(
                 '{}/api/v1/resolver'.format(APIURL),
-                json={
-                    'resolver': kind,
-                    'name': str(data),
-                    'reverse': reverse,
-                },
+                json=params,
                 timeout=timeout
             )
 
@@ -169,7 +176,7 @@ def parse_query(string, timeout=None):
             # Special handling for numbers, possibly ending with d/m/s for degrees etc
             m = re.match(r'^([+-]?(\d+)(.\d+)?)([dms\'"]?)$', value)
             if m:
-                value = float(m[1])
+                value = float(m[1]) if '.' in m[1] else int(m[1])
                 if m[4] == 'd':
                     value *= 3600
                 elif m[4] == 'm' or m[4] == '\'':
@@ -278,12 +285,17 @@ def parse_query(string, timeout=None):
                 # SSO - final test
                 res = call_resolver(query['object'], 'ssodnet', timeout=timeout)
                 if res:
-                    query['object'] = res[0]['name']
-                    query['type'] = 'ssodnet'
-                    query['hint'] = 'SSO object / {}'.format(res[0]['type'])
+                    query['object'] = res[0]['i:name']
+                    query['params']['sso'] = res[0]['i:ssnamenr']
+                    query['type'] = 'sso'
+                    query['hint'] = 'SSO object / {} {}'.format(res[0]['i:ssnamenr'], res[0]['i:name'])
 
                     if len(res) > 1:
-                        query['completions'] = [_['name'] for _ in res]
+                        query['completions'] = list(
+                            dict.fromkeys(
+                                [(_['i:ssnamenr'], _['i:ssnamenr'] + ' ' + _['i:name']) for _ in res if _['i:ssnamenr'] != res[0]['i:ssnamenr']]
+                            )
+                        )
 
     # Guess the kind of query
     if 'ra' in query['params'] and 'dec' in query['params']:
@@ -295,7 +307,7 @@ def parse_query(string, timeout=None):
     elif query['type'] == 'tracklet':
         query['action'] = 'tracklet'
 
-    elif query['type'] == 'ssodnet':
+    elif query['type'] == 'sso' or 'sso' in query['params']:
         query['action'] = 'sso'
 
     elif 'class' in query['params']:

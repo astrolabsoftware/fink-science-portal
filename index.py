@@ -199,7 +199,7 @@ fink_search_bar = [
                     ]
                 ) for _,__ in enumerate(quick_fields)
             ],
-            className="ps-2 pe-2 mb-0 mt-1"
+            className="ps-4 pe-2 mb-0 mt-1"
         ),
 
 ] + [html.Div(
@@ -338,19 +338,33 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
     content = []
 
     if query['completions']:
+        completions = []
+
+        for i,item in enumerate(query['completions']):
+            if isinstance(item, list) or isinstance(item, tuple):
+                # We expect it to be (name, ext)
+                name = item[0]
+                ext = item[1]
+            else:
+                name = item
+                ext = item
+
+            completions.append(
+                html.A(
+                    ext,
+                    id={'type': 'search_bar_completion', 'index': i},
+                    title=name,
+                    n_clicks=0,
+                    className='ms-2 link text-decoration-none'
+                )
+            )
+
         content += [
             html.Div(
                 [
                     html.Span('Did you mean:', className='text-secondary'),
-                ] + [
-                    html.A(
-                        __,
-                        id={'type': 'search_bar_completion', 'index': _},
-                        n_clicks=0,
-                        className='ms-2 link text-decoration-none'
-                    ) for _,__ in enumerate(query['completions'])
-                ],
-                className="border-bottom p-1 mb-1 mt-1"
+                ] + completions,
+                className="border-bottom p-1 mb-1 mt-1 small"
             )
         ]
 
@@ -383,7 +397,7 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
 @app.callback(
     Output('search_bar_input', 'value'),
     Input({'type': 'search_bar_completion', 'index': ALL}, 'n_clicks'),
-    State({'type': 'search_bar_completion', 'index': ALL}, 'children'),
+    State({'type': 'search_bar_completion', 'index': ALL}, 'title'),
     prevent_initial_call=True
 )
 def on_completion(n_clicks, values):
@@ -1134,11 +1148,11 @@ def results(n_submit, n_clicks, searchurl, value):
 
     elif query['action'] == 'sso':
         # Solar System Objects
-        msg = "Solar System object search with ID {}".format(query['object'])
+        msg = "Solar System object search with ssnamenr {}".format(query['params']['sso'])
         r = requests.post(
             '{}/api/v1/sso'.format(APIURL),
             json={
-                'n_or_d': query['object'].replace(' ', '')
+                'n_or_d': query['params']['sso']
             }
         )
 
