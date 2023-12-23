@@ -67,7 +67,7 @@ def tab1_content(pdf):
     distnr = pdf['i:distnr'].values[0]
     if is_source_behind(distnr):
         extra_div = dbc.Alert(
-            "It looks like there is a source behind, at {:.1f} arcsec. You might want to check the DC magnitude instead.".format(distnr),
+            "It looks like there is a source behind, at {:.1f} arcsec. You might want to check the DC magnitude, and get DR photometry to see its long-term behaviour.".format(distnr),
             dismissable=True,
             is_open=True,
             color="light"
@@ -612,7 +612,7 @@ def store_release_photometry(n_clicks, object_data):
             'https://irsa.ipac.caltech.edu/cgi-bin/ZTF/nph_light_curves?POS=CIRCLE%20{}%20{}%20{}&BAD_CATFLAGS_MASK=32768&FORMAT=CSV'.format(
                 mean_ra,
                 mean_dec,
-                2/3600
+                2.0/3600
             )
         )
 

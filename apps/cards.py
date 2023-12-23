@@ -41,6 +41,8 @@ In addition, the _Difference magnitude_ view shows:
 - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
 - lower triangles (&#9661;), representing 5-sigma magnitude limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
 
+If the **Color** switch is turned on, the view also shows the panel with `g - r` color, estimated by combining nearby (closer than 0.3 days) measurements in two filters.
+
 ##### DC magnitude
 DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
 differential magnitude (`magpsf`), and `isdiffpos` (positive or negative difference image detection) as follows:
@@ -106,6 +108,14 @@ def card_lightcurve_summary():
             ),
             dmc.Group(
                 [
+                    dmc.Switch(
+                        "Color",
+                        id='lightcurve_show_color',
+                        color='gray',
+                        radius='xl',
+                        size='sm',
+                        persistence=True
+                    ),
                     dmc.Button(
                         "Get DR photometry",
                         id='lightcurve_request_release',
@@ -129,7 +139,7 @@ def card_lightcurve_summary():
                         )
                     ),
                 ],
-                position='center',
+                position='center', align='center'
             )
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
