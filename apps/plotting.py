@@ -1038,6 +1038,16 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
             figure['layout']['yaxis']['domain'] = [0.35, 1.0]
             figure['layout']['xaxis']['anchor'] = 'free'
 
+            figure['layout']['shapes'].append(
+                {
+                    'type': 'line',
+                    'yref': 'paper', 'y0':0.325, 'y1': 0.325,
+                    'xref': 'paper', 'x0': 0, 'x1': 1,
+                    'line': {'color': 'gray', 'width': 4},
+                    'opacity': 0.1,
+                }
+            )
+
     return figure
 
 @app.callback(
