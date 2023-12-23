@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 from gatspy import periodic
 from scipy.optimize import curve_fit
+from copy import deepcopy
 
 import datetime
 import copy
@@ -33,7 +34,7 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from dash.exceptions import PreventUpdate
 
-from apps.utils import convert_jd, readstamp, _data_stretch, convolve
+from apps.utils import convert_jd, readstamp, _data_stretch, convolve, extract_color
 from fink_utils.photometry.conversion import apparent_flux, dc_mag
 from fink_utils.photometry.utils import is_source_behind
 from apps.utils import sine_fit
@@ -79,6 +80,7 @@ all_radio_options = {
 }
 
 layout_lightcurve = dict(
+    autosize=True,
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
@@ -95,12 +97,14 @@ layout_lightcurve = dict(
     ),
     xaxis={
         'title': 'Observation date',
-        'automargin': True
+        'automargin': True,
+        'zeroline': False
     },
     yaxis={
         'autorange': 'reversed',
         'title': 'Magnitude',
-        'automargin': True
+        'automargin': True,
+        'zeroline': False
     }
 )
 
@@ -692,9 +696,10 @@ def plot_classbar(object_data):
         Input('object-data', 'children'),
         Input('object-upper', 'children'),
         Input('object-uppervalid', 'children'),
-        Input('object-release', 'children')
+        Input('object-release', 'children'),
+        Input('lightcurve_show_color', 'checked')
     ])
-def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, object_uppervalid, object_release) -> dict:
+def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, object_uppervalid, object_release, show_color) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
@@ -748,9 +753,12 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
     # Should we correct DC magnitudes for the nearby source?..
     is_dc_corrected = is_source_behind(pdf['i:distnr'].values[0])
 
+    # We should never modify global variables!!!
+    layout = deepcopy(layout_lightcurve)
+
     if switch == "Difference magnitude":
-        layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
-        layout_lightcurve['yaxis']['autorange'] = 'reversed'
+        layout['yaxis']['title'] = 'Difference magnitude'
+        layout['yaxis']['autorange'] = 'reversed'
         scale = 1.0
     elif switch == "DC magnitude":
         if is_dc_corrected:
@@ -770,8 +778,8 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
             idx = err < 1
             pdf, dates, mag, err = [_[idx] for _ in [pdf, dates, mag, err]]
 
-        layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
-        layout_lightcurve['yaxis']['autorange'] = 'reversed'
+        layout['yaxis']['title'] = 'Apparent DC magnitude'
+        layout['yaxis']['autorange'] = 'reversed'
         scale = 1.0
     elif switch == "DC flux":
         # inplace replacement
@@ -787,15 +795,15 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
             ]
         )
 
-        layout_lightcurve['yaxis']['title'] = 'Apparent DC flux (milliJansky)'
-        layout_lightcurve['yaxis']['autorange'] = True
+        layout['yaxis']['title'] = 'Apparent DC flux (milliJansky)'
+        layout['yaxis']['autorange'] = True
         scale = 1e3
 
-    layout_lightcurve['shapes'] = []
+    layout['shapes'] = []
 
     figure = {
         'data': [],
-        "layout": layout_lightcurve
+        "layout": layout
     }
 
     for fid,fname,color in (
@@ -957,6 +965,78 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                         # 'showlegend': False
                     }
                 )
+
+    if show_color:
+        hovertemplate_gr = r"""
+        <b>g - r</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+
+        pdf_ = None
+
+        if switch == "Difference magnitude":
+            pdf_ = pd.concat([pdf, pdf_upperv])
+        elif switch == "DC magnitude":
+            pdf_ = pd.DataFrame(
+                {'i:jd': pdf['i:jd'], 'i:fid': pdf['i:fid'], 'i:magpsf': mag, 'i:sigmapsf': err}
+            )
+
+            if not pdf_release.empty:
+                pdf_ = pd.concat(
+                    [
+                        pdf_,
+                        pd.DataFrame(
+                            {
+                                'i:jd': pdf_release['mjd'] + 2400000.5,
+                                'i:fid': pdf_release['filtercode'].map({'zg': 1, 'zr': 2}),
+                                'i:magpsf': pdf_release['mag'],
+                                'i:sigmapsf': pdf_release['magerr'],
+                            }
+                        ),
+                    ]
+                )
+
+        if pdf_ is not None:
+            pdf_gr = extract_color(pdf_)
+            dates_gr = pdf_gr['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+            figure['data'].append(
+                {
+                    'x': dates_gr,
+                    'y': pdf_gr['v:g-r'],
+                    'error_y': {
+                        'type': 'data',
+                        'array': pdf_gr['v:sigma_g-r'],
+                        'visible': True,
+                        'width': 0,
+                        'opacity': 0.5,
+                        'color': 'black'
+                    },
+                    'mode': 'markers',
+                    'name': 'g - r',
+                    'customdata': pdf_gr['i:jd'].apply(lambda x: x - 2400000.5),
+                    'hovertemplate': hovertemplate_gr,
+                    'legendgroup': 'g-r',
+                    'marker': {
+                        'color': 'black',
+                        'symbol': 'o',
+                    },
+                    'showlegend': True,
+                    'xaxis': 'x',
+                    'yaxis': 'y2',
+                }
+            )
+
+            figure['layout']['yaxis2'] = {
+                'automargin': True,
+                'title': 'g-r',
+                'domain': [0.0, 0.3],
+                'zeroline': False,
+            }
+            figure['layout']['yaxis']['domain'] = [0.35, 1.0]
+            figure['layout']['xaxis']['anchor'] = 'free'
 
     return figure
 
