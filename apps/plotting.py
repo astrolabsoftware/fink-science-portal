@@ -788,7 +788,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 apparent_flux(*args) for args in zip(
                     mag.astype(float).values,
                     err.astype(float).values,
-                    pdf['i:magnr'].astype(float).values if is_dc_corrected else 99.0,
+                    pdf['i:magnr'].astype(float).values if is_dc_corrected else [99.0]*len(pdf.index),
                     pdf['i:sigmagnr'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
@@ -1042,7 +1042,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 {
                     'type': 'line',
                     'yref': 'paper', 'y0':0.325, 'y1': 0.325,
-                    'xref': 'paper', 'x0': 0, 'x1': 1,
+                    'xref': 'paper', 'x0': -0.1, 'x1': 1.05,
                     'line': {'color': 'gray', 'width': 4},
                     'opacity': 0.1,
                 }
