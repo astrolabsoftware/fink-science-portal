@@ -275,7 +275,7 @@ def parse_query(string, timeout=None):
             if res:
                 query['object'] = res[0]['oname']
                 query['type'] = 'simbad'
-                query['hint'] = 'Simbad object'
+                query['hint'] = 'Simbad object / {}'.format(res[0]['otype'])
                 query['params']['ra'] = res[0]['jradeg']
                 query['params']['dec'] = res[0]['jdedeg']
 
@@ -310,12 +310,12 @@ def parse_query(string, timeout=None):
 
     elif 'class' in query['params']:
         query['action'] = 'class'
-        query['hint'] = 'Class based search'
+        query['hint'] = 'Class based search / {}'.format(query['params']['class'])
 
     elif 'last' in query['params']:
         query['action'] = 'class'
         query['params']['class'] = 'All classes'
-        query['hint'] = 'Latest objects'
+        query['hint'] = 'Latest objects / {}'.format(query['params']['last'])
 
     else:
         query['action'] = 'unknown'

@@ -204,7 +204,7 @@ fink_search_bar = [
 
 ] + [html.Div(
     # className='p-0 m-0 border shadow-sm rounded-3',
-    className='p-0 m-0 rcorners2 shadow-sm',
+    className='p-0 m-0 rcorners2 shadow',
     id="search_bar",
     # className='rcorners2',
     children=[
@@ -223,7 +223,6 @@ fink_search_bar = [
                     maxOptions=0,
                     className="inputbar form-control border-0",
                     quoteWhitespaces=True,
-                    regex='^([a-zA-Z0-9_\-()]+|"[a-zA-Z0-9_\- ]*|\'[a-zA-Z0-9_\- ]*)$',
                     autoFocus=True,
                 ),
 
@@ -237,8 +236,6 @@ fink_search_bar = [
                         radius='xl',
                         size='lg',
                         loaderProps={'variant': 'dots', 'color': 'orange'},
-                        # Hide on screen sizes smaller than sm
-                        # className="d-none d-sm-flex"
                     ), size='sm', color='warning'
                 ),
                 # modal
@@ -335,47 +332,52 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
     if not query['action']:
         return None, no_update, False
 
-    content = []
+    if query['action'] == 'unknown':
+        content = [
+            html.Em('Query not recognized', className='m-0')
+        ]
+    else:
+        content = []
 
-    if query['completions']:
-        completions = []
+        if query['completions']:
+            completions = []
 
-        for i,item in enumerate(query['completions']):
-            if isinstance(item, list) or isinstance(item, tuple):
-                # We expect it to be (name, ext)
-                name = item[0]
-                ext = item[1]
-            else:
-                name = item
-                ext = item
+            for i,item in enumerate(query['completions']):
+                if isinstance(item, list) or isinstance(item, tuple):
+                    # We expect it to be (name, ext)
+                    name = item[0]
+                    ext = item[1]
+                else:
+                    name = item
+                    ext = item
 
-            completions.append(
-                html.A(
-                    ext,
-                    id={'type': 'search_bar_completion', 'index': i},
-                    title=name,
-                    n_clicks=0,
-                    className='ms-2 link text-decoration-none'
+                completions.append(
+                    html.A(
+                        ext,
+                        id={'type': 'search_bar_completion', 'index': i},
+                        title=name,
+                        n_clicks=0,
+                        className='ms-2 link text-decoration-none'
+                    )
                 )
-            )
+
+            content += [
+                html.Div(
+                    [
+                        html.Span('Did you mean:', className='text-secondary'),
+                    ] + completions,
+                    className="border-bottom p-1 mb-1 mt-1 small"
+                )
+            ]
 
         content += [
-            html.Div(
-                [
-                    html.Span('Did you mean:', className='text-secondary'),
-                ] + completions,
-                className="border-bottom p-1 mb-1 mt-1 small"
-            )
+            dmc.Group([
+                html.Strong(query['object']) if query['object'] else None,
+                dmc.Badge(query['type'], variant="outline", color='blue') if query['type'] else None,
+                dmc.Badge(query['action'], variant="outline", color='red'),
+            ], noWrap=False, position='left'),
+            html.P(query['hint'], className='m-0'),
         ]
-
-    content += [
-        dmc.Group([
-            html.Strong(query['object']) if query['object'] else None,
-            dmc.Badge(query['type'], variant="outline", color='blue') if query['type'] else None,
-            dmc.Badge(query['action'], variant="outline", color='red'),
-        ], noWrap=False, position='left'),
-        html.P(query['hint'], className='m-0'),
-    ]
 
     if len(params):
         content += [
@@ -1131,7 +1133,7 @@ def results(n_submit, n_clicks, searchurl, value):
 
     if query['action'] == 'unknown':
         return dbc.Alert(
-            'Cannot parse the query: {}'.format(value),
+            'Query not recognized: {}'.format(value),
             color='danger',
             className='shadow-sm'
         ), no_update, no_update
