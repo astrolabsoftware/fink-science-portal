@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-from dash import html, dcc, Input, Output, State
+from dash import html, dcc, Input, Output, State, no_update
 from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
@@ -60,9 +60,21 @@ from app import APIURL
 
 dcc.Location(id='url', refresh=False)
 
-def tab1_content(pdf, extra_div):
+def tab1_content(pdf):
     """ Summary tab
     """
+
+    distnr = pdf['i:distnr'].values[0]
+    if is_source_behind(distnr):
+        extra_div = dbc.Alert(
+            "It looks like there is a source behind, at {:.1f} arcsec. You might want to check the DC magnitude, and get DR photometry to see its long-term behaviour.".format(distnr),
+            dismissable=True,
+            is_open=True,
+            color="light"
+        )
+    else:
+        extra_div = html.Div()
+
     tab1_content_ = html.Div([
         dmc.Space(h=10),
         dbc.Row(
@@ -80,10 +92,21 @@ def tab1_content(pdf, extra_div):
                 ),
             ], justify='around'
         ),
-        dbc.Row([
-            dbc.Col([extra_div, loading(card_lightcurve_summary())], md=8),
-            dbc.Col(card_id(pdf), md=4)
-        ], className='g-1'),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        extra_div,
+                        card_lightcurve_summary()
+                    ],
+                    md=8
+                ),
+                dbc.Col(
+                    card_id(pdf),
+                    md=4
+                )
+            ], className='g-1'
+        ),
     ])
 
     out = tab1_content_
@@ -408,30 +431,20 @@ def tab6_content(object_tracklet):
     return tab6_content_
 
 def tabs(pdf):
-    distnr = pdf['i:distnr'].values[0]
-    if is_source_behind(distnr):
-        extra_div = dbc.Alert(
-            "It looks like there is a source behind. You might want to check the DC magnitude instead.",
-            dismissable=True,
-            is_open=True,
-            color="light"
-        )
-    else:
-        extra_div = html.Div()
     tabs_ = dmc.Tabs(
         [
             dmc.TabsList(
                 [
                     dmc.Tab("Summary", value="Summary"),
-                    dmc.Tab("Supernovae", value="Supernovae"),
-                    dmc.Tab("Variable stars", value="Variable stars"),
-                    dmc.Tab("Microlensing", value="Microlensing"),
+                    dmc.Tab("Supernovae", value="Supernovae", disabled=len(pdf.index) == 1),
+                    dmc.Tab("Variable stars", value="Variable stars", disabled=len(pdf.index) == 1),
+                    dmc.Tab("Microlensing", value="Microlensing", disabled=len(pdf.index) == 1),
                     dmc.Tab("Solar System", value="Solar System", disabled=not is_sso(pdf)),
                     dmc.Tab("Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)),
                     dmc.Tab("GRB", value="GRB", disabled=True)
                 ], position='right'
             ),
-            dmc.TabsPanel(tab1_content(pdf, extra_div), value="Summary"),
+            dmc.TabsPanel(tab1_content(pdf), value="Summary"),
             dmc.TabsPanel(tab2_content(), value="Supernovae"),
             dmc.TabsPanel(tab3_content(), value="Variable stars"),
             dmc.TabsPanel(tab4_content(), value="Microlensing"),
@@ -567,7 +580,53 @@ def store_query(name):
         pdftracklet = pd.read_json(r.content)
     else:
         pdftracklet = pd.DataFrame()
+
     return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json(), pdftracklet.to_json()
+
+@app.callback(
+    [
+        Output('object-release', 'children'),
+        Output('lightcurve_request_release', 'children'),
+        Output('switch-mag-flux', 'value'),
+    ],
+    Input('lightcurve_request_release', 'n_clicks'),
+    State('object-data', 'children'),
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output('lightcurve_request_release', 'disabled'), True, True),
+        (Output('lightcurve_request_release', 'loading'), True, False),
+    ],
+)
+def store_release_photometry(n_clicks, object_data):
+    if not n_clicks or not object_data:
+        raise PreventUpdate
+
+    pdf = pd.read_json(object_data)
+
+    mean_ra = np.mean(pdf['i:ra'])
+    mean_dec = np.mean(pdf['i:dec'])
+
+    try:
+        pdf_release = pd.read_csv(
+            'https://irsa.ipac.caltech.edu/cgi-bin/ZTF/nph_light_curves?POS=CIRCLE%20{}%20{}%20{}&BAD_CATFLAGS_MASK=32768&FORMAT=CSV'.format(
+                mean_ra,
+                mean_dec,
+                2.0/3600
+            )
+        )
+
+        if not pdf_release.empty:
+            pdf_release = pdf_release[['mjd', 'mag', 'magerr', 'filtercode']]
+
+            return pdf_release.to_json(), "DR photometry: {} points".format(len(pdf_release.index)), 'DC magnitude'
+
+    except:
+        import traceback
+        traceback.print_exc()
+        pass
+
+    return no_update, "No DR photometry", no_update
 
 @app.callback(
     Output('qrcode', 'children'),
@@ -640,6 +699,7 @@ def layout(name):
                 html.Div(id='object-uppervalid', style={'display': 'none'}),
                 html.Div(id='object-sso', style={'display': 'none'}),
                 html.Div(id='object-tracklet', style={'display': 'none'}),
+                html.Div(id='object-release', style={'display': 'none'}),
             ], className='bg-opaque-90'
         )
 

@@ -517,6 +517,50 @@ def extract_delta_color(pdf: pd.DataFrame, filter_: int):
 
     return vec, rate
 
+def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
+    """ Extract g-r values for single object a pandas DataFrame
+
+    Parameters
+    ----------
+    pdf: pandas DataFrame
+        DataFrame containing alert parameters from an API call
+    tolerance: float
+        Maximal distance in days between data points to be associated
+    colnames: list
+        List of extra column names to keep in the output.
+
+    Returns
+    ----------
+    pdf_gr: pandas DataFrame
+        DataFrame containing the time and magnitudes of matched points,
+        along with g-r color and its error
+    """
+    if colnames is None:
+        colnames = ['i:jd', 'i:magpsf', 'i:sigmapsf']
+    else:
+        colnames = ['i:jd', 'i:magpsf', 'i:sigmapsf'] + colnames
+        colnames = list(np.unique(colnames))
+
+    pdf_g = pdf[pdf['i:fid'] == 1][colnames]
+    pdf_r = pdf[pdf['i:fid'] == 2][colnames]
+
+    # merge_asof expects sorted data
+    pdf_g = pdf_g.sort_values('i:jd')
+    pdf_r = pdf_r.sort_values('i:jd')
+
+    # As merge_asof does not keep the second jd column - let's make it manually
+    pdf_g['v:mjd'] = pdf_g['i:jd'] - 2400000.5
+    pdf_r['v:mjd'] = pdf_r['i:jd'] - 2400000.5
+
+    pdf_gr = pd.merge_asof(pdf_g, pdf_r, on='i:jd', suffixes=('_g', '_r'), direction='nearest', tolerance=0.3)
+    pdf_gr = pdf_gr[~pdf_gr.isna()['i:magpsf_r']] # Keep only matched rows
+
+    pdf_gr['v:g-r'] = pdf_gr['i:magpsf_g'] - pdf_gr['i:magpsf_r']
+    pdf_gr['v:sigma_g-r'] = np.hypot(pdf_gr['i:sigmapsf_g'], pdf_gr['i:sigmapsf_r'])
+    pdf_gr['v:delta_jd'] = pdf_gr['v:mjd_g'] - pdf_gr['v:mjd_r']
+
+    return pdf_gr
+
 def queryMPC(number, kind='asteroid'):
     """Query MPC for information about object 'designation'.
 
