@@ -82,6 +82,20 @@ def test_tns_resolver() -> None:
     for col in cols:
         assert col in pdf.columns, col
 
+def test_tns_lower_case() -> None:
+    """
+    Examples
+    ---------
+    >>> test_tns_lower_case()
+    """
+    pdf = resolver(resolver='tns', name='sn 2023')
+
+    # Not empty
+    assert not pdf.empty
+
+    # One object found
+    assert len(pdf) == 10
+
 def test_reverse_tns_resolver() -> None:
     """
     Examples
@@ -167,6 +181,22 @@ def test_ssodnet_resolver() -> None:
     assert len(pdf) == 4, pdf
 
     assert '2002MA06' in pdf['i:ssnamenr'].values, pdf
+
+def test_ssodnet_lower_case() -> None:
+    """
+    Examples
+    ---------
+    >>> test_ssodnet_lower_case()
+    """
+    pdf = resolver(resolver='ssodnet', name='julienpeloton')
+
+    # Not empty
+    assert not pdf.empty
+
+    # One object found
+    assert len(pdf) == 1, pdf
+
+    assert 'Julienpeloton' in pdf['i:name'].values, pdf
 
 def test_reverse_ssodnet_resolver() -> None:
     """

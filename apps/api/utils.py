@@ -1400,7 +1400,8 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                     0, False, False
                 )
             else:
-                to_evaluate = "key:key:{}".format(name)
+                # indices are case-insensitive
+                to_evaluate = "key:key:{}".format(name.lower())
                 results = client.scan(
                     "",
                     to_evaluate,
@@ -1472,11 +1473,11 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
 
             if nmax == 1:
                 # Prefix with internal marker
-                to_evaluate = "key:key:{}-".format(name)
+                to_evaluate = "key:key:{}-".format(name.lower())
             elif nmax > 1:
                 # This enables e.g. autocompletion tasks
                 client.setLimit(nmax)
-                to_evaluate = "key:key:{}".format(name)
+                to_evaluate = "key:key:{}".format(name.lower())
 
             results = client.scan(
                 "",
