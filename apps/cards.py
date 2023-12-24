@@ -41,7 +41,7 @@ In addition, the _Difference magnitude_ view shows:
 - upper triangles with errors (&#9650;), representing alert measurements that do not satisfy Fink quality cuts, but are nevetheless contained in the history of valid alerts and used by classifiers.
 - lower triangles (&#9661;), representing 5-sigma magnitude limit in difference image based on PSF-fit photometry contained in the history of valid alerts.
 
-If the **Color** switch is turned on, the view also shows the panel with `g - r` color, estimated by combining nearby (closer than 0.3 days) measurements in two filters.
+If the `Color` switch is turned on, the view also shows the panel with `g - r` color, estimated by combining nearby (closer than 0.3 days) measurements in two filters.
 
 ##### DC magnitude
 DC magnitude is computed by combining the nearest reference image catalog magnitude (`magnr`),
@@ -59,7 +59,7 @@ to ensure the source is close enough to be considered an association
 
 The view also shows, with dashed horizontal lines, the levels corresponding to the magnitudes of the nearest reference image catalog entry (`magnr`) used in computing DC magnitudes.
 
-This view may be augmented with the photometric points from [ZTF Data Releases](https://www.ztf.caltech.edu/ztf-public-releases.html) by clicking **Get DR photometry** button. The points will be shown with semi-transparent dots (&#8226;).
+This view may be augmented with the photometric points from [ZTF Data Releases](https://www.ztf.caltech.edu/ztf-public-releases.html) by clicking `Get DR photometry` button. The points will be shown with semi-transparent dots (&#8226;).
 
 ##### DC flux
 DC flux (in Jansky) is constructed from DC magnitude by using the following:

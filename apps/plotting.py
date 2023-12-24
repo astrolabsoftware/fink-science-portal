@@ -1001,6 +1001,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         if pdf_ is not None:
             pdf_gr = extract_color(pdf_)
             dates_gr = pdf_gr['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+            color = '#3C8DFF'
 
             figure['data'].append(
                 {
@@ -1012,7 +1013,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                         'visible': True,
                         'width': 0,
                         'opacity': 0.5,
-                        'color': 'black'
+                        'color': color
                     },
                     'mode': 'markers',
                     'name': 'g - r',
@@ -1020,7 +1021,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                     'hovertemplate': hovertemplate_gr,
                     'legendgroup': 'g-r',
                     'marker': {
-                        'color': 'black',
+                        'color': color,
                         'symbol': 'o',
                     },
                     'showlegend': True,
