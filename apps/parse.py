@@ -26,14 +26,12 @@ def call_resolver(data, kind, timeout=None, reverse=False, **kwargs):
 
     if kind == 'tns':
         # Normalize AT name to have whitespace before year
-        m = re.match(r'^(AT|SN)\s*([12]\w+)$', data, re.IGNORECASE)
+        m = re.match(r'^(AT|SN)\s*([12]\w+)$', str(data), re.IGNORECASE)
         if m:
             data = m[1].upper() + ' ' + m[2]
     elif kind == 'ssodnet':
         data = str(data)
-        # Try to capitalize proper names if they start with lower letter
-        if len(data) and data[0].isalpha() and data[0].islower():
-            data = data.capitalize()
+
     try:
         if kind == 'ztf':
             r = requests.post(
