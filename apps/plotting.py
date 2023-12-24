@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 from gatspy import periodic
 from scipy.optimize import curve_fit
+from copy import deepcopy
 
 import datetime
 import copy
@@ -33,8 +34,9 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from dash.exceptions import PreventUpdate
 
-from apps.utils import convert_jd, readstamp, _data_stretch, convolve
+from apps.utils import convert_jd, readstamp, _data_stretch, convolve, extract_color
 from fink_utils.photometry.conversion import apparent_flux, dc_mag
+from fink_utils.photometry.utils import is_source_behind
 from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.statistics import dic_names
@@ -78,6 +80,7 @@ all_radio_options = {
 }
 
 layout_lightcurve = dict(
+    autosize=True,
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
@@ -94,12 +97,14 @@ layout_lightcurve = dict(
     ),
     xaxis={
         'title': 'Observation date',
-        'automargin': True
+        'automargin': True,
+        'zeroline': False
     },
     yaxis={
         'autorange': 'reversed',
         'title': 'Magnitude',
-        'automargin': True
+        'automargin': True,
+        'zeroline': False
     }
 )
 
@@ -690,9 +695,11 @@ def plot_classbar(object_data):
         Input('url', 'pathname'),
         Input('object-data', 'children'),
         Input('object-upper', 'children'),
-        Input('object-uppervalid', 'children')
+        Input('object-uppervalid', 'children'),
+        Input('object-release', 'children'),
+        Input('lightcurve_show_color', 'checked')
     ])
-def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, object_uppervalid) -> dict:
+def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, object_uppervalid, object_release, show_color) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
@@ -709,39 +716,70 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
     ----------
     figure: dict
     """
+    # Primary high-quality data points
     pdf_ = pd.read_json(object_data)
     cols = [
-        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:distnr',
         'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:candid'
     ]
     pdf = pdf_.loc[:, cols]
 
+    # Upper limits
+    pdf_upper = pd.read_json(object_upper)
+
+    # Lower-quality data points
+    pdf_upperv = pd.read_json(object_uppervalid)
+
     # type conversion
     dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    dates_upper = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    dates_upperv = pdf_upperv['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+
+    if object_release:
+        # Data release photometry
+        pdf_release = pd.read_json(object_release)
+        dates_release = pdf_release['mjd'].apply(lambda x: convert_jd(float(x)+2400000.5, to='iso'))
+    else:
+        pdf_release = pd.DataFrame()
+
+    # Exclude lower-quality points overlapping higher-quality ones
+    mask = np.in1d(pdf_upperv['i:jd'].values, pdf['i:jd'].values)
+    pdf_upperv,dates_upperv = [_[~mask] for _ in (pdf_upperv,dates_upperv)]
 
     # shortcuts
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
 
+    # Should we correct DC magnitudes for the nearby source?..
+    is_dc_corrected = is_source_behind(pdf['i:distnr'].values[0])
+
+    # We should never modify global variables!!!
+    layout = deepcopy(layout_lightcurve)
+
     if switch == "Difference magnitude":
-        layout_lightcurve['yaxis']['title'] = 'Difference magnitude'
-        layout_lightcurve['yaxis']['autorange'] = 'reversed'
+        layout['yaxis']['title'] = 'Difference magnitude'
+        layout['yaxis']['autorange'] = 'reversed'
         scale = 1.0
     elif switch == "DC magnitude":
-        # inplace replacement
-        mag, err = np.transpose(
-            [
-                dc_mag(*args) for args in zip(
-                    mag.astype(float).values,
-                    err.astype(float).values,
-                    pdf['i:magnr'].astype(float).values,
-                    pdf['i:sigmagnr'].astype(float).values,
-                    pdf['i:isdiffpos'].values
-                )
-            ]
-        )
-        layout_lightcurve['yaxis']['title'] = 'Apparent DC magnitude'
-        layout_lightcurve['yaxis']['autorange'] = 'reversed'
+        if is_dc_corrected:
+            # inplace replacement for DC corrected flux
+            mag, err = np.transpose(
+                [
+                    dc_mag(*args) for args in zip(
+                        mag.astype(float).values,
+                        err.astype(float).values,
+                        pdf['i:magnr'].astype(float).values,
+                        pdf['i:sigmagnr'].astype(float).values,
+                        pdf['i:isdiffpos'].values
+                    )
+                ]
+            )
+            # Keep only "good" measurements
+            idx = err < 1
+            pdf, dates, mag, err = [_[idx] for _ in [pdf, dates, mag, err]]
+
+        layout['yaxis']['title'] = 'Apparent DC magnitude'
+        layout['yaxis']['autorange'] = 'reversed'
         scale = 1.0
     elif switch == "DC flux":
         # inplace replacement
@@ -750,178 +788,267 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 apparent_flux(*args) for args in zip(
                     mag.astype(float).values,
                     err.astype(float).values,
-                    pdf['i:magnr'].astype(float).values,
+                    pdf['i:magnr'].astype(float).values if is_dc_corrected else [99.0]*len(pdf.index),
                     pdf['i:sigmagnr'].astype(float).values,
                     pdf['i:isdiffpos'].values
                 )
             ]
         )
-        layout_lightcurve['yaxis']['title'] = 'Apparent DC flux (milliJansky)'
-        layout_lightcurve['yaxis']['autorange'] = True
+
+        layout['yaxis']['title'] = 'Apparent DC flux (milliJansky)'
+        layout['yaxis']['autorange'] = True
         scale = 1e3
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata[0]}
-    <extra></extra>
-    """
+    layout['shapes'] = []
+
     figure = {
-        'data': [
-            {
-                'x': dates[pdf['i:fid'] == 1],
-                'y': mag[pdf['i:fid'] == 1] * scale,
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 1] * scale,
-                    'visible': True,
-                    'color': COLORS_ZTF[0]
-                },
-                'mode': 'markers',
-                'name': 'g band',
-                'customdata': np.stack(
-                    (
-                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
-                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[pdf['i:fid'] == 1],
-                    ), axis=-1
-                ),
-                'hovertemplate': hovertemplate,
-                "legendgroup": "g band",
-                'legendrank': 110,
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[0],
-                    'symbol': 'o'}
-            },
-            {
-                'x': dates[pdf['i:fid'] == 2],
-                'y': mag[pdf['i:fid'] == 2] * scale,
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 2] * scale,
-                    'visible': True,
-                    'color': COLORS_ZTF[1]
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'legendrank': 120,
-                'customdata':  np.stack(
-                    (
-                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
-                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[pdf['i:fid'] == 2],
-                    ), axis=-1
-                ),
-                'hovertemplate': hovertemplate,
-                "legendgroup": "r band",
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[1],
-                    'symbol': 'o'}
-            }
-        ],
-        "layout": layout_lightcurve
+        'data': [],
+        "layout": layout
     }
 
-    if switch == "Difference magnitude":
-        pdf_upper = pd.read_json(object_upper)
-        # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
-        hovertemplate_upper = r"""
-        <b>Upper limit</b>: %{y:.2f}<br>
+    for fid,fname,color in (
+            (1, "g", COLORS_ZTF[0]),
+            (2, "r", COLORS_ZTF[1])
+    ):
+        # High-quality measurements
+        hovertemplate = r"""
+        <b>%{yaxis.title.text}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata[0]}
+        <extra></extra>
+        """
+        idx = pdf['i:fid'] == fid
+        figure['data'].append(
+            {
+                'x': dates[idx],
+                'y': mag[idx] * scale,
+                'error_y': {
+                    'type': 'data',
+                    'array': err[idx] * scale,
+                    'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
+                    'color': color
+                },
+                'mode': 'markers',
+                'name': '{} band'.format(fname),
+                'customdata': np.stack(
+                    (
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[idx],
+                    ), axis=-1
+                ),
+                'hovertemplate': hovertemplate,
+                "legendgroup": "{} band".format(fname),
+                'legendrank': 100 + 10*fid,
+                'marker': {
+                    'size': 12,
+                    'color': color,
+                    'symbol': 'o'}
+            }
+        )
+
+        if switch == "Difference magnitude":
+            # Upper limits
+            if not pdf_upper.empty:
+                # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
+                hovertemplate_upper = r"""
+                <b>Upper limit</b>: %{y:.2f}<br>
+                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                <b>mjd</b>: %{customdata}
+                <extra></extra>
+                """
+                idx = pdf_upper['i:fid'] == fid
+                figure['data'].append(
+                    {
+                        'x': dates_upper[idx],
+                        'y': pdf_upper['i:diffmaglim'][idx],
+                        'mode': 'markers',
+                        'name': '',
+                        'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                        'hovertemplate': hovertemplate_upper,
+                        "legendgroup": "{} band upper".format(fname),
+                        'legendrank': 101 + 10*fid,
+                        'marker': {
+                            'color': color,
+                            'symbol': 'triangle-down-open'
+                        },
+                        # 'showlegend': False
+                    }
+                )
+
+            # Lower-quality data points
+            if not pdf_upperv.empty:
+                # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
+                hovertemplate_upperv = r"""
+                <b>%{yaxis.title.text} (low quality)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                <b>mjd</b>: %{customdata}
+                <extra></extra>
+                """
+                idx = pdf_upperv['i:fid'] == fid
+                figure['data'].append(
+                    {
+                        'x': dates_upperv[idx],
+                        'y': pdf_upperv['i:magpsf'][idx],
+                        'error_y': {
+                            'type': 'data',
+                            'array': pdf_upperv['i:sigmapsf'][idx],
+                            'visible': True,
+                            'width': 0,
+                            'opacity': 0.5,
+                            'color': color
+                        },
+                        'mode': 'markers',
+                        'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                        'hovertemplate': hovertemplate_upperv,
+                        "legendgroup": "{} band".format(fname),
+                        'marker': {
+                            'color': color,
+                            'symbol': 'triangle-up'
+                        },
+                        'showlegend': False
+                    }
+                )
+
+        elif switch == "DC magnitude":
+            if is_dc_corrected:
+                # Overplot the levels of nearby source magnitudes
+                idx = pdf['i:fid'] == fid
+                if np.sum(idx):
+                    ref = np.mean(pdf['i:magnr'][idx])
+
+                    figure['layout']['shapes'].append(
+                        {
+                            'type': 'line',
+                            'yref': 'y',
+                            'y0': ref, 'y1': ref,   # adding a horizontal line
+                            'xref': 'paper', 'x0': 0, 'x1': 1,
+                            'line': {'color': color, 'dash': 'dash', 'width': 1},
+                            'legendgroup': '{} band'.format(fname),
+                            'opacity': 0.3,
+                        }
+                    )
+
+            # Data release photometry
+            if not pdf_release.empty:
+                hovertemplate_release = r"""
+                <b>Data release magnitude</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                <b>mjd</b>: %{customdata}
+                <extra></extra>
+                """
+                idx = pdf_release['filtercode'] == 'z' + fname
+                figure['data'].append(
+                    {
+                        'x': dates_release[idx],
+                        'y': pdf_release['mag'][idx],
+                        'error_y': {
+                            'type': 'data',
+                            'array': pdf_release['magerr'][idx],
+                            'visible': True,
+                            'width': 0,
+                            'opacity': 0.5,
+                            'color': color
+                        },
+                        'mode': 'markers',
+                        'name': '',
+                        'customdata': pdf_release['mjd'][idx],
+                        'hovertemplate': hovertemplate_release,
+                        "legendgroup": "{} band release".format(fname),
+                        'legendrank': 102 + 10*fid,
+                        'marker': {
+                            'color': color,
+                            'symbol': '.'
+                        },
+                        'opacity': 0.5,
+                        # 'showlegend': False
+                    }
+                )
+
+    if show_color:
+        hovertemplate_gr = r"""
+        <b>g - r</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
         <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
         <b>mjd</b>: %{customdata}
         <extra></extra>
         """
-        if not pdf_upper.empty:
-            dates2 = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
-            figure['data'].append(
-                {
-                    'x': dates2[pdf_upper['i:fid'] == 1],
-                    'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 1],
-                    'mode': 'markers',
-                    'name': '',
-                    'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 1],
-                    'hovertemplate': hovertemplate_upper,
-                    "legendgroup": "g band upper",
-                    'legendrank': 111,
-                    'marker': {
-                        'color': COLORS_ZTF[0],
-                        'symbol': 'triangle-down-open'
-                    },
-                    # 'showlegend': False
-                }
+
+        pdf_ = None
+
+        if switch == "Difference magnitude":
+            pdf_ = pd.concat([pdf, pdf_upperv])
+        elif switch == "DC magnitude":
+            pdf_ = pd.DataFrame(
+                {'i:jd': pdf['i:jd'], 'i:fid': pdf['i:fid'], 'i:magpsf': mag, 'i:sigmapsf': err}
             )
+
+            if not pdf_release.empty:
+                pdf_ = pd.concat(
+                    [
+                        pdf_,
+                        pd.DataFrame(
+                            {
+                                'i:jd': pdf_release['mjd'] + 2400000.5,
+                                'i:fid': pdf_release['filtercode'].map({'zg': 1, 'zr': 2}),
+                                'i:magpsf': pdf_release['mag'],
+                                'i:sigmapsf': pdf_release['magerr'],
+                            }
+                        ),
+                    ]
+                )
+
+        if pdf_ is not None:
+            pdf_gr = extract_color(pdf_)
+            dates_gr = pdf_gr['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+            color = '#3C8DFF'
+
             figure['data'].append(
                 {
-                    'x': dates2[pdf_upper['i:fid'] == 2],
-                    'y': pdf_upper['i:diffmaglim'][pdf_upper['i:fid'] == 2],
-                    'mode': 'markers',
-                    'name': '',
-                    'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upper['i:fid'] == 2],
-                    'hovertemplate': hovertemplate_upper,
-                    "legendgroup": "r band upper",
-                    'legendrank': 121,
-                    'marker': {
-                        'color': COLORS_ZTF[1],
-                        'symbol': 'triangle-down-open'
-                    },
-                    # 'showlegend': False
-                }
-            )
-        pdf_upperv = pd.read_json(object_uppervalid)
-        # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
-        hovertemplate_upperv = r"""
-        <b>%{yaxis.title.text} (low quality)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-        <b>mjd</b>: %{customdata}
-        <extra></extra>
-        """
-        if not pdf_upperv.empty:
-            dates2 = pdf_upperv['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
-            mask = np.array([False if i in pdf['i:jd'].values else True for i in pdf_upperv['i:jd'].values])
-            dates2 = dates2[mask]
-            pdf_upperv = pdf_upperv[mask]
-            figure['data'].append(
-                {
-                    'x': dates2[pdf_upperv['i:fid'] == 1],
-                    'y': pdf_upperv['i:magpsf'][pdf_upperv['i:fid'] == 1],
+                    'x': dates_gr,
+                    'y': pdf_gr['v:g-r'],
                     'error_y': {
                         'type': 'data',
-                        'array': pdf_upperv['i:sigmapsf'][pdf_upperv['i:fid'] == 1],
+                        'array': pdf_gr['v:sigma_g-r'],
                         'visible': True,
-                        'color': COLORS_ZTF[0]
+                        'width': 0,
+                        'opacity': 0.5,
+                        'color': color
                     },
                     'mode': 'markers',
-                    'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 1],
-                    'hovertemplate': hovertemplate_upperv,
-                    "legendgroup": "g band",
+                    'name': 'g - r',
+                    'customdata': pdf_gr['i:jd'].apply(lambda x: x - 2400000.5),
+                    'hovertemplate': hovertemplate_gr,
+                    'legendgroup': 'g-r',
                     'marker': {
-                        'color': COLORS_ZTF[0],
-                        'symbol': 'triangle-up'
+                        'color': color,
+                        'symbol': 'o',
                     },
-                    'showlegend': False
+                    'showlegend': True,
+                    'xaxis': 'x',
+                    'yaxis': 'y2',
                 }
             )
-            figure['data'].append(
+
+            figure['layout']['yaxis2'] = {
+                'automargin': True,
+                'title': 'g-r',
+                'domain': [0.0, 0.3],
+                'zeroline': False,
+            }
+            figure['layout']['yaxis']['domain'] = [0.35, 1.0]
+            figure['layout']['xaxis']['anchor'] = 'free'
+
+            figure['layout']['shapes'].append(
                 {
-                    'x': dates2[pdf_upperv['i:fid'] == 2],
-                    'y': pdf_upperv['i:magpsf'][pdf_upperv['i:fid'] == 2],
-                    'error_y': {
-                        'type': 'data',
-                        'array': pdf_upperv['i:sigmapsf'][pdf_upperv['i:fid'] == 2],
-                        'visible': True,
-                        'color': COLORS_ZTF[1]
-                    },
-                    'mode': 'markers',
-                    'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[pdf_upperv['i:fid'] == 2],
-                    'hovertemplate': hovertemplate_upperv,
-                    "legendgroup": "r band",
-                    'marker': {
-                        'color': COLORS_ZTF[1],
-                        'symbol': 'triangle-up'
-                    },
-                    'showlegend': False
+                    'type': 'line',
+                    'yref': 'paper', 'y0':0.325, 'y1': 0.325,
+                    'xref': 'paper', 'x0': -0.1, 'x1': 1.05,
+                    'line': {'color': 'gray', 'width': 4},
+                    'opacity': 0.1,
                 }
             )
+
     return figure
 
 @app.callback(
