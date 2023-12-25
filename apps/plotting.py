@@ -1954,10 +1954,12 @@ def zoom_cutouts(relayout_data, figure_states):
                 figure_state['layout']['yaxis']['autorange'] = True
             else:
                 figure_state['layout']['xaxis']['range'] = [
-                    unique_data['xaxis.range[0]'], unique_data['xaxis.range[1]']]
+                    unique_data.get('xaxis.range[0]'), unique_data.get('xaxis.range[1]')
+                ]
                 figure_state['layout']['xaxis']['autorange'] = False
                 figure_state['layout']['yaxis']['range'] = [
-                    unique_data['yaxis.range[0]'], unique_data['yaxis.range[1]']]
+                    unique_data.get('yaxis.range[0]'), unique_data.get('yaxis.range[1]')
+                ]
                 figure_state['layout']['yaxis']['autorange'] = False
         return [unique_data] * len(relayout_data), figure_states
 
