@@ -1070,6 +1070,11 @@ def card_search_result(row, i):
         SkyCoord(row['i:ra'], row['i:dec'], unit='deg').galactic.to_string(style='decimal'),
     )
 
+    if 'v:separation_degree' in row:
+        corner_str = "{:.1f}''".format(row['v:separation_degree']*3600)
+    else:
+        corner_str = str(i)
+
     item = dbc.Card(
         [
             # dbc.CardHeader(
@@ -1108,6 +1113,14 @@ def card_search_result(row, i):
                         ],
                         justify='start',
                         className='g-2',
+                    ),
+                    # Upper right corner badge
+                    dbc.Badge(
+                        corner_str,
+                        color="light",
+                        pill=True,
+                        text_color="dark",
+                        className="position-absolute top-0 start-100 translate-middle border",
                     ),
                 ]
             )

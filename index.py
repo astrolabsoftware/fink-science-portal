@@ -1409,6 +1409,19 @@ def on_paginate(page, data, page_size):
 
     return results
 
+# Scroll to top on paginate
+clientside_callback(
+    """
+    function scroll_top(value) {
+        document.querySelector('#search_bar').scrollIntoView({behavior: "smooth"})
+        return dash_clientside.no_update;
+    }
+    """,
+    Output('results_pagination', 'page'), # Fake output!!!
+    Input('results_pagination', 'page'),
+    prevent_initial_call=True,
+)
+
 @app.callback(
     Output({'type': 'search_results_lightcurve', 'objectId': MATCH, 'index': MATCH}, 'children'),
     Input({'type': 'search_results_lightcurve', 'objectId': MATCH, 'index': MATCH}, 'id')
