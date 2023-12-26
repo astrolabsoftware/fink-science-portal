@@ -466,203 +466,6 @@ def on_quickfield(n_clicks, values, value):
 
     return no_update
 
-def print_msg_info():
-    """ Display the explorer info message
-    """
-    h = html.Div([
-        dbc.Row([
-            dcc.Markdown(msg_info)
-        ]),
-    ])
-    return h
-
-def simple_card(
-        name, finkclass, lastdate, fid,
-        mag, jd, jdstarthist, ndethist, constellation):
-    """ Preview card
-
-    The laptop version shows Science cutout + metadata + lightcurve
-    The mobile version shows Science cutout + metadata
-    """
-    dic_band = {1: 'g', 2: 'r'}
-    fontsize = '75%'
-
-    l1 = html.P(
-        [
-            html.Strong("Last emission date: ", style={'font-size': fontsize}),
-            html.P(lastdate)
-        ]
-    )
-    l2 = html.P(
-        [
-            html.Strong("Last magnitude (band {}): ".format(dic_band[fid]), style={'font-size': fontsize}),
-            html.P("{:.2f}".format(mag))
-        ]
-    )
-
-    l3 = html.P(
-        [
-            html.Strong("Days since first detection: ", style={'font-size': fontsize}),
-            html.P('{}'.format(int(jd - jdstarthist)))
-        ]
-    )
-
-    l4 = html.P(
-        [
-            html.Strong("Total number of detections: ", style={'font-size': fontsize}),
-            html.P('{}'.format(ndethist))
-        ]
-    )
-
-    l5 = html.P(
-        [
-            html.Strong("Constellation: ", style={'font-size': fontsize}),
-            html.P('{}'.format(constellation))
-        ]
-    )
-
-    cardbody = dbc.CardBody(
-        [
-            html.H4("{} - {}".format(name, finkclass), className="card-title"),
-            html.P("Constellation: {}".format(constellation), className="card-title"),
-            dcc.Graph(
-                figure=draw_lightcurve_preview(name),
-                config={'displayModeBar': False},
-                style={
-                    'width': '100%',
-                    'height': '15pc'
-                },
-                className="d-none d-sm-block"
-            )
-        ]
-    )
-
-    header = dbc.CardHeader(
-        dbc.Row(
-            [
-                dbc.Col(draw_cutouts_quickview(name), md=2),
-                dbc.Col([l1, l2], md=5),
-                dbc.Col([l3, l4], md=5)
-            ],
-            id='stamps_quickview',
-            justify='around'
-        )
-    )
-
-
-    simple_card_ = dbc.Card(
-        [
-            header,
-            cardbody,
-            dbc.CardFooter(
-                dbc.Button(
-                    "Go to {}".format(name),
-                    color="primary",
-                    outline=True,
-                    href='/{}'.format(name)
-                )
-            )
-        ]
-    )
-    return simple_card_
-
-@app.callback(
-    Output('carousel', 'children'),
-    [
-        Input("open_modal_quickview", "n_clicks"),
-        Input("result_table", "data"),
-    ],
-)
-def carousel(nclick, data):
-    """ Carousel that shows alert preview
-    """
-    if nclick > 0:
-        pdf = pd.DataFrame(data)
-        names = pdf['i:objectId'].apply(lambda x: x.split('[')[1].split(']')[0]).values[0:10]
-        finkclasses = pdf['v:classification'].values[0:10]
-        lastdates = pdf['v:lastdate'].values[0:10]
-        fids = pdf['i:fid'].values[0:10]
-        mags = pdf['i:magpsf'].values[0:10]
-        jds = pdf['i:jd'].values[0:10]
-        jdstarthists = pdf['i:jdstarthist'].values[0:10]
-        ndethists = pdf['i:ndethist'].values[0:10]
-        constellations = pdf['v:constellation'][0:10]
-        carousel = dtc.Carousel(
-            [
-                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, constellations)
-            ],
-            slides_to_scroll=1,
-            slides_to_show=1,
-            swipe_to_slide=True,
-            autoplay=False,
-            speed=800,
-            variable_width=False,
-            center_mode=False
-        )
-    else:
-        carousel = html.Div("")
-    return carousel
-
-
-def modal_quickview():
-    button = dmc.Button(
-        "Preview",
-        id="open_modal_quickview",
-        n_clicks=0,
-        leftIcon=[DashIconify(icon="tabler:eye")],
-        color="gray",
-        fullWidth=True,
-        variant='default',
-        radius='xl'
-    )
-
-    modal = html.Div(
-        [
-            button,
-            dbc.Modal(
-                [
-                    loading(dbc.ModalBody(
-                        html.Div(
-                            id='carousel',
-                            # fluid=True,
-                            # style={'width': '95%'}
-                            className="ps-2 pe-2"
-                        ),
-                        className="ps-4 pe-4"
-                    )),
-                    dbc.ModalFooter(
-                        dmc.Button(
-                            "Close", id="close_modal_quickview", className="ml-auto",
-                            color="gray",
-                            # fullWidth=True,
-                            variant='default',
-                            radius='xl'
-                        ), className="d-block d-lg-none"
-                    ),
-                ],
-                id="modal_quickview",
-                is_open=False,
-                size="lg",
-                fullscreen="lg-down",
-            ),
-        ]
-    )
-
-    return modal
-
-@app.callback(
-    Output("modal_quickview", "is_open"),
-    [
-        Input("open_modal_quickview", "n_clicks"),
-        Input("close_modal_quickview", "n_clicks")
-    ],
-    [State("modal_quickview", "is_open")],
-)
-def toggle_modal_preview(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
-
 def display_table_results(table):
     """ Display explorer results in the form of a table with a dropdown
     menu on top to insert more data columns.
@@ -751,10 +554,6 @@ def display_table_results(table):
                 dbc.Col(
                     dbc.Row(
                         [
-                            dbc.Col(
-                                modal_quickview(),
-                                md='auto'
-                            ),
                             dbc.Col(
                                 modal_skymap(),
                                 md='auto'
@@ -976,18 +775,36 @@ def modal_skymap():
 
     return modal
 
-@app.callback(
+clientside_callback(
+    """
+    function toggle_modal_skymap(n1, n2, is_open) {
+        if (n1 || n2)
+            return ~is_open;
+        else
+            return is_open;
+    }
+    """,
     Output("modal_skymap", "is_open"),
     [
         Input("open_modal_skymap", "n_clicks"),
         Input("close_modal_skymap", "n_clicks")
     ],
     [State("modal_skymap", "is_open")],
+    prevent_initial_call=True,
 )
-def toggle_modal_preview(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
+
+# @app.callback(
+#     Output("modal_skymap", "is_open"),
+#     [
+#         Input("open_modal_skymap", "n_clicks"),
+#         Input("close_modal_skymap", "n_clicks")
+#     ],
+#     [State("modal_skymap", "is_open")],
+# )
+# def toggle_modal_preview(n1, n2, is_open):
+#     if n1 or n2:
+#         return not is_open
+#     return is_open
 
 def construct_results_layout(table, msg):
     """ Construct the tabs containing explorer query results
