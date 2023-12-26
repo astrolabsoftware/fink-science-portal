@@ -1730,9 +1730,10 @@ app.layout = html.Div([
     Output('page-content', 'children'),
     [
         Input('url', 'pathname'),
+        Input('url', 'search'),
     ]
 )
-def display_page(pathname):
+def display_page(pathname, searchurl):
     layout = html.Div(
         [
             dbc.Container(
