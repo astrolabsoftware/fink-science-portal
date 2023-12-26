@@ -962,28 +962,30 @@ def card_search_result(row, i):
     """
     badges = []
 
-    if 'v:classification' in row:
-        # Classification
-        c = row['v:classification']
-        if c in simbad_types:
-            color = class_colors['Simbad']
-        elif c in class_colors.keys():
-            color = class_colors[c]
-        else:
-            # Sometimes SIMBAD mess up names :-)
-            color = class_colors['Simbad']
+    # Handle different variants for key names from different API entry points
+    for key in ['v:classification', 'd:classification']:
+        if key in row:
+            # Classification
+            c = row.get(key)
+            if c in simbad_types:
+                color = class_colors['Simbad']
+            elif c in class_colors.keys():
+                color = class_colors[c]
+            else:
+                # Sometimes SIMBAD mess up names :-)
+                color = class_colors['Simbad']
 
-        badges.append(
-            dmc.Badge(
-                c,
-                variant='outline',
-                color=color,
-                size='md'
+            badges.append(
+                dmc.Badge(
+                    c,
+                    variant='outline',
+                    color=color,
+                    size='md'
+                )
             )
-        )
 
     # SSO
-    ssnamenr = row['i:ssnamenr']
+    ssnamenr = row.get('i:ssnamenr')
     if ssnamenr and ssnamenr != 'null':
         badges.append(
             dmc.Badge(
@@ -996,7 +998,7 @@ def card_search_result(row, i):
 
 
     # Nearby objects
-    distnr = row['i:distnr']
+    distnr = row.get('i:distnr')
     if distnr:
         if is_source_behind(distnr):
             ztf_badge = dmc.Badge(
@@ -1016,7 +1018,7 @@ def card_search_result(row, i):
 
         badges.append(ztf_badge)
 
-    distpsnr = row['i:distpsnr1']
+    distpsnr = row.get('i:distpsnr1')
     if distpsnr:
         badges.append(
             dmc.Badge(
@@ -1027,7 +1029,7 @@ def card_search_result(row, i):
             )
         )
 
-    distgaia = row['i:neargaia']
+    distgaia = row.get('i:neargaia')
     if distgaia:
         badges.append(
             dmc.Badge(
@@ -1038,17 +1040,28 @@ def card_search_result(row, i):
             )
         )
 
+    if 'i:ndethist' in row:
+        ndethist = row.get('i:ndethist')
+    elif 'd:nalerthist' in row:
+        ndethist = row.get('d:nalerthist')
+    else:
+        ndethist = '?'
+
+    jdend = row.get('i:jdendhist', row.get('i:jd'))
+    jdstart = row.get('i:jdstarthist')
+    lastdate = row.get('i:lastdate', Time(jdend, format='jd').iso)
+
     text = """
-    `{}` detections in `{:.1f}` days
+    `{}` detection(s) in `{:.1f}` days
     First: `{}`
     Last: `{}`
     Eq: `{}`
     Gal: `{}`
     """.format(
-        row['i:ndethist'],
-        row['i:jdendhist'] - row['i:jdstarthist'],
-        Time(row['i:jdstarthist'], format='jd').iso[:19],
-        row['v:lastdate'][:19],
+        ndethist,
+        jdend - jdstart,
+        Time(jdstart, format='jd').iso[:19],
+        lastdate[:19],
         SkyCoord(row['i:ra'], row['i:dec'], unit='deg').to_string(style='hmsdms', sep=' '),
         SkyCoord(row['i:ra'], row['i:dec'], unit='deg').galactic.to_string(style='decimal'),
     )
