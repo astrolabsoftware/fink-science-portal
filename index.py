@@ -1411,9 +1411,10 @@ def on_load_lightcurve(lc_id):
             figure=fig,
             config={'displayModeBar': False},
             style={
-                'max-width': '100%',
+                'width': '100%',
                 'height': '15pc'
             },
+            responsive=True
         )
 
     return no_update

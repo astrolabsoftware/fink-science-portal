@@ -1087,19 +1087,19 @@ def card_search_result(row, i):
                     dbc.Row(
                         [
                             dbc.Col(
+                                id={'type': 'search_results_cutouts', 'objectId': row['i:objectId'], 'index': i},
+                                width='auto'
+                            ),
+                            dbc.Col(
                                 dcc.Markdown(
                                     text,
                                     style={'white-space': 'pre-wrap'},
                                 ),
-                                sm='auto',
+                                width='auto',
                             ),
                             dbc.Col(
                                 id={'type': 'search_results_lightcurve', 'objectId': row['i:objectId'], 'index': i},
-                                sm='auto',
-                            ),
-                            dbc.Col(
-                                id={'type': 'search_results_cutouts', 'objectId': row['i:objectId'], 'index': i},
-                                sm='auto'
+                                xs=12, md=True,
                             ),
                         ],
                         justify='start',
