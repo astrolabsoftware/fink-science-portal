@@ -24,14 +24,19 @@ from apps.plotting import all_radio_options
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
+from apps.utils import simbad_types
 from apps.utils import loading, help_popover
 
 from fink_utils.xmatch.simbad import get_simbad_labels
+from fink_utils.photometry.utils import is_source_behind
 
 import requests
 import pandas as pd
 import numpy as np
 import urllib
+
+from astropy.time import Time
+from astropy.coordinates import SkyCoord
 
 lc_help = r"""
 ##### Difference magnitude
@@ -881,3 +886,147 @@ def card_id1(object_data, object_uppervalid, object_upper):
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return card
+
+def card_search_result(row, i):
+    """Display single item for search results
+    """
+    badges = []
+
+    if 'v:classification' in row:
+        # Classification
+        c = row['v:classification']
+        if c in simbad_types:
+            color = class_colors['Simbad']
+        elif c in class_colors.keys():
+            color = class_colors[c]
+        else:
+            # Sometimes SIMBAD mess up names :-)
+            color = class_colors['Simbad']
+
+        badges.append(
+            dmc.Badge(
+                c,
+                variant='outline',
+                color=color,
+                size='md'
+            )
+        )
+
+    # SSO
+    ssnamenr = row['i:ssnamenr']
+    if ssnamenr and ssnamenr != 'null':
+        badges.append(
+            dmc.Badge(
+                "SSO: {}".format(ssnamenr),
+                variant='outline',
+                color='yellow',
+                size='md'
+            )
+        )
+
+
+    # Nearby objects
+    distnr = row['i:distnr']
+    if distnr:
+        if is_source_behind(distnr):
+            ztf_badge = dmc.Badge(
+                "ZTF: {:.1f}\"".format(distnr),
+                color='cyan',
+                variant='outline',
+                size='md',
+                style={'border-color': 'red'},
+            )
+        else:
+            ztf_badge = dmc.Badge(
+                "ZTF: {:.1f}\"".format(distnr),
+                color='cyan',
+                variant='outline',
+                size='md',
+            )
+
+        badges.append(ztf_badge)
+
+    distpsnr = row['i:distpsnr1']
+    if distpsnr:
+        badges.append(
+            dmc.Badge(
+                "PS1: {:.1f}\"".format(distpsnr),
+                color='teal',
+                variant='outline',
+                size='md',
+            )
+        )
+
+    distgaia = row['i:neargaia']
+    if distgaia:
+        badges.append(
+            dmc.Badge(
+                "Gaia: {:.1f}\"".format(distgaia),
+                color='teal',
+                variant='outline',
+                size='md',
+            )
+        )
+
+    text = """
+    `{}` detections in `{:.1f}` days
+    First: `{}`
+    Last: `{}`
+    Eq: `{}`
+    Gal: `{}`
+    """.format(
+        row['i:ndethist'],
+        row['i:jdendhist'] - row['i:jdstarthist'],
+        Time(row['i:jdstarthist'], format='jd').iso[:19],
+        row['v:lastdate'][:19],
+        SkyCoord(row['i:ra'], row['i:dec'], unit='deg').to_string(style='hmsdms', sep=' '),
+        SkyCoord(row['i:ra'], row['i:dec'], unit='deg').galactic.to_string(style='decimal'),
+    )
+
+    item = dbc.Card(
+        [
+            # dbc.CardHeader(
+            dbc.CardBody(
+                [
+                    html.A(
+                        dmc.Group(
+                            [
+                                dmc.Text("{}".format(row['i:objectId']), weight=700, size=26),
+                                dmc.Space(w='sm'),
+                                *badges
+                            ],
+                            spacing=3,
+                        ),
+                        href='/{}'.format(row['i:objectId']),
+                        target='_blank',
+                        className='text-decoration-none',
+                    ),
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                dcc.Markdown(
+                                    text,
+                                    style={'white-space': 'pre-wrap'},
+                                ),
+                                sm='auto',
+                            ),
+                            dbc.Col(
+                                id={'type': 'search_results_lightcurve', 'objectId': row['i:objectId'], 'index': i},
+                                sm='auto',
+                            ),
+                            dbc.Col(
+                                id={'type': 'search_results_cutouts', 'objectId': row['i:objectId'], 'index': i},
+                                sm='auto'
+                            ),
+                        ],
+                        justify='start',
+                        className='g-2',
+                    ),
+                ]
+            )
+        ],
+        color='white',
+        className='mb-2 shadow border-1'
+    )
+
+    return item

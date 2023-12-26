@@ -129,6 +129,9 @@ def parse_query(string, timeout=None):
         'string': string,
     }
 
+    if not string:
+        return query
+
     string = string.replace(',', ' ') # TODO: preserve quoted commas?..
 
     # Sanitize the times to ISO format so that they parse as single tokens

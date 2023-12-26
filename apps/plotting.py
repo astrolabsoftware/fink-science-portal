@@ -1174,10 +1174,14 @@ def draw_lightcurve_preview(name) -> dict:
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
 
-    layout_lightcurve_preview['yaxis']['title'] = 'Difference magnitude'
-    layout_lightcurve_preview['yaxis']['autorange'] = 'reversed'
-    layout_lightcurve_preview['paper_bgcolor'] = 'rgba(0,0,0,0.0)'
-    layout_lightcurve_preview['plot_bgcolor'] = 'rgba(0,0,0,0.2)'
+    # We should never modify global variables!!!
+    layout = deepcopy(layout_lightcurve_preview)
+
+    layout['yaxis']['title'] = 'Difference magnitude'
+    layout['yaxis']['autorange'] = 'reversed'
+    layout['paper_bgcolor'] = 'rgba(0,0,0,0.0)'
+    layout['plot_bgcolor'] = 'rgba(0,0,0,0.2)'
+    layout['showlegend'] = False
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
@@ -1186,46 +1190,38 @@ def draw_lightcurve_preview(name) -> dict:
     <extra></extra>
     """
     figure = {
-        'data': [
+        'data': [],
+        'layout': layout
+    }
+
+    for fid,fname,color in (
+            (1, "g", COLORS_ZTF[0]),
+            (2, "r", COLORS_ZTF[1])
+    ):
+        idx = pdf['i:fid'] == fid
+
+        figure['data'].append(
             {
-                'x': dates[pdf['i:fid'] == 1],
-                'y': mag[pdf['i:fid'] == 1],
+                'x': dates[idx],
+                'y': mag[idx],
                 'error_y': {
                     'type': 'data',
-                    'array': err[pdf['i:fid'] == 1],
+                    'array': err[idx],
                     'visible': True,
-                    'color': COLORS_ZTF[0]
+                    'color': color,
+                    'opacity': 0.5
                 },
                 'mode': 'markers',
-                'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'name': '{} band'.format(fname),
+                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[idx],
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
-                    'color': COLORS_ZTF[0],
-                    'symbol': 'o'}
-            },
-            {
-                'x': dates[pdf['i:fid'] == 2],
-                'y': mag[pdf['i:fid'] == 2],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 2],
-                    'visible': True,
-                    'color': COLORS_ZTF[1]
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[1],
+                    'color': color,
                     'symbol': 'o'}
             }
-        ],
-        "layout": layout_lightcurve_preview
-    }
+        )
+
     return figure
 
 @app.callback(
@@ -1755,11 +1751,11 @@ def draw_cutouts_modal(object_data, date_modal_select, is_open):
             figs.append(data)
     return figs
 
-def draw_cutouts_quickview(name):
+def draw_cutouts_quickview(name, kinds=['science']):
     """ Draw Science cutout data for the preview service
     """
     figs = []
-    for kind in ['science']:
+    for kind in kinds:
         try:
             # transfer only necessary columns
             cols = [
@@ -1779,7 +1775,7 @@ def draw_cutouts_quickview(name):
             )
             object_data = r.content
             data = extract_cutout(object_data, None, kind=kind)
-            figs.append(draw_cutout(data, kind))
+            figs.append(draw_cutout(data, kind, zoom=False))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
@@ -1872,7 +1868,7 @@ def plain_normalizer(img: list, vmin: float, vmax: float, stretch='linear', pmin
 
     return data
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False, zoom=True):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -1921,7 +1917,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
         classname = ''
 
         graph = dcc.Graph(
-            id={'type':'stamp', 'id':title},
+            id={'type':'stamp', 'id':title} if zoom else 'undefined',
             figure=fig,
             style=style,
             config={'displayModeBar': False},
@@ -1931,7 +1927,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
     else:
         style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
         graph = dcc.Graph(
-            id={'type':'stamp_modal', 'id':title},
+            id={'type':'stamp_modal', 'id':title} if zoom else 'undefined',
             figure=fig,
             style=style,
             config={'displayModeBar': False},

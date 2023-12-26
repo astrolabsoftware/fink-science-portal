@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-from dash import html, dcc, Input, Output, State, dash_table, no_update, clientside_callback, ALL
+from dash import html, dcc, Input, Output, State, dash_table, no_update, clientside_callback, ALL, MATCH
 from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
@@ -24,6 +24,8 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from dash_autocomplete_input import AutocompleteInput
+# from dash_lazy_load import LazyLoad
+# from dash_grocery import LazyLoad
 
 from app import server
 from app import app
@@ -38,14 +40,18 @@ from apps.utils import isoify_time
 from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
 from apps.utils import loading, help_popover
+from apps.utils import class_colors
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
-
+from apps.cards import card_search_result
 from apps.parse import parse_query
+
+from fink_utils.photometry.utils import is_source_behind
 
 import requests
 import pandas as pd
 import numpy as np
 from astropy.time import Time, TimeDelta
+
 import urllib
 
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
@@ -165,9 +171,11 @@ By default, the table shows:
 
 You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at {}/api/v1/columns.
 
-Finally, you can hit the button `Preview`. This will show you more information
+Moreover, you can hit the button `Preview`. This will show you more information
 about the first 10 alerts (science cutout, and basic information). Note you can
 swipe between alerts (or use arrows on a laptop).
+
+Finally, the button `Sky Map` will open a popup with embedded Aladin sky map showing the positions of the search results on the sky.
 """.format(APIURL)
 
 # Smart search field
@@ -198,8 +206,23 @@ fink_search_bar = [
                         " "
                     ]
                 ) for _,__ in enumerate(quick_fields)
+            ] + [
+                html.Span(
+                    dmc.Switch(
+                        radius="xl",
+                        size='sm',
+                        offLabel=DashIconify(icon="radix-icons:id-card", width=15),
+                        onLabel=DashIconify(icon="radix-icons:table", width=15),
+                        color="orange",
+                        checked=False,
+                        persistence=True,
+                        id="results_table_switch"
+                    ),
+                    className='float-right',
+                    title='Show results as cards or table'
+                ),
             ],
-            className="ps-4 pe-2 mb-0 mt-1"
+            className="ps-4 pe-4 mb-0 mt-1"
         ),
 
 ] + [html.Div(
@@ -589,7 +612,7 @@ def modal_quickview():
         leftIcon=[DashIconify(icon="tabler:eye")],
         color="gray",
         fullWidth=True,
-        variant='outline',
+        variant='default',
         radius='xl'
     )
 
@@ -608,8 +631,12 @@ def modal_quickview():
                         className="ps-4 pe-4"
                     )),
                     dbc.ModalFooter(
-                        dbc.Button(
-                            "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
+                        dmc.Button(
+                            "Close", id="close_modal_quickview", className="ml-auto",
+                            color="gray",
+                            # fullWidth=True,
+                            variant='default',
+                            radius='xl'
                         ), className="d-block d-lg-none"
                     ),
                 ],
@@ -740,7 +767,7 @@ def display_table_results(table):
                                         DashIconify(icon="mdi:help"),
                                         id='help_msg_info',
                                         color='gray',
-                                        variant="outline",
+                                        variant="default",
                                         radius='xl',
                                         size='lg',
                                     ),
@@ -905,7 +932,7 @@ def modal_skymap():
         leftIcon=[DashIconify(icon="bi:stars")],
         color="gray",
         fullWidth=True,
-        variant='outline',
+        variant='default',
         radius='xl'
     )
 
@@ -918,20 +945,24 @@ def modal_skymap():
                         dbc.ModalBody(
                             html.Div(
                                 [
-                                    visdcc.Run_js(id='aladin-lite-div-skymap'),
+                                    visdcc.Run_js(id='aladin-lite-div-skymap', style={'border': '0'}),
                                     # dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
                                 ], style={
                                     'width': '100%',
                                     'height': '100%',
                                 }
                             ),
-                            className="ps-4 pe-4",
+                            className="p-1",
                             style={'height': '30pc'},
                         )
                     ),
                     dbc.ModalFooter(
-                        dbc.Button(
-                            "Close", id="close_modal_skymap", className="ml-auto", n_clicks=0
+                        dmc.Button(
+                            "Close", id="close_modal_skymap", className="ml-auto",
+                            color="gray",
+                            # fullWidth=True,
+                            variant='default',
+                            radius='xl'
                         ),
                     ),
                 ],
@@ -976,15 +1007,15 @@ def construct_results_layout(table, msg):
 def populate_result_table(data, columns):
     """ Define options of the results table, and add data and columns
     """
-    page_size = 10
+    page_size = 100
     markdown_options = {'link_target': '_blank'}
 
     table = dash_table.DataTable(
         data=data,
         columns=columns,
         id='result_table',
-        # page_size=page_size,
-        page_action='none',
+        page_size=page_size,
+        # page_action='none',
         style_as_list_view=True,
         sort_action="native",
         filter_action="native",
@@ -1089,12 +1120,18 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         Input('url', 'search'),
     ],
     State('search_bar_input', 'value'),
+    State('results_table_switch', 'checked'),
     # prevent_initial_call=True
     prevent_initial_call='initial_duplicate',
 )
-def results(n_submit, n_clicks, searchurl, value):
+def results(n_submit, n_clicks, searchurl, value, show_table):
     """ Parse the search string and query the database
     """
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if not triggered_id:
+        # FIXME: ???
+        triggered_id = 'url'
 
     if not n_submit and not n_clicks and not searchurl:
         raise PreventUpdate
@@ -1102,8 +1139,6 @@ def results(n_submit, n_clicks, searchurl, value):
     if not value and not searchurl:
         # TODO: show back the logo?..
         return None, no_update, no_update
-
-    # TODO: catch parameters sent from URL
 
     colnames_to_display = {
         'i:objectId': 'objectId',
@@ -1115,7 +1150,7 @@ def results(n_submit, n_clicks, searchurl, value):
         'v:lapse': 'Time variation (day)'
     }
 
-    if searchurl:
+    if searchurl and triggered_id == 'url':
         # Parse GET parameters from url
         params = dict(
             urllib.parse.parse_qsl(
@@ -1128,7 +1163,7 @@ def results(n_submit, n_clicks, searchurl, value):
     else:
         query = parse_query(value)
 
-    if not query:
+    if not query or not query['action']:
         return None, no_update, no_update
 
     if query['action'] == 'unknown':
@@ -1261,29 +1296,149 @@ def results(n_submit, n_clicks, searchurl, value):
             className='shadow-sm'
         ), no_update, no_update
     else:
-        # Make clickable objectId
-        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
 
-        if query['action'] == 'conesearch':
-            pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
-            data = pdf.sort_values(
-                'v:separation_degree', ascending=True
-            ).to_dict('records')
+        if show_table:
+            # Make clickable objectId
+            pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
+
+            if query['action'] == 'conesearch':
+                pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
+                data = pdf.sort_values(
+                    'v:separation_degree', ascending=True
+                ).to_dict('records')
+            else:
+                data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
+
+            columns = [
+                {
+                    'id': c,
+                    'name': colnames_to_display[c],
+                    'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
+                    # 'hideable': True,
+                    'presentation': 'markdown' if c == 'i:objectId' else 'input',
+                } for c in colnames_to_display.keys()
+            ]
+
+            table = populate_result_table(data, columns)
+            results = construct_results_layout(table, msg)
         else:
-            data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
+            results = construct_results_list(pdf, msg)
 
-        columns = [
-            {
-                'id': c,
-                'name': colnames_to_display[c],
-                'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
-                # 'hideable': True,
-                'presentation': 'markdown' if c == 'i:objectId' else 'input',
-            } for c in colnames_to_display.keys()
-        ]
+        return results, False, no_update
 
-    table = populate_result_table(data, columns)
-    return construct_results_layout(table, msg), False, no_update
+def construct_results_list(pdf, msg, page_size=10):
+    results_ = [
+        dbc.Row(
+            [
+                dbc.Col(
+                    msg,
+                    md='auto'
+                ),
+                dbc.Col(
+                    modal_skymap(),
+                    md='auto'
+                ),
+            ],
+            align='end', justify='between',
+            className='m-2 ms-4 me-4'
+        ),
+        dcc.Store(
+            id='results_store',
+            storage_type='memory',
+            data=pdf.to_json(),
+        ),
+        dcc.Store(
+            id='results_page_size_store',
+            storage_type='memory',
+            data=str(page_size),
+        ),
+        html.Div(
+            id='results_paginated'
+        ),
+    ]
+
+    npages = int(np.ceil(len(pdf.index)/page_size))
+    results_ += [
+        dmc.Space(h=10),
+        dmc.Group(
+            dmc.Pagination(
+                id='results_pagination',
+                total=npages,
+                siblings=1,
+                withControls=True,
+                withEdges=True,
+            ),
+            position='center',
+            className='d-none' if npages == 1 else ''
+        ),
+        dmc.Space(h=20),
+    ]
+
+    return results_
+
+@app.callback(
+    Output('results_paginated', 'children'),
+    Input('results_pagination', 'page'),
+    State('results_store', 'data'),
+    State('results_page_size_store', 'data'),
+)
+def on_paginate(page, data, page_size):
+    pdf = pd.read_json(data)
+    page_size = int(page_size)
+
+    if not page:
+        page = 1
+
+    results = []
+
+    # Slice to selected page
+    pdf_ = pdf.iloc[(page-1)*page_size : min(page*page_size, len(pdf.index))]
+
+    for i,row in pdf_.iterrows():
+        results.append(card_search_result(row, i))
+
+    return results
+
+@app.callback(
+    Output({'type': 'search_results_lightcurve', 'objectId': MATCH, 'index': MATCH}, 'children'),
+    Input({'type': 'search_results_lightcurve', 'objectId': MATCH, 'index': MATCH}, 'id')
+)
+def on_load_lightcurve(lc_id):
+    if lc_id:
+        # print(lc_id['objectId'])
+        fig = draw_lightcurve_preview(lc_id['objectId'])
+        return dcc.Graph(
+            figure=fig,
+            config={'displayModeBar': False},
+            style={
+                'max-width': '100%',
+                'height': '15pc'
+            },
+        )
+
+    return no_update
+
+@app.callback(
+    Output({'type': 'search_results_cutouts', 'objectId': MATCH, 'index': MATCH}, 'children'),
+    Input({'type': 'search_results_cutouts', 'objectId': MATCH, 'index': MATCH}, 'id')
+)
+def on_load_cutouts(lc_id):
+    if lc_id:
+        return html.Div(
+            draw_cutouts_quickview(lc_id['objectId']),
+            style={'width': '12pc', 'height': '12pc'},
+        )
+        # figs = draw_cutouts_quickview(lc_id['objectId'], ['science', 'template', 'difference'])
+        # return dbc.Row(
+        #     [
+        #         dbc.Col(_, xs=4, className='p-0') for _ in figs
+        #     ],
+        #     justify='center',
+        #     className='p-0',
+        # )
+
+    return no_update
+
 
 clientside_callback(
     """
@@ -1592,7 +1747,8 @@ def display_page(pathname):
                     dbc.Row(
                         dbc.Col(
                             fink_search_bar,
-                            md={'size':8, 'offset':2}
+                            lg={'size':8, 'offset':2},
+                            md={'size':10, 'offset':1},
                         ), className="mt-3 mb-3"
                     ),
                 ], fluid="lg"

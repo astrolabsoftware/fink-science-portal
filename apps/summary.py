@@ -38,7 +38,6 @@ from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
 from apps.cards import card_id
-from apps.cards import create_external_links, create_external_links_brokers
 
 from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
 from apps.plotting import draw_tracklet_lightcurve, draw_tracklet_radec
@@ -64,17 +63,6 @@ def tab1_content(pdf):
     """ Summary tab
     """
 
-    distnr = pdf['i:distnr'].values[0]
-    if is_source_behind(distnr):
-        extra_div = dbc.Alert(
-            "It looks like there is a source behind, at {:.1f} arcsec. You might want to check the DC magnitude, and get DR photometry to see its long-term behaviour.".format(distnr),
-            dismissable=True,
-            is_open=True,
-            color="light"
-        )
-    else:
-        extra_div = html.Div()
-
     tab1_content_ = html.Div([
         dmc.Space(h=10),
         dbc.Row(
@@ -95,10 +83,7 @@ def tab1_content(pdf):
         dbc.Row(
             [
                 dbc.Col(
-                    [
-                        extra_div,
-                        card_lightcurve_summary()
-                    ],
+                    card_lightcurve_summary(),
                     md=8
                 ),
                 dbc.Col(
@@ -474,30 +459,6 @@ def is_tracklet(pdfs):
         return True
 
     return False
-
-@app.callback(
-    Output('external_links', 'children'),
-    Input('object-data', 'children')
-)
-def create_external_links_(object_data):
-    """ Create links to external website. Used in the mobile app.
-    """
-    pdf = pd.read_json(object_data)
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
-    buttons = create_external_links(ra0, dec0)
-    return buttons
-
-@app.callback(
-    Output('external_links_brokers', 'children'),
-    Input('object-data', 'children')
-)
-def create_external_links_brokers_(object_data):
-    """ Create links to external website. Used in the mobile app.
-    """
-    pdf = pd.read_json(object_data)
-    buttons = create_external_links_brokers(pdf['i:objectId'].values[0])
-    return buttons
 
 @app.callback(
     [
