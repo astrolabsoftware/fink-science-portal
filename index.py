@@ -1296,18 +1296,20 @@ def results(n_submit, n_clicks, searchurl, value, show_table):
             className='shadow-sm'
         ), no_update, no_update
     else:
+        # Make clickable objectId
+        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
+
+        # Sort the results
+        if query['action'] == 'conesearch':
+            pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
+            data = pdf.sort_values(
+                'v:separation_degree', ascending=True
+            )
+        else:
+            data = pdf.sort_values('i:jd', ascending=False)
 
         if show_table:
-            # Make clickable objectId
-            pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
-
-            if query['action'] == 'conesearch':
-                pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
-                data = pdf.sort_values(
-                    'v:separation_degree', ascending=True
-                ).to_dict('records')
-            else:
-                data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
+            data = data.to_dict('records')
 
             columns = [
                 {
@@ -1342,6 +1344,7 @@ def construct_results_list(pdf, msg, page_size=10):
             align='end', justify='between',
             className='m-2 ms-4 me-4'
         ),
+        # Data storage
         dcc.Store(
             id='results_store',
             storage_type='memory',
@@ -1352,6 +1355,13 @@ def construct_results_list(pdf, msg, page_size=10):
             storage_type='memory',
             data=str(page_size),
         ),
+        # For Aladin
+        dcc.Store(
+            id='result_table',
+            storage_type='memory',
+            data=pdf.to_dict('records'),
+        ),
+        # Actual display of results
         html.Div(
             id='results_paginated'
         ),
@@ -1439,7 +1449,6 @@ def on_load_cutouts(lc_id):
         # )
 
     return no_update
-
 
 clientside_callback(
     """

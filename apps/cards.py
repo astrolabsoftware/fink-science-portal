@@ -962,6 +962,10 @@ def card_search_result(row, i):
     """
     badges = []
 
+    name = row['i:objectId']
+    if name[0] == '[': # Markdownified
+        name = row['i:objectId'].split('[')[1].split(']')[0]
+
     # Handle different variants for key names from different API entry points
     for key in ['v:classification', 'd:classification']:
         if key in row:
@@ -1074,20 +1078,20 @@ def card_search_result(row, i):
                     html.A(
                         dmc.Group(
                             [
-                                dmc.Text("{}".format(row['i:objectId']), weight=700, size=26),
+                                dmc.Text("{}".format(name), weight=700, size=26),
                                 dmc.Space(w='sm'),
                                 *badges
                             ],
                             spacing=3,
                         ),
-                        href='/{}'.format(row['i:objectId']),
+                        href='/{}'.format(name),
                         target='_blank',
                         className='text-decoration-none',
                     ),
                     dbc.Row(
                         [
                             dbc.Col(
-                                id={'type': 'search_results_cutouts', 'objectId': row['i:objectId'], 'index': i},
+                                id={'type': 'search_results_cutouts', 'objectId': name, 'index': i},
                                 width='auto'
                             ),
                             dbc.Col(
@@ -1098,7 +1102,7 @@ def card_search_result(row, i):
                                 width='auto',
                             ),
                             dbc.Col(
-                                id={'type': 'search_results_lightcurve', 'objectId': row['i:objectId'], 'index': i},
+                                id={'type': 'search_results_lightcurve', 'objectId': name, 'index': i},
                                 xs=12, md=True,
                             ),
                         ],
