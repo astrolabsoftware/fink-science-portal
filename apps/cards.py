@@ -309,7 +309,7 @@ def create_external_links_brokers(objectId):
             dbc.Col(
                 dbc.Button(
                     className='btn btn-default btn-circle btn-lg',
-                    style={'background-image': 'url(/assets/buttons/logo_antares.png)', 'background-size': 'cover'},
+                    style={'background-image': 'url(/assets/buttons/logo_antares.png)', 'background-size': 'contain'},
                     color='dark',
                     outline=True,
                     id='antares',
@@ -826,9 +826,6 @@ def card_id1(object_data, object_uppervalid, object_upper):
     else:
         nupper = 0
 
-    simbad_types = get_simbad_labels('old_and_new')
-    simbad_types = sorted(simbad_types, key=lambda s: s.lower())
-
     badges = []
     for c in np.unique(pdf['v:classification']):
         if c in simbad_types:
@@ -850,6 +847,79 @@ def card_id1(object_data, object_uppervalid, object_upper):
     tns_badge = generate_tns_badge(pdf['i:objectId'].values[0])
     if tns_badge is not None:
         badges.append(tns_badge)
+
+    ssnamenr = pdf['i:ssnamenr'].values[0]
+    if ssnamenr and ssnamenr != 'null':
+        badges.append(
+            dmc.Badge(
+                "SSO: {}".format(ssnamenr),
+                color='yellow',
+                variant="dot",
+            )
+        )
+
+    distnr = pdf['i:distnr'].values[0]
+    if distnr:
+        if is_source_behind(distnr):
+            ztf_badge = dmc.Tooltip(
+                dmc.Badge(
+                    "ZTF: {:.1f}\"".format(distnr),
+                    color='cyan',
+                    variant="dot",
+                    style={'border-color': 'red'},
+                ),
+                label="There is a source behind in ZTF reference image. You might want to check the DC magnitude plot, and get DR photometry to see its long-term behaviour",
+                color='red',
+                className='d-inline',
+                id='badge_ztf',
+                multiline=True,
+            )
+        else:
+            ztf_badge = dmc.Tooltip(
+                dmc.Badge(
+                    "ZTF: {:.1f}\"".format(distnr),
+                    color='cyan',
+                    variant="dot",
+                ),
+                label="Distance to closest object in ZTF reference image",
+                color='cyan',
+                className='d-inline',
+                multiline=True,
+            )
+
+        badges.append(ztf_badge)
+
+    distpsnr = pdf['i:distpsnr1'].values[0]
+    if distpsnr:
+        badges.append(
+            dmc.Tooltip(
+                dmc.Badge(
+                    "PS1: {:.1f}\"".format(distpsnr),
+                    color='teal',
+                    variant="dot",
+                ),
+                label="Distance to closest object in Pan-STARRS DR1 catalogue",
+                color='teal',
+                className='d-inline',
+                multiline=True,
+            )
+        )
+
+    distgaia =  pdf['i:neargaia'].values[0]
+    if distgaia:
+        badges.append(
+            dmc.Tooltip(
+                dmc.Badge(
+                    "Gaia: {:.1f}\"".format(distgaia),
+                    color='teal',
+                    variant="dot",
+                ),
+                label="Distance to closest object in Gaia DR3 catalogue",
+                color='teal',
+                className='d-inline',
+                multiline=True,
+            )
+        )
 
     meta_name = generate_metadata_name(pdf['i:objectId'].values[0])
     if meta_name is not None:
