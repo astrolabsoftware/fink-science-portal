@@ -544,46 +544,13 @@ def display_table_results(table):
     )
     switch_tracklet_description = "Toggle the switch to list each Tracklet only once (fast moving objects). Only the latest alert will be displayed."
 
-    return [
+    results = [
         dbc.Row(
             [
                 dbc.Col(
                     dropdown,
                     lg=5, md=6
                 ),
-                dbc.Col(
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                modal_skymap(),
-                                md='auto'
-                            ),
-                            dbc.Col(
-                                help_popover(
-                                    dcc.Markdown(msg_info),
-                                    id='help_msg_info',
-                                    trigger=dmc.ActionIcon(
-                                        DashIconify(icon="mdi:help"),
-                                        id='help_msg_info',
-                                        color='gray',
-                                        variant="default",
-                                        radius='xl',
-                                        size='lg',
-                                    ),
-                                ),
-                                md='auto'
-                            ),
-                        ],
-                        align='center', justify='end',
-                    ),
-                    md='auto',
-                )
-            ],
-            align='center', justify='between',
-            className='pt-1 pb-1 ps-2 pe-2'
-        ),
-        dbc.Row(
-            [
                 dbc.Col(
                     dmc.Tooltip(
                         children=switch,
@@ -621,10 +588,17 @@ def display_table_results(table):
                     md='auto'
                 ),
             ],
-            align='center', justify='start',
-            className='pt-1 pb-1 ps-2 pe-2',
+            align='end', justify='start',
+            className='mb-2',
         ),
         table
+    ]
+
+    return [
+        html.Div(
+            results,
+            className='results-inner bg-opaque-100 rounded mb-4 p-2 border shadow',
+        )
     ]
 
 @app.callback(
@@ -792,34 +766,6 @@ clientside_callback(
     [State("modal_skymap", "is_open")],
     prevent_initial_call=True,
 )
-
-# @app.callback(
-#     Output("modal_skymap", "is_open"),
-#     [
-#         Input("open_modal_skymap", "n_clicks"),
-#         Input("close_modal_skymap", "n_clicks")
-#     ],
-#     [State("modal_skymap", "is_open")],
-# )
-# def toggle_modal_preview(n1, n2, is_open):
-#     if n1 or n2:
-#         return not is_open
-#     return is_open
-
-def construct_results_layout(table, msg):
-    """ Construct the tabs containing explorer query results
-    """
-    results_ = html.Div(
-        className='bg-opaque-100 mb-2 shadow-sm border rounded-3',
-        children=[
-            html.P(
-                msg,
-                className='p-3 m-0'
-            ),
-        ] + display_table_results(table)
-    )
-
-    return results_
 
 def populate_result_table(data, columns):
     """ Define options of the results table, and add data and columns
@@ -1139,28 +1085,55 @@ def results(n_submit, n_clicks, searchurl, value, show_table):
             ]
 
             table = populate_result_table(data, columns)
-            results = construct_results_layout(table, msg)
+            results_ = display_table_results(table)
         else:
-            results = construct_results_list(pdf, msg)
+            results_ = display_cards_results(pdf)
+
+        results = [
+            # Common header for the results
+            dbc.Row(
+                [
+                    dbc.Col(
+                        msg,
+                        md='auto'
+                    ),
+                    dbc.Col(
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    modal_skymap(),
+                                    xs='auto'
+                                ),
+                                dbc.Col(
+                                    help_popover(
+                                        dcc.Markdown(msg_info),
+                                        id='help_msg_info',
+                                        trigger=dmc.ActionIcon(
+                                            DashIconify(icon="mdi:help"),
+                                            id='help_msg_info',
+                                            color='gray',
+                                            variant="default",
+                                            radius='xl',
+                                            size='lg',
+                                        ),
+                                    ),
+                                    xs='auto'
+                                ),
+                            ],
+                            justify='end'
+                        ),
+                        md='auto'
+                    )
+                ],
+                align='end', justify='between',
+                className='m-2'
+            ),
+        ] + results_
 
         return results, False, no_update
 
-def construct_results_list(pdf, msg, page_size=10):
+def display_cards_results(pdf, page_size=10):
     results_ = [
-        dbc.Row(
-            [
-                dbc.Col(
-                    msg,
-                    md='auto'
-                ),
-                dbc.Col(
-                    modal_skymap(),
-                    md='auto'
-                ),
-            ],
-            align='end', justify='between',
-            className='m-2 ms-4 me-4'
-        ),
         # Data storage
         dcc.Store(
             id='results_store',
@@ -1595,7 +1568,7 @@ def display_page(pathname, searchurl):
                 ], fluid="lg"
             ),
             dbc.Container(id='results', fluid="xxl")
-        ],
+        ]
     )
     if pathname == '/about':
         return about.layout
