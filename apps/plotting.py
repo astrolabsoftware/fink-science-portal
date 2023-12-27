@@ -1208,6 +1208,7 @@ def draw_lightcurve_preview(name) -> dict:
                     'type': 'data',
                     'array': err[idx],
                     'visible': True,
+                    'width': 0,
                     'color': color,
                     'opacity': 0.5
                 },
