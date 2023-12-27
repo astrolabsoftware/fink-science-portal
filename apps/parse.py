@@ -154,7 +154,7 @@ def parse_query(string, timeout=None):
         # Try to locate well-defined object name patterns
         for pattern in name_patterns:
             if pattern.get('min') and len(token) >= pattern.get('min'):
-                m = re.match(pattern['pattern'], token, partial=True)
+                m = re.match(pattern['pattern'], token, re.IGNORECASE, partial=True)
                 if m:
                     query['object'] = token
                     query['type'] = pattern['type']
@@ -172,7 +172,7 @@ def parse_query(string, timeout=None):
         # Try to parse keyword parameters, either as key:value or key=value
         m = re.match(r'^(\w+)[=:](.*?)$', token)
         if m:
-            key = m[1]
+            key = m[1].lower()
             value = m[2]
             # Special handling for numbers, possibly ending with d/m/s for degrees etc
             m = re.match(r'^([+-]?(\d+)(.\d+)?)([dms\'"]?)$', value)
@@ -304,9 +304,11 @@ def parse_query(string, timeout=None):
 
     elif query['type'] == 'ztf':
         query['action'] = 'objectid'
+        #TODO: uppercase the ZTF prefix!
 
     elif query['type'] == 'tracklet':
         query['action'] = 'tracklet'
+        query['object'] = query['object'].upper()
 
     elif query['type'] == 'sso' or 'sso' in query['params']:
         query['action'] = 'sso'

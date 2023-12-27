@@ -239,9 +239,13 @@ fink_search_bar = [
                     component='input',
                     trigger=[
                         'class:', 'class=',
+                        'last:', 'last=',
+                        'r:', 'r=',
                     ],
                     options={
                         'class:':fink_classes, 'class=':fink_classes,
+                        'last:':['10', '100', '1000'], 'last=':['10', '100', '1000'],
+                        'r:':['10', '60', '10m', '30m'], 'r=':['10', '60', '10m', '30m'],
                     },
                     maxOptions=0,
                     className="inputbar form-control border-0",
@@ -357,7 +361,11 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
 
     if query['action'] == 'unknown':
         content = [
-            html.Em('Query not recognized', className='m-0')
+            html.Div(
+                html.Em(
+                    'Query not recognized',
+                    className='m-0')
+            )
         ]
     else:
         content = []
