@@ -251,8 +251,19 @@ fink_search_bar = [
                     className="inputbar form-control border-0",
                     quoteWhitespaces=True,
                     autoFocus=True,
+                    ignoreCase=True,
                 ),
-
+                # Clear
+                dmc.ActionIcon(
+                    DashIconify(icon="mdi:clear-bold"),
+                    n_clicks=0,
+                    id="search_bar_clear",
+                    color='gray',
+                    variant="transparent",
+                    radius='xl',
+                    size='lg',
+                ),
+                # Submit
                 dbc.Spinner(
                     dmc.ActionIcon(
                         DashIconify(icon="tabler:search", width=20),
@@ -265,7 +276,7 @@ fink_search_bar = [
                         loaderProps={'variant': 'dots', 'color': 'orange'},
                     ), size='sm', color='warning'
                 ),
-                # modal
+                # Help popup
                 help_popover(
                     [
                         dcc.Markdown(message_help)
@@ -473,6 +484,18 @@ def on_quickfield(n_clicks, values, value):
         return value + ' ' + values[ctx.triggered_id['index']] + '='
 
     return no_update
+
+# Clear inpit field
+clientside_callback(
+    """
+    function on_clear(n_clicks) {
+        return '';
+    }
+    """,
+    Output('search_bar_input', 'value', allow_duplicate=True),
+    Input('search_bar_clear', 'n_clicks'),
+    prevent_initial_call=True
+)
 
 def display_table_results(table):
     """ Display explorer results in the form of a table with a dropdown
