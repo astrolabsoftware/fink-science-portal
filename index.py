@@ -360,7 +360,7 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
     if n_intervals != 1:
         return no_update, no_update, no_update
 
-    if not value:
+    if not value.strip():
         return None, no_update, False
 
     query = parse_query(value, timeout=5)
@@ -496,6 +496,20 @@ clientside_callback(
     Output('search_bar_input', 'value', allow_duplicate=True),
     Input('search_bar_clear', 'n_clicks'),
     prevent_initial_call=True
+)
+
+# Disable clear button for empty input field
+clientside_callback(
+    """
+    function on_input(value) {
+        if (value)
+            return false;
+        else
+            return true;
+    }
+    """,
+    Output('search_bar_clear', 'disabled'),
+    Input('search_bar_input', 'value')
 )
 
 def display_table_results(table):
@@ -931,7 +945,7 @@ def results(n_submit, n_clicks, searchurl, value, show_table):
     if not n_submit and not n_clicks and not searchurl:
         raise PreventUpdate
 
-    if not value and not searchurl:
+    if not value.strip() and not searchurl:
         # TODO: show back the logo?..
         return None, no_update, no_update
 
