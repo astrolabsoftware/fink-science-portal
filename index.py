@@ -159,7 +159,9 @@ any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`. E.g. try:
 """
 
 msg_info = """
-By default, the table shows:
+The `Card view` shows the cutout from science image, some basic alert info, and its light curve. Its header also displays the badges for alert classification and the distances from several reference catalogs, as listed in the alert.
+
+By default, the `Table view` shows the following fields:
 
 - i:objectId: Unique identifier for this object
 - i:ra: Right Ascension of candidate; J2000 (deg)
@@ -171,11 +173,7 @@ By default, the table shows:
 
 You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at {}/api/v1/columns.
 
-Moreover, you can hit the button `Preview`. This will show you more information
-about the first 10 alerts (science cutout, and basic information). Note you can
-swipe between alerts (or use arrows on a laptop).
-
-Finally, the button `Sky Map` will open a popup with embedded Aladin sky map showing the positions of the search results on the sky.
+The button `Sky Map` will open a popup with embedded Aladin sky map showing the positions of the search results on the sky.
 """.format(APIURL)
 
 # Smart search field
@@ -262,6 +260,7 @@ fink_search_bar = [
                     variant="transparent",
                     radius='xl',
                     size='lg',
+                    title='Clear the input',
                 ),
                 # Submit
                 dbc.Spinner(
@@ -274,6 +273,7 @@ fink_search_bar = [
                         radius='xl',
                         size='lg',
                         loaderProps={'variant': 'dots', 'color': 'orange'},
+                        title='Search'
                     ), size='sm', color='warning'
                 ),
                 # Help popup
@@ -290,6 +290,7 @@ fink_search_bar = [
                         radius='xl',
                         size='lg',
                         # className="d-none d-sm-flex"
+                        title='Show some help',
                     ),
                 ),
             ]
