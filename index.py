@@ -77,86 +77,81 @@ fink_classes = [
 ]
 
 message_help = """
-##### Object ID
+You may search for different kinds of data depending on what you enter. Below you will find the description of syntax rules and some examples.
 
-Enter a valid object ID to access its data, e.g. try:
+The search is defined by the set of search terms (object names or coordinates) and options (e.g. search radius, number of returned entries, etc). The latters may be entered either manually or by using the `Quick fields` above the search bar. Supported formats for the options are both `name=value` and `name:value`, where `name` is case-insensitive, and `value` may use quotes to represent multi-word sentences. For some of the options, interactive drop-down menu will be shown with possible values.
 
-* ZTF21abfmbix, ZTF21aaxtctv, ZTF21abfaohe, ZTF20aanxcpf, ZTF17aaaabte, ZTF18aafpcwm, ZTF21abujbqa, ZTF21abuipwb, ZTF18acuajcr
+The search bar has a button (on the left) to show you the list of your latest search queries so that you may re-use them, and a switch (on the right, right above the search field) to choose the format of results - either card-based (default, shows the previews of object latest cutout and light curve), or tabular (allows to see all the fields of objects).
 
-##### Conesearch
+##### Search for specific ZTF objects
 
-Perform a conesearch around a position on the sky given by (RA, Dec, radius).
-The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats.
-The following ways of initializing a conesearch are all equivalent (radius in arcsecond):
+To search for specific object, just use its name, or just a part of it. In the latter case, all objects with the names starting with this pattern will be returned.
 
-* 193.822, 2.89732, 5
-* 193d49m18.267s, 2d53m50.35s, 5
-* 12h55m17.218s, +02d53m50.35s, 5
-* 12 55 17.218, +02 53 50.35, 5
-* 12:55:17.218, 02:53:50.35, 5
+Supported name patterns are as follows:
+- `ZTFyyccccccc` for ZTF objects, i.e. ZTF followed with 2 digits for the year, and 7 characters after that
+- `TRCK_YYYYMMDD_HHMMSS_NN` for tracklets detected at specific moment of time
 
-Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
-several objects matching, the results will be sorted according to the angular
-separation in degree between the input (ra, dec) and the objects found.
+Examples:
+- `ZTF21abfmbix` - search for exact ZTF object
+- `ZTF21abfmb` - search for partially matched ZTF object name
+- `TRCK_20231213_133612_00` - search for all objects associated with specific tracklet
+- `TRCK_20231213` - search for all tracklet events from the night of Dec 13, 2023
 
-In addition, you can specify a starting date (UTC) and a window (in days) to refine your search.
-Example, to refine your search starting at 2021-06-25 05:59:37.000 for 7 days:
+##### Cone search
 
-* 193.822, 2.89732, 5, 2021-06-25 05:59:37.000, 7
-* 193.822, 2.89732, 5, 2459391.7497338, 7
+If you specify the position and search radius (using `r` option), all objects inside the given cone will be returned. Position may be specified by either coordinates, in either decimal or sexagesimal form, as exact ZTF object name, or as an object name resolvable through TNS or Simbad.
 
-We encourage you to use the `startdate` and `window`, as your query will run much faster.
+The coordinates may be specified as:
+- Pair of degrees
+- `HH MM SS.S [+-]?DD MM SS.S`
+- `HH:MM:SS.S [+-]?DD:MM:SS.S`
+- `HHhMMhSS.Ss [+-]?DDhMMhSS.Ss`
+- optionally, you may use one more number as a radius, in either arcseconds, minutes (suffixed with `m`) or degrees (`d`). If specified, you do not need to provide the corresponding keyword (`r`) separately
 
-##### Date search
+If the radius is not specified, but the coordinates or resolvable object names are given, the default search radius is 10 arcseconds.
 
-Choose a starting date and a time window to see all processed alerts in this period.
-Dates are in UTC, and the time window in minutes.
-Among several, you can choose YYYY-MM-DD hh:mm:ss, Julian Date, or Modified Julian Date. Example of valid search:
+Examples:
+- `10 20 30` - search within 30 arcseconds around
+- `10 22 31 40 50 55.5` - search within 10 arcseconds around `RA=10:22:31` `Dec=+40:50:55.5`
+- `Vega r=10m` - search within 600 arcseconds (10 arcminutes) from Vega
+- `ZTF21abfmbix r=20` - search within 20 arcseconds around the position of ZTF21abfmbix
+- `AT2021cow` or `AT 2021cow` - search within 10 arcseconds around the position of AT2021cow
 
-* 2021-07-01 05:59:37.000
-* 2459396.7497337963
-* 59396.2497337963
+##### Solar System objects
 
-##### Class
+To search for all ZTF objects associated with specific SSO, you may either directly specify `sso` keyword, which should be equal to contents of `i:ssnamenr` field of ZTF packets, or just enter the number or name of the SSO object that the system will try to resolve.
 
-Choose a class of interest using the drop-down menu to see the 100 latest alerts processed by Fink.
+So you may e.g. search for:
+- Asteroids by proper name
+  - `Vesta`
+- Asteroids by number
+  - Asteroids (Main Belt): `8467`, `1922`
+  - Asteroids (Hungarians): `18582`, `77799`
+  - Asteroids (Jupiter Trojans): `4501, `1583`
+  - Asteroids (Mars Crossers): `302530`
+- Asteroids by designation
+  - `2010JO69`, `2017AD19`, `2012XK111`
+- Comets by number
+  - `10P, `249P`, `124P`
+- Comets by designation
+  - `C/2020V2`, `C/2020R2`
 
-##### Solar System Objects (SSO)
+##### Latest objects
 
-Search for Solar System Objects in the Fink database.
-The numbers or designations are taken from the MPC archive.
-When searching for a particular asteroid or comet, it is best to use the IAU number,
-as in 8467 for asteroid "8467 Benoitcarry". You can also try for numbered comet (e.g. 10P),
-or interstellar object (none so far...). If the number does not yet exist, you can search for designation.
-Here are some examples of valid queries:
+To see the latest objects just specify the amount of them you want to get using keyword `last`.
 
-* Asteroids by number (default)
-  * Asteroids (Main Belt): 8467, 1922
-  * Asteroids (Hungarians): 18582, 77799
-  * Asteroids (Jupiter Trojans): 4501, 1583
-  * Asteroids (Mars Crossers): 302530
-* Asteroids by designation (if number does not exist yet)
-  * 2010JO69, 2017AD19, 2012XK111
-* Comets by number (default)
-  * 10P, 249P, 124P
-* Comets by designation (if number does no exist yet)
-  * C/2020V2, C/2020R2
+##### Class-based search
 
-Note for designation, you can also use space (2010 JO69 or C/2020 V2).
+To see the list of latest objects of specific class (as listed in `v:classification` alert field), just specify the `class` keyword. By default it will return 100 latest ones, but you may also directly specify `last` keywords to alter it.
 
+You may also specify the time interval to refine the search, using the self-explanatory keywords `before` and `after`. The limits may be specified with either time string, JD or MJD values. You may either set both limiting values, or just one of them. The results will be sorted in descending order by time, and limited to specified number of entries.
 
-##### Tracklet data
+Examples:
+- `last=100` or `class=allclasses` - return 100 latest objects of any class
+- `class=Unknown` - return 100 latest objects with class `Unknown`
+- `last=10 class="Early SN Ia candidate"` - return 10 latest arly SN Ia candidates
+- `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-15 04:00:00"` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023
 
-Search for Tracklet Objects in the Fink database. Tracklets are fast
-moving objects, typically orbiting around the Earth. They are most likely
-produced by satellite glints or space debris.
-
-You have the choice to specify the date in the format `YYYY-MM-DD hh:mm:ss` or
-any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`. E.g. try:
-
-- 2020-08-10
-- 2021-10-22 09:19
-- 2020-07-16 04:58:48
 """
 
 msg_info = """
@@ -242,6 +237,7 @@ fink_search_bar = [
                                 variant="transparent",
                                 radius='xl',
                                 size='lg',
+                                title='Search history'
                             )
                         ),
                         dmc.MenuDropdown(
