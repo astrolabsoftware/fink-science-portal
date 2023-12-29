@@ -248,7 +248,7 @@ fink_search_bar = [
                             [
                                 dmc.MenuLabel("Search history is empty"),
                             ],
-                            className='shadow',
+                            className='shadow rounded',
                             id='search_history_menu'
                         )
                     ],
@@ -380,7 +380,7 @@ def update_search_history_menu(timestamp, history):
             dmc.MenuItem(
                 item,
                 id={'type': 'search_bar_completion', 'index': 1000 + i, 'text': item},
-            ) for i,item in enumerate(history)
+            ) for i,item in enumerate(history[::-1])
         ]
     else:
         return no_update
