@@ -53,6 +53,7 @@ import numpy as np
 from astropy.time import Time, TimeDelta
 
 import urllib
+import json
 
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
@@ -197,7 +198,7 @@ fink_search_bar = [
                         html.A(
                             __[0],
                             title=__[1],
-                            id={'type': 'search_bar_quick_field', 'index': _},
+                            id={'type': 'search_bar_quick_field', 'index': _, 'text': __[0]},
                             n_clicks=0,
                             className='ms-2 link text-decoration-none'
                         ),
@@ -309,7 +310,11 @@ fink_search_bar = [
             interval=2000,
             max_intervals=1,
             disabled=True
-        )
+        ),
+        dcc.Store(
+            id='search_history_store',
+            storage_type='local',
+        ),
     ],
 )]
 
@@ -337,6 +342,40 @@ clientside_callback(
     State('search_bar_timer', 'n_intervals'),
     prevent_initial_call=True,
 )
+
+# Search history
+@app.callback(
+    Output('search_history', 'children'),
+    Input('search_history_store', 'timestamp'),
+    State('search_history_store', 'data'),
+)
+def display_search_history(timestamp, history):
+    # Render history
+    content = []
+
+    if history:
+        for i,item in enumerate(history):
+            content.append(
+                html.A(
+                    item,
+                    id={'type': 'search_bar_completion', 'index': 1000 + i, 'text': item},
+                    n_clicks=0,
+                    className='ms-2 link text-decoration-none'
+                )
+            )
+    else:
+        return no_update
+
+    return [
+        html.Ul(
+            [
+                html.Li('Search history')
+            ] + [
+                html.Li(_) for _ in content
+            ],
+            className='list-unstyled text-secondary'
+        )
+    ]
 
 # Update suggestions on (debounced) input
 @app.callback(
@@ -397,7 +436,7 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
                 completions.append(
                     html.A(
                         ext,
-                        id={'type': 'search_bar_completion', 'index': i},
+                        id={'type': 'search_bar_completion', 'index': i, 'text': name},
                         title=name,
                         n_clicks=0,
                         className='ms-2 link text-decoration-none'
@@ -441,14 +480,14 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
 # TODO: convert to clientside callback, if pattern matching is supported for them
 @app.callback(
     Output('search_bar_input', 'value'),
-    Input({'type': 'search_bar_completion', 'index': ALL}, 'n_clicks'),
-    State({'type': 'search_bar_completion', 'index': ALL}, 'title'),
+    Input({'type': 'search_bar_completion', 'index': ALL, 'text': ALL}, 'n_clicks'),
     prevent_initial_call=True
 )
-def on_completion(n_clicks, values):
+def on_completion(n_clicks):
     ctx = dash.callback_context
+
     if ctx.triggered[0]['value']:
-        return values[ctx.triggered_id['index']]
+        return ctx.triggered_id['text']
 
     return no_update
 
@@ -471,18 +510,17 @@ def on_completion(n_clicks, values):
 # TODO: convert to clientside callback, if pattern matching is supported for them
 @app.callback(
     Output('search_bar_input', 'value', allow_duplicate=True),
-    Input({'type': 'search_bar_quick_field', 'index': ALL}, 'n_clicks'),
-    State({'type': 'search_bar_quick_field', 'index': ALL}, 'children'),
+    Input({'type': 'search_bar_quick_field', 'index': ALL, 'text': ALL}, 'n_clicks'),
     State('search_bar_input', 'value'),
     prevent_initial_call=True
 )
-def on_quickfield(n_clicks, values, value):
+def on_quickfield(n_clicks, value):
     if not value:
         value = ''
 
     ctx = dash.callback_context
     if ctx.triggered[0]['value']:
-        return value + ' ' + values[ctx.triggered_id['index']] + '='
+        return value + ' ' + ctx.triggered_id['text'] + '='
 
     return no_update
 
@@ -922,6 +960,7 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         Output('results', 'children'),
         Output('logo', 'is_open'),
         Output('search_bar_submit', 'children', allow_duplicate=True),
+        Output('search_history_store', 'data'),
     ],
     [
         Input('search_bar_input', 'n_submit'),
@@ -929,11 +968,12 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         Input('url', 'search'),
     ],
     State('search_bar_input', 'value'),
+    State('search_history_store', 'data'),
     State('results_table_switch', 'checked'),
     # prevent_initial_call=True
     prevent_initial_call='initial_duplicate',
 )
-def results(n_submit, n_clicks, searchurl, value, show_table):
+def results(n_submit, n_clicks, searchurl, value, history, show_table):
     """ Parse the search string and query the database
     """
     ctx = dash.callback_context
@@ -945,9 +985,11 @@ def results(n_submit, n_clicks, searchurl, value, show_table):
     if not n_submit and not n_clicks and not searchurl:
         raise PreventUpdate
 
-    if not value.strip() and not searchurl:
+    value = value.strip()
+
+    if not value and not searchurl:
         # TODO: show back the logo?..
-        return None, no_update, no_update
+        return None, no_update, no_update, no_update
 
     colnames_to_display = {
         'i:objectId': 'objectId',
@@ -973,14 +1015,14 @@ def results(n_submit, n_clicks, searchurl, value, show_table):
         query = parse_query(value)
 
     if not query or not query['action']:
-        return None, no_update, no_update
+        return None, no_update, no_update, no_update
 
     if query['action'] == 'unknown':
         return dbc.Alert(
             'Query not recognized: {}'.format(value),
             color='danger',
             className='shadow-sm'
-        ), no_update, no_update
+        ), no_update, no_update, no_update
 
     elif query['action'] == 'objectid':
         # Search objects by objectId
@@ -1090,7 +1132,15 @@ def results(n_submit, n_clicks, searchurl, value, show_table):
             'Unhandled query: {}'.format(query),
             color='danger',
             className='shadow-sm'
-        ), no_update, no_update
+        ), no_update, no_update, no_update
+
+    # Add to history
+    if not history:
+        history = []
+    while value in history:
+        history.remove(value) # Remove duplicates
+    history.append(value)
+    history = history[-10:] # Limit it to 10 latest entries
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
@@ -1103,7 +1153,7 @@ def results(n_submit, n_clicks, searchurl, value, show_table):
             msg,
             color="warning",
             className='shadow-sm'
-        ), no_update, no_update
+        ), no_update, no_update, history
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
@@ -1176,7 +1226,7 @@ def results(n_submit, n_clicks, searchurl, value, show_table):
             ),
         ] + results_
 
-        return results, False, no_update
+        return results, False, no_update, history
 
 def display_cards_results(pdf, page_size=10):
     results_ = [
@@ -1613,7 +1663,19 @@ def display_page(pathname, searchurl):
                     ),
                 ], fluid="lg"
             ),
-            dbc.Container(id='results', fluid="xxl")
+            dbc.Container(
+                # Default content for results part - search history
+                dbc.Row(
+                    dbc.Col(
+                        id='search_history',
+                        # Size should match the one of fink_search_bar above
+                        lg={'size':8, 'offset':2},
+                        md={'size':10, 'offset':1},
+                    ), className="m-3"
+                ),
+                id='results',
+                fluid="xxl"
+            )
         ]
     )
     if pathname == '/about':
