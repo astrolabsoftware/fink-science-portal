@@ -226,12 +226,35 @@ fink_search_bar = [
 
 ] + [html.Div(
     # className='p-0 m-0 border shadow-sm rounded-3',
-    className='p-0 m-0 rcorners2 shadow',
+    className='pt-0 pb-0 ps-1 pe-1 m-0 rcorners2 shadow',
     id="search_bar",
     # className='rcorners2',
     children=[
         dbc.InputGroup(
             [
+                # History
+                dmc.Menu(
+                    [
+                        dmc.MenuTarget(
+                            dmc.ActionIcon(
+                                DashIconify(icon="bi:clock-history"),
+                                color='gray',
+                                variant="transparent",
+                                radius='xl',
+                                size='lg',
+                            )
+                        ),
+                        dmc.MenuDropdown(
+                            [
+                                dmc.MenuLabel("Search history is empty"),
+                            ],
+                            className='shadow',
+                            id='search_history_menu'
+                        )
+                    ],
+                    zIndex=1000000,
+                ),
+                # Main input
                 AutocompleteInput(
                     id='search_bar_input',
                     placeholder='Search, and you will find',
@@ -345,37 +368,22 @@ clientside_callback(
 
 # Search history
 @app.callback(
-    Output('search_history', 'children'),
+    Output('search_history_menu', 'children'),
     Input('search_history_store', 'timestamp'),
-    State('search_history_store', 'data'),
+    Input('search_history_store', 'data'),
 )
-def display_search_history(timestamp, history):
-    # Render history
-    content = []
-
+def update_search_history_menu(timestamp, history):
     if history:
-        for i,item in enumerate(history):
-            content.append(
-                html.A(
-                    item,
-                    id={'type': 'search_bar_completion', 'index': 1000 + i, 'text': item},
-                    n_clicks=0,
-                    className='ms-2 link text-decoration-none'
-                )
-            )
+        return [
+            dmc.MenuLabel("Search history"),
+        ] + [
+            dmc.MenuItem(
+                item,
+                id={'type': 'search_bar_completion', 'index': 1000 + i, 'text': item},
+            ) for i,item in enumerate(history)
+        ]
     else:
         return no_update
-
-    return [
-        html.Ul(
-            [
-                html.Li('Search history')
-            ] + [
-                html.Li(_) for _ in content
-            ],
-            className='list-unstyled text-secondary'
-        )
-    ]
 
 # Update suggestions on (debounced) input
 @app.callback(
@@ -487,7 +495,7 @@ def on_completion(n_clicks):
     ctx = dash.callback_context
 
     if ctx.triggered[0]['value']:
-        return ctx.triggered_id['text']
+        return ctx.triggered_id['text'] + ' '
 
     return no_update
 
