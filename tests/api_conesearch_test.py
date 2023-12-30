@@ -24,7 +24,7 @@ import sys
 
 APIURL = sys.argv[1]
 
-def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate_conesearch=None, window_days_conesearch=None, output_format='json'):
+def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate=None, window=None, output_format='json'):
     """ Perform a conesearch in the Science Portal using the Fink REST API
     """
     payload = {
@@ -34,11 +34,11 @@ def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate_conesear
         'output-format': output_format
     }
 
-    if startdate_conesearch is not None:
+    if startdate is not None:
         payload.update(
             {
-                'startdate_conesearch': startdate_conesearch,
-                'window_days_conesearch': window_days_conesearch
+                'startdate': startdate,
+                'window': window
             }
         )
 
@@ -97,8 +97,8 @@ def test_conesearch_with_dates() -> None:
         ra='175.3242473',
         dec='36.5429392',
         radius='5',
-        startdate_conesearch='2021-11-03 10:00:00',
-        window_days_conesearch='1'
+        startdate='2021-11-03 10:00:00',
+        window='1'
     )
 
     # at this date, a new object appeared
@@ -106,8 +106,8 @@ def test_conesearch_with_dates() -> None:
         ra='175.3242473',
         dec='36.5429392',
         radius='5',
-        startdate_conesearch='2021-11-05 10:00:00',
-        window_days_conesearch='1'
+        startdate='2021-11-05 10:00:00',
+        window='1'
     )
 
     assert pdf1.empty

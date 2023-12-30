@@ -266,7 +266,7 @@ only display the data from the last alert. To get a full history about an object
 you should use the `Retrieve single object data` service instead.
 
 Currently, you cannot query using several conditions.
-You must choose among `Search by Object ID` (group 0), `Conesearch` (group 1), or `Search by Date` (group 2).
+You must choose among `Search by Object ID` and `Conesearch` / `Search by Date`.
 In a future release, you will be able to combine searches.
 The list of arguments for querying the Fink alert database can be found at https://fink-portal.org/api/v1/explorer.
 
@@ -365,8 +365,8 @@ r = requests.post(
     'ra': '193.822',
     'dec': '2.89732',
     'radius': '5',
-    'startdate_conesearch': '2021-06-25 05:59:37.000',
-    'window_days_conesearch': 7
+    'startdate': '2021-06-25 05:59:37.000',
+    'window': 7
   }
 )
 
@@ -386,8 +386,8 @@ The numbers close to markers show the number of objects returned by the conesear
 
 ### Search by Date
 
-Choose a starting date and a time window to see all alerts in this period.
-Dates are in UTC, and the time window in minutes.
+Choose a starting date and stopping date or a time window to see all alerts in this period.
+Dates are in UTC, and the time window in days (but should not exceed 3 hours).
 Example of valid search:
 
 * 2021-07-01 05:59:37.000
@@ -396,10 +396,10 @@ In a unix shell, you would simply use
 
 ```bash
 # Get all objects between 2021-07-01 05:59:37.000 and 2021-07-01 06:09:37.000 UTC
-curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2021-07-01 05:59:37.000", "window":"10"}' https://fink-portal.org/api/v1/explorer -o datesearch.json
+curl -H "Content-Type: application/json" -X POST -d '{"startdate":"2021-07-01 05:59:37.000", "window":"0.007"}' https://fink-portal.org/api/v1/explorer -o datesearch.json
 
 # you can also specify parameters in the URL, e.g. with wget:
-wget "https://fink-portal.org/api/v1/explorer?startdate=2021-07-01 05:59:37.000&window=10&output-format=json" -O datesearch.json
+wget "https://fink-portal.org/api/v1/explorer?startdate=2021-07-01 05:59:37.000&window=0.007&output-format=json" -O datesearch.json
 ```
 
 In python, you would use
@@ -413,7 +413,7 @@ r = requests.post(
   'https://fink-portal.org/api/v1/explorer',
   json={
     'startdate': '2021-07-01 05:59:37.000',
-    'window': '10'
+    'window': '0.007'
   }
 )
 
