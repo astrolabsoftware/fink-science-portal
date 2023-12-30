@@ -101,6 +101,7 @@ def parse_query(string, timeout=None):
       - for tracklets, it is always 'tracklet'
       - for resolved objects or coordinates, it is `conesearch` even if no radius is specified
       - for SSO objects it is always `sso`
+      - if `after` keyword is specified it is `daterange`
 
     Parameters
     ----------
@@ -321,6 +322,10 @@ def parse_query(string, timeout=None):
         query['action'] = 'class'
         query['params']['class'] = 'All classes'
         query['hint'] = 'Latest objects / {}'.format(query['params']['last'])
+
+    elif 'after' in query['params']:
+        query['action'] = 'daterange'
+        query['hint'] = 'Date range search'
 
     else:
         query['action'] = 'unknown'

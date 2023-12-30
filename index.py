@@ -110,12 +110,23 @@ The coordinates may be specified as:
 
 If the radius is not specified, but the coordinates or resolvable object names are given, the default search radius is 10 arcseconds.
 
+You may also restrict the alert time by specifying `after` and `before` keywords. They may be given as UTC timestamps in either ISO string format, as Julian date, or MJD. Alternatively, you may use `window` keyword to define the duration of time window in days.
+
 Examples:
-- `10 20 30` - search within 30 arcseconds around
+- `10 20 30` - search within 30 arcseconds around `RA=10 deg` `Dec=20 deg`
+- `10 20 30 after="2023-03-29 13:36:52" window=10` - the same but also within 10 days since specified time moment
 - `10 22 31 40 50 55.5` - search within 10 arcseconds around `RA=10:22:31` `Dec=+40:50:55.5`
 - `Vega r=10m` - search within 600 arcseconds (10 arcminutes) from Vega
 - `ZTF21abfmbix r=20` - search within 20 arcseconds around the position of ZTF21abfmbix
 - `AT2021cow` or `AT 2021cow` - search within 10 arcseconds around the position of AT2021cow
+
+##### Date range search
+
+The search of all objects within specified time range may be done by specifying just the `after`, `before` and/or `window` keywords. As the amount of objects is huge, it is not practical to use time window larger than 3 hours, and it is currently capped at this value. Moreover, the number of returned objects is limited to 1000.
+
+Examples:
+- `after="2023-12-29 13:36:52" before="2023-12-29 13:46:52"` - search all objects within 10 minutes long time window
+- `after="2023-12-29 13:36:52" window=0.007` - the same
 
 ##### Solar System objects
 
@@ -1077,12 +1088,24 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
         if 'after' in query['params']:
             startdate = isoify_time(query['params']['after'])
-            window = float(query['params'].get('window', 1.0))
 
-            msg += ' within {} days after {}'.format(window, startdate)
+            msg += ' after {}'.format(startdate)
 
-            payload['startdate_conesearch'] = startdate
-            payload['window_days_conesearch'] = window
+            payload['startdate'] = startdate
+
+        if 'before' in query['params']:
+            stopdate = isoify_time(query['params']['before'])
+
+            msg += ' before {}'.format(stopdate)
+
+            payload['stopdate'] = stopdate
+
+        elif 'window' in query['params']:
+            window = query['params']['window']
+
+            msg += ' window {} days'.format(window)
+
+            payload['window'] = window
 
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
@@ -1128,6 +1151,38 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
         r = requests.post(
             '{}/api/v1/latests'.format(APIURL),
+            json=payload
+        )
+
+    elif query['action'] == 'daterange':
+        # Date range search
+        msg = "Objects in date range"
+
+        payload = {}
+
+        if 'after' in query['params']:
+            startdate = isoify_time(query['params']['after'])
+
+            msg += ' after {}'.format(startdate)
+
+            payload['startdate'] = startdate
+
+        if 'before' in query['params']:
+            stopdate = isoify_time(query['params']['before'])
+
+            msg += ' before {}'.format(stopdate)
+
+            payload['stopdate'] = stopdate
+
+        elif 'window' in query['params']:
+            window = query['params']['window']
+
+            msg += ' window {} days'.format(window)
+
+            payload['window'] = window
+
+        r = requests.post(
+            '{}/api/v1/explorer'.format(APIURL),
             json=payload
         )
 
