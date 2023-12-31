@@ -334,6 +334,44 @@ def create_external_links_brokers(objectId):
     )
     return buttons
 
+def card_neighbourhood(pdf):
+    distnr = pdf['i:distnr'].values[0]
+    ssnamenr = pdf['i:ssnamenr'].values[0]
+    distpsnr1 = pdf['i:distpsnr1'].values[0]
+    neargaia = pdf['i:neargaia'].values[0]
+    constellation = pdf['v:constellation'].values[0]
+    if 'd:DR3Name' in pdf.columns:
+        gaianame = pdf['d:DR3Name'].values[0]
+    else:
+        gaianame = None
+    cdsxmatch = pdf['d:cdsxmatch'].values[0]
+
+    card = dmc.Paper(
+        [
+            dcc.Markdown(
+                """
+                Constellation: `{}`
+                Class (SIMBAD): `{}`
+                Name (MPC): `{}`
+                Name (Gaia): `{}`
+                Distance (Gaia): `{:.2f}` arcsec
+                Distance (PS1): `{:.2f}` arcsec
+                Distance (ZTF): `{:.2f}` arcsec
+                """.format(
+                    constellation,
+                    cdsxmatch, ssnamenr, gaianame,
+                    float(neargaia), float(distpsnr1), float(distnr)
+                ),
+                className="ps-2 pe-2",
+                id="card_neighbourhood",
+                style={'white-space': 'pre-wrap'}
+            ),
+        ],
+        radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'},
+    )
+
+    return card
+
 # @app.callback(
 #     Output('card_id_col', 'children'),
 #     [
@@ -346,17 +384,6 @@ def card_id(pdf):
     objectid = pdf['i:objectId'].values[0]
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
-
-    distnr = pdf['i:distnr'].values[0]
-    ssnamenr = pdf['i:ssnamenr'].values[0]
-    distpsnr1 = pdf['i:distpsnr1'].values[0]
-    neargaia = pdf['i:neargaia'].values[0]
-    constellation = pdf['v:constellation'].values[0]
-    if 'd:DR3Name' in pdf.columns:
-        gaianame = pdf['d:DR3Name'].values[0]
-    else:
-        gaianame = None
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     python_download = """import requests
 import pandas as pd
@@ -598,28 +625,7 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.AccordionPanel(
                         dmc.Stack(
                             [
-                                dmc.Paper(
-                                    [
-                                        dcc.Markdown(
-                                            """
-                                            ```python
-                                            Constellation: {}
-                                            Class (SIMBAD): {}
-                                            Name (MPC): {}
-                                            Name (Gaia): {}
-                                            Distance (Gaia): {:.2f} arcsec
-                                            Distance (PS1): {:.2f} arcsec
-                                            Distance (ZTF): {:.2f} arcsec
-                                            ```
-                                            """.format(
-                                                constellation,
-                                                cdsxmatch, ssnamenr, gaianame,
-                                                float(neargaia), float(distpsnr1), float(distnr)
-                                            ), className="p-0 m-0"
-                                        ),
-                                    ],
-                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'},
-                                ),
+                                card_neighbourhood(pdf),
                                 *create_external_links(ra0, dec0)
                             ],
                             align='center'
@@ -941,6 +947,8 @@ def card_id1(object_data, object_uppervalid, object_upper):
     else:
         extra_div = html.Div()
 
+    coords = SkyCoord(pdf['i:ra'].values[0], pdf['i:dec'].values[0], unit='deg')
+
     card = dmc.Paper(
         [
             dbc.Row(
@@ -953,15 +961,23 @@ def card_id1(object_data, object_uppervalid, object_upper):
             html.Div(badges),
             dcc.Markdown(
                 """
-                ```python
-                Discovery date: {}
-                Last detection: {}
-                Number of detections: {}
-                Number of low quality alerts: {}
-                Number of upper limits: {}
-                ```
+                Discovery date: `{}`
+                Last detection: `{}`
+                Duration: `{:.2f}` / `{:.2f}` days
+                Detections: `{}` good, `{}` bad, `{}` upper
+                Equ: `{} {}`
                 """.format(
-                    discovery_date, date_end, ndet, nupper_valid, nupper)
+                    discovery_date[:19],
+                    date_end[:19],
+                    jds[0] - jds[-1],
+                    pdf['i:jdendhist'][0] - pdf['i:jdstarthist'][0],
+                    ndet, nupper_valid, nupper,
+                    coords.ra.to_string(pad=True, unit='hour', precision=2, sep=' '),
+                    coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
+                ),
+                dangerously_allow_html=True,
+                style={'white-space': 'pre-wrap'},
+                className="ps-2 pe-2 mt-2"
             ),
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
