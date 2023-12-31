@@ -103,3 +103,8 @@ img[alt=logoexp] { width: 200px; horizontal-align: middle; display: block; margi
   display: inline-block;
   visibility: visible;
 }
+
+/* Remove bottom margin from markdown panels */
+#card_id_left p, #card_neighbourhood p {
+  margin: 0;
+}
