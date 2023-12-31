@@ -516,6 +516,8 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                     'type': 'data',
                     'array': err_dc[pdf['i:fid'] == '1'],
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
@@ -548,6 +550,8 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                     'type': 'data',
                     'array': err_dc[pdf['i:fid'] == '2'],
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
@@ -1102,6 +1106,8 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 1],
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
@@ -1120,6 +1126,8 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 2],
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
@@ -2088,6 +2096,8 @@ def plot_mulens(n_clicks, object_data):
                     'type': 'data',
                     'array': normalised_lightcurves[0][:, 2],
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
@@ -2114,6 +2124,8 @@ def plot_mulens(n_clicks, object_data):
                     'type': 'data',
                     'array': normalised_lightcurves[index][:, 2],
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
@@ -2185,7 +2197,7 @@ def plot_mulens(n_clicks, object_data):
         mulens_params = dmc.Paper(
             [
                 dcc.Markdown(mulens_params),
-            ], radius='sm', p='xs', shadow='sm', withBorder=True
+            ]
         )
 
         return graph, mulens_params, no_update
@@ -2292,6 +2304,8 @@ def draw_sso_lightcurve(pdf) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 1],
             'visible': True,
+            'width': 0,
+            'opacity': 0.5,
             'color': COLORS_ZTF[0]
         },
         'mode': 'markers',
@@ -2328,6 +2342,8 @@ def draw_sso_lightcurve(pdf) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 2],
             'visible': True,
+            'width': 0,
+            'opacity': 0.5,
             'color': COLORS_ZTF[1]
         },
         'mode': 'markers',
@@ -2369,7 +2385,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+    card = dmc.Paper(graph)
     return card
 
 def draw_sso_residual(pdf) -> dict:
@@ -2424,6 +2440,8 @@ def draw_sso_residual(pdf) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 1],
             'visible': True,
+            'width': 0,
+            'opacity': 0.5,
             'color': COLORS_ZTF[0]
         },
         'mode': 'markers',
@@ -2448,6 +2466,8 @@ def draw_sso_residual(pdf) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 2],
             'visible': True,
+            'width': 0,
+            'opacity': 0.5,
             'color': COLORS_ZTF[1]
         },
         'mode': 'markers',
@@ -2505,7 +2525,7 @@ def draw_sso_residual(pdf) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+    card = dmc.Paper(graph)
     return card
 
 def draw_sso_astrometry(pdf) -> dict:
@@ -2597,7 +2617,7 @@ def draw_sso_astrometry(pdf) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+    card = dmc.Paper(graph)
     return card
 
 @app.callback(
@@ -2751,6 +2771,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                         'type': 'data',
                         'array': pdf.loc[cond, 'i:sigmapsf'].values,
                         'visible': True,
+                        'width': 0,
+                        'opacity': 0.5,
                         'color': COLORS_ZTF[i]
                     },
                     'mode': 'markers',
@@ -2797,6 +2819,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                         'type': 'data',
                         'array': pdf.loc[cond, 'i:sigmapsf'].values,
                         'visible': True,
+                        'width': 0,
+                        'opacity': 0.5,
                         'color': COLORS_ZTF[i]
                     },
                     'mode': 'markers',
@@ -2859,6 +2883,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'type': 'data',
                     'array': pdf['i:sigmapsf'].values,
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
@@ -2900,6 +2926,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'type': 'data',
                     'array': pdf['i:sigmapsf'].values,
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
@@ -2977,7 +3005,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             graph2,
             html.Br(),
             table
-        ], radius='xl', p='md', shadow='xl', withBorder=True
+        ]
     )
     return card
 
@@ -3030,6 +3058,8 @@ def draw_tracklet_lightcurve(pdf) -> dict:
                 'type': 'data',
                 'array': err[pdf['i:fid'] == filt],
                 'visible': True,
+                'width': 0,
+                'opacity': 0.5,
                 'color': color
             },
             'mode': 'markers',
@@ -3082,7 +3112,6 @@ def draw_tracklet_lightcurve(pdf) -> dict:
             alert,
             dmc.Paper(
                 graph,
-                radius='xl', p='md', shadow='xl', withBorder=True
             )
         ]
     )
@@ -3147,7 +3176,6 @@ def draw_tracklet_radec(pdf) -> dict:
         [
             dmc.Paper(
                 graph,
-                radius='xl', p='md', shadow='xl', withBorder=True
             )
         ]
     )

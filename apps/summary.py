@@ -167,7 +167,7 @@ def tab3_content():
                             html.Div(id='variable_plot'),
                             html.Br(),
                             card_explanation_variable()
-                        ], radius='xl', p='md', shadow='xl', withBorder=True
+                        ]
                     )
                 ), md=8
             ),
@@ -204,7 +204,7 @@ def tab4_content():
                             html.Div(id='mulens_plot'),
                             html.Br(),
                             card_explanation_mulens()
-                        ], radius='xl', p='md', shadow='xl', withBorder=True
+                        ]
                     )
                 ), md=8
             ),

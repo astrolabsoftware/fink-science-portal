@@ -105,7 +105,7 @@ def card_sn_scores() -> html.Div:
     label_style = {"color": "#000"}
     card = html.Div(
         [
-            dmc.Paper(graph_lc, radius='xl', p='md', shadow='xl', withBorder=True),
+            dmc.Paper(graph_lc),
             html.Br(),
             dmc.Paper(
                 [
@@ -138,7 +138,7 @@ def card_sn_scores() -> html.Div:
                         ]
                     ),
                     help_popover(msg, 'help_sn'),
-                ], radius='xl', p='md', shadow='xl', withBorder=True
+                ]
             ),
         ]
     )
