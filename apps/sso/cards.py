@@ -18,6 +18,7 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from apps.utils import queryMPC, convert_mpc_type
+from apps.utils import help_popover
 
 from app import app, APIURL
 
@@ -119,15 +120,48 @@ curl -H "Content-Type: application/json" -X POST \\
                         ],
                     ),
                     dmc.AccordionPanel(
-                        [
-                            dmc.Paper(
-                                [
-                                    download_tab,
-                                    dcc.Markdown('See {}/api for more options'.format(APIURL)),
-                                ],
-                                radius='xl', p='md', shadow='xl', withBorder=True
-                            )
-                        ],
+                        html.Div(
+                            [
+                                dmc.Group(
+                                    [
+                                        dmc.Button(
+                                            "JSON",
+                                            id='download_sso_json',
+                                            variant="outline",
+                                            color='indigo',
+                                            compact=True,
+                                            leftIcon=[DashIconify(icon="mdi:code-json")],
+                                        ),
+                                        dmc.Button(
+                                            "VOTable",
+                                            id='download_sso_votable',
+                                            variant="outline",
+                                            color='indigo',
+                                            compact=True,
+                                            leftIcon=[DashIconify(icon="mdi:xml")],
+                                        ),
+                                        help_popover(
+                                            [
+                                                dcc.Markdown('You may also download the data programmatically.'),
+                                                download_tab,
+                                                dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                                            ],
+                                            'help_download_sso',
+                                            trigger=dmc.ActionIcon(
+                                                    DashIconify(icon="mdi:help"),
+                                                    id='help_download_sso',
+                                                    variant="outline",
+                                                    color='indigo',
+                                            ),
+                                        ),
+                                        # FIXME: is it correct way to get ssnamenr field?..
+                                        html.Div(str(data.number), id='download_sso_ssnamenr', className='d-none'),
+                                        html.Div(APIURL, id='download_sso_apiurl', className='d-none'),
+                                    ], position="center"
+                                )
+                            ],
+                        ),
+
                     ),
                 ],
                 value='api'
@@ -146,7 +180,7 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Paper(
+                            dmc.Stack(
                                 dbc.Row(
                                     [
                                         dbc.Col(
@@ -182,7 +216,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                     ], justify='around'
                                 ),
-                                radius='xl', p='md', shadow='xl', withBorder=True
+                                align='center'
                             )
                         ],
                     ),
@@ -210,7 +244,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             [
                                 dmc.Paper(
                                     card_properties,
-                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'}
                                 )
                             ],
                         ),
@@ -218,12 +252,57 @@ curl -H "Content-Type: application/json" -X POST \\
                     value='sso'
                 ),
                 *extra_items
-            ], value='sso'
+            ], value='sso',
+            styles={'content':{'padding':'5px'}}
         )
     else:
         card = html.Div()
 
     return card
+
+# Downloads handling. Requires CORS to be enabled on the server.
+# TODO: We are mostly using it like this until GET requests properly initiate
+# downloads instead of just opening the file (so, Content-Disposition etc)
+download_js = """
+function(n_clicks, name, apiurl){
+    if(n_clicks > 0){
+        fetch(apiurl + '/api/v1/sso', {
+            method: 'POST',
+            body: JSON.stringify({
+                 'n_or_d': name,
+                 'withEphem': true,
+                 'output-format': '$FORMAT'
+            }),
+            headers: {
+                'Content-type': 'application/json'
+            }
+        }).then(function(response) {
+            return response.blob();
+        }).then(function(data) {
+            window.saveAs(data, name + '.$EXTENSION');
+        }).catch(error => console.error('Error:', error));
+    };
+    return true;
+}
+"""
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'json').replace('$EXTENSION', 'json'),
+    Output('download_sso_json', 'n_clicks'),
+    [
+        Input('download_sso_json', 'n_clicks'),
+        Input('download_sso_ssnamenr', 'children'),
+        Input('download_sso_apiurl', 'children'),
+    ]
+)
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'votable').replace('$EXTENSION', 'vot'),
+    Output('download_sso_votable', 'n_clicks'),
+    [
+        Input('download_sso_votable', 'n_clicks'),
+        Input('download_sso_ssnamenr', 'children'),
+        Input('download_sso_apiurl', 'children'),
+    ]
+)
 
 def card_sso_mpc_params(data, ssnamenr, kind):
     """ MPC parameters
