@@ -1075,19 +1075,22 @@ def card_search_result(row, i):
     jdstart = row.get('i:jdstarthist')
     lastdate = row.get('i:lastdate', Time(jdend, format='jd').iso)
 
+    coords = SkyCoord(row['i:ra'], row['i:dec'], unit='deg')
+
     text = """
     `{}` detection(s) in `{:.1f}` days
     First: `{}`
     Last: `{}`
-    Eq: `{}`
+    Equ: `{} {}`
     Gal: `{}`
     """.format(
         ndethist,
         jdend - jdstart,
         Time(jdstart, format='jd').iso[:19],
         lastdate[:19],
-        SkyCoord(row['i:ra'], row['i:dec'], unit='deg').to_string(style='hmsdms', sep=' '),
-        SkyCoord(row['i:ra'], row['i:dec'], unit='deg').galactic.to_string(style='decimal'),
+        coords.ra.to_string(pad=True, unit='hour', precision=2, sep=' '),
+        coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
+        coords.galactic.to_string(style='decimal'),
     )
 
     if 'v:separation_degree' in row:
