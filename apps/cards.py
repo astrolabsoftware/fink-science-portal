@@ -146,7 +146,7 @@ def card_lightcurve_summary():
                 ],
                 position='center', align='center'
             )
-        ], radius='xl', p='md', shadow='xl', withBorder=True
+        ]
     )
     return card
 
