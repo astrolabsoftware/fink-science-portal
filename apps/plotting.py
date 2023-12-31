@@ -1149,7 +1149,7 @@ def draw_lightcurve_preview(name) -> dict:
     figure: dict
     """
     cols = [
-        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:isdiffpos', 'd:tag'
     ]
     r = requests.post(
       '{}/api/v1/objects'.format(APIURL),
@@ -1184,9 +1184,9 @@ def draw_lightcurve_preview(name) -> dict:
     layout['showlegend'] = False
 
     hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
+    <b>mjd</b>: %{customdata[0]}
     <extra></extra>
     """
     figure = {
@@ -1214,12 +1214,21 @@ def draw_lightcurve_preview(name) -> dict:
                 },
                 'mode': 'markers',
                 'name': '{} band'.format(fname),
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                'customdata': np.stack(
+                    (
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[idx],
+                        pdf['d:tag'].apply(lambda x: '' if x == 'valid' else ' (low quality)')[idx],
+                    ), axis=-1
+                ),
                 'hovertemplate': hovertemplate,
                 'marker': {
-                    'size': 12,
+                    'size': pdf['d:tag'].apply(lambda x: 12 if x == 'valid' else 6)[idx],
                     'color': color,
-                    'symbol': 'o'}
+                    'symbol': pdf['d:tag'].apply(lambda x: 'o' if x == 'valid' else 'triangle-up')[idx],
+                    'line': {'width': 0},
+                    'opacity': 1,
+                }
             }
         )
 
