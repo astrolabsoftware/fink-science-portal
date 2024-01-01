@@ -143,7 +143,7 @@ So you may e.g. search for:
 - Asteroids by designation
   - `2010JO69`, `2017AD19`, `2012XK111`
 - Comets by number
-  - `10P, `249P`, `124P`
+  - `10P`, `249P`, `124P`
 - Comets by designation
   - `C/2020V2`, `C/2020R2`
 
