@@ -3368,6 +3368,7 @@ def alert_properties(object_data, clickData):
         markdown_options={'link_target': '_blank'},
         # fixed_columns={'headers': True},#, 'data': 1},
         persistence=True,
+        persistence_type='memory',
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },

@@ -457,6 +457,24 @@ curl -H "Content-Type: application/json" -X POST \\
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
+                        "Alert content",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:file-description",
+                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        html.Div([], id='alert_table'),
+                    ),
+                ],
+                value='last_alert'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
                         "Coordinates",
                         icon=[
                             DashIconify(
@@ -488,24 +506,6 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                 ],
                 value='coordinates'
-            ),
-            dmc.AccordionItem(
-                [
-                    dmc.AccordionControl(
-                        "Alert content",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:file-description",
-                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
-                                width=20,
-                            )
-                        ],
-                    ),
-                    dmc.AccordionPanel(
-                        html.Div([], id='alert_table'),
-                    ),
-                ],
-                value='last_alert'
             ),
             dmc.AccordionItem(
                 [
@@ -632,7 +632,7 @@ curl -H "Content-Type: application/json" -X POST \\
                 value='qr'
             ),
         ],
-        value='stamps',
+        value=['stamps'],
         styles={'content':{'padding':'5px'}}
     )
 
