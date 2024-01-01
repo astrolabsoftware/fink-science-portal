@@ -93,7 +93,8 @@ layout_lightcurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -143,8 +144,8 @@ layout_phase = dict(
     legend=dict(
         font=dict(size=10),
         orientation="h",
-        # yanchor="bottom",
-        # y=0.02,
+        yanchor="bottom",
+        y=1.02,
         xanchor="right",
         x=1,
         bgcolor='rgba(218, 223, 225, 0.3)'
@@ -274,7 +275,8 @@ layout_sso_lightcurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -300,7 +302,8 @@ layout_sso_astrometry = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -327,7 +330,8 @@ layout_sso_phasecurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -358,7 +362,8 @@ layout_sso_phasecurve_residual = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -384,7 +389,8 @@ layout_sso_radec = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     yaxis={
@@ -410,7 +416,8 @@ layout_tracklet_lightcurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        # y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     yaxis={
@@ -1590,7 +1597,7 @@ def draw_t2(object_data) -> dict:
         msg = """
         No classification from T2 yet
         """
-        out = dbc.Alert(msg, color="danger")
+        out = dmc.Alert(msg, color="red")
     else:
         figure = go.Figure(
             data=go.Scatterpolar(
@@ -2200,29 +2207,41 @@ app.callback([
 @app.callback(
     [
         Output('mulens_plot', 'children'),
-        Output('mulens_params', 'children'),
-        Output('submit_mulens', 'children'),
+        Output("card_explanation_mulens", "value"),
     ],
+    Input('submit_mulens', 'n_clicks'),
     [
-        Input('submit_mulens', 'n_clicks'),
-        Input('object-data', 'children')
-    ])
+        State('object-data', 'children')
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output('submit_mulens', 'disabled'), True, False),
+        (Output('submit_mulens', 'loading'), True, False),
+    ],
+)
 def plot_mulens(n_clicks, object_data):
     """ Fit for microlensing event
 
     TODO: implement a fit using pyLIMA
     """
-    if n_clicks is not None:
-        pdf_ = pd.read_json(object_data)
-        cols = [
-            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:ra', 'i:dec',
-            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
-        ]
-        pdf = pdf_.loc[:, cols]
-        pdf['i:fid'] = pdf['i:fid'].astype(str)
-        pdf = pdf.sort_values('i:jd', ascending=False)
+    if not n_clicks:
+        raise PreventUpdate
 
-        mag_dc, err_dc = np.transpose(
+    pdf_ = pd.read_json(object_data)
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:ra', 'i:dec', 'i:distnr',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
+    ]
+    pdf = pdf_.loc[:, cols]
+    pdf['i:fid'] = pdf['i:fid']
+    pdf = pdf.sort_values('i:jd', ascending=False)
+
+    # Should we correct DC magnitudes for the nearby source?..
+    is_dc_corrected = is_source_behind(pdf['i:distnr'].values[0])
+
+    if is_dc_corrected:
+        mag, err = np.transpose(
             [
                 dc_mag(*args) for args in zip(
                     pdf['i:magpsf'].astype(float).values,
@@ -2233,109 +2252,99 @@ def plot_mulens(n_clicks, object_data):
                 )
             ]
         )
+        # Keep only "good" measurements
+        idx = err < 1
+        pdf, mag, err = [_[idx] for _ in [pdf, mag, err]]
+    else:
+        mag, err = pdf['i:magpsf'], pdf['i:sigmapsf']
 
-        current_event = event.Event()
-        current_event.name = pdf['i:objectId'].values[0]
+    current_event = event.Event()
+    current_event.name = pdf['i:objectId'].values[0]
 
-        current_event.ra = pdf['i:ra'].values[0]
-        current_event.dec = pdf['i:dec'].values[0]
+    current_event.ra = pdf['i:ra'].values[0]
+    current_event.dec = pdf['i:dec'].values[0]
 
-        filts = {'1': 'g', '2': 'r'}
-        for fid in np.unique(pdf['i:fid'].values):
-            mask = pdf['i:fid'].values == fid
-            telescope = telescopes.Telescope(
-                name='ztf_{}'.format(filts[fid]),
-                camera_filter=format(filts[fid]),
-                light_curve_magnitude=np.transpose(
-                    [
-                        pdf['i:jd'].values[mask],
-                        mag_dc[mask],
-                        err_dc[mask]
-                    ]
-                ),
-                light_curve_magnitude_dictionnary={
-                    'time': 0,
-                    'mag': 1,
-                    'err_mag': 2
+    filts = {1: 'g', 2: 'r'}
+    for fid in np.unique(pdf['i:fid'].values):
+        mask = pdf['i:fid'].values == fid
+        telescope = telescopes.Telescope(
+            name='ztf_{}'.format(filts[fid]),
+            camera_filter=format(filts[fid]),
+            light_curve_magnitude=np.transpose(
+                [
+                    pdf['i:jd'].values[mask],
+                    mag[mask],
+                    err[mask]
+                ]
+            ),
+            light_curve_magnitude_dictionnary={
+                'time': 0,
+                'mag': 1,
+                'err_mag': 2
+            }
+        )
+
+        current_event.telescopes.append(telescope)
+
+    # Le modele le plus simple
+    mulens_model = microlmodels.create_model('PSPL', current_event)
+
+    current_event.fit(mulens_model, 'DE')
+
+    # 4 parameters
+    dof = len(pdf) - 4 - 1
+
+    results = current_event.fits[0]
+
+    normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
+
+    # Model
+    create_the_fake_telescopes(results, results.fit_results)
+
+    telescope_ = results.event.fake_telescopes[0]
+
+    flux_model = mulens_model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
+
+    time = telescope_.lightcurve_flux[:, 0]
+    magnitude = microltoolbox.flux_to_magnitude(flux_model)
+
+    figure = {
+        'data': [],
+        "layout": copy.deepcopy(layout_mulens)
+    }
+
+    index = 0
+
+    for fid,fname,color in (
+            (1, "g", COLORS_ZTF[0]),
+            (2, "r", COLORS_ZTF[1])
+    ):
+        if fid in np.unique(pdf['i:fid'].values):
+            figure['data'].append(
+                {
+                    'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
+                    'y': normalised_lightcurves[index][:, 1],
+                    'error_y': {
+                        'type': 'data',
+                        'array': normalised_lightcurves[index][:, 2],
+                        'visible': True,
+                        'width': 0,
+                        'opacity': 0.5,
+                        'color': color
+                    },
+                    'mode': 'markers',
+                    'name': 'g band',
+                    'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
+                    'marker': {
+                        'size': 12,
+                        'color': color,
+                        'symbol': 'o'}
                 }
             )
+            index += 1
 
-            current_event.telescopes.append(telescope)
-
-        # Le modele le plus simple
-        mulens_model = microlmodels.create_model('PSPL', current_event)
-
-        current_event.fit(mulens_model, 'DE')
-
-        # 4 parameters
-        dof = len(pdf) - 4 - 1
-
-        results = current_event.fits[0]
-
-        normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
-
-        # Model
-        create_the_fake_telescopes(results, results.fit_results)
-
-        telescope_ = results.event.fake_telescopes[0]
-
-        flux_model = mulens_model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
-
-        time = telescope_.lightcurve_flux[:, 0]
-        magnitude = microltoolbox.flux_to_magnitude(flux_model)
-
-        if '1' in np.unique(pdf['i:fid'].values):
-            plot_filt1 = {
-                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:, 0]],
-                'y': normalised_lightcurves[0][:, 1],
-                'error_y': {
-                    'type': 'data',
-                    'array': normalised_lightcurves[0][:, 2],
-                    'visible': True,
-                    'width': 0,
-                    'opacity': 0.5,
-                    'color': COLORS_ZTF[0]
-                },
-                'mode': 'markers',
-                'name': 'g band',
-                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:, 0]],
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[0],
-                    'symbol': 'o'}
-            }
-        else:
-            plot_filt1 = {}
-
-        if '2' in np.unique(pdf['i:fid'].values):
-            # only filter r
-            if len(np.unique(pdf['i:fid'].values)) == 1:
-                index = 0
-            else:
-                index = 1
-            plot_filt2 = {
-                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
-                'y': normalised_lightcurves[index][:, 1],
-                'error_y': {
-                    'type': 'data',
-                    'array': normalised_lightcurves[index][:, 2],
-                    'visible': True,
-                    'width': 0,
-                    'opacity': 0.5,
-                    'color': COLORS_ZTF[1]
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[1],
-                    'symbol': 'o'}
-            }
-        else:
-            plot_filt2 = {}
-
-        fit_filt = {
+    figure['data'].append(
+        {
             'x': [convert_jd(float(t), to='iso') for t in time],
             'y': magnitude,
             'mode': 'lines',
@@ -2345,61 +2354,59 @@ def plot_mulens(n_clicks, object_data):
                 'color': '#7f7f7f',
             }
         }
+    )
 
-        figure = {
-            'data': [
-                fit_filt,
-                plot_filt1,
-                plot_filt2
-            ],
-            "layout": layout_mulens
-        }
-
-        if sum([len(i) for i in figure['data']]) > 0:
-            graph = dcc.Graph(
-                figure=figure,
-                style={
-                    'width': '100%',
-                    'height': '25pc'
-                },
-                config={'displayModeBar': False}
-            )
-        else:
-            graph = ""
-
-        # fitted parameters
-        names = results.model.model_dictionnary
-        params = results.fit_results
-        err = np.diag(np.sqrt(results.fit_covariance))
-
-        mulens_params = """
-        ```python
-        # Fitted parameters
-        t0: {} +/- {} (jd)
-        tE: {} +/- {} (days)
-        u0: {} +/- {}
-        chi2/dof: {}
-        ```
-        """.format(
-            params[names['to']],
-            err[names['to']],
-            params[names['tE']],
-            err[names['tE']],
-            params[names['uo']],
-            err[names['uo']],
-            params[-1] / dof
+    if len(figure['data']):
+        graph = dcc.Graph(
+            figure=figure,
+            style={
+                'width': '100%',
+                'height': '25pc'
+            },
+            config={'displayModeBar': False}
         )
+    else:
+        graph = ""
 
-        mulens_params = dmc.Paper(
-            [
-                dcc.Markdown(mulens_params),
-            ]
-        )
+    # fitted parameters
+    names = results.model.model_dictionnary
+    params = results.fit_results
+    err = np.diag(np.sqrt(results.fit_covariance))
 
-        return graph, mulens_params, no_update
+    mulens_params = """
+    t0: `{}` +/- `{}` (jd)
+    tE: `{}` +/- `{}` (days)
+    u0: `{}` +/- `{}`
+    chi2/dof: `{}`
+    """.format(
+        params[names['to']],
+        err[names['to']],
+        params[names['tE']],
+        err[names['tE']],
+        params[names['uo']],
+        err[names['uo']],
+        params[-1] / dof
+    )
 
-    mulens_params = ""
-    return "", mulens_params, no_update
+    mulens_params = dmc.Paper(
+        [
+            dcc.Markdown(
+                mulens_params,
+                className='markdown markdown-pre'
+            ),
+        ]
+    )
+
+    # Layout
+    results = dmc.Stack(
+        [
+            graph,
+            mulens_params
+        ],
+        align='center'
+    )
+
+    return results, None
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('object-data', 'children'))
