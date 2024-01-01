@@ -166,7 +166,10 @@ def populate_result_table_gw(data, columns):
     return table
 
 @app.callback(
-    Output("gw-table", "children"),
+    [
+        Output("gw-table", "children"),
+        Output("card_explanation", "value"),
+    ],
     [
         Input('gw-loading-button', 'n_clicks'),
         Input('gw-data', 'data'),
@@ -190,7 +193,7 @@ def show_table(nclick, gw_data, superevent_name, searchurl):
             title='Oops!',
             color="red",
             withCloseButton=True
-        )
+        ), "info"
 
     if gw_data == "error":
         return dmc.Alert(
@@ -198,7 +201,7 @@ def show_table(nclick, gw_data, superevent_name, searchurl):
             title='Oops!',
             color="red",
             withCloseButton=True
-        )
+        ), "info"
 
     pdf = pd.read_json(gw_data)
     if pdf.empty:
@@ -207,7 +210,7 @@ def show_table(nclick, gw_data, superevent_name, searchurl):
             title='Oops!',
             color="red",
             withCloseButton=True
-        )
+        ), "info"
     else:
         colnames_to_display = {
             'i:objectId': 'objectId',
@@ -230,7 +233,7 @@ def show_table(nclick, gw_data, superevent_name, searchurl):
 
         table = populate_result_table_gw(data, columns)
 
-        return table
+        return table, None
 
 def card_explanation():
     """ Explain what is used to fit for variable stars
@@ -256,12 +259,23 @@ def card_explanation():
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionControl("Information"),
+                    dmc.AccordionControl(
+                        "Information",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:help-hexagon",
+                                color="#3C8DFF",
+                                width=20,
+                            )
+                        ],
+                    ),
                     dmc.AccordionPanel(dcc.Markdown(msg, link_target="_blank")),
                 ],
                 value="info"
             ),
-        ]
+        ],
+        value="info",
+        id="card_explanation"
     )
     return card
 
@@ -537,7 +551,7 @@ def layout():
                                 [
                                     html.Div(id='gw-table'),
                                     card_explanation()
-                                ], radius='xl', p='md', shadow='xl', withBorder=True
+                                ]
                             ),
                         ], md=9
                     ),
