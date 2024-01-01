@@ -1937,41 +1937,6 @@ def draw_cutouts(clickData, object_data):
 
     return figs
 
-@app.callback(
-    Output("stamps_modal_content", "children"),
-    [
-        Input('object-data', 'children'),
-        Input('date_modal_select', 'value'),
-        Input("stamps_modal", "is_open")
-    ],
-)
-def draw_cutouts_modal(object_data, date_modal_select, is_open):
-    """ Draw cutouts data based on lightcurve data
-    """
-    if not is_open:
-        raise PreventUpdate
-
-    figs = []
-    for kind in ['science', 'template', 'difference']:
-        try:
-            data = extract_cutout(object_data, date_modal_select, kind=kind)
-            figs.append(
-                dmc.Tooltip(
-                    children=draw_cutout(data, kind, modal=True),
-                    radius='xl',
-                    position='top',
-                    multiline=True,
-                    transition="fade",
-                    transitionDuration=200,
-                    label=kind,
-                    zIndex=10000001
-                )
-            )
-        except OSError:
-            data = dcc.Markdown("Load fail, refresh the page")
-            figs.append(data)
-    return figs
-
 def draw_cutouts_quickview(name, kinds=['science']):
     """ Draw Science cutout data for the preview service
     """
@@ -2089,7 +2054,7 @@ def plain_normalizer(img: list, vmin: float, vmax: float, stretch='linear', pmin
 
     return data
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False, zoom=True):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -2132,31 +2097,31 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False, zoom=Tru
     fig.update_layout(width=shape[1], height=shape[0])
     fig.update_layout(yaxis={'scaleanchor':'x', 'scaleratio':1})
 
-    if not modal:
-        style = {'display':'block', 'aspect-ratio': '1', 'margin': '1px'}
-        classname = 'zoom'
-        classname = ''
+    style = {'display':'block', 'aspect-ratio': '1', 'margin': '1px'}
+    classname = 'zoom'
+    classname = ''
 
-        graph = dcc.Graph(
-            id={'type':'stamp', 'id':title} if zoom else 'undefined',
-            figure=fig,
-            style=style,
-            config={'displayModeBar': False},
-            className=classname,
-            responsive=True
-        )
-    else:
-        style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
-        graph = dcc.Graph(
-            id={'type':'stamp_modal', 'id':title} if zoom else 'undefined',
-            figure=fig,
-            style=style,
-            config={'displayModeBar': False},
-            responsive=True
-        )
+    graph = dcc.Graph(
+        id={'type':'stamp', 'id':title} if zoom else 'undefined',
+        figure=fig,
+        style=style,
+        config={'displayModeBar': False},
+        className=classname,
+        responsive=True
+    )
 
     return graph
 
+app.callback([
+        Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
+        Output({'type': 'stamp', 'id': ALL}, 'figure'),
+    ],
+    [
+        Input({'type': 'stamp', 'id': ALL}, 'relayoutData'),
+    ],
+    State({'type': 'stamp', 'id': ALL}, 'figure'),
+    prevent_initial_call=True
+)
 def zoom_cutouts(relayout_data, figure_states):
     # Code from https://stackoverflow.com/a/70405707
     unique_data = None
@@ -2181,28 +2146,6 @@ def zoom_cutouts(relayout_data, figure_states):
         return [unique_data] * len(relayout_data), figure_states
 
     return relayout_data, figure_states
-
-app.callback([
-        Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
-        Output({'type': 'stamp', 'id': ALL}, 'figure'),
-    ],
-    [
-        Input({'type': 'stamp', 'id': ALL}, 'relayoutData'),
-    ],
-    State({'type': 'stamp', 'id': ALL}, 'figure'),
-    prevent_initial_call=True
-)(zoom_cutouts)
-
-app.callback([
-        Output({'type': 'stamp_modal', 'id': ALL}, 'relayoutData'),
-        Output({'type': 'stamp_modal', 'id': ALL}, 'figure'),
-    ],
-    [
-        Input({'type': 'stamp_modal', 'id': ALL}, 'relayoutData'),
-    ],
-    State({'type': 'stamp_modal', 'id': ALL}, 'figure'),
-    prevent_initial_call=True
-)(zoom_cutouts)
 
 @app.callback(
     [
