@@ -164,6 +164,13 @@ Examples:
 - `last=10 class="Early SN Ia candidate"` - return 10 latest arly SN Ia candidates
 - `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-15 04:00:00"` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023
 
+##### Random objects
+
+To get random subset of objects just specify the amount of them you want to get using keyword `random`. You may also refine it by adding the class using `class` keyword.
+
+Examples:
+- `random=10 class=Unknown` - return 10 random objects of class `Unknown`
+
 """
 
 msg_info = """
@@ -192,7 +199,8 @@ quick_fields = [
     # ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
     ['after', 'Lower timit on alert time\nISO time, MJD or JD'],
     ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
-    ['window', 'Time window length\nDays']
+    ['window', 'Time window length\nDays'],
+    ['random', 'Number of random objects to show'],
 ]
 
 fink_search_bar = [
@@ -1214,6 +1222,34 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
         r = requests.post(
             '{}/api/v1/anomaly'.format(APIURL),
+            json=payload
+        )
+
+    elif query['action'] == 'random':
+        n_random = int(query['params'].get('random', 100))
+
+        msg = "Random {} objects".format(n_random)
+
+        payload = {
+            'n': n_random
+        }
+
+        if 'class' in query['params']:
+            alert_class = query['params']['class']
+
+            msg += ' with class {}'.format(alert_class)
+
+            payload['class'] = alert_class
+
+        if 'seed' in query['params']:
+            seed = query['params']['seed']
+
+            msg += ' seed {}'.format(seed)
+
+            payload['seed'] = seed
+
+        r = requests.post(
+            '{}/api/v1/random'.format(APIURL),
             json=payload
         )
 

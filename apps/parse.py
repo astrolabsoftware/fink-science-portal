@@ -318,6 +318,10 @@ def parse_query(string, timeout=None):
         query['action'] = 'anomaly'
         query['hint'] = 'Anomaly search'
 
+    elif 'random' in query['params']:
+        query['action'] = 'random'
+        query['hint'] = 'Random search / {} objects'.format(query['params']['random'])
+
     elif 'class' in query['params']:
         query['action'] = 'class'
         query['hint'] = 'Class based search / {}'.format(query['params']['class'])
@@ -325,7 +329,7 @@ def parse_query(string, timeout=None):
     elif 'last' in query['params']:
         query['action'] = 'class'
         query['params']['class'] = 'All classes'
-        query['hint'] = 'Latest objects / {}'.format(query['params']['last'])
+        query['hint'] = 'Latest objects / {}, {} objects'.format(query['params']['class'], query['params']['last'])
 
     elif 'after' in query['params']:
         query['action'] = 'daterange'
