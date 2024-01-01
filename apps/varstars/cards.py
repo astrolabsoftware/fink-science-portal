@@ -39,19 +39,29 @@ def card_explanation_variable():
     We use a multiband periodogram (LombScargleMultiband) to find the best period.
     Alternatively, you can manually set the period in days.
 
-    The title of the plot will give you the fitted period, and a score for the fit.
+    Below the plot you will see the fitted period, and a score for the fit.
     The score is between 0 (poor fit) and 1 (excellent fit).
     """
     card = dmc.Accordion(
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionControl("How to make a fit?"),
+                    dmc.AccordionControl(
+                        "How to make a fit?",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:help-hexagon",
+                                color="#3C8DFF",
+                                width=20,
+                            )
+                        ],
+                    ),
                     dmc.AccordionPanel(dcc.Markdown(msg)),
                 ],
                 value="info"
             ),
-        ], value='info'
+        ], value='info',
+        id='card_explanation_variable'
     )
     return card
 
