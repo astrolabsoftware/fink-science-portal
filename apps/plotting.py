@@ -25,6 +25,7 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord
 import requests
 
+import dash
 from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL
 import plotly.graph_objects as go
 import plotly.express as px
@@ -142,24 +143,21 @@ layout_phase = dict(
     legend=dict(
         font=dict(size=10),
         orientation="h",
-        yanchor="bottom",
-        y=0.02,
+        # yanchor="bottom",
+        # y=0.02,
         xanchor="right",
         x=1,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
-        'title': 'Phase'
+        'title': 'Phase',
+        'zeroline': False
     },
     yaxis={
         'autorange': 'reversed',
-        'title': 'Apparent DC Magnitude'
+        'title': 'Apparent DC Magnitude',
+        'zeroline': False
     },
-    title={
-        "text": "Phased data",
-        "y": 1.01,
-        "yanchor": "bottom"
-    }
 )
 
 layout_mulens = dict(
@@ -430,43 +428,70 @@ layout_tracklet_lightcurve = dict(
 @app.callback(
     [
         Output('variable_plot', 'children'),
-        Output("submit_variable", "children"),
+        Output("card_explanation_variable", "value"),
     ],
+    Input('submit_variable', 'n_clicks'),
     [
-        Input('nterms_base', 'value'),
-        Input('nterms_band', 'value'),
-        Input('manual_period', 'value'),
-        Input('submit_variable', 'n_clicks'),
-        Input('object-data', 'children'),
+        State('nterms_base', 'value'),
+        State('nterms_band', 'value'),
+        State('manual_period', 'value'),
+        State('period_min', 'value'),
+        State('period_max', 'value'),
+        State('object-data', 'children'),
+        State('object-release', 'children'),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output('submit_variable', 'disabled'), True, False),
+        (Output('submit_variable', 'loading'), True, False),
+    ],
 )
-def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object_data):
+def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period_min, period_max, object_data, object_release):
     """ Fit for the period of a star using gatspy
 
     See https://zenodo.org/record/47887
     See https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
-
-    TODO: clean me
     """
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if triggered_id != 'submit_variable':
+        raise PreventUpdate
+
+    # Safety checks - opens the help panel if they fails
     if type(nterms_base) not in [int]:
-        return {'data': [], "layout": layout_phase}
+        return None, 'info'
     if type(nterms_band) not in [int]:
-        return {'data': [], "layout": layout_phase}
+        return None, 'info'
     if manual_period is not None and type(manual_period) not in [int, float]:
-        return {'data': [], "layout": layout_phase}
+        return None, 'info'
+    if period_min is not None and type(period_min) not in [int, float]:
+        return None, 'info'
+    if period_max is not None and type(period_max) not in [int, float]:
+        return None, 'info'
 
-    if n_clicks is not None:
-        pdf_ = pd.read_json(object_data)
-        cols = [
-            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
-        ]
-        pdf = pdf_.loc[:, cols]
-        pdf['i:fid'] = pdf['i:fid'].astype(str)
-        pdf = pdf.sort_values('i:jd', ascending=False)
+    # Prepare the data
+    pdf_ = pd.read_json(object_data)
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:distnr',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
+    ]
+    pdf = pdf_.loc[:, cols]
+    pdf = pdf.sort_values('i:jd', ascending=False)
 
-        mag_dc, err_dc = np.transpose(
+    # Data release?..
+    if object_release:
+        pdf_release = pd.read_json(object_release)
+        pdf_release = pdf_release.sort_values('mjd', ascending=False)
+        dates_release = pdf_release['mjd'].apply(lambda x: convert_jd(float(x)+2400000.5, to='iso'))
+    else:
+        pdf_release = pd.DataFrame()
+
+    # Should we correct DC magnitudes for the nearby source?..
+    is_dc_corrected = is_source_behind(pdf['i:distnr'].values[0])
+
+    if is_dc_corrected:
+        mag, err = np.transpose(
             [
                 dc_mag(*args) for args in zip(
                     pdf['i:magpsf'].astype(float).values,
@@ -477,127 +502,298 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                 )
             ]
         )
+        # Keep only "good" measurements
+        idx = err < 1
+        pdf, mag, err = [_[idx] for _ in [pdf, mag, err]]
+    else:
+        mag, err = pdf['i:magpsf'], pdf['i:sigmapsf']
 
-        jd = pdf['i:jd']
-        fit_period = False if manual_period is not None else True
-        model = periodic.LombScargleMultiband(
-            Nterms_base=int(nterms_base),
-            Nterms_band=int(nterms_band),
-            fit_period=fit_period
-        )
+    jd = pdf['i:jd'].astype(float)
+    dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
 
-        # Not sure about that...
-        model.optimizer.period_range = (0.1, 1.2)
-        model.optimizer.quiet = True
+    fit_period = False if manual_period is not None else True
+    model = periodic.LombScargleMultiband(
+        Nterms_base=int(nterms_base),
+        Nterms_band=int(nterms_band),
+        fit_period=fit_period
+    )
 
-        model.fit(
-            jd.astype(float),
-            mag_dc,
-            err_dc,
-            pdf['i:fid'].astype(int)
-        )
+    # Not sure about that...
+    model.optimizer.period_range = (period_min, period_max)
+    model.optimizer.quiet = True
 
-        if fit_period:
-            period = model.best_period
-        else:
-            period = manual_period
+    model.fit(
+        jd,
+        mag,
+        err,
+        pdf['i:fid']
+    )
 
-        phase = jd.astype(float).values % period
-        tfit = np.linspace(0, period, 100)
+    if fit_period:
+        period = model.best_period
+    else:
+        period = manual_period
 
-        layout_phase_ = copy.deepcopy(layout_phase)
-        layout_phase_['title']['text'] = 'Period: {} days - score: {:.2f}'.format(period, model.score(period))
+    phase = jd % period
+    tfit = np.linspace(0, period, 100)
+    tfit_unfolded = np.linspace(
+        np.min(jd), np.max(jd),
+        # Between 100 and 10000 points, to hopefully have 10 per period
+        min(10000, max(100, int(10*(np.max(jd) - np.min(jd))/period)))
+    )
+    dates_unfolded = [convert_jd(float(x), to='iso') for x in tfit_unfolded]
 
-        if '1' in np.unique(pdf['i:fid'].values):
-            plot_filt1 = {
-                'x': phase[pdf['i:fid'] == '1'],
-                'y': mag_dc[pdf['i:fid'] == '1'],
+    # Initialize figures
+    figure, figure_unfolded, figure_periodogram = [
+        {
+            "data": [],
+            "layout": copy.deepcopy(layout_phase)
+        } for _ in range(3)
+    ]
+
+    figure_unfolded['layout']['xaxis']['title'] = 'Observation date'
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}
+    <extra></extra>
+    """
+
+    hovertemplate_model = r"""
+    <b>%{yaxis.title.text}</b>:%{y:.2f}<br>
+    <extra></extra>
+    """
+
+    hovertemplate_unfolded = r"""
+    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <extra></extra>
+    """
+
+    for fid,fname,color in (
+            (1, "g", COLORS_ZTF[0]),
+            (2, "r", COLORS_ZTF[1])
+    ):
+        if fid in np.unique(pdf['i:fid'].values):
+            # Original data
+            idx = pdf['i:fid'] == fid
+            figure['data'].append({
+                'x': phase[idx] / period,
+                'y': mag[idx],
                 'error_y': {
                     'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '1'],
+                    'array': err[idx],
                     'visible': True,
                     'width': 0,
                     'opacity': 0.5,
-                    'color': COLORS_ZTF[0]
+                    'color': color
                 },
                 'mode': 'markers',
-                'name': 'g band',
-                'text': phase[pdf['i:fid'] == '1'],
+                'name': '{} band'.format(fname),
+                'legendgroup': "{} band".format(fname),
+                'hovertemplate': hovertemplate,
                 'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[0],
+                    'size': 10,
+                    'color': color,
                     'symbol': 'o'}
-            }
-            fit_filt1 = {
-                'x': tfit,
-                'y': model.predict(tfit, period=period, filts=1),
-                'mode': 'lines',
-                'name': 'fit g band',
-                'showlegend': False,
-                'line': {
-                    'color': COLORS_ZTF[0],
-                }
-            }
-        else:
-            plot_filt1 = {}
-            fit_filt1 = {}
+            })
 
-        if '2' in np.unique(pdf['i:fid'].values):
-            plot_filt2 = {
-                'x': phase[pdf['i:fid'] == '2'],
-                'y': mag_dc[pdf['i:fid'] == '2'],
+            # Release data
+            if not pdf_release.empty:
+                idxr = pdf_release['filtercode'] == 'z' + fname
+                figure['data'].append(
+                    {
+                        'x': ((pdf_release['mjd'][idxr] + 2400000.5) % period) / period,
+                        'y': pdf_release['mag'][idxr],
+                        'error_y': {
+                            'type': 'data',
+                            'array': pdf_release['magerr'][idxr],
+                            'visible': True,
+                            'width': 0,
+                            'opacity': 0.25,
+                            'color': color
+                        },
+                        'mode': 'markers',
+                        'name': '',
+                        'hovertemplate': hovertemplate,
+                        "legendgroup": "{} band release".format(fname),
+                        'marker': {
+                            'color': color,
+                            'symbol': '.'
+                        },
+                        'opacity': 0.5,
+                        # 'showlegend': False
+                    }
+                )
+
+                figure_unfolded['data'].append(
+                    {
+                        'x': dates_release[idxr],
+                        'y': pdf_release['mag'][idxr],
+                        'error_y': {
+                            'type': 'data',
+                            'array': pdf_release['magerr'][idxr],
+                            'visible': True,
+                            'width': 0,
+                            'opacity': 0.25,
+                            'color': color
+                        },
+                        'mode': 'markers',
+                        'name': '',
+                        'hovertemplate': hovertemplate,
+                        "legendgroup": "{} band release".format(fname),
+                        'marker': {
+                            'color': color,
+                            'symbol': '.'
+                        },
+                        'opacity': 0.5,
+                        # 'showlegend': False
+                    }
+                )
+
+
+            # Original data, unfolded
+            figure_unfolded['data'].append({
+                'x': dates[idx],
+                'y': mag[idx],
                 'error_y': {
                     'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '2'],
+                    'array': err[idx],
                     'visible': True,
                     'width': 0,
                     'opacity': 0.5,
-                    'color': COLORS_ZTF[1]
+                    'color': color
                 },
                 'mode': 'markers',
-                'name': 'r band',
-                'text': phase[pdf['i:fid'] == '2'],
+                'name': '{} band'.format(fname),
+                'legendgroup': "{} band".format(fname),
+                'hovertemplate': hovertemplate_unfolded,
                 'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[1],
+                    'size': 10,
+                    'color': color,
                     'symbol': 'o'}
-            }
-            fit_filt2 = {
-                'x': tfit,
-                'y': model.predict(tfit, period=period, filts=2),
+            })
+
+            # Model
+            magfit = model.predict(tfit, period=period, filts=fid)
+            figure['data'].append({
+                'x': tfit / period,
+                'y': magfit,
                 'mode': 'lines',
-                'name': 'fit r band',
+                'name': 'fit {} band'.format(fname),
+                'legendgroup': "{} band".format(fname),
+                'hovertemplate': hovertemplate_model,
                 'showlegend': False,
                 'line': {
-                    'color': COLORS_ZTF[1],
+                    'color': color,
+                    'opacity': 0.5,
+                    'width': 2,
                 }
-            }
-        else:
-            plot_filt2 = {}
-            fit_filt2 = {}
+            })
 
-        figure = {
-            'data': [
-                plot_filt1,
-                fit_filt1,
-                plot_filt2,
-                fit_filt2
-            ],
-            "layout": layout_phase_
+            # Model, unfolded
+            magfit = model.predict(tfit_unfolded, period=period, filts=fid)
+            figure_unfolded['data'].append({
+                'x': dates_unfolded,
+                'y': magfit,
+                'mode': 'lines',
+                'name': 'fit {} band'.format(fname),
+                'legendgroup': "{} band".format(fname),
+                'hovertemplate': hovertemplate_model,
+                'showlegend': False,
+                'line': {
+                    'color': color,
+                    'opacity': 0.5,
+                    'width': 0.5,
+                }
+            })
+
+    # Periodogram
+    # periods,powers = model.periodogram_auto()
+    periods = 1/np.linspace(1/period_max, 1/period_min, 10000)
+    powers = model.periodogram(periods)
+
+    figure_periodogram['layout']['xaxis']['title'] = 'Period, days'
+    figure_periodogram['layout']['xaxis']['type'] = 'log'
+    figure_periodogram['layout']['yaxis']['title'] = 'Periodogram'
+    figure_periodogram['layout']['yaxis']['autorange'] = True
+
+    figure_periodogram['data'] = [
+        {
+            'x': periods,
+            'y': powers,
+            'mode': 'lines',
+            'name': 'Multiband LS periodogram',
+            'legendgroup': 'periodogram',
+            'hovertemplate': '<b>Period</b>: %{x}<extra></extra>',
+            'showlegend': False,
+            'line': {
+                'color': '#3C8DFF',
+            }
         }
-        graph = dcc.Graph(
-            figure=figure,
+    ]
+
+    figure_periodogram['layout']['shapes'] = [
+        {
+            'type': 'line',
+            'xref': 'x',
+            'x0': period, 'x1': period,
+            'yref': 'paper', 'y0': 0, 'y1': 1,
+            'line': {'color': '#F5622E', 'dash': 'dash', 'width': 1},
+        }
+    ]
+
+    # Graphs
+    graph, graph_unfolded, graph_periodogram = [
+        dcc.Graph(
+            figure=fig,
             style={
                 'width': '100%',
                 'height': '25pc'
             },
-            config={'displayModeBar': False}
-        )
+            config={'displayModeBar': False},
+            responsive=True
+        ) for fig in [figure, figure_unfolded, figure_periodogram]
+    ]
 
-        return graph, no_update
+    # Layout
+    results = dmc.Stack(
+        [
+            dmc.Tabs(
+                [
+                    dmc.TabsList(
+                        [
+                            dmc.Tab("Folded", value="folded"),
+                            dmc.Tab("Unfolded", value="unfolded"),
+                            dmc.Tab("Periodogram", value="periodogram"),
+                        ]
+                    ),
+                    dmc.TabsPanel(
+                        graph,
+                        value="folded"
+                    ),
+                    dmc.TabsPanel(
+                        graph_unfolded,
+                        value="unfolded"
+                    ),
+                    dmc.TabsPanel(
+                        graph_periodogram,
+                        value="periodogram"
+                    ),
+                ],
+                value="folded",
+                style={'width': '100%'}
+            ),
+            dcc.Markdown(
+                """
+                Period = `{}` days, score = `{:.2f}`
+                """.format(period, model.score(period))
+            )
+        ],
+        align='center'
+    )
 
-    # quite referentially opaque...
-    return "", no_update
+    return results, None
 
 @app.callback(
     Output('classbar', 'figure'),

@@ -140,7 +140,25 @@ def tab3_content():
                 type="number",
                 id='manual_period',
                 debounce=True
-            )
+            ),
+            dbc.Label("Range of periods (days)"),
+            dbc.InputGroup(
+                [
+                    dbc.Input(
+                        value=0.1,
+                        type="number",
+                        id='period_min',
+                        debounce=True
+                    ),
+                    dbc.InputGroupText(" < P < "),
+                    dbc.Input(
+                        value=1.2,
+                        type="number",
+                        id='period_max',
+                        debounce=True
+                    ),
+                ]
+            ),
         ], className='mb-3'#, style={'width': '100%', 'display': 'inline-block'}
     )
 
@@ -148,7 +166,6 @@ def tab3_content():
         'Fit data',
         id='submit_variable',
         color='dark', variant="outline", fullWidth=True, radius='xl',
-        loaderProps={'variant': 'dots'}
     )
 
     card2 = dmc.Paper(
@@ -165,7 +182,6 @@ def tab3_content():
                     dmc.Paper(
                         [
                             html.Div(id='variable_plot'),
-                            html.Br(),
                             card_explanation_variable()
                         ]
                     )
