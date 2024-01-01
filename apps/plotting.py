@@ -410,7 +410,7 @@ layout_tracklet_lightcurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        # y=1.2,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     yaxis={
@@ -3296,16 +3296,8 @@ def draw_tracklet_lightcurve(pdf) -> dict:
         config={'displayModeBar': False}
     )
 
-    alert = dbc.Alert(
-        "Tracklet ID: {}".format(
-            pdf['d:tracklet'].values[0],
-        ),
-        color="info"
-    )
-
     card = html.Div(
         [
-            alert,
             dmc.Paper(
                 graph,
             )
