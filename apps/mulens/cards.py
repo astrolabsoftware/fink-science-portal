@@ -18,29 +18,20 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from app import app
+from apps.cards import card_neighbourhood
 
 import pandas as pd
 
 @app.callback(
-    Output("card_mulens_button", "children"),
+    Output("card_mulens", "children"),
     [
         Input('object-data', 'children'),
     ]
 )
-def card_mulens_button(object_data):
+def card_mulens(object_data):
     """ Add a card containing button to fit for microlensing events
     """
     pdf = pd.read_json(object_data)
-    distnr = pdf['i:distnr'].values[0]
-    ssnamenr = pdf['i:ssnamenr'].values[0]
-    distpsnr1 = pdf['i:distpsnr1'].values[0]
-    neargaia = pdf['i:neargaia'].values[0]
-    constellation = pdf['v:constellation'].values[0]
-    if 'd:DR3Name' in pdf.columns:
-        gaianame = pdf['d:DR3Name'].values[0]
-    else:
-        gaianame = None
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
@@ -62,34 +53,15 @@ def card_mulens_button(object_data):
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Paper(
-                                [
-                                    dcc.Markdown(
-                                        """
-                                        ```python
-                                        Constellation: {}
-                                        Class (SIMBAD): {}
-                                        Name (MPC): {}
-                                        Name (Gaia): {}
-                                        Distance (Gaia): {:.2f} arcsec
-                                        Distance (PS1): {:.2f} arcsec
-                                        Distance (ZTF): {:.2f} arcsec
-                                        ```
-                                        """.format(
-                                            constellation,
-                                            cdsxmatch, ssnamenr, gaianame,
-                                            float(neargaia), float(distpsnr1), float(distnr)
-                                        )
-                                    ),
-                                ],
-                                radius='sm', p='xs', shadow='sm', withBorder=True
-                            ),
+                            card_neighbourhood(pdf),
                         ],
                     ),
                 ],
                 value='neighbourhood',
             ),
         ],
+        # Show it open by default
+        value='neighbourhood',
         styles={'content':{'padding':'5px'}}
     )
 
@@ -99,7 +71,7 @@ def card_explanation_mulens():
     """ Explain what is used to fit for microlensing events
     """
     msg = """
-    Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed on the right panel.
+    Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed alongside with the plot.
 
     The fit is done using [pyLIMA](https://github.com/ebachelet/pyLIMA)
     described in [Bachelet et al (2017)](https://ui.adsabs.harvard.edu/abs/2017AJ....154..203B/abstract).
@@ -109,11 +81,22 @@ def card_explanation_mulens():
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionControl("How to make a fit?"),
+                    dmc.AccordionControl(
+                        "How to make a fit?",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:help-hexagon",
+                                color="#3C8DFF",
+                                width=20,
+                            )
+                        ],
+                    ),
                     dmc.AccordionPanel(dcc.Markdown(msg)),
                 ],
                 value='info'
             ),
-        ], value='info'
+        ],
+        value='info',
+        id='card_explanation_mulens'
     )
     return card

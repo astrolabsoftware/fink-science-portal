@@ -105,40 +105,49 @@ def card_sn_scores() -> html.Div:
     label_style = {"color": "#000"}
     card = html.Div(
         [
-            dmc.Paper(graph_lc, radius='xl', p='md', shadow='xl', withBorder=True),
+            dmc.Paper(graph_lc),
             html.Br(),
             dmc.Paper(
                 [
-                    dbc.Tabs(
+                    dmc.Tabs(
                         [
-                            dbc.Tab(
+                            dmc.TabsList(
+                                [
+                                    dmc.Tab('SN scores', value='snt0'),
+                                    dmc.Tab('T2 scores', value='snt0a'),
+                                    dmc.Tab('Color and mag evolution', value='snt1'),
+                                    dmc.Tab('Color and mag rate', value='snt2'),
+                                ]
+                            ),
+                            dmc.TabsPanel(
                                 graph_scores,
-                                label='SN scores',
-                                tab_id='snt0',
-                                label_style=label_style
+                                value='snt0',
                             ),
-                            dbc.Tab(
+                            dmc.TabsPanel(
                                 graph_t2,
-                                label='T2 scores',
-                                tab_id='snt0a',
-                                label_style=label_style
+                                value='snt0a',
                             ),
-                            dbc.Tab(
-                                [graph_color, html.Br(), color_explanation],
-                                label='Color and mag evolution',
-                                tab_id='snt1',
-                                label_style=label_style
+                            dmc.TabsPanel(
+                                [
+                                    graph_color,
+                                    html.Br(),
+                                    color_explanation
+                                ],
+                                value='snt1',
                             ),
-                            dbc.Tab(
-                                [graph_color_rate, html.Br(), color_rate_explanation],
-                                label='Color and mag rate',
-                                tab_id='snt2',
-                                label_style=label_style
+                            dmc.TabsPanel(
+                                [
+                                    graph_color_rate,
+                                    html.Br(),
+                                    color_rate_explanation
+                                ],
+                                value='snt2',
                             ),
-                        ]
+                        ],
+                        value='snt0'
                     ),
                     help_popover(msg, 'help_sn'),
-                ], radius='xl', p='md', shadow='xl', withBorder=True
+                ]
             ),
         ]
     )
@@ -220,29 +229,24 @@ def card_sn_properties(clickData, object_data):
                 [
                     badge,
                     dcc.Markdown(
-                        """
-                        ```python
-                        Date: {}
+                        r"""
+                        Date: `{}`
 
-                        # SuperNNova classifiers
-                        SN Ia score: {:.2f}
-                        SNe score: {:.2f}
-                        # Early SN Ia classifier
-                        RF score: {:.2f}
-                        ```
-                        ---
-                        ```python
-                        # Variability (DC magnitude)
-                        Rate g-r (last): {:.2f} mag/day
-                        Rate g (last): {:.2f} mag/day
-                        Rate r (last): {:.2f} mag/day
-                        ```
-                        ---
-                        ```python
-                        # Extra properties
-                        Classtar: {:.2f}
-                        DL Real bogus: {:.2f}
-                        ```
+                        ###### SuperNNova classifiers
+                        SN Ia score: `{:.2f}`
+                        SNe score: `{:.2f}`
+
+                        ###### Early SN Ia classifier
+                        RF score: `{:.2f}`
+
+                        ###### Variability (DC magnitude)
+                        Rate g-r (last): `{:.2f}` mag/day
+                        Rate g (last): `{:.2f}` mag/day
+                        Rate r (last): `{:.2f}` mag/day
+
+                        ###### Extra properties
+                        Classtar: `{:.2f}`
+                        DL Real bogus: `{:.2f}`
                         """.format(
                             date0,
                             float(snn_snia_vs_nonia),
@@ -254,9 +258,10 @@ def card_sn_properties(clickData, object_data):
                             float(classtar),
                             float(drb)
                         ),
+                        className='markdown markdown-pre ps-2 pe-2',
                     ),
                 ],
-                radius='sm', p='xs', shadow='sm', withBorder=True
+                radius='sm', p='xs', shadow='sm', withBorder=True,
             ),
         ],
     )

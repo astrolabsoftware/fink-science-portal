@@ -19,6 +19,8 @@ from dash_iconify import DashIconify
 
 from app import app
 
+from apps.cards import card_neighbourhood
+
 import pandas as pd
 import numpy as np
 
@@ -37,19 +39,29 @@ def card_explanation_variable():
     We use a multiband periodogram (LombScargleMultiband) to find the best period.
     Alternatively, you can manually set the period in days.
 
-    The title of the plot will give you the fitted period, and a score for the fit.
+    Below the plot you will see the fitted period, and a score for the fit.
     The score is between 0 (poor fit) and 1 (excellent fit).
     """
     card = dmc.Accordion(
         children=[
             dmc.AccordionItem(
                 [
-                    dmc.AccordionControl("How to make a fit?"),
+                    dmc.AccordionControl(
+                        "How to make a fit?",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:help-hexagon",
+                                color="#3C8DFF",
+                                width=20,
+                            )
+                        ],
+                    ),
                     dmc.AccordionPanel(dcc.Markdown(msg)),
                 ],
                 value="info"
             ),
-        ], value='info'
+        ], value='info',
+        id='card_explanation_variable'
     )
     return card
 
@@ -63,16 +75,6 @@ def card_variable_button(object_data):
     """ Add a card containing button to fit for variable stars
     """
     pdf = pd.read_json(object_data)
-    distnr = pdf['i:distnr'].values[0]
-    ssnamenr = pdf['i:ssnamenr'].values[0]
-    distpsnr1 = pdf['i:distpsnr1'].values[0]
-    neargaia = pdf['i:neargaia'].values[0]
-    constellation = pdf['v:constellation'].values[0]
-    if 'd:DR3Name' in pdf.columns:
-        gaianame = pdf['d:DR3Name'].values[0]
-    else:
-        gaianame = None
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
 
     ra0 = pdf['i:ra'].values[0]
     dec0 = pdf['i:dec'].values[0]
@@ -93,57 +95,39 @@ def card_variable_button(object_data):
                         ],
                     ),
                     dmc.AccordionPanel(
-                        [
-                            dmc.Paper(
-                                [
-                                    dcc.Markdown(
-                                        """
-                                        ```python
-                                        Constellation: {}
-                                        Class (SIMBAD): {}
-                                        Name (MPC): {}
-                                        Name (Gaia): {}
-                                        Distance (Gaia): {:.2f} arcsec
-                                        Distance (PS1): {:.2f} arcsec
-                                        Distance (ZTF): {:.2f} arcsec
-                                        ```
-                                        """.format(
-                                            constellation,
-                                            cdsxmatch, ssnamenr, gaianame,
-                                            float(neargaia), float(distpsnr1), float(distnr)
-                                        )
-                                    ),
-                                    html.Br(),
-                                    dbc.Row(
-                                        [
-                                            dbc.Col(
-                                                dbc.Button(
-                                                    className='btn btn-default zoom btn-circle btn-lg',
-                                                    style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-size': 'cover'},
-                                                    color='dark',
-                                                    outline=True,
-                                                    id='asas-sn',
-                                                    title='ASAS-SN',
-                                                    target="_blank",
-                                                    href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
-                                                ), width=4),
-                                            dbc.Col(
-                                                dbc.Button(
-                                                    className='btn btn-default zoom btn-circle btn-lg',
-                                                    style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
-                                                    color='dark',
-                                                    outline=True,
-                                                    id='SNAD-var-star',
-                                                    title='SNAD',
-                                                    target="_blank",
-                                                    href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                                                ), width=4),
-                                        ], justify='around'
-                                    ),
-                                ],
-                                radius='sm', p='xs', shadow='sm', withBorder=True
-                            ),
-                        ],
+                        dmc.Stack(
+                            [
+                                card_neighbourhood(pdf),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Button(
+                                                className='btn btn-default zoom btn-circle btn-lg',
+                                                style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-size': 'cover'},
+                                                color='dark',
+                                                outline=True,
+                                                id='asas-sn',
+                                                title='ASAS-SN',
+                                                target="_blank",
+                                                href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
+                                            ), width=4),
+                                        dbc.Col(
+                                            dbc.Button(
+                                                className='btn btn-default zoom btn-circle btn-lg',
+                                                style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                                                color='dark',
+                                                outline=True,
+                                                id='SNAD-var-star',
+                                                title='SNAD',
+                                                target="_blank",
+                                                href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
+                                            ), width=4),
+                                    ], justify='around',
+                                    className='mb-2'
+                                ),
+                            ],
+                            align='center'
+                        ),
                     ),
                 ],
                 value="external"
