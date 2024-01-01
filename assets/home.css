@@ -104,7 +104,42 @@ img[alt=logoexp] { width: 200px; horizontal-align: middle; display: block; margi
   visibility: visible;
 }
 
-/* Remove bottom margin from markdown panels */
-#card_id_left p, #card_neighbourhood p {
-  margin: 0;
+/* Markdown with white-space: pre-wrap */
+.markdown-pre {
+  white-space: pre-wrap;
+  width: 100%;
+}
+
+/* Remove hard-coded margin from last paragraph */
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
+/* Make H5 the same as card-title */
+.markdown h5 {
+  margin-bottom: var(--bs-card-title-spacer-y);
+  color: var(--bs-card-title-color);
+}
+
+/* Make H6 act as Mantine divider */
+.markdown h6 {
+  font-size: 12px;
+  display: flex;
+}
+
+.markdown h6::after {
+  content: "";
+  color: #ced4da;
+  flex: 1;
+  border-bottom: solid 1px;
+  margin: auto 0 auto 1em;
+}
+
+/* Variant of previous one, dashed */
+.markdown h6.dashed::after {
+  content: "";
+  color: #ced4da;
+  flex: 1;
+  border-bottom: dashed 1px;
+  margin: auto 0 auto 1em;
 }

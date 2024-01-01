@@ -363,9 +363,7 @@ def card_neighbourhood(pdf):
                     cdsxmatch, ssnamenr, gaianame,
                     float(neargaia), float(distpsnr1), float(distnr)
                 ),
-                className="ps-2 pe-2",
-                id="card_neighbourhood",
-                style={'white-space': 'pre-wrap'}
+                className="markdown markdown-pre ps-2 pe-2"
             ),
         ],
         radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'},
@@ -966,7 +964,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
                 Last detection: `{}`
                 Duration: `{:.2f}` / `{:.2f}` days
                 Detections: `{}` good, `{}` bad, `{}` upper
-                Equ: `{} {}`
+                RA/Dec: `{} {}`
                 """.format(
                     discovery_date[:19],
                     date_end[:19],
@@ -976,9 +974,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
                     coords.ra.to_string(pad=True, unit='hour', precision=2, sep=' '),
                     coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
                 ),
-                dangerously_allow_html=True,
-                style={'white-space': 'pre-wrap'},
-                className="ps-2 pe-2 mt-2"
+                className="markdown markdown-pre ps-2 pe-2 mt-2"
             ),
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )

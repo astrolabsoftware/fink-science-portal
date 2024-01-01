@@ -139,7 +139,7 @@ So you may e.g. search for:
 - Asteroids by number
   - Asteroids (Main Belt): `8467`, `1922`
   - Asteroids (Hungarians): `18582`, `77799`
-  - Asteroids (Jupiter Trojans): `4501, `1583`
+  - Asteroids (Jupiter Trojans): `4501`, `1583`
   - Asteroids (Mars Crossers): `302530`
 - Asteroids by designation
   - `2010JO69`, `2017AD19`, `2012XK111`
