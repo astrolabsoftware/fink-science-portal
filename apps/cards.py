@@ -34,6 +34,7 @@ import requests
 import pandas as pd
 import numpy as np
 import urllib
+import textwrap
 
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
@@ -1092,6 +1093,12 @@ def card_search_result(row, i):
         coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
         coords.galactic.to_string(style='decimal'),
     )
+
+    text = textwrap.dedent(text)
+    if 'i:rb' in row:
+        text += "RealBogus: `{:.2f}`\n".format(row['i:rb'])
+    if 'd:anomaly_score' in row:
+        text += "Anomaly score: `{:.2f}`\n".format(row['d:anomaly_score'])
 
     if 'v:separation_degree' in row:
         corner_str = "{:.1f}''".format(row['v:separation_degree']*3600)

@@ -60,6 +60,7 @@ tns_types = sorted(tns_types, key=lambda s: s.lower())
 
 fink_classes = [
     'All classes',
+    'Anomaly',
     'Unknown',
     # Fink derived classes
     'Early SN Ia candidate',
@@ -1184,6 +1185,35 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
         r = requests.post(
             '{}/api/v1/explorer'.format(APIURL),
+            json=payload
+        )
+
+    elif query['action'] == 'anomaly':
+        # Anomaly search
+        n_last = int(query['params'].get('last', 100))
+
+        msg = "Last {} anomalies".format(n_last)
+
+        payload = {
+            'n': n_last
+        }
+
+        if 'after' in query['params']:
+            startdate = isoify_time(query['params']['after'])
+
+            msg += ' after {}'.format(startdate)
+
+            payload['start_date'] = startdate
+
+        if 'before' in query['params']:
+            stopdate = isoify_time(query['params']['before'])
+
+            msg += ' before {}'.format(stopdate)
+
+            payload['stop_date'] = stopdate
+
+        r = requests.post(
+            '{}/api/v1/anomaly'.format(APIURL),
             json=payload
         )
 

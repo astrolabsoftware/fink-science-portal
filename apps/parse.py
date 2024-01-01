@@ -314,6 +314,10 @@ def parse_query(string, timeout=None):
     elif query['type'] == 'sso' or 'sso' in query['params']:
         query['action'] = 'sso'
 
+    elif query['params'].get('class') == 'Anomaly':
+        query['action'] = 'anomaly'
+        query['hint'] = 'Anomaly search'
+
     elif 'class' in query['params']:
         query['action'] = 'class'
         query['hint'] = 'Class based search / {}'.format(query['params']['class'])

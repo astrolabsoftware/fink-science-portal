@@ -110,7 +110,7 @@ layout_lightcurve = dict(
 
 layout_lightcurve_preview = dict(
     automargin=True,
-    margin=dict(l=50, r=30, b=0, t=0),
+    margin=dict(l=50, r=0, b=0, t=0),
     hovermode="closest",
     hoverlabel={
         'align': "left"
