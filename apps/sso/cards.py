@@ -191,7 +191,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 outline=True,
                                                 id='IMCCE',
                                                 target="_blank",
-                                                href='https://ssp.imcce.fr/webservices/ssodnet/api/ssocard.php?q={}'.format(data.name.replace(' ', '_'))
+                                                href='https://ssp.imcce.fr/webservices/ssodnet/api/ssocard.php?q={}'.format(data.name.replace(' ', '_') if data.name else data.name)
                                             ), width=4),
                                         dbc.Col(
                                             dbc.Button(
