@@ -217,7 +217,6 @@ def tab4_content():
                     dmc.Paper(
                         [
                             html.Div(id='mulens_plot'),
-                            html.Br(),
                             card_explanation_mulens()
                         ]
                     )
@@ -227,8 +226,6 @@ def tab4_content():
                 [
                     html.Div(id="card_mulens"),
                     html.Br(),
-                    # html.Div(id='mulens_params'),
-                    # html.Br(),
                     submit_mulens_button
                 ], md=4
             )
