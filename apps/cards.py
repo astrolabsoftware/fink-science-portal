@@ -448,51 +448,6 @@ curl -H "Content-Type: application/json" -X POST \\
                                     radius='sm', p='xs', shadow='sm', withBorder=True, style={'padding':'5px'}
                                 )
                             ),
-                            dmc.Space(h=4),
-                            dbc.Modal(
-                                [
-                                    dbc.ModalHeader(
-                                        dmc.Select(
-                                            label="",
-                                            placeholder="Select a date",
-                                            searchable=True,
-                                            nothingFound="No options found",
-                                            id="date_modal_select",
-                                            value=None,
-                                            data=[
-                                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
-                                            ],
-                                            # style={"width": 200, "marginBottom": 10},
-                                            zIndex=10000000,
-                                        ),
-                                        close_button=True,
-                                    ),
-                                    loading(dbc.ModalBody(
-                                        [
-                                            dmc.Group(
-                                                id="stamps_modal_content",
-                                                position='center',
-                                                spacing='xl'
-                                            ),
-                                        ]
-                                    )),
-                                ],
-                                id="stamps_modal",
-                                scrollable=True,
-                                centered=True,
-                                size='xl'
-                            ),
-                            dmc.Center(
-                                dmc.ActionIcon(
-                                    DashIconify(icon="tabler:arrows-maximize"),
-                                    id="maximise_stamps",
-                                    n_clicks=0,
-                                    variant="default",
-                                    radius=30,
-                                    size=36,
-                                    color='gray'
-                                ),
-                            ),
                         ]
                     ),
                 ],
@@ -725,15 +680,6 @@ app.clientside_callback(
         Input('download_apiurl', 'children'),
     ]
 )
-
-@app.callback(
-    Output("stamps_modal", "is_open"),
-    Input("maximise_stamps", "n_clicks"),
-    State("stamps_modal", "is_open"),
-    prevent_initial_call=True,
-)
-def modal_stamps(nc, opened):
-    return not opened
 
 def generate_tns_badge(oid):
     """ Generate TNS badge
