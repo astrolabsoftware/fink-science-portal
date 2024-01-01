@@ -4157,15 +4157,40 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     if kind == 'GAL':
         # Galactic coordinates are in DMS only
         coords_hms = coord.galactic.to_string('dms', precision=2)
+        coords_hms2 = coord.galactic.to_string('dms', precision=2, sep=' ')
     else:
         coords_hms = coord.to_string('hmsdms', precision=2)
+        coords_hms2 = coord.to_string('hmsdms', precision=2, sep=' ')
 
-    card2 = dmc.Center(
-        dmc.Prism(children=coords_deg, language="python", style={'width': '80%'})
+    card_coords = html.Div(
+        [
+            dmc.Group(
+                [
+                    html.Code(coords_deg, id='alert_coords_deg'),
+                    dcc.Clipboard(target_id='alert_coords_deg', title='Copy to clipboard', style={'color': 'gray'}),
+                ],
+                position='apart',
+                style={'width': '100%'}
+            ),
+            dmc.Group(
+                [
+                    html.Code(coords_hms, id='alert_coords_hms'),
+                    dcc.Clipboard(target_id='alert_coords_hms', title='Copy to clipboard', style={'color': 'gray'}),
+                ],
+                position='apart',
+                style={'width': '100%'}
+            ),
+            dmc.Group(
+                [
+                    html.Code(coords_hms2, id='alert_coords_hms2'),
+                    dcc.Clipboard(target_id='alert_coords_hms2', title='Copy to clipboard', style={'color': 'gray'}),
+                ],
+                position='apart',
+                style={'width': '100%'}
+            ),
+        ],
+        className='mx-auto',
+        style={'max-width': '17em'},
     )
 
-    card3 = dmc.Center(
-        dmc.Prism(children=coords_hms, language="python", style={'width': '80%'})
-    )
-
-    return html.Div([card1, card2, card3])
+    return html.Div([card1, card_coords])
