@@ -1226,7 +1226,7 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
         )
 
     elif query['action'] == 'random':
-        n_random = int(query['params'].get('random', 100))
+        n_random = int(query['params'].get('random', 10))
 
         msg = "Random {} objects".format(n_random)
 
@@ -1270,6 +1270,10 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r.content)
+
+    if query['action'] == 'random':
+        # Keep only latest alert from all objects
+        pdf = pdf.loc[pdf.groupby('i:objectId')['i:jd'].idxmax()]
 
     msg = "{} - {} found".format(msg, 'nothing' if pdf.empty else str(len(pdf.index)) + ' objects')
 
