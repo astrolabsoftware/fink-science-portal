@@ -41,13 +41,13 @@ from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
 from apps.utils import loading, help_popover
 from apps.utils import class_colors
+from apps.utils import request_api
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 from apps.cards import card_search_result
 from apps.parse import parse_query
 
 from fink_utils.photometry.utils import is_source_behind
 
-import requests
 import pandas as pd
 import numpy as np
 from astropy.time import Time, TimeDelta
@@ -595,10 +595,10 @@ def display_table_results(table):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    r = requests.get(
-        '{}/api/v1/columns'.format(APIURL),
+    r = request_api(
+        '/api/v1/columns',
         )
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
 
     fink_fields = ['d:' + i for i in pdf.loc['Fink science module outputs (d:)']['fields'].keys()]
     ztf_fields = ['i:' + i for i in pdf.loc['ZTF original fields (i:)']['fields'].keys()]
@@ -1052,8 +1052,8 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
     elif query['action'] == 'objectid':
         # Search objects by objectId
         msg = "ObjectId search with {} name {}".format('partial' if query['partial'] else 'exact', query['object'])
-        r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
+        r = request_api(
+            '/api/v1/explorer',
             json={
                 'objectId': query['object'],
             }
@@ -1062,8 +1062,8 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
     elif query['action'] == 'sso':
         # Solar System Objects
         msg = "Solar System object search with ssnamenr {}".format(query['params']['sso'])
-        r = requests.post(
-            '{}/api/v1/sso'.format(APIURL),
+        r = request_api(
+            '/api/v1/sso',
             json={
                 'n_or_d': query['params']['sso']
             }
@@ -1076,8 +1076,8 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
             'id': query['object']
         }
 
-        r = requests.post(
-            '{}/api/v1/tracklet'.format(APIURL),
+        r = request_api(
+            '/api/v1/tracklet',
             json=payload
         )
 
@@ -1117,8 +1117,8 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
             payload['window'] = window
 
-        r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
+        r = request_api(
+            '/api/v1/explorer',
             json=payload
         )
 
@@ -1159,8 +1159,8 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
             payload['stopdate'] = stopdate
 
-        r = requests.post(
-            '{}/api/v1/latests'.format(APIURL),
+        r = request_api(
+            '/api/v1/latests',
             json=payload
         )
 
@@ -1191,8 +1191,8 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
             payload['window'] = window
 
-        r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
+        r = request_api(
+            '/api/v1/explorer',
             json=payload
         )
 
@@ -1220,8 +1220,8 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
             payload['stop_date'] = stopdate
 
-        r = requests.post(
-            '{}/api/v1/anomaly'.format(APIURL),
+        r = request_api(
+            '/api/v1/anomaly',
             json=payload
         )
 
@@ -1248,8 +1248,8 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
             payload['seed'] = seed
 
-        r = requests.post(
-            '{}/api/v1/random'.format(APIURL),
+        r = request_api(
+            '/api/v1/random',
             json=payload
         )
 
@@ -1269,7 +1269,7 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
     history = history[-10:] # Limit it to 10 latest entries
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
 
     if query['action'] == 'random':
         # Keep only latest alert from all objects
