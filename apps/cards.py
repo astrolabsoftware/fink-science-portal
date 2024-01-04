@@ -26,11 +26,11 @@ from apps.utils import generate_qr
 from apps.utils import class_colors
 from apps.utils import simbad_types
 from apps.utils import loading, help_popover
+from apps.utils import request_api
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 from fink_utils.photometry.utils import is_source_behind
 
-import requests
 import pandas as pd
 import numpy as np
 import urllib
@@ -694,17 +694,18 @@ def generate_tns_badge(oid):
     ----------
     badge: dmc.Badge or None
     """
-    r = requests.post(
-        '{}/api/v1/resolver'.format(APIURL),
+    r = request_api(
+        '/api/v1/resolver',
         json={
             'resolver': 'tns',
             'name': oid,
             'reverse': True
-        }
+        },
+        get_json=True
     )
 
-    if r.json() != []:
-        payload = r.json()[-1]
+    if r != []:
+        payload = r[-1]
 
         if payload['d:type'] != 'nan':
             msg = 'TNS: {} ({})'.format(payload['d:fullname'], payload['d:type'])
@@ -732,15 +733,16 @@ def generate_metadata_name(oid):
     ----------
     name: str
     """
-    r = requests.post(
-        '{}/api/v1/metadata'.format(APIURL),
+    r = request_api(
+        '/api/v1/metadata',
         json={
             'objectId': oid,
-        }
+        },
+        get_json=True
     )
 
-    if r.json() != []:
-        name = r.json()[0]['d:internal_name']
+    if r != []:
+        name = r[0]['d:internal_name']
     else:
         name = None
 

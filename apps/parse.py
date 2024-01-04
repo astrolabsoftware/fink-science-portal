@@ -1,14 +1,14 @@
 import shlex
 import regex as re # For partial matching
-import requests
 import functools
 
 import numpy as np
 
 from app import APIURL
+from apps.utils import request_api
 
 @functools.lru_cache(maxsize=320)
-def call_resolver(data, kind, timeout=None, reverse=False, **kwargs):
+def call_resolver(data, kind, reverse=False, **kwargs):
     """ Call Fink resolver
 
     Parameters
@@ -34,13 +34,13 @@ def call_resolver(data, kind, timeout=None, reverse=False, **kwargs):
 
     try:
         if kind == 'ztf':
-            r = requests.post(
-                '{}/api/v1/objects'.format(APIURL),
+            payload = request_api(
+                '/api/v1/objects',
                 json={
                     'objectId': data,
                     'columns': "i:ra,i:dec",
                 },
-                timeout=timeout
+                get_json=True,
             )
         else:
             params = {
@@ -50,14 +50,12 @@ def call_resolver(data, kind, timeout=None, reverse=False, **kwargs):
             }
             params.update(kwargs)
 
-            r = requests.post(
-                '{}/api/v1/resolver'.format(APIURL),
+            payload = request_api(
+                '/api/v1/resolver',
                 json=params,
-                timeout=timeout
+                get_json=True
             )
-
-        payload = r.json()
-    except requests.exceptions.ReadTimeout:
+    except:
         payload = None
 
     return payload

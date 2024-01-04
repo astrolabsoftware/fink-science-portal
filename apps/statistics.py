@@ -16,13 +16,11 @@ from dash import html, dcc, Input, Output
 import dash_bootstrap_components as dbc
 
 from app import app
-from app import APIURL
 from apps.utils import loading
+from apps.utils import request_api
 
 import numpy as np
 import pandas as pd
-
-import requests
 
 dcc.Location(id='url', refresh=False)
 
@@ -123,8 +121,8 @@ def store_stat_query(name):
     """
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown'
 
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -132,7 +130,7 @@ def store_stat_query(name):
         }
     )
 
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key', drop=False)
 
     return pdf.to_json()
@@ -324,8 +322,8 @@ def daily_stats():
 def generate_night_list():
     """ Generate the list of available nights (last night first)
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -334,7 +332,7 @@ def generate_night_list():
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
 
     labels = list(pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12]))
 
@@ -356,14 +354,14 @@ def generate_night_list():
 def generate_col_list():
     """ Generate the list of available columns
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'output-format': 'json',
             'schema': True
         }
     )
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     schema_list = list(pdf['schema'])
 
     labels = [
@@ -397,8 +395,8 @@ def get_data_one_night(night):
     """
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
 
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': night,
             'output-format': 'json',
@@ -407,7 +405,7 @@ def get_data_one_night(night):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
 
     return pdf
 

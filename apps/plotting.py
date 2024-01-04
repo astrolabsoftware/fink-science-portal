@@ -23,7 +23,6 @@ import datetime
 import copy
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
-import requests
 
 import dash
 from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL
@@ -40,9 +39,8 @@ from fink_utils.photometry.conversion import apparent_flux, dc_mag
 from fink_utils.photometry.utils import is_source_behind
 from apps.utils import sine_fit
 from apps.utils import class_colors
+from apps.utils import request_api
 from apps.statistics import dic_names
-
-from app import APIURL
 
 from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin
 from fink_utils.sso.spins import estimate_sso_params, compute_color_correction
@@ -1362,8 +1360,8 @@ def draw_lightcurve_preview(name) -> dict:
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:isdiffpos', 'd:tag'
     ]
-    r = requests.post(
-      '{}/api/v1/objects'.format(APIURL),
+    r = request_api(
+      '/api/v1/objects',
       json={
         'objectId': name,
         'withupperlim': 'True',
@@ -1371,7 +1369,7 @@ def draw_lightcurve_preview(name) -> dict:
         'output-format': 'json'
       }
     )
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
 
     # Mask upper-limits (but keep measurements with bad quality)
     mag_ = pdf['i:magpsf']
@@ -1883,8 +1881,8 @@ def extract_cutout(object_data, time0, kind):
             return None
 
     # Extract the cutout data
-    r = requests.post(
-        '{}/api/v1/cutouts'.format(APIURL),
+    r = request_api(
+        '/api/v1/cutouts',
         json={
             'objectId': pdf_['i:objectId'].values[0],
             'candid': str(pdf_['i:candid'].values[position]),
@@ -1893,7 +1891,7 @@ def extract_cutout(object_data, time0, kind):
         }
     )
 
-    cutout = readstamp(r.content, gzipped=False)
+    cutout = readstamp(r, gzipped=False)
 
     if pdf_['i:isdiffpos'].values[position] == 'f' and kind == 'difference':
         # Negative event, let's invert the diff cutout
@@ -1952,14 +1950,14 @@ def draw_cutouts_quickview(name, kinds=['science']):
                 'b:cutout{}_stampData'.format(kind.capitalize()),
             ]
             # Transfer cutout name data
-            r = requests.post(
-                '{}/api/v1/objects'.format(APIURL),
+            r = request_api(
+                '/api/v1/objects',
                 json={
                     'objectId': name,
                     'columns': ','.join(cols)
                 }
             )
-            object_data = r.content
+            object_data = r
             data = extract_cutout(object_data, None, kind=kind)
             figs.append(draw_cutout(data, kind, zoom=False))
         except OSError:
@@ -3477,8 +3475,8 @@ def plot_stat_evolution(pathname, param_name, switch):
     else:
         param_name_ = param_name
 
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3487,7 +3485,7 @@ def plot_stat_evolution(pathname, param_name, switch):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(io.BytesIO(r.content))
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     pdf = pdf.fillna(0)
 
@@ -3833,8 +3831,8 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
 def hist_sci_raw(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3843,7 +3841,7 @@ def hist_sci_raw(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3877,8 +3875,8 @@ def hist_sci_raw(pathname, dropdown_days):
 def hist_catalogued(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3887,7 +3885,7 @@ def hist_catalogued(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3923,8 +3921,8 @@ def hist_catalogued(pathname, dropdown_days):
 def hist_classified(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3933,7 +3931,7 @@ def hist_classified(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3972,8 +3970,8 @@ def hist_classified(pathname, dropdown_days):
 def hist_candidates(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3982,7 +3980,7 @@ def hist_candidates(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -4021,8 +4019,8 @@ def hist_candidates(pathname, dropdown_days):
 def fields_exposures(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -4031,7 +4029,7 @@ def fields_exposures(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:

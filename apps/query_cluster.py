@@ -20,14 +20,13 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from app import app
-from app import APIURL
 from apps.mining.utils import upload_file_hdfs, submit_spark_job
 from apps.mining.utils import estimate_size_gb_ztf, estimate_size_gb_elasticc
+from apps.utils import request_api
 
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta, date
-import requests
 import yaml
 import textwrap
 
@@ -365,16 +364,17 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
 
     for i in range(delta.days + 1):
         tmp = (dstart + timedelta(i)).strftime('%Y%m%d')
-        r = requests.post(
-            '{}/api/v1/statistics'.format(APIURL),
+        r = request_api(
+            '/api/v1/statistics',
             json={
                 'date': tmp,
                 'columns': columns,
                 'output-format': 'json'
-            }
+            },
+            get_json=True
         )
-        if r.json() != []:
-            payload = r.json()[0]
+        if r != []:
+            payload = r[0]
             dic['basic:sci'] += int(payload['basic:sci'])
             for column_name in column_names:
                 if column_name in payload.keys():

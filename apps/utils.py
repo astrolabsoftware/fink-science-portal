@@ -44,7 +44,8 @@ from fink_utils.sso.utils import get_miriade_data, query_miriade
 from fink_utils.photometry.conversion import dc_mag
 from fink_utils.xmatch.simbad import get_simbad_labels
 
-from app import APIURL, nlimit
+from app import APIURL, LOCALAPI, nlimit, server
+import apps.api
 
 simbad_types = get_simbad_labels('old_and_new')
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
@@ -748,16 +749,67 @@ def generate_qr(data):
 def retrieve_oid_from_metaname(name):
     """ Search for the corresponding ZTF objectId given a metaname
     """
-    r = requests.post(
-        '{}/api/v1/metadata'.format(APIURL),
+    r = request_api(
+        '/api/v1/metadata',
         json={
             'internal_name_encoded': name,
-        }
+        },
+        get_json=True
     )
 
-    if r.json() != []:
-        return r.json()[0]['key:key']
+    if r != []:
+        return r[0]['key:key']
     return None
+
+# Access local or remove API endpoint
+from app import server
+import apps.api
+from flask import Response
+from json import loads as json_loads
+
+def request_api(endpoint, json=None, get_json=False, method='POST'):
+    if LOCALAPI:
+        # Use local API
+        urls = server.url_map.bind('')
+        func_name = urls.match(endpoint, method)
+        if len(func_name) == 2 and func_name[0][0] == '.':
+            func = getattr(apps.api.api, func_name[0][1:])
+
+            if method == 'GET':
+                # No args?..
+                res = func()
+            else:
+                res = func(json)
+            if isinstance(res, Response):
+                if res.direct_passthrough:
+                    res.make_sequence()
+                result = res.get_data()
+            else:
+                result = res
+
+            if get_json:
+                return json_loads(result)
+            else:
+                return result
+        else:
+            return None
+    else:
+        # Use remote API
+        if method == 'POST':
+            r = requests.post(
+                '{}{}'.format(APIURL, endpoint),
+                json=json
+            )
+        elif method == 'GET':
+                # No args?..
+            r = requests.get(
+                '{}{}'.format(APIURL, endpoint)
+            )
+
+        if get_json:
+            return r.json()
+        else:
+            return r.content
 
 # TODO: split these UI snippets into separate file?..
 import dash_mantine_components as dmc

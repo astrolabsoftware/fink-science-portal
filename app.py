@@ -30,6 +30,7 @@ background_callback_manager = DiskcacheManager(cache)
 args = yaml.load(open('config.yml'), yaml.Loader)
 
 APIURL = args['APIURL']
+LOCALAPI = args.get('LOCALAPI', False)
 
 # bootstrap theme
 external_stylesheets = [
