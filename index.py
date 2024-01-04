@@ -598,7 +598,7 @@ def display_table_results(table):
     r = request_api(
         '/api/v1/columns',
         method='GET'
-        )
+    )
     pdf = pd.read_json(r)
 
     fink_fields = ['d:' + i for i in pdf.loc['Fink science module outputs (d:)']['fields'].keys()]
