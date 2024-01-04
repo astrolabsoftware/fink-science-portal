@@ -775,7 +775,11 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
         if len(func_name) == 2 and func_name[0][0] == '.':
             func = getattr(apps.api.api, func_name[0][1:])
 
-            res = func(json)
+            if method == 'GET':
+                # No args?..
+                res = func()
+            else:
+                res = func(json)
             if isinstance(res, Response):
                 if res.direct_passthrough:
                     res.make_sequence()
@@ -796,8 +800,11 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
                 '{}{}'.format(APIURL, endpoint),
                 json=json
             )
-        else:
-            print("Method {} not implemented".format(method))
+        elif method == 'GET':
+                # No args?..
+            r = requests.get(
+                '{}{}'.format(APIURL, endpoint)
+            )
 
         if get_json:
             return r.json()
