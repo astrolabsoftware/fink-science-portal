@@ -39,6 +39,7 @@ from apps.utils import get_miriade_data
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
+from apps.utils import isoify_time
 
 from apps.euclid.utils import load_euclid_header
 from apps.euclid.utils import add_columns
@@ -186,7 +187,24 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     out: pandas dataframe
     """
     truncated = False
+
+    if 'startdate' in payload:
+        jd_start = Time(isoify_time(payload['startdate'])).jd
+    else:
+        jd_start = Time('2019-11-01 00:00:00').jd
+
+    if 'stopdate' in payload:
+        jd_stop = Time(isoify_time(payload['stopdate'])).jd
+    elif 'window' in payload and 'startdate' in payload:
+        window = float(payload['window'])
+        jd_stop = jd_start + window
+    else:
+        jd_stop = Time.now().jd
+
+    n = int(payload.get('n', 1000))
+
     if user_group == 0:
+        # objectId search
         client = connect_to_hbase_table('ztf')
         results = {}
         for oid in payload['objectId'].split(','):
@@ -201,20 +219,14 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
             results.update(result)
 
         schema_client = client.schema()
-    if user_group == 1:
+    elif user_group == 1:
+        # Conesearch with optional date range
         client = connect_to_hbase_table('ztf.pixel128')
+        client.setLimit(n)
+
         # Interpret user input
         ra, dec = payload['ra'], payload['dec']
         radius = payload['radius']
-
-        if 'startdate_conesearch' in payload:
-            startdate = payload['startdate_conesearch']
-        else:
-            startdate = None
-        if 'window_days_conesearch' in payload and payload['window_days_conesearch'] is not None:
-            window_days = float(payload['window_days_conesearch'])
-        else:
-            window_days = 1.0
 
         if float(radius) > 18000.:
             rep = {
@@ -254,24 +266,12 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
             inclusive=True
         )
 
-        # For the future: we could set client.setRangeScan(True)
-        # and pass directly the time boundaries here instead of
-        # grouping by later.
-
-        # Filter by time - logic to be improved...
-        if startdate is not None:
-            if ':' in str(startdate):
-                jdstart = Time(startdate).jd
-            elif str(startdate).startswith('24'):
-                jdstart = Time(startdate, format='jd').jd
-            else:
-                jdstart = Time(startdate, format='mjd').jd
-            jdend = jdstart + window_days
-
+        # Filter by time
+        if 'startdate' in payload:
             client.setRangeScan(True)
             results = {}
             for pix in pixs:
-                to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
+                to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jd_start, pix, jd_stop)
                 result = client.scan(
                     "",
                     to_search,
@@ -281,7 +281,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 results.update(result)
             client.setRangeScan(False)
         else:
-            client = connect_to_hbase_table('ztf.pixel128')
+            # Do we really need this separate branch?.. Is it much faster than range scan?..
             results = {}
             for pix in pixs:
                 to_search = "key:key:{}".format(pix)
@@ -295,21 +295,18 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
 
         schema_client = client.schema()
         truncated = True
-    elif user_group == 2:
+    else:
+        # Plain date search
         client = connect_to_hbase_table('ztf.jd')
-        if int(payload['window']) > 180:
-            rep = {
-                'status': 'error',
-                'text': "`window` cannot be bigger than 180 minutes.\n"
-            }
-            return Response(str(rep), 400)
-        # Time to jd
-        jd_start = Time(payload['startdate']).jd
-        jd_end = jd_start + TimeDelta(int(payload['window']) * 60, format='sec').jd
+
+        # Limit the time window to 3 hours days
+        if jd_stop - jd_start > 3/24:
+            jd_stop = jd_start + 3/24
 
         # Send the request. RangeScan.
         client.setRangeScan(True)
-        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_end)
+        client.setLimit(n)
+        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
         results = client.scan(
             "",
             to_evaluate,

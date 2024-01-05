@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-from dash import html, dcc, Input, Output, State, dash_table, no_update
+from dash import html, dcc, Input, Output, State, dash_table, no_update, clientside_callback, ALL, MATCH
 from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
@@ -22,6 +22,10 @@ import dash_trich_components as dtc
 
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
+
+from dash_autocomplete_input import AutocompleteInput
+# from dash_lazy_load import LazyLoad
+# from dash_grocery import LazyLoad
 
 from app import server
 from app import app
@@ -32,109 +36,147 @@ from apps.api import api
 from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
-from apps.utils import isoify_time, validate_query, extract_query_url
+from apps.utils import isoify_time
 from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
-from apps.utils import loading
+from apps.utils import loading, help_popover
+from apps.utils import class_colors
+from apps.utils import request_api
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
+from apps.cards import card_search_result
+from apps.parse import parse_query
 
-import requests
+from fink_utils.photometry.utils import is_source_behind
+
 import pandas as pd
 import numpy as np
 from astropy.time import Time, TimeDelta
 
+import urllib
+import json
+
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
 
+fink_classes = [
+    'All classes',
+    'Anomaly',
+    'Unknown',
+    # Fink derived classes
+    'Early SN Ia candidate',
+    'SN candidate',
+    'Kilonova candidate',
+    'Microlensing candidate',
+    'Solar System MPC',
+    'Solar System candidate',
+    'Tracklet',
+    'Ambiguous',
+    # TNS classified data
+    *['(TNS) ' + t for t in tns_types],
+    # Simbad crossmatch
+    *['(SIMBAD) ' + t for t in simbad_types]
+]
+
 message_help = """
-##### Object ID
+You may search for different kinds of data depending on what you enter. Below you will find the description of syntax rules and some examples.
 
-Enter a valid object ID to access its data, e.g. try:
+The search is defined by the set of search terms (object names or coordinates) and options (e.g. search radius, number of returned entries, etc). The latters may be entered either manually or by using the `Quick fields` above the search bar. Supported formats for the options are both `name=value` and `name:value`, where `name` is case-insensitive, and `value` may use quotes to represent multi-word sentences. For some of the options, interactive drop-down menu will be shown with possible values.
 
-* ZTF21abfmbix, ZTF21aaxtctv, ZTF21abfaohe, ZTF20aanxcpf, ZTF17aaaabte, ZTF18aafpcwm, ZTF21abujbqa, ZTF21abuipwb, ZTF18acuajcr
+The search bar has a button (on the left) to show you the list of your latest search queries so that you may re-use them, and a switch (on the right, right above the search field) to choose the format of results - either card-based (default, shows the previews of object latest cutout and light curve), or tabular (allows to see all the fields of objects).
 
-##### Conesearch
+##### Search for specific ZTF objects
 
-Perform a conesearch around a position on the sky given by (RA, Dec, radius).
-The initializer for RA/Dec is very flexible and supports inputs provided in a number of convenient formats.
-The following ways of initializing a conesearch are all equivalent (radius in arcsecond):
+To search for specific object, just use its name, or just a part of it. In the latter case, all objects with the names starting with this pattern will be returned.
 
-* 193.822, 2.89732, 5
-* 193d49m18.267s, 2d53m50.35s, 5
-* 12h55m17.218s, +02d53m50.35s, 5
-* 12 55 17.218, +02 53 50.35, 5
-* 12:55:17.218, 02:53:50.35, 5
+Supported name patterns are as follows:
+- `ZTFyyccccccc` for ZTF objects, i.e. ZTF followed with 2 digits for the year, and 7 characters after that
+- `TRCK_YYYYMMDD_HHMMSS_NN` for tracklets detected at specific moment of time
 
-Maximum radius length is 18,000 arcseconds (5 degrees). Note that in case of
-several objects matching, the results will be sorted according to the angular
-separation in degree between the input (ra, dec) and the objects found.
+Examples:
+- `ZTF21abfmbix` - search for exact ZTF object
+- `ZTF21abfmb` - search for partially matched ZTF object name
+- `TRCK_20231213_133612_00` - search for all objects associated with specific tracklet
+- `TRCK_20231213` - search for all tracklet events from the night of Dec 13, 2023
 
-In addition, you can specify a starting date (UTC) and a window (in days) to refine your search.
-Example, to refine your search starting at 2021-06-25 05:59:37.000 for 7 days:
+##### Cone search
 
-* 193.822, 2.89732, 5, 2021-06-25 05:59:37.000, 7
-* 193.822, 2.89732, 5, 2459391.7497338, 7
+If you specify the position and search radius (using `r` option), all objects inside the given cone will be returned. Position may be specified by either coordinates, in either decimal or sexagesimal form, as exact ZTF object name, or as an object name resolvable through TNS or Simbad.
 
-We encourage you to use the `startdate` and `window`, as your query will run much faster.
+The coordinates may be specified as:
+- Pair of degrees
+- `HH MM SS.S [+-]?DD MM SS.S`
+- `HH:MM:SS.S [+-]?DD:MM:SS.S`
+- `HHhMMhSS.Ss [+-]?DDhMMhSS.Ss`
+- optionally, you may use one more number as a radius, in either arcseconds, minutes (suffixed with `m`) or degrees (`d`). If specified, you do not need to provide the corresponding keyword (`r`) separately
 
-##### Date search
+If the radius is not specified, but the coordinates or resolvable object names are given, the default search radius is 10 arcseconds.
 
-Choose a starting date and a time window to see all processed alerts in this period.
-Dates are in UTC, and the time window in minutes.
-Among several, you can choose YYYY-MM-DD hh:mm:ss, Julian Date, or Modified Julian Date. Example of valid search:
+You may also restrict the alert time by specifying `after` and `before` keywords. They may be given as UTC timestamps in either ISO string format, as Julian date, or MJD. Alternatively, you may use `window` keyword to define the duration of time window in days.
 
-* 2021-07-01 05:59:37.000
-* 2459396.7497337963
-* 59396.2497337963
+Examples:
+- `10 20 30` - search within 30 arcseconds around `RA=10 deg` `Dec=20 deg`
+- `10 20 30 after="2023-03-29 13:36:52" window=10` - the same but also within 10 days since specified time moment
+- `10 22 31 40 50 55.5` - search within 10 arcseconds around `RA=10:22:31` `Dec=+40:50:55.5`
+- `Vega r=10m` - search within 600 arcseconds (10 arcminutes) from Vega
+- `ZTF21abfmbix r=20` - search within 20 arcseconds around the position of ZTF21abfmbix
+- `AT2021cow` or `AT 2021cow` - search within 10 arcseconds around the position of AT2021cow
 
-##### Class
+##### Date range search
 
-Choose a class of interest using the drop-down menu to see the 100 latest alerts processed by Fink.
+The search of all objects within specified time range may be done by specifying just the `after`, `before` and/or `window` keywords. As the amount of objects is huge, it is not practical to use time window larger than 3 hours, and it is currently capped at this value. Moreover, the number of returned objects is limited to 1000.
 
-##### Solar System Objects (SSO)
+Examples:
+- `after="2023-12-29 13:36:52" before="2023-12-29 13:46:52"` - search all objects within 10 minutes long time window
+- `after="2023-12-29 13:36:52" window=0.007` - the same
 
-Search for Solar System Objects in the Fink database.
-The numbers or designations are taken from the MPC archive.
-When searching for a particular asteroid or comet, it is best to use the IAU number,
-as in 8467 for asteroid "8467 Benoitcarry". You can also try for numbered comet (e.g. 10P),
-or interstellar object (none so far...). If the number does not yet exist, you can search for designation.
-Here are some examples of valid queries:
+##### Solar System objects
 
-* Asteroids by number (default)
-  * Asteroids (Main Belt): 8467, 1922
-  * Asteroids (Hungarians): 18582, 77799
-  * Asteroids (Jupiter Trojans): 4501, 1583
-  * Asteroids (Mars Crossers): 302530
-* Asteroids by designation (if number does not exist yet)
-  * 2010JO69, 2017AD19, 2012XK111
-* Comets by number (default)
-  * 10P, 249P, 124P
-* Comets by designation (if number does no exist yet)
-  * C/2020V2, C/2020R2
+To search for all ZTF objects associated with specific SSO, you may either directly specify `sso` keyword, which should be equal to contents of `i:ssnamenr` field of ZTF packets, or just enter the number or name of the SSO object that the system will try to resolve.
 
-Note for designation, you can also use space (2010 JO69 or C/2020 V2).
+So you may e.g. search for:
+- Asteroids by proper name
+  - `Vesta`
+- Asteroids by number
+  - Asteroids (Main Belt): `8467`, `1922`
+  - Asteroids (Hungarians): `18582`, `77799`
+  - Asteroids (Jupiter Trojans): `4501, `1583`
+  - Asteroids (Mars Crossers): `302530`
+- Asteroids by designation
+  - `2010JO69`, `2017AD19`, `2012XK111`
+- Comets by number
+  - `10P, `249P`, `124P`
+- Comets by designation
+  - `C/2020V2`, `C/2020R2`
 
+##### Latest objects
 
-##### Tracklet data
+To see the latest objects just specify the amount of them you want to get using keyword `last`.
 
-Search for Tracklet Objects in the Fink database. Tracklets are fast
-moving objects, typically orbiting around the Earth. They are most likely
-produced by satellite glints or space debris.
+##### Class-based search
 
-You have the choice to specify the date in the format `YYYY-MM-DD hh:mm:ss` or
-any short versions such as `YYY-MM-DD` or `YYYY-MM-DD hh`. E.g. try:
+To see the list of latest objects of specific class (as listed in `v:classification` alert field), just specify the `class` keyword. By default it will return 100 latest ones, but you may also directly specify `last` keywords to alter it.
 
-- 2020-08-10
-- 2021-10-22 09:19
-- 2020-07-16 04:58:48
+You may also specify the time interval to refine the search, using the self-explanatory keywords `before` and `after`. The limits may be specified with either time string, JD or MJD values. You may either set both limiting values, or just one of them. The results will be sorted in descending order by time, and limited to specified number of entries.
+
+Examples:
+- `last=100` or `class=allclasses` - return 100 latest objects of any class
+- `class=Unknown` - return 100 latest objects with class `Unknown`
+- `last=10 class="Early SN Ia candidate"` - return 10 latest arly SN Ia candidates
+- `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-15 04:00:00"` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023
+
+##### Random objects
+
+To get random subset of objects just specify the amount of them you want to get using keyword `random`. You may also refine it by adding the class using `class` keyword.
+
+Examples:
+- `random=10 class=Unknown` - return 10 random objects of class `Unknown`
+
 """
 
 msg_info = """
-![logoexp](/assets/Fink_PrimaryLogo_WEB.png)
+The `Card view` shows the cutout from science image, some basic alert info, and its light curve. Its header also displays the badges for alert classification and the distances from several reference catalogs, as listed in the alert.
 
-Fill the search bar and hit the search button. You can access help by clicking on the Help button at the right of the bar.
-
-By default, the table shows:
+By default, the `Table view` shows the following fields:
 
 - i:objectId: Unique identifier for this object
 - i:ra: Right Ascension of candidate; J2000 (deg)
@@ -146,261 +188,392 @@ By default, the table shows:
 
 You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at {}/api/v1/columns.
 
-Finally, you can hit the button `Preview`. This will show you more information
-about the first 10 alerts (science cutout, and basic information). Note you can
-swipe between alerts (or use arrows on a laptop).
+The button `Sky Map` will open a popup with embedded Aladin sky map showing the positions of the search results on the sky.
 """.format(APIURL)
 
-modal = html.Div(
-    [
-        dbc.Button(
-            "Help",
-            id="open",
-            color='light',
-            outline=True,
-            # Hide on screen sizes smaller than md
-            className="d-none d-md-inline"
-        ),
-        dbc.Modal(
+# Smart search field
+quick_fields = [
+    ['class', 'Alert class\nSelect one of Fink supported classes from the menu'],
+    ['last', 'Number of latest alerts to show'],
+    ['r', 'Radius for cone search\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly'],
+    # ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
+    ['after', 'Lower timit on alert time\nISO time, MJD or JD'],
+    ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
+    ['window', 'Time window length\nDays'],
+    ['random', 'Number of random objects to show'],
+]
+
+fink_search_bar = [
+        html.Div(
             [
-                dbc.ModalHeader(dbc.ModalTitle("Fink Science Portal"), close_button=True),
-                dbc.ModalBody(dcc.Markdown(message_help)),
-            ],
-            id="modal", scrollable=True
-        ),
-    ]
-)
-
-@app.callback(
-    Output("modal", "is_open"),
-    [Input("open", "n_clicks")],
-    [State("modal", "is_open")],
-)
-def toggle_modal(n1, is_open):
-    """ Callback for the modal (open/close)
-    """
-    if n1:
-        return not is_open
-    return is_open
-
-
-fink_search_bar = dbc.InputGroup(
-    [
-        dbc.Input(
-            id="search_bar_input",
-            autoFocus=True,
-            type='search',
-            className='inputbar',
-            debounce=True
-        ),
-        dmc.ActionIcon(
-            DashIconify(icon="tabler:search", width=20),
-            n_clicks=0,
-            id="submit",
-            color='gray',
-            variant="transparent",
-            radius='xl',
-            size='lg',
-            loaderProps={'variant': 'dots', 'color': 'orange'},
-            # Hide on screen sizes smaller than sm
-            className="d-none d-sm-flex"
-        ),
-        modal
-    ], id="search_bar", className='rcorners2'
-)
-
-def print_msg_info():
-    """ Display the explorer info message
-    """
-    h = html.Div([
-        dbc.Row([
-            dcc.Markdown(msg_info)
-        ]),
-    ])
-    return h
-
-def simple_card(
-        name, finkclass, lastdate, fid,
-        mag, jd, jdstarthist, ndethist, constellation):
-    """ Preview card
-
-    The laptop version shows Science cutout + metadata + lightcurve
-    The mobile version shows Science cutout + metadata
-    """
-    dic_band = {1: 'g', 2: 'r'}
-    fontsize = '75%'
-
-    l1 = html.P(
-        [
-            html.Strong("Last emission date: ", style={'font-size': fontsize}),
-            html.P(lastdate)
-        ]
-    )
-    l2 = html.P(
-        [
-            html.Strong("Last magnitude (band {}): ".format(dic_band[fid]), style={'font-size': fontsize}),
-            html.P("{:.2f}".format(mag))
-        ]
-    )
-
-    l3 = html.P(
-        [
-            html.Strong("Days since first detection: ", style={'font-size': fontsize}),
-            html.P('{}'.format(int(jd - jdstarthist)))
-        ]
-    )
-
-    l4 = html.P(
-        [
-            html.Strong("Total number of detections: ", style={'font-size': fontsize}),
-            html.P('{}'.format(ndethist))
-        ]
-    )
-
-    l5 = html.P(
-        [
-            html.Strong("Constellation: ", style={'font-size': fontsize}),
-            html.P('{}'.format(constellation))
-        ]
-    )
-
-    cardbody = dbc.CardBody(
-        [
-            html.H4("{} - {}".format(name, finkclass), className="card-title"),
-            html.P("Constellation: {}".format(constellation), className="card-title"),
-            dcc.Graph(
-                figure=draw_lightcurve_preview(name),
-                config={'displayModeBar': False},
-                style={
-                    'width': '100%',
-                    'height': '15pc'
-                },
-                className="d-none d-sm-block"
-            )
-        ]
-    )
-
-    header = dbc.CardHeader(
-        dbc.Row(
-            [
-                dbc.Col(draw_cutouts_quickview(name), md=2),
-                dbc.Col([l1, l2], md=5),
-                dbc.Col([l3, l4], md=5)
-            ],
-            id='stamps_quickview',
-            justify='around'
-        )
-    )
-
-
-    simple_card_ = dbc.Card(
-        [
-            header,
-            cardbody,
-            dbc.CardFooter(
-                dbc.Button(
-                    "Go to {}".format(name),
-                    color="primary",
-                    outline=True,
-                    href='/{}'.format(name)
-                )
-            )
-        ]
-    )
-    return simple_card_
-
-@app.callback(
-    Output('carousel', 'children'),
-    [
-        Input("open_modal_quickview", "n_clicks"),
-        Input("result_table", "data"),
-    ],
-)
-def carousel(nclick, data):
-    """ Carousel that shows alert preview
-    """
-    if nclick > 0:
-        pdf = pd.DataFrame(data)
-        names = pdf['i:objectId'].apply(lambda x: x.split('[')[1].split(']')[0]).values[0:10]
-        finkclasses = pdf['v:classification'].values[0:10]
-        lastdates = pdf['v:lastdate'].values[0:10]
-        fids = pdf['i:fid'].values[0:10]
-        mags = pdf['i:magpsf'].values[0:10]
-        jds = pdf['i:jd'].values[0:10]
-        jdstarthists = pdf['i:jdstarthist'].values[0:10]
-        ndethists = pdf['i:ndethist'].values[0:10]
-        constellations = pdf['v:constellation'][0:10]
-        carousel = dtc.Carousel(
-            [
-                html.Div(dbc.Container(simple_card(*args))) for args in zip(names, finkclasses, lastdates, fids, mags, jds, jdstarthists, ndethists, constellations)
-            ],
-            slides_to_scroll=1,
-            slides_to_show=1,
-            swipe_to_slide=True,
-            autoplay=False,
-            speed=800,
-            variable_width=False,
-            center_mode=False
-        )
-    else:
-        carousel = html.Div("")
-    return carousel
-
-
-def modal_quickview():
-    button = dmc.Button(
-        "Preview",
-        id="open_modal_quickview",
-        n_clicks=0,
-        leftIcon=[DashIconify(icon="tabler:eye")],
-        color="gray",
-        fullWidth=True,
-        variant='outline',
-        radius='xl'
-    )
-
-    modal = html.Div(
-        [
-            button,
-            dbc.Modal(
-                [
-                    loading(dbc.ModalBody(
-                        html.Div(
-                            id='carousel',
-                            # fluid=True,
-                            # style={'width': '95%'}
-                            className="ps-2 pe-2"
+                html.Span('Quick fields:', className='text-secondary'),
+            ] + [
+                html.Span(
+                    [
+                        html.A(
+                            __[0],
+                            title=__[1],
+                            id={'type': 'search_bar_quick_field', 'index': _, 'text': __[0]},
+                            n_clicks=0,
+                            className='ms-2 link text-decoration-none'
                         ),
-                        className="ps-4 pe-4"
-                    )),
-                    dbc.ModalFooter(
-                        dbc.Button(
-                            "Close", id="close_modal_quickview", className="ml-auto", n_clicks=0
-                        ), style={'display': 'None'}
+                        " "
+                    ]
+                ) for _,__ in enumerate(quick_fields)
+            ] + [
+                html.Span(
+                    dmc.Switch(
+                        radius="xl",
+                        size='sm',
+                        offLabel=DashIconify(icon="radix-icons:id-card", width=15),
+                        onLabel=DashIconify(icon="radix-icons:table", width=15),
+                        color="orange",
+                        checked=False,
+                        persistence=True,
+                        id="results_table_switch"
                     ),
-                ],
-                id="modal_quickview",
-                is_open=False,
-                size="lg",
-                fullscreen="lg-down",
+                    className='float-right',
+                    title='Show results as cards or table'
+                ),
+            ],
+            className="ps-4 pe-4 mb-0 mt-1"
+        ),
+
+] + [html.Div(
+    # className='p-0 m-0 border shadow-sm rounded-3',
+    className='pt-0 pb-0 ps-1 pe-1 m-0 rcorners2 shadow',
+    id="search_bar",
+    # className='rcorners2',
+    children=[
+        dbc.InputGroup(
+            [
+                # History
+                dmc.Menu(
+                    [
+                        dmc.MenuTarget(
+                            dmc.ActionIcon(
+                                DashIconify(icon="bi:clock-history"),
+                                color='gray',
+                                variant="transparent",
+                                radius='xl',
+                                size='lg',
+                                title='Search history'
+                            )
+                        ),
+                        dmc.MenuDropdown(
+                            [
+                                dmc.MenuLabel("Search history is empty"),
+                            ],
+                            className='shadow rounded',
+                            id='search_history_menu'
+                        )
+                    ],
+                    zIndex=1000000,
+                ),
+                # Main input
+                AutocompleteInput(
+                    id='search_bar_input',
+                    placeholder='Search, and you will find',
+                    component='input',
+                    trigger=[
+                        'class:', 'class=',
+                        'last:', 'last=',
+                        'r:', 'r=',
+                    ],
+                    options={
+                        'class:':fink_classes, 'class=':fink_classes,
+                        'last:':['10', '100', '1000'], 'last=':['10', '100', '1000'],
+                        'r:':['10', '60', '10m', '30m'], 'r=':['10', '60', '10m', '30m'],
+                    },
+                    maxOptions=0,
+                    className="inputbar form-control border-0",
+                    quoteWhitespaces=True,
+                    autoFocus=True,
+                    ignoreCase=True,
+                    triggerInsideWord=False,
+                ),
+                # Clear
+                dmc.ActionIcon(
+                    DashIconify(icon="mdi:clear-bold"),
+                    n_clicks=0,
+                    id="search_bar_clear",
+                    color='gray',
+                    variant="transparent",
+                    radius='xl',
+                    size='lg',
+                    title='Clear the input',
+                ),
+                # Submit
+                dbc.Spinner(
+                    dmc.ActionIcon(
+                        DashIconify(icon="tabler:search", width=20),
+                        n_clicks=0,
+                        id="search_bar_submit",
+                        color='gray',
+                        variant="transparent",
+                        radius='xl',
+                        size='lg',
+                        loaderProps={'variant': 'dots', 'color': 'orange'},
+                        title='Search'
+                    ), size='sm', color='warning'
+                ),
+                # Help popup
+                help_popover(
+                    [
+                        dcc.Markdown(message_help)
+                    ],
+                    'help_search',
+                    trigger=dmc.ActionIcon(
+                        DashIconify(icon="mdi:help"),
+                        id='help_search',
+                        color='gray',
+                        variant="transparent",
+                        radius='xl',
+                        size='lg',
+                        # className="d-none d-sm-flex"
+                        title='Show some help',
+                    ),
+                ),
+            ]
+        ),
+        # Search suggestions
+        dbc.Collapse(
+            dbc.ListGroup(
+                id='search_bar_suggestions',
             ),
+            id='search_bar_suggestions_collapser',
+            is_open=False,
+        ),
+        # Debounce timer
+        dcc.Interval(
+            id="search_bar_timer",
+            interval=2000,
+            max_intervals=1,
+            disabled=True
+        ),
+        dcc.Store(
+            id='search_history_store',
+            storage_type='local',
+        ),
+    ],
+)]
+
+# Time-based debounce from https://joetatusko.com/2023/07/11/time-based-debouncing-with-plotly-dash/
+clientside_callback(
+    """
+    function start_suggestion_debounce_timer(value, n_submit, n_clicks, n_intervals) {
+        const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
+        if (triggered == 'search_bar_input.n_submit' || triggered == 'search_bar_submit.n_clicks')
+            return [dash_clientside.no_update, true];
+
+        if (n_intervals > 0)
+            return [0, false];
+        else
+            return [dash_clientside.no_update, false];
+    }
+    """,
+    [
+        Output('search_bar_timer', 'n_intervals'),
+        Output('search_bar_timer', 'disabled')
+    ],
+    Input('search_bar_input', 'value'),
+    Input('search_bar_input', 'n_submit'),
+    Input('search_bar_submit', 'n_clicks'),
+    State('search_bar_timer', 'n_intervals'),
+    prevent_initial_call=True,
+)
+
+# Search history
+@app.callback(
+    Output('search_history_menu', 'children'),
+    Input('search_history_store', 'timestamp'),
+    Input('search_history_store', 'data'),
+)
+def update_search_history_menu(timestamp, history):
+    if history:
+        return [
+            dmc.MenuLabel("Search history"),
+        ] + [
+            dmc.MenuItem(
+                item,
+                id={'type': 'search_bar_completion', 'index': 1000 + i, 'text': item},
+            ) for i,item in enumerate(history[::-1])
         ]
+    else:
+        return no_update
+
+# Update suggestions on (debounced) input
+@app.callback(
+    Output('search_bar_suggestions', 'children'),
+    Output('search_bar_submit', 'children'),
+    Output('search_bar_suggestions_collapser', 'is_open'),
+    Input('search_bar_timer', 'n_intervals'),
+    Input('search_bar_input', 'n_submit'),
+    Input('search_bar_submit', 'n_clicks'),
+    State('search_bar_input', 'value'),
+    prevent_initial_call=True,
+)
+def update_suggestions(n_intervals, n_submit, n_clicks, value):
+    # Clear the suggestions on submit
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if triggered_id in ['search_bar_input', 'search_bar_submit']:
+        return no_update, no_update, False
+
+    # Did debounce trigger fire?..
+    if n_intervals != 1:
+        return no_update, no_update, no_update
+
+    if not value.strip():
+        return None, no_update, False
+
+    query = parse_query(value, timeout=5)
+    suggestions = []
+
+    params = query['params']
+
+    if not query['action']:
+        return None, no_update, False
+
+    if query['action'] == 'unknown':
+        content = [
+            html.Div(
+                html.Em(
+                    'Query not recognized',
+                    className='m-0')
+            )
+        ]
+    else:
+        content = []
+
+        if query['completions']:
+            completions = []
+
+            for i,item in enumerate(query['completions']):
+                if isinstance(item, list) or isinstance(item, tuple):
+                    # We expect it to be (name, ext)
+                    name = item[0]
+                    ext = item[1]
+                else:
+                    name = item
+                    ext = item
+
+                completions.append(
+                    html.A(
+                        ext,
+                        id={'type': 'search_bar_completion', 'index': i, 'text': name},
+                        title=name,
+                        n_clicks=0,
+                        className='ms-2 link text-decoration-none'
+                    )
+                )
+
+            content += [
+                html.Div(
+                    [
+                        html.Span('Did you mean:', className='text-secondary'),
+                    ] + completions,
+                    className="border-bottom p-1 mb-1 mt-1 small"
+                )
+            ]
+
+        content += [
+            dmc.Group([
+                html.Strong(query['object']) if query['object'] else None,
+                dmc.Badge(query['type'], variant="outline", color='blue') if query['type'] else None,
+                dmc.Badge(query['action'], variant="outline", color='red'),
+            ], noWrap=False, position='left'),
+            html.P(query['hint'], className='m-0'),
+        ]
+
+    if len(params):
+        content += [
+            html.Small(" ".join(["{}={}".format(_,params[_]) for _ in params]))
+        ]
+
+    suggestion = dbc.ListGroupItem(
+        content,
+        action=True,
+        className='border-0'
     )
 
-    return modal
+    suggestions.append(suggestion)
 
+    return suggestions, no_update, True
+
+# Completion clicked
+# TODO: convert to clientside callback, if pattern matching is supported for them
 @app.callback(
-    Output("modal_quickview", "is_open"),
-    [
-        Input("open_modal_quickview", "n_clicks"),
-        Input("close_modal_quickview", "n_clicks")
-    ],
-    [State("modal_quickview", "is_open")],
+    Output('search_bar_input', 'value'),
+    Input({'type': 'search_bar_completion', 'index': ALL, 'text': ALL}, 'n_clicks'),
+    prevent_initial_call=True
 )
-def toggle_modal_preview(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
+def on_completion(n_clicks):
+    ctx = dash.callback_context
+
+    if ctx.triggered[0]['value']:
+        return ctx.triggered_id['text'] + ' '
+
+    return no_update
+
+# Quick field clicked
+# clientside_callback(
+#     """
+#     function on_quickfield(n_clicks, values, value) {
+#         const ctx = dash_clientside.callback_context;
+#         window['ctx'] = ctx;
+#         return window.dash_clientside.callback_context.triggered[0].prop_id.split('.')[0];
+#     }
+#     """,
+#     Output('search_bar_input', 'value'),
+#     Input({'type': 'search_bar_quick_field', 'index': ALL}, 'n_clicks'),
+#     State({'type': 'search_bar_quick_field', 'index': ALL}, 'children'),
+#     State('search_bar_input', 'value'),
+#     prevent_initial_call=True
+# )
+
+# TODO: convert to clientside callback, if pattern matching is supported for them
+@app.callback(
+    Output('search_bar_input', 'value', allow_duplicate=True),
+    Input({'type': 'search_bar_quick_field', 'index': ALL, 'text': ALL}, 'n_clicks'),
+    State('search_bar_input', 'value'),
+    prevent_initial_call=True
+)
+def on_quickfield(n_clicks, value):
+    if not value:
+        value = ''
+
+    ctx = dash.callback_context
+    if ctx.triggered[0]['value']:
+        return value + ' ' + ctx.triggered_id['text'] + '='
+
+    return no_update
+
+# Clear inpit field
+clientside_callback(
+    """
+    function on_clear(n_clicks) {
+        return '';
+    }
+    """,
+    Output('search_bar_input', 'value', allow_duplicate=True),
+    Input('search_bar_clear', 'n_clicks'),
+    prevent_initial_call=True
+)
+
+# Disable clear button for empty input field
+clientside_callback(
+    """
+    function on_input(value) {
+        if (value)
+            return false;
+        else
+            return true;
+    }
+    """,
+    Output('search_bar_clear', 'disabled'),
+    Input('search_bar_input', 'value')
+)
 
 def display_table_results(table):
     """ Display explorer results in the form of a table with a dropdown
@@ -422,10 +595,11 @@ def display_table_results(table):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    r = requests.get(
-        '{}/api/v1/columns'.format(APIURL),
-        )
-    pdf = pd.read_json(r.content)
+    r = request_api(
+        '/api/v1/columns',
+        method='GET'
+    )
+    pdf = pd.read_json(r)
 
     fink_fields = ['d:' + i for i in pdf.loc['Fink science module outputs (d:)']['fields'].keys()]
     ztf_fields = ['i:' + i for i in pdf.loc['ZTF original fields (i:)']['fields'].keys()]
@@ -480,16 +654,16 @@ def display_table_results(table):
     )
     switch_tracklet_description = "Toggle the switch to list each Tracklet only once (fast moving objects). Only the latest alert will be displayed."
 
-    return [
+    results = [
         dbc.Row(
             [
                 dbc.Col(
                     dropdown,
-                    md=4
+                    lg=5, md=6
                 ),
                 dbc.Col(
                     dmc.Tooltip(
-                    children=switch,
+                        children=switch,
                         width=220,
                         multiline=True,
                         withArrow=True,
@@ -497,7 +671,7 @@ def display_table_results(table):
                         transitionDuration=200,
                         label=switch_description
                     ),
-                    md=2,
+                    md='auto',
                 ),
                 dbc.Col(
                     dmc.Tooltip(
@@ -509,7 +683,7 @@ def display_table_results(table):
                         transitionDuration=200,
                         label=switch_sso_description
                     ),
-                    md=2
+                    md='auto'
                 ),
                 dbc.Col(
                     dmc.Tooltip(
@@ -521,17 +695,20 @@ def display_table_results(table):
                         transitionDuration=200,
                         label=switch_tracklet_description
                     ),
-                    md=2
+                    md='auto'
                 ),
-                dbc.Col(
-                    modal_quickview(),
-                    md=2
-                )
             ],
-            align='center',
-            className='pt-2 pb-1'
+            align='end', justify='start',
+            className='mb-2',
         ),
         table
+    ]
+
+    return [
+        html.Div(
+            results,
+            className='results-inner bg-opaque-100 rounded mb-4 p-2 border shadow',
+        )
     ]
 
 @app.callback(
@@ -539,10 +716,10 @@ def display_table_results(table):
     [
         Input("result_table", "data"),
         Input("result_table", "columns"),
-        Input('tabs', 'active_tab')
+        Input("modal_skymap", "is_open"),
     ],
 )
-def display_skymap(data, columns, activetab):
+def display_skymap(data, columns, is_open):
     """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
@@ -559,10 +736,15 @@ def display_skymap(data, columns, activetab):
     """
     ctx = dash.callback_context
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if len(data) > 1000:
-        msg = '<b>We cannot display {} objects on the sky map (limit at 1000). Please refine your query.</b><br>'.format(len(data))
-        return """var container = document.getElementById('aladin-lite-div-skymap');var txt = '{}'; container.innerHTML = txt;""".format(msg)
-    if len(data) > 0 and (activetab == 't2'):
+
+    if not is_open:
+        return no_update
+
+    if len(data) > 0:
+        if len(data) > 1000:
+            # Silently limit the size of list we display
+            data = data[:1000]
+
         pdf = pd.DataFrame(data)
 
         # Coordinate of the first alert
@@ -625,183 +807,97 @@ def display_skymap(data, columns, activetab):
     else:
         return ""
 
-def display_skymap():
-    """ Display the sky map in the explorer tab results (Aladin lite)
+def modal_skymap():
+    button = dmc.Button(
+        "Sky Map",
+        id="open_modal_skymap",
+        n_clicks=0,
+        leftIcon=[DashIconify(icon="bi:stars")],
+        color="gray",
+        fullWidth=True,
+        variant='default',
+        radius='xl'
+    )
 
-    It uses `visdcc` to execute javascript directly.
-
-    Returns
-    ---------
-    out: list of objects
-    """
-    return [
-        dbc.Container(
-            html.Div(
+    modal = html.Div(
+        [
+            button,
+            dbc.Modal(
                 [
-                    visdcc.Run_js(id='aladin-lite-div-skymap'),
-                    dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
-                ], style={
-                    'width': '100%',
-                    'height': '25pc'
-                }
-            )
-        )
-    ]
-
-@app.callback(
-    [
-        Output("select", "style"),
-        Output("select", "options"),
-        Output("select", "placeholder"),
-    ],
-    [
-        Input("dropdown-query", "value"),
-    ]
-)
-def input_type(chip_value):
-    """ Decide if the dropdown below the search bar should be shown
-
-    Only some query types need to have a dropdown (Date & Class search). In
-    those cases, we show the dropdown, otherwise it is hidden.
-
-    In the case of class search, the options are derived from the
-    Fink classification, and the SIMBAD labels.
-    """
-    if chip_value == "Date Search":
-        options = [
-            {'label': '1 minute', 'value': 1},
-            {'label': '10 minutes', 'value': 10},
-            {'label': '60 minutes (can be long)', 'value': 60}
+                    loading(
+                        dbc.ModalBody(
+                            html.Div(
+                                [
+                                    visdcc.Run_js(id='aladin-lite-div-skymap', style={'border': '0'}),
+                                    # dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
+                                ], style={
+                                    'width': '100%',
+                                    'height': '100%',
+                                }
+                            ),
+                            className="p-1",
+                            style={'height': '30pc'},
+                        )
+                    ),
+                    dbc.ModalFooter(
+                        dmc.Button(
+                            "Close", id="close_modal_skymap", className="ml-auto",
+                            color="gray",
+                            # fullWidth=True,
+                            variant='default',
+                            radius='xl'
+                        ),
+                    ),
+                ],
+                id="modal_skymap",
+                is_open=False,
+                size="lg",
+                # fullscreen="lg-down",
+            ),
         ]
-        placeholder = "Choose a time window (default is 1 minute)"
-        return {}, options, placeholder
-    elif chip_value == "Class Search":
-        options = [
-            {'label': 'All classes', 'value': 'allclasses'},
-            {'label': 'Unknown', 'value': 'Unknown'},
-            {'label': 'Fink derived classes', 'disabled': True, 'value': 'None'},
-            {'label': 'Early Supernova Ia candidates', 'value': 'Early SN Ia candidate'},
-            {'label': 'Supernova candidates', 'value': 'SN candidate'},
-            {'label': 'Kilonova candidates', 'value': 'Kilonova candidate'},
-            {'label': 'Microlensing candidates', 'value': 'Microlensing candidate'},
-            {'label': 'Solar System (MPC)', 'value': 'Solar System MPC'},
-            {'label': 'Solar System (candidates)', 'value': 'Solar System candidate'},
-            {'label': 'Tracklet (space debris & satellite glints)', 'value': 'Tracklet'},
-            {'label': 'Ambiguous', 'value': 'Ambiguous'},
-            {'label': 'TNS classified data', 'disabled': True, 'value': 'None'},
-            *[{'label': '(TNS) ' + simtype, 'value': '(TNS) ' + simtype} for simtype in tns_types],
-            {'label': 'Simbad crossmatch', 'disabled': True, 'value': 'None'},
-            *[{'label': '(SIMBAD) ' + simtype, 'value': '(SIMBAD) ' + simtype} for simtype in simbad_types]
-        ]
-        placeholder = "All classes"
-        return {}, options, placeholder
-    else:
-        return {'display': 'none'}, [], ''
+    )
 
-@app.callback(
+    return modal
+
+clientside_callback(
+    """
+    function toggle_modal_skymap(n1, n2, is_open) {
+        if (n1 || n2)
+            return ~is_open;
+        else
+            return is_open;
+    }
+    """,
+    Output("modal_skymap", "is_open"),
     [
-        Output("search_bar_input", "placeholder"),
-        Output("search_bar_input", "value")
+        Input("open_modal_skymap", "n_clicks"),
+        Input("close_modal_skymap", "n_clicks")
     ],
-    [
-        Input("dropdown-query", "value")
-    ],
-    State("search_bar_input", "value")
+    [State("modal_skymap", "is_open")],
+    prevent_initial_call=True,
 )
-def chips_values(chip_value, val):
-    """ Change the placeholder value of the search bar based on the query type
-    """
-
-    default = "    Enter a valid ZTF object ID or choose another query type"
-    val = "" # Clear the input
-
-    if chip_value == "objectId":
-        return default, val
-    elif chip_value == "Conesearch":
-        return "    Conesearch around RA, Dec, radius(, startdate, window). See Help for the syntax", val
-    elif chip_value == "Date Search":
-        return "    Search alerts inside a time window. See Help for the syntax", val
-    elif chip_value == "Class Search":
-        return "    Choose a class below. We will display the last 100 alerts for this class.", val
-    elif chip_value == "SSO":
-        return "    Enter a valid IAU number. See Help for more information", val
-    elif chip_value == "Tracklet":
-        return "    Enter a date to get satellite glints or debris. See Help for more information", val
-    else:
-        return default, ""
-
-@app.callback(
-    Output("logo", "children"),
-    [
-        Input("submit", "n_clicks"),
-        Input("search_bar_input", "n_submit"),
-        Input("select", "options"),
-        Input("url", "search")
-    ],
-)
-def logo(ns, nss, options, searchurl):
-    """ Show the logo in the start page (and hide it otherwise)
-    """
-    ctx = dash.callback_context
-
-    logo = [
-        dbc.Row(
-            dbc.Col(
-                html.Img(
-                    src="/assets/Fink_PrimaryLogo_WEB.png",
-                    height='100%',
-                    width='40%'
-                )
-            ), style={'textAlign': 'center'}, className="mt-3"
-        ),
-    ]
-    if nss is None and (not ctx.triggered) and (searchurl == ''):
-        return logo
-    else:
-        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
-    if (button_id in ["submit", "search_bar_input"]) or (searchurl != '') or (options != []):
-        return []
-    else:
-        return logo
-
-def construct_results_layout(table):
-    """ Construct the tabs containing explorer query results
-    """
-    results_ = [
-        dbc.Tabs(
-            [
-                dbc.Tab(print_msg_info(), label='Info', tab_id='t0', label_style = {"color": "#000"}),
-                dbc.Tab(display_table_results(table), label="Table", tab_id='t1', label_style = {"color": "#000"}),
-                dbc.Tab(display_skymap(), label="Sky map", tab_id='t2', label_style = {"color": "#000"}),
-            ],
-            id="tabs",
-            active_tab="t1",
-        )
-    ]
-    return results_
 
 def populate_result_table(data, columns):
     """ Define options of the results table, and add data and columns
     """
-    page_size = 10
+    page_size = 100
     markdown_options = {'link_target': '_blank'}
 
     table = dash_table.DataTable(
         data=data,
         columns=columns,
         id='result_table',
-        # page_size=page_size,
-        page_action='none',
+        page_size=page_size,
+        # page_action='none',
         style_as_list_view=True,
         sort_action="native",
         filter_action="native",
         markdown_options=markdown_options,
-        fixed_columns={'headers': True, 'data': 1},
+        # fixed_columns={'headers': True, 'data': 1},
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
-        style_table={'maxWidth': '100%'},
+        style_table={'maxWidth': '100%', 'overflowX': 'scroll'},
         style_cell={
             'padding': '5px',
             'textAlign': 'right',
@@ -884,42 +980,42 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
     else:
         raise PreventUpdate
 
+# Prepare and display the results
 @app.callback(
     [
-        Output("results", "children"),
-        Output("submit", "children")
+        Output('results', 'children'),
+        Output('logo', 'is_open'),
+        Output('search_bar_submit', 'children', allow_duplicate=True),
+        Output('search_history_store', 'data'),
     ],
     [
-        State("search_bar_input", "value"),
-        Input("dropdown-query", "value"),
-        Input("select", "value"),
+        Input('search_bar_input', 'n_submit'),
+        Input('search_bar_submit', 'n_clicks'),
         Input('url', 'search'),
-        Input('submit', 'n_clicks'),
-        Input('search_bar_input', 'n_submit')
     ],
-    State("results", "children")
+    State('search_bar_input', 'value'),
+    State('search_history_store', 'data'),
+    State('results_table_switch', 'checked'),
+    # prevent_initial_call=True
+    prevent_initial_call='initial_duplicate',
 )
-def results(query, query_type, dropdown_option, searchurl, results, n_clicks, n_sumbits):
-    """ Query the database from the search input
-
-    Returns
-    ---------
-    out: list of Tabs
-        Tabs containing info, table, and skymap with the results
-    validation: int
-        0: not results found, 1: results found
+def results(n_submit, n_clicks, searchurl, value, history, show_table):
+    """ Parse the search string and query the database
     """
-    # catch parameters sent from URL
-    # override any other options
-    if searchurl != '':
-        query, query_type, dropdown_option = extract_query_url(searchurl)
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if not triggered_id:
+        # FIXME: ???
+        triggered_id = 'url'
 
-    empty_query = (query is None) or (query == '')
+    if not n_submit and not n_clicks and not searchurl:
+        raise PreventUpdate
 
-    if empty_query and query_type != "Class Search":
-        # raise PreventUpdate
-        # Clear old results on changing query type
-        return "", no_update
+    value = value.strip()
+
+    if not value and not searchurl:
+        # TODO: show back the logo?..
+        return None, no_update, no_update, no_update
 
     colnames_to_display = {
         'i:objectId': 'objectId',
@@ -931,54 +1027,100 @@ def results(query, query_type, dropdown_option, searchurl, results, n_clicks, n_
         'v:lapse': 'Time variation (day)'
     }
 
-    validation = validate_query(query, query_type)
-    if (not validation['flag']) and (not empty_query):
-        return dmc.Alert(validation['text'], title=validation['header'], color='red', withCloseButton=True), no_update
+    if searchurl and triggered_id == 'url':
+        # Parse GET parameters from url
+        params = dict(
+            urllib.parse.parse_qsl(
+                urllib.parse.urlparse(searchurl).query
+            )
+        )
+        # Construct the query from them
+        query = {'action': params.pop('action')}
+        query['params'] = params
+    else:
+        query = parse_query(value)
 
-    if query_type == 'objectId':
-        r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
+    if not query or not query['action']:
+        return None, no_update, no_update, no_update
+
+    if query['action'] == 'unknown':
+        return dbc.Alert(
+            'Query not recognized: {}'.format(value),
+            color='danger',
+            className='shadow-sm'
+        ), no_update, no_update, no_update
+
+    elif query['action'] == 'objectid':
+        # Search objects by objectId
+        msg = "ObjectId search with {} name {}".format('partial' if query['partial'] else 'exact', query['object'])
+        r = request_api(
+            '/api/v1/explorer',
             json={
-                'objectId': query,
+                'objectId': query['object'],
             }
         )
-    elif query_type == 'SSO':
-        # strip from spaces
-        query_ = str(query.replace(' ', ''))
 
-        r = requests.post(
-            '{}/api/v1/sso'.format(APIURL),
+    elif query['action'] == 'sso':
+        # Solar System Objects
+        msg = "Solar System object search with ssnamenr {}".format(query['params']['sso'])
+        r = request_api(
+            '/api/v1/sso',
             json={
-                'n_or_d': query_
+                'n_or_d': query['params']['sso']
             }
         )
-    elif query_type == 'Tracklet':
-        # strip from spaces
+
+    elif query['action'] == 'tracklet':
+        # Tracklet by (partial) name
+        msg = "Tracklet search with {} name {}".format('partial' if query['partial'] else 'exact', query['object'])
         payload = {
-            'date': query
+            'id': query['object']
         }
 
-        r = requests.post(
-            '{}/api/v1/tracklet'.format(APIURL),
+        r = request_api(
+            '/api/v1/tracklet',
             json=payload
         )
-    elif query_type == 'Conesearch':
-        args = [i.strip() for i in query.split(',')]
-        if len(args) == 3:
-            ra, dec, radius = args
-            startdate = None
-            window = None
-        elif len(args) == 5:
-            ra, dec, radius, startdate, window = args
-        r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
-            json={
-                'ra': ra,
-                'dec': dec,
-                'radius': float(radius),
-                'startdate_conesearch': startdate,
-                'window_days_conesearch': window
-            }
+
+    elif query['action'] == 'conesearch':
+        # Conesearch
+        ra = float(query['params'].get('ra'))
+        dec = float(query['params'].get('dec'))
+        # Default is 10 arcsec, max is 5 degrees
+        sr = min(float(query['params'].get('r', 10)), 18000)
+
+        msg = "Cone search with center at {:.4f} {:.3f} and radius {:.1f} arcsec".format(ra, dec, sr)
+
+        payload = {
+            'ra': ra,
+            'dec': dec,
+            'radius': sr,
+        }
+
+        if 'after' in query['params']:
+            startdate = isoify_time(query['params']['after'])
+
+            msg += ' after {}'.format(startdate)
+
+            payload['startdate'] = startdate
+
+        if 'before' in query['params']:
+            stopdate = isoify_time(query['params']['before'])
+
+            msg += ' before {}'.format(stopdate)
+
+            payload['stopdate'] = stopdate
+
+        elif 'window' in query['params']:
+            window = query['params']['window']
+
+            msg += ' window {} days'.format(window)
+
+            payload['window'] = window
+
+        r = request_api(
+            '/api/v1/explorer',
+            json=payload
         )
 
         colnames_to_display = {
@@ -988,142 +1130,371 @@ def results(query, query_type, dropdown_option, searchurl, results, n_clicks, n_
             'd:nalerthist': 'Number of measurements',
             'v:lapse': 'Time variation (day)'
         }
-    elif query_type == 'Date Search':
-        startdate = isoify_time(query)
-        if dropdown_option is None:
-            window = 1
-        else:
-            window = dropdown_option
-        r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
-            json={
-                'startdate': startdate,
-                'window': window
-            }
-        )
-    elif query_type == 'Class Search':
-        if dropdown_option is None:
+
+    elif query['action'] == 'class':
+        # Class-based search
+        alert_class = query['params'].get('class')
+        if not alert_class or alert_class == 'All classes':
             alert_class = 'allclasses'
-        else:
-            alert_class = dropdown_option
-        r = requests.post(
-            '{}/api/v1/latests'.format(APIURL),
-            json={
-                'class': alert_class,
-                'n': '100'
-            }
+
+        n_last = int(query['params'].get('last', 100))
+
+        msg = "Last {} objects with class '{}'".format(n_last, alert_class)
+
+        payload = {
+            'class': alert_class,
+            'n': n_last
+        }
+
+        if 'after' in query['params']:
+            startdate = isoify_time(query['params']['after'])
+
+            msg += ' after {}'.format(startdate)
+
+            payload['startdate'] = startdate
+
+        if 'before' in query['params']:
+            stopdate = isoify_time(query['params']['before'])
+
+            msg += ' before {}'.format(stopdate)
+
+            payload['stopdate'] = stopdate
+
+        r = request_api(
+            '/api/v1/latests',
+            json=payload
         )
+
+    elif query['action'] == 'daterange':
+        # Date range search
+        msg = "Objects in date range"
+
+        payload = {}
+
+        if 'after' in query['params']:
+            startdate = isoify_time(query['params']['after'])
+
+            msg += ' after {}'.format(startdate)
+
+            payload['startdate'] = startdate
+
+        if 'before' in query['params']:
+            stopdate = isoify_time(query['params']['before'])
+
+            msg += ' before {}'.format(stopdate)
+
+            payload['stopdate'] = stopdate
+
+        elif 'window' in query['params']:
+            window = query['params']['window']
+
+            msg += ' window {} days'.format(window)
+
+            payload['window'] = window
+
+        r = request_api(
+            '/api/v1/explorer',
+            json=payload
+        )
+
+    elif query['action'] == 'anomaly':
+        # Anomaly search
+        n_last = int(query['params'].get('last', 100))
+
+        msg = "Last {} anomalies".format(n_last)
+
+        payload = {
+            'n': n_last
+        }
+
+        if 'after' in query['params']:
+            startdate = isoify_time(query['params']['after'])
+
+            msg += ' after {}'.format(startdate)
+
+            payload['start_date'] = startdate
+
+        if 'before' in query['params']:
+            stopdate = isoify_time(query['params']['before'])
+
+            msg += ' before {}'.format(stopdate)
+
+            payload['stop_date'] = stopdate
+
+        r = request_api(
+            '/api/v1/anomaly',
+            json=payload
+        )
+
+    elif query['action'] == 'random':
+        n_random = int(query['params'].get('random', 10))
+
+        msg = "Random {} objects".format(n_random)
+
+        payload = {
+            'n': n_random
+        }
+
+        if 'class' in query['params']:
+            alert_class = query['params']['class']
+
+            msg += ' with class {}'.format(alert_class)
+
+            payload['class'] = alert_class
+
+        if 'seed' in query['params']:
+            seed = query['params']['seed']
+
+            msg += ' seed {}'.format(seed)
+
+            payload['seed'] = seed
+
+        r = request_api(
+            '/api/v1/random',
+            json=payload
+        )
+
+    else:
+        return dbc.Alert(
+            'Unhandled query: {}'.format(query),
+            color='danger',
+            className='shadow-sm'
+        ), no_update, no_update, no_update
+
+    # Add to history
+    if not history:
+        history = []
+    while value in history:
+        history.remove(value) # Remove duplicates
+    history.append(value)
+    history = history[-10:] # Limit it to 10 latest entries
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
+
+    if query['action'] == 'random':
+        # Keep only latest alert from all objects
+        pdf = pdf.loc[pdf.groupby('i:objectId')['i:jd'].idxmax()]
+
+    msg = "{} - {} found".format(msg, 'nothing' if pdf.empty else str(len(pdf.index)) + ' objects')
 
     if pdf.empty:
-        text, header = text_noresults(query, query_type, dropdown_option, searchurl)
-        return dmc.Alert(
-            text,
-            title='Oops!',
-            color="red",
-            withCloseButton=True
-        ), no_update
+        # text, header = text_noresults(query, query_type, dropdown_option, searchurl)
+        return dbc.Alert(
+            msg,
+            color="warning",
+            className='shadow-sm'
+        ), no_update, no_update, history
     else:
         # Make clickable objectId
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
 
-        if query_type == 'Conesearch':
+        # Sort the results
+        if query['action'] == 'conesearch':
             pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
             data = pdf.sort_values(
                 'v:separation_degree', ascending=True
-            ).to_dict('records')
+            )
         else:
-            data = pdf.sort_values('i:jd', ascending=False).to_dict('records')
+            data = pdf.sort_values('i:jd', ascending=False)
 
-        columns = [
-            {
-                'id': c,
-                'name': colnames_to_display[c],
-                'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
-                # 'hideable': True,
-                'presentation': 'markdown' if c == 'i:objectId' else 'input',
-            } for c in colnames_to_display.keys()
-        ]
-        validation = 1
+        if show_table:
+            data = data.to_dict('records')
 
-    table = populate_result_table(data, columns)
-    return construct_results_layout(table), no_update
+            columns = [
+                {
+                    'id': c,
+                    'name': colnames_to_display[c],
+                    'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
+                    # 'hideable': True,
+                    'presentation': 'markdown' if c == 'i:objectId' else 'input',
+                } for c in colnames_to_display.keys()
+            ]
 
-def text_noresults(query, query_type, dropdown_option, searchurl):
-    """ Toast to warn the user about the fact that we found no results
-    """
-    # catch parameters sent from URL
-    # override any other options
-    if searchurl != '':
-        query, query_type, dropdown_option = extract_query_url(searchurl)
-
-    # Good query, but no results
-    # ugly hack
-    if query_type == 'objectId':
-        header = "Search by Object ID"
-        text = "{} not found".format(query)
-    elif query_type == 'SSO':
-        header = "Search by Solar System Object ID"
-        text = "{} ({}) not found".format(query, str(query).replace(' ', ''))
-    elif query_type == 'Tracklet':
-        header = "Search by Tracklet ID"
-        text = "{} not found".format(query)
-    elif query_type == 'Conesearch':
-        header = "Conesearch"
-        text = "No alerts found for (RA, Dec, radius) = {}".format(
-            query
-        )
-    elif query_type == 'Date Search':
-        header = "Search by Date"
-        if dropdown_option is None:
-            window = 1
+            table = populate_result_table(data, columns)
+            results_ = display_table_results(table)
         else:
-            window = dropdown_option
-        jd_start = Time(query).jd
-        jd_end = jd_start + TimeDelta(window * 60, format='sec').jd
+            results_ = display_cards_results(pdf)
 
-        text = "No alerts found between {} and {}".format(
-            Time(jd_start, format='jd').iso,
-            Time(jd_end, format='jd').iso
-        )
-    elif query_type == 'Class Search':
-        header = "Get latest 100 alerts by class"
-        if dropdown_option is None:
-            alert_class = 'allclasses'
-        else:
-            alert_class = dropdown_option
-        # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
-        jd_stop = Time.now().jd
+        results = [
+            # Common header for the results
+            dbc.Row(
+                [
+                    dbc.Col(
+                        msg,
+                        md='auto'
+                    ),
+                    dbc.Col(
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    modal_skymap(),
+                                    xs='auto'
+                                ),
+                                dbc.Col(
+                                    help_popover(
+                                        dcc.Markdown(msg_info),
+                                        id='help_msg_info',
+                                        trigger=dmc.ActionIcon(
+                                            DashIconify(icon="mdi:help"),
+                                            id='help_msg_info',
+                                            color='gray',
+                                            variant="default",
+                                            radius='xl',
+                                            size='lg',
+                                        ),
+                                    ),
+                                    xs='auto'
+                                ),
+                            ],
+                            justify='end'
+                        ),
+                        md='auto'
+                    )
+                ],
+                align='end', justify='between',
+                className='m-2'
+            ),
+        ] + results_
 
-        text = "No alerts for class {} in between {} and {}".format(
-            alert_class,
-            Time(jd_start, format='jd').iso,
-            Time(jd_stop, format='jd').iso
-        )
-    return text, header
+        return results, False, no_update, history
 
-def create_home_link(label):
-    return dmc.Text(
-        label,
-        size="xl",
-        color="gray",
-    )
+def display_cards_results(pdf, page_size=10):
+    results_ = [
+        # Data storage
+        dcc.Store(
+            id='results_store',
+            storage_type='memory',
+            data=pdf.to_json(),
+        ),
+        dcc.Store(
+            id='results_page_size_store',
+            storage_type='memory',
+            data=str(page_size),
+        ),
+        # For Aladin
+        dcc.Store(
+            id='result_table',
+            storage_type='memory',
+            data=pdf.to_dict('records'),
+        ),
+        # Actual display of results
+        html.Div(
+            id='results_paginated'
+        ),
+    ]
+
+    npages = int(np.ceil(len(pdf.index)/page_size))
+    results_ += [
+        dmc.Space(h=10),
+        dmc.Group(
+            dmc.Pagination(
+                id='results_pagination',
+                total=npages,
+                siblings=1,
+                withControls=True,
+                withEdges=True,
+            ),
+            position='center',
+            className='d-none' if npages == 1 else ''
+        ),
+        dmc.Space(h=20),
+    ]
+
+    return results_
 
 @app.callback(
+    Output('results_paginated', 'children'),
+    Input('results_pagination', 'page'),
+    State('results_store', 'data'),
+    State('results_page_size_store', 'data'),
+)
+def on_paginate(page, data, page_size):
+    pdf = pd.read_json(data)
+    page_size = int(page_size)
+
+    if not page:
+        page = 1
+
+    results = []
+
+    # Slice to selected page
+    pdf_ = pdf.iloc[(page-1)*page_size : min(page*page_size, len(pdf.index))]
+
+    for i,row in pdf_.iterrows():
+        results.append(card_search_result(row, i))
+
+    return results
+
+# Scroll to top on paginate
+clientside_callback(
+    """
+    function scroll_top(value) {
+        document.querySelector('#search_bar').scrollIntoView({behavior: "smooth"})
+        return dash_clientside.no_update;
+    }
+    """,
+    Output('results_pagination', 'page'), # Fake output!!!
+    Input('results_pagination', 'page'),
+    prevent_initial_call=True,
+)
+
+@app.callback(
+    Output({'type': 'search_results_lightcurve', 'objectId': MATCH, 'index': MATCH}, 'children'),
+    Input({'type': 'search_results_lightcurve', 'objectId': MATCH, 'index': MATCH}, 'id')
+)
+def on_load_lightcurve(lc_id):
+    if lc_id:
+        # print(lc_id['objectId'])
+        fig = draw_lightcurve_preview(lc_id['objectId'])
+        return dcc.Graph(
+            figure=fig,
+            config={'displayModeBar': False},
+            style={
+                'width': '100%',
+                'height': '15pc'
+            },
+            responsive=True
+        )
+
+    return no_update
+
+@app.callback(
+    Output({'type': 'search_results_cutouts', 'objectId': MATCH, 'index': MATCH}, 'children'),
+    Input({'type': 'search_results_cutouts', 'objectId': MATCH, 'index': MATCH}, 'id')
+)
+def on_load_cutouts(lc_id):
+    if lc_id:
+        return html.Div(
+            draw_cutouts_quickview(lc_id['objectId']),
+            style={'width': '12pc', 'height': '12pc'},
+        )
+        # figs = draw_cutouts_quickview(lc_id['objectId'], ['science', 'template', 'difference'])
+        # return dbc.Row(
+        #     [
+        #         dbc.Col(_, xs=4, className='p-0') for _ in figs
+        #     ],
+        #     justify='center',
+        #     className='p-0',
+        # )
+
+    return no_update
+
+clientside_callback(
+    """
+    function drawer_switch(n_clicks, pathname) {
+        const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
+        if (triggered == 'drawer-button.n_clicks')
+            return true;
+        else
+            return false;
+    }
+    """,
     Output("drawer", "opened"),
     Input("drawer-button", "n_clicks"),
     Input('url', 'pathname'),
     prevent_initial_call=True,
 )
-def drawer_switch(n_clicks, pathname):
-    ctx = dash.callback_context
-    if ctx.triggered[0]['prop_id'].split('.')[0] == 'drawer-button':
-        return True
-    else:
-        return False
 
 navbar = dmc.Header(
     id='navbar',
@@ -1389,45 +1760,54 @@ app.layout = html.Div([
     Output('page-content', 'children'),
     [
         Input('url', 'pathname'),
+        Input('url', 'search'),
     ]
 )
-def display_page(pathname):
+def display_page(pathname, searchurl):
     layout = html.Div(
         [
             dbc.Container(
                 [
-                    html.Div(id='logo'),
-                    dmc.ChipGroup(
-                        [
-                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
-                            for x in ["objectId", "Conesearch", "Date Search", "Class Search", "SSO", "Tracklet"]
-                        ],
-                        id="dropdown-query",
-                        value='objectId',
-                        spacing="xl",
-                        position='center',
-                        multiple=False,
-                        className="mt-3"
+                    # Logo shown by default
+                    dbc.Collapse(
+                        dmc.MediaQuery(
+                            dbc.Row(
+                                dbc.Col(
+                                    html.Img(
+                                        src="/assets/Fink_PrimaryLogo_WEB.png",
+                                        height='100%',
+                                        width='40%',
+                                        style={'min-width': '250px'},
+                                    )
+                                ), style={'textAlign': 'center'}, className="mt-3",
+                            ),
+                            query="(max-height: 400px) or (max-width: 300px)",
+                            styles={'display': 'none'},
+                        ), is_open=True, id='logo',
                     ),
                     dbc.Row(
                         dbc.Col(
-                            [
-                                dbc.Row(fink_search_bar, className="mt-3 mb-3"),
-                                dcc.Dropdown(
-                                    id='select',
-                                    searchable=True,
-                                    clearable=True,
-                                    className="mb-3"
-                                ),
-                            ],
-                            md={'size':8, 'offset':2}
-                        ),
+                            fink_search_bar,
+                            lg={'size':8, 'offset':2},
+                            md={'size':10, 'offset':1},
+                        ), className="mt-3 mb-3"
                     ),
-                ], id='trash', fluid="lg"
+                ], fluid="lg"
             ),
-            loading(dbc.Container(id='results', fluid="xxl"))
-        ],
-        # className='home'
+            dbc.Container(
+                # Default content for results part - search history
+                dbc.Row(
+                    dbc.Col(
+                        id='search_history',
+                        # Size should match the one of fink_search_bar above
+                        lg={'size':8, 'offset':2},
+                        md={'size':10, 'offset':1},
+                    ), className="m-3"
+                ),
+                id='results',
+                fluid="xxl"
+            )
+        ]
     )
     if pathname == '/about':
         return about.layout

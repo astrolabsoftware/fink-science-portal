@@ -23,7 +23,6 @@ import visdcc
 import io
 import gzip
 import time
-import requests
 import pandas as pd
 import healpy as hp
 import numpy as np
@@ -36,7 +35,7 @@ import astropy.units as u
 from app import app, APIURL
 from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_colors
 from apps.utils import extract_bayestar_query_url
-
+from apps.utils import request_api
 
 def extract_moc(fn, credible_level):
     """
@@ -117,8 +116,8 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
     except URLError:
         return "error"
 
-    r = requests.post(
-        '{}/api/v1/bayestar'.format(APIURL),
+    r = request_api(
+        '/api/v1/bayestar',
         json={
             'bayestar': str(data),
             'credible_level': float(credible_level),
@@ -126,7 +125,7 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
         }
     )
 
-    pdf = pd.read_json(io.BytesIO(r.content))
+    pdf = pd.read_json(r)
 
     # return pdf.to_json(), "done"
     return pdf.to_json()

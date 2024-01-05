@@ -266,28 +266,28 @@ args_explorer = [
         'description': 'Conesearch radius in arcsec. Maximum is 36,000 arcseconds (10 degrees).'
     },
     {
-        'name': 'startdate_conesearch',
-        'required': False,
-        'group': 1,
-        'description': '[Optional] Starting date in UTC for the conesearch query.'
-    },
-    {
-        'name': 'window_days_conesearch',
-        'required': False,
-        'group': 1,
-        'description': '[Optional] Time window in days for the conesearch query.'
-    },
-    {
         'name': 'startdate',
-        'required': True,
-        'group': 2,
-        'description': 'Starting date in UTC'
+        'required': False,
+        'group': None,
+        'description': '[Optional] Starting date in UTC, as either ISO string, JD or MJD.'
+    },
+    {
+        'name': 'stopdate',
+        'required': False,
+        'group': None,
+        'description': '[Optional] Stopping date in UTC, as either ISO string, JD or MJD.'
     },
     {
         'name': 'window',
-        'required': True,
-        'group': 2,
-        'description': 'Time window in minutes. Maximum is 180 minutes.'
+        'required': False,
+        'group': None,
+        'description': '[Optional] Time window in days, may be used instead of stopdate'
+    },
+    {
+        'name': 'n',
+        'required': False,
+        'group': None,
+        'description': 'Maximal number of alerts to return. Default is 1000.'
     },
     {
         'name': 'output-format',
@@ -789,7 +789,7 @@ def query_db(payload=None):
 
     # Check the user specifies only one group
     all_groups = [i['group'] for i in args_explorer if i['group'] is not None and i['name'] in payload]
-    if len(np.unique(all_groups)) != 1:
+    if len(np.unique(all_groups)) > 1:
         rep = {
             'status': 'error',
             'text': "You need to set parameters from the same group\n"
@@ -797,16 +797,19 @@ def query_db(payload=None):
         return Response(str(rep), 400)
 
     # Check the user specifies all parameters within a group
-    user_group = np.unique(all_groups)[0]
-    required_args = [i['name'] for i in args_explorer if i['group'] == user_group]
-    required = [i['required'] for i in args_explorer if i['group'] == user_group]
-    for required_arg, required_ in zip(required_args, required):
-        if (required_arg not in payload) and required_:
-            rep = {
-                'status': 'error',
-                'text': "A value for `{}` is required for group {}. Use GET to check arguments.\n".format(required_arg, user_group)
-            }
-            return Response(str(rep), 400)
+    if len(np.unique(all_groups)) == 1:
+        user_group = np.unique(all_groups)[0]
+        required_args = [i['name'] for i in args_explorer if i['group'] == user_group]
+        required = [i['required'] for i in args_explorer if i['group'] == user_group]
+        for required_arg, required_ in zip(required_args, required):
+            if (required_arg not in payload) and required_:
+                rep = {
+                    'status': 'error',
+                    'text': "A value for `{}` is required for group {}. Use GET to check arguments.\n".format(required_arg, user_group)
+                }
+                return Response(str(rep), 400)
+    else:
+        user_group = None
 
     pdfs = return_explorer_pdf(payload, user_group)
 

@@ -24,7 +24,6 @@ from dash_iconify import DashIconify
 
 import pandas as pd
 import numpy as np
-import requests
 
 import rocks
 
@@ -38,7 +37,6 @@ from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
 from apps.cards import card_id
-from apps.cards import create_external_links, create_external_links_brokers
 
 from apps.plotting import draw_sso_lightcurve, draw_sso_astrometry, draw_sso_residual
 from apps.plotting import draw_tracklet_lightcurve, draw_tracklet_radec
@@ -52,28 +50,16 @@ from apps.utils import generate_qr
 from apps.utils import class_colors
 from apps.utils import retrieve_oid_from_metaname
 from apps.utils import loading
+from apps.utils import request_api
 from fink_utils.photometry.utils import is_source_behind
 
 from fink_utils.xmatch.simbad import get_simbad_labels
-
-from app import APIURL
 
 dcc.Location(id='url', refresh=False)
 
 def tab1_content(pdf):
     """ Summary tab
     """
-
-    distnr = pdf['i:distnr'].values[0]
-    if is_source_behind(distnr):
-        extra_div = dbc.Alert(
-            "It looks like there is a source behind, at {:.1f} arcsec. You might want to check the DC magnitude, and get DR photometry to see its long-term behaviour.".format(distnr),
-            dismissable=True,
-            is_open=True,
-            color="light"
-        )
-    else:
-        extra_div = html.Div()
 
     tab1_content_ = html.Div([
         dmc.Space(h=10),
@@ -95,10 +81,7 @@ def tab1_content(pdf):
         dbc.Row(
             [
                 dbc.Col(
-                    [
-                        extra_div,
-                        card_lightcurve_summary()
-                    ],
+                    card_lightcurve_summary(),
                     md=8
                 ),
                 dbc.Col(
@@ -476,30 +459,6 @@ def is_tracklet(pdfs):
     return False
 
 @app.callback(
-    Output('external_links', 'children'),
-    Input('object-data', 'children')
-)
-def create_external_links_(object_data):
-    """ Create links to external website. Used in the mobile app.
-    """
-    pdf = pd.read_json(object_data)
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
-    buttons = create_external_links(ra0, dec0)
-    return buttons
-
-@app.callback(
-    Output('external_links_brokers', 'children'),
-    Input('object-data', 'children')
-)
-def create_external_links_brokers_(object_data):
-    """ Create links to external website. Used in the mobile app.
-    """
-    pdf = pd.read_json(object_data)
-    buttons = create_external_links_brokers(pdf['i:objectId'].values[0])
-    return buttons
-
-@app.callback(
     [
         Output('object-data', 'children'),
         Output('object-upper', 'children'),
@@ -523,8 +482,8 @@ def store_query(name):
     else:
         oid = name[1:]
 
-    r = requests.post(
-        '{}/api/v1/objects'.format(APIURL),
+    r = request_api(
+        '/api/v1/objects',
         json={
             'objectId': oid,
             'withupperlim': True,
@@ -533,7 +492,7 @@ def store_query(name):
     )
 
     pdf = pd.read_json(
-        r.content,
+        r,
         dtype={'i:ssnamenr':str} # Force reading this field as string
     )
 
@@ -546,14 +505,14 @@ def store_query(name):
     payload = pdfs['i:ssnamenr'].values[0]
     is_sso = np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values])
     if str(payload) != 'null' and is_sso:
-        r = requests.post(
-            '{}/api/v1/sso'.format(APIURL),
+        r = request_api(
+            '/api/v1/sso',
             json={
                 'n_or_d': payload,
             }
         )
 
-        pdfsso = pd.read_json(r.content)
+        pdfsso = pd.read_json(r)
 
         if pdfsso.empty:
             # This can happen for SSO candidate with a ssnamenr
@@ -570,14 +529,14 @@ def store_query(name):
     payload = pdfs['d:tracklet'].values[0]
 
     if str(payload).startswith('TRCK'):
-        r = requests.post(
-            '{}/api/v1/tracklet'.format(APIURL),
+        r = request_api(
+            '/api/v1/tracklet',
             json={
                 'id': payload,
             }
         )
 
-        pdftracklet = pd.read_json(r.content)
+        pdftracklet = pd.read_json(r)
     else:
         pdftracklet = pd.DataFrame()
 
@@ -642,13 +601,13 @@ def make_qrcode(path):
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
-    r = requests.post(
-        '{}/api/v1/objects'.format(APIURL),
+    r = request_api(
+        '/api/v1/objects',
         json={
             'objectId': name[1:],
         }
     )
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
 
     if pdf.empty:
         layout_ = html.Div(

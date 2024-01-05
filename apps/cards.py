@@ -24,14 +24,20 @@ from apps.plotting import all_radio_options
 from apps.utils import pil_to_b64
 from apps.utils import generate_qr
 from apps.utils import class_colors
+from apps.utils import simbad_types
 from apps.utils import loading, help_popover
+from apps.utils import request_api
 
 from fink_utils.xmatch.simbad import get_simbad_labels
+from fink_utils.photometry.utils import is_source_behind
 
-import requests
 import pandas as pd
 import numpy as np
 import urllib
+import textwrap
+
+from astropy.time import Time
+from astropy.coordinates import SkyCoord
 
 lc_help = r"""
 ##### Difference magnitude
@@ -304,7 +310,7 @@ def create_external_links_brokers(objectId):
             dbc.Col(
                 dbc.Button(
                     className='btn btn-default btn-circle btn-lg',
-                    style={'background-image': 'url(/assets/buttons/logo_antares.png)', 'background-size': 'cover'},
+                    style={'background-image': 'url(/assets/buttons/logo_antares.png)', 'background-size': 'contain'},
                     color='dark',
                     outline=True,
                     id='antares',
@@ -738,17 +744,18 @@ def generate_tns_badge(oid):
     ----------
     badge: dmc.Badge or None
     """
-    r = requests.post(
-        '{}/api/v1/resolver'.format(APIURL),
+    r = request_api(
+        '/api/v1/resolver',
         json={
             'resolver': 'tns',
             'name': oid,
             'reverse': True
-        }
+        },
+        get_json=True
     )
 
-    if r.json() != []:
-        payload = r.json()[-1]
+    if r != []:
+        payload = r[-1]
 
         if payload['d:type'] != 'nan':
             msg = 'TNS: {} ({})'.format(payload['d:fullname'], payload['d:type'])
@@ -776,15 +783,16 @@ def generate_metadata_name(oid):
     ----------
     name: str
     """
-    r = requests.post(
-        '{}/api/v1/metadata'.format(APIURL),
+    r = request_api(
+        '/api/v1/metadata',
         json={
             'objectId': oid,
-        }
+        },
+        get_json=True
     )
 
-    if r.json() != []:
-        name = r.json()[0]['d:internal_name']
+    if r != []:
+        name = r[0]['d:internal_name']
     else:
         name = None
 
@@ -821,9 +829,6 @@ def card_id1(object_data, object_uppervalid, object_upper):
     else:
         nupper = 0
 
-    simbad_types = get_simbad_labels('old_and_new')
-    simbad_types = sorted(simbad_types, key=lambda s: s.lower())
-
     badges = []
     for c in np.unique(pdf['v:classification']):
         if c in simbad_types:
@@ -845,6 +850,89 @@ def card_id1(object_data, object_uppervalid, object_upper):
     tns_badge = generate_tns_badge(pdf['i:objectId'].values[0])
     if tns_badge is not None:
         badges.append(tns_badge)
+
+    ssnamenr = pdf['i:ssnamenr'].values[0]
+    if ssnamenr and ssnamenr != 'null':
+        badges.append(
+            dmc.Badge(
+                "SSO: {}".format(ssnamenr),
+                color='yellow',
+                variant="dot",
+            )
+        )
+
+    tracklet = pdf['d:tracklet'].values[0]
+    if tracklet and tracklet != 'null':
+        badges.append(
+            dmc.Badge(
+                "{}".format(tracklet),
+                color='violet',
+                variant="dot",
+            )
+        )
+
+    distnr = pdf['i:distnr'].values[0]
+    if distnr:
+        if is_source_behind(distnr):
+            ztf_badge = dmc.Tooltip(
+                dmc.Badge(
+                    "ZTF: {:.1f}\"".format(distnr),
+                    color='cyan',
+                    variant="dot",
+                    style={'border-color': 'red'},
+                ),
+                label="There is a source behind in ZTF reference image. You might want to check the DC magnitude plot, and get DR photometry to see its long-term behaviour",
+                color='red',
+                className='d-inline',
+                id='badge_ztf',
+                multiline=True,
+            )
+        else:
+            ztf_badge = dmc.Tooltip(
+                dmc.Badge(
+                    "ZTF: {:.1f}\"".format(distnr),
+                    color='cyan',
+                    variant="dot",
+                ),
+                label="Distance to closest object in ZTF reference image",
+                color='cyan',
+                className='d-inline',
+                multiline=True,
+            )
+
+        badges.append(ztf_badge)
+
+    distpsnr = pdf['i:distpsnr1'].values[0]
+    if distpsnr:
+        badges.append(
+            dmc.Tooltip(
+                dmc.Badge(
+                    "PS1: {:.1f}\"".format(distpsnr),
+                    color='teal',
+                    variant="dot",
+                ),
+                label="Distance to closest object in Pan-STARRS DR1 catalogue",
+                color='teal',
+                className='d-inline',
+                multiline=True,
+            )
+        )
+
+    distgaia =  pdf['i:neargaia'].values[0]
+    if distgaia:
+        badges.append(
+            dmc.Tooltip(
+                dmc.Badge(
+                    "Gaia: {:.1f}\"".format(distgaia),
+                    color='teal',
+                    variant="dot",
+                ),
+                label="Distance to closest object in Gaia DR3 catalogue",
+                color='teal',
+                className='d-inline',
+                multiline=True,
+            )
+        )
 
     meta_name = generate_metadata_name(pdf['i:objectId'].values[0])
     if meta_name is not None:
@@ -881,3 +969,196 @@ def card_id1(object_data, object_uppervalid, object_upper):
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )
     return card
+
+def card_search_result(row, i):
+    """Display single item for search results
+    """
+    badges = []
+
+    name = row['i:objectId']
+    if name[0] == '[': # Markdownified
+        name = row['i:objectId'].split('[')[1].split(']')[0]
+
+    # Handle different variants for key names from different API entry points
+    for key in ['v:classification', 'd:classification']:
+        if key in row:
+            # Classification
+            c = row.get(key)
+            if c in simbad_types:
+                color = class_colors['Simbad']
+            elif c in class_colors.keys():
+                color = class_colors[c]
+            else:
+                # Sometimes SIMBAD mess up names :-)
+                color = class_colors['Simbad']
+
+            badges.append(
+                dmc.Badge(
+                    c,
+                    variant='outline',
+                    color=color,
+                    size='md'
+                )
+            )
+
+    # SSO
+    ssnamenr = row.get('i:ssnamenr')
+    if ssnamenr and ssnamenr != 'null':
+        badges.append(
+            dmc.Badge(
+                "SSO: {}".format(ssnamenr),
+                variant='outline',
+                color='yellow',
+                size='md'
+            )
+        )
+
+    tracklet = row.get('d:tracklet')
+    if tracklet and tracklet != 'null':
+        badges.append(
+            dmc.Badge(
+                "{}".format(tracklet),
+                variant='outline',
+                color='violet',
+                size='md'
+            )
+        )
+
+    # Nearby objects
+    distnr = row.get('i:distnr')
+    if distnr:
+        if is_source_behind(distnr):
+            ztf_badge = dmc.Badge(
+                "ZTF: {:.1f}\"".format(distnr),
+                color='cyan',
+                variant='outline',
+                size='md',
+                style={'border-color': 'red'},
+            )
+        else:
+            ztf_badge = dmc.Badge(
+                "ZTF: {:.1f}\"".format(distnr),
+                color='cyan',
+                variant='outline',
+                size='md',
+            )
+
+        badges.append(ztf_badge)
+
+    distpsnr = row.get('i:distpsnr1')
+    if distpsnr:
+        badges.append(
+            dmc.Badge(
+                "PS1: {:.1f}\"".format(distpsnr),
+                color='teal',
+                variant='outline',
+                size='md',
+            )
+        )
+
+    distgaia = row.get('i:neargaia')
+    if distgaia:
+        badges.append(
+            dmc.Badge(
+                "Gaia: {:.1f}\"".format(distgaia),
+                color='teal',
+                variant='outline',
+                size='md',
+            )
+        )
+
+    if 'i:ndethist' in row:
+        ndethist = row.get('i:ndethist')
+    elif 'd:nalerthist' in row:
+        ndethist = row.get('d:nalerthist')
+    else:
+        ndethist = '?'
+
+    jdend = row.get('i:jdendhist', row.get('i:jd'))
+    jdstart = row.get('i:jdstarthist')
+    lastdate = row.get('i:lastdate', Time(jdend, format='jd').iso)
+
+    coords = SkyCoord(row['i:ra'], row['i:dec'], unit='deg')
+
+    text = """
+    `{}` detection(s) in `{:.1f}` days
+    First: `{}`
+    Last: `{}`
+    Equ: `{} {}`
+    Gal: `{}`
+    """.format(
+        ndethist,
+        jdend - jdstart,
+        Time(jdstart, format='jd').iso[:19],
+        lastdate[:19],
+        coords.ra.to_string(pad=True, unit='hour', precision=2, sep=' '),
+        coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
+        coords.galactic.to_string(style='decimal'),
+    )
+
+    text = textwrap.dedent(text)
+    if 'i:rb' in row:
+        text += "RealBogus: `{:.2f}`\n".format(row['i:rb'])
+    if 'd:anomaly_score' in row:
+        text += "Anomaly score: `{:.2f}`\n".format(row['d:anomaly_score'])
+
+    if 'v:separation_degree' in row:
+        corner_str = "{:.1f}''".format(row['v:separation_degree']*3600)
+    else:
+        corner_str = str(i)
+
+    item = dbc.Card(
+        [
+            # dbc.CardHeader(
+            dbc.CardBody(
+                [
+                    html.A(
+                        dmc.Group(
+                            [
+                                dmc.Text("{}".format(name), weight=700, size=26),
+                                dmc.Space(w='sm'),
+                                *badges
+                            ],
+                            spacing=3,
+                        ),
+                        href='/{}'.format(name),
+                        target='_blank',
+                        className='text-decoration-none',
+                    ),
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                id={'type': 'search_results_cutouts', 'objectId': name, 'index': i},
+                                width='auto'
+                            ),
+                            dbc.Col(
+                                dcc.Markdown(
+                                    text,
+                                    style={'white-space': 'pre-wrap'},
+                                ),
+                                width='auto',
+                            ),
+                            dbc.Col(
+                                id={'type': 'search_results_lightcurve', 'objectId': name, 'index': i},
+                                xs=12, md=True,
+                            ),
+                        ],
+                        justify='start',
+                        className='g-2',
+                    ),
+                    # Upper right corner badge
+                    dbc.Badge(
+                        corner_str,
+                        color="light",
+                        pill=True,
+                        text_color="dark",
+                        className="position-absolute top-0 start-100 translate-middle border",
+                    ),
+                ]
+            )
+        ],
+        color='white',
+        className='mb-2 shadow border-1'
+    )
+
+    return item

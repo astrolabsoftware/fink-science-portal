@@ -23,7 +23,6 @@ import datetime
 import copy
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
-import requests
 
 from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL
 import plotly.graph_objects as go
@@ -39,9 +38,8 @@ from fink_utils.photometry.conversion import apparent_flux, dc_mag
 from fink_utils.photometry.utils import is_source_behind
 from apps.utils import sine_fit
 from apps.utils import class_colors
+from apps.utils import request_api
 from apps.statistics import dic_names
-
-from app import APIURL
 
 from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin
 from fink_utils.sso.spins import estimate_sso_params, compute_color_correction
@@ -110,7 +108,7 @@ layout_lightcurve = dict(
 
 layout_lightcurve_preview = dict(
     automargin=True,
-    margin=dict(l=50, r=30, b=0, t=0),
+    margin=dict(l=50, r=0, b=0, t=0),
     hovermode="closest",
     hoverlabel={
         'align': "left"
@@ -1149,10 +1147,10 @@ def draw_lightcurve_preview(name) -> dict:
     figure: dict
     """
     cols = [
-        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:isdiffpos', 'd:tag'
     ]
-    r = requests.post(
-      '{}/api/v1/objects'.format(APIURL),
+    r = request_api(
+      '/api/v1/objects',
       json={
         'objectId': name,
         'withupperlim': 'True',
@@ -1160,7 +1158,7 @@ def draw_lightcurve_preview(name) -> dict:
         'output-format': 'json'
       }
     )
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
 
     # Mask upper-limits (but keep measurements with bad quality)
     mag_ = pdf['i:magpsf']
@@ -1174,58 +1172,64 @@ def draw_lightcurve_preview(name) -> dict:
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
 
-    layout_lightcurve_preview['yaxis']['title'] = 'Difference magnitude'
-    layout_lightcurve_preview['yaxis']['autorange'] = 'reversed'
-    layout_lightcurve_preview['paper_bgcolor'] = 'rgba(0,0,0,0.0)'
-    layout_lightcurve_preview['plot_bgcolor'] = 'rgba(0,0,0,0.2)'
+    # We should never modify global variables!!!
+    layout = deepcopy(layout_lightcurve_preview)
+
+    layout['yaxis']['title'] = 'Difference magnitude'
+    layout['yaxis']['autorange'] = 'reversed'
+    layout['paper_bgcolor'] = 'rgba(0,0,0,0.0)'
+    layout['plot_bgcolor'] = 'rgba(0,0,0,0.2)'
+    layout['showlegend'] = False
 
     hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
+    <b>mjd</b>: %{customdata[0]}
     <extra></extra>
     """
     figure = {
-        'data': [
-            {
-                'x': dates[pdf['i:fid'] == 1],
-                'y': mag[pdf['i:fid'] == 1],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 1],
-                    'visible': True,
-                    'color': COLORS_ZTF[0]
-                },
-                'mode': 'markers',
-                'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[0],
-                    'symbol': 'o'}
-            },
-            {
-                'x': dates[pdf['i:fid'] == 2],
-                'y': mag[pdf['i:fid'] == 2],
-                'error_y': {
-                    'type': 'data',
-                    'array': err[pdf['i:fid'] == 2],
-                    'visible': True,
-                    'color': COLORS_ZTF[1]
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[1],
-                    'symbol': 'o'}
-            }
-        ],
-        "layout": layout_lightcurve_preview
+        'data': [],
+        'layout': layout
     }
+
+    for fid,fname,color in (
+            (1, "g", COLORS_ZTF[0]),
+            (2, "r", COLORS_ZTF[1])
+    ):
+        idx = pdf['i:fid'] == fid
+
+        figure['data'].append(
+            {
+                'x': dates[idx],
+                'y': mag[idx],
+                'error_y': {
+                    'type': 'data',
+                    'array': err[idx],
+                    'visible': True,
+                    'width': 0,
+                    'color': color,
+                    'opacity': 0.5
+                },
+                'mode': 'markers',
+                'name': '{} band'.format(fname),
+                'customdata': np.stack(
+                    (
+                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[idx],
+                        pdf['d:tag'].apply(lambda x: '' if x == 'valid' else ' (low quality)')[idx],
+                    ), axis=-1
+                ),
+                'hovertemplate': hovertemplate,
+                'marker': {
+                    'size': pdf['d:tag'].apply(lambda x: 12 if x == 'valid' else 6)[idx],
+                    'color': color,
+                    'symbol': pdf['d:tag'].apply(lambda x: 'o' if x == 'valid' else 'triangle-up')[idx],
+                    'line': {'width': 0},
+                    'opacity': 1,
+                }
+            }
+        )
+
     return figure
 
 @app.callback(
@@ -1666,8 +1670,8 @@ def extract_cutout(object_data, time0, kind):
             return None
 
     # Extract the cutout data
-    r = requests.post(
-        '{}/api/v1/cutouts'.format(APIURL),
+    r = request_api(
+        '/api/v1/cutouts',
         json={
             'objectId': pdf_['i:objectId'].values[0],
             'candid': str(pdf_['i:candid'].values[position]),
@@ -1676,7 +1680,7 @@ def extract_cutout(object_data, time0, kind):
         }
     )
 
-    cutout = readstamp(r.content, gzipped=False)
+    cutout = readstamp(r, gzipped=False)
 
     if pdf_['i:isdiffpos'].values[position] == 'f' and kind == 'difference':
         # Negative event, let's invert the diff cutout
@@ -1755,11 +1759,11 @@ def draw_cutouts_modal(object_data, date_modal_select, is_open):
             figs.append(data)
     return figs
 
-def draw_cutouts_quickview(name):
+def draw_cutouts_quickview(name, kinds=['science']):
     """ Draw Science cutout data for the preview service
     """
     figs = []
-    for kind in ['science']:
+    for kind in kinds:
         try:
             # transfer only necessary columns
             cols = [
@@ -1770,16 +1774,16 @@ def draw_cutouts_quickview(name):
                 'b:cutout{}_stampData'.format(kind.capitalize()),
             ]
             # Transfer cutout name data
-            r = requests.post(
-                '{}/api/v1/objects'.format(APIURL),
+            r = request_api(
+                '/api/v1/objects',
                 json={
                     'objectId': name,
                     'columns': ','.join(cols)
                 }
             )
-            object_data = r.content
+            object_data = r
             data = extract_cutout(object_data, None, kind=kind)
-            figs.append(draw_cutout(data, kind))
+            figs.append(draw_cutout(data, kind, zoom=False))
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
@@ -1872,7 +1876,7 @@ def plain_normalizer(img: list, vmin: float, vmax: float, stretch='linear', pmin
 
     return data
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False, zoom=True):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -1921,7 +1925,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
         classname = ''
 
         graph = dcc.Graph(
-            id={'type':'stamp', 'id':title},
+            id={'type':'stamp', 'id':title} if zoom else 'undefined',
             figure=fig,
             style=style,
             config={'displayModeBar': False},
@@ -1931,7 +1935,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False):
     else:
         style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
         graph = dcc.Graph(
-            id={'type':'stamp_modal', 'id':title},
+            id={'type':'stamp_modal', 'id':title} if zoom else 'undefined',
             figure=fig,
             style=style,
             config={'displayModeBar': False},
@@ -1954,10 +1958,12 @@ def zoom_cutouts(relayout_data, figure_states):
                 figure_state['layout']['yaxis']['autorange'] = True
             else:
                 figure_state['layout']['xaxis']['range'] = [
-                    unique_data['xaxis.range[0]'], unique_data['xaxis.range[1]']]
+                    unique_data.get('xaxis.range[0]'), unique_data.get('xaxis.range[1]')
+                ]
                 figure_state['layout']['xaxis']['autorange'] = False
                 figure_state['layout']['yaxis']['range'] = [
-                    unique_data['yaxis.range[0]'], unique_data['yaxis.range[1]']]
+                    unique_data.get('yaxis.range[0]'), unique_data.get('yaxis.range[1]')
+                ]
                 figure_state['layout']['yaxis']['autorange'] = False
         return [unique_data] * len(relayout_data), figure_states
 
@@ -3302,8 +3308,8 @@ def plot_stat_evolution(pathname, param_name, switch):
     else:
         param_name_ = param_name
 
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3312,7 +3318,7 @@ def plot_stat_evolution(pathname, param_name, switch):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(io.BytesIO(r.content))
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     pdf = pdf.fillna(0)
 
@@ -3658,8 +3664,8 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
 def hist_sci_raw(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3668,7 +3674,7 @@ def hist_sci_raw(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3702,8 +3708,8 @@ def hist_sci_raw(pathname, dropdown_days):
 def hist_catalogued(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3712,7 +3718,7 @@ def hist_catalogued(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3748,8 +3754,8 @@ def hist_catalogued(pathname, dropdown_days):
 def hist_classified(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3758,7 +3764,7 @@ def hist_classified(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3797,8 +3803,8 @@ def hist_classified(pathname, dropdown_days):
 def hist_candidates(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3807,7 +3813,7 @@ def hist_candidates(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3846,8 +3852,8 @@ def hist_candidates(pathname, dropdown_days):
 def fields_exposures(pathname, dropdown_days):
     """ Make an histogram
     """
-    r = requests.post(
-        '{}/api/v1/statistics'.format(APIURL),
+    r = request_api(
+        '/api/v1/statistics',
         json={
             'date': '',
             'output-format': 'json',
@@ -3856,7 +3862,7 @@ def fields_exposures(pathname, dropdown_days):
     )
 
     # Format output in a DataFrame
-    pdf = pd.read_json(r.content)
+    pdf = pd.read_json(r)
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:

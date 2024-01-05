@@ -44,7 +44,8 @@ from fink_utils.sso.utils import get_miriade_data, query_miriade
 from fink_utils.photometry.conversion import dc_mag
 from fink_utils.xmatch.simbad import get_simbad_labels
 
-from app import APIURL, nlimit
+from app import APIURL, LOCALAPI, nlimit, server
+import apps.api
 
 simbad_types = get_simbad_labels('old_and_new')
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
@@ -177,49 +178,6 @@ def markdownify_objectid(objectid):
         objectid
     )
     return objectid_markdown
-
-def validate_query(query, query_type):
-    """ Validate a query. Need to be rewritten in a better way.
-    """
-    empty_query_type = (query_type is None) or (query_type == '')
-
-    if empty_query_type:
-        # This can only happen in queries formed from URL parameters
-        header = "Empty query type"
-        text = "You need to specify a query_type in your request (e.g. ?query_type=Conesearch&ra=value&dec=value&radius=value)"
-        return {'flag': False, 'header': header, 'text': text}
-
-    empty_query = (query is None) or (query == '')
-
-    # no queries
-    if empty_query and ((query_type == 'objectId') or (query_type == 'Conesearch') or (query_type == 'Date Search')):
-        header = "Empty query"
-        text = "You need to choose a query type and fill the search bar"
-        return {'flag': False, 'header': header, 'text': text}
-
-    # bad objectId
-    bad_objectid = (query_type == 'objectId') and not (query.startswith('ZTF'))
-    if bad_objectid:
-        header = "Bad ZTF object ID"
-        text = "ZTF object ID must start with `ZTF`"
-        return {'flag': False, 'header': header, 'text': text}
-
-    # bad conesearch
-    bad_conesearch = (query_type == 'Conesearch') and not ((len(query.split(',')) == 3) or (len(query.split(',')) == 5))
-    if bad_conesearch:
-        header = "Bad Conesearch formula"
-        text = "Conesearch must contain comma-separated RA, Dec, radius or RA, Dec, radius, startdate, window. See Help for more information."
-        return {'flag': False, 'header': header, 'text': text}
-
-    # bad search date
-    if query_type == 'Date Search':
-        try:
-            _ = isoify_time(query)
-        except (ValueError, TypeError) as e:
-            header = 'Bad start time'
-            return {'flag': False, 'header': header, 'text': str(e)}
-
-    return {'flag': True, 'header': 'Good query', 'text': 'Well done'}
 
 def extract_row(key: str, clientresult) -> dict:
     """ Extract one row from the client result, and return result as dict
@@ -689,88 +647,6 @@ def extract_parameter_value_from_url(param_dic, key, default):
         val = default
     return val
 
-def extract_query_url(search: str):
-    """ try to infer the query from an URL
-
-    Parameters
-    ----------
-    search: str
-        String returned by `dcc.Location.search` property.
-        Typically starts with ?
-
-    Returns
-    ----------
-    query: str
-        The query formed by the args in the URL
-    query_type: str
-        The type of query (objectID, SSO, Conesearch, etc.)
-    dropdown_option: str
-        Parameter value used in `Date` or `Class` search.
-    """
-    # remove trailing ?
-    search = search[1:]
-
-    # split parameters
-    parameters = search.split('&')
-
-    # Make a dictionary with the parameter keys and values
-    param_dic = {s.split('=')[0]: s.split('=')[1] for s in parameters}
-
-    # if the user forgot to specify the query type
-    if 'query_type' not in param_dic:
-        return return_empty_query()
-
-    query_type = param_dic['query_type']
-
-    if query_type == 'objectId':
-        query = extract_parameter_value_from_url(param_dic, 'objectId', None)
-        dropdown_option = None
-    elif query_type == 'Conesearch':
-        ra = extract_parameter_value_from_url(param_dic, 'ra', '')
-        dec = extract_parameter_value_from_url(param_dic, 'dec', '')
-        radius = extract_parameter_value_from_url(param_dic, 'radius', '')
-        startdate = extract_parameter_value_from_url(
-            param_dic, 'startdate_conesearch', ''
-        )
-        window = extract_parameter_value_from_url(
-            param_dic, 'window_days_conesearch', ''
-        )
-
-        query = '{}, {}, {}'.format(ra, dec, radius)
-
-        if startdate != '' and window != '':
-            query += ', {}, {}'.format(startdate.replace('%20', ' '), window)
-
-        dropdown_option = None
-
-    elif query_type == 'Date%20Search':
-        startdate = extract_parameter_value_from_url(param_dic, 'startdate', '')
-        window = extract_parameter_value_from_url(param_dic, 'window', '')
-
-        query = '{}'.format(startdate.replace('%20', ' '))
-        dropdown_option = window
-
-    elif query_type == 'Class%20Search':
-        # This one is weird. The Class search has 4 parameters: class, n,
-        # startdate, stopdate.
-        # But from the webpage, the user can only select the class. The other
-        # parameters are fixed (n=100, startdate=2019, stopdate=now).
-        # Of course using the API, one can do whatever, but using the
-        # webpage (or URL query), one can only change the class... to be fixed
-        class_ = extract_parameter_value_from_url(param_dic, 'class', '')
-
-        query = class_.replace('%20', ' ')
-
-        dropdown_option = class_.replace('%20', ' ')
-
-    elif query_type == 'SSO':
-        n_or_d = extract_parameter_value_from_url(param_dic, 'n_or_d', '')
-
-        query = n_or_d.replace('%20', ' ')
-        dropdown_option = None
-
-    return query, query_type.replace('%20', ' '), dropdown_option
-
 def is_float(s: str) -> bool:
     """ Check if s can be transformed as a float
     """
@@ -873,16 +749,67 @@ def generate_qr(data):
 def retrieve_oid_from_metaname(name):
     """ Search for the corresponding ZTF objectId given a metaname
     """
-    r = requests.post(
-        '{}/api/v1/metadata'.format(APIURL),
+    r = request_api(
+        '/api/v1/metadata',
         json={
             'internal_name_encoded': name,
-        }
+        },
+        get_json=True
     )
 
-    if r.json() != []:
-        return r.json()[0]['key:key']
+    if r != []:
+        return r[0]['key:key']
     return None
+
+# Access local or remove API endpoint
+from app import server
+import apps.api
+from flask import Response
+from json import loads as json_loads
+
+def request_api(endpoint, json=None, get_json=False, method='POST'):
+    if LOCALAPI:
+        # Use local API
+        urls = server.url_map.bind('')
+        func_name = urls.match(endpoint, method)
+        if len(func_name) == 2 and func_name[0][0] == '.':
+            func = getattr(apps.api.api, func_name[0][1:])
+
+            if method == 'GET':
+                # No args?..
+                res = func()
+            else:
+                res = func(json)
+            if isinstance(res, Response):
+                if res.direct_passthrough:
+                    res.make_sequence()
+                result = res.get_data()
+            else:
+                result = res
+
+            if get_json:
+                return json_loads(result)
+            else:
+                return result
+        else:
+            return None
+    else:
+        # Use remote API
+        if method == 'POST':
+            r = requests.post(
+                '{}{}'.format(APIURL, endpoint),
+                json=json
+            )
+        elif method == 'GET':
+                # No args?..
+            r = requests.get(
+                '{}{}'.format(APIURL, endpoint)
+            )
+
+        if get_json:
+            return r.json()
+        else:
+            return r.content
 
 # TODO: split these UI snippets into separate file?..
 import dash_mantine_components as dmc

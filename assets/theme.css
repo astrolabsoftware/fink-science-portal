@@ -33,6 +33,13 @@ h2 {
 }
 
 /* Quasi-generic backgrounds, meant to be used in wrapper divs to override parent colors of the whole page */
+.bg-opaque-100 {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(var(--bgColorTriplet), 1.0)
+}
+
 .bg-opaque-90 {
   width: 100%;
   height: 100%;
@@ -56,21 +63,6 @@ h2 {
   background-color: rgba(var(--bgColorTriplet), 0.3)
 }
 
-/* Quickview modal */
-#modal_quickview .modal-content {
-  /* background: rgba(255, 255, 255, .9); */
-}
-
-#modal_quickview .modal-body {
-  /* background: #000; */
-  /* background-image: linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.3)), url(/assets/background.png); */
-}
-
-#modal_quickview .card {
-  /* background: #000; */
-  /* background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.9)), url(/assets/background.png); */
-}
-
 #navbar {
   background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png);
   background-size: cover;
@@ -79,23 +71,20 @@ h2 {
 /* Main search bar */
 #search_bar {
   border: 0.5px grey solid;
-  background: rgba(255, 255, 255, .75);
+  background: rgba(255, 255, 255, 1.0);
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 #search_bar_input {
-  border: 0px black solid;
-  background: rgba(255, 255, 255, 0.0);
-  color: grey;
+  /* margin-left: 25px; */
+  padding: 0;
 }
 
-/* Help modal */
-#open {
-  border: 0px black solid;
-  background: rgba(255, 255, 255, 0.0);
-  color: grey;
-}
-
-#modal {
+#search_bar_suggestions .list-group-item {
+  background: rgba(248, 248, 248, 1);
+  border-radius: 0 0 25px 25px;
+  border-bottom: 2px solid black;
 }
 
 /* Cards */
