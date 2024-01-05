@@ -70,7 +70,21 @@ def test_tns_resolver() -> None:
     ---------
     >>> test_tns_resolver()
     """
-    pdf = resolver(resolver='tns', name='SN 2023')
+    pdf = resolver(resolver='tns', name='SN 2023', nmax=100000)
+
+    # Not empty
+    assert not pdf.empty
+
+    # More than the default 10,000 limitation
+    assert len(pdf) > 10000
+
+def test_tns_fulltable() -> None:
+    """
+    Examples
+    ---------
+    >>> test_tns_fulltable()
+    """
+    pdf = resolver(resolver='tns', name='')
 
     # Not empty
     assert not pdf.empty
@@ -78,7 +92,7 @@ def test_tns_resolver() -> None:
     # One object found
     assert len(pdf) == 10
 
-    cols = ['d:declination', 'd:fullname', 'd:internalname', 'd:ra', 'd:type']
+    cols = ['d:declination', 'd:fullname', 'd:internalname', 'd:ra', 'd:type', 'd:redshift']
     for col in cols:
         assert col in pdf.columns, col
 
