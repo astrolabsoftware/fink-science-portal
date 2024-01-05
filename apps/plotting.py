@@ -2110,7 +2110,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True):
 
     return graph
 
-app.callback([
+@app.callback([
         Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
         Output({'type': 'stamp', 'id': ALL}, 'figure'),
     ],
