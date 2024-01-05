@@ -25,7 +25,7 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord
 
 import dash
-from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL
+from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL, clientside_callback
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -2148,32 +2148,41 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True, id_type='s
 
     return graph
 
-def zoom_cutouts(relayout_data, figure_states):
-    # Code from https://stackoverflow.com/a/70405707
-    unique_data = None
-    for data in relayout_data:
-        if relayout_data.count(data) == 1:
-            unique_data = data
+zoom_cutouts_js = """
+function zoom_cutouts(relayout_data, figure_states) {
+    let unique_data = null;
+    for (i in relayout_data)
+        if (relayout_data.reduce((v,x) => v + (JSON.stringify(x) == JSON.stringify(relayout_data[i]) ? 1 : 0), 0) == 1)
+            unique_data = relayout_data[i];
 
-    if unique_data:
-        for figure_state in figure_states:
-            if unique_data.get('xaxis.autorange'):
-                figure_state['layout']['xaxis']['autorange'] = True
-                figure_state['layout']['yaxis']['autorange'] = True
-            else:
-                figure_state['layout']['xaxis']['range'] = [
-                    unique_data.get('xaxis.range[0]'), unique_data.get('xaxis.range[1]')
-                ]
-                figure_state['layout']['xaxis']['autorange'] = False
-                figure_state['layout']['yaxis']['range'] = [
-                    unique_data.get('yaxis.range[0]'), unique_data.get('yaxis.range[1]')
-                ]
-                figure_state['layout']['yaxis']['autorange'] = False
-        return [unique_data] * len(relayout_data), figure_states
+    if (unique_data) {
+        for (i in figure_states) {
+            figure_states[i] = JSON.parse(JSON.stringify(figure_states[i]));
+            if ('xaxis.autorange' in unique_data) {
+                figure_states[i]['layout']['xaxis']['autorange'] = true;
+                figure_states[i]['layout']['yaxis']['autorange'] = true;
+            } else {
+                figure_states[i]['layout']['xaxis']['range'] = [
+                    unique_data['xaxis.range[0]'], unique_data['xaxis.range[1]']
+                ];
+                figure_states[i]['layout']['yaxis']['range'] = [
+                    unique_data['yaxis.range[0]'], unique_data['yaxis.range[1]']
+                ];
+                figure_states[i]['layout']['xaxis']['autorange'] = false;
+                figure_states[i]['layout']['yaxis']['autorange'] = false;
+            }
+        }
 
-    return relayout_data, figure_states
+        return [[unique_data, unique_data, unique_data], figure_states];
+    }
 
-app.callback([
+    return [dash_clientside.no_update, dash_clientside.no_update];
+}
+"""
+
+clientside_callback(
+    zoom_cutouts_js,
+    [
         Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
         Output({'type': 'stamp', 'id': ALL}, 'figure'),
     ],
@@ -2182,9 +2191,11 @@ app.callback([
     ],
     State({'type': 'stamp', 'id': ALL}, 'figure'),
     prevent_initial_call=True
-)(zoom_cutouts)
+)
 
-app.callback([
+clientside_callback(
+    zoom_cutouts_js,
+    [
         Output({'type': 'stamp_modal', 'id': ALL}, 'relayoutData'),
         Output({'type': 'stamp_modal', 'id': ALL}, 'figure'),
     ],
@@ -2193,7 +2204,7 @@ app.callback([
     ],
     State({'type': 'stamp_modal', 'id': ALL}, 'figure'),
     prevent_initial_call=True
-)(zoom_cutouts)
+)
 
 @app.callback(
     [
