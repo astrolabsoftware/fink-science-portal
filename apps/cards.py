@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, dash_table, Input, Output, State
+from dash import html, dcc, dash_table, Input, Output, State, clientside_callback
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
@@ -371,11 +371,125 @@ def card_neighbourhood(pdf):
 
     return card
 
-# @app.callback(
-#     Output('card_id_col', 'children'),
-#     [
-#         Input('object-data', 'children'),
-#     ])
+def make_modal_stamps(pdf):
+    return [
+        dbc.Modal(
+            [
+                dbc.ModalHeader(
+                    [
+                        dmc.ActionIcon(
+                            DashIconify(icon="tabler:chevron-left"),
+                            id="stamps_prev",
+                            title="Next alert",
+                            n_clicks=0,
+                            variant="default",
+                            size=36,
+                            color='gray',
+                            className='me-1'
+                        ),
+                        dmc.Select(
+                            label="",
+                            placeholder="Select a date",
+                            searchable=True,
+                            nothingFound="No options found",
+                            id="date_modal_select",
+                            value=pdf['v:lastdate'].values[0],
+                            data=[
+                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
+                            ],
+                            zIndex=10000000,
+                        ),
+                        dmc.ActionIcon(
+                            DashIconify(icon="tabler:chevron-right"),
+                            id="stamps_next",
+                            title="Previous alert",
+                            n_clicks=0,
+                            variant="default",
+                            size=36,
+                            color='gray',
+                            className='ms-1'
+                        ),
+                    ],
+                    close_button=True,
+                    className="p-2 pe-4"
+                ),
+                loading(dbc.ModalBody(
+                    [
+                        dbc.Row(
+                            id='stamps_modal_content',
+                            justify='around',
+                            className='g-0 mx-auto',
+                        ),
+                    ]
+                )),
+            ],
+            id="stamps_modal",
+            scrollable=True,
+            centered=True,
+            size='xl',
+            # style={'max-width': '800px'}
+        ),
+        dmc.Center(
+            dmc.ActionIcon(
+                DashIconify(icon="tabler:arrows-maximize"),
+                id="maximise_stamps",
+                n_clicks=0,
+                variant="default",
+                radius=30,
+                size=36,
+                color='gray'
+            ),
+        ),
+    ]
+
+# Toggle stamps modal
+clientside_callback(
+    """
+    function toggle_stamps_modal(n_clicks, is_open) {
+        return !is_open;
+    }
+    """,
+    Output("stamps_modal", "is_open"),
+    Input("maximise_stamps", "n_clicks"),
+    State("stamps_modal", "is_open"),
+    prevent_initial_call=True,
+)
+
+# Prev/Next for stamps modal
+clientside_callback(
+    """
+    function stamps_prev_next(n_clicks_prev, n_clicks_next, clickData, value, data) {
+        let id = data.findIndex((x) => x.value === value);
+        let step = 1;
+
+        const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
+
+        if (triggered == 'lightcurve_cutouts.clickData')
+            return clickData.points[0].x;
+
+        if (triggered == 'stamps_prev.n_clicks')
+            step = -1;
+
+        id += step;
+        if (step > 0 && id >= data.length)
+            id = 0;
+        if (step < 0 && id < 0)
+            id = data.length - 1;
+
+        return data[id].value;
+    }
+    """,
+    Output("date_modal_select", "value"),
+    [
+        Input("stamps_prev", "n_clicks"),
+        Input("stamps_next", "n_clicks"),
+        Input("lightcurve_cutouts", "clickData"),
+    ],
+    State("date_modal_select", "value"),
+    State("date_modal_select", "data"),
+    prevent_initial_call=True,
+)
+
 def card_id(pdf):
     """ Add a card containing basic alert data
     """
@@ -449,6 +563,8 @@ curl -H "Content-Type: application/json" -X POST \\
                                     radius='sm', p='xs', shadow='sm', withBorder=True, style={'padding':'5px'}
                                 )
                             ),
+                            dmc.Space(h=4),
+                            *make_modal_stamps(pdf),
                         ]
                     ),
                 ],
