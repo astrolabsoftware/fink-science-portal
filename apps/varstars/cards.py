@@ -102,8 +102,8 @@ def card_variable_button(object_data):
                                     [
                                         dbc.Col(
                                             dbc.Button(
-                                                className='btn btn-default zoom btn-circle btn-lg',
-                                                style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-size': 'cover'},
+                                                className='btn btn-default zoom btn-circle btn-lg btn-image',
+                                                style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-color': 'black'},
                                                 color='dark',
                                                 outline=True,
                                                 id='asas-sn',
@@ -113,8 +113,8 @@ def card_variable_button(object_data):
                                             ), width=4),
                                         dbc.Col(
                                             dbc.Button(
-                                                className='btn btn-default zoom btn-circle btn-lg',
-                                                style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                                                className='btn btn-default zoom btn-circle btn-lg btn-image',
+                                                style={'background-image': 'url(/assets/buttons/snad.svg)'},
                                                 color='dark',
                                                 outline=True,
                                                 id='SNAD-var-star',

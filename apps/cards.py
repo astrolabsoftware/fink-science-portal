@@ -194,8 +194,8 @@ def create_external_links(ra0, dec0):
             [
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'auto 100%', 'background-position-x': 'left'},
                         color='dark',
                         outline=True,
                         id='TNS',
@@ -206,8 +206,8 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/simbad.png)'},
                         color='dark',
                         outline=True,
                         id='SIMBAD',
@@ -218,8 +218,8 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/snad.svg)'},
                         color='dark',
                         outline=True,
                         id='SNAD',
@@ -234,8 +234,8 @@ def create_external_links(ra0, dec0):
             [
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-color': 'black'},
                         color='dark',
                         outline=True,
                         id='NED',
@@ -246,8 +246,8 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)'},
                         color='dark',
                         outline=True,
                         id='SDSS',
@@ -258,8 +258,8 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/asassn.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/asassn.png)', 'background-color': 'black'},
                         color='white',
                         outline=True,
                         id='ASAS-SN',
@@ -270,14 +270,9 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={
-                            'background-image': 'url(/assets/buttons/vsx.png)',
-                            'background-size': 'contain',
-                            'background-repeat': 'no-repeat',
-                            'margin-top': '50%'
-                        },
-                        color='white',
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/vsx.png)'},
+                        color='dark',
                         outline=True,
                         id='VSX',
                         title='AAVSO VSX',
@@ -297,8 +292,8 @@ def create_external_links_brokers(objectId):
         [
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg',
-                    style={'background-image': 'url(/assets/buttons/logo_alerce.png)', 'background-size': 'cover'},
+                    className='btn btn-default btn-circle btn-lg zoom btn-image',
+                    style={'background-image': 'url(/assets/buttons/logo_alerce.png)'},
                     color='dark',
                     outline=True,
                     id='alerce',
@@ -309,8 +304,8 @@ def create_external_links_brokers(objectId):
             ),
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg',
-                    style={'background-image': 'url(/assets/buttons/logo_antares.png)', 'background-size': 'contain'},
+                    className='btn btn-default btn-circle btn-lg zoom btn-image',
+                    style={'background-image': 'url(/assets/buttons/logo_antares.png)'},
                     color='dark',
                     outline=True,
                     id='antares',
@@ -321,8 +316,8 @@ def create_external_links_brokers(objectId):
             ),
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg',
-                    style={'background-image': 'url(/assets/buttons/logo_lasair.png)', 'background-size': 'cover'},
+                    className='btn btn-default btn-circle btn-lg zoom btn-image',
+                    style={'background-image': 'url(/assets/buttons/logo_lasair.png)'},
                     color='dark',
                     outline=True,
                     id='lasair',

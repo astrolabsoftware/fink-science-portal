@@ -49,6 +49,17 @@ html, body {
   clip-path: none;
 }
 
+/* Common styling for image buttons as we use for external links */
+.btn-image {
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+/* Disable color change on hover */
+.btn-image:hover {
+  background-color: inherit;
+}
+
 .home {
   overflow: auto;
   position:absolute;
