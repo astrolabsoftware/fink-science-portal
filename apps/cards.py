@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, dash_table, Input, Output, State
+from dash import html, dcc, dash_table, Input, Output, State, clientside_callback
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
@@ -147,7 +147,7 @@ def card_lightcurve_summary():
                 ],
                 position='center', align='center'
             )
-        ], radius='xl', p='md', shadow='xl', withBorder=True
+        ]
     )
     return card
 
@@ -194,8 +194,8 @@ def create_external_links(ra0, dec0):
             [
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'auto 100%', 'background-position-x': 'left'},
                         color='dark',
                         outline=True,
                         id='TNS',
@@ -206,8 +206,8 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/simbad.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/simbad.png)'},
                         color='dark',
                         outline=True,
                         id='SIMBAD',
@@ -218,8 +218,8 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/snad.svg)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/snad.svg)'},
                         color='dark',
                         outline=True,
                         id='SNAD',
@@ -234,8 +234,8 @@ def create_external_links(ra0, dec0):
             [
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-color': 'black'},
                         color='dark',
                         outline=True,
                         id='NED',
@@ -246,8 +246,8 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)'},
                         color='dark',
                         outline=True,
                         id='SDSS',
@@ -258,8 +258,8 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={'background-image': 'url(/assets/buttons/asassn.png)', 'background-size': 'cover'},
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/asassn.png)', 'background-color': 'black'},
                         color='white',
                         outline=True,
                         id='ASAS-SN',
@@ -270,14 +270,9 @@ def create_external_links(ra0, dec0):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className='btn btn-default btn-circle btn-lg',
-                        style={
-                            'background-image': 'url(/assets/buttons/vsx.png)',
-                            'background-size': 'contain',
-                            'background-repeat': 'no-repeat',
-                            'margin-top': '50%'
-                        },
-                        color='white',
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/vsx.png)'},
+                        color='dark',
                         outline=True,
                         id='VSX',
                         title='AAVSO VSX',
@@ -297,8 +292,8 @@ def create_external_links_brokers(objectId):
         [
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg',
-                    style={'background-image': 'url(/assets/buttons/logo_alerce.png)', 'background-size': 'cover'},
+                    className='btn btn-default btn-circle btn-lg zoom btn-image',
+                    style={'background-image': 'url(/assets/buttons/logo_alerce.png)'},
                     color='dark',
                     outline=True,
                     id='alerce',
@@ -309,8 +304,8 @@ def create_external_links_brokers(objectId):
             ),
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg',
-                    style={'background-image': 'url(/assets/buttons/logo_antares.png)', 'background-size': 'contain'},
+                    className='btn btn-default btn-circle btn-lg zoom btn-image',
+                    style={'background-image': 'url(/assets/buttons/logo_antares.png)'},
                     color='dark',
                     outline=True,
                     id='antares',
@@ -321,8 +316,8 @@ def create_external_links_brokers(objectId):
             ),
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg',
-                    style={'background-image': 'url(/assets/buttons/logo_lasair.png)', 'background-size': 'cover'},
+                    className='btn btn-default btn-circle btn-lg zoom btn-image',
+                    style={'background-image': 'url(/assets/buttons/logo_lasair.png)'},
                     color='dark',
                     outline=True,
                     id='lasair',
@@ -335,19 +330,7 @@ def create_external_links_brokers(objectId):
     )
     return buttons
 
-# @app.callback(
-#     Output('card_id_col', 'children'),
-#     [
-#         Input('object-data', 'children'),
-#     ])
-def card_id(pdf):
-    """ Add a card containing basic alert data
-    """
-    # pdf = pd.read_json(object_data)
-    objectid = pdf['i:objectId'].values[0]
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
-
+def card_neighbourhood(pdf):
     distnr = pdf['i:distnr'].values[0]
     ssnamenr = pdf['i:ssnamenr'].values[0]
     distpsnr1 = pdf['i:distpsnr1'].values[0]
@@ -358,6 +341,157 @@ def card_id(pdf):
     else:
         gaianame = None
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
+
+    card = dmc.Paper(
+        [
+            dcc.Markdown(
+                """
+                Constellation: `{}`
+                Class (SIMBAD): `{}`
+                Name (MPC): `{}`
+                Name (Gaia): `{}`
+                Distance (Gaia): `{:.2f}` arcsec
+                Distance (PS1): `{:.2f}` arcsec
+                Distance (ZTF): `{:.2f}` arcsec
+                """.format(
+                    constellation,
+                    cdsxmatch, ssnamenr, gaianame,
+                    float(neargaia), float(distpsnr1), float(distnr)
+                ),
+                className="markdown markdown-pre ps-2 pe-2"
+            ),
+        ],
+        radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'},
+    )
+
+    return card
+
+def make_modal_stamps(pdf):
+    return [
+        dbc.Modal(
+            [
+                dbc.ModalHeader(
+                    [
+                        dmc.ActionIcon(
+                            DashIconify(icon="tabler:chevron-left"),
+                            id="stamps_prev",
+                            title="Next alert",
+                            n_clicks=0,
+                            variant="default",
+                            size=36,
+                            color='gray',
+                            className='me-1'
+                        ),
+                        dmc.Select(
+                            label="",
+                            placeholder="Select a date",
+                            searchable=True,
+                            nothingFound="No options found",
+                            id="date_modal_select",
+                            value=pdf['v:lastdate'].values[0],
+                            data=[
+                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
+                            ],
+                            zIndex=10000000,
+                        ),
+                        dmc.ActionIcon(
+                            DashIconify(icon="tabler:chevron-right"),
+                            id="stamps_next",
+                            title="Previous alert",
+                            n_clicks=0,
+                            variant="default",
+                            size=36,
+                            color='gray',
+                            className='ms-1'
+                        ),
+                    ],
+                    close_button=True,
+                    className="p-2 pe-4"
+                ),
+                loading(dbc.ModalBody(
+                    [
+                        dbc.Row(
+                            id='stamps_modal_content',
+                            justify='around',
+                            className='g-0 mx-auto',
+                        ),
+                    ]
+                )),
+            ],
+            id="stamps_modal",
+            scrollable=True,
+            centered=True,
+            size='xl',
+            # style={'max-width': '800px'}
+        ),
+        dmc.Center(
+            dmc.ActionIcon(
+                DashIconify(icon="tabler:arrows-maximize"),
+                id="maximise_stamps",
+                n_clicks=0,
+                variant="default",
+                radius=30,
+                size=36,
+                color='gray'
+            ),
+        ),
+    ]
+
+# Toggle stamps modal
+clientside_callback(
+    """
+    function toggle_stamps_modal(n_clicks, is_open) {
+        return !is_open;
+    }
+    """,
+    Output("stamps_modal", "is_open"),
+    Input("maximise_stamps", "n_clicks"),
+    State("stamps_modal", "is_open"),
+    prevent_initial_call=True,
+)
+
+# Prev/Next for stamps modal
+clientside_callback(
+    """
+    function stamps_prev_next(n_clicks_prev, n_clicks_next, clickData, value, data) {
+        let id = data.findIndex((x) => x.value === value);
+        let step = 1;
+
+        const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
+
+        if (triggered == 'lightcurve_cutouts.clickData')
+            return clickData.points[0].x;
+
+        if (triggered == 'stamps_prev.n_clicks')
+            step = -1;
+
+        id += step;
+        if (step > 0 && id >= data.length)
+            id = 0;
+        if (step < 0 && id < 0)
+            id = data.length - 1;
+
+        return data[id].value;
+    }
+    """,
+    Output("date_modal_select", "value"),
+    [
+        Input("stamps_prev", "n_clicks"),
+        Input("stamps_next", "n_clicks"),
+        Input("lightcurve_cutouts", "clickData"),
+    ],
+    State("date_modal_select", "value"),
+    State("date_modal_select", "data"),
+    prevent_initial_call=True,
+)
+
+def card_id(pdf):
+    """ Add a card containing basic alert data
+    """
+    # pdf = pd.read_json(object_data)
+    objectid = pdf['i:objectId'].values[0]
+    ra0 = pdf['i:ra'].values[0]
+    dec0 = pdf['i:dec'].values[0]
 
     python_download = """import requests
 import pandas as pd
@@ -425,54 +559,29 @@ curl -H "Content-Type: application/json" -X POST \\
                                 )
                             ),
                             dmc.Space(h=4),
-                            dbc.Modal(
-                                [
-                                    dbc.ModalHeader(
-                                        dmc.Select(
-                                            label="",
-                                            placeholder="Select a date",
-                                            searchable=True,
-                                            nothingFound="No options found",
-                                            id="date_modal_select",
-                                            value=None,
-                                            data=[
-                                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
-                                            ],
-                                            # style={"width": 200, "marginBottom": 10},
-                                            zIndex=10000000,
-                                        ),
-                                        close_button=True,
-                                    ),
-                                    loading(dbc.ModalBody(
-                                        [
-                                            dmc.Group(
-                                                id="stamps_modal_content",
-                                                position='center',
-                                                spacing='xl'
-                                            ),
-                                        ]
-                                    )),
-                                ],
-                                id="stamps_modal",
-                                scrollable=True,
-                                centered=True,
-                                size='xl'
-                            ),
-                            dmc.Center(
-                                dmc.ActionIcon(
-                                    DashIconify(icon="tabler:arrows-maximize"),
-                                    id="maximise_stamps",
-                                    n_clicks=0,
-                                    variant="default",
-                                    radius=30,
-                                    size=36,
-                                    color='gray'
-                                ),
-                            ),
+                            *make_modal_stamps(pdf),
                         ]
                     ),
                 ],
                 value='stamps'
+            ),
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Alert content",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:file-description",
+                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                                width=20,
+                            )
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        html.Div([], id='alert_table'),
+                    ),
+                ],
+                value='last_alert'
             ),
             dmc.AccordionItem(
                 [
@@ -508,24 +617,6 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                 ],
                 value='coordinates'
-            ),
-            dmc.AccordionItem(
-                [
-                    dmc.AccordionControl(
-                        "Alert content",
-                        icon=[
-                            DashIconify(
-                                icon="tabler:file-description",
-                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
-                                width=20,
-                            )
-                        ],
-                    ),
-                    dmc.AccordionPanel(
-                        html.Div([], id='alert_table'),
-                    ),
-                ],
-                value='last_alert'
             ),
             dmc.AccordionItem(
                 [
@@ -599,28 +690,7 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.AccordionPanel(
                         dmc.Stack(
                             [
-                                dmc.Paper(
-                                    [
-                                        dcc.Markdown(
-                                            """
-                                            ```python
-                                            Constellation: {}
-                                            Class (SIMBAD): {}
-                                            Name (MPC): {}
-                                            Name (Gaia): {}
-                                            Distance (Gaia): {:.2f} arcsec
-                                            Distance (PS1): {:.2f} arcsec
-                                            Distance (ZTF): {:.2f} arcsec
-                                            ```
-                                            """.format(
-                                                constellation,
-                                                cdsxmatch, ssnamenr, gaianame,
-                                                float(neargaia), float(distpsnr1), float(distnr)
-                                            ), className="p-0 m-0"
-                                        ),
-                                    ],
-                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'},
-                                ),
+                                card_neighbourhood(pdf),
                                 *create_external_links(ra0, dec0)
                             ],
                             align='center'
@@ -673,7 +743,7 @@ curl -H "Content-Type: application/json" -X POST \\
                 value='qr'
             ),
         ],
-        value='stamps',
+        value=['stamps'],
         styles={'content':{'padding':'5px'}}
     )
 
@@ -722,15 +792,6 @@ app.clientside_callback(
         Input('download_apiurl', 'children'),
     ]
 )
-
-@app.callback(
-    Output("stamps_modal", "is_open"),
-    Input("maximise_stamps", "n_clicks"),
-    State("stamps_modal", "is_open"),
-    prevent_initial_call=True,
-)
-def modal_stamps(nc, opened):
-    return not opened
 
 def generate_tns_badge(oid):
     """ Generate TNS badge
@@ -944,6 +1005,8 @@ def card_id1(object_data, object_uppervalid, object_upper):
     else:
         extra_div = html.Div()
 
+    coords = SkyCoord(pdf['i:ra'].values[0], pdf['i:dec'].values[0], unit='deg')
+
     card = dmc.Paper(
         [
             dbc.Row(
@@ -956,15 +1019,21 @@ def card_id1(object_data, object_uppervalid, object_upper):
             html.Div(badges),
             dcc.Markdown(
                 """
-                ```python
-                Discovery date: {}
-                Last detection: {}
-                Number of detections: {}
-                Number of low quality alerts: {}
-                Number of upper limits: {}
-                ```
+                Discovery date: `{}`
+                Last detection: `{}`
+                Duration: `{:.2f}` / `{:.2f}` days
+                Detections: `{}` good, `{}` bad, `{}` upper
+                RA/Dec: `{} {}`
                 """.format(
-                    discovery_date, date_end, ndet, nupper_valid, nupper)
+                    discovery_date[:19],
+                    date_end[:19],
+                    jds[0] - jds[-1],
+                    pdf['i:jdendhist'][0] - pdf['i:jdstarthist'][0],
+                    ndet, nupper_valid, nupper,
+                    coords.ra.to_string(pad=True, unit='hour', precision=2, sep=' '),
+                    coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
+                ),
+                className="markdown markdown-pre ps-2 pe-2 mt-2"
             ),
         ], radius='xl', p='md', shadow='xl', withBorder=True
     )

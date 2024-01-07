@@ -18,12 +18,15 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from apps.utils import queryMPC, convert_mpc_type
+from apps.utils import help_popover
 
 from app import app, APIURL
 
 import rocks
 
 import visdcc
+
+import textwrap
 
 def get_sso_data(ssnamenr):
     """
@@ -119,15 +122,48 @@ curl -H "Content-Type: application/json" -X POST \\
                         ],
                     ),
                     dmc.AccordionPanel(
-                        [
-                            dmc.Paper(
-                                [
-                                    download_tab,
-                                    dcc.Markdown('See {}/api for more options'.format(APIURL)),
-                                ],
-                                radius='xl', p='md', shadow='xl', withBorder=True
-                            )
-                        ],
+                        html.Div(
+                            [
+                                dmc.Group(
+                                    [
+                                        dmc.Button(
+                                            "JSON",
+                                            id='download_sso_json',
+                                            variant="outline",
+                                            color='indigo',
+                                            compact=True,
+                                            leftIcon=[DashIconify(icon="mdi:code-json")],
+                                        ),
+                                        dmc.Button(
+                                            "VOTable",
+                                            id='download_sso_votable',
+                                            variant="outline",
+                                            color='indigo',
+                                            compact=True,
+                                            leftIcon=[DashIconify(icon="mdi:xml")],
+                                        ),
+                                        help_popover(
+                                            [
+                                                dcc.Markdown('You may also download the data programmatically.'),
+                                                download_tab,
+                                                dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                                            ],
+                                            'help_download_sso',
+                                            trigger=dmc.ActionIcon(
+                                                    DashIconify(icon="mdi:help"),
+                                                    id='help_download_sso',
+                                                    variant="outline",
+                                                    color='indigo',
+                                            ),
+                                        ),
+                                        # FIXME: is it correct way to get ssnamenr field?..
+                                        html.Div(str(data.number), id='download_sso_ssnamenr', className='d-none'),
+                                        html.Div(APIURL, id='download_sso_apiurl', className='d-none'),
+                                    ], position="center"
+                                )
+                            ],
+                        ),
+
                     ),
                 ],
                 value='api'
@@ -146,7 +182,7 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Paper(
+                            dmc.Stack(
                                 dbc.Row(
                                     [
                                         dbc.Col(
@@ -157,7 +193,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 outline=True,
                                                 id='IMCCE',
                                                 target="_blank",
-                                                href='https://ssp.imcce.fr/webservices/ssodnet/api/ssocard.php?q={}'.format(data.name.replace(' ', '_'))
+                                                href='https://ssp.imcce.fr/webservices/ssodnet/api/ssocard.php?q={}'.format(data.name.replace(' ', '_') if data.name else data.name)
                                             ), width=4),
                                         dbc.Col(
                                             dbc.Button(
@@ -182,7 +218,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                     ], justify='around'
                                 ),
-                                radius='xl', p='md', shadow='xl', withBorder=True
+                                align='center'
                             )
                         ],
                     ),
@@ -210,7 +246,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             [
                                 dmc.Paper(
                                     card_properties,
-                                    radius='xl', p='md', shadow='xl', withBorder=True
+                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'}
                                 )
                             ],
                         ),
@@ -218,48 +254,77 @@ curl -H "Content-Type: application/json" -X POST \\
                     value='sso'
                 ),
                 *extra_items
-            ], value='sso'
+            ], value='sso',
+            styles={'content':{'padding':'5px'}}
         )
     else:
         card = html.Div()
 
     return card
 
+# Downloads handling. Requires CORS to be enabled on the server.
+# TODO: We are mostly using it like this until GET requests properly initiate
+# downloads instead of just opening the file (so, Content-Disposition etc)
+download_js = """
+function(n_clicks, name, apiurl){
+    if(n_clicks > 0){
+        fetch(apiurl + '/api/v1/sso', {
+            method: 'POST',
+            body: JSON.stringify({
+                 'n_or_d': name,
+                 'withEphem': true,
+                 'output-format': '$FORMAT'
+            }),
+            headers: {
+                'Content-type': 'application/json'
+            }
+        }).then(function(response) {
+            return response.blob();
+        }).then(function(data) {
+            window.saveAs(data, name + '.$EXTENSION');
+        }).catch(error => console.error('Error:', error));
+    };
+    return true;
+}
+"""
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'json').replace('$EXTENSION', 'json'),
+    Output('download_sso_json', 'n_clicks'),
+    [
+        Input('download_sso_json', 'n_clicks'),
+        Input('download_sso_ssnamenr', 'children'),
+        Input('download_sso_apiurl', 'children'),
+    ]
+)
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'votable').replace('$EXTENSION', 'vot'),
+    Output('download_sso_votable', 'n_clicks'),
+    [
+        Input('download_sso_votable', 'n_clicks'),
+        Input('download_sso_ssnamenr', 'children'),
+        Input('download_sso_apiurl', 'children'),
+    ]
+)
+
 def card_sso_mpc_params(data, ssnamenr, kind):
     """ MPC parameters
-    """
-    template = """
-    ```python
-    # Properties from MPC
-    number: {}
-    period (year): {}
-    a (AU): {}
-    q (AU): {}
-    e: {}
-    inc (deg): {}
-    Omega (deg): {}
-    argPeri (deg): {}
-    tPeri (MJD): {}
-    meanAnomaly (deg): {}
-    epoch (MJD): {}
-    H: {}
-    G: {}
-    neo: {}
-    ```
     """
     if data is None:
         card = html.Div(
             [
-                html.H5("Name: None", className="card-title"),
-                html.H6("Orbit type: None", className="card-subtitle"),
+                dcc.Markdown(
+                    r"""
+                    ##### Name: `None`
+                    Orbit type: `None`
+                    """,
+                    className='markdown markdown-pre',
+                )
             ],
         )
         return card
     if kind == 'comet':
-        header = [
-            html.H5("Name: {}".format(data['n_or_d']), className="card-title"),
-            html.H6("Orbit type: Comet", className="card-subtitle"),
-        ]
+        name = data['n_or_d']
+        orbit_type = 'Comet'
         abs_mag = None
         phase_slope = None
         neo = 0
@@ -269,19 +334,35 @@ def card_sso_mpc_params(data, ssnamenr, kind):
         else:
             name = data['name']
         orbit_type = convert_mpc_type(int(data['orbit_type']))
-        header = [
-            html.H5("Name: {}".format(name), className="card-title"),
-            html.H6("Orbit type: {}".format(orbit_type), className="card-subtitle"),
-        ]
         abs_mag = data['absolute_magnitude']
         phase_slope = data['phase_slope']
         neo = int(data['neo'])
 
     card = html.Div(
         [
-            *header,
             dcc.Markdown(
-                template.format(
+                r"""
+                ##### Name: `{}`
+                Orbit type: `{}`
+
+                ###### Properties from MPC
+                number: `{}`
+                period (year): `{}`
+                a (AU): `{}`
+                q (AU): `{}`
+                e: `{}`
+                inc (deg): `{}`
+                Omega (deg): `{}`
+                argPeri (deg): `{}`
+                tPeri (MJD): `{}`
+                meanAnomaly (deg): `{}`
+                epoch (MJD): `{}`
+                H: `{}`
+                G: `{}`
+                neo: `{}`
+                """.format(
+                    name,
+                    orbit_type,
                     data['number'],
                     data['period'],
                     data['semimajor_axis'],
@@ -296,9 +377,11 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                     abs_mag,
                     phase_slope,
                     neo
-                )
+                ),
+                className='markdown markdown-pre',
             ),
         ],
+        className='ps-2 pe-2',
     )
     return card
 
@@ -309,97 +392,89 @@ def card_sso_rocks_params(data):
         card = html.Div(
             [
                 html.H5("Name: None", className="card-title"),
-                html.H6("Class: None", className="card-subtitle"),
-                html.H6("Parent body: None", className="card-subtitle"),
-                html.H6("Dynamical system: None", className="card-subtitle"),
+                "Class: None", html.Br(),
+                "Parent body: None", html.Br(),
+                "Dynamical system: None", html.Br(),
                 dmc.Divider(
                     label='Physical parameters',
                     variant="solid",
                     style={"marginTop": 20, "marginBottom": 20},
                 ),
-                html.H6("Taxonomical class: None", className="card-subtitle"),
-                html.H6("Absolute magnitude (mag): None", className="card-subtitle"),
-                html.H6("Diameter (km): None", className="card-subtitle"),
+                "Taxonomical class: None", html.Br(),
+                "Absolute magnitude (mag): None", html.Br(),
+                "Diameter (km): None", html.Br(),
                 dmc.Divider(
                     label='Dynamical parameters',
                     variant="solid",
                     style={"marginTop": 20, "marginBottom": 20},
                 ),
-                html.H6("a (AU): None", className="card-subtitle"),
-                html.H6("e: None", className="card-subtitle"),
-                html.H6("i (deg): None", className="card-subtitle"),
-                html.H6("Omega (deg): None", className="card-subtitle"),
-                html.H6("argPeri (deg): None", className="card-subtitle"),
-                html.H6("Mean motion (deg/day): None", className="card-subtitle"),
-                html.H6("Orbital period (day): None", className="card-subtitle"),
-                html.H6("Tisserand parameter: None", className="card-subtitle"),
+                "a (AU): None", html.Br(),
+                "e: None", html.Br(),
+                "i (deg): None", html.Br(),
+                "Omega (deg): None", html.Br(),
+                "argPeri (deg): None", html.Br(),
+                "Mean motion (deg/day): None", html.Br(),
+                "Orbital period (day): None", html.Br(),
+                "Tisserand parameter: None", html.Br(),
             ],
         )
         return card
 
-    margin = 1
-    header = [
-        html.H5("Name: {} ({})".format(data.name, data.number), className="card-title"),
-        html.H6("Class: {}".format(data.class_), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Parent body: {}".format(data.parent), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Dynamical system: {}".format(data.system), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        dmc.Divider(
-            label='Physical parameters',
-            variant="solid",
-            style={"marginTop": 20, "marginBottom": 10},
-        ),
-        html.H6("Taxonomical class: {}".format(data.parameters.physical.taxonomy.class_.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Absolute magnitude (mag): {}".format(data.parameters.physical.absolute_magnitude.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Diameter (km): {}".format(data.parameters.physical.diameter.value), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        dmc.Divider(
-            label='Dynamical parameters',
-            variant="solid",
-            style={"marginTop": 20, "marginBottom": 10},
-        ),
-        html.H6("a (AU): {}".format(data.parameters.dynamical.orbital_elements.semi_major_axis.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("e: {}".format(data.parameters.dynamical.orbital_elements.eccentricity.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("i (deg): {}".format(data.parameters.dynamical.orbital_elements.inclination.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Omega (deg): {}".format(data.parameters.dynamical.orbital_elements.node_longitude.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("argPeri (deg): {}".format(data.parameters.dynamical.orbital_elements.perihelion_argument.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Mean motion (deg/day): {}".format(data.parameters.dynamical.orbital_elements.mean_motion.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Orbital period (day): {}".format(data.parameters.dynamical.orbital_elements.orbital_period.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-        html.H6("Tisserand parameter: {}".format(data.parameters.dynamical.tisserand_parameter.jupiter.value,), className="card-subtitle", style={"marginTop": margin, "marginBottom": margin}),
-    ]
+    text = r"""
+    ##### Name: `{}` / `{}`
+    Class: `{}`
+    Parent body: `{}`
+    Dynamical system: `{}`
+
+    ###### Physical parameters
+    Taxonomical class: `{}`
+    Absolute magnitude (mag): `{}`
+    Diameter (km): `{}`
+
+    ###### Dynamical parameters
+    a (AU): `{}`
+    e: `{}`
+    i (deg): `{}`
+    Omega (deg): `{}`
+    argPeri (deg): `{}`
+    Mean motion (deg/day): `{}`
+    Orbital period (day): `{}`
+    Tisserand parameter: `{}`
+    """.format(
+        data.name, data.number,
+        data.class_,
+        data.parent,
+        data.system,
+        data.parameters.physical.taxonomy.class_.value,
+        data.parameters.physical.absolute_magnitude.value,
+        data.parameters.physical.diameter.value,
+        data.parameters.dynamical.orbital_elements.semi_major_axis.value,
+        data.parameters.dynamical.orbital_elements.eccentricity.value,
+        data.parameters.dynamical.orbital_elements.inclination.value,
+        data.parameters.dynamical.orbital_elements.node_longitude.value,
+        data.parameters.dynamical.orbital_elements.perihelion_argument.value,
+        data.parameters.dynamical.orbital_elements.mean_motion.value,
+        data.parameters.dynamical.orbital_elements.orbital_period.value,
+        data.parameters.dynamical.tisserand_parameter.jupiter.value,
+    )
 
     if data.parameters.physical.spin is not None:
-        header.append(
-            dmc.Divider(
-                label='Spin parameters',
-                variant="solid",
-                style={"marginTop": 20, "marginBottom": 10},
-            ),
-        )
-        for index, avail_spin in enumerate(data.parameters.physical.spin):
-            header.append(
-                dmc.Divider(
-                    label=avail_spin.method[0].shortbib,
-                    variant="dashed",
-                    style={"marginTop": 10, "marginBottom": 5},
-                )
-            )
-            header.append(
-                html.H6(
-                    "RA0 (deg): {}".format(
-                        avail_spin.RA0.value
-                    ),
-                    className="card-subtitle"
-                )
-            )
-            header.append(
-                html.H6(
-                    "DEC0 (deg): {}".format(
-                        avail_spin.DEC0.value
-                    ),
-                    className="card-subtitle"
-                ),
-            )
+        text = textwrap.dedent(text) # Remove indentation
+        text += "\n"
+        text += "###### Spin parameters\n"
+
+        for _, avail_spin in enumerate(data.parameters.physical.spin):
+            text += "\n"
+            text += """<h6 children="{}" class="dashed" style="margin-top: 5px; margin-bottom: 0;"/>\n\n""".format(avail_spin.method[0].shortbib)
+            text += "RA0 (deg): `{}`\n".format(avail_spin.RA0.value)
+            text += "DEC0 (deg): `{}`\n".format(avail_spin.DEC0.value)
 
     card = html.Div(
-        header
+        dcc.Markdown(
+            text,
+            dangerously_allow_html=True,
+            className='markdown markdown-pre'
+        ),
+        className='ps-2 pe-2',
     )
     return card

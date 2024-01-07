@@ -24,7 +24,8 @@ import copy
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
 
-from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL
+import dash
+from dash import html, dcc, dash_table, Input, Output, State, no_update, ALL, clientside_callback
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -90,7 +91,8 @@ layout_lightcurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -141,23 +143,20 @@ layout_phase = dict(
         font=dict(size=10),
         orientation="h",
         yanchor="bottom",
-        y=0.02,
+        y=1.02,
         xanchor="right",
         x=1,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
-        'title': 'Phase'
+        'title': 'Phase',
+        'zeroline': False
     },
     yaxis={
         'autorange': 'reversed',
-        'title': 'Apparent DC Magnitude'
+        'title': 'Apparent DC Magnitude',
+        'zeroline': False
     },
-    title={
-        "text": "Phased data",
-        "y": 1.01,
-        "yanchor": "bottom"
-    }
 )
 
 layout_mulens = dict(
@@ -274,7 +273,8 @@ layout_sso_lightcurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -300,7 +300,8 @@ layout_sso_astrometry = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -327,7 +328,8 @@ layout_sso_phasecurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -358,7 +360,8 @@ layout_sso_phasecurve_residual = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     xaxis={
@@ -384,7 +387,8 @@ layout_sso_radec = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     yaxis={
@@ -410,7 +414,8 @@ layout_tracklet_lightcurve = dict(
         orientation="h",
         xanchor="right",
         x=1,
-        y=1.2,
+        yanchor="bottom",
+        y=1.02,
         bgcolor='rgba(218, 223, 225, 0.3)'
     ),
     yaxis={
@@ -428,43 +433,70 @@ layout_tracklet_lightcurve = dict(
 @app.callback(
     [
         Output('variable_plot', 'children'),
-        Output("submit_variable", "children"),
+        Output("card_explanation_variable", "value"),
     ],
+    Input('submit_variable', 'n_clicks'),
     [
-        Input('nterms_base', 'value'),
-        Input('nterms_band', 'value'),
-        Input('manual_period', 'value'),
-        Input('submit_variable', 'n_clicks'),
-        Input('object-data', 'children'),
+        State('nterms_base', 'value'),
+        State('nterms_band', 'value'),
+        State('manual_period', 'value'),
+        State('period_min', 'value'),
+        State('period_max', 'value'),
+        State('object-data', 'children'),
+        State('object-release', 'children'),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output('submit_variable', 'disabled'), True, False),
+        (Output('submit_variable', 'loading'), True, False),
+    ],
 )
-def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object_data):
+def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period_min, period_max, object_data, object_release):
     """ Fit for the period of a star using gatspy
 
     See https://zenodo.org/record/47887
     See https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
-
-    TODO: clean me
     """
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if triggered_id != 'submit_variable':
+        raise PreventUpdate
+
+    # Safety checks - opens the help panel if they fails
     if type(nterms_base) not in [int]:
-        return {'data': [], "layout": layout_phase}
+        return None, 'info'
     if type(nterms_band) not in [int]:
-        return {'data': [], "layout": layout_phase}
+        return None, 'info'
     if manual_period is not None and type(manual_period) not in [int, float]:
-        return {'data': [], "layout": layout_phase}
+        return None, 'info'
+    if period_min is not None and type(period_min) not in [int, float]:
+        return None, 'info'
+    if period_max is not None and type(period_max) not in [int, float]:
+        return None, 'info'
 
-    if n_clicks is not None:
-        pdf_ = pd.read_json(object_data)
-        cols = [
-            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid',
-            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
-        ]
-        pdf = pdf_.loc[:, cols]
-        pdf['i:fid'] = pdf['i:fid'].astype(str)
-        pdf = pdf.sort_values('i:jd', ascending=False)
+    # Prepare the data
+    pdf_ = pd.read_json(object_data)
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:distnr',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
+    ]
+    pdf = pdf_.loc[:, cols]
+    pdf = pdf.sort_values('i:jd', ascending=False)
 
-        mag_dc, err_dc = np.transpose(
+    # Data release?..
+    if object_release:
+        pdf_release = pd.read_json(object_release)
+        pdf_release = pdf_release.sort_values('mjd', ascending=False)
+        dates_release = pdf_release['mjd'].apply(lambda x: convert_jd(float(x)+2400000.5, to='iso'))
+    else:
+        pdf_release = pd.DataFrame()
+
+    # Should we correct DC magnitudes for the nearby source?..
+    is_dc_corrected = is_source_behind(pdf['i:distnr'].values[0])
+
+    if is_dc_corrected:
+        mag, err = np.transpose(
             [
                 dc_mag(*args) for args in zip(
                     pdf['i:magpsf'].astype(float).values,
@@ -475,123 +507,298 @@ def plot_variable_star(nterms_base, nterms_band, manual_period, n_clicks, object
                 )
             ]
         )
+        # Keep only "good" measurements
+        idx = err < 1
+        pdf, mag, err = [_[idx] for _ in [pdf, mag, err]]
+    else:
+        mag, err = pdf['i:magpsf'], pdf['i:sigmapsf']
 
-        jd = pdf['i:jd']
-        fit_period = False if manual_period is not None else True
-        model = periodic.LombScargleMultiband(
-            Nterms_base=int(nterms_base),
-            Nterms_band=int(nterms_band),
-            fit_period=fit_period
-        )
+    jd = pdf['i:jd'].astype(float)
+    dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
 
-        # Not sure about that...
-        model.optimizer.period_range = (0.1, 1.2)
-        model.optimizer.quiet = True
+    fit_period = False if manual_period is not None else True
+    model = periodic.LombScargleMultiband(
+        Nterms_base=int(nterms_base),
+        Nterms_band=int(nterms_band),
+        fit_period=fit_period
+    )
 
-        model.fit(
-            jd.astype(float),
-            mag_dc,
-            err_dc,
-            pdf['i:fid'].astype(int)
-        )
+    # Not sure about that...
+    model.optimizer.period_range = (period_min, period_max)
+    model.optimizer.quiet = True
 
-        if fit_period:
-            period = model.best_period
-        else:
-            period = manual_period
+    model.fit(
+        jd,
+        mag,
+        err,
+        pdf['i:fid']
+    )
 
-        phase = jd.astype(float).values % period
-        tfit = np.linspace(0, period, 100)
+    if fit_period:
+        period = model.best_period
+    else:
+        period = manual_period
 
-        layout_phase_ = copy.deepcopy(layout_phase)
-        layout_phase_['title']['text'] = 'Period: {} days - score: {:.2f}'.format(period, model.score(period))
+    phase = jd % period
+    tfit = np.linspace(0, period, 100)
+    tfit_unfolded = np.linspace(
+        np.min(jd), np.max(jd),
+        # Between 100 and 10000 points, to hopefully have 10 per period
+        min(10000, max(100, int(10*(np.max(jd) - np.min(jd))/period)))
+    )
+    dates_unfolded = [convert_jd(float(x), to='iso') for x in tfit_unfolded]
 
-        if '1' in np.unique(pdf['i:fid'].values):
-            plot_filt1 = {
-                'x': phase[pdf['i:fid'] == '1'],
-                'y': mag_dc[pdf['i:fid'] == '1'],
+    # Initialize figures
+    figure, figure_unfolded, figure_periodogram = [
+        {
+            "data": [],
+            "layout": copy.deepcopy(layout_phase)
+        } for _ in range(3)
+    ]
+
+    figure_unfolded['layout']['xaxis']['title'] = 'Observation date'
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}
+    <extra></extra>
+    """
+
+    hovertemplate_model = r"""
+    <b>%{yaxis.title.text}</b>:%{y:.2f}<br>
+    <extra></extra>
+    """
+
+    hovertemplate_unfolded = r"""
+    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <extra></extra>
+    """
+
+    for fid,fname,color in (
+            (1, "g", COLORS_ZTF[0]),
+            (2, "r", COLORS_ZTF[1])
+    ):
+        if fid in np.unique(pdf['i:fid'].values):
+            # Original data
+            idx = pdf['i:fid'] == fid
+            figure['data'].append({
+                'x': phase[idx] / period,
+                'y': mag[idx],
                 'error_y': {
                     'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '1'],
+                    'array': err[idx],
                     'visible': True,
-                    'color': COLORS_ZTF[0]
+                    'width': 0,
+                    'opacity': 0.5,
+                    'color': color
                 },
                 'mode': 'markers',
-                'name': 'g band',
-                'text': phase[pdf['i:fid'] == '1'],
+                'name': '{} band'.format(fname),
+                'legendgroup': "{} band".format(fname),
+                'hovertemplate': hovertemplate,
                 'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[0],
+                    'size': 10,
+                    'color': color,
                     'symbol': 'o'}
-            }
-            fit_filt1 = {
-                'x': tfit,
-                'y': model.predict(tfit, period=period, filts=1),
-                'mode': 'lines',
-                'name': 'fit g band',
-                'showlegend': False,
-                'line': {
-                    'color': COLORS_ZTF[0],
-                }
-            }
-        else:
-            plot_filt1 = {}
-            fit_filt1 = {}
+            })
 
-        if '2' in np.unique(pdf['i:fid'].values):
-            plot_filt2 = {
-                'x': phase[pdf['i:fid'] == '2'],
-                'y': mag_dc[pdf['i:fid'] == '2'],
+            # Release data
+            if not pdf_release.empty:
+                idxr = pdf_release['filtercode'] == 'z' + fname
+                figure['data'].append(
+                    {
+                        'x': ((pdf_release['mjd'][idxr] + 2400000.5) % period) / period,
+                        'y': pdf_release['mag'][idxr],
+                        'error_y': {
+                            'type': 'data',
+                            'array': pdf_release['magerr'][idxr],
+                            'visible': True,
+                            'width': 0,
+                            'opacity': 0.25,
+                            'color': color
+                        },
+                        'mode': 'markers',
+                        'name': '',
+                        'hovertemplate': hovertemplate,
+                        "legendgroup": "{} band release".format(fname),
+                        'marker': {
+                            'color': color,
+                            'symbol': '.'
+                        },
+                        'opacity': 0.5,
+                        # 'showlegend': False
+                    }
+                )
+
+                figure_unfolded['data'].append(
+                    {
+                        'x': dates_release[idxr],
+                        'y': pdf_release['mag'][idxr],
+                        'error_y': {
+                            'type': 'data',
+                            'array': pdf_release['magerr'][idxr],
+                            'visible': True,
+                            'width': 0,
+                            'opacity': 0.25,
+                            'color': color
+                        },
+                        'mode': 'markers',
+                        'name': '',
+                        'hovertemplate': hovertemplate,
+                        "legendgroup": "{} band release".format(fname),
+                        'marker': {
+                            'color': color,
+                            'symbol': '.'
+                        },
+                        'opacity': 0.5,
+                        # 'showlegend': False
+                    }
+                )
+
+
+            # Original data, unfolded
+            figure_unfolded['data'].append({
+                'x': dates[idx],
+                'y': mag[idx],
                 'error_y': {
                     'type': 'data',
-                    'array': err_dc[pdf['i:fid'] == '2'],
+                    'array': err[idx],
                     'visible': True,
-                    'color': COLORS_ZTF[1]
+                    'width': 0,
+                    'opacity': 0.5,
+                    'color': color
                 },
                 'mode': 'markers',
-                'name': 'r band',
-                'text': phase[pdf['i:fid'] == '2'],
+                'name': '{} band'.format(fname),
+                'legendgroup': "{} band".format(fname),
+                'hovertemplate': hovertemplate_unfolded,
                 'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[1],
+                    'size': 10,
+                    'color': color,
                     'symbol': 'o'}
-            }
-            fit_filt2 = {
-                'x': tfit,
-                'y': model.predict(tfit, period=period, filts=2),
+            })
+
+            # Model
+            magfit = model.predict(tfit, period=period, filts=fid)
+            figure['data'].append({
+                'x': tfit / period,
+                'y': magfit,
                 'mode': 'lines',
-                'name': 'fit r band',
+                'name': 'fit {} band'.format(fname),
+                'legendgroup': "{} band".format(fname),
+                'hovertemplate': hovertemplate_model,
                 'showlegend': False,
                 'line': {
-                    'color': COLORS_ZTF[1],
+                    'color': color,
+                    'opacity': 0.5,
+                    'width': 2,
                 }
-            }
-        else:
-            plot_filt2 = {}
-            fit_filt2 = {}
+            })
 
-        figure = {
-            'data': [
-                plot_filt1,
-                fit_filt1,
-                plot_filt2,
-                fit_filt2
-            ],
-            "layout": layout_phase_
+            # Model, unfolded
+            magfit = model.predict(tfit_unfolded, period=period, filts=fid)
+            figure_unfolded['data'].append({
+                'x': dates_unfolded,
+                'y': magfit,
+                'mode': 'lines',
+                'name': 'fit {} band'.format(fname),
+                'legendgroup': "{} band".format(fname),
+                'hovertemplate': hovertemplate_model,
+                'showlegend': False,
+                'line': {
+                    'color': color,
+                    'opacity': 0.5,
+                    'width': 0.5,
+                }
+            })
+
+    # Periodogram
+    # periods,powers = model.periodogram_auto()
+    periods = 1/np.linspace(1/period_max, 1/period_min, 10000)
+    powers = model.periodogram(periods)
+
+    figure_periodogram['layout']['xaxis']['title'] = 'Period, days'
+    figure_periodogram['layout']['xaxis']['type'] = 'log'
+    figure_periodogram['layout']['yaxis']['title'] = 'Periodogram'
+    figure_periodogram['layout']['yaxis']['autorange'] = True
+
+    figure_periodogram['data'] = [
+        {
+            'x': periods,
+            'y': powers,
+            'mode': 'lines',
+            'name': 'Multiband LS periodogram',
+            'legendgroup': 'periodogram',
+            'hovertemplate': '<b>Period</b>: %{x}<extra></extra>',
+            'showlegend': False,
+            'line': {
+                'color': '#3C8DFF',
+            }
         }
-        graph = dcc.Graph(
-            figure=figure,
+    ]
+
+    figure_periodogram['layout']['shapes'] = [
+        {
+            'type': 'line',
+            'xref': 'x',
+            'x0': period, 'x1': period,
+            'yref': 'paper', 'y0': 0, 'y1': 1,
+            'line': {'color': '#F5622E', 'dash': 'dash', 'width': 1},
+        }
+    ]
+
+    # Graphs
+    graph, graph_unfolded, graph_periodogram = [
+        dcc.Graph(
+            figure=fig,
             style={
                 'width': '100%',
                 'height': '25pc'
             },
-            config={'displayModeBar': False}
-        )
+            config={'displayModeBar': False},
+            responsive=True
+        ) for fig in [figure, figure_unfolded, figure_periodogram]
+    ]
 
-        return graph, no_update
+    # Layout
+    results = dmc.Stack(
+        [
+            dmc.Tabs(
+                [
+                    dmc.TabsList(
+                        [
+                            dmc.Tab("Folded", value="folded"),
+                            dmc.Tab("Unfolded", value="unfolded"),
+                            dmc.Tab("Periodogram", value="periodogram"),
+                        ]
+                    ),
+                    dmc.TabsPanel(
+                        graph,
+                        value="folded"
+                    ),
+                    dmc.TabsPanel(
+                        graph_unfolded,
+                        value="unfolded"
+                    ),
+                    dmc.TabsPanel(
+                        graph_periodogram,
+                        value="periodogram"
+                    ),
+                ],
+                value="folded",
+                style={'width': '100%'}
+            ),
+            dcc.Markdown(
+                """
+                Period = `{}` days, score = `{:.2f}`
+                """.format(period, model.score(period))
+            )
+        ],
+        align='center'
+    )
 
-    # quite referentially opaque...
-    return "", no_update
+    return results, None
 
 @app.callback(
     Output('classbar', 'figure'),
@@ -1100,6 +1307,8 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 1],
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
@@ -1118,6 +1327,8 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
                     'type': 'data',
                     'array': err[pdf['i:fid'] == 2],
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[1]
                 },
                 'mode': 'markers',
@@ -1384,7 +1595,7 @@ def draw_t2(object_data) -> dict:
         msg = """
         No classification from T2 yet
         """
-        out = dbc.Alert(msg, color="danger")
+        out = dmc.Alert(msg, color="red")
     else:
         figure = go.Figure(
             data=go.Scatterpolar(
@@ -1741,22 +1952,25 @@ def draw_cutouts_modal(object_data, date_modal_select, is_open):
     figs = []
     for kind in ['science', 'template', 'difference']:
         try:
-            data = extract_cutout(object_data, date_modal_select, kind=kind)
-            figs.append(
-                dmc.Tooltip(
-                    children=draw_cutout(data, kind, modal=True),
-                    radius='xl',
-                    position='top',
-                    multiline=True,
-                    transition="fade",
-                    transitionDuration=200,
-                    label=kind,
-                    zIndex=10000001
-                )
-            )
+            cutout = extract_cutout(object_data, date_modal_select, kind=kind)
+            if cutout is None:
+                return no_update
+
+            data = draw_cutout(cutout, kind, id_type='stamp_modal')
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
-            figs.append(data)
+
+        figs.append(
+            dbc.Col(
+                [
+                    html.Div(kind.capitalize(), className='text-center'),
+                    data,
+                ],
+                xs=4,
+                className="p-0",
+            )
+        )
+
     return figs
 
 def draw_cutouts_quickview(name, kinds=['science']):
@@ -1876,7 +2090,7 @@ def plain_normalizer(img: list, vmin: float, vmax: float, stretch='linear', pmin
 
     return data
 
-def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False, zoom=True):
+def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True, id_type='stamp'):
     """ Draw a cutout data
     """
     # Update graph data for stamps
@@ -1919,57 +2133,56 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, modal=False, zoom=Tru
     fig.update_layout(width=shape[1], height=shape[0])
     fig.update_layout(yaxis={'scaleanchor':'x', 'scaleratio':1})
 
-    if not modal:
-        style = {'display':'block', 'aspect-ratio': '1', 'margin': '1px'}
-        classname = 'zoom'
-        classname = ''
+    style = {'display':'block', 'aspect-ratio': '1', 'margin': '1px'}
+    classname = 'zoom'
+    classname = ''
 
-        graph = dcc.Graph(
-            id={'type':'stamp', 'id':title} if zoom else 'undefined',
-            figure=fig,
-            style=style,
-            config={'displayModeBar': False},
-            className=classname,
-            responsive=True
-        )
-    else:
-        style = {'display': 'inline-block', 'height': '15pc', 'width': '15pc'}
-        graph = dcc.Graph(
-            id={'type':'stamp_modal', 'id':title} if zoom else 'undefined',
-            figure=fig,
-            style=style,
-            config={'displayModeBar': False},
-            responsive=True
-        )
+    graph = dcc.Graph(
+        id={'type':id_type, 'id':title} if zoom else 'undefined',
+        figure=fig,
+        style=style,
+        config={'displayModeBar': False},
+        className=classname,
+        responsive=True
+    )
 
     return graph
 
-def zoom_cutouts(relayout_data, figure_states):
-    # Code from https://stackoverflow.com/a/70405707
-    unique_data = None
-    for data in relayout_data:
-        if relayout_data.count(data) == 1:
-            unique_data = data
+zoom_cutouts_js = """
+function zoom_cutouts(relayout_data, figure_states) {
+    let unique_data = null;
+    for (i in relayout_data)
+        if (relayout_data.reduce((v,x) => v + (JSON.stringify(x) == JSON.stringify(relayout_data[i]) ? 1 : 0), 0) == 1)
+            unique_data = relayout_data[i];
 
-    if unique_data:
-        for figure_state in figure_states:
-            if unique_data.get('xaxis.autorange'):
-                figure_state['layout']['xaxis']['autorange'] = True
-                figure_state['layout']['yaxis']['autorange'] = True
-            else:
-                figure_state['layout']['xaxis']['range'] = [
-                    unique_data.get('xaxis.range[0]'), unique_data.get('xaxis.range[1]')
-                ]
-                figure_state['layout']['xaxis']['autorange'] = False
-                figure_state['layout']['yaxis']['range'] = [
-                    unique_data.get('yaxis.range[0]'), unique_data.get('yaxis.range[1]')
-                ]
-                figure_state['layout']['yaxis']['autorange'] = False
-        return [unique_data] * len(relayout_data), figure_states
+    if (unique_data) {
+        for (i in figure_states) {
+            figure_states[i] = JSON.parse(JSON.stringify(figure_states[i]));
+            if ('xaxis.autorange' in unique_data) {
+                figure_states[i]['layout']['xaxis']['autorange'] = true;
+                figure_states[i]['layout']['yaxis']['autorange'] = true;
+            } else {
+                figure_states[i]['layout']['xaxis']['range'] = [
+                    unique_data['xaxis.range[0]'], unique_data['xaxis.range[1]']
+                ];
+                figure_states[i]['layout']['yaxis']['range'] = [
+                    unique_data['yaxis.range[0]'], unique_data['yaxis.range[1]']
+                ];
+                figure_states[i]['layout']['xaxis']['autorange'] = false;
+                figure_states[i]['layout']['yaxis']['autorange'] = false;
+            }
+        }
 
-    return relayout_data, figure_states
+        return [[unique_data, unique_data, unique_data], figure_states];
+    }
 
-app.callback([
+    return [dash_clientside.no_update, dash_clientside.no_update];
+}
+"""
+
+clientside_callback(
+    zoom_cutouts_js,
+    [
         Output({'type': 'stamp', 'id': ALL}, 'relayoutData'),
         Output({'type': 'stamp', 'id': ALL}, 'figure'),
     ],
@@ -1978,9 +2191,11 @@ app.callback([
     ],
     State({'type': 'stamp', 'id': ALL}, 'figure'),
     prevent_initial_call=True
-)(zoom_cutouts)
+)
 
-app.callback([
+clientside_callback(
+    zoom_cutouts_js,
+    [
         Output({'type': 'stamp_modal', 'id': ALL}, 'relayoutData'),
         Output({'type': 'stamp_modal', 'id': ALL}, 'figure'),
     ],
@@ -1989,34 +2204,46 @@ app.callback([
     ],
     State({'type': 'stamp_modal', 'id': ALL}, 'figure'),
     prevent_initial_call=True
-)(zoom_cutouts)
+)
 
 @app.callback(
     [
         Output('mulens_plot', 'children'),
-        Output('mulens_params', 'children'),
-        Output('submit_mulens', 'children'),
+        Output("card_explanation_mulens", "value"),
     ],
+    Input('submit_mulens', 'n_clicks'),
     [
-        Input('submit_mulens', 'n_clicks'),
-        Input('object-data', 'children')
-    ])
+        State('object-data', 'children')
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output('submit_mulens', 'disabled'), True, False),
+        (Output('submit_mulens', 'loading'), True, False),
+    ],
+)
 def plot_mulens(n_clicks, object_data):
     """ Fit for microlensing event
 
     TODO: implement a fit using pyLIMA
     """
-    if n_clicks is not None:
-        pdf_ = pd.read_json(object_data)
-        cols = [
-            'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:ra', 'i:dec',
-            'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
-        ]
-        pdf = pdf_.loc[:, cols]
-        pdf['i:fid'] = pdf['i:fid'].astype(str)
-        pdf = pdf.sort_values('i:jd', ascending=False)
+    if not n_clicks:
+        raise PreventUpdate
 
-        mag_dc, err_dc = np.transpose(
+    pdf_ = pd.read_json(object_data)
+    cols = [
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:ra', 'i:dec', 'i:distnr',
+        'i:magnr', 'i:sigmagnr', 'i:magzpsci', 'i:isdiffpos', 'i:objectId'
+    ]
+    pdf = pdf_.loc[:, cols]
+    pdf['i:fid'] = pdf['i:fid']
+    pdf = pdf.sort_values('i:jd', ascending=False)
+
+    # Should we correct DC magnitudes for the nearby source?..
+    is_dc_corrected = is_source_behind(pdf['i:distnr'].values[0])
+
+    if is_dc_corrected:
+        mag, err = np.transpose(
             [
                 dc_mag(*args) for args in zip(
                     pdf['i:magpsf'].astype(float).values,
@@ -2027,105 +2254,99 @@ def plot_mulens(n_clicks, object_data):
                 )
             ]
         )
+        # Keep only "good" measurements
+        idx = err < 1
+        pdf, mag, err = [_[idx] for _ in [pdf, mag, err]]
+    else:
+        mag, err = pdf['i:magpsf'], pdf['i:sigmapsf']
 
-        current_event = event.Event()
-        current_event.name = pdf['i:objectId'].values[0]
+    current_event = event.Event()
+    current_event.name = pdf['i:objectId'].values[0]
 
-        current_event.ra = pdf['i:ra'].values[0]
-        current_event.dec = pdf['i:dec'].values[0]
+    current_event.ra = pdf['i:ra'].values[0]
+    current_event.dec = pdf['i:dec'].values[0]
 
-        filts = {'1': 'g', '2': 'r'}
-        for fid in np.unique(pdf['i:fid'].values):
-            mask = pdf['i:fid'].values == fid
-            telescope = telescopes.Telescope(
-                name='ztf_{}'.format(filts[fid]),
-                camera_filter=format(filts[fid]),
-                light_curve_magnitude=np.transpose(
-                    [
-                        pdf['i:jd'].values[mask],
-                        mag_dc[mask],
-                        err_dc[mask]
-                    ]
-                ),
-                light_curve_magnitude_dictionnary={
-                    'time': 0,
-                    'mag': 1,
-                    'err_mag': 2
+    filts = {1: 'g', 2: 'r'}
+    for fid in np.unique(pdf['i:fid'].values):
+        mask = pdf['i:fid'].values == fid
+        telescope = telescopes.Telescope(
+            name='ztf_{}'.format(filts[fid]),
+            camera_filter=format(filts[fid]),
+            light_curve_magnitude=np.transpose(
+                [
+                    pdf['i:jd'].values[mask],
+                    mag[mask],
+                    err[mask]
+                ]
+            ),
+            light_curve_magnitude_dictionnary={
+                'time': 0,
+                'mag': 1,
+                'err_mag': 2
+            }
+        )
+
+        current_event.telescopes.append(telescope)
+
+    # Le modele le plus simple
+    mulens_model = microlmodels.create_model('PSPL', current_event)
+
+    current_event.fit(mulens_model, 'DE')
+
+    # 4 parameters
+    dof = len(pdf) - 4 - 1
+
+    results = current_event.fits[0]
+
+    normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
+
+    # Model
+    create_the_fake_telescopes(results, results.fit_results)
+
+    telescope_ = results.event.fake_telescopes[0]
+
+    flux_model = mulens_model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
+
+    time = telescope_.lightcurve_flux[:, 0]
+    magnitude = microltoolbox.flux_to_magnitude(flux_model)
+
+    figure = {
+        'data': [],
+        "layout": copy.deepcopy(layout_mulens)
+    }
+
+    index = 0
+
+    for fid,fname,color in (
+            (1, "g", COLORS_ZTF[0]),
+            (2, "r", COLORS_ZTF[1])
+    ):
+        if fid in np.unique(pdf['i:fid'].values):
+            figure['data'].append(
+                {
+                    'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
+                    'y': normalised_lightcurves[index][:, 1],
+                    'error_y': {
+                        'type': 'data',
+                        'array': normalised_lightcurves[index][:, 2],
+                        'visible': True,
+                        'width': 0,
+                        'opacity': 0.5,
+                        'color': color
+                    },
+                    'mode': 'markers',
+                    'name': 'g band',
+                    'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
+                    'marker': {
+                        'size': 12,
+                        'color': color,
+                        'symbol': 'o'}
                 }
             )
+            index += 1
 
-            current_event.telescopes.append(telescope)
-
-        # Le modele le plus simple
-        mulens_model = microlmodels.create_model('PSPL', current_event)
-
-        current_event.fit(mulens_model, 'DE')
-
-        # 4 parameters
-        dof = len(pdf) - 4 - 1
-
-        results = current_event.fits[0]
-
-        normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
-
-        # Model
-        create_the_fake_telescopes(results, results.fit_results)
-
-        telescope_ = results.event.fake_telescopes[0]
-
-        flux_model = mulens_model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
-
-        time = telescope_.lightcurve_flux[:, 0]
-        magnitude = microltoolbox.flux_to_magnitude(flux_model)
-
-        if '1' in np.unique(pdf['i:fid'].values):
-            plot_filt1 = {
-                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:, 0]],
-                'y': normalised_lightcurves[0][:, 1],
-                'error_y': {
-                    'type': 'data',
-                    'array': normalised_lightcurves[0][:, 2],
-                    'visible': True,
-                    'color': COLORS_ZTF[0]
-                },
-                'mode': 'markers',
-                'name': 'g band',
-                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[0][:, 0]],
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[0],
-                    'symbol': 'o'}
-            }
-        else:
-            plot_filt1 = {}
-
-        if '2' in np.unique(pdf['i:fid'].values):
-            # only filter r
-            if len(np.unique(pdf['i:fid'].values)) == 1:
-                index = 0
-            else:
-                index = 1
-            plot_filt2 = {
-                'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
-                'y': normalised_lightcurves[index][:, 1],
-                'error_y': {
-                    'type': 'data',
-                    'array': normalised_lightcurves[index][:, 2],
-                    'visible': True,
-                    'color': COLORS_ZTF[1]
-                },
-                'mode': 'markers',
-                'name': 'r band',
-                'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
-                'marker': {
-                    'size': 12,
-                    'color': COLORS_ZTF[1],
-                    'symbol': 'o'}
-            }
-        else:
-            plot_filt2 = {}
-
-        fit_filt = {
+    figure['data'].append(
+        {
             'x': [convert_jd(float(t), to='iso') for t in time],
             'y': magnitude,
             'mode': 'lines',
@@ -2135,61 +2356,59 @@ def plot_mulens(n_clicks, object_data):
                 'color': '#7f7f7f',
             }
         }
+    )
 
-        figure = {
-            'data': [
-                fit_filt,
-                plot_filt1,
-                plot_filt2
-            ],
-            "layout": layout_mulens
-        }
-
-        if sum([len(i) for i in figure['data']]) > 0:
-            graph = dcc.Graph(
-                figure=figure,
-                style={
-                    'width': '100%',
-                    'height': '25pc'
-                },
-                config={'displayModeBar': False}
-            )
-        else:
-            graph = ""
-
-        # fitted parameters
-        names = results.model.model_dictionnary
-        params = results.fit_results
-        err = np.diag(np.sqrt(results.fit_covariance))
-
-        mulens_params = """
-        ```python
-        # Fitted parameters
-        t0: {} +/- {} (jd)
-        tE: {} +/- {} (days)
-        u0: {} +/- {}
-        chi2/dof: {}
-        ```
-        """.format(
-            params[names['to']],
-            err[names['to']],
-            params[names['tE']],
-            err[names['tE']],
-            params[names['uo']],
-            err[names['uo']],
-            params[-1] / dof
+    if len(figure['data']):
+        graph = dcc.Graph(
+            figure=figure,
+            style={
+                'width': '100%',
+                'height': '25pc'
+            },
+            config={'displayModeBar': False}
         )
+    else:
+        graph = ""
 
-        mulens_params = dmc.Paper(
-            [
-                dcc.Markdown(mulens_params),
-            ], radius='sm', p='xs', shadow='sm', withBorder=True
-        )
+    # fitted parameters
+    names = results.model.model_dictionnary
+    params = results.fit_results
+    err = np.diag(np.sqrt(results.fit_covariance))
 
-        return graph, mulens_params, no_update
+    mulens_params = """
+    t0: `{}` +/- `{}` (jd)
+    tE: `{}` +/- `{}` (days)
+    u0: `{}` +/- `{}`
+    chi2/dof: `{}`
+    """.format(
+        params[names['to']],
+        err[names['to']],
+        params[names['tE']],
+        err[names['tE']],
+        params[names['uo']],
+        err[names['uo']],
+        params[-1] / dof
+    )
 
-    mulens_params = ""
-    return "", mulens_params, no_update
+    mulens_params = dmc.Paper(
+        [
+            dcc.Markdown(
+                mulens_params,
+                className='markdown markdown-pre'
+            ),
+        ]
+    )
+
+    # Layout
+    results = dmc.Stack(
+        [
+            graph,
+            mulens_params
+        ],
+        align='center'
+    )
+
+    return results, None
 
 @app.callback(
     Output('aladin-lite-div', 'run'), Input('object-data', 'children'))
@@ -2290,6 +2509,8 @@ def draw_sso_lightcurve(pdf) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 1],
             'visible': True,
+            'width': 0,
+            'opacity': 0.5,
             'color': COLORS_ZTF[0]
         },
         'mode': 'markers',
@@ -2326,6 +2547,8 @@ def draw_sso_lightcurve(pdf) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 2],
             'visible': True,
+            'width': 0,
+            'opacity': 0.5,
             'color': COLORS_ZTF[1]
         },
         'mode': 'markers',
@@ -2367,7 +2590,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+    card = dmc.Paper(graph)
     return card
 
 def draw_sso_residual(pdf) -> dict:
@@ -2422,6 +2645,8 @@ def draw_sso_residual(pdf) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 1],
             'visible': True,
+            'width': 0,
+            'opacity': 0.5,
             'color': COLORS_ZTF[0]
         },
         'mode': 'markers',
@@ -2446,6 +2671,8 @@ def draw_sso_residual(pdf) -> dict:
             'type': 'data',
             'array': err[pdf['i:fid'] == 2],
             'visible': True,
+            'width': 0,
+            'opacity': 0.5,
             'color': COLORS_ZTF[1]
         },
         'mode': 'markers',
@@ -2503,7 +2730,7 @@ def draw_sso_residual(pdf) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+    card = dmc.Paper(graph)
     return card
 
 def draw_sso_astrometry(pdf) -> dict:
@@ -2595,7 +2822,7 @@ def draw_sso_astrometry(pdf) -> dict:
         },
         config={'displayModeBar': False}
     )
-    card = dmc.Paper(graph, radius='xl', p='md', shadow='xl', withBorder=True)
+    card = dmc.Paper(graph)
     return card
 
 @app.callback(
@@ -2749,6 +2976,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                         'type': 'data',
                         'array': pdf.loc[cond, 'i:sigmapsf'].values,
                         'visible': True,
+                        'width': 0,
+                        'opacity': 0.5,
                         'color': COLORS_ZTF[i]
                     },
                     'mode': 'markers',
@@ -2795,6 +3024,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                         'type': 'data',
                         'array': pdf.loc[cond, 'i:sigmapsf'].values,
                         'visible': True,
+                        'width': 0,
+                        'opacity': 0.5,
                         'color': COLORS_ZTF[i]
                     },
                     'mode': 'markers',
@@ -2857,6 +3088,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'type': 'data',
                     'array': pdf['i:sigmapsf'].values,
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
@@ -2898,6 +3131,8 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
                     'type': 'data',
                     'array': pdf['i:sigmapsf'].values,
                     'visible': True,
+                    'width': 0,
+                    'opacity': 0.5,
                     'color': COLORS_ZTF[0]
                 },
                 'mode': 'markers',
@@ -2975,7 +3210,7 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
             graph2,
             html.Br(),
             table
-        ], radius='xl', p='md', shadow='xl', withBorder=True
+        ]
     )
     return card
 
@@ -3028,6 +3263,8 @@ def draw_tracklet_lightcurve(pdf) -> dict:
                 'type': 'data',
                 'array': err[pdf['i:fid'] == filt],
                 'visible': True,
+                'width': 0,
+                'opacity': 0.5,
                 'color': color
             },
             'mode': 'markers',
@@ -3068,19 +3305,10 @@ def draw_tracklet_lightcurve(pdf) -> dict:
         config={'displayModeBar': False}
     )
 
-    alert = dbc.Alert(
-        "Tracklet ID: {}".format(
-            pdf['d:tracklet'].values[0],
-        ),
-        color="info"
-    )
-
     card = html.Div(
         [
-            alert,
             dmc.Paper(
                 graph,
-                radius='xl', p='md', shadow='xl', withBorder=True
             )
         ]
     )
@@ -3145,7 +3373,6 @@ def draw_tracklet_radec(pdf) -> dict:
         [
             dmc.Paper(
                 graph,
-                radius='xl', p='md', shadow='xl', withBorder=True
             )
         ]
     )
@@ -3200,6 +3427,7 @@ def alert_properties(object_data, clickData):
         markdown_options={'link_target': '_blank'},
         # fixed_columns={'headers': True},#, 'data': 1},
         persistence=True,
+        persistence_type='memory',
         style_data={
             'backgroundColor': 'rgb(248, 248, 248, 1.0)',
         },
@@ -3988,15 +4216,40 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     if kind == 'GAL':
         # Galactic coordinates are in DMS only
         coords_hms = coord.galactic.to_string('dms', precision=2)
+        coords_hms2 = coord.galactic.to_string('dms', precision=2, sep=' ')
     else:
         coords_hms = coord.to_string('hmsdms', precision=2)
+        coords_hms2 = coord.to_string('hmsdms', precision=2, sep=' ')
 
-    card2 = dmc.Center(
-        dmc.Prism(children=coords_deg, language="python", style={'width': '80%'})
+    card_coords = html.Div(
+        [
+            dmc.Group(
+                [
+                    html.Code(coords_deg, id='alert_coords_deg'),
+                    dcc.Clipboard(target_id='alert_coords_deg', title='Copy to clipboard', style={'color': 'gray'}),
+                ],
+                position='apart',
+                style={'width': '100%'}
+            ),
+            dmc.Group(
+                [
+                    html.Code(coords_hms, id='alert_coords_hms'),
+                    dcc.Clipboard(target_id='alert_coords_hms', title='Copy to clipboard', style={'color': 'gray'}),
+                ],
+                position='apart',
+                style={'width': '100%'}
+            ),
+            dmc.Group(
+                [
+                    html.Code(coords_hms2, id='alert_coords_hms2'),
+                    dcc.Clipboard(target_id='alert_coords_hms2', title='Copy to clipboard', style={'color': 'gray'}),
+                ],
+                position='apart',
+                style={'width': '100%'}
+            ),
+        ],
+        className='mx-auto',
+        style={'max-width': '17em'},
     )
 
-    card3 = dmc.Center(
-        dmc.Prism(children=coords_hms, language="python", style={'width': '80%'})
-    )
-
-    return html.Div([card1, card2, card3])
+    return html.Div([card1, card_coords])

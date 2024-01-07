@@ -32,7 +32,7 @@ from app import app
 from apps.supernovae.cards import card_sn_scores
 from apps.varstars.cards import card_explanation_variable, card_variable_button
 from apps.mulens.cards import card_explanation_mulens
-from apps.mulens.cards import card_mulens_button
+from apps.mulens.cards import card_mulens
 from apps.sso.cards import card_sso_left
 
 from apps.cards import card_lightcurve_summary
@@ -104,7 +104,7 @@ def tab2_content():
         dbc.Row([
             dbc.Col(card_sn_scores(), md=8),
             dbc.Col(id='card_sn_properties', md=4)
-        ]),
+        ], className='g-1'),
     ])
     return tab2_content_
 
@@ -138,7 +138,25 @@ def tab3_content():
                 type="number",
                 id='manual_period',
                 debounce=True
-            )
+            ),
+            dbc.Label("Range of periods (days)"),
+            dbc.InputGroup(
+                [
+                    dbc.Input(
+                        value=0.1,
+                        type="number",
+                        id='period_min',
+                        debounce=True
+                    ),
+                    dbc.InputGroupText(" < P < "),
+                    dbc.Input(
+                        value=1.2,
+                        type="number",
+                        id='period_max',
+                        debounce=True
+                    ),
+                ]
+            ),
         ], className='mb-3'#, style={'width': '100%', 'display': 'inline-block'}
     )
 
@@ -146,7 +164,6 @@ def tab3_content():
         'Fit data',
         id='submit_variable',
         color='dark', variant="outline", fullWidth=True, radius='xl',
-        loaderProps={'variant': 'dots'}
     )
 
     card2 = dmc.Paper(
@@ -163,9 +180,8 @@ def tab3_content():
                     dmc.Paper(
                         [
                             html.Div(id='variable_plot'),
-                            html.Br(),
                             card_explanation_variable()
-                        ], radius='xl', p='md', shadow='xl', withBorder=True
+                        ]
                     )
                 ), md=8
             ),
@@ -178,7 +194,7 @@ def tab3_content():
                     submit_varstar_button
                 ], md=4
             )
-        ]),
+        ], className='g-1'),
     ])
     return tab3_content_
 
@@ -189,7 +205,6 @@ def tab4_content():
         'Fit data',
         id='submit_mulens',
         color='dark', variant="outline", fullWidth=True, radius='xl',
-        loaderProps={'variant': 'dots'}
     )
 
     tab4_content_ = html.Div([
@@ -200,22 +215,19 @@ def tab4_content():
                     dmc.Paper(
                         [
                             html.Div(id='mulens_plot'),
-                            html.Br(),
                             card_explanation_mulens()
-                        ], radius='xl', p='md', shadow='xl', withBorder=True
+                        ]
                     )
                 ), md=8
             ),
             dbc.Col(
                 [
-                    html.Div(id="card_mulens_button"),
-                    html.Br(),
-                    html.Div(id='mulens_params'),
+                    html.Div(id="card_mulens"),
                     html.Br(),
                     submit_mulens_button
                 ], md=4
             )
-        ]),
+        ], className='g-1'),
     ])
     return tab4_content_
 
@@ -249,7 +261,16 @@ def tab5_content(object_soo):
                         children=[
                             dmc.AccordionItem(
                                 [
-                                    dmc.AccordionControl("Information"),
+                                    dmc.AccordionControl(
+                                        "Information",
+                                        icon=[
+                                            DashIconify(
+                                                icon="tabler:help-hexagon",
+                                                color="#3C8DFF",
+                                                width=20,
+                                            )
+                                        ],
+                                    ),
                                     dmc.AccordionPanel(dcc.Markdown(msg)),
                                 ],
                                 value='info'
@@ -271,7 +292,16 @@ def tab5_content(object_soo):
                         children=[
                             dmc.AccordionItem(
                                 [
-                                    dmc.AccordionControl("How are computed the residuals?"),
+                                    dmc.AccordionControl(
+                                        "How the residuals are computed?",
+                                        icon=[
+                                            DashIconify(
+                                                icon="tabler:help-hexagon",
+                                                color="#3C8DFF",
+                                                width=20,
+                                            )
+                                        ]
+                                    ),
                                     dmc.AccordionPanel(dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."),),
                                 ],
                                 value="residuals"
@@ -283,7 +313,7 @@ def tab5_content(object_soo):
         ]
     )
 
-    msg_phase = """
+    msg_phase = r"""
     By default, the data is modeled after the three-parameter H, G1, G2 magnitude phase function for asteroids
     from [Muinonen et al. 2010](https://doi.org/10.1016/j.icarus.2010.04.003).
     We use the implementation in [sbpy](https://sbpy.readthedocs.io/en/latest/sbpy/photometry.html#disk-integrated-phase-function-models) to fit the data.
@@ -339,8 +369,17 @@ def tab5_content(object_soo):
                         children=[
                             dmc.AccordionItem(
                                 [
-                                    dmc.AccordionControl("How is modeled the phase curve?"),
-                                    dmc.AccordionPanel(dcc.Markdown(msg_phase),),
+                                    dmc.AccordionControl(
+                                        "How the phase curve is modeled?",
+                                        icon=[
+                                            DashIconify(
+                                                icon="tabler:help-hexagon",
+                                                color="#3C8DFF",
+                                                width=20,
+                                            )
+                                        ],
+                                    ),
+                                    dmc.AccordionPanel(dcc.Markdown(msg_phase, mathjax=True)),
                                 ],
                                 value='phase_curve'
                             ),
@@ -352,38 +391,43 @@ def tab5_content(object_soo):
     )
 
     if ssnamenr != 'null':
-        left_side = dbc.Col(
-            dmc.Tabs(
-                [
-                    dmc.TabsList(
-                        [
-                            dmc.Tab("Lightcurve", value="Lightcurve"),
-                            dmc.Tab("Astrometry", value="Astrometry"),
-                            dmc.Tab("Phase curve", value="Phase curve")
-                        ]
-                    ),
-                    dmc.TabsPanel(tab1, value="Lightcurve"),
-                    dmc.TabsPanel(tab2, value="Astrometry"),
-                    dmc.TabsPanel(tab3, value="Phase curve")
-                ], variant="outline", value="Lightcurve"
-            ), md=8
+        left_side = dmc.Tabs(
+            [
+                dmc.TabsList(
+                    [
+                        dmc.Tab("Lightcurve", value="Lightcurve"),
+                        dmc.Tab("Astrometry", value="Astrometry"),
+                        dmc.Tab("Phase curve", value="Phase curve")
+                    ]
+                ),
+                dmc.TabsPanel(tab1, value="Lightcurve"),
+                dmc.TabsPanel(tab2, value="Astrometry"),
+                dmc.TabsPanel(tab3, value="Phase curve")
+            ], value="Lightcurve"
         )
     else:
         msg = """
         Object not referenced in the Minor Planet Center
         """
-        left_side = dbc.Col([html.Br(), dbc.Alert(msg, color="danger")], md=8)
+        left_side = [
+            html.Br(),
+            dbc.Alert(msg, color="danger")
+        ]
 
     tab5_content_ = dbc.Row(
         [
             dmc.Space(h=10),
-            left_side,
+            dbc.Col(
+                left_side,
+                md=8
+            ),
             dbc.Col(
                 [
                     card_sso_left(ssnamenr)
                 ], md=4
             )
-        ]
+        ],
+        className='g-1'
     )
     return tab5_content_
 
@@ -521,7 +565,9 @@ def store_query(name):
         else:
             # Extract miriade information as well
             name = rocks.id(payload)[0]
-            pdfsso['i:ssnamenr'] = name
+            if name:
+                pdfsso['i:ssnamenr'] = name
+
             pdfsso = get_miriade_data(pdfsso)
     else:
         pdfsso = pd.DataFrame()
@@ -636,7 +682,7 @@ def layout(name):
                                                 'width': '100%',
                                                 'height': '27pc',
                                             },
-                                            className="p-1 d-none d-md-block"
+                                            className="p-1" # d-none d-md-block"
                                         ), lg=12, md=6, sm=12
                                     )
                                 ],

@@ -741,7 +741,7 @@ def generate_qr(data):
         image_factory=StyledPilImage,
         module_drawer=RoundedModuleDrawer(),
         eye_drawer=RoundedModuleDrawer(),
-        color_mask=RadialGradiantColorMask(edge_color=(245, 98, 46))
+        # color_mask=RadialGradiantColorMask(edge_color=(245, 98, 46))
     )
 
     return img

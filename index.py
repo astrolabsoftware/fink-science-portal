@@ -139,12 +139,12 @@ So you may e.g. search for:
 - Asteroids by number
   - Asteroids (Main Belt): `8467`, `1922`
   - Asteroids (Hungarians): `18582`, `77799`
-  - Asteroids (Jupiter Trojans): `4501, `1583`
+  - Asteroids (Jupiter Trojans): `4501`, `1583`
   - Asteroids (Mars Crossers): `302530`
 - Asteroids by designation
   - `2010JO69`, `2017AD19`, `2012XK111`
 - Comets by number
-  - `10P, `249P`, `124P`
+  - `10P`, `249P`, `124P`
 - Comets by designation
   - `C/2020V2`, `C/2020R2`
 
@@ -502,52 +502,52 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
     return suggestions, no_update, True
 
 # Completion clicked
-# TODO: convert to clientside callback, if pattern matching is supported for them
-@app.callback(
-    Output('search_bar_input', 'value'),
+clientside_callback(
+    """
+    function on_completion(n_clicks) {
+        const ctx = dash_clientside.callback_context;
+        let triggered_id = ctx.triggered[0].prop_id;
+
+        if (!ctx.triggered[0].value)
+            return dash_clientside.no_update;
+
+        if (triggered_id.search('.n_clicks') > 0) {
+            triggered_id = JSON.parse(triggered_id.substr(0, triggered_id.indexOf('.n_clicks')));
+            return triggered_id.text + ' ';
+        }
+        return dash_clientside.no_update;
+    }
+    """,
+    Output('search_bar_input', 'value', allow_duplicate=True),
     Input({'type': 'search_bar_completion', 'index': ALL, 'text': ALL}, 'n_clicks'),
     prevent_initial_call=True
 )
-def on_completion(n_clicks):
-    ctx = dash.callback_context
-
-    if ctx.triggered[0]['value']:
-        return ctx.triggered_id['text'] + ' '
-
-    return no_update
 
 # Quick field clicked
-# clientside_callback(
-#     """
-#     function on_quickfield(n_clicks, values, value) {
-#         const ctx = dash_clientside.callback_context;
-#         window['ctx'] = ctx;
-#         return window.dash_clientside.callback_context.triggered[0].prop_id.split('.')[0];
-#     }
-#     """,
-#     Output('search_bar_input', 'value'),
-#     Input({'type': 'search_bar_quick_field', 'index': ALL}, 'n_clicks'),
-#     State({'type': 'search_bar_quick_field', 'index': ALL}, 'children'),
-#     State('search_bar_input', 'value'),
-#     prevent_initial_call=True
-# )
+clientside_callback(
+    """
+    function on_quickfield(n_clicks, value) {
+        const ctx = dash_clientside.callback_context;
+        let triggered_id = ctx.triggered[0].prop_id;
 
-# TODO: convert to clientside callback, if pattern matching is supported for them
-@app.callback(
+        if (!ctx.triggered[0].value)
+            return dash_clientside.no_update;
+
+        if (triggered_id.search('.n_clicks') > 0) {
+            triggered_id = JSON.parse(triggered_id.substr(0, triggered_id.indexOf('.n_clicks')));
+            if (value)
+                return value + ' ' + triggered_id.text + '=';
+            else
+                return triggered_id.text + '=';
+        }
+        return dash_clientside.no_update;
+    }
+    """,
     Output('search_bar_input', 'value', allow_duplicate=True),
     Input({'type': 'search_bar_quick_field', 'index': ALL, 'text': ALL}, 'n_clicks'),
     State('search_bar_input', 'value'),
     prevent_initial_call=True
 )
-def on_quickfield(n_clicks, value):
-    if not value:
-        value = ''
-
-    ctx = dash.callback_context
-    if ctx.triggered[0]['value']:
-        return value + ' ' + ctx.triggered_id['text'] + '='
-
-    return no_update
 
 # Clear inpit field
 clientside_callback(
