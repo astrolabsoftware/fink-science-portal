@@ -1011,8 +1011,6 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
     if not n_submit and not n_clicks and not searchurl:
         raise PreventUpdate
 
-    value = value.strip()
-
     if not value and not searchurl:
         # TODO: show back the logo?..
         return None, no_update, no_update, no_update
@@ -1038,6 +1036,7 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
         query = {'action': params.pop('action')}
         query['params'] = params
     else:
+        value = value.strip()
         query = parse_query(value)
 
     if not query or not query['action']:
