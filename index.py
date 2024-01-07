@@ -1033,7 +1033,10 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
             )
         )
         # Construct the query from them
-        query = {'action': params.pop('action')}
+        query = {}
+        for _ in ['action', 'partial', 'object']:
+            if _ in params:
+                query[_] = params.pop(_)
         query['params'] = params
     else:
         value = value.strip()
@@ -1051,7 +1054,7 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
     elif query['action'] == 'objectid':
         # Search objects by objectId
-        msg = "ObjectId search with {} name {}".format('partial' if query['partial'] else 'exact', query['object'])
+        msg = "ObjectId search with {} name {}".format('partial' if query.get('partial') else 'exact', query['object'])
         r = request_api(
             '/api/v1/explorer',
             json={
@@ -1071,7 +1074,7 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
 
     elif query['action'] == 'tracklet':
         # Tracklet by (partial) name
-        msg = "Tracklet search with {} name {}".format('partial' if query['partial'] else 'exact', query['object'])
+        msg = "Tracklet search with {} name {}".format('partial' if query.get('partial') else 'exact', query['object'])
         payload = {
             'id': query['object']
         }
