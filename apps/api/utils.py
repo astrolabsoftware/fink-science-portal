@@ -1377,6 +1377,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
 
     if resolver == 'tns':
         client = connect_to_hbase_table('ztf.tns_resolver')
+        client.setLimit(nmax)
         if name == "":
             # return the full table
             results = client.scan(
@@ -1387,7 +1388,6 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             )
         else:
             # TNS poll -- take the first nmax occurences
-            client.setLimit(nmax)
             if reverse:
                 to_evaluate = "d:internalname:{}".format(name)
                 results = client.scan(

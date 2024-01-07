@@ -38,9 +38,11 @@ api_doc_summary = """
 | POST/GET | {}/api/v1/anomaly | Fink alerts with large anomaly score| &#x2611;&#xFE0F; |
 | POST/GET | {}/api/v1/random | Draw random objects from the Fink database| &#x2611;&#xFE0F; |
 | POST/GET  | {}/api/v1/ssoft  | Get the Fink Solar System table | &#x2611;&#xFE0F; |
+| POST/GET  | {}/api/v1/resolver  | Resolve names | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
 | GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
 """.format(
+    APIURL,
     APIURL,
     APIURL,
     APIURL,
@@ -1522,9 +1524,38 @@ r = requests.post(
 # Format output in a DataFrame
 pdf = pd.read_json(io.BytesIO(r.content))
 
-   d:declination  d:fullname d:internalname       d:ra d:type       key:time
-0      52.219894  SN 2023vwy     ATLAS23url  47.765951  SN Ia  1702926332847
-1      52.219894  SN 2023vwy   ZTF23abmwsrw  47.765951  SN Ia  1702926332847
+   d:declination  d:fullname d:internalname       d:ra  d:redshift d:type       key:time
+0      52.219894  SN 2023vwy     ATLAS23url  47.765951       0.031  SN Ia  1704445385951
+1      52.219894  SN 2023vwy   ZTF23abmwsrw  47.765951       0.031  SN Ia  1704445385951
+```
+
+You can also download the full table by specifying an empty name:
+
+```python
+r = requests.post(
+  'https://fink-portal.org/api/v1/resolver',
+  json={
+    'resolver': 'tns',
+    'name': '',
+    'nmax': 1000000
+  }
+)
+
+         d:declination  d:fullname     d:internalname           d:ra d:redshift  d:type       key:time
+0           -55.409677    AT 1976S  GSC2.3 SATX032616     286.245594        NaN     nan  1704445383818
+1           -25.480611    AT 1978M  GSC2.3 S64P036598     122.320327        NaN     nan  1704445383818
+2            47.530987   AT 1991bm  GSC2.3 N0ZY037003     273.810015        NaN     nan  1704445388697
+3            14.414089   AT 1992bw  GSC2.3 NB6I007107       1.510637        NaN     nan  1704445388697
+4            25.566352   AT 1993an  GSC2.3 NBIP012777      10.505964        NaN     nan  1704445383818
+...                ...         ...                ...            ...        ...     ...            ...
+174736      40.9886174  SN 2023zzk         ATLAS23xnr     54.7199172   0.020127   SN II  1704445385595
+174737      40.9886174  SN 2023zzk       ZTF23abtycgb     54.7199172   0.020127   SN II  1704445385595
+174738  -42.6586722222  SN 2023zzn         ATLAS23xjb  46.8617011111      0.094  SLSN-I  1704445385595
+174739  -24.7868458611   SN 2024fa         ATLAS24adw   36.255712664       0.01   SN II  1704445385595
+174740  -24.7868458611   SN 2024fa             PS24ca   36.255712664       0.01   SN II  1704445385595
+
+[174741 rows x 7 columns]
+
 ```
 
 ### ZTF to TNS
