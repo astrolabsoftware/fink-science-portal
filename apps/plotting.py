@@ -1358,7 +1358,7 @@ def draw_lightcurve_preview(name) -> dict:
     figure: dict
     """
     cols = [
-        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:isdiffpos', 'd:tag'
+        'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:isdiffpos', 'i:distnr', 'i:magnr', 'i:sigmagnr', 'd:tag'
     ]
     r = request_api(
       '/api/v1/objects',
@@ -1383,6 +1383,9 @@ def draw_lightcurve_preview(name) -> dict:
     mag = pdf['i:magpsf']
     err = pdf['i:sigmapsf']
 
+    # Should we correct DC magnitudes for the nearby source?..
+    is_dc_corrected = is_source_behind(pdf['i:distnr'].values[0])
+
     # We should never modify global variables!!!
     layout = deepcopy(layout_lightcurve_preview)
 
@@ -1391,6 +1394,26 @@ def draw_lightcurve_preview(name) -> dict:
     layout['paper_bgcolor'] = 'rgba(0,0,0,0.0)'
     layout['plot_bgcolor'] = 'rgba(0,0,0,0.2)'
     layout['showlegend'] = False
+    layout['shapes'] = []
+
+    if is_dc_corrected:
+        # inplace replacement for DC corrected flux
+        mag, err = np.transpose(
+            [
+                dc_mag(*args) for args in zip(
+                    mag.astype(float).values,
+                    err.astype(float).values,
+                    pdf['i:magnr'].astype(float).values,
+                    pdf['i:sigmagnr'].astype(float).values,
+                    pdf['i:isdiffpos'].values
+                )
+            ]
+        )
+        # Keep only "good" measurements
+        idx = err < 1
+        pdf, dates, mag, err = [_[idx] for _ in [pdf, dates, mag, err]]
+
+        layout['yaxis']['title'] = 'Apparent DC magnitude'
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
@@ -1408,6 +1431,9 @@ def draw_lightcurve_preview(name) -> dict:
             (2, "r", COLORS_ZTF[1])
     ):
         idx = pdf['i:fid'] == fid
+
+        if not np.sum(idx):
+            continue
 
         figure['data'].append(
             {
@@ -1440,6 +1466,22 @@ def draw_lightcurve_preview(name) -> dict:
                 }
             }
         )
+
+        if is_dc_corrected:
+            # Overplot the levels of nearby source magnitudes
+            ref = np.mean(pdf['i:magnr'][idx])
+
+            figure['layout']['shapes'].append(
+                {
+                    'type': 'line',
+                    'yref': 'y',
+                    'y0': ref, 'y1': ref,   # adding a horizontal line
+                    'xref': 'paper', 'x0': 0, 'x1': 1,
+                    'line': {'color': color, 'dash': 'dash', 'width': 1},
+                    'legendgroup': '{} band'.format(fname),
+                    'opacity': 0.3,
+                }
+            )
 
     return figure
 
