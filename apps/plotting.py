@@ -1239,7 +1239,8 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'automargin': True,
                 'title': 'g-r',
                 'domain': [0.0, 0.3],
-                'zeroline': False,
+                'zeroline': True,
+                'zerolinecolor': '#c0c0c0',
             }
             figure['layout']['yaxis']['domain'] = [0.35, 1.0]
             figure['layout']['xaxis']['anchor'] = 'free'
