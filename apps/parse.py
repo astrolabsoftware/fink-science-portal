@@ -297,6 +297,12 @@ def parse_query(string, timeout=None):
                             )
                         )
 
+    # Handle aliases
+    aliases = {'radius': 'r'}
+    for _ in aliases:
+        if _ in query['params']:
+            query['params'][aliases[_]] = query['params'].pop(_)
+
     # Guess the kind of query
     if 'ra' in query['params'] and 'dec' in query['params']:
         query['action'] = 'conesearch'

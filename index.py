@@ -195,8 +195,7 @@ The button `Sky Map` will open a popup with embedded Aladin sky map showing the 
 quick_fields = [
     ['class', 'Alert class\nSelect one of Fink supported classes from the menu'],
     ['last', 'Number of latest alerts to show'],
-    ['r', 'Radius for cone search\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly'],
-    # ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
+    ['radius', 'Radius for cone search\nMay be used as either `r` or `radius`\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly'],
     ['after', 'Lower timit on alert time\nISO time, MJD or JD'],
     ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
     ['window', 'Time window length\nDays'],
@@ -278,11 +277,13 @@ fink_search_bar = [
                     trigger=[
                         'class:', 'class=',
                         'last:', 'last=',
+                        'radius:', 'radius=',
                         'r:', 'r=',
                     ],
                     options={
                         'class:':fink_classes, 'class=':fink_classes,
                         'last:':['10', '100', '1000'], 'last=':['10', '100', '1000'],
+                        'radius:':['10', '60', '10m', '30m'], 'radius=':['10', '60', '10m', '30m'],
                         'r:':['10', '60', '10m', '30m'], 'r=':['10', '60', '10m', '30m'],
                     },
                     maxOptions=0,
