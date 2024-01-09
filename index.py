@@ -119,7 +119,7 @@ Examples:
 - `10 22 31 40 50 55.5` - search within 10 arcseconds around `RA=10:22:31` `Dec=+40:50:55.5`
 - `Vega r=10m` - search within 600 arcseconds (10 arcminutes) from Vega
 - `ZTF21abfmbix r=20` - search within 20 arcseconds around the position of ZTF21abfmbix
-- `AT2021cow` or `AT 2021cow` - search within 10 arcseconds around the position of AT2021cow
+- `AT2021co` or `AT 2021co` - search within 10 arcseconds around the position of AT2021co
 
 ##### Date range search
 
