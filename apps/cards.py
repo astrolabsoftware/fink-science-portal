@@ -1066,21 +1066,22 @@ def card_search_result(row, i):
         name = row['i:objectId'].split('[')[1].split(']')[0]
 
     # Handle different variants for key names from different API entry points
+    classification = None
     for key in ['v:classification', 'd:classification']:
         if key in row:
             # Classification
-            c = row.get(key)
-            if c in simbad_types:
+            classification = row.get(key)
+            if classification in simbad_types:
                 color = class_colors['Simbad']
-            elif c in class_colors.keys():
-                color = class_colors[c]
+            elif classification in class_colors.keys():
+                color = class_colors[classification]
             else:
                 # Sometimes SIMBAD mess up names :-)
                 color = class_colors['Simbad']
 
             badges.append(
                 dmc.Badge(
-                    c,
+                    classification,
                     variant='outline',
                     color=color,
                     size='md'
@@ -1106,6 +1107,17 @@ def card_search_result(row, i):
                 "{}".format(tracklet),
                 variant='outline',
                 color='violet',
+                size='md'
+            )
+        )
+
+    cdsxmatch = row.get('d:cdsxmatch')
+    if cdsxmatch and cdsxmatch != 'Unknown' and cdsxmatch != classification:
+        badges.append(
+            dmc.Badge(
+                "SIMBAD: {}".format(cdsxmatch),
+                variant='outline',
+                color=class_colors['Simbad'],
                 size='md'
             )
         )
