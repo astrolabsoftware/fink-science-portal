@@ -135,6 +135,14 @@ curl -H "Content-Type: application/json" -X POST \\
                                             leftIcon=[DashIconify(icon="mdi:code-json")],
                                         ),
                                         dmc.Button(
+                                            "CSV",
+                                            id='download_sso_csv',
+                                            variant="outline",
+                                            color='indigo',
+                                            compact=True,
+                                            leftIcon=[DashIconify(icon="mdi:file-csv-outline")],
+                                        ),
+                                        dmc.Button(
                                             "VOTable",
                                             id='download_sso_votable',
                                             variant="outline",
@@ -159,7 +167,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         # FIXME: is it correct way to get ssnamenr field?..
                                         html.Div(str(data.number), id='download_sso_ssnamenr', className='d-none'),
                                         html.Div(APIURL, id='download_sso_apiurl', className='d-none'),
-                                    ], position="center"
+                                    ], position="center", spacing="xs"
                                 )
                             ],
                         ),
@@ -292,6 +300,15 @@ app.clientside_callback(
     Output('download_sso_json', 'n_clicks'),
     [
         Input('download_sso_json', 'n_clicks'),
+        Input('download_sso_ssnamenr', 'children'),
+        Input('download_sso_apiurl', 'children'),
+    ]
+)
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'csv').replace('$EXTENSION', 'csv'),
+    Output('download_sso_csv', 'n_clicks'),
+    [
+        Input('download_sso_csv', 'n_clicks'),
         Input('download_sso_ssnamenr', 'children'),
         Input('download_sso_apiurl', 'children'),
     ]
