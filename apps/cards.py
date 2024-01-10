@@ -644,6 +644,14 @@ curl -H "Content-Type: application/json" -X POST \\
                                             leftIcon=[DashIconify(icon="mdi:code-json")],
                                         ),
                                         dmc.Button(
+                                            "CSV",
+                                            id='download_csv',
+                                            variant="outline",
+                                            color='indigo',
+                                            compact=True,
+                                            leftIcon=[DashIconify(icon="mdi:file-csv-outline")],
+                                        ),
+                                        dmc.Button(
                                             "VOTable",
                                             id='download_votable',
                                             variant="outline",
@@ -667,7 +675,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                         html.Div(objectid, id='download_objectid', className='d-none'),
                                         html.Div(APIURL, id='download_apiurl', className='d-none'),
-                                    ], position="center"
+                                    ], position="center", spacing="xs"
                                 )
                             ],
                         ),
@@ -779,6 +787,15 @@ app.clientside_callback(
     Output('download_json', 'n_clicks'),
     [
         Input('download_json', 'n_clicks'),
+        Input('download_objectid', 'children'),
+        Input('download_apiurl', 'children'),
+    ]
+)
+app.clientside_callback(
+    download_js.replace('$FORMAT', 'csv').replace('$EXTENSION', 'csv'),
+    Output('download_csv', 'n_clicks'),
+    [
+        Input('download_csv', 'n_clicks'),
         Input('download_objectid', 'children'),
         Input('download_apiurl', 'children'),
     ]
@@ -1049,21 +1066,22 @@ def card_search_result(row, i):
         name = row['i:objectId'].split('[')[1].split(']')[0]
 
     # Handle different variants for key names from different API entry points
+    classification = None
     for key in ['v:classification', 'd:classification']:
         if key in row:
             # Classification
-            c = row.get(key)
-            if c in simbad_types:
+            classification = row.get(key)
+            if classification in simbad_types:
                 color = class_colors['Simbad']
-            elif c in class_colors.keys():
-                color = class_colors[c]
+            elif classification in class_colors.keys():
+                color = class_colors[classification]
             else:
                 # Sometimes SIMBAD mess up names :-)
                 color = class_colors['Simbad']
 
             badges.append(
                 dmc.Badge(
-                    c,
+                    classification,
                     variant='outline',
                     color=color,
                     size='md'
@@ -1089,6 +1107,17 @@ def card_search_result(row, i):
                 "{}".format(tracklet),
                 variant='outline',
                 color='violet',
+                size='md'
+            )
+        )
+
+    cdsxmatch = row.get('d:cdsxmatch')
+    if cdsxmatch and cdsxmatch != 'Unknown' and cdsxmatch != classification:
+        badges.append(
+            dmc.Badge(
+                "SIMBAD: {}".format(cdsxmatch),
+                variant='outline',
+                color=class_colors['Simbad'],
                 size='md'
             )
         )

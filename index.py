@@ -119,7 +119,7 @@ Examples:
 - `10 22 31 40 50 55.5` - search within 10 arcseconds around `RA=10:22:31` `Dec=+40:50:55.5`
 - `Vega r=10m` - search within 600 arcseconds (10 arcminutes) from Vega
 - `ZTF21abfmbix r=20` - search within 20 arcseconds around the position of ZTF21abfmbix
-- `AT2021cow` or `AT 2021cow` - search within 10 arcseconds around the position of AT2021cow
+- `AT2021co` or `AT 2021co` - search within 10 arcseconds around the position of AT2021co
 
 ##### Date range search
 
@@ -195,8 +195,7 @@ The button `Sky Map` will open a popup with embedded Aladin sky map showing the 
 quick_fields = [
     ['class', 'Alert class\nSelect one of Fink supported classes from the menu'],
     ['last', 'Number of latest alerts to show'],
-    ['r', 'Radius for cone search\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly'],
-    # ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
+    ['radius', 'Radius for cone search\nMay be used as either `r` or `radius`\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly'],
     ['after', 'Lower timit on alert time\nISO time, MJD or JD'],
     ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
     ['window', 'Time window length\nDays'],
@@ -278,11 +277,13 @@ fink_search_bar = [
                     trigger=[
                         'class:', 'class=',
                         'last:', 'last=',
+                        'radius:', 'radius=',
                         'r:', 'r=',
                     ],
                     options={
                         'class:':fink_classes, 'class=':fink_classes,
                         'last:':['10', '100', '1000'], 'last=':['10', '100', '1000'],
+                        'radius:':['10', '60', '10m', '30m'], 'radius=':['10', '60', '10m', '30m'],
                         'r:':['10', '60', '10m', '30m'], 'r=':['10', '60', '10m', '30m'],
                     },
                     maxOptions=0,
@@ -410,14 +411,20 @@ def update_search_history_menu(timestamp, history):
     Input('search_bar_timer', 'n_intervals'),
     Input('search_bar_input', 'n_submit'),
     Input('search_bar_submit', 'n_clicks'),
+    # Next input uses dynamically created source, so has to be pattern-matching
+    Input({'type':'search_bar_suggestion', 'value':ALL}, 'n_clicks'),
     State('search_bar_input', 'value'),
     prevent_initial_call=True,
 )
-def update_suggestions(n_intervals, n_submit, n_clicks, value):
-    # Clear the suggestions on submit
+def update_suggestions(n_intervals, n_submit, n_clicks, s_n_clicks, value):
+    # Clear the suggestions on submit by various means
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if triggered_id in ['search_bar_input', 'search_bar_submit']:
+    if triggered_id in [
+            'search_bar_input',
+            'search_bar_submit',
+            '{"type":"search_bar_suggestion","value":0}'
+    ]:
         return no_update, no_update, False
 
     # Did debounce trigger fire?..
@@ -468,14 +475,16 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
                     )
                 )
 
-            content += [
-                html.Div(
-                    [
-                        html.Span('Did you mean:', className='text-secondary'),
-                    ] + completions,
-                    className="border-bottom p-1 mb-1 mt-1 small"
+            suggestions.append(
+                dbc.ListGroupItem(
+                    html.Div(
+                        [
+                            html.Span('Did you mean:', className='text-secondary'),
+                        ] + completions
+                    ),
+                    className="border-bottom p-1 mt-1 small"
                 )
-            ]
+            )
 
         content += [
             dmc.Group([
@@ -494,6 +503,9 @@ def update_suggestions(n_intervals, n_submit, n_clicks, value):
     suggestion = dbc.ListGroupItem(
         content,
         action=True,
+        n_clicks=0,
+        # We make it pattern-matching so that it is possible to catch it in global callbacks
+        id={'type':'search_bar_suggestion', 'value':0},
         className='border-0'
     )
 
@@ -991,6 +1003,8 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
     [
         Input('search_bar_input', 'n_submit'),
         Input('search_bar_submit', 'n_clicks'),
+        # Next input uses dynamically created source, so has to be pattern-matching
+        Input({'type':'search_bar_suggestion', 'value':ALL}, 'n_clicks'),
         Input('url', 'search'),
     ],
     State('search_bar_input', 'value'),
@@ -999,7 +1013,7 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
     # prevent_initial_call=True
     prevent_initial_call='initial_duplicate',
 )
-def results(n_submit, n_clicks, searchurl, value, history, show_table):
+def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_table):
     """ Parse the search string and query the database
     """
     ctx = dash.callback_context
@@ -1008,7 +1022,11 @@ def results(n_submit, n_clicks, searchurl, value, history, show_table):
         # FIXME: ???
         triggered_id = 'url'
 
-    if not n_submit and not n_clicks and not searchurl:
+    # Safeguards against triggering on initial mount of components
+    if ((triggered_id == 'search_bar_input' and not n_submit) or
+        (triggered_id == 'search_bar_submit' and not n_clicks) or
+        (triggered_id == '{"type":"search_bar_suggestion","value":0}' and (not s_n_clicks or not s_n_clicks[0])) or
+        (triggered_id == 'url' and not searchurl)):
         raise PreventUpdate
 
     if not value and not searchurl:
@@ -1839,7 +1857,6 @@ try:
     server.config['JSON_SORT_KEYS'] = False
 except ImportError as e:
     print('API not yet registered')
-
 
 if __name__ == '__main__':
     import yaml
