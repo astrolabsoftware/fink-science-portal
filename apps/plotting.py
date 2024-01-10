@@ -1904,19 +1904,14 @@ def extract_cutout(object_data, time0, kind):
     data: np.array
         2D array containing cutout data
     """
-    values = [
-        'i:jd',
-        'b:cutout{}_stampData'.format(kind.capitalize()),
-    ]
     pdf_ = pd.read_json(object_data)
-    pdfs = pdf_.loc[:, values]
-    pdfs = pdfs.sort_values('i:jd', ascending=False)
+    pdf_ = pdf_.sort_values('i:jd', ascending=False)
 
     if time0 is None:
         position = 0
     else:
         # Round to avoid numerical precision issues
-        jds = pdfs['i:jd'].apply(lambda x: np.round(x, 3)).values
+        jds = pdf_['i:jd'].apply(lambda x: np.round(x, 3)).values
         jd0 = np.round(Time(time0, format='iso').jd, 3)
         if jd0 in jds:
             position = np.where(jds == jd0)[0][0]
@@ -3441,13 +3436,6 @@ def alert_properties(object_data, clickData):
             return no_update
 
     pdf = pdf_.head(1)
-    pdf = pdf.drop(
-        columns=[
-            'b:cutoutDifference_stampData',
-            'b:cutoutScience_stampData',
-            'b:cutoutTemplate_stampData'
-        ]
-    )
     pdf = pd.DataFrame({'Name': pdf.columns, 'Value': pdf.values[0]})
     columns = [
         {

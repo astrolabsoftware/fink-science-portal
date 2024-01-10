@@ -96,7 +96,7 @@ def test_column_length() -> None:
     """
     pdf = get_an_object(oid=OID)
 
-    assert len(pdf.columns) == 131, 'I count {} columns'.format(len(pdf.columns))
+    assert len(pdf.columns) == 128, 'I count {} columns'.format(len(pdf.columns))
 
 def test_withupperlim() -> None:
     """

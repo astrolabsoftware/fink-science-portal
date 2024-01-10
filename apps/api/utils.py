@@ -721,7 +721,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     results = client.scan(
         "",
         "key:key:{}".format(payload['objectId']),
-        "b:cutout{}_stampData,i:jd,i:candid".format(payload['kind']),
+        "b:cutout{}_stampData,i:objectId,i:jd,i:candid".format(payload['kind']),
         0, True, True
     )
 

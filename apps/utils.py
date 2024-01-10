@@ -95,6 +95,12 @@ def format_hbase_output(
     if 'key:time' in pdfs.columns:
         pdfs = pdfs.drop(columns=['key:time'])
 
+    # Remove cutouts if their fields are here but empty
+    for _ in ['Difference', 'Science', 'Template']:
+        colname = 'b:cutout{}_stampData'.format(_)
+        if colname in pdfs.columns and pdfs[colname].values[0].startswith('binary:ZTF'):
+            pdfs = pdfs.drop(columns=colname)
+
     # Type conversion
     pdfs = pdfs.astype(
         {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
@@ -239,28 +245,21 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') ->
     pdf: Pandas DataFrame
         Modified original DataFrame with cutout data uncompressed (2D array)
     """
-    if col is not None:
-        cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
-        assert col in cols
-        pdf[col] = pdf[col].apply(
+
+    cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
+
+    for colname in cols:
+        # Skip unneeded columns, if only one is requested
+        if col is not None and col != colname:
+            continue
+
+        if colname not in pdf.columns:
+            pdf[colname] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + colname[1:]
+
+        pdf[colname] = pdf[colname].apply(
             lambda x: readstamp(client.repository().get(x), return_type=return_type)
         )
-        return pdf
 
-    if 'b:cutoutScience_stampData' not in pdf.columns:
-        pdf['b:cutoutScience_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutScience_stampData'
-        pdf['b:cutoutTemplate_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutTemplate_stampData'
-        pdf['b:cutoutDifference_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutDifference_stampData'
-
-    pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x), return_type=return_type)
-    )
-    pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x), return_type=return_type)
-    )
-    pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x), return_type=return_type)
-    )
     return pdf
 
 def extract_properties(data: str, fieldnames: list):
