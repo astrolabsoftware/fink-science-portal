@@ -1389,7 +1389,8 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
         else:
             # TNS poll -- take the first nmax occurences
             if reverse:
-                to_evaluate = "d:internalname:{}".format(name)
+                # Prefix search on second part of the key which is `fullname_internalname`
+                to_evaluate = "key:key:_{}:substring".format(name)
                 results = client.scan(
                     "",
                     to_evaluate,
