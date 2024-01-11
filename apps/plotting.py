@@ -2486,7 +2486,7 @@ def integrate_aladin_lite(object_data):
     img = """
     var aladin = A.aladin('#aladin-lite-div',
               {{
-                survey: 'P/PanSTARRS/DR1/color/z/zg/g',
+                survey: 'PanSTARRS DR1 color',
                 fov: 0.025,
                 target: '{} {}',
                 reticleColor: '#ff89ff',

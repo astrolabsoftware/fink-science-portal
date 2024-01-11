@@ -772,7 +772,7 @@ def display_skymap(data, columns, is_open):
         var a = A.aladin('#aladin-lite-div-skymap',
         {{
             target: '{} {}',
-            survey: 'P/PanSTARRS/DR1/color/z/zg/g',
+            survey: 'PanSTARRS DR1 color',
             showReticle: true,
             allowFullZoomout: true,
             showContextMenu: true,
