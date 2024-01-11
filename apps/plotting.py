@@ -2492,7 +2492,7 @@ def integrate_aladin_lite(object_data):
                 reticleColor: '#ff89ff',
                 reticleSize: 32,
                 showContextMenu: true,
-                showCooGrid: true,
+                showCooGridControl: true,
     }});
     var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
     var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
