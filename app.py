@@ -35,12 +35,11 @@ LOCALAPI = args.get('LOCALAPI', False)
 # bootstrap theme
 external_stylesheets = [
     dbc.themes.SPACELAB,
-    '//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css',
     '//use.fontawesome.com/releases/v5.7.2/css/all.css',
 ]
 external_scripts = [
     '//code.jquery.com/jquery-1.12.1.min.js',
-    '//aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js',
+    '//aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js',
     '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
 ]
 
