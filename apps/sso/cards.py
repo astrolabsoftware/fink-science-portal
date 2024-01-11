@@ -29,11 +29,10 @@ import visdcc
 import textwrap
 
 def get_sso_data(ssnamenr):
-    """
+    """ Extract SSO data from various providers (SSODNET, MPC)
     """
     data = rocks.Rock(
         ssnamenr,
-        datacloud=['phase_functions', 'spins'],
         skip_id_check=False
     )
     if data.id_ == '':
@@ -482,7 +481,7 @@ def card_sso_rocks_params(data):
 
         for _, avail_spin in enumerate(data.parameters.physical.spin):
             text += "\n"
-            text += """<h6 children="{}" class="dashed" style="margin-top: 5px; margin-bottom: 0;"/>\n\n""".format(avail_spin.method[0].shortbib)
+            text += """<h6 children="{}" class="dashed" style="margin-top: 5px; margin-bottom: 0;"/>\n\n""".format(avail_spin.bibref.shortbib)
             text += "RA0 (deg): `{}`\n".format(avail_spin.RA0.value)
             text += "DEC0 (deg): `{}`\n".format(avail_spin.DEC0.value)
 
