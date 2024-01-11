@@ -339,7 +339,7 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
         var a = A.aladin('#aladin-lite-div-skymap-gw',
             {{
                 target: '{} {}',
-                survey: 'PanSTARRS DR1 color',
+                survey: 'PanSTARRS/DR1/color-i-r-g',
                 showReticle: true,
                 allowFullZoomout: true,
                 showContextMenu: true,
