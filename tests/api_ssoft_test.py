@@ -129,7 +129,7 @@ def test_schema() -> None:
     """
     pdf = ssoftsearch(schema=True, output_format='json')
 
-    assert len(pdf) == 50
+    assert len(pdf) == 53
 
 
 if __name__ == "__main__":
