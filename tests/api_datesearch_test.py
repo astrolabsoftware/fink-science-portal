@@ -21,7 +21,7 @@ import sys
 
 APIURL = sys.argv[1]
 
-def datesearch(startdate='2021-07-01 05:59:37.000', window='1', output_format='json'):
+def datesearch(startdate='2021-07-01 05:59:37.000', window=1/24/60, output_format='json'):
     """ Perform a date search in the Science Portal using the Fink REST API
     """
     payload = {
@@ -65,21 +65,13 @@ def test_bad_datesearch() -> None:
     ---------
     >>> test_bad_datesearch()
     """
-    payload = {
-        'startdate': '2021-07-01 05:59:37.000',
-        'window': 200
-    }
 
-    r = requests.post(
-        '{}/api/v1/explorer'.format(APIURL),
-        json=payload
-    )
+    pdf1 = datesearch('2021-07-01 05:59:37.000', window=3/24)
 
-    msg = {
-        'status': 'error',
-        'text': "`window` cannot be bigger than 180 minutes.\n"
-    }
-    assert r.text == str(msg)
+    # The window is rounded to 3 hours so results should be equal
+    pdf2 = datesearch('2021-07-01 05:59:37.000', window=1)
+
+    assert len(pdf1) == len(pdf2), '{} != {}'.format(len(pdf1), len(pdf2))
 
 
 if __name__ == "__main__":
