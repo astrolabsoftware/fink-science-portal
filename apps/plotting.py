@@ -57,7 +57,7 @@ from sbpy.data import Obs
 from app import app
 
 COLORS_ZTF = ['#15284F', '#F5622E']
-COLORS_ZTF_RGB = ['rgba(21, 40, 79, 1, 0.2)', 'rgba(245, 98, 46, 1, 0.2)']
+COLORS_ZTF_NEGATIVE = ['#274667', '#F57A2E']
 
 colors_ = [
     "rgb(165,0,38)",
@@ -1011,9 +1011,9 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
         "layout": layout
     }
 
-    for fid,fname,color in (
-            (1, "g", COLORS_ZTF[0]),
-            (2, "r", COLORS_ZTF[1])
+    for fid,fname,color,color_negative in (
+            (1, "g", COLORS_ZTF[0], COLORS_ZTF_NEGATIVE[0]),
+            (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1])
     ):
         # High-quality measurements
         hovertemplate = r"""
@@ -1048,7 +1048,7 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                 'legendrank': 100 + 10*fid,
                 'marker': {
                     'size': 12,
-                    'color': color,
+                    'color': pdf['i:isdiffpos'].apply(lambda x: color_negative if x == 'f' else color)[idx],
                     'symbol': 'o'}
             }
         )
@@ -1427,9 +1427,9 @@ def draw_lightcurve_preview(name) -> dict:
         'layout': layout
     }
 
-    for fid,fname,color in (
-            (1, "g", COLORS_ZTF[0]),
-            (2, "r", COLORS_ZTF[1])
+    for fid,fname,color,color_negative in (
+            (1, "g", COLORS_ZTF[0], COLORS_ZTF_NEGATIVE[0]),
+            (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1])
     ):
         idx = pdf['i:fid'] == fid
 
@@ -1445,7 +1445,7 @@ def draw_lightcurve_preview(name) -> dict:
                     'array': err[idx],
                     'visible': True,
                     'width': 0,
-                    'color': color,
+                    'color': color, # It does not support arrays of colors so let's use positive one for all points
                     'opacity': 0.5
                 },
                 'mode': 'markers',
@@ -1460,7 +1460,7 @@ def draw_lightcurve_preview(name) -> dict:
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': pdf['d:tag'].apply(lambda x: 12 if x == 'valid' else 6)[idx],
-                    'color': color,
+                    'color': pdf['i:isdiffpos'].apply(lambda x: color_negative if x == 'f' else color)[idx],
                     'symbol': pdf['d:tag'].apply(lambda x: 'o' if x == 'valid' else 'triangle-up')[idx],
                     'line': {'width': 0},
                     'opacity': 1,
