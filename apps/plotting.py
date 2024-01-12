@@ -1076,7 +1076,8 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
                         'legendrank': 101 + 10*fid,
                         'marker': {
                             'color': color,
-                            'symbol': 'triangle-down-open'
+                            'symbol': 'triangle-down-open',
+                            'opacity': 0.5,
                         },
                         # 'showlegend': False
                     }
