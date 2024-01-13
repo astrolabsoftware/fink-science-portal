@@ -14,6 +14,7 @@
 # limitations under the License.
 from dash import html, dcc, Input, Output
 import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 
 from app import app
 from apps.utils import loading
@@ -111,9 +112,8 @@ All other fields starting with `class:` are crossmatch from the SIMBAD database.
 
 @app.callback(
     Output('object-stats', 'children'),
-    [
-        Input('url', 'pathname'),
-    ])
+    Input('url', 'pathname'),
+)
 def store_stat_query(name):
     """ Cache query results (data and upper limits) for easy re-use
 
@@ -137,7 +137,8 @@ def store_stat_query(name):
 
 @app.callback(
     Output('stat_row', 'children'),
-    Input('object-stats', 'children')
+    Input('object-stats', 'children'),
+    prevent_initial_call=True
 )
 def create_stat_row(object_stats):
     """ Show basic stats. Used in the desktop app.
@@ -169,7 +170,8 @@ def create_stat_row(object_stats):
 
 @app.callback(
     Output('stat_row_mobile', 'children'),
-    Input('object-stats', 'children')
+    Input('object-stats', 'children'),
+    prevent_initial_call=True
 )
 def create_stat_row(object_stats):
     """ Show basic stats. Used in the mobile app.
@@ -251,7 +253,10 @@ def heatmap_content():
         [
             dbc.Row(
                 [
-                    dbc.Col(id='heatmap_stat')
+                    dbc.Col(
+                        dmc.Skeleton(style={'width': '100%', 'height': '30pc'}, className="mt-3"),
+                        id='heatmap_stat'
+                    )
                 ], justify="center", className="g-0"
             ),
         ],

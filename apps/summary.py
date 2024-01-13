@@ -235,7 +235,8 @@ def tab4_content():
     Output("tab_sso", "children"),
     [
         Input('object-sso', 'children'),
-    ]
+    ],
+    prevent_initial_call=True
 )
 def tab5_content(object_soo):
     """ SSO tab
@@ -435,7 +436,8 @@ def tab5_content(object_soo):
     Output("tab_tracklet", "children"),
     [
         Input('object-tracklet', 'children'),
-    ]
+    ],
+    prevent_initial_call=True
 )
 def tab6_content(object_tracklet):
     """ Tracklet tab
@@ -512,7 +514,8 @@ def is_tracklet(pdfs):
     ],
     [
         Input('url', 'pathname'),
-    ])
+    ]
+)
 def store_query(name):
     """ Cache query results (data and upper limits) for easy re-use
 

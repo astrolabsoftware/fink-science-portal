@@ -158,7 +158,9 @@ def card_sn_scores() -> html.Div:
     [
         Input('lightcurve_scores', 'clickData'),
         Input('object-data', 'children'),
-    ])
+    ],
+    prevent_initial_call=True
+)
 def card_sn_properties(clickData, object_data):
     """ Add an element containing SN alert data (right side of the page)
 

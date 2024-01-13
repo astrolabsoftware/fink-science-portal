@@ -804,7 +804,9 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
     Output('classbar', 'figure'),
     [
         Input('object-data', 'children'),
-    ])
+    ],
+    prevent_initial_call=True
+)
 def plot_classbar(object_data):
     """ Display a bar chart with individual alert classifications
 
@@ -897,14 +899,15 @@ def plot_classbar(object_data):
     Output('lightcurve_cutouts', 'figure'),
     [
         Input('switch-mag-flux', 'value'),
-        Input('url', 'pathname'),
         Input('object-data', 'children'),
         Input('object-upper', 'children'),
         Input('object-uppervalid', 'children'),
         Input('object-release', 'children'),
         Input('lightcurve_show_color', 'checked')
-    ])
-def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, object_uppervalid, object_release, show_color) -> dict:
+    ],
+    prevent_initial_call=True
+)
+def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, object_release, show_color) -> dict:
     """ Draw object lightcurve with errorbars
 
     Parameters
@@ -914,8 +917,6 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
           - 0 to display difference magnitude
           - 1 to display dc magnitude
           - 2 to display flux
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
 
     Returns
     ----------
@@ -1261,18 +1262,14 @@ def draw_lightcurve(switch: int, pathname: str, object_data, object_upper, objec
 @app.callback(
     Output('lightcurve_scores', 'figure'),
     [
-        Input('url', 'pathname'),
         Input('object-data', 'children'),
         Input('object-upper', 'children'),
         Input('object-uppervalid', 'children')
-    ])
-def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_uppervalid) -> dict:
+    ],
+    prevent_initial_call=True
+)
+def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     """ Draw object lightcurve with errorbars (SM view - DC mag fixed)
-
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
 
     Returns
     ----------
@@ -1349,11 +1346,6 @@ def draw_lightcurve_sn(pathname: str, object_data, object_upper, object_upperval
 
 def draw_lightcurve_preview(name) -> dict:
     """ Draw object lightcurve with errorbars (SM view - DC mag fixed)
-
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
 
     Returns
     ----------
@@ -1491,14 +1483,11 @@ def draw_lightcurve_preview(name) -> dict:
     Output('scores', 'figure'),
     [
         Input('object-data', 'children'),
-    ])
+    ],
+    prevent_initial_call=True
+)
 def draw_scores(object_data) -> dict:
     """ Draw scores from SNN module
-
-    Parameters
-    ----------
-    pdf: pd.DataFrame
-        Results from a HBase client query
 
     Returns
     ----------
@@ -1616,14 +1605,11 @@ def extract_max_t2(pdf):
     Output('t2', 'children'),
     [
         Input('object-data', 'children'),
-    ])
+    ],
+    prevent_initial_call=True
+)
 def draw_t2(object_data) -> dict:
     """ Draw scores from SNN module
-
-    Parameters
-    ----------
-    pdf: pd.DataFrame
-        Results from a HBase client query
 
     Returns
     ----------
@@ -1708,20 +1694,15 @@ def draw_t2(object_data) -> dict:
     Output('colors', 'figure'),
     [
         Input('object-data', 'children'),
-    ])
+    ],
+    prevent_initial_call=True
+)
 def draw_color(object_data) -> dict:
     """ Draw color evolution
-
-    Parameters
-    ----------
-    pdf: pd.DataFrame
-        Results from a HBase client query
 
     Returns
     ----------
     figure: dict
-
-    TODO: memoise me
     """
     pdf = pd.read_json(object_data)
 
@@ -1800,14 +1781,11 @@ def draw_color(object_data) -> dict:
     Output('colors_rate', 'figure'),
     [
         Input('object-data', 'children'),
-    ])
+    ],
+    prevent_initial_call=True
+)
 def draw_color_rate(object_data) -> dict:
     """ Draw color rate
-
-    Parameters
-    ----------
-    pdf: pd.DataFrame
-        Results from a HBase client query
 
     Returns
     ----------
@@ -1943,7 +1921,9 @@ def extract_cutout(object_data, time0, kind):
     [
         Input('lightcurve_cutouts', 'clickData'),
         Input('object-data', 'children'),
-    ]
+    ],
+    prevent_initial_call=True
+
 )
 def draw_cutouts(clickData, object_data):
     """ Draw cutouts data based on lightcurve data
@@ -1981,6 +1961,7 @@ def draw_cutouts(clickData, object_data):
         Input('date_modal_select', 'value'),
         Input("stamps_modal", "is_open")
     ],
+    prevent_initial_call=True
 )
 def draw_cutouts_modal(object_data, date_modal_select, is_open):
     """ Draw cutouts data based on lightcurve data
@@ -2450,7 +2431,10 @@ def plot_mulens(n_clicks, object_data):
     return results, None
 
 @app.callback(
-    Output('aladin-lite-div', 'run'), Input('object-data', 'children'))
+    Output('aladin-lite-runner', 'run'),
+    Input('object-data', 'children'),
+    prevent_initial_call=True
+)
 def integrate_aladin_lite(object_data):
     """ Integrate aladin light in the 2nd Tab of the dashboard.
 
@@ -2502,11 +2486,6 @@ def integrate_aladin_lite(object_data):
 def draw_sso_lightcurve(pdf) -> dict:
     """ Draw SSO object lightcurve with errorbars, and ephemerides on top
     from the miriade IMCCE service.
-
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
 
     Returns
     ----------
@@ -2634,11 +2613,6 @@ def draw_sso_lightcurve(pdf) -> dict:
 
 def draw_sso_residual(pdf) -> dict:
     """ Draw SSO residuals (observation - ephemerides)
-
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
 
     Returns
     ----------
@@ -2776,11 +2750,6 @@ def draw_sso_astrometry(pdf) -> dict:
     """ Draw SSO object astrometry, that is difference position wrt ephemerides
     from the miriade IMCCE service.
 
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
-
     Returns
     ----------
     figure: dict
@@ -2867,22 +2836,13 @@ def draw_sso_astrometry(pdf) -> dict:
 @app.callback(
     Output('sso_phasecurve', 'children'),
     [
-        Input('url', 'pathname'),
         Input("switch-phase-curve-band", "value"),
         Input("switch-phase-curve-func", "value"),
-        Input('object-sso', 'children')
-    ])
-def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, object_sso) -> dict:
+    ],
+    State('object-sso', 'children')
+)
+def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
     """ Draw SSO object phase curve
-
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
-
-    Returns
-    ----------
-    figure: dict
     """
     pdf = pd.read_json(object_sso)
     if pdf.empty:
@@ -3256,11 +3216,6 @@ def draw_sso_phasecurve(pathname: str, switch_band: str, switch_func: str, objec
 def draw_tracklet_lightcurve(pdf) -> dict:
     """ Draw tracklet object lightcurve with errorbars
 
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
-
     Returns
     ----------
     figure: dict
@@ -3355,10 +3310,7 @@ def draw_tracklet_lightcurve(pdf) -> dict:
 
 def draw_tracklet_radec(pdf) -> dict:
     """ Draw tracklet object radec
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
+
     Returns
     ----------
     figure: dict
@@ -3422,7 +3374,9 @@ def draw_tracklet_radec(pdf) -> dict:
     [
         Input('object-data', 'children'),
         Input('lightcurve_cutouts', 'clickData')
-    ])
+    ],
+    prevent_initial_call=True
+)
 def alert_properties(object_data, clickData):
     pdf_ = pd.read_json(object_data)
 
@@ -3507,12 +3461,10 @@ def alert_properties(object_data, clickData):
 
 @app.callback(
     Output('heatmap_stat', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('object-stats', 'children')
-    ]
+    Input('object-stats', 'children'),
+    prevent_initial_call=True
 )
-def plot_heatmap(pathname, object_stats):
+def plot_heatmap(object_stats):
     """ Plot heatmap
     """
     pdf = pd.read_json(object_stats)
@@ -3542,7 +3494,7 @@ def plot_heatmap(pathname, object_stats):
     )
 
     card = dbc.Card(
-        dbc.CardBody(graph, className="m-0 p-0"),
+        dbc.CardBody(graph, className="m-0 p-1"),
         className="mt-3"
     )
     return card
@@ -3550,12 +3502,11 @@ def plot_heatmap(pathname, object_stats):
 @app.callback(
     Output('evolution', 'children'),
     [
-        Input('url', 'pathname'),
         Input('dropdown_params', 'value'),
         Input('switch-cumulative', 'value'),
     ]
 )
-def plot_stat_evolution(pathname, param_name, switch):
+def plot_stat_evolution(param_name, switch):
     """ Plot evolution of parameters as a function of time
 
     TODO: connect the callback to a dropdown button to choose the parameter
@@ -3916,12 +3867,9 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
 
 @app.callback(
     Output('hist_sci_raw', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('dropdown_days', 'value'),
-    ]
+    Input('dropdown_days', 'value'),
 )
-def hist_sci_raw(pathname, dropdown_days):
+def hist_sci_raw(dropdown_days):
     """ Make an histogram
     """
     r = request_api(
@@ -3960,12 +3908,9 @@ def hist_sci_raw(pathname, dropdown_days):
 
 @app.callback(
     Output('hist_catalogued', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('dropdown_days', 'value'),
-    ]
+    Input('dropdown_days', 'value'),
 )
-def hist_catalogued(pathname, dropdown_days):
+def hist_catalogued(dropdown_days):
     """ Make an histogram
     """
     r = request_api(
@@ -4006,12 +3951,9 @@ def hist_catalogued(pathname, dropdown_days):
 
 @app.callback(
     Output('hist_classified', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('dropdown_days', 'value'),
-    ]
+    Input('dropdown_days', 'value'),
 )
-def hist_classified(pathname, dropdown_days):
+def hist_classified(dropdown_days):
     """ Make an histogram
     """
     r = request_api(
@@ -4055,12 +3997,9 @@ def hist_classified(pathname, dropdown_days):
 
 @app.callback(
     Output('hist_candidates', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('dropdown_days', 'value'),
-    ]
+    Input('dropdown_days', 'value'),
 )
-def hist_candidates(pathname, dropdown_days):
+def hist_candidates(dropdown_days):
     """ Make an histogram
     """
     r = request_api(
@@ -4104,12 +4043,9 @@ def hist_candidates(pathname, dropdown_days):
 
 @app.callback(
     Output('daily_classification', 'children'),
-    [
-        Input('url', 'pathname'),
-        Input('dropdown_days', 'value'),
-    ]
+    Input('dropdown_days', 'value'),
 )
-def fields_exposures(pathname, dropdown_days):
+def fields_exposures(dropdown_days):
     """ Make an histogram
     """
     r = request_api(
@@ -4154,15 +4090,12 @@ def fields_exposures(pathname, dropdown_days):
     [
         Input('object-data', 'children'),
         Input('coordinates_chips', 'value')
-    ])
+    ],
+    prevent_initial_call=True
+)
 def draw_alert_astrometry(object_data, kind) -> dict:
     """ Draw SSO object astrometry, that is difference position wrt ephemerides
     from the miriade IMCCE service.
-
-    Parameters
-    ----------
-    pathname: str
-        Pathname of the current webpage (should be /ZTF19...).
 
     Returns
     ----------
