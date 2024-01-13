@@ -949,6 +949,28 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
+    gcvs = pdf['d:gcvs'].values[0]
+    if gcvs and gcvs != 'Unknown':
+        badges.append(
+            dmc.Badge(
+                "GCVS: {}".format(gcvs),
+                variant='outline',
+                color=class_colors['Simbad'],
+                size='md'
+            )
+        )
+
+    vsx = pdf['d:vsx'].values[0]
+    if vsx and vsx != 'Unknown':
+        badges.append(
+            dmc.Badge(
+                "VSX: {}".format(vsx),
+                variant='outline',
+                color=class_colors['Simbad'],
+                size='md'
+            )
+        )
+
     distnr = pdf['i:distnr'].values[0]
     if distnr:
         if is_source_behind(distnr):
@@ -1116,6 +1138,28 @@ def card_search_result(row, i):
         badges.append(
             dmc.Badge(
                 "SIMBAD: {}".format(cdsxmatch),
+                variant='outline',
+                color=class_colors['Simbad'],
+                size='md'
+            )
+        )
+
+    gcvs = row.get('d:gcvs')
+    if gcvs and gcvs != 'Unknown':
+        badges.append(
+            dmc.Badge(
+                "GCVS: {}".format(gcvs),
+                variant='outline',
+                color=class_colors['Simbad'],
+                size='md'
+            )
+        )
+
+    vsx = row.get('d:vsx')
+    if vsx and vsx != 'Unknown':
+        badges.append(
+            dmc.Badge(
+                "VSX: {}".format(vsx),
                 variant='outline',
                 color=class_colors['Simbad'],
                 size='md'
