@@ -1410,6 +1410,7 @@ def display_cards_results(pdf, page_size=10):
         dmc.Group(
             dmc.Pagination(
                 id='results_pagination',
+                page=1,
                 total=npages,
                 siblings=1,
                 withControls=True,
