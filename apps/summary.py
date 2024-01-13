@@ -674,15 +674,29 @@ def layout(name):
                         dbc.Col(
                             dbc.Row(
                                 [
-                                    dbc.Col(id="card_id_left", className="p-1", lg=12, md=6, sm=12),
+                                    dbc.Col(
+                                        dmc.Skeleton(style={'width': '100%', 'height': '15pc'}),
+                                        id="card_id_left", className="p-1", lg=12, md=6, sm=12
+                                    ),
                                     dbc.Col(
                                         html.Div(
-                                            [visdcc.Run_js(id='aladin-lite-div')],
-                                            style={
-                                                'width': '100%',
-                                                'height': '27pc',
-                                            },
-                                            className="p-1" # d-none d-md-block"
+                                            [
+                                                visdcc.Run_js(id='aladin-lite-runner'),
+                                                html.Div(
+                                                    dmc.Skeleton(
+                                                        style={
+                                                            'width': '100%',
+                                                            'height': '100%',
+                                                        },
+                                                    ),
+                                                    id='aladin-lite-div',
+                                                    style={
+                                                        'width': '100%',
+                                                        'height': '27pc',
+                                                    },
+                                                ),
+                                            ],
+                                            className="p-1"
                                         ), lg=12, md=6, sm=12
                                     )
                                 ],

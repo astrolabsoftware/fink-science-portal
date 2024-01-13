@@ -82,7 +82,7 @@ def card_lightcurve_summary():
     Returns
     ----------
     card: dbc.Card
-        Card with the cutouts drawn inside
+        Card with the lightcurve drawn inside
     """
     card = dmc.Paper(
         [
@@ -553,7 +553,10 @@ curl -H "Content-Type: application/json" -X POST \\
                             loading(
                                 dmc.Paper(
                                     [
-                                        dbc.Row(id='stamps', justify='around', className="g-0"),
+                                        dbc.Row(
+                                            dmc.Skeleton(style={'width': '100%', 'aspect-ratio': '3/1'}),
+                                            id='stamps', justify='around', className="g-0"
+                                        ),
                                     ],
                                     radius='sm', p='xs', shadow='sm', withBorder=True, style={'padding':'5px'}
                                 )
@@ -1270,6 +1273,12 @@ def card_search_result(row, i):
                     dbc.Row(
                         [
                             dbc.Col(
+                                dmc.Skeleton(
+                                    style={
+                                        'width': '12pc',
+                                        'height': '12pc',
+                                    },
+                                ),
                                 id={'type': 'search_results_cutouts', 'objectId': name, 'index': i},
                                 width='auto'
                             ),
@@ -1281,6 +1290,12 @@ def card_search_result(row, i):
                                 width='auto',
                             ),
                             dbc.Col(
+                                dmc.Skeleton(
+                                    style={
+                                        'width': '100%',
+                                        'height': '15pc'
+                                    },
+                                ),
                                 id={'type': 'search_results_lightcurve', 'objectId': name, 'index': i},
                                 xs=12, md=True,
                             ),
