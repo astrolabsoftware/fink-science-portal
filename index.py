@@ -292,6 +292,7 @@ fink_search_bar = [
                     autoFocus=True,
                     ignoreCase=True,
                     triggerInsideWord=False,
+                    matchAny=True,
                 ),
                 # Clear
                 dmc.ActionIcon(
