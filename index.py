@@ -282,7 +282,7 @@ fink_search_bar = [
                     ],
                     options={
                         'class:':fink_classes, 'class=':fink_classes,
-                        'last:':['10', '100', '1000'], 'last=':['10', '100', '1000'],
+                        'last:':['10', '100', '1000'], 'last=':['1', '10', '100', '1000'],
                         'radius:':['10', '60', '10m', '30m'], 'radius=':['10', '60', '10m', '30m'],
                         'r:':['10', '60', '10m', '30m'], 'r=':['10', '60', '10m', '30m'],
                     },
@@ -721,6 +721,7 @@ def display_table_results(table):
         html.Div(
             results,
             className='results-inner bg-opaque-100 rounded mb-4 p-2 border shadow',
+            style={'overflow': 'visible'},
         )
     ]
 
