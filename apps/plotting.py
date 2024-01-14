@@ -2454,7 +2454,7 @@ def integrate_aladin_lite(object_data):
         ID of the alert
     """
     pdf_ = pd.read_json(object_data)
-    cols = ['i:jd', 'i:ra', 'i:dec']
+    cols = ['i:jd', 'i:ra', 'i:dec', 'i:ranr', 'i:decnr', 'i:magnr', 'i:sigmagnr', 'i:fid']
     pdf = pdf_.loc[:, cols]
     pdf = pdf.sort_values('i:jd', ascending=False)
 
@@ -2476,6 +2476,28 @@ def integrate_aladin_lite(object_data):
     var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
     aladin.addCatalog(hips);
     """.format(ra0, dec0)
+
+    # Unique positions of nearest reference object
+    pdfnr = pdf[['i:ranr', 'i:decnr', 'i:magnr', 'i:sigmagnr', 'i:fid']][np.isfinite(pdf['i:magnr'])].drop_duplicates()
+
+    if len(pdfnr.index):
+        img += """
+        var catnr_zg = A.catalog({name: 'ZTF Reference nearest, zg', sourceSize: 6, shape: 'plus', color: 'green', onClick: 'showPopup', limit: 1000});
+        var catnr_zr = A.catalog({name: 'ZTF Reference nearest, zr', sourceSize: 6, shape: 'plus', color: 'red', onClick: 'showPopup', limit: 1000});
+        """
+
+        for i,row in pdfnr.iterrows():
+            img += """
+            catnr_{}.addSources([A.source({}, {}, {{ZTF: 'Reference', mag: {:.2f}, err: {:.2f}, filter: '{}'}})]);
+            """.format(
+                {1:'zg', 2:'zr', 3:'zi'}.get(row['i:fid']),
+                row['i:ranr'], row['i:decnr'],
+                row['i:magnr'], row['i:sigmagnr'],
+                {1:'zg', 2:'zr', 3:'zi'}.get(row['i:fid']),
+            )
+
+        img += """aladin.addCatalog(catnr_zg);"""
+        img += """aladin.addCatalog(catnr_zr);"""
 
     # img cannot be executed directly because of formatting
     # We split line-by-line and remove comments
