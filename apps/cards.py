@@ -341,6 +341,8 @@ def card_neighbourhood(pdf):
     else:
         gaianame = None
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
+    vsx = pdf['d:vsx'].values[0]
+    gcvs = pdf['d:gcvs'].values[0]
 
     card = dmc.Paper(
         [
@@ -348,6 +350,7 @@ def card_neighbourhood(pdf):
                 """
                 Constellation: `{}`
                 Class (SIMBAD): `{}`
+                Class (VSX/GCVS): `{}` / `{}`
                 Name (MPC): `{}`
                 Name (Gaia): `{}`
                 Distance (Gaia): `{:.2f}` arcsec
@@ -355,7 +358,7 @@ def card_neighbourhood(pdf):
                 Distance (ZTF): `{:.2f}` arcsec
                 """.format(
                     constellation,
-                    cdsxmatch, ssnamenr, gaianame,
+                    cdsxmatch, vsx, gcvs, ssnamenr, gaianame,
                     float(neargaia), float(distpsnr1), float(distnr)
                 ),
                 className="markdown markdown-pre ps-2 pe-2"
