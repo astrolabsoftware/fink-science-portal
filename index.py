@@ -1507,6 +1507,25 @@ clientside_callback(
     """
     function drawer_switch(n_clicks, pathname) {
         const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
+
+        /* Change the page title based on its path */
+        if (triggered == 'url.pathname') {
+            let title = 'Fink Science Portal';
+
+            if (pathname.startsWith('/ZTF'))
+                title = pathname.substring(1, 13) + ' : ' + title;
+            else if (pathname.startsWith('/gw'))
+                title = 'Gravitational Waves : ' + title;
+            else if (pathname.startsWith('/download'))
+                title = 'Data Transfer : ' + title;
+            else if (pathname.startsWith('/stats'))
+                title = 'Statistics : ' + title;
+            else if (pathname.startsWith('/api'))
+                title = 'API : ' + title;
+
+            document.title = title;
+        }
+
         if (triggered == 'drawer-button.n_clicks')
             return true;
         else
