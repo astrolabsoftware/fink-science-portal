@@ -779,7 +779,7 @@ def display_skymap(data, columns, is_open):
 
         if 'v:lastdate' not in pdf.columns:
             # conesearch does not expose v:lastdate
-            pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
+            pdf['v:lastdate'] = convert_jd(pdf['i:jd'])
         times = pdf['v:lastdate'].values
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]

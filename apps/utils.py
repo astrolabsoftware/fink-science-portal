@@ -277,10 +277,10 @@ def extract_properties(data: str, fieldnames: list):
     else:
         return pdfs
 
-def convert_jd(jd, to='iso'):
+def convert_jd(jd, to='iso', format='jd'):
     """ Convert Julian Date into ISO date (UTC).
     """
-    return Time(jd, format='jd').to_value(to)
+    return Time(jd, format=format).to_value(to)
 
 def convolve(image, smooth=3, kernel='gauss'):
     """ Convolve 2D image. Hacked from aplpy

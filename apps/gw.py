@@ -324,7 +324,7 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
 
     pdf = pd.read_json(gw_data)
     if len(pdf) > 0:
-        pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
+        pdf['v:lastdate'] = convert_jd(pdf['i:jd'])
         pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
         # Coordinate of the first alert
         ra0 = pdf['i:ra'].values[0]

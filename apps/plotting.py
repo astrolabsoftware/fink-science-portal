@@ -488,7 +488,7 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
     if object_release:
         pdf_release = pd.read_json(object_release)
         pdf_release = pdf_release.sort_values('mjd', ascending=False)
-        dates_release = pdf_release['mjd'].apply(lambda x: convert_jd(float(x)+2400000.5, to='iso'))
+        dates_release = convert_jd(pdf_release['mjd'], format='mjd')
     else:
         pdf_release = pd.DataFrame()
 
@@ -514,7 +514,7 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
         mag, err = pdf['i:magpsf'], pdf['i:sigmapsf']
 
     jd = pdf['i:jd'].astype(float)
-    dates = jd.apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = convert_jd(jd)
 
     fit_period = False if manual_period is not None else True
     model = periodic.LombScargleMultiband(
@@ -546,7 +546,7 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
         # Between 100 and 10000 points, to hopefully have 10 per period
         min(10000, max(100, int(10*(np.max(jd) - np.min(jd))/period)))
     )
-    dates_unfolded = [convert_jd(float(x), to='iso') for x in tfit_unfolded]
+    dates_unfolded = convert_jd(tfit_unfolded)
 
     # Initialize figures
     figure, figure_unfolded, figure_periodogram = [
@@ -821,7 +821,7 @@ def plot_classbar(object_data):
 
     # descending date values
     top_labels = pdf['v:classification'].values[::-1]
-    customdata = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso')).values[::-1]
+    customdata = convert_jd(pdf['i:jd'])[::-1]
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
 
@@ -937,14 +937,14 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
     pdf_upperv = pd.read_json(object_uppervalid)
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
-    dates_upper = pdf_upper['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
-    dates_upperv = pdf_upperv['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = convert_jd(pdf['i:jd'])
+    dates_upper = convert_jd(pdf_upper['i:jd'])
+    dates_upperv = convert_jd(pdf_upperv['i:jd'])
 
     if object_release:
         # Data release photometry
         pdf_release = pd.read_json(object_release)
-        dates_release = pdf_release['mjd'].apply(lambda x: convert_jd(float(x)+2400000.5, to='iso'))
+        dates_release = convert_jd(pdf_release['mjd'], format='mjd')
     else:
         pdf_release = pd.DataFrame()
 
@@ -1040,8 +1040,8 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                 'name': '{} band'.format(fname),
                 'customdata': np.stack(
                     (
-                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[idx],
-                        pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[idx],
+                        pdf['i:jd'][idx] - 2400000.5,
+                        pdf['i:isdiffpos'][idx].apply(lambda x: '(-) ' if x == 'f' else ''),
                     ), axis=-1
                 ),
                 'hovertemplate': hovertemplate,
@@ -1049,7 +1049,7 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                 'legendrank': 100 + 10*fid,
                 'marker': {
                     'size': 12,
-                    'color': pdf['i:isdiffpos'].apply(lambda x: color_negative if x == 'f' else color)[idx],
+                    'color': pdf['i:isdiffpos'][idx].apply(lambda x: color_negative if x == 'f' else color),
                     'symbol': 'o'}
             }
         )
@@ -1071,7 +1071,7 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                         'y': pdf_upper['i:diffmaglim'][idx],
                         'mode': 'markers',
                         'name': '',
-                        'customdata': pdf_upper['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                        'customdata': pdf_upper['i:jd'][idx] - 2400000.5,
                         'hovertemplate': hovertemplate_upper,
                         "legendgroup": "{} band upper".format(fname),
                         'legendrank': 101 + 10*fid,
@@ -1107,7 +1107,7 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                             'color': color
                         },
                         'mode': 'markers',
-                        'customdata': pdf_upperv['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                        'customdata': pdf_upperv['i:jd'][idx] - 2400000.5,
                         'hovertemplate': hovertemplate_upperv,
                         "legendgroup": "{} band".format(fname),
                         'marker': {
@@ -1207,7 +1207,7 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
 
         if pdf_ is not None:
             pdf_gr = extract_color(pdf_)
-            dates_gr = pdf_gr['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+            dates_gr = convert_jd(pdf_gr['i:jd'])
             color = '#3C8DFF'
 
             figure['data'].append(
@@ -1224,7 +1224,7 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                     },
                     'mode': 'markers',
                     'name': 'g - r',
-                    'customdata': pdf_gr['i:jd'].apply(lambda x: x - 2400000.5),
+                    'customdata': pdf_gr['i:jd'] - 2400000.5,
                     'hovertemplate': hovertemplate_gr,
                     'legendgroup': 'g-r',
                     'marker': {
@@ -1283,7 +1283,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     pdf = pdf_.loc[:, cols]
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = convert_jd(pdf['i:jd'])
 
     # shortcuts
     mag = pdf['i:magpsf']
@@ -1312,7 +1312,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'g band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 1],
+                'customdata': pdf['i:jd'][pdf['i:fid'] == 1] - 2400000.5,
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
@@ -1332,7 +1332,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
                 },
                 'mode': 'markers',
                 'name': 'r band',
-                'customdata': pdf['i:jd'].apply(lambda x: x - 2400000.5)[pdf['i:fid'] == 2],
+                'customdata': pdf['i:jd'][pdf['i:fid'] == 2] - 2400000.5,
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 12,
@@ -1371,7 +1371,7 @@ def draw_lightcurve_preview(name) -> dict:
     pdf = pdf[mask]
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = convert_jd(pdf['i:jd'])
 
     # shortcuts
     mag = pdf['i:magpsf']
@@ -1445,7 +1445,7 @@ def draw_lightcurve_preview(name) -> dict:
                 'name': '{} band'.format(fname),
                 'customdata': np.stack(
                     (
-                        pdf['i:jd'].apply(lambda x: x - 2400000.5)[idx],
+                        pdf['i:jd'][idx] - 2400000.5,
                         pdf['i:isdiffpos'].apply(lambda x: '(-) ' if x == 'f' else '')[idx],
                         pdf['d:tag'].apply(lambda x: '' if x == 'valid' else ' (low quality)')[idx],
                     ), axis=-1
@@ -1498,7 +1498,7 @@ def draw_scores(object_data) -> dict:
     pdf = pd.read_json(object_data)
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = convert_jd(pdf['i:jd'])
 
     hovertemplate = """
     <b>%{customdata[0]}</b>: %{y:.2f}<br>
@@ -1528,7 +1528,7 @@ def draw_scores(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['SN Ia score'] * len(pdf),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        pdf['i:jd'] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -1545,7 +1545,7 @@ def draw_scores(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['SNe score'] * len(pdf),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        pdf['i:jd'] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -1562,7 +1562,7 @@ def draw_scores(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['Early SN Ia score'] * len(pdf),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        pdf['i:jd'] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -1707,7 +1707,7 @@ def draw_color(object_data) -> dict:
     pdf = pd.read_json(object_data)
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = convert_jd(pdf['i:jd'])
 
     hovertemplate = """
     <b>%{customdata[0]}</b>: %{y:.3f}<br>
@@ -1726,7 +1726,7 @@ def draw_color(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['delta g-r'] * len(pdf['i:jd']),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        pdf['i:jd'] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -1744,7 +1744,7 @@ def draw_color(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['delta g'] * len(pdf['i:jd'][m1]),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m1],
+                        pdf['i:jd'][m1] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -1762,7 +1762,7 @@ def draw_color(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['delta r'] * len(pdf['i:jd'][m2]),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m2],
+                        pdf['i:jd'][m2] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -1796,7 +1796,7 @@ def draw_color_rate(object_data) -> dict:
     pdf = pd.read_json(object_data)
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
+    dates = convert_jd(pdf['i:jd'])
 
     hovertemplate_rate = """
     <b>%{customdata[0]} in mag/day</b>: %{y:.3f}<br>
@@ -1815,7 +1815,7 @@ def draw_color_rate(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['rate(delta g)'] * len(pdf['i:jd']),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        pdf['i:jd'] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
@@ -1833,7 +1833,7 @@ def draw_color_rate(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['rate(delta g)'] * len(pdf['i:jd'][m1]),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m1],
+                        pdf['i:jd'][m1] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
@@ -1851,7 +1851,7 @@ def draw_color_rate(object_data) -> dict:
                 'customdata': list(
                     zip(
                         ['rate(delta r)'] * len(pdf['i:jd'][m2]),
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[m2],
+                        pdf['i:jd'][m2] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
@@ -2341,10 +2341,11 @@ def plot_mulens(n_clicks, object_data):
             (1, "g", COLORS_ZTF[0]),
             (2, "r", COLORS_ZTF[1])
     ):
+        dates = convert_jd(normalised_lightcurves[index][:, 0])
         if fid in np.unique(pdf['i:fid'].values):
             figure['data'].append(
                 {
-                    'x': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
+                    'x': dates,
                     'y': normalised_lightcurves[index][:, 1],
                     'error_y': {
                         'type': 'data',
@@ -2355,8 +2356,8 @@ def plot_mulens(n_clicks, object_data):
                         'color': color
                     },
                     'mode': 'markers',
-                    'name': 'g band',
-                    'text': [convert_jd(t, to='iso') for t in normalised_lightcurves[index][:, 0]],
+                    'name': '{} band'.format(fname),
+                    'text': dates,
                     'marker': {
                         'size': 12,
                         'color': color,
@@ -2367,7 +2368,7 @@ def plot_mulens(n_clicks, object_data):
 
     figure['data'].append(
         {
-            'x': [convert_jd(float(t), to='iso') for t in time],
+            'x': convert_jd(time),
             'y': magnitude,
             'mode': 'lines',
             'name': 'fit',
@@ -2517,8 +2518,8 @@ def draw_sso_lightcurve(pdf) -> dict:
         return html.Div()
 
     # type conversion
-    dates = pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))
-    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+    dates = convert_jd(pdf['i:jd'])
+    pdf['i:fid'] = pdf['i:fid'].astype(int)
 
     # shortcuts
     mag = pdf['i:magpsf']
@@ -2555,7 +2556,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         },
         'mode': 'markers',
         'name': 'g band',
-        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+        'customdata': pdf['i:jd'][pdf['i:fid'] == 1] - 2400000.5,
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -2570,7 +2571,7 @@ def draw_sso_lightcurve(pdf) -> dict:
             'y': pdf['SDSS:g'][pdf['i:fid'] == 1],
             'mode': 'markers',
             'name': 'g (ephem)',
-            'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 1],
+            'customdata': pdf['i:jd'][pdf['i:fid'] == 1] - 2400000.5,
             'hovertemplate': hovertemplate_ephem,
             'marker': {
                 'size': 6,
@@ -2593,7 +2594,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         },
         'mode': 'markers',
         'name': 'r band',
-        'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+        'customdata': pdf['i:jd'][pdf['i:fid'] == 2] - 2400000.5,
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -2608,7 +2609,7 @@ def draw_sso_lightcurve(pdf) -> dict:
             'y': pdf['SDSS:r'][pdf['i:fid'] == 2],
             'mode': 'markers',
             'name': 'r (ephem)',
-            'customdata': pdf['i:jd'].apply(lambda x: float(x) - 2400000.5)[pdf['i:fid'] == 2],
+            'customdata': pdf['i:jd'][pdf['i:fid'] == 2] - 2400000.5,
             'hovertemplate': hovertemplate_ephem,
             'marker': {
                 'size': 6,
@@ -2650,7 +2651,7 @@ def draw_sso_residual(pdf) -> dict:
         )
 
     # type conversion
-    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+    pdf['i:fid'] = pdf['i:fid'].astype(int)
 
     # shortcuts
     mag = pdf['i:magpsf']
@@ -2689,7 +2690,7 @@ def draw_sso_residual(pdf) -> dict:
         'customdata': list(
             zip(
                 pdf['i:objectId'][pdf['i:fid'] == 1],
-                pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 1],
+                convert_jd(pdf['i:jd'][pdf['i:fid'] == 1]),
             )
         ),
         'hovertemplate': hovertemplate,
@@ -2715,7 +2716,7 @@ def draw_sso_residual(pdf) -> dict:
         'customdata': list(
             zip(
                 pdf['i:objectId'][pdf['i:fid'] == 2],
-                pdf['i:jd'].apply(lambda x: convert_jd(float(x), to='iso'))[pdf['i:fid'] == 2],
+                convert_jd(pdf['i:jd'][pdf['i:fid'] == 2]),
             )
         ),
         'hovertemplate': hovertemplate,
@@ -2789,7 +2790,7 @@ def draw_sso_astrometry(pdf) -> dict:
         )
 
     # type conversion
-    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+    pdf['i:fid'] = pdf['i:fid'].astype(int)
 
     deltaRAcosDEC = (pdf['i:ra'] - pdf.RA) * np.cos(np.radians(pdf['i:dec'])) * 3600
     deltaDEC = (pdf['i:dec'] - pdf.Dec) * 3600
@@ -2809,7 +2810,7 @@ def draw_sso_astrometry(pdf) -> dict:
         'customdata': list(
             zip(
                 pdf['i:objectId'][pdf['i:fid'] == 1],
-                pdf['i:jd'][pdf['i:fid'] == 1].apply(lambda x: float(x) - 2400000.5),
+                pdf['i:jd'][pdf['i:fid'] == 1] - 2400000.5,
             )
         ),
         'hovertemplate': hovertemplate,
@@ -2827,7 +2828,7 @@ def draw_sso_astrometry(pdf) -> dict:
         'customdata': list(
             zip(
                 pdf['i:objectId'][pdf['i:fid'] == 2],
-                pdf['i:jd'][pdf['i:fid'] == 2].apply(lambda x: float(x) - 2400000.5),
+                pdf['i:jd'][pdf['i:fid'] == 2] - 2400000.5,
             )
         ),
         'hovertemplate': hovertemplate,
@@ -2883,7 +2884,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
     pdf = pdf.sort_values('Phase')
 
     # type conversion
-    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+    pdf['i:fid'] = pdf['i:fid'].astype(int)
 
     # Disctionary for filters
     filters = {1: 'g', 2: 'r', 3: 'i'}
@@ -3006,7 +3007,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                     'customdata': list(
                         zip(
                             pdf.loc[cond, 'i:objectId'],
-                            pdf.loc[cond, 'i:jd'].apply(lambda x: float(x) - 2400000.5),
+                            pdf.loc[cond, 'i:jd'] - 2400000.5,
                         )
                     ),
                     'hovertemplate': hovertemplate,
@@ -3118,7 +3119,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                 'customdata': list(
                     zip(
                         pdf['i:objectId'],
-                        pdf['i:jd'].apply(lambda x: float(x) - 2400000.5),
+                        pdf['i:jd'] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate,
@@ -3250,7 +3251,7 @@ def draw_tracklet_lightcurve(pdf) -> dict:
         return html.Div([html.Br(), dbc.Alert(msg, color="danger")])
 
     # type conversion
-    pdf['i:fid'] = pdf['i:fid'].apply(lambda x: int(x))
+    pdf['i:fid'] = pdf['i:fid'].astype(int)
 
     # shortcuts
     mag = pdf['i:magpsf']
@@ -3342,8 +3343,8 @@ def draw_tracklet_radec(pdf) -> dict:
         return msg
 
     # shortcuts
-    ra = pdf['i:ra'].apply(lambda x: float(x))
-    dec = pdf['i:dec'].apply(lambda x: float(x))
+    ra = pdf['i:ra'].astype(int)
+    dec = pdf['i:dec'].astype(int)
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
@@ -4142,7 +4143,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         'y': deltaDEC[pdf['i:fid'] == 1],
         'mode': 'markers',
         'name': 'g band',
-        'customdata': pdf['i:jd'][pdf['i:fid'] == 1].apply(lambda x: float(x) - 2400000.5),
+        'customdata': pdf['i:jd'][pdf['i:fid'] == 1] - 2400000.5,
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
@@ -4155,7 +4156,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         'y': deltaDEC[pdf['i:fid'] == 2],
         'mode': 'markers',
         'name': 'r band',
-        'customdata': pdf['i:jd'][pdf['i:fid'] == 2].apply(lambda x: float(x) - 2400000.5),
+        'customdata': pdf['i:jd'][pdf['i:fid'] == 2] - 2400000.5,
         'hovertemplate': hovertemplate,
         'marker': {
             'size': 6,
