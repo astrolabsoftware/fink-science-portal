@@ -228,6 +228,18 @@ def create_external_links(ra0, dec0):
                         href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
                     )
                 ),
+                dbc.Col(
+                    dbc.Button(
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/dclogo_small.png)'},
+                        color='dark',
+                        outline=True,
+                        id='DataCentral',
+                        title='DataCentral Data Aggregation Service',
+                        target="_blank",
+                        href='https://das.datacentral.org.au/open?RA={}&DEC={}&FOV={}&ERR={}'.format(ra0, dec0, 0.5, 2.0)
+                    )
+                ),
             ], justify='around'
         ),
         dbc.Row(
