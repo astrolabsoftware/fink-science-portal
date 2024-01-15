@@ -888,7 +888,9 @@ def generate_metadata_name(oid):
         Input('object-data', 'children'),
         Input('object-uppervalid', 'children'),
         Input('object-upper', 'children')
-    ])
+    ],
+    prevent_initial_call=True
+)
 def card_id1(object_data, object_uppervalid, object_upper):
     """ Add a card containing basic alert data
     """

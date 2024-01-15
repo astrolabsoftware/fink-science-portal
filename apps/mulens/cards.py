@@ -26,7 +26,8 @@ import pandas as pd
     Output("card_mulens", "children"),
     [
         Input('object-data', 'children'),
-    ]
+    ],
+    prevent_initial_call=True
 )
 def card_mulens(object_data):
     """ Add a card containing button to fit for microlensing events
