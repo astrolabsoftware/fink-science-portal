@@ -68,7 +68,7 @@ def card_explanation_variable():
 @app.callback(
     Output("card_variable_button", "children"),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )

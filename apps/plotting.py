@@ -442,8 +442,8 @@ layout_tracklet_lightcurve = dict(
         State('manual_period', 'value'),
         State('period_min', 'value'),
         State('period_max', 'value'),
-        State('object-data', 'children'),
-        State('object-release', 'children'),
+        State('object-data', 'data'),
+        State('object-release', 'data'),
     ],
     prevent_initial_call=True,
     background=True,
@@ -803,7 +803,7 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
 @app.callback(
     Output('classbar', 'figure'),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )
@@ -899,10 +899,10 @@ def plot_classbar(object_data):
     Output('lightcurve_cutouts', 'figure'),
     [
         Input('switch-mag-flux', 'value'),
-        Input('object-data', 'children'),
-        Input('object-upper', 'children'),
-        Input('object-uppervalid', 'children'),
-        Input('object-release', 'children'),
+        Input('object-data', 'data'),
+        Input('object-upper', 'data'),
+        Input('object-uppervalid', 'data'),
+        Input('object-release', 'data'),
         Input('lightcurve_show_color', 'checked')
     ],
     prevent_initial_call=True
@@ -1262,9 +1262,9 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
 @app.callback(
     Output('lightcurve_scores', 'figure'),
     [
-        Input('object-data', 'children'),
-        Input('object-upper', 'children'),
-        Input('object-uppervalid', 'children')
+        Input('object-data', 'data'),
+        Input('object-upper', 'data'),
+        Input('object-uppervalid', 'data')
     ],
     prevent_initial_call=True
 )
@@ -1482,7 +1482,7 @@ def draw_lightcurve_preview(name) -> dict:
 @app.callback(
     Output('scores', 'figure'),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )
@@ -1604,7 +1604,7 @@ def extract_max_t2(pdf):
 @app.callback(
     Output('t2', 'children'),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )
@@ -1693,7 +1693,7 @@ def draw_t2(object_data) -> dict:
 @app.callback(
     Output('colors', 'figure'),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )
@@ -1780,7 +1780,7 @@ def draw_color(object_data) -> dict:
 @app.callback(
     Output('colors_rate', 'figure'),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )
@@ -1920,7 +1920,7 @@ def extract_cutout(object_data, time0, kind):
     Output("stamps", "children"),
     [
         Input('lightcurve_cutouts', 'clickData'),
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 
@@ -1957,7 +1957,7 @@ def draw_cutouts(clickData, object_data):
 @app.callback(
     Output("stamps_modal_content", "children"),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
         Input('date_modal_select', 'value'),
         Input("stamps_modal", "is_open")
     ],
@@ -2233,7 +2233,7 @@ clientside_callback(
     ],
     Input('submit_mulens', 'n_clicks'),
     [
-        State('object-data', 'children')
+        State('object-data', 'data')
     ],
     prevent_initial_call=True,
     background=True,
@@ -2432,7 +2432,7 @@ def plot_mulens(n_clicks, object_data):
 
 @app.callback(
     Output('aladin-lite-runner', 'run'),
-    Input('object-data', 'children'),
+    Input('object-data', 'data'),
     prevent_initial_call=True
 )
 def integrate_aladin_lite(object_data):
@@ -2861,7 +2861,7 @@ def draw_sso_astrometry(pdf) -> dict:
         Input("switch-phase-curve-band", "value"),
         Input("switch-phase-curve-func", "value"),
     ],
-    State('object-sso', 'children')
+    State('object-sso', 'data')
 )
 def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
     """ Draw SSO object phase curve
@@ -3394,7 +3394,7 @@ def draw_tracklet_radec(pdf) -> dict:
 @app.callback(
     Output('alert_table', 'children'),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
         Input('lightcurve_cutouts', 'clickData')
     ],
     prevent_initial_call=True
@@ -3483,7 +3483,7 @@ def alert_properties(object_data, clickData):
 
 @app.callback(
     Output('heatmap_stat', 'children'),
-    Input('object-stats', 'children'),
+    Input('object-stats', 'data'),
     prevent_initial_call=True
 )
 def plot_heatmap(object_stats):
@@ -4110,7 +4110,7 @@ def fields_exposures(dropdown_days):
 @app.callback(
     Output('coordinates', 'children'),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
         Input('coordinates_chips', 'value')
     ],
     prevent_initial_call=True

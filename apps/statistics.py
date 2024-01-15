@@ -111,7 +111,7 @@ All other fields starting with `class:` are crossmatch from the SIMBAD database.
 """.format(pd.DataFrame([dic_names]).T.rename(columns={0: 'description'}).to_markdown())
 
 @app.callback(
-    Output('object-stats', 'children'),
+    Output('object-stats', 'data'),
     Input('url', 'pathname'),
 )
 def store_stat_query(name):
@@ -137,7 +137,7 @@ def store_stat_query(name):
 
 @app.callback(
     Output('stat_row', 'children'),
-    Input('object-stats', 'children'),
+    Input('object-stats', 'data'),
     prevent_initial_call=True
 )
 def create_stat_row(object_stats):
@@ -170,7 +170,7 @@ def create_stat_row(object_stats):
 
 @app.callback(
     Output('stat_row_mobile', 'children'),
-    Input('object-stats', 'children'),
+    Input('object-stats', 'data'),
     prevent_initial_call=True
 )
 def create_stat_row(object_stats):
@@ -445,7 +445,7 @@ def layout():
                 ],
                 justify="center", className="mt-3"
             ),
-            html.Div(id='object-stats', style={'display': 'none'}),
+            dcc.Store(id='object-stats'),
         ],
         fluid='lg',
     )

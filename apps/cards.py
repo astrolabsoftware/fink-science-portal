@@ -885,9 +885,9 @@ def generate_metadata_name(oid):
 @app.callback(
     Output('card_id_left', 'children'),
     [
-        Input('object-data', 'children'),
-        Input('object-uppervalid', 'children'),
-        Input('object-upper', 'children')
+        Input('object-data', 'data'),
+        Input('object-uppervalid', 'data'),
+        Input('object-upper', 'data')
     ],
     prevent_initial_call=True
 )

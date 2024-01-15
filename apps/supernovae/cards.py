@@ -157,7 +157,7 @@ def card_sn_scores() -> html.Div:
     Output("card_sn_properties", "children"),
     [
         Input('lightcurve_scores', 'clickData'),
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )

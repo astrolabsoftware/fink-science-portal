@@ -25,7 +25,7 @@ import pandas as pd
 @app.callback(
     Output("card_mulens", "children"),
     [
-        Input('object-data', 'children'),
+        Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )
