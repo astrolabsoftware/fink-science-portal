@@ -40,6 +40,7 @@ from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
 from apps.utils import isoify_time
+from apps.utils import hbase_to_dict
 
 from apps.euclid.utils import load_euclid_header
 from apps.euclid.utils import add_columns
@@ -140,8 +141,8 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             )
             resultsUP.update(resultUP)
 
-        pdfU = pd.DataFrame.from_dict(resultsU, orient='index')
-        pdfUP = pd.DataFrame.from_dict(resultsUP, orient='index')
+        pdfU = pd.DataFrame.from_dict(hbase_to_dict(resultsU), orient='index')
+        pdfUP = pd.DataFrame.from_dict(hbase_to_dict(resultsUP), orient='index')
 
         pdf['d:tag'] = 'valid'
         pdfU['d:tag'] = 'upperlim'
@@ -607,7 +608,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         return pd.DataFrame({})
 
     # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
 
     if 'key:time' in pdf.columns:
         pdf = pdf.drop(columns=['key:time'])
@@ -1080,7 +1081,7 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
             cols,
             0, True, True
         )
-        pdf = pd.DataFrame.from_dict(results, orient='index')
+        pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
 
     client.close()
 
@@ -1410,7 +1411,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
         # Restore default limits
         client.close()
 
-        pdfs = pd.DataFrame.from_dict(results, orient='index')
+        pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
     elif resolver == 'simbad':
         client = connect_to_hbase_table('ztf')
         if reverse:
@@ -1423,7 +1424,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 0, False, False
             )
             client.close()
-            pdfs = pd.DataFrame.from_dict(results, orient='index')
+            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
         else:
             r = requests.get(
                 'http://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/~S?{}'.format(name)
@@ -1447,7 +1448,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 0, False, False
             )
             client.close()
-            pdfs = pd.DataFrame.from_dict(results, orient='index')
+            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
 
             # ssnmanenr -> MPC name & number
             if not pdfs.empty:
@@ -1463,7 +1464,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                     )
                     results.update(result)
                 client.close()
-                pdfs = pd.DataFrame.from_dict(results, orient='index')
+                pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
         else:
             # MPC -> ssnamenr
             # keys follow the pattern <name>-<deduplication>
@@ -1484,7 +1485,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 0, False, False
             )
             client.close()
-            pdfs = pd.DataFrame.from_dict(results, orient='index')
+            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
 
     return pdfs
 
@@ -1605,7 +1606,7 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
         0, False, False
     )
 
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
 
     # Remove hbase specific fields
     if 'key:key' in pdf.columns:
@@ -1657,7 +1658,7 @@ def retrieve_metadata(objectId: str) -> pd.DataFrame:
         "*",
         0, False, False
     )
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
     client.close()
     return pdf
 
@@ -1672,7 +1673,7 @@ def retrieve_oid(metaname: str, field: str) -> pd.DataFrame:
         "*",
         0, True, True
     )
-    pdf = pd.DataFrame.from_dict(results, orient='index')
+    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
     client.close()
 
     return pdf

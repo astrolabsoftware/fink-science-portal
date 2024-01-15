@@ -72,6 +72,13 @@ class_colors = {
         'Simbad': 'blue'
     }
 
+def hbase_to_dict(hbase_output):
+    """
+    Optimize hbase output TreeMap for faster conversion to DataFrame
+    """
+    optimized = {i: dict(j) for i, j in hbase_output.items()}
+    return optimized
+
 def format_hbase_output(
         hbase_output, schema_client,
         group_alerts: bool, truncated: bool = False,
@@ -82,7 +89,7 @@ def format_hbase_output(
         return pd.DataFrame({})
 
     # Construct the dataframe
-    pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
+    pdfs = pd.DataFrame.from_dict(hbase_to_dict(hbase_output), orient='index')
 
     # Tracklet cell contains null if there is nothing
     # and so HBase won't transfer data -- ignoring the column
@@ -265,7 +272,7 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') ->
 def extract_properties(data: str, fieldnames: list):
     """
     """
-    pdfs = pd.DataFrame.from_dict(data, orient='index')
+    pdfs = pd.DataFrame.from_dict(hbase_to_dict(data), orient='index')
     if fieldnames is not None:
         return pdfs[fieldnames]
     else:
