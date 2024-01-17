@@ -3343,8 +3343,8 @@ def draw_tracklet_radec(pdf) -> dict:
         return msg
 
     # shortcuts
-    ra = pdf['i:ra'].astype(int)
-    dec = pdf['i:dec'].astype(int)
+    ra = pdf['i:ra'].astype(float)
+    dec = pdf['i:dec'].astype(float)
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
