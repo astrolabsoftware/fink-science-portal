@@ -72,6 +72,13 @@ class_colors = {
         'Simbad': 'blue'
     }
 
+def hbase_to_dict(hbase_output):
+    """
+    Optimize hbase output TreeMap for faster conversion to DataFrame
+    """
+    optimized = {i: dict(j) for i, j in hbase_output.items()}
+    return optimized
+
 def format_hbase_output(
         hbase_output, schema_client,
         group_alerts: bool, truncated: bool = False,
@@ -82,7 +89,7 @@ def format_hbase_output(
         return pd.DataFrame({})
 
     # Construct the dataframe
-    pdfs = pd.DataFrame.from_dict(hbase_output, orient='index')
+    pdfs = pd.DataFrame.from_dict(hbase_to_dict(hbase_output), orient='index')
 
     # Tracklet cell contains null if there is nothing
     # and so HBase won't transfer data -- ignoring the column
@@ -90,10 +97,15 @@ def format_hbase_output(
         pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
 
     # Remove hbase specific fields
-    if 'key:key' in pdfs.columns:
-        pdfs = pdfs.drop(columns=['key:key'])
-    if 'key:time' in pdfs.columns:
-        pdfs = pdfs.drop(columns=['key:time'])
+    for _ in ['key:key', 'key:time']:
+        if _ in pdfs.columns:
+            pdfs = pdfs.drop(columns=_)
+
+    # Remove cutouts if their fields are here but empty
+    for _ in ['Difference', 'Science', 'Template']:
+        colname = 'b:cutout{}_stampData'.format(_)
+        if colname in pdfs.columns and pdfs[colname].values[0].startswith('binary:ZTF'):
+            pdfs = pdfs.drop(columns=colname)
 
     # Type conversion
     pdfs = pdfs.astype(
@@ -135,8 +147,8 @@ def format_hbase_output(
             pdfs['v:dr'], pdfs['v:rate(dr)'] = extract_delta_color(pdfs, filter_=2)
 
         # Human readable time
-        pdfs['v:lastdate'] = pdfs['i:jd'].apply(convert_jd)
-        pdfs['v:firstdate'] = pdfs['i:jdstarthist'].apply(convert_jd)
+        pdfs['v:lastdate'] = convert_jd(pdfs['i:jd'])
+        pdfs['v:firstdate'] = convert_jd(pdfs['i:jdstarthist'])
         pdfs['v:lapse'] = pdfs['i:jd'] - pdfs['i:jdstarthist']
 
         if with_constellation:
@@ -239,43 +251,36 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') ->
     pdf: Pandas DataFrame
         Modified original DataFrame with cutout data uncompressed (2D array)
     """
-    if col is not None:
-        cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
-        assert col in cols
-        pdf[col] = pdf[col].apply(
+
+    cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
+
+    for colname in cols:
+        # Skip unneeded columns, if only one is requested
+        if col is not None and col != colname:
+            continue
+
+        if colname not in pdf.columns:
+            pdf[colname] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + colname[1:]
+
+        pdf[colname] = pdf[colname].apply(
             lambda x: readstamp(client.repository().get(x), return_type=return_type)
         )
-        return pdf
 
-    if 'b:cutoutScience_stampData' not in pdf.columns:
-        pdf['b:cutoutScience_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutScience_stampData'
-        pdf['b:cutoutTemplate_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutTemplate_stampData'
-        pdf['b:cutoutDifference_stampData'] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + ':cutoutDifference_stampData'
-
-    pdf['b:cutoutScience_stampData'] = pdf['b:cutoutScience_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x), return_type=return_type)
-    )
-    pdf['b:cutoutTemplate_stampData'] = pdf['b:cutoutTemplate_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x), return_type=return_type)
-    )
-    pdf['b:cutoutDifference_stampData'] = pdf['b:cutoutDifference_stampData'].apply(
-        lambda x: readstamp(client.repository().get(x), return_type=return_type)
-    )
     return pdf
 
 def extract_properties(data: str, fieldnames: list):
     """
     """
-    pdfs = pd.DataFrame.from_dict(data, orient='index')
+    pdfs = pd.DataFrame.from_dict(hbase_to_dict(data), orient='index')
     if fieldnames is not None:
         return pdfs[fieldnames]
     else:
         return pdfs
 
-def convert_jd(jd, to='iso'):
+def convert_jd(jd, to='iso', format='jd'):
     """ Convert Julian Date into ISO date (UTC).
     """
-    return Time(jd, format='jd').to_value(to)
+    return Time(jd, format=format).to_value(to)
 
 def convolve(image, smooth=3, kernel='gauss'):
     """ Convolve 2D image. Hacked from aplpy
@@ -403,9 +408,9 @@ def extract_last_g_minus_r_each_object(pdf, kind):
     for id_ in ids:
         subpdf = pdf[pdf['i:objectId'] == id_]
 
+        subpdf = subpdf.sort_values('i:jd', ascending=False)
         subpdf['i:jd'] = subpdf['i:jd'].astype(float)
         subpdf['i:fid'] = subpdf['i:fid'].astype(int)
-        subpdf = subpdf.sort_values('i:jd', ascending=False)
 
         # Compute DC mag
         cols = [
@@ -437,12 +442,12 @@ def extract_last_g_minus_r_each_object(pdf, kind):
         if kind == 'last':
             vec_ = np.diff(values, prepend=np.nan)
             for val, nid_ in zip(vec_, nid):
-                pdf['v:g-r'][pdf['i:jd'] == nid_] = val
+                pdf.loc[pdf['i:jd'] == nid_, 'v:g-r'] = val
         elif kind == 'rate':
             vec_ = np.diff(values, prepend=np.nan)
             jd_diff = np.diff(jd, prepend=np.nan)
             for val, jd_, nid_ in zip(vec_, jd_diff, nid):
-                pdf['v:rate(g-r)'][pdf['i:jd'] == nid_] = val / jd_
+                pdf.loc[pdf['i:jd'] == nid_, 'v:rate(g-r)'] = val / jd_
 
     if kind == 'last':
         return pdf['v:g-r'].replace(0.0, np.nan).values
@@ -479,9 +484,9 @@ def extract_delta_color(pdf: pd.DataFrame, filter_: int):
         maskId = pdf['i:objectId'] == id_
         subpdf = pdf[maskId]
 
+        subpdf = subpdf.sort_values('i:jd', ascending=False)
         subpdf['i:jd'] = subpdf['i:jd'].astype(float)
         subpdf['i:fid'] = subpdf['i:fid'].astype(int)
-        subpdf = subpdf.sort_values('i:jd', ascending=False)
 
         # Compute DC mag
         cols = [

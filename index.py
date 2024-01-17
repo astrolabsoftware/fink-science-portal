@@ -282,7 +282,7 @@ fink_search_bar = [
                     ],
                     options={
                         'class:':fink_classes, 'class=':fink_classes,
-                        'last:':['10', '100', '1000'], 'last=':['10', '100', '1000'],
+                        'last:':['1', '10', '100', '1000'], 'last=':['1', '10', '100', '1000'],
                         'radius:':['10', '60', '10m', '30m'], 'radius=':['10', '60', '10m', '30m'],
                         'r:':['10', '60', '10m', '30m'], 'r=':['10', '60', '10m', '30m'],
                     },
@@ -292,6 +292,7 @@ fink_search_bar = [
                     autoFocus=True,
                     ignoreCase=True,
                     triggerInsideWord=False,
+                    matchAny=True,
                 ),
                 # Clear
                 dmc.ActionIcon(
@@ -720,6 +721,7 @@ def display_table_results(table):
         html.Div(
             results,
             className='results-inner bg-opaque-100 rounded mb-4 p-2 border shadow',
+            style={'overflow': 'visible'},
         )
     ]
 
@@ -777,7 +779,7 @@ def display_skymap(data, columns, is_open):
 
         if 'v:lastdate' not in pdf.columns:
             # conesearch does not expose v:lastdate
-            pdf['v:lastdate'] = pdf['i:jd'].apply(convert_jd)
+            pdf['v:lastdate'] = convert_jd(pdf['i:jd'])
         times = pdf['v:lastdate'].values
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
@@ -1410,6 +1412,7 @@ def display_cards_results(pdf, page_size=10):
         dmc.Group(
             dmc.Pagination(
                 id='results_pagination',
+                page=1,
                 total=npages,
                 siblings=1,
                 withControls=True,
@@ -1504,6 +1507,25 @@ clientside_callback(
     """
     function drawer_switch(n_clicks, pathname) {
         const triggered = dash_clientside.callback_context.triggered.map(t => t.prop_id);
+
+        /* Change the page title based on its path */
+        if (triggered == 'url.pathname') {
+            let title = 'Fink Science Portal';
+
+            if (pathname.startsWith('/ZTF'))
+                title = pathname.substring(1, 13) + ' : ' + title;
+            else if (pathname.startsWith('/gw'))
+                title = 'Gravitational Waves : ' + title;
+            else if (pathname.startsWith('/download'))
+                title = 'Data Transfer : ' + title;
+            else if (pathname.startsWith('/stats'))
+                title = 'Statistics : ' + title;
+            else if (pathname.startsWith('/api'))
+                title = 'API : ' + title;
+
+            document.title = title;
+        }
+
         if (triggered == 'drawer-button.n_clicks')
             return true;
         else

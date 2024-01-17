@@ -82,7 +82,7 @@ def card_lightcurve_summary():
     Returns
     ----------
     card: dbc.Card
-        Card with the cutouts drawn inside
+        Card with the lightcurve drawn inside
     """
     card = dmc.Paper(
         [
@@ -228,6 +228,18 @@ def create_external_links(ra0, dec0):
                         href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
                     )
                 ),
+                dbc.Col(
+                    dbc.Button(
+                        className='btn btn-default btn-circle btn-lg zoom btn-image',
+                        style={'background-image': 'url(/assets/buttons/dclogo_small.png)'},
+                        color='dark',
+                        outline=True,
+                        id='DataCentral',
+                        title='DataCentral Data Aggregation Service',
+                        target="_blank",
+                        href='https://das.datacentral.org.au/open?RA={}&DEC={}&FOV={}&ERR={}'.format(ra0, dec0, 0.5, 2.0)
+                    )
+                ),
             ], justify='around'
         ),
         dbc.Row(
@@ -341,6 +353,8 @@ def card_neighbourhood(pdf):
     else:
         gaianame = None
     cdsxmatch = pdf['d:cdsxmatch'].values[0]
+    vsx = pdf['d:vsx'].values[0]
+    gcvs = pdf['d:gcvs'].values[0]
 
     card = dmc.Paper(
         [
@@ -348,6 +362,7 @@ def card_neighbourhood(pdf):
                 """
                 Constellation: `{}`
                 Class (SIMBAD): `{}`
+                Class (VSX/GCVS): `{}` / `{}`
                 Name (MPC): `{}`
                 Name (Gaia): `{}`
                 Distance (Gaia): `{:.2f}` arcsec
@@ -355,7 +370,7 @@ def card_neighbourhood(pdf):
                 Distance (ZTF): `{:.2f}` arcsec
                 """.format(
                     constellation,
-                    cdsxmatch, ssnamenr, gaianame,
+                    cdsxmatch, vsx, gcvs, ssnamenr, gaianame,
                     float(neargaia), float(distpsnr1), float(distnr)
                 ),
                 className="markdown markdown-pre ps-2 pe-2"
@@ -553,7 +568,10 @@ curl -H "Content-Type: application/json" -X POST \\
                             loading(
                                 dmc.Paper(
                                     [
-                                        dbc.Row(id='stamps', justify='around', className="g-0"),
+                                        dbc.Row(
+                                            dmc.Skeleton(style={'width': '100%', 'aspect-ratio': '3/1'}),
+                                            id='stamps', justify='around', className="g-0"
+                                        ),
                                     ],
                                     radius='sm', p='xs', shadow='sm', withBorder=True, style={'padding':'5px'}
                                 )
@@ -879,10 +897,12 @@ def generate_metadata_name(oid):
 @app.callback(
     Output('card_id_left', 'children'),
     [
-        Input('object-data', 'children'),
-        Input('object-uppervalid', 'children'),
-        Input('object-upper', 'children')
-    ])
+        Input('object-data', 'data'),
+        Input('object-uppervalid', 'data'),
+        Input('object-upper', 'data')
+    ],
+    prevent_initial_call=True
+)
 def card_id1(object_data, object_uppervalid, object_upper):
     """ Add a card containing basic alert data
     """
@@ -946,6 +966,28 @@ def card_id1(object_data, object_uppervalid, object_upper):
                 "{}".format(tracklet),
                 color='violet',
                 variant="dot",
+            )
+        )
+
+    gcvs = pdf['d:gcvs'].values[0]
+    if gcvs and gcvs != 'Unknown':
+        badges.append(
+            dmc.Badge(
+                "GCVS: {}".format(gcvs),
+                variant='outline',
+                color=class_colors['Simbad'],
+                size='md'
+            )
+        )
+
+    vsx = pdf['d:vsx'].values[0]
+    if vsx and vsx != 'Unknown':
+        badges.append(
+            dmc.Badge(
+                "VSX: {}".format(vsx),
+                variant='outline',
+                color=class_colors['Simbad'],
+                size='md'
             )
         )
 
@@ -1122,6 +1164,28 @@ def card_search_result(row, i):
             )
         )
 
+    gcvs = row.get('d:gcvs')
+    if gcvs and gcvs != 'Unknown':
+        badges.append(
+            dmc.Badge(
+                "GCVS: {}".format(gcvs),
+                variant='outline',
+                color=class_colors['Simbad'],
+                size='md'
+            )
+        )
+
+    vsx = row.get('d:vsx')
+    if vsx and vsx != 'Unknown':
+        badges.append(
+            dmc.Badge(
+                "VSX: {}".format(vsx),
+                variant='outline',
+                color=class_colors['Simbad'],
+                size='md'
+            )
+        )
+
     # Nearby objects
     distnr = row.get('i:distnr')
     if distnr:
@@ -1226,6 +1290,12 @@ def card_search_result(row, i):
                     dbc.Row(
                         [
                             dbc.Col(
+                                dmc.Skeleton(
+                                    style={
+                                        'width': '12pc',
+                                        'height': '12pc',
+                                    },
+                                ),
                                 id={'type': 'search_results_cutouts', 'objectId': name, 'index': i},
                                 width='auto'
                             ),
@@ -1237,6 +1307,12 @@ def card_search_result(row, i):
                                 width='auto',
                             ),
                             dbc.Col(
+                                dmc.Skeleton(
+                                    style={
+                                        'width': '100%',
+                                        'height': '15pc'
+                                    },
+                                ),
                                 id={'type': 'search_results_lightcurve', 'objectId': name, 'index': i},
                                 xs=12, md=True,
                             ),

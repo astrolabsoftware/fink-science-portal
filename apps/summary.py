@@ -234,8 +234,9 @@ def tab4_content():
 @app.callback(
     Output("tab_sso", "children"),
     [
-        Input('object-sso', 'children'),
-    ]
+        Input('object-sso', 'data'),
+    ],
+    prevent_initial_call=True
 )
 def tab5_content(object_soo):
     """ SSO tab
@@ -434,8 +435,9 @@ def tab5_content(object_soo):
 @app.callback(
     Output("tab_tracklet", "children"),
     [
-        Input('object-tracklet', 'children'),
-    ]
+        Input('object-tracklet', 'data'),
+    ],
+    prevent_initial_call=True
 )
 def tab6_content(object_tracklet):
     """ Tracklet tab
@@ -504,15 +506,16 @@ def is_tracklet(pdfs):
 
 @app.callback(
     [
-        Output('object-data', 'children'),
-        Output('object-upper', 'children'),
-        Output('object-uppervalid', 'children'),
-        Output('object-sso', 'children'),
-        Output('object-tracklet', 'children'),
+        Output('object-data', 'data'),
+        Output('object-upper', 'data'),
+        Output('object-uppervalid', 'data'),
+        Output('object-sso', 'data'),
+        Output('object-tracklet', 'data'),
     ],
     [
         Input('url', 'pathname'),
-    ])
+    ]
+)
 def store_query(name):
     """ Cache query results (data and upper limits) for easy re-use
 
@@ -590,12 +593,12 @@ def store_query(name):
 
 @app.callback(
     [
-        Output('object-release', 'children'),
+        Output('object-release', 'data'),
         Output('lightcurve_request_release', 'children'),
         Output('switch-mag-flux', 'value'),
     ],
     Input('lightcurve_request_release', 'n_clicks'),
-    State('object-data', 'children'),
+    State('object-data', 'data'),
     prevent_initial_call=True,
     background=True,
     running=[
@@ -674,15 +677,29 @@ def layout(name):
                         dbc.Col(
                             dbc.Row(
                                 [
-                                    dbc.Col(id="card_id_left", className="p-1", lg=12, md=6, sm=12),
+                                    dbc.Col(
+                                        dmc.Skeleton(style={'width': '100%', 'height': '15pc'}),
+                                        id="card_id_left", className="p-1", lg=12, md=6, sm=12
+                                    ),
                                     dbc.Col(
                                         html.Div(
-                                            [visdcc.Run_js(id='aladin-lite-div')],
-                                            style={
-                                                'width': '100%',
-                                                'height': '27pc',
-                                            },
-                                            className="p-1" # d-none d-md-block"
+                                            [
+                                                visdcc.Run_js(id='aladin-lite-runner'),
+                                                html.Div(
+                                                    dmc.Skeleton(
+                                                        style={
+                                                            'width': '100%',
+                                                            'height': '100%',
+                                                        },
+                                                    ),
+                                                    id='aladin-lite-div',
+                                                    style={
+                                                        'width': '100%',
+                                                        'height': '27pc',
+                                                    },
+                                                ),
+                                            ],
+                                            className="p-1"
                                         ), lg=12, md=6, sm=12
                                     )
                                 ],
@@ -699,12 +716,12 @@ def layout(name):
                     ],
                     justify="around", className="g-0"
                 ),
-                html.Div(id='object-data', style={'display': 'none'}),
-                html.Div(id='object-upper', style={'display': 'none'}),
-                html.Div(id='object-uppervalid', style={'display': 'none'}),
-                html.Div(id='object-sso', style={'display': 'none'}),
-                html.Div(id='object-tracklet', style={'display': 'none'}),
-                html.Div(id='object-release', style={'display': 'none'}),
+                dcc.Store(id='object-data'),
+                dcc.Store(id='object-upper'),
+                dcc.Store(id='object-uppervalid'),
+                dcc.Store(id='object-sso'),
+                dcc.Store(id='object-tracklet'),
+                dcc.Store(id='object-release'),
             ], className='bg-opaque-90'
         )
 
