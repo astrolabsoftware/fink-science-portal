@@ -19,6 +19,7 @@ import dash_bootstrap_components as dbc
 from app import app
 from apps.utils import class_colors
 from apps.utils import help_popover
+from apps.utils import get_first_finite_value
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -184,26 +185,17 @@ def card_sn_properties(clickData, object_data):
     classtar = pdf['i:classtar'].values[position]
     drb = pdf['i:drb'].values[position]
 
-    try:
-        g_minus_r = pdf['v:g-r'].values[position:]
-        g_minus_r = g_minus_r[np.isfinite(g_minus_r)][0]
-    except:
-        g_minus_r = np.nan
-    try:
-        rate_g_minus_r = pdf['v:rate(g-r)'].values[position:]
-        rate_g_minus_r = rate_g_minus_r[np.isfinite(rate_g_minus_r)][0]
-    except:
-        rate_g_minus_r = np.nan
-    try:
-        rate_g = pdf['v:rate'].values[position:][pdf['i:fid'][position:] == 1]
-        rate_g = rate_g[np.isfinite(rate_g)][0]
-    except:
-        rate_g = np.nan
-    try:
-        rate_r = pdf['v:rate'].values[position:][pdf['i:fid'][position:] == 2]
-        rate_r = rate_r[np.isfinite(rate_r)][0]
-    except:
-        rate_r = np.nan
+    g_minus_r = get_first_finite_value(pdf['v:g-r'].values, position)
+    sigma_g_minus_r = get_first_finite_value(pdf['v:sigma(g-r)'].values, position)
+
+    rate_g_minus_r = get_first_finite_value(pdf['v:rate(g-r)'].values, position)
+    sigma_rate_g_minus_r = get_first_finite_value(pdf['v:sigma(rate(g-r))'].values, position)
+
+    rate_g = get_first_finite_value(pdf['v:rate'].values[position:][pdf['i:fid'][position:] == 1])
+    sigma_rate_g = get_first_finite_value(pdf['v:sigma(rate)'].values[position:][pdf['i:fid'][position:] == 1])
+
+    rate_r = get_first_finite_value(pdf['v:rate'].values[position:][pdf['i:fid'][position:] == 2])
+    sigma_rate_r = get_first_finite_value(pdf['v:sigma(rate)'].values[position:][pdf['i:fid'][position:] == 2])
 
     classification = pdf['v:classification'].values[position]
 
@@ -248,10 +240,10 @@ def card_sn_properties(clickData, object_data):
                         RF score: `{:.2f}`
 
                         ###### Variability (diff. magnitude)
-                        g-r (last): `{:.2f}` mag
-                        Rate g-r (last): `{:.2f}` mag/day
-                        Rate g (last): `{:.2f}` mag/day
-                        Rate r (last): `{:.2f}` mag/day
+                        g-r (last): `{:.2f}` ± `{:.2f}` mag
+                        Rate g-r (last): `{:.2f}` ± `{:.2f}` mag/day
+                        Rate g (last): `{:.2f}` ± `{:.2f}` mag/day
+                        Rate r (last): `{:.2f}` ± `{:.2f}` mag/day
 
                         ###### Extra properties
                         Classtar: `{:.2f}`
@@ -261,10 +253,10 @@ def card_sn_properties(clickData, object_data):
                             float(snn_snia_vs_nonia),
                             float(snn_sn_vs_all),
                             float(rf_snia_vs_nonia),
-                            g_minus_r,
-                            rate_g_minus_r,
-                            rate_g,
-                            rate_r,
+                            g_minus_r, sigma_g_minus_r,
+                            rate_g_minus_r, sigma_rate_g_minus_r,
+                            rate_g, sigma_rate_g,
+                            rate_r, sigma_rate_r,
                             float(classtar),
                             float(drb)
                         ),

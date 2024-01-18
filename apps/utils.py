@@ -678,6 +678,30 @@ def retrieve_oid_from_metaname(name):
         return r[0]['key:key']
     return None
 
+def get_first_finite_value(data, pos=0):
+    """Returns first finite value from the array at or after given position.
+
+    Parameters
+    ----------
+    data: np.array
+        Data array
+    pos: int
+        Position in the array to start search
+
+    Returns
+    ----------
+    Value from the array, or np.nan if no finite values found
+    """
+    data = data[pos:]
+
+    if len(data):
+        data = data[np.isfinite(data)]
+
+    if len(data):
+        return data[0]
+    else:
+        return np.nan
+
 # Access local or remove API endpoint
 from app import server
 import apps.api
