@@ -138,13 +138,7 @@ def format_hbase_output(
 
         if extract_color:
             # Extract color evolution
-            pdfs = pdfs.sort_values('i:objectId')
-            pdfs['v:g-r'] = extract_last_g_minus_r_each_object(pdfs, kind='last')
-            pdfs['v:rate(g-r)'] = extract_last_g_minus_r_each_object(pdfs, kind='rate')
-
-            pdfs = pdfs.sort_values('i:jd', ascending=False)
-            pdfs['v:dg'], pdfs['v:rate(dg)'] = extract_delta_color(pdfs, filter_=1)
-            pdfs['v:dr'], pdfs['v:rate(dr)'] = extract_delta_color(pdfs, filter_=2)
+            pdfs = extract_rate_and_color(pdfs)
 
         # Human readable time
         pdfs['v:lastdate'] = convert_jd(pdfs['i:jd'])
@@ -372,156 +366,74 @@ def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
 
     return fluxcal, fluxcal_err
 
-def g_minus_r(fid, mag):
-    """ Compute r-g based on vectors of filters and magnitudes
-    """
-    if len(fid) == 2:
-        # +1 if [g, r]
-        # -1 if [r, g]
-        sign = np.diff(fid)[0]
-    else:
-        # last measurement
-        last_fid = fid[-1]
-
-        # last measurement with different filter
-        # could take the mean
-        index_other = np.where(np.array(fid) != last_fid)[0][-1]
-
-        sign = np.diff([fid[index_other], last_fid])[0]
-        mag = [mag[index_other], mag[-1]]
-
-    return -1 * sign * np.diff(mag)[0]
-
-def extract_last_g_minus_r_each_object(pdf, kind):
-    """ Extract last g-r for each object in a pandas DataFrame
-    """
-    # extract unique objects
-    ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
-    ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
-
-    if kind == 'last':
-        pdf.loc[:, 'v:g-r'] = 0.0
-    elif kind == 'rate':
-        pdf.loc[:, 'v:rate(g-r)'] = 0.0
-
-    # loop over objects
-    for id_ in ids:
-        subpdf = pdf[pdf['i:objectId'] == id_]
-
-        subpdf = subpdf.sort_values('i:jd', ascending=False)
-        subpdf['i:jd'] = subpdf['i:jd'].astype(float)
-        subpdf['i:fid'] = subpdf['i:fid'].astype(int)
-
-        # Compute DC mag
-        cols = [
-            'i:magpsf', 'i:sigmapsf', 'i:magnr', 'i:sigmagnr', 'i:isdiffpos',
-        ]
-
-        mag, err = np.array(
-            [
-                dc_mag(float(i[0]), float(i[1]), float(i[2]), float(i[3]), i[4])
-                    for i in zip(*[subpdf[j].values for j in cols])
-            ]
-        ).T
-        subpdf['i:dcmag'] = mag
-
-        # group by night
-        gpdf = subpdf.groupby('i:nid')[['i:dcmag', 'i:fid', 'i:jd', 'i:nid']].agg(list)
-
-        # take only nights with at least measurements on 2 different filters
-        mask = gpdf['i:fid'].apply(
-            lambda x: (len(x) > 1) & (np.sum(x) / len(x) != x[0])
-        )
-        gpdf_night = gpdf[mask]
-
-        # compute r-g for those nights
-        values = [g_minus_r(i, j) for i, j in zip(gpdf_night['i:fid'].values, gpdf_night['i:dcmag'].values)]
-        nid = [nid_ for nid_ in gpdf[mask]['i:jd'].apply(lambda x: x[0]).values]
-        jd = [jd_ for jd_ in gpdf[mask]['i:nid'].apply(lambda x: np.mean(x)).values]
-
-        if kind == 'last':
-            vec_ = np.diff(values, prepend=np.nan)
-            for val, nid_ in zip(vec_, nid):
-                pdf.loc[pdf['i:jd'] == nid_, 'v:g-r'] = val
-        elif kind == 'rate':
-            vec_ = np.diff(values, prepend=np.nan)
-            jd_diff = np.diff(jd, prepend=np.nan)
-            for val, jd_, nid_ in zip(vec_, jd_diff, nid):
-                pdf.loc[pdf['i:jd'] == nid_, 'v:rate(g-r)'] = val / jd_
-
-    if kind == 'last':
-        return pdf['v:g-r'].replace(0.0, np.nan).values
-    elif kind == 'rate':
-        return pdf['v:rate(g-r)'].replace(0.0, np.nan).values
-
-def extract_delta_color(pdf: pd.DataFrame, filter_: int):
-    """ Extract last g-r for each object in a pandas DataFrame
+def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
+    """Extract magnitude rates in different filters, color, and color change rate.
+    Fills the following fields:
+    - v:rate - magnitude change rate for this filter, defined as magnitude difference since previous measurement, divided by time difference
+    - v:sigma(rate) - error of previous value, estimated from per-point errors
+    - v:g-r - color, defined by subtracting the measurements in g and r filter closer than `tolerance` days. Is assigned to both g and r data points with the same value
+    - v:sigma(g-r) - error of previous value, estimated from per-point errors
+    - v:rate(g-r) - color change rate, computed using time differences of g band points
+    - v:sigma(rate(g-r)) - error of previous value, estimated from per-point errors
 
     Parameters
     ----------
-    pdf: pandas DataFrame
-        DataFrame containing alert parameters from an API call
-    filter_: int
-        Filter band, as integer. g: 1, r: 2
+    pdf: Pandas DataFrame
+        DataFrame returned by `format_hbase_output` (see api/api.py)
+    tolerance: float
+        Maximum delay between g and r data points to be considered for color computation, in days
 
     Returns
     ----------
-    vec: np.array
-        Vector containing delta(mag) for the filter `filter_`. Last measurement
-        shown first.
-    rate: np.array
-        Vector containing delta(mag)/delta(time) for the filter `filter_`.
-        Last measurement shown first.
+    pdf: Pandas DataFrame
+        Modified original DataFrame with added columns. Original order is not preserved
     """
-    # extract unique objects
-    ids, indices = np.unique(pdf['i:objectId'].values, return_index=True)
-    ids = [pdf['i:objectId'].values[index] for index in sorted(indices)]
+    pdfs = pdf.sort_values('i:jd')
 
-    # loop over objects
-    vec = []
-    rate = []
-    for id_ in ids:
-        maskId = pdf['i:objectId'] == id_
-        subpdf = pdf[maskId]
+    def fn(sub):
+        """Extract everything relevant on the sub-group corresponding to single object.
+        Assumes it is already sorted by time.
+        """
+        sidx = []
 
-        subpdf = subpdf.sort_values('i:jd', ascending=False)
-        subpdf['i:jd'] = subpdf['i:jd'].astype(float)
-        subpdf['i:fid'] = subpdf['i:fid'].astype(int)
+        # Extract magnitude rates separately in different filters
+        for fid in [1, 2]:
+            idx = sub['i:fid'] == fid
 
-        # Compute DC mag
-        cols = [
-            'i:magpsf', 'i:sigmapsf', 'i:magnr', 'i:sigmagnr', 'i:isdiffpos',
-        ]
+            dmag = sub['i:magpsf'][idx].diff()
+            dmagerr = np.hypot(sub['i:sigmapsf'][idx], sub['i:sigmapsf'][idx].shift())
+            djd = sub['i:jd'][idx].diff()
+            sub.loc[idx, 'v:rate'] = dmag / djd
+            sub.loc[idx, 'v:sigma(rate)'] = dmagerr / djd
 
-        mag, err = np.array(
-            [
-                dc_mag(float(i[0]), float(i[1]), float(i[2]), float(i[3]), i[4])
-                    for i in zip(*[subpdf[j].values for j in cols])
-            ]
-        ).T
-        subpdf['i:dcmag'] = mag
+            sidx.append(idx)
 
-        vec_ = np.zeros_like(mag)
-        rate_ = np.zeros_like(mag)
+        if len(sidx) == 2:
+            # We have both filters, let's try to also get the color!
+            colnames_gr = ['i:jd', 'i:magpsf', 'i:sigmapsf']
+            gr = pd.merge_asof(sub[sidx[0]][colnames_gr], sub[sidx[1]][colnames_gr], on='i:jd', suffixes=('_g', '_r'), direction='nearest', tolerance=tolerance)
+            # It is organized around g band points, r columns are null when unmatched
+            gr = gr.loc[~gr.isna()['i:magpsf_r']] # Keep only matched rows
 
-        mask = subpdf['i:fid'] == filter_
+            gr['v:g-r'] = gr['i:magpsf_g'] - gr['i:magpsf_r']
+            gr['v:sigma(g-r)'] = np.hypot(gr['i:sigmapsf_g'], gr['i:sigmapsf_r'])
 
-        # Diff color
-        vec_[mask] = subpdf[mask]['i:dcmag'].diff(periods=-1).values
+            djd = gr['i:jd'].diff()
+            dgr = gr['v:g-r'].diff()
+            dgrerr = np.hypot(gr['v:sigma(g-r)'], gr['v:sigma(g-r)'].shift())
 
-        # temp diff jd
-        djd = subpdf[mask]['i:jd'].diff(periods=-1).values
+            gr['v:rate(g-r)'] = dgr / djd
+            gr['v:sigma(rate(g-r))'] = dgrerr / djd
 
-        # color rate
-        rate_[mask] = vec_[mask] / djd
-        vec = np.concatenate([vec, vec_])
-        rate = np.concatenate([rate, rate_])
+            # Now we may assign these color values also to corresponding r band points
+            sub = pd.merge_asof(sub, gr[['i:jd', 'v:g-r', 'v:sigma(g-r)', 'v:rate(g-r)', 'v:sigma(rate(g-r))']], direction='nearest', tolerance=tolerance)
 
-    # replace nans by 0.0
-    vec = np.nan_to_num(vec)
-    rate = np.nan_to_num(rate)
+        return sub
 
-    return vec, rate
+    # Apply the subroutine defined above to individual objects, and merge the table back
+    pdfs = pdfs.groupby('i:objectId').apply(fn).droplevel(0)
+
+    return pdfs
 
 def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
     """ Extract g-r values for single object a pandas DataFrame

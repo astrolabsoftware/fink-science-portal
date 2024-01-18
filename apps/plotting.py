@@ -230,10 +230,11 @@ layout_colors = dict(
         'align': "left"
     },
     xaxis={
-        'automargin': True
+        'automargin': True,
+        'title': 'Observation date'
     },
     yaxis={
-        'title': 'Delta magnitude'
+        'title': 'g - r'
     }
 )
 
@@ -254,7 +255,8 @@ layout_colors_rate = dict(
         'align': "left"
     },
     xaxis={
-        'automargin': True
+        'automargin': True,
+        'title': 'Observation date'
     },
     yaxis={
         'title': 'Rate (mag/day)'
@@ -1710,68 +1712,37 @@ def draw_color(object_data) -> dict:
     dates = convert_jd(pdf['i:jd'])
 
     hovertemplate = """
-    <b>%{customdata[0]}</b>: %{y:.3f}<br>
-    <b>mjd</b>: %{customdata[1]}
+    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata}
     <extra></extra>
     """
-    m1 = pdf['i:fid'] == 1
-    m2 = pdf['i:fid'] == 2
+    color = '#3C8DFF'
     figure = {
         'data': [
             {
                 'x': dates,
                 'y': pdf['v:g-r'],
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['v:sigma(g-r)'],
+                    'visible': True,
+                    'width': 0,
+                    'color': color,
+                    'opacity': 0.5
+                },
                 'mode': 'markers',
-                'name': 'delta g-r (mag)',
+                'name': 'g-r (mag)',
                 'customdata': list(
-                    zip(
-                        ['delta g-r'] * len(pdf['i:jd']),
-                        pdf['i:jd'] - 2400000.5,
-                    )
+                    pdf['i:jd'] - 2400000.5,
                 ),
                 'hovertemplate': hovertemplate,
                 'marker': {
                     'size': 10,
-                    'color': '#15284F',
+                    'color': color,
                     'symbol': 'circle'
                 }
             },
-            {
-                'x': dates[m1],
-                'y': pdf['v:dg'][m1],
-                'mode': 'markers',
-                'name': 'delta g (mag)',
-                'customdata': list(
-                    zip(
-                        ['delta g'] * len(pdf['i:jd'][m1]),
-                        pdf['i:jd'][m1] - 2400000.5,
-                    )
-                ),
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 10,
-                    'color': '#F5622E',
-                    'symbol': 'square'
-                }
-            },
-            {
-                'x': dates[m2],
-                'y': pdf['v:dr'][m2],
-                'mode': 'markers',
-                'name': 'delta r (mag)',
-                'customdata': list(
-                    zip(
-                        ['delta r'] * len(pdf['i:jd'][m2]),
-                        pdf['i:jd'][m2] - 2400000.5,
-                    )
-                ),
-                'hovertemplate': hovertemplate,
-                'marker': {
-                    'size': 10,
-                    'color': '#3C8DFF',
-                    'symbol': 'diamond'
-                }
-            }
         ],
         "layout": layout_colors
     }
@@ -1799,7 +1770,8 @@ def draw_color_rate(object_data) -> dict:
     dates = convert_jd(pdf['i:jd'])
 
     hovertemplate_rate = """
-    <b>%{customdata[0]} in mag/day</b>: %{y:.3f}<br>
+    <b>%{customdata[0]} in mag/day</b>: %{y:.3f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
     <b>mjd</b>: %{customdata[1]}
     <extra></extra>
     """
@@ -1810,54 +1782,78 @@ def draw_color_rate(object_data) -> dict:
             {
                 'x': dates,
                 'y': pdf['v:rate(g-r)'],
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['v:sigma(rate(g-r))'],
+                    'visible': True,
+                    'width': 0,
+                    'color': '#3C8DFF',
+                    'opacity': 0.5
+                },
                 'mode': 'markers',
                 'name': 'rate g-r (mag/day)',
                 'customdata': list(
                     zip(
-                        ['rate(delta g)'] * len(pdf['i:jd']),
+                        ['rate(g - r)'] * len(pdf['i:jd']),
                         pdf['i:jd'] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#15284F',
+                    'color': '#3C8DFF',
                     'symbol': 'circle'
                 }
             },
             {
                 'x': dates[m1],
-                'y': pdf['v:rate(dg)'][m1],
+                'y': pdf['v:rate'][m1],
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['v:sigma(rate)'][m1],
+                    'visible': True,
+                    'width': 0,
+                    'color': '#15284F',
+                    'opacity': 0.5
+                },
                 'mode': 'markers',
                 'name': 'rate g (mag/day)',
                 'customdata': list(
                     zip(
-                        ['rate(delta g)'] * len(pdf['i:jd'][m1]),
+                        ['rate(g)'] * len(pdf['i:jd'][m1]),
                         pdf['i:jd'][m1] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#F5622E',
+                    'color': '#15284F',
                     'symbol': 'square'
                 }
             },
             {
                 'x': dates[m2],
-                'y': pdf['v:rate(dr)'][m2],
+                'y': pdf['v:rate'][m2],
+                'error_y': {
+                    'type': 'data',
+                    'array': pdf['v:sigma(rate)'][m2],
+                    'visible': True,
+                    'width': 0,
+                    'color': '#F5622E',
+                    'opacity': 0.5
+                },
                 'mode': 'markers',
                 'name': 'rate r (mag/day)',
                 'customdata': list(
                     zip(
-                        ['rate(delta r)'] * len(pdf['i:jd'][m2]),
+                        ['rate(r)'] * len(pdf['i:jd'][m2]),
                         pdf['i:jd'][m2] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
                 'marker': {
                     'size': 10,
-                    'color': '#3C8DFF',
+                    'color': '#F5622E',
                     'symbol': 'diamond'
                 }
             },
