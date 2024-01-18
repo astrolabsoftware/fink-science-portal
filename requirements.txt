@@ -168,7 +168,7 @@ SecretStorage==3.3.1
 six==1.14.0
 snowballstemmer==2.2.0
 soupsieve==2.2.1
-space-rocks==1.8.5
+space-rocks==1.8.13
 Sphinx==5.2.3
 sphinx-basic-ng==1.0.0b1
 sphinx-copybutton==0.5.0
