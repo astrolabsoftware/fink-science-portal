@@ -103,3 +103,12 @@ h2 {
 #results .tab-content {
   background: rgba(255, 255, 255, 1.0);
 }
+
+.api .nav-link {
+  border-radius: 0.25rem;
+  margin-bottom: 0;
+}
+
+.api .nav-link.active {
+  border-color: #dee2e6;
+}
