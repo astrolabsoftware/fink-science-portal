@@ -19,6 +19,7 @@ import dash_bootstrap_components as dbc
 from app import app
 from apps.utils import class_colors
 from apps.utils import help_popover
+from apps.utils import get_first_finite_value
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -72,9 +73,7 @@ def card_sn_scores() -> html.Div:
     )
     color_explanation = dcc.Markdown(
         """
-        - `delta(g-r)`: `(g-r)(i) - (g-r)(i-1)`, where `i` and `i-1` are the last two nights where both `g` and `r` measurements are available
-        - `delta(g)`: `g(i) - g(i-1)`, where `g(i)` and `g(i-1)` are the last two measurements in the `g` band
-        - `delta(r)`: `r(i) - r(i-1)`, where `r(i)` and `r(i-1)` are the last two measurements in the `r` band
+        - `g-r`: Color computed from nearest `g` and `r` measurements closer than 0.3 days to each other
         """
     )
     color_rate_explanation = dcc.Markdown(
@@ -84,29 +83,11 @@ def card_sn_scores() -> html.Div:
         - `rate r`: magnitude increase rate per day for the `r` band.
         """
     )
-    msg = dcc.Markdown(
-        """
-        Fink's machine learning classification scores for Supernovae are derived from:
-        - [SuperNNova](https://github.com/supernnova/SuperNNova) ([Möller & de Boissière 2019](https://academic.oup.com/mnras/article-abstract/491/3/4277/5651173)) to classify SNe at all light-curve epochs (`SN Ia score` & `SNe score`)
-        - Random Forest ([Leoni et al. 2021](https://arxiv.org/abs/2111.11438)) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
-        - Transformers for general multi-variate time-series data, based on [Allam Jr. et al. 2022](https://arxiv.org/abs/2105.06178)
-
-        Note that we then combine these scores, with other criteria,
-        to give a final classification to the alert. An `SN candidate` requires that:
-        - the alert passes the Fink quality cuts
-        - the alert has no known transient association (from catalogues)
-        - the alert has at least one of a SuperNNova model trained to identify SNe Ia or SNe (`SN Ia score` or `SNe score`) with a probability higher than 50% of this alert being a SN.
-
-        In addition, the alert is considered as `Early SN Ia candidate` if it also satisfies:
-        - the alert is relatively new (number of previous detections < 20)
-        - the alert has the Random Forest model trained to select early supernovae Ia (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN Ia.
-        """
-    )
     label_style = {"color": "#000"}
     card = html.Div(
         [
             dmc.Paper(graph_lc),
-            html.Br(),
+            dmc.Space(h=10),
             dmc.Paper(
                 [
                     dmc.Tabs(
@@ -115,7 +96,7 @@ def card_sn_scores() -> html.Div:
                                 [
                                     dmc.Tab('SN scores', value='snt0'),
                                     dmc.Tab('T2 scores', value='snt0a'),
-                                    dmc.Tab('Color and mag evolution', value='snt1'),
+                                    dmc.Tab('Color evolution', value='snt1'),
                                     dmc.Tab('Color and mag rate', value='snt2'),
                                 ]
                             ),
@@ -145,8 +126,7 @@ def card_sn_scores() -> html.Div:
                             ),
                         ],
                         value='snt0'
-                    ),
-                    help_popover(msg, 'help_sn'),
+                    )
                 ]
             ),
         ]
@@ -166,6 +146,25 @@ def card_sn_properties(clickData, object_data):
 
     The element is updated when the the user click on the point in the lightcurve
     """
+    msg = dcc.Markdown(
+        """
+        Fink's machine learning classification scores for Supernovae are derived from:
+        - [SuperNNova](https://github.com/supernnova/SuperNNova) ([Möller & de Boissière 2019](https://academic.oup.com/mnras/article-abstract/491/3/4277/5651173)) to classify SNe at all light-curve epochs (`SN Ia score` & `SNe score`)
+        - Random Forest ([Leoni et al. 2021](https://arxiv.org/abs/2111.11438)) and ([Ishida et al. 2019b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483....2I/abstract)) to classify early (pre-max) SN candidates (`Early SN Ia score`)
+        - Transformers for general multi-variate time-series data, based on [Allam Jr. et al. 2022](https://arxiv.org/abs/2105.06178)
+
+        Note that we then combine these scores, with other criteria,
+        to give a final classification to the alert. An `SN candidate` requires that:
+        - the alert passes the Fink quality cuts
+        - the alert has no known transient association (from catalogues)
+        - the alert has at least one of a SuperNNova model trained to identify SNe Ia or SNe (`SN Ia score` or `SNe score`) with a probability higher than 50% of this alert being a SN.
+
+        In addition, the alert is considered as `Early SN Ia candidate` if it also satisfies:
+        - the alert is relatively new (number of previous detections < 20)
+        - the alert has the Random Forest model trained to select early supernovae Ia (`Early SN Ia score`) with a probability higher than 50% of this alert being a SN Ia.
+        """
+    )
+
     pdf = pd.read_json(object_data)
     pdf = pdf.sort_values('i:jd', ascending=False)
 
@@ -186,18 +185,17 @@ def card_sn_properties(clickData, object_data):
     classtar = pdf['i:classtar'].values[position]
     drb = pdf['i:drb'].values[position]
 
-    try:
-        g_minus_r = pdf['v:rate(g-r)'].values[0]
-    except IndexError:
-        g_minus_r = 0.0
-    try:
-        rate_g = pdf['v:rate(dg)'][pdf['i:fid'] == 1].values[0]
-    except IndexError:
-        rate_g = 0.0
-    try:
-        rate_r = pdf['v:rate(dr)'][pdf['i:fid'] == 2].values[0]
-    except IndexError:
-        rate_r = 0.0
+    g_minus_r = get_first_finite_value(pdf['v:g-r'].values, position)
+    sigma_g_minus_r = get_first_finite_value(pdf['v:sigma(g-r)'].values, position)
+
+    rate_g_minus_r = get_first_finite_value(pdf['v:rate(g-r)'].values, position)
+    sigma_rate_g_minus_r = get_first_finite_value(pdf['v:sigma(rate(g-r))'].values, position)
+
+    rate_g = get_first_finite_value(pdf['v:rate'].values[position:][pdf['i:fid'][position:] == 1])
+    sigma_rate_g = get_first_finite_value(pdf['v:sigma(rate)'].values[position:][pdf['i:fid'][position:] == 1])
+
+    rate_r = get_first_finite_value(pdf['v:rate'].values[position:][pdf['i:fid'][position:] == 2])
+    sigma_rate_r = get_first_finite_value(pdf['v:sigma(rate)'].values[position:][pdf['i:fid'][position:] == 2])
 
     classification = pdf['v:classification'].values[position]
 
@@ -241,10 +239,11 @@ def card_sn_properties(clickData, object_data):
                         ###### Early SN Ia classifier
                         RF score: `{:.2f}`
 
-                        ###### Variability (DC magnitude)
-                        Rate g-r (last): `{:.2f}` mag/day
-                        Rate g (last): `{:.2f}` mag/day
-                        Rate r (last): `{:.2f}` mag/day
+                        ###### Variability (diff. magnitude)
+                        g-r (last): `{:.2f}` ± `{:.2f}` mag
+                        Rate g-r (last): `{:.2f}` ± `{:.2f}` mag/day
+                        Rate g (last): `{:.2f}` ± `{:.2f}` mag/day
+                        Rate r (last): `{:.2f}` ± `{:.2f}` mag/day
 
                         ###### Extra properties
                         Classtar: `{:.2f}`
@@ -254,14 +253,16 @@ def card_sn_properties(clickData, object_data):
                             float(snn_snia_vs_nonia),
                             float(snn_sn_vs_all),
                             float(rf_snia_vs_nonia),
-                            g_minus_r,
-                            rate_g,
-                            rate_r,
+                            g_minus_r, sigma_g_minus_r,
+                            rate_g_minus_r, sigma_rate_g_minus_r,
+                            rate_g, sigma_rate_g,
+                            rate_r, sigma_rate_r,
                             float(classtar),
                             float(drb)
                         ),
                         className='markdown markdown-pre ps-2 pe-2',
                     ),
+                    help_popover(msg, 'help_sn'),
                 ],
                 radius='sm', p='xs', shadow='sm', withBorder=True,
             ),
