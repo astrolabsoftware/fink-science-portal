@@ -1485,10 +1485,11 @@ def draw_lightcurve_preview(name) -> dict:
     Output('scores', 'figure'),
     [
         Input('object-data', 'data'),
+        Input('lightcurve_scores', 'relayoutData')
     ],
     prevent_initial_call=True
 )
-def draw_scores(object_data) -> dict:
+def draw_scores(object_data, relayout_data) -> dict:
     """ Draw scores from SNN module
 
     Returns
@@ -1497,6 +1498,12 @@ def draw_scores(object_data) -> dict:
 
     TODO: memoise me
     """
+    layout_scores_session = copy.deepcopy(layout_scores)
+    layout_scores_session["xaxis"]["range"] = [
+        relayout_data["xaxis.range[0]"],
+        relayout_data["xaxis.range[1]"]
+    ]
+
     pdf = pd.read_json(object_data)
 
     # type conversion
@@ -1574,7 +1581,7 @@ def draw_scores(object_data) -> dict:
                     'symbol': 'diamond'}
             }
         ],
-        "layout": layout_scores
+        "layout": layout_scores_session
     }
     return figure
 
