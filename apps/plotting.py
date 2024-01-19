@@ -1578,7 +1578,7 @@ def draw_scores(object_data, relayout_data) -> dict:
                     'symbol': 'diamond'}
             }
         ],
-        "layout": layout_scores_session
+        "layout": layout_session
     }
     return figure
 
