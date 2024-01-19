@@ -805,3 +805,29 @@ def help_popover(text, id, trigger=None, className=None):
             ),
         ], className=className
     )
+
+def update_xaxis_for_zoom(relayout_data, layout):
+    """ Update the xaxis bounds in layout based on relayout data fromm a graph
+
+    Parameters
+    ----------
+    relayout_data: dict
+        Graph attribute containing e.g. axes bounds
+    layout: dict
+        Layout for a Graph object
+
+    Returns
+    ----------
+    layout: dict
+        Updated (copy) layout with new xaxis bounds
+    """
+    if 'xaxis.range[0]' in relayout_data:
+        layout_session = copy.deepcopy(layout)
+        layout_session["xaxis"]["range"] = [
+            relayout_data["xaxis.range[0]"],
+            relayout_data["xaxis.range[1]"]
+        ]
+    else:
+         layout_session = layout
+
+    return layout

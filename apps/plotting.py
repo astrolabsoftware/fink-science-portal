@@ -40,6 +40,7 @@ from fink_utils.photometry.utils import is_source_behind
 from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.utils import request_api
+from apps.utils import update_xaxis_for_zoom
 from apps.statistics import dic_names
 
 from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin
@@ -1498,11 +1499,7 @@ def draw_scores(object_data, relayout_data) -> dict:
 
     TODO: memoise me
     """
-    layout_scores_session = copy.deepcopy(layout_scores)
-    layout_scores_session["xaxis"]["range"] = [
-        relayout_data["xaxis.range[0]"],
-        relayout_data["xaxis.range[1]"]
-    ]
+    layout_session = update_xaxis_for_zoom(relayout_data, layout_scores)
 
     pdf = pd.read_json(object_data)
 
