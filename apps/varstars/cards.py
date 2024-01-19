@@ -1,4 +1,4 @@
-# Copyright 2020-2023 AstroLab Software
+# Copyright 2020-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ from dash_iconify import DashIconify
 from app import app
 
 from apps.cards import card_neighbourhood
+from apps.utils import create_button_for_external_link
 
 import pandas as pd
 import numpy as np
@@ -101,28 +102,9 @@ def card_variable_button(object_data):
                                 card_neighbourhood(pdf),
                                 dbc.Row(
                                     [
-                                        dbc.Col(
-                                            dbc.Button(
-                                                className='btn btn-default zoom btn-circle btn-lg btn-image',
-                                                style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-color': 'black'},
-                                                color='dark',
-                                                outline=True,
-                                                id='asas-sn',
-                                                title='ASAS-SN',
-                                                target="_blank",
-                                                href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius=0.5&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0)
-                                            ), width=4),
-                                        dbc.Col(
-                                            dbc.Button(
-                                                className='btn btn-default zoom btn-circle btn-lg btn-image',
-                                                style={'background-image': 'url(/assets/buttons/snad.svg)'},
-                                                color='dark',
-                                                outline=True,
-                                                id='SNAD-var-star',
-                                                title='SNAD',
-                                                target="_blank",
-                                                href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                                            ), width=4),
+                                        create_button_for_external_link(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5),
+                                        create_button_for_external_link(kind='snad', ra0=ra0, dec0=dec0, radius=5),
+                                        create_button_for_external_link(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1)
                                     ], justify='around',
                                     className='mb-2'
                                 ),

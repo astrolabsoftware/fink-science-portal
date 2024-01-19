@@ -805,3 +805,72 @@ def help_popover(text, id, trigger=None, className=None):
             ),
         ], className=className
     )
+
+def create_button_for_external_link(kind: str, ra0: float, dec0: float, radius=None, width=4):
+    """ Create a button that triggers an external conesearch
+
+    The button is wrapped within a dbc.Col object.
+
+    Parameters
+    ----------
+    kind: str
+        External resource name. Currently available:
+        - asas-sn, snad, vsx,
+    ra0: float
+        RA for the conesearch center
+    dec0: float
+        DEC for the conesearch center
+    radius: int or float, optional
+        Radius for the conesearch. Each external resource has its
+        own default value (default), as well as its own units.
+    width: int, optional
+        dbc.Col width parameter. Default is 4.
+    """
+    if kind == 'asas-sn':
+        if radius is None:
+            radius = 0.5
+        button = dbc.Col(
+            dbc.Button(
+                className='btn btn-default zoom btn-circle btn-lg btn-image',
+                style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-color': 'black'},
+                color='dark',
+                outline=True,
+                title='ASAS-SN',
+                target="_blank",
+                href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius={}&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0, radius)
+            ),
+            width=width
+        )
+    elif kind == 'snad':
+        if radius is None:
+            radius = 5
+        button = dbc.Col(
+            dbc.Button(
+                className='btn btn-default zoom btn-circle btn-lg btn-image',
+                style={'background-image': 'url(/assets/buttons/snad.svg)'},
+                color='dark',
+                outline=True,
+                title='SNAD',
+                target="_blank",
+                href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, radius)
+            ),
+            width=width
+        )
+    elif kind == 'vsx':
+        if radius is None:
+            radius = 0.1
+        button = dbc.Col(
+            dbc.Button(
+                className='btn btn-default btn-circle btn-lg zoom btn-image',
+                style={'background-image': 'url(/assets/buttons/vsx.png)'},
+                color='dark',
+                outline=True,
+                id='VSX',
+                title='AAVSO VSX',
+                target="_blank",
+                href="https://www.aavso.org/vsx/index.php?view=results.get&coords={}+{}&format=d&size={}".format(ra0, dec0, radius)
+            ),
+            width=width
+        )
+
+    return button
