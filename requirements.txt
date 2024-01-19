@@ -55,7 +55,6 @@ docutils==0.19
 EditorConfig==0.12.3
 emcee==3.0.2
 fastavro==1.6.0
-fink-client==3.1
 fink-filters==3.11
 fink-utils==0.13.12
 fink-spins==0.3.7
