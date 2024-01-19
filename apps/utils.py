@@ -76,7 +76,17 @@ def hbase_to_dict(hbase_output):
     """
     Optimize hbase output TreeMap for faster conversion to DataFrame
     """
-    optimized = {i: dict(j) for i, j in hbase_output.items()}
+    # Naive Python implementation
+    # optimized = {i: dict(j) for i, j in hbase_output.items()}
+
+    # Here we assume JPype is already initialized
+    from org.json import JSONObject
+    import json
+
+    # We do bulk export to JSON on Java side to avoid overheads of iterative access
+    # and then parse it back to Dict in Python
+    optimized = json.loads(JSONObject(hbase_output).toString())
+
     return optimized
 
 def format_hbase_output(
@@ -115,6 +125,8 @@ def format_hbase_output(
     for col in ['d:lc_features_g', 'd:lc_features_r']:
         if col in pdfs.columns:
             pdfs[col] = pdfs[col].replace('nan', '[]')
+
+    pdfs = pdfs.copy() # Fix Pandas' "DataFrame is highly fragmented" warning
 
     if not truncated:
         # Fink final classification
