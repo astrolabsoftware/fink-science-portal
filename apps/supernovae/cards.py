@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, dash_table, Input, Output, State
+from dash import html, dcc, dash_table, Input, Output, State, callback_context
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 
@@ -137,11 +137,14 @@ def card_sn_scores() -> html.Div:
     Output("card_sn_properties", "children"),
     [
         Input('lightcurve_scores', 'clickData'),
+        Input('scores', 'clickData'),
+        Input('colors', 'clickData'),
+        Input('colors_rate', 'clickData'),
         Input('object-data', 'data'),
     ],
     prevent_initial_call=True
 )
-def card_sn_properties(clickData, object_data):
+def card_sn_properties(clickData1, clickData2, clickData3, clickData4, object_data):
     """ Add an element containing SN alert data (right side of the page)
 
     The element is updated when the the user click on the point in the lightcurve
@@ -167,6 +170,19 @@ def card_sn_properties(clickData, object_data):
 
     pdf = pd.read_json(object_data)
     pdf = pdf.sort_values('i:jd', ascending=False)
+
+    # Which graph was clicked, if any?
+    triggered_id = callback_context.triggered[0]["prop_id"].split(".")[0]
+    if triggered_id == 'lightcurve_scores':
+        clickData = clickData1
+    elif triggered_id == 'scores':
+        clickData = clickData2
+    elif triggered_id == 'colors':
+        clickData = clickData3
+    elif triggered_id == 'colors_rate':
+        clickData = clickData4
+    else:
+        clickData = None
 
     if clickData is not None:
         time0 = clickData['points'][0]['x']
