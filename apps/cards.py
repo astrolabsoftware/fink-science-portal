@@ -27,6 +27,7 @@ from apps.utils import class_colors
 from apps.utils import simbad_types
 from apps.utils import loading, help_popover
 from apps.utils import request_api
+from apps.utils import create_button_for_external_link
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 from fink_utils.photometry.utils import is_source_behind
@@ -192,106 +193,18 @@ def create_external_links(ra0, dec0):
     buttons = [
         dbc.Row(
             [
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg zoom btn-image',
-                        style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'auto 100%', 'background-position-x': 'left'},
-                        color='dark',
-                        outline=True,
-                        id='TNS',
-                        title='TNS',
-                        target="_blank",
-                        href='https://www.wis-tns.org/search?ra={}&decl={}&radius=5&coords_unit=arcsec'.format(ra0, dec0)
-                    )
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg zoom btn-image',
-                        style={'background-image': 'url(/assets/buttons/simbad.png)'},
-                        color='dark',
-                        outline=True,
-                        id='SIMBAD',
-                        title='SIMBAD',
-                        target="_blank",
-                        href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius=0.08".format(ra0, dec0)
-                    )
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg zoom btn-image',
-                        style={'background-image': 'url(/assets/buttons/snad.svg)'},
-                        color='dark',
-                        outline=True,
-                        id='SNAD',
-                        title='SNAD',
-                        target="_blank",
-                        href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, 5)
-                    )
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg zoom btn-image',
-                        style={'background-image': 'url(/assets/buttons/dclogo_small.png)'},
-                        color='dark',
-                        outline=True,
-                        id='DataCentral',
-                        title='DataCentral Data Aggregation Service',
-                        target="_blank",
-                        href='https://das.datacentral.org.au/open?RA={}&DEC={}&FOV={}&ERR={}'.format(ra0, dec0, 0.5, 2.0)
-                    )
-                ),
+                create_button_for_external_link(kind='tns', ra0=ra0, dec0=dec0, radius=5),
+                create_button_for_external_link(kind='simbad', ra0=ra0, dec0=dec0, radius=0.08),
+                create_button_for_external_link(kind='snad', ra0=ra0, dec0=dec0, radius=5),
+                create_button_for_external_link(kind='datacentral', ra0=ra0, dec0=dec0, radius=2.0)
             ], justify='around'
         ),
         dbc.Row(
             [
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg zoom btn-image',
-                        style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-color': 'black'},
-                        color='dark',
-                        outline=True,
-                        id='NED',
-                        title='NED',
-                        target="_blank",
-                        href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius=1.0&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0)
-                    ),
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg zoom btn-image',
-                        style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)'},
-                        color='dark',
-                        outline=True,
-                        id='SDSS',
-                        title='SDSS',
-                        target="_blank",
-                        href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
-                    ),
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg zoom btn-image',
-                        style={'background-image': 'url(/assets/buttons/asassn.png)', 'background-color': 'black'},
-                        color='white',
-                        outline=True,
-                        id='ASAS-SN',
-                        title='ASAS-SN',
-                        target="_blank",
-                        href="https://asas-sn.osu.edu/?ra={}&dec={}".format(ra0, dec0)
-                    ),
-                ),
-                dbc.Col(
-                    dbc.Button(
-                        className='btn btn-default btn-circle btn-lg zoom btn-image',
-                        style={'background-image': 'url(/assets/buttons/vsx.png)'},
-                        color='dark',
-                        outline=True,
-                        id='VSX',
-                        title='AAVSO VSX',
-                        target="_blank",
-                        href="https://www.aavso.org/vsx/index.php?view=results.get&coords={}+{}&format=d&size=0.1".format(ra0, dec0)
-                    ),
-                )
+                create_button_for_external_link(kind='ned', ra0=ra0, dec0=dec0, radius=1.0),
+                create_button_for_external_link(kind='sdss', ra0=ra0, dec0=dec0),
+                create_button_for_external_link(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5),
+                create_button_for_external_link(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1)
             ], justify='around'
         ),
     ]

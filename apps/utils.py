@@ -815,7 +815,7 @@ def create_button_for_external_link(kind: str, ra0: float, dec0: float, radius=N
     ----------
     kind: str
         External resource name. Currently available:
-        - asas-sn, snad, vsx,
+        - asas-sn, snad, vsx, tns, simbad, datacentral, ned, sdss
     ra0: float
         RA for the conesearch center
     dec0: float
@@ -865,10 +865,82 @@ def create_button_for_external_link(kind: str, ra0: float, dec0: float, radius=N
                 style={'background-image': 'url(/assets/buttons/vsx.png)'},
                 color='dark',
                 outline=True,
-                id='VSX',
                 title='AAVSO VSX',
                 target="_blank",
                 href="https://www.aavso.org/vsx/index.php?view=results.get&coords={}+{}&format=d&size={}".format(ra0, dec0, radius)
+            ),
+            width=width
+        )
+    elif kind == 'tns':
+        if radius is None:
+            radius = 5
+        button = dbc.Col(
+            dbc.Button(
+                className='btn btn-default btn-circle btn-lg zoom btn-image',
+                style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'auto 100%', 'background-position-x': 'left'},
+                color='dark',
+                outline=True,
+                title='TNS',
+                target="_blank",
+                href='https://www.wis-tns.org/search?ra={}&decl={}&radius={}&coords_unit=arcsec'.format(ra0, dec0, radius)
+            ),
+            width=width
+        )
+    elif kind == 'simbad':
+        if radius is None:
+            radius = 0.08
+        button = dbc.Col(
+            dbc.Button(
+                className='btn btn-default btn-circle btn-lg zoom btn-image',
+                style={'background-image': 'url(/assets/buttons/simbad.png)'},
+                color='dark',
+                outline=True,
+                title='SIMBAD',
+                target="_blank",
+                href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius={}".format(ra0, dec0, radius)
+            ),
+            width=width
+        )
+    elif kind == 'datacentral':
+        if radius is None:
+            radius = 2.0
+        button = dbc.Col(
+            dbc.Button(
+                className='btn btn-default btn-circle btn-lg zoom btn-image',
+                style={'background-image': 'url(/assets/buttons/dclogo_small.png)'},
+                color='dark',
+                outline=True,
+                title='DataCentral Data Aggregation Service',
+                target="_blank",
+                href='https://das.datacentral.org.au/open?RA={}&DEC={}&FOV={}&ERR={}'.format(ra0, dec0, 0.5, radius)
+            ),
+            width=width
+        )
+    elif kind == 'ned':
+        if radius is None:
+            radius = 1.0
+        button = dbc.Col(
+            dbc.Button(
+                className='btn btn-default btn-circle btn-lg zoom btn-image',
+                style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-color': 'black'},
+                color='dark',
+                outline=True,
+                title='NED',
+                target="_blank",
+                href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius={}&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0, radius)
+            ),
+            width=width
+        )
+    elif kind == 'sdss':
+        button = dbc.Col(
+            dbc.Button(
+                className='btn btn-default btn-circle btn-lg zoom btn-image',
+                style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)'},
+                color='dark',
+                outline=True,
+                title='SDSS',
+                target="_blank",
+                href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
             ),
             width=width
         )
