@@ -190,21 +190,22 @@ def card_explanation_xmatch():
 def create_external_links(ra0, dec0):
     """
     """
+    width = 3
     buttons = [
         dbc.Row(
             [
-                create_button_for_external_link(kind='tns', ra0=ra0, dec0=dec0, radius=5),
-                create_button_for_external_link(kind='simbad', ra0=ra0, dec0=dec0, radius=0.08),
-                create_button_for_external_link(kind='snad', ra0=ra0, dec0=dec0, radius=5),
-                create_button_for_external_link(kind='datacentral', ra0=ra0, dec0=dec0, radius=2.0)
+                create_button_for_external_link(kind='tns', ra0=ra0, dec0=dec0, radius=5, width=width),
+                create_button_for_external_link(kind='simbad', ra0=ra0, dec0=dec0, radius=0.08, width=width),
+                create_button_for_external_link(kind='snad', ra0=ra0, dec0=dec0, radius=5, width=width),
+                create_button_for_external_link(kind='datacentral', ra0=ra0, dec0=dec0, radius=2.0, width=width)
             ], justify='around'
         ),
         dbc.Row(
             [
-                create_button_for_external_link(kind='ned', ra0=ra0, dec0=dec0, radius=1.0),
-                create_button_for_external_link(kind='sdss', ra0=ra0, dec0=dec0),
-                create_button_for_external_link(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5),
-                create_button_for_external_link(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1)
+                create_button_for_external_link(kind='ned', ra0=ra0, dec0=dec0, radius=1.0, width=width),
+                create_button_for_external_link(kind='sdss', ra0=ra0, dec0=dec0, width=width),
+                create_button_for_external_link(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5, width=width),
+                create_button_for_external_link(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1, width=width)
             ], justify='around'
         ),
     ]
