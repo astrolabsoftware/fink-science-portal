@@ -27,7 +27,7 @@ from apps.utils import class_colors
 from apps.utils import simbad_types
 from apps.utils import loading, help_popover
 from apps.utils import request_api
-from apps.utils import create_button_for_external_link
+from apps.utils import create_button_for_external_conesearch
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 from fink_utils.photometry.utils import is_source_behind
@@ -187,25 +187,32 @@ def card_explanation_xmatch():
     )
     return card
 
-def create_external_links(ra0, dec0):
-    """
+def create_external_conesearches(ra0, dec0):
+    """ Create two rows of buttons to trigger external conesearch
+
+    Parameters
+    ----------
+    ra0: float
+        RA for the conesearch center
+    dec0: float
+        DEC for the conesearch center
     """
     width = 3
     buttons = [
         dbc.Row(
             [
-                create_button_for_external_link(kind='tns', ra0=ra0, dec0=dec0, radius=5, width=width),
-                create_button_for_external_link(kind='simbad', ra0=ra0, dec0=dec0, radius=0.08, width=width),
-                create_button_for_external_link(kind='snad', ra0=ra0, dec0=dec0, radius=5, width=width),
-                create_button_for_external_link(kind='datacentral', ra0=ra0, dec0=dec0, radius=2.0, width=width)
+                create_button_for_external_conesearch(kind='tns', ra0=ra0, dec0=dec0, radius=5, width=width),
+                create_button_for_external_conesearch(kind='simbad', ra0=ra0, dec0=dec0, radius=0.08, width=width),
+                create_button_for_external_conesearch(kind='snad', ra0=ra0, dec0=dec0, radius=5, width=width),
+                create_button_for_external_conesearch(kind='datacentral', ra0=ra0, dec0=dec0, radius=2.0, width=width)
             ], justify='around'
         ),
         dbc.Row(
             [
-                create_button_for_external_link(kind='ned', ra0=ra0, dec0=dec0, radius=1.0, width=width),
-                create_button_for_external_link(kind='sdss', ra0=ra0, dec0=dec0, width=width),
-                create_button_for_external_link(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5, width=width),
-                create_button_for_external_link(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1, width=width)
+                create_button_for_external_conesearch(kind='ned', ra0=ra0, dec0=dec0, radius=1.0, width=width),
+                create_button_for_external_conesearch(kind='sdss', ra0=ra0, dec0=dec0, width=width),
+                create_button_for_external_conesearch(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5, width=width),
+                create_button_for_external_conesearch(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1, width=width)
             ], justify='around'
         ),
     ]
@@ -631,7 +638,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         dmc.Stack(
                             [
                                 card_neighbourhood(pdf),
-                                *create_external_links(ra0, dec0)
+                                *create_external_conesearches(ra0, dec0)
                             ],
                             align='center'
                         )

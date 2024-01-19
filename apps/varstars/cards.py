@@ -20,7 +20,7 @@ from dash_iconify import DashIconify
 from app import app
 
 from apps.cards import card_neighbourhood
-from apps.utils import create_button_for_external_link
+from apps.utils import create_button_for_external_conesearch
 
 import pandas as pd
 import numpy as np
@@ -102,9 +102,9 @@ def card_variable_button(object_data):
                                 card_neighbourhood(pdf),
                                 dbc.Row(
                                     [
-                                        create_button_for_external_link(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5),
-                                        create_button_for_external_link(kind='snad', ra0=ra0, dec0=dec0, radius=5),
-                                        create_button_for_external_link(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1)
+                                        create_button_for_external_conesearch(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5),
+                                        create_button_for_external_conesearch(kind='snad', ra0=ra0, dec0=dec0, radius=5),
+                                        create_button_for_external_conesearch(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1)
                                     ], justify='around',
                                     className='mb-2'
                                 ),

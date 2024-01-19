@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -806,7 +806,7 @@ def help_popover(text, id, trigger=None, className=None):
         ], className=className
     )
 
-def create_button_for_external_link(kind: str, ra0: float, dec0: float, radius=None, width=4):
+def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, radius=None, width=4):
     """ Create a button that triggers an external conesearch
 
     The button is wrapped within a dbc.Col object.
