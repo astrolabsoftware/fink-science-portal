@@ -819,7 +819,7 @@ def update_xaxis_for_zoom(relayout_data, layout):
 
     Returns
     ----------
-    layout: dict
+    layout_session: dict
         Updated (copy) layout with new xaxis bounds
     """
     if 'xaxis.range[0]' in relayout_data:
@@ -831,4 +831,4 @@ def update_xaxis_for_zoom(relayout_data, layout):
     else:
          layout_session = layout
 
-    return layout
+    return layout_session
