@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import gzip
 import io
+import copy
 import requests
 import base64
 import yaml

@@ -1700,10 +1700,11 @@ def draw_t2(object_data) -> dict:
     Output('colors', 'figure'),
     [
         Input('object-data', 'data'),
+        Input('lightcurve_scores', 'relayoutData')
     ],
     prevent_initial_call=True
 )
-def draw_color(object_data) -> dict:
+def draw_color(object_data, relayout_data) -> dict:
     """ Draw color evolution
 
     Returns
@@ -1711,6 +1712,8 @@ def draw_color(object_data) -> dict:
     figure: dict
     """
     pdf = pd.read_json(object_data)
+
+    layout_session = update_xaxis_for_zoom(relayout_data, layout_colors)
 
     # type conversion
     dates = convert_jd(pdf['i:jd'])
@@ -1748,7 +1751,7 @@ def draw_color(object_data) -> dict:
                 }
             },
         ],
-        "layout": layout_colors
+        "layout": layout_session
     }
     return figure
 
@@ -1756,10 +1759,11 @@ def draw_color(object_data) -> dict:
     Output('colors_rate', 'figure'),
     [
         Input('object-data', 'data'),
+        Input('lightcurve_scores', 'relayoutData')
     ],
     prevent_initial_call=True
 )
-def draw_color_rate(object_data) -> dict:
+def draw_color_rate(object_data, relayout_data) -> dict:
     """ Draw color rate
 
     Returns
@@ -1769,6 +1773,8 @@ def draw_color_rate(object_data) -> dict:
     TODO: memoise me
     """
     pdf = pd.read_json(object_data)
+
+    layout_session = update_xaxis_for_zoom(relayout_data, layout_colors_rate)
 
     # type conversion
     dates = convert_jd(pdf['i:jd'])
@@ -1862,7 +1868,7 @@ def draw_color_rate(object_data) -> dict:
                 }
             },
         ],
-        "layout": layout_colors_rate
+        "layout": layout_session
     }
     return figure
 
