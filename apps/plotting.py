@@ -1718,14 +1718,15 @@ def draw_color(object_data) -> dict:
     <extra></extra>
     """
     color = '#3C8DFF'
+    idx = pdf['i:fid'] == 1 # Show colors at g points only
     figure = {
         'data': [
             {
-                'x': dates,
-                'y': pdf['v:g-r'],
+                'x': dates[idx],
+                'y': pdf['v:g-r'][idx],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['v:sigma(g-r)'],
+                    'array': pdf['v:sigma(g-r)'][idx],
                     'visible': True,
                     'width': 0,
                     'color': color,
@@ -1780,11 +1781,11 @@ def draw_color_rate(object_data) -> dict:
     figure = {
         'data': [
             {
-                'x': dates,
-                'y': pdf['v:rate(g-r)'],
+                'x': dates[m1],
+                'y': pdf['v:rate(g-r)'][m1],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['v:sigma(rate(g-r))'],
+                    'array': pdf['v:sigma(rate(g-r))'][m1],
                     'visible': True,
                     'width': 0,
                     'color': '#3C8DFF',
@@ -1794,8 +1795,8 @@ def draw_color_rate(object_data) -> dict:
                 'name': 'rate g-r (mag/day)',
                 'customdata': list(
                     zip(
-                        ['rate(g - r)'] * len(pdf['i:jd']),
-                        pdf['i:jd'] - 2400000.5,
+                        ['rate(g - r)'] * len(pdf['i:jd'][m1]),
+                        pdf['i:jd'][m1] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
@@ -1882,9 +1883,11 @@ function linked_zoom_xaxis() {
 
     for(i = 0; i < Nfigs; i++) {
         var figure_state = arguments[2*i + 1];
+        if (figure_state === undefined)
+            continue;
         figure_state = JSON.parse(JSON.stringify(figure_state));
 
-        if ('xaxis.autorange' in relayout) {
+        if ('xaxis.autorange' in relayout || 'autosize' in relayout) {
             figure_state['layout']['xaxis']['autorange'] = true;
             figure_state['layout']['yaxis']['autorange'] = true;
         } else if ('xaxis.range[0]' in relayout){
