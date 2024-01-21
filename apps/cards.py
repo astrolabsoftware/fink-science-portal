@@ -110,7 +110,8 @@ def card_lightcurve_summary():
                         position='center',
                         multiple=False,
                     )
-                )
+                ),
+                className='mb-2'
             ),
             dmc.Group(
                 [

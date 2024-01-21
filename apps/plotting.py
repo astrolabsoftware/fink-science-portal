@@ -50,10 +50,6 @@ from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
 
-from astropy.modeling.fitting import LevMarLSQFitter
-import astropy.units as u
-from sbpy.data import Obs
-
 from app import app
 
 COLORS_ZTF = ['#15284F', '#F5622E']
