@@ -1190,7 +1190,7 @@ def card_search_result(row, i):
     if 'v:separation_degree' in row:
         corner_str = "{:.1f}''".format(row['v:separation_degree']*3600)
     else:
-        corner_str = str(i)
+        corner_str = '#{}'.format(str(i))
 
     item = dbc.Card(
         [
