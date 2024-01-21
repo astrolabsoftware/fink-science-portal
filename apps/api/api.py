@@ -54,7 +54,7 @@ from astropy.io import fits, votable
 
 from flask import Blueprint
 
-api_bp = Blueprint('', __name__)
+api_bp = Blueprint('api', __name__)
 
 # Enable CORS for this blueprint only
 @api_bp.after_request

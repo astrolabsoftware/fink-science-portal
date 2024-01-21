@@ -231,10 +231,10 @@ def readstamp(stamp: str, return_type='array', gzipped=True) -> np.array:
         return data
 
     if gzipped:
-        with gzip.open(io.BytesIO(stamp), 'rb') as f:
+        with gzip.open(stamp, 'rb') as f:
             return extract_stamp(io.BytesIO(f.read()))
     else:
-        return extract_stamp(io.BytesIO(stamp))
+        return extract_stamp(stamp)
 
 def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') -> pd.DataFrame:
     """ Query and uncompress cutout data from the HBase table
@@ -719,6 +719,7 @@ from app import server
 import apps.api
 from flask import Response
 from json import loads as json_loads
+import io
 
 def request_api(endpoint, json=None, get_json=False, method='POST'):
     if LOCALAPI:
@@ -743,7 +744,7 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
             if get_json:
                 return json_loads(result)
             else:
-                return result
+                return io.BytesIO(result)
         else:
             return None
     else:
@@ -762,7 +763,7 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
         if get_json:
             return r.json()
         else:
-            return r.content
+            return io.BytesIO(r.content)
 
 # TODO: split these UI snippets into separate file?..
 import dash_mantine_components as dmc
