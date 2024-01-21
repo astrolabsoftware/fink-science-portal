@@ -822,6 +822,30 @@ app.clientside_callback(
     ]
 )
 
+def make_badge(text="", color=None, outline=None, tooltip=None, **kwargs):
+    style = kwargs.pop('style', {})
+    if outline is not None:
+        style['border-color'] = outline
+
+    badge = dmc.Badge(
+        text,
+        color=color,
+        variant=kwargs.pop('variant', 'dot'),
+        style=style,
+        **kwargs
+    )
+
+    if tooltip is not None:
+        badge = dmc.Tooltip(
+            badge,
+            label=tooltip,
+            color=outline if outline is not None else color,
+            className='d-inline',
+            multiline=True,
+        )
+
+    return badge
+
 def generate_tns_badge(oid):
     """ Generate TNS badge
 
@@ -851,15 +875,109 @@ def generate_tns_badge(oid):
             msg = 'TNS: {} ({})'.format(payload['d:fullname'], payload['d:type'])
         else:
             msg = 'TNS: {}'.format(payload['d:fullname'])
-        badge = dmc.Badge(
+        badge = make_badge(
             msg,
             color='red',
-            variant='dot'
+            tooltip="Transient Name Server classification"
         )
     else:
         badge = None
 
     return badge
+
+def generate_generic_badges(row, variant='dot'):
+    """Operates on first row of a DataFrame, or directly on Series from pdf.iterrow()
+    """
+    if isinstance(row, pd.DataFrame):
+        # Get first row from DataFrame
+        row = row.loc[0]
+
+    badges = []
+
+    # SSO
+    ssnamenr = row.get('i:ssnamenr')
+    if ssnamenr and ssnamenr != 'null':
+        badges.append(
+            make_badge(
+                "SSO: {}".format(ssnamenr),
+                variant=variant,
+                color='yellow',
+                tooltip="Nearest Solar System object"
+            )
+        )
+
+    tracklet = row.get('d:tracklet')
+    if tracklet and tracklet != 'null':
+        badges.append(
+            make_badge(
+                "{}".format(tracklet),
+                variant=variant,
+                color='violet',
+                tooltip="Fink detected tracklet"
+            )
+        )
+
+    gcvs = row.get('d:gcvs')
+    if gcvs and gcvs != 'Unknown':
+        badges.append(
+            make_badge(
+                "GCVS: {}".format(gcvs),
+                variant=variant,
+                color=class_colors['Simbad'],
+                tooltip="General Catalogue of Variable Stars classification"
+            )
+        )
+
+    vsx = row.get('d:vsx')
+    if vsx and vsx != 'Unknown':
+        badges.append(
+            make_badge(
+                "VSX: {}".format(vsx),
+                variant=variant,
+                color=class_colors['Simbad'],
+                tooltip="AAVSO VSX classification"
+            )
+        )
+
+    # Nearby objects
+    distnr = row.get('i:distnr')
+    if distnr:
+        is_source = is_source_behind(distnr)
+        badges.append(
+            make_badge(
+                "ZTF: {:.1f}\"".format(distnr),
+                variant=variant,
+                color='cyan',
+                outline='red' if is_source else None,
+                tooltip="""There is a source behind in ZTF reference image.
+                You might want to check the DC magnitude plot, and get DR photometry to see its long-term behaviour
+                """ if is_source else "Distance to closest object in ZTF reference image",
+            )
+        )
+
+    distpsnr = row.get('i:distpsnr1')
+    if distpsnr:
+        badges.append(
+            make_badge(
+                "PS1: {:.1f}\"".format(distpsnr),
+                variant=variant,
+                color='teal',
+                tooltip="Distance to closest object in Pan-STARRS DR1 catalogue"
+            )
+        )
+
+    distgaia = row.get('i:neargaia')
+    if distgaia:
+        badges.append(
+            make_badge(
+                "Gaia: {:.1f}\"".format(distgaia),
+                variant=variant,
+                color='teal',
+                tooltip="Distance to closest object in Gaia DR3 catalogue",
+            )
+        )
+
+    return badges
 
 def generate_metadata_name(oid):
     """ Generate name from metadata
@@ -932,10 +1050,10 @@ def card_id1(object_data, object_uppervalid, object_upper):
             color = class_colors['Simbad']
 
         badges.append(
-            dmc.Badge(
+            make_badge(
                 c,
                 color=color,
-                variant="dot",
+                tooltip="Fink classification"
             )
         )
 
@@ -943,110 +1061,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
     if tns_badge is not None:
         badges.append(tns_badge)
 
-    ssnamenr = get_first_value(pdf, 'i:ssnamenr')
-    if ssnamenr and ssnamenr != 'null':
-        badges.append(
-            dmc.Badge(
-                "SSO: {}".format(ssnamenr),
-                color='yellow',
-                variant="dot",
-            )
-        )
-
-    tracklet = get_first_value(pdf, 'd:tracklet')
-    if tracklet and tracklet != 'null':
-        badges.append(
-            dmc.Badge(
-                "{}".format(tracklet),
-                color='violet',
-                variant="dot",
-            )
-        )
-
-    gcvs = get_first_value(pdf, 'd:gcvs')
-    if gcvs and gcvs != 'Unknown':
-        badges.append(
-            dmc.Badge(
-                "GCVS: {}".format(gcvs),
-                variant='outline',
-                color=class_colors['Simbad'],
-                size='md'
-            )
-        )
-
-    vsx = get_first_value(pdf, 'd:vsx')
-    if vsx and vsx != 'Unknown':
-        badges.append(
-            dmc.Badge(
-                "VSX: {}".format(vsx),
-                variant='outline',
-                color=class_colors['Simbad'],
-                size='md'
-            )
-        )
-
-    distnr = get_first_value(pdf, 'i:distnr')
-    if distnr:
-        if is_source_behind(distnr):
-            ztf_badge = dmc.Tooltip(
-                dmc.Badge(
-                    "ZTF: {:.1f}\"".format(distnr),
-                    color='cyan',
-                    variant="dot",
-                    style={'border-color': 'red'},
-                ),
-                label="There is a source behind in ZTF reference image. You might want to check the DC magnitude plot, and get DR photometry to see its long-term behaviour",
-                color='red',
-                className='d-inline',
-                id='badge_ztf',
-                multiline=True,
-            )
-        else:
-            ztf_badge = dmc.Tooltip(
-                dmc.Badge(
-                    "ZTF: {:.1f}\"".format(distnr),
-                    color='cyan',
-                    variant="dot",
-                ),
-                label="Distance to closest object in ZTF reference image",
-                color='cyan',
-                className='d-inline',
-                multiline=True,
-            )
-
-        badges.append(ztf_badge)
-
-    distpsnr = get_first_value(pdf, 'i:distpsnr1')
-    if distpsnr:
-        badges.append(
-            dmc.Tooltip(
-                dmc.Badge(
-                    "PS1: {:.1f}\"".format(distpsnr),
-                    color='teal',
-                    variant="dot",
-                ),
-                label="Distance to closest object in Pan-STARRS DR1 catalogue",
-                color='teal',
-                className='d-inline',
-                multiline=True,
-            )
-        )
-
-    distgaia =  get_first_value(pdf, 'i:neargaia')
-    if distgaia:
-        badges.append(
-            dmc.Tooltip(
-                dmc.Badge(
-                    "Gaia: {:.1f}\"".format(distgaia),
-                    color='teal',
-                    variant="dot",
-                ),
-                label="Distance to closest object in Gaia DR3 catalogue",
-                color='teal',
-                className='d-inline',
-                multiline=True,
-            )
-        )
+    badges += generate_generic_badges(pdf, variant='dot')
 
     meta_name = generate_metadata_name(get_first_value(pdf, 'i:objectId'))
     if meta_name is not None:
@@ -1116,112 +1131,26 @@ def card_search_result(row, i):
                 color = class_colors['Simbad']
 
             badges.append(
-                dmc.Badge(
+                make_badge(
                     classification,
                     variant='outline',
                     color=color,
-                    size='md'
+                    tooltip='Fink classification'
                 )
             )
-
-    # SSO
-    ssnamenr = row.get('i:ssnamenr')
-    if ssnamenr and ssnamenr != 'null':
-        badges.append(
-            dmc.Badge(
-                "SSO: {}".format(ssnamenr),
-                variant='outline',
-                color='yellow',
-                size='md'
-            )
-        )
-
-    tracklet = row.get('d:tracklet')
-    if tracklet and tracklet != 'null':
-        badges.append(
-            dmc.Badge(
-                "{}".format(tracklet),
-                variant='outline',
-                color='violet',
-                size='md'
-            )
-        )
 
     cdsxmatch = row.get('d:cdsxmatch')
     if cdsxmatch and cdsxmatch != 'Unknown' and cdsxmatch != classification:
         badges.append(
-            dmc.Badge(
+            make_badge(
                 "SIMBAD: {}".format(cdsxmatch),
                 variant='outline',
                 color=class_colors['Simbad'],
-                size='md'
+                tooltip='SIMBAD classification'
             )
         )
 
-    gcvs = row.get('d:gcvs')
-    if gcvs and gcvs != 'Unknown':
-        badges.append(
-            dmc.Badge(
-                "GCVS: {}".format(gcvs),
-                variant='outline',
-                color=class_colors['Simbad'],
-                size='md'
-            )
-        )
-
-    vsx = row.get('d:vsx')
-    if vsx and vsx != 'Unknown':
-        badges.append(
-            dmc.Badge(
-                "VSX: {}".format(vsx),
-                variant='outline',
-                color=class_colors['Simbad'],
-                size='md'
-            )
-        )
-
-    # Nearby objects
-    distnr = row.get('i:distnr')
-    if distnr:
-        if is_source_behind(distnr):
-            ztf_badge = dmc.Badge(
-                "ZTF: {:.1f}\"".format(distnr),
-                color='cyan',
-                variant='outline',
-                size='md',
-                style={'border-color': 'red'},
-            )
-        else:
-            ztf_badge = dmc.Badge(
-                "ZTF: {:.1f}\"".format(distnr),
-                color='cyan',
-                variant='outline',
-                size='md',
-            )
-
-        badges.append(ztf_badge)
-
-    distpsnr = row.get('i:distpsnr1')
-    if distpsnr:
-        badges.append(
-            dmc.Badge(
-                "PS1: {:.1f}\"".format(distpsnr),
-                color='teal',
-                variant='outline',
-                size='md',
-            )
-        )
-
-    distgaia = row.get('i:neargaia')
-    if distgaia:
-        badges.append(
-            dmc.Badge(
-                "Gaia: {:.1f}\"".format(distgaia),
-                color='teal',
-                variant='outline',
-                size='md',
-            )
-        )
+    badges += generate_generic_badges(row, variant='outline')
 
     if 'i:ndethist' in row:
         ndethist = row.get('i:ndethist')
