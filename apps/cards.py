@@ -12,28 +12,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, dash_table, Input, Output, State, clientside_callback
+from dash import html, dcc, Input, Output, State, clientside_callback
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
-import visdcc
 
 from app import app, APIURL
 
 from apps.plotting import all_radio_options
-from apps.utils import pil_to_b64
-from apps.utils import generate_qr
 from apps.utils import class_colors
 from apps.utils import simbad_types
 from apps.utils import loading, help_popover
 from apps.utils import request_api
+from apps.utils import get_first_value
 
-from fink_utils.xmatch.simbad import get_simbad_labels
 from fink_utils.photometry.utils import is_source_behind
 
 import pandas as pd
 import numpy as np
-import urllib
 import textwrap
 
 from astropy.time import Time
@@ -344,18 +340,15 @@ def create_external_links_brokers(objectId):
     return buttons
 
 def card_neighbourhood(pdf):
-    distnr = pdf['i:distnr'].values[0]
-    ssnamenr = pdf['i:ssnamenr'].values[0]
-    distpsnr1 = pdf['i:distpsnr1'].values[0]
-    neargaia = pdf['i:neargaia'].values[0]
-    constellation = pdf['v:constellation'].values[0]
-    if 'd:DR3Name' in pdf.columns:
-        gaianame = pdf['d:DR3Name'].values[0]
-    else:
-        gaianame = None
-    cdsxmatch = pdf['d:cdsxmatch'].values[0]
-    vsx = pdf['d:vsx'].values[0]
-    gcvs = pdf['d:gcvs'].values[0]
+    distnr = get_first_value(pdf, 'i:distnr')
+    ssnamenr = get_first_value(pdf, 'i:ssnamenr')
+    distpsnr1 = get_first_value(pdf, 'i:distpsnr1')
+    neargaia = get_first_value(pdf, 'i:neargaia')
+    constellation = get_first_value(pdf, 'v:constellation')
+    gaianame = get_first_value(pdf, 'd:DR3Name')
+    cdsxmatch = get_first_value(pdf, 'd:cdsxmatch')
+    vsx = get_first_value(pdf, 'd:vsx')
+    gcvs = get_first_value(pdf, 'd:gcvs')
 
     card = dmc.Paper(
         [
@@ -946,11 +939,11 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
-    tns_badge = generate_tns_badge(pdf['i:objectId'].values[0])
+    tns_badge = generate_tns_badge(get_first_value(pdf, 'i:objectId'))
     if tns_badge is not None:
         badges.append(tns_badge)
 
-    ssnamenr = pdf['i:ssnamenr'].values[0]
+    ssnamenr = get_first_value(pdf, 'i:ssnamenr')
     if ssnamenr and ssnamenr != 'null':
         badges.append(
             dmc.Badge(
@@ -960,7 +953,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
-    tracklet = pdf['d:tracklet'].values[0]
+    tracklet = get_first_value(pdf, 'd:tracklet')
     if tracklet and tracklet != 'null':
         badges.append(
             dmc.Badge(
@@ -970,7 +963,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
-    gcvs = pdf['d:gcvs'].values[0]
+    gcvs = get_first_value(pdf, 'd:gcvs')
     if gcvs and gcvs != 'Unknown':
         badges.append(
             dmc.Badge(
@@ -981,7 +974,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
-    vsx = pdf['d:vsx'].values[0]
+    vsx = get_first_value(pdf, 'd:vsx')
     if vsx and vsx != 'Unknown':
         badges.append(
             dmc.Badge(
@@ -992,7 +985,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
-    distnr = pdf['i:distnr'].values[0]
+    distnr = get_first_value(pdf, 'i:distnr')
     if distnr:
         if is_source_behind(distnr):
             ztf_badge = dmc.Tooltip(
@@ -1023,7 +1016,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
 
         badges.append(ztf_badge)
 
-    distpsnr = pdf['i:distpsnr1'].values[0]
+    distpsnr = get_first_value(pdf, 'i:distpsnr1')
     if distpsnr:
         badges.append(
             dmc.Tooltip(
@@ -1039,7 +1032,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
-    distgaia =  pdf['i:neargaia'].values[0]
+    distgaia =  get_first_value(pdf, 'i:neargaia')
     if distgaia:
         badges.append(
             dmc.Tooltip(
@@ -1055,7 +1048,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
             )
         )
 
-    meta_name = generate_metadata_name(pdf['i:objectId'].values[0])
+    meta_name = generate_metadata_name(get_first_value(pdf, 'i:objectId'))
     if meta_name is not None:
         extra_div = dbc.Row(
             [
@@ -1065,7 +1058,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
     else:
         extra_div = html.Div()
 
-    coords = SkyCoord(pdf['i:ra'].values[0], pdf['i:dec'].values[0], unit='deg')
+    coords = SkyCoord(get_first_value(pdf, 'i:ra'), get_first_value(pdf, 'i:dec'), unit='deg')
 
     card = dmc.Paper(
         [
@@ -1088,7 +1081,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
                     discovery_date[:19],
                     date_end[:19],
                     jds[0] - jds[-1],
-                    pdf['i:jdendhist'][0] - pdf['i:jdstarthist'][0],
+                    get_first_value(pdf, 'i:jdendhist') - get_first_value(pdf, 'i:jdstarthist'),
                     ndet, nupper_valid, nupper,
                     coords.ra.to_string(pad=True, unit='hour', precision=2, sep=' '),
                     coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
