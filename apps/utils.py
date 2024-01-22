@@ -201,8 +201,8 @@ def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=Tr
     r = request_api(
         '/api/v1/statistics',
         json={
-            'date': '',
-            'columns': '*',
+            'date': date,
+            'columns': columns,
             'output-format': 'json'
         }
     )
