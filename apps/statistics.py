@@ -131,6 +131,7 @@ def store_stat_query(name):
     )
 
     pdf = pd.read_json(r)
+    pdf = pdf.sort_values('key:key')
     pdf = pdf.set_index('key:key', drop=False)
 
     return pdf.to_json()
@@ -338,6 +339,7 @@ def generate_night_list():
 
     # Format output in a DataFrame
     pdf = pd.read_json(r)
+    pdf = pdf.sort_values('key:key')
 
     labels = list(pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12]))
 

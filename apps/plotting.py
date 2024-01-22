@@ -3902,6 +3902,7 @@ def hist_sci_raw(dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r)
+    pdf = pdf.sort_values('key:key')
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3920,7 +3921,7 @@ def hist_sci_raw(dropdown_days):
     """
 
     card = make_daily_card(
-        pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)', title='Quality cuts', description=description, norm=norm
+        pdf[['Received', 'Processed']], color='rgb(158,202,225)', linecolor='rgb(8,48,107)', title='Quality cuts', description=description, norm=norm
     )
 
     return card
