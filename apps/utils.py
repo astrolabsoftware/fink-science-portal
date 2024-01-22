@@ -177,6 +177,47 @@ def format_hbase_output(
 
     return pdfs
 
+def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=True):
+    """ Query /statistics, and order the resulting dataframe
+
+    Parameters
+    ----------
+    date: str, optional
+        Date (default is '')
+    columns: str
+        Column names (default is '*')
+    index_by: str, optional
+        Column name on which to index on (default is key:key)
+    drop: bool
+        If True, drop original column used to index the dataframe.
+        Default is False.
+
+    Returns
+    ----------
+    pdf: Pandas DataFrame
+        DataFrame with statistics data, ordered from
+        oldest (top) to most recent (bottom)
+    """
+    r = request_api(
+        '/api/v1/statistics',
+        json={
+            'date': date,
+            'columns': columns,
+            'output-format': 'json'
+        }
+    )
+
+    # Format output in a DataFrame
+    pdf = pd.read_json(r)
+    pdf = pdf.sort_values(index_by)
+    pdf = pdf.set_index(index_by, drop=drop)
+
+    # Remove hbase specific fields
+    if 'key:time' in pdf.columns:
+        pdf = pdf.drop(columns=['key:time'])
+
+    return pdf
+
 def isoify_time(t):
     try:
         tt = Time(t)
