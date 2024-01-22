@@ -319,7 +319,7 @@ def daily_stats():
 def generate_night_list():
     """ Generate the list of available nights (last night first)
     """
-    pdf = query_and_order_statistics(columns='')
+    pdf = query_and_order_statistics(columns='', drop=False)
 
     labels = list(pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12]))
 
