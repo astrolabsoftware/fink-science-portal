@@ -3549,6 +3549,7 @@ def plot_stat_evolution(param_name, switch):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r)
+    pdf = pdf.sort_values('key:key')
     pdf = pdf.set_index('key:key')
     pdf = pdf.fillna(0)
 
@@ -3944,6 +3945,7 @@ def hist_catalogued(dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r)
+    pdf = pdf.sort_values('key:key')
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -3987,6 +3989,7 @@ def hist_classified(dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r)
+    pdf = pdf.sort_values('key:key')
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -4033,6 +4036,7 @@ def hist_candidates(dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r)
+    pdf = pdf.sort_values('key:key')
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
@@ -4079,6 +4083,7 @@ def fields_exposures(dropdown_days):
 
     # Format output in a DataFrame
     pdf = pd.read_json(r)
+    pdf = pdf.sort_values('key:key')
     pdf = pdf.set_index('key:key')
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
