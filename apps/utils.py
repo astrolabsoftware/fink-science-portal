@@ -209,8 +209,8 @@ def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=Tr
 
     # Format output in a DataFrame
     pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
-    pdf = pdf.set_index('key:key', drop=drop)
+    pdf = pdf.sort_values(index_by)
+    pdf = pdf.set_index(index_by, drop=drop)
 
     # Remove hbase specific fields
     if 'key:time' in pdf.columns:
