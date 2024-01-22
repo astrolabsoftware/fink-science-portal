@@ -19,6 +19,7 @@ import dash_mantine_components as dmc
 from app import app
 from apps.utils import loading
 from apps.utils import request_api
+from apps.utils import query_and_order_statistics
 
 import numpy as np
 import pandas as pd
@@ -119,20 +120,10 @@ def store_stat_query(name):
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
-    cols = 'basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown'
-
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': cols
-        }
+    pdf = query_and_order_statistics(
+        columns='basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown',
+        drop=False
     )
-
-    pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
-    pdf = pdf.set_index('key:key', drop=False)
 
     return pdf.to_json()
 
@@ -328,18 +319,7 @@ def daily_stats():
 def generate_night_list():
     """ Generate the list of available nights (last night first)
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': ''
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
+    pdf = query_and_order_statistics(columns='')
 
     labels = list(pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12]))
 

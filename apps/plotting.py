@@ -40,6 +40,7 @@ from fink_utils.photometry.utils import is_source_behind
 from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.utils import request_api
+from apps.utils import query_and_order_statistics
 from apps.statistics import dic_names
 
 from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin
@@ -3538,19 +3539,7 @@ def plot_stat_evolution(param_name, switch):
     else:
         param_name_ = param_name
 
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': param_name_
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
-    pdf = pdf.set_index('key:key')
+    pdf = query_and_order_statistics(columns=param_name_)
     pdf = pdf.fillna(0)
 
     pdf['date'] = [
@@ -3892,22 +3881,7 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
 def hist_sci_raw(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': 'basic:raw,basic:sci'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='basic:raw,basic:sci')
 
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
@@ -3934,22 +3908,7 @@ def hist_sci_raw(dropdown_days):
 def hist_catalogued(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': 'class:Solar System MPC,class:simbad_tot,basic:sci'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='class:Solar System MPC,class:simbad_tot,basic:sci')
 
     pdf = pdf.rename(columns={'class:Solar System MPC': 'MPC', 'class:simbad_tot': 'SIMBAD'})
 
@@ -3978,22 +3937,7 @@ def hist_catalogued(dropdown_days):
 def hist_classified(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': 'basic:sci,class:Unknown'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='basic:sci,class:Unknown')
 
     # In case class:unknown contains NaN (see https://github.com/astrolabsoftware/fink-utils/issues/25)
     pdf['class:Unknown'] = pdf['class:Unknown'].replace(np.nan, 0)
@@ -4025,22 +3969,7 @@ def hist_classified(dropdown_days):
 def hist_candidates(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': 'class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate')
 
     pdf = pdf.rename(
         columns={
@@ -4072,22 +4001,7 @@ def hist_candidates(dropdown_days):
 def fields_exposures(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': '*'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.sort_values('key:key')
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='*')
 
     to_drop = [i for i in pdf.columns if i.startswith('basic:')]
     pdf = pdf.drop(columns=to_drop)
