@@ -1718,14 +1718,15 @@ def draw_color(object_data) -> dict:
     <extra></extra>
     """
     color = '#3C8DFF'
+    idx = pdf['i:fid'] == 1 # Show colors at g points only
     figure = {
         'data': [
             {
-                'x': dates,
-                'y': pdf['v:g-r'],
+                'x': dates[idx],
+                'y': pdf['v:g-r'][idx],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['v:sigma(g-r)'],
+                    'array': pdf['v:sigma(g-r)'][idx],
                     'visible': True,
                     'width': 0,
                     'color': color,
@@ -1780,11 +1781,11 @@ def draw_color_rate(object_data) -> dict:
     figure = {
         'data': [
             {
-                'x': dates,
-                'y': pdf['v:rate(g-r)'],
+                'x': dates[m1],
+                'y': pdf['v:rate(g-r)'][m1],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['v:sigma(rate(g-r))'],
+                    'array': pdf['v:sigma(rate(g-r))'][m1],
                     'visible': True,
                     'width': 0,
                     'color': '#3C8DFF',
@@ -1794,8 +1795,8 @@ def draw_color_rate(object_data) -> dict:
                 'name': 'rate g-r (mag/day)',
                 'customdata': list(
                     zip(
-                        ['rate(g - r)'] * len(pdf['i:jd']),
-                        pdf['i:jd'] - 2400000.5,
+                        ['rate(g - r)'] * len(pdf['i:jd'][m1]),
+                        pdf['i:jd'][m1] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
@@ -1861,6 +1862,77 @@ def draw_color_rate(object_data) -> dict:
         "layout": layout_colors_rate
     }
     return figure
+
+# The function assumes that it got pairs of `relayoutData` and `figure` for each
+# of graphs where it will link x axis zoom, in both input and output. Outputs should
+# probably be declared with `allow_duplicate=True` if they are used in actual plotters too
+linked_zoom_plots_xaxis_js = """
+function linked_zoom_xaxis() {
+    const ctx = dash_clientside.callback_context;
+    const triggered = ctx.triggered.map(t => t.prop_id);
+    const aid = Object.keys(ctx.inputs).findIndex((x) => x == triggered);
+    const Nfigs = arguments.length / 2;
+
+    if (aid < 0)
+        // Initial call, or something went wrong
+        return Array(Nfigs*2).fill(dash_clientside.no_update);
+
+    var relayout = arguments[aid];
+
+    let results = Array();
+
+    for(i = 0; i < Nfigs; i++) {
+        var figure_state = arguments[2*i + 1];
+        if (figure_state === undefined)
+            continue;
+        figure_state = JSON.parse(JSON.stringify(figure_state));
+
+        if ('xaxis.autorange' in relayout || 'autosize' in relayout) {
+            figure_state['layout']['xaxis']['autorange'] = true;
+            figure_state['layout']['yaxis']['autorange'] = true;
+        } else if ('xaxis.range[0]' in relayout){
+            figure_state['layout']['xaxis']['range'] = [
+                relayout['xaxis.range[0]'], relayout['xaxis.range[1]']
+            ];
+            figure_state['layout']['xaxis']['autorange'] = false;
+        } else {
+            // TODO: return no_updates?..
+        }
+
+        results.push(relayout);
+        results.push(figure_state);
+    }
+
+    return results;
+}
+"""
+
+clientside_callback(
+    linked_zoom_plots_xaxis_js,
+    [
+        Output('lightcurve_scores', 'relayoutData', allow_duplicate=True),
+        Output('lightcurve_scores', 'figure', allow_duplicate=True),
+        Output('scores', 'relayoutData', allow_duplicate=True),
+        Output('scores', 'figure', allow_duplicate=True),
+        # TODO: add t2
+        Output('colors', 'relayoutData', allow_duplicate=True),
+        Output('colors', 'figure', allow_duplicate=True),
+        Output('colors_rate', 'relayoutData', allow_duplicate=True),
+        Output('colors_rate', 'figure', allow_duplicate=True),
+    ],
+    [
+        Input('lightcurve_scores', 'relayoutData'),
+        Input('lightcurve_scores', 'figure'),
+        Input('scores', 'relayoutData'),
+        Input('scores', 'figure'),
+        # TODO: add t2
+        Input('colors', 'relayoutData'),
+        Input('colors', 'figure'),
+        Input('colors_rate', 'relayoutData'),
+        Input('colors_rate', 'figure'),
+    ],
+    prevent_initial_call=True,
+)
 
 def extract_cutout(object_data, time0, kind):
     """ Extract cutout data from the alert
