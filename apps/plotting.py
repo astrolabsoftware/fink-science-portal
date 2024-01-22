@@ -3909,6 +3909,7 @@ def hist_catalogued(dropdown_days):
     """ Make an histogram
     """
     pdf = query_and_order_statistics(columns='class:Solar System MPC,class:simbad_tot,basic:sci')
+    pdf = pdf.fillna(0)
 
     pdf = pdf.rename(columns={'class:Solar System MPC': 'MPC', 'class:simbad_tot': 'SIMBAD'})
 
