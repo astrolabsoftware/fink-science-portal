@@ -806,6 +806,45 @@ def help_popover(text, id, trigger=None, className=None):
         ], className=className
     )
 
+def template_button_for_external_conesearch(
+        className='btn btn-default zoom btn-circle btn-lg btn-image',
+        style={},
+        color='dark',
+        outline=True,
+        title='',
+        target='_blank',
+        href=''
+    ):
+    """ Template button for external conesearch
+
+    Parameters
+    ----------
+    className: str, optional
+        Styling options. Default is `btn btn-default zoom btn-circle btn-lg btn-image`
+    style: dict, optional
+        Extra styling options. Default is {}
+    color: str, optional
+        Color of the button (default is `dark`)
+    outline: bool, optional
+    title: str, optional
+        Title of the object. Default is ''
+    target: str, optional
+        Open in the same window or in a new tab (default).
+    href: str, optional
+        targeted URL
+    """
+    button = dbc.Button(
+        className=className,
+        style=style,
+        color=color,
+        outline=outline,
+        title=title,
+        target=target,
+        href=href
+    )
+
+    return button
+
 def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, radius=None, width=4):
     """ Create a button that triggers an external conesearch
 
@@ -830,13 +869,9 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
         if radius is None:
             radius = 0.5
         button = dbc.Col(
-            dbc.Button(
-                className='btn btn-default zoom btn-circle btn-lg btn-image',
+            template_button_for_external_conesearch(
                 style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-color': 'black'},
-                color='dark',
-                outline=True,
                 title='ASAS-SN',
-                target="_blank",
                 href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius={}&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0, radius)
             ),
             width=width
@@ -845,13 +880,9 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
         if radius is None:
             radius = 5
         button = dbc.Col(
-            dbc.Button(
-                className='btn btn-default zoom btn-circle btn-lg btn-image',
+            template_button_for_external_conesearch(
                 style={'background-image': 'url(/assets/buttons/snad.svg)'},
-                color='dark',
-                outline=True,
                 title='SNAD',
-                target="_blank",
                 href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, radius)
             ),
             width=width
@@ -860,13 +891,9 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
         if radius is None:
             radius = 0.1
         button = dbc.Col(
-            dbc.Button(
-                className='btn btn-default btn-circle btn-lg zoom btn-image',
+            template_button_for_external_conesearch(
                 style={'background-image': 'url(/assets/buttons/vsx.png)'},
-                color='dark',
-                outline=True,
                 title='AAVSO VSX',
-                target="_blank",
                 href="https://www.aavso.org/vsx/index.php?view=results.get&coords={}+{}&format=d&size={}".format(ra0, dec0, radius)
             ),
             width=width
@@ -875,13 +902,9 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
         if radius is None:
             radius = 5
         button = dbc.Col(
-            dbc.Button(
-                className='btn btn-default btn-circle btn-lg zoom btn-image',
+            template_button_for_external_conesearch(
                 style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'auto 100%', 'background-position-x': 'left'},
-                color='dark',
-                outline=True,
                 title='TNS',
-                target="_blank",
                 href='https://www.wis-tns.org/search?ra={}&decl={}&radius={}&coords_unit=arcsec'.format(ra0, dec0, radius)
             ),
             width=width
@@ -890,13 +913,9 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
         if radius is None:
             radius = 0.08
         button = dbc.Col(
-            dbc.Button(
-                className='btn btn-default btn-circle btn-lg zoom btn-image',
+            template_button_for_external_conesearch(
                 style={'background-image': 'url(/assets/buttons/simbad.png)'},
-                color='dark',
-                outline=True,
                 title='SIMBAD',
-                target="_blank",
                 href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius={}".format(ra0, dec0, radius)
             ),
             width=width
@@ -905,13 +924,9 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
         if radius is None:
             radius = 2.0
         button = dbc.Col(
-            dbc.Button(
-                className='btn btn-default btn-circle btn-lg zoom btn-image',
+            template_button_for_external_conesearch(
                 style={'background-image': 'url(/assets/buttons/dclogo_small.png)'},
-                color='dark',
-                outline=True,
                 title='DataCentral Data Aggregation Service',
-                target="_blank",
                 href='https://das.datacentral.org.au/open?RA={}&DEC={}&FOV={}&ERR={}'.format(ra0, dec0, 0.5, radius)
             ),
             width=width
@@ -920,26 +935,18 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
         if radius is None:
             radius = 1.0
         button = dbc.Col(
-            dbc.Button(
-                className='btn btn-default btn-circle btn-lg zoom btn-image',
+            template_button_for_external_conesearch(
                 style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-color': 'black'},
-                color='dark',
-                outline=True,
                 title='NED',
-                target="_blank",
                 href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius={}&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0, radius)
             ),
             width=width
         )
     elif kind == 'sdss':
         button = dbc.Col(
-            dbc.Button(
-                className='btn btn-default btn-circle btn-lg zoom btn-image',
+            template_button_for_external_conesearch(
                 style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)'},
-                color='dark',
-                outline=True,
-                title='SDSS',
-                target="_blank",
+                title="SDSS",
                 href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
             ),
             width=width
