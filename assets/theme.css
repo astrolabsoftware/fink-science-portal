@@ -112,3 +112,7 @@ h2 {
 .api .nav-link.active {
   border-color: #dee2e6;
 }
+
+a:hover {
+  color: #297ac2;
+}
