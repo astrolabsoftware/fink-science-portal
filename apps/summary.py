@@ -490,7 +490,7 @@ def is_sso(pdfs):
     if str(payload) == 'null' or str(payload) == 'None':
         return False
 
-    if np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values]):
+    if np.all([i == payload for i in pdfs['i:ssnamenr'].values]):
         return True
 
     return False
@@ -546,7 +546,7 @@ def store_query(name):
     pdfsUV = pdf[pdf['d:tag'] == 'badquality']
 
     payload = pdfs['i:ssnamenr'].values[0]
-    is_sso = np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values])
+    is_sso = np.all([i == payload for i in pdfs['i:ssnamenr'].values])
     if str(payload) != 'null' and is_sso:
         pdfsso = request_api(
             '/api/v1/sso',

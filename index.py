@@ -971,14 +971,14 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         return data, columns
     elif groupby2 is True:
         pdf = pd.DataFrame.from_dict(data)
-        if not np.alltrue(pdf['i:ssnamenr'] == 'null'):
+        if not np.all(pdf['i:ssnamenr'] == 'null'):
             mask = ~pdf.duplicated(subset='i:ssnamenr') | (pdf['i:ssnamenr'] == 'null')
             pdf = pdf[mask]
             data = pdf.to_dict('records')
         return data, columns
     elif groupby3 is True:
         pdf = pd.DataFrame.from_dict(data)
-        if not np.alltrue(pdf['d:tracklet'] == ''):
+        if not np.all(pdf['d:tracklet'] == ''):
             mask = ~pdf.duplicated(subset='d:tracklet') | (pdf['d:tracklet'] == '')
             pdf = pdf[mask]
             data = pdf.to_dict('records')
