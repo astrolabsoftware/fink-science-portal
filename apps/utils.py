@@ -198,7 +198,7 @@ def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=Tr
         DataFrame with statistics data, ordered from
         oldest (top) to most recent (bottom)
     """
-    r = request_api(
+    pdf = request_api(
         '/api/v1/statistics',
         json={
             'date': date,
@@ -207,8 +207,6 @@ def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=Tr
         }
     )
 
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
     pdf = pdf.sort_values(index_by)
     pdf = pdf.set_index(index_by, drop=drop)
 
@@ -727,7 +725,7 @@ def retrieve_oid_from_metaname(name):
         json={
             'internal_name_encoded': name,
         },
-        get_json=True
+        output='json'
     )
 
     if r != []:
@@ -773,7 +771,10 @@ from flask import Response
 from json import loads as json_loads
 import io
 
-def request_api(endpoint, json=None, get_json=False, method='POST'):
+def request_api(endpoint, json=None, output='pandas', method='POST', **kwargs):
+    """
+    Output is one of 'pandas' (default), 'raw' or 'json'
+    """
     if LOCALAPI:
         # Use local API
         urls = server.url_map.bind('')
@@ -793,10 +794,12 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
             else:
                 result = res
 
-            if get_json:
+            if output == 'json':
                 return json_loads(result)
-            else:
+            elif output == 'raw':
                 return result
+            else:
+                return pd.read_json(result, **kwargs)
         else:
             return None
     else:
@@ -812,10 +815,12 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
                 '{}{}'.format(APIURL, endpoint)
             )
 
-        if get_json:
+        if output == 'json':
             return r.json()
-        else:
+        elif output == 'raw':
             return io.BytesIO(r.content)
+        else:
+            return pd.read_json(io.BytesIO(r.content), **kwargs)
 
 # TODO: split these UI snippets into separate file?..
 import dash_mantine_components as dmc

@@ -371,7 +371,7 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
                 'columns': columns,
                 'output-format': 'json'
             },
-            get_json=True
+            output='json'
         )
         if r != []:
             payload = r[0]
