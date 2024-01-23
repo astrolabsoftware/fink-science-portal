@@ -767,8 +767,8 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
         # Use local API
         urls = server.url_map.bind('')
         func_name = urls.match(endpoint, method)
-        if len(func_name) == 2 and func_name[0][0] == '.':
-            func = getattr(apps.api.api, func_name[0][1:])
+        if len(func_name) == 2 and func_name[0].startswith('api.'):
+            func = getattr(apps.api.api, func_name[0].split('.')[1])
 
             if method == 'GET':
                 # No args?..
@@ -785,7 +785,7 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
             if get_json:
                 return json_loads(result)
             else:
-                return io.BytesIO(result)
+                return io.StringIO(result)
         else:
             return None
     else:
