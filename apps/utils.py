@@ -755,6 +755,14 @@ def get_first_finite_value(data, pos=0):
     else:
         return np.nan
 
+def get_first_value(pdf, colname, default=None):
+    """ Get first value from given column of a DataFrame, or default value if not exists.
+    """
+    if colname in pdf.columns:
+        return pdf.loc[0, colname]
+    else:
+        return default
+
 # Access local or remove API endpoint
 from app import server
 import apps.api
