@@ -271,6 +271,9 @@ def readstamp(stamp: str, return_type='array', gzipped=True) -> np.array:
                 data.seek(0)
         return data
 
+    if not isinstance(stamp, io.BytesIO):
+        stamp = io.BytesIO(stamp)
+
     if gzipped:
         with gzip.open(stamp, 'rb') as f:
             return extract_stamp(io.BytesIO(f.read()))
@@ -793,7 +796,7 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
             if get_json:
                 return json_loads(result)
             else:
-                return io.StringIO(result)
+                return result
         else:
             return None
     else:

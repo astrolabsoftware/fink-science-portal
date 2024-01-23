@@ -748,7 +748,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             io.BytesIO(),
             mimetype='image/png',
             as_attachment=True,
-            attachment_filename=filename
+            download_name=filename
         )
     # Extract cutouts
     if output_format == 'FITS':
@@ -775,7 +775,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             array,
             mimetype='application/octet-stream',
             as_attachment=True,
-            attachment_filename=filename
+            download_name=filename
         )
     # send the array
     elif output_format == 'array':
@@ -813,7 +813,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         datab,
         mimetype='image/png',
         as_attachment=True,
-        attachment_filename=filename)
+        download_name=filename)
 
 def perform_xmatch(payload: dict) -> pd.DataFrame:
     """ Extract data returned by HBase and jsonify it
