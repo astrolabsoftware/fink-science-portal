@@ -927,7 +927,7 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
             '{}/api/v1/explorer'.format(APIURL),
             json=payload_data
         )
-        pdf = pd.read_json(r.content)
+        pdf = pd.read_json(io.BytesIO(r.content))
 
         # Loop over results and construct the dataframe
         if not pdf.empty:

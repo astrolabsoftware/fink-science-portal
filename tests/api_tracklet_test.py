@@ -57,9 +57,9 @@ def test_simple_trackletsearch() -> None:
 
     assert not pdf.empty
 
-    assert np.alltrue(pdf['d:tracklet'].values != '')
+    assert np.all(pdf['d:tracklet'].values != '')
 
-    assert np.alltrue([i.startswith('TRCK') for i in pdf['d:tracklet'].values])
+    assert np.all([i.startswith('TRCK') for i in pdf['d:tracklet'].values])
 
 def test_fulldate() -> None:
     """
@@ -70,7 +70,7 @@ def test_fulldate() -> None:
     pdf = trackletsearch(date='2021-10-22 09:19:49')
     jd0 = Time('2021-10-22 09:19:49').jd
 
-    assert np.alltrue(
+    assert np.all(
         [
             np.round(i, 3) == np.round(jd0, 3) for i in pdf['i:jd'].values
         ]
@@ -84,7 +84,7 @@ def test_single_tracklet() -> None:
     """
     pdf = trackletsearch(date='2021-10-22 09:19:49 00')
 
-    assert np.alltrue(pdf['d:tracklet'].values == 'TRCK_20211022_091949_00')
+    assert np.all(pdf['d:tracklet'].values == 'TRCK_20211022_091949_00')
 
 
 if __name__ == "__main__":

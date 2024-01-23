@@ -73,7 +73,7 @@ def test_simple_anomaly() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.alltrue(pdf['d:anomaly_score'].values < 0)
+    assert np.all(pdf['d:anomaly_score'].values < 0)
 
 def test_anomaly_and_date() -> None:
     """
@@ -121,7 +121,7 @@ def test_query_url() -> None:
     cols = ['d:anomaly_score']
 
     isclose = np.isclose(pdf1[cols], pdf2[cols])
-    assert np.alltrue(isclose)
+    assert np.all(isclose)
 
 def test_various_outputs() -> None:
     """
@@ -141,7 +141,7 @@ def test_various_outputs() -> None:
         cols2 = cols1 if fmt != 'votable' else ['d_anomaly_score']
 
         isclose = np.isclose(pdf1[cols1], pdf2[cols2])
-        assert np.alltrue(isclose), fmt
+        assert np.all(isclose), fmt
 
 def test_feature_array() -> None:
     """
