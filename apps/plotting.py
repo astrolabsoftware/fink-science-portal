@@ -1888,7 +1888,7 @@ function linked_zoom_xaxis() {
             continue;
         figure_state = JSON.parse(JSON.stringify(figure_state));
 
-        if ('xaxis.autorange' in relayout || 'autosize' in relayout) {
+        if ('xaxis.autorange' in relayout) {
             figure_state['layout']['xaxis']['autorange'] = true;
             figure_state['layout']['yaxis']['autorange'] = true;
         } else if ('xaxis.range[0]' in relayout){
