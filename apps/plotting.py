@@ -2486,7 +2486,7 @@ def integrate_aladin_lite(object_data):
     img = """
     var aladin = A.aladin('#aladin-lite-div',
               {{
-                survey: 'PanSTARRS/DR1/color-i-r-g',
+                survey: 'https://alasky.cds.unistra.fr/Pan-STARRS/DR1/color-i-r-g/',
                 fov: 0.025,
                 target: '{} {}',
                 reticleColor: '#ff89ff',
