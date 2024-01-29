@@ -40,6 +40,7 @@ from fink_utils.photometry.utils import is_source_behind
 from apps.utils import sine_fit
 from apps.utils import class_colors
 from apps.utils import request_api
+from apps.utils import query_and_order_statistics
 from apps.statistics import dic_names
 
 from fink_utils.sso.spins import func_hg, func_hg12, func_hg1g2, func_hg1g2_with_spin
@@ -49,10 +50,6 @@ from pyLIMA import event
 from pyLIMA import telescopes
 from pyLIMA import microlmodels, microltoolbox
 from pyLIMA.microloutputs import create_the_fake_telescopes
-
-from astropy.modeling.fitting import LevMarLSQFitter
-import astropy.units as u
-from sbpy.data import Obs
 
 from app import app
 
@@ -1718,14 +1715,15 @@ def draw_color(object_data) -> dict:
     <extra></extra>
     """
     color = '#3C8DFF'
+    idx = pdf['i:fid'] == 1 # Show colors at g points only
     figure = {
         'data': [
             {
-                'x': dates,
-                'y': pdf['v:g-r'],
+                'x': dates[idx],
+                'y': pdf['v:g-r'][idx],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['v:sigma(g-r)'],
+                    'array': pdf['v:sigma(g-r)'][idx],
                     'visible': True,
                     'width': 0,
                     'color': color,
@@ -1780,11 +1778,11 @@ def draw_color_rate(object_data) -> dict:
     figure = {
         'data': [
             {
-                'x': dates,
-                'y': pdf['v:rate(g-r)'],
+                'x': dates[m1],
+                'y': pdf['v:rate(g-r)'][m1],
                 'error_y': {
                     'type': 'data',
-                    'array': pdf['v:sigma(rate(g-r))'],
+                    'array': pdf['v:sigma(rate(g-r))'][m1],
                     'visible': True,
                     'width': 0,
                     'color': '#3C8DFF',
@@ -1794,8 +1792,8 @@ def draw_color_rate(object_data) -> dict:
                 'name': 'rate g-r (mag/day)',
                 'customdata': list(
                     zip(
-                        ['rate(g - r)'] * len(pdf['i:jd']),
-                        pdf['i:jd'] - 2400000.5,
+                        ['rate(g - r)'] * len(pdf['i:jd'][m1]),
+                        pdf['i:jd'][m1] - 2400000.5,
                     )
                 ),
                 'hovertemplate': hovertemplate_rate,
@@ -1861,6 +1859,77 @@ def draw_color_rate(object_data) -> dict:
         "layout": layout_colors_rate
     }
     return figure
+
+# The function assumes that it got pairs of `relayoutData` and `figure` for each
+# of graphs where it will link x axis zoom, in both input and output. Outputs should
+# probably be declared with `allow_duplicate=True` if they are used in actual plotters too
+linked_zoom_plots_xaxis_js = """
+function linked_zoom_xaxis() {
+    const ctx = dash_clientside.callback_context;
+    const triggered = ctx.triggered.map(t => t.prop_id);
+    const aid = Object.keys(ctx.inputs).findIndex((x) => x == triggered);
+    const Nfigs = arguments.length / 2;
+
+    if (aid < 0)
+        // Initial call, or something went wrong
+        return Array(Nfigs*2).fill(dash_clientside.no_update);
+
+    var relayout = arguments[aid];
+
+    let results = Array();
+
+    for(i = 0; i < Nfigs; i++) {
+        var figure_state = arguments[2*i + 1];
+        if (figure_state === undefined)
+            continue;
+        figure_state = JSON.parse(JSON.stringify(figure_state));
+
+        if ('xaxis.autorange' in relayout) {
+            figure_state['layout']['xaxis']['autorange'] = true;
+            figure_state['layout']['yaxis']['autorange'] = true;
+        } else if ('xaxis.range[0]' in relayout){
+            figure_state['layout']['xaxis']['range'] = [
+                relayout['xaxis.range[0]'], relayout['xaxis.range[1]']
+            ];
+            figure_state['layout']['xaxis']['autorange'] = false;
+        } else {
+            // TODO: return no_updates?..
+        }
+
+        results.push(relayout);
+        results.push(figure_state);
+    }
+
+    return results;
+}
+"""
+
+clientside_callback(
+    linked_zoom_plots_xaxis_js,
+    [
+        Output('lightcurve_scores', 'relayoutData', allow_duplicate=True),
+        Output('lightcurve_scores', 'figure', allow_duplicate=True),
+        Output('scores', 'relayoutData', allow_duplicate=True),
+        Output('scores', 'figure', allow_duplicate=True),
+        # TODO: add t2
+        Output('colors', 'relayoutData', allow_duplicate=True),
+        Output('colors', 'figure', allow_duplicate=True),
+        Output('colors_rate', 'relayoutData', allow_duplicate=True),
+        Output('colors_rate', 'figure', allow_duplicate=True),
+    ],
+    [
+        Input('lightcurve_scores', 'relayoutData'),
+        Input('lightcurve_scores', 'figure'),
+        Input('scores', 'relayoutData'),
+        Input('scores', 'figure'),
+        # TODO: add t2
+        Input('colors', 'relayoutData'),
+        Input('colors', 'figure'),
+        Input('colors_rate', 'relayoutData'),
+        Input('colors_rate', 'figure'),
+    ],
+    prevent_initial_call=True,
+)
 
 def extract_cutout(object_data, time0, kind):
     """ Extract cutout data from the alert
@@ -2463,11 +2532,13 @@ def integrate_aladin_lite(object_data):
     img = """
     var aladin = A.aladin('#aladin-lite-div',
               {{
-                survey: 'P/PanSTARRS/DR1/color/z/zg/g',
+                survey: 'https://alasky.cds.unistra.fr/Pan-STARRS/DR1/color-i-r-g/',
                 fov: 0.025,
                 target: '{} {}',
                 reticleColor: '#ff89ff',
-                reticleSize: 32
+                reticleSize: 32,
+                showContextMenu: true,
+                showCooGridControl: true,
     }});
     var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
     var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
@@ -3538,18 +3609,7 @@ def plot_stat_evolution(param_name, switch):
     else:
         param_name_ = param_name
 
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': param_name_
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.set_index('key:key')
+    pdf = query_and_order_statistics(columns=param_name_)
     pdf = pdf.fillna(0)
 
     pdf['date'] = [
@@ -3891,21 +3951,7 @@ def make_daily_card(pdf, color, linecolor, title, description, height='12pc', sc
 def hist_sci_raw(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': 'basic:raw,basic:sci'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='basic:raw,basic:sci')
 
     if dropdown_days is None or dropdown_days == '':
         dropdown_days = pdf.index[-1]
@@ -3920,7 +3966,7 @@ def hist_sci_raw(dropdown_days):
     """
 
     card = make_daily_card(
-        pdf, color='rgb(158,202,225)', linecolor='rgb(8,48,107)', title='Quality cuts', description=description, norm=norm
+        pdf[['Received', 'Processed']], color='rgb(158,202,225)', linecolor='rgb(8,48,107)', title='Quality cuts', description=description, norm=norm
     )
 
     return card
@@ -3932,21 +3978,8 @@ def hist_sci_raw(dropdown_days):
 def hist_catalogued(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': 'class:Solar System MPC,class:simbad_tot,basic:sci'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='class:Solar System MPC,class:simbad_tot,basic:sci')
+    pdf = pdf.fillna(0)
 
     pdf = pdf.rename(columns={'class:Solar System MPC': 'MPC', 'class:simbad_tot': 'SIMBAD'})
 
@@ -3975,24 +4008,9 @@ def hist_catalogued(dropdown_days):
 def hist_classified(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': 'basic:sci,class:Unknown'
-        }
-    )
+    pdf = query_and_order_statistics(columns='basic:sci,class:Unknown')
+    pdf = pdf.fillna(0)
 
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
-
-    # In case class:unknown contains NaN (see https://github.com/astrolabsoftware/fink-utils/issues/25)
-    pdf['class:Unknown'] = pdf['class:Unknown'].replace(np.nan, 0)
     pdf['Classified'] = pdf['basic:sci'].astype(int) - pdf['class:Unknown'].astype(int)
     pdf = pdf.rename(columns={'class:Unknown': 'Unclassified'})
 
@@ -4021,21 +4039,7 @@ def hist_classified(dropdown_days):
 def hist_candidates(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': 'class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate')
 
     pdf = pdf.rename(
         columns={
@@ -4067,21 +4071,7 @@ def hist_candidates(dropdown_days):
 def fields_exposures(dropdown_days):
     """ Make an histogram
     """
-    r = request_api(
-        '/api/v1/statistics',
-        json={
-            'date': '',
-            'output-format': 'json',
-            'columns': '*'
-        }
-    )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
-    pdf = pdf.set_index('key:key')
-    # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    pdf = query_and_order_statistics(columns='*')
 
     to_drop = [i for i in pdf.columns if i.startswith('basic:')]
     pdf = pdf.drop(columns=to_drop)

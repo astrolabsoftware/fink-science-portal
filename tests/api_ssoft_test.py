@@ -1,4 +1,4 @@
-# Copyright 2023 AstroLab Software
+# Copyright 2023-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,7 +129,7 @@ def test_schema() -> None:
     """
     pdf = ssoftsearch(schema=True, output_format='json')
 
-    assert len(pdf) == 53
+    assert len(pdf) == 55, 'Found {} entries'.format(len(pdf))
 
 
 if __name__ == "__main__":

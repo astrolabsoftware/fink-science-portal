@@ -18,14 +18,11 @@ from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
 import visdcc
-import dash_trich_components as dtc
 
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from dash_autocomplete_input import AutocompleteInput
-# from dash_lazy_load import LazyLoad
-# from dash_grocery import LazyLoad
 
 from app import server
 from app import app
@@ -46,14 +43,10 @@ from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 from apps.cards import card_search_result
 from apps.parse import parse_query
 
-from fink_utils.photometry.utils import is_source_behind
-
 import pandas as pd
 import numpy as np
-from astropy.time import Time, TimeDelta
 
 import urllib
-import json
 
 tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
 tns_types = sorted(tns_types, key=lambda s: s.lower())
@@ -231,7 +224,7 @@ fink_search_bar = [
                         persistence=True,
                         id="results_table_switch"
                     ),
-                    className='float-right',
+                    className='float-end',
                     title='Show results as cards or table'
                 ),
             ],
@@ -711,7 +704,7 @@ def display_table_results(table):
                     md='auto'
                 ),
             ],
-            align='end', justify='start',
+            align='center', justify='start',
             className='mb-2',
         ),
         table
@@ -770,7 +763,19 @@ def display_skymap(data, columns, is_open):
         img = """var container = document.getElementById('aladin-lite-div-skymap');var txt = ''; container.innerHTML = txt;"""
 
         # Aladin lite
-        img += """var a = A.aladin('#aladin-lite-div-skymap', {{target: '{} {}', survey: 'P/PanSTARRS/DR1/color/z/zg/g', showReticle: true, allowFullZoomout: true, fov: 360}});""".format(ra0, dec0)
+        img += """
+        var a = A.aladin('#aladin-lite-div-skymap',
+        {{
+            target: '{} {}',
+            survey: 'https://alasky.cds.unistra.fr/Pan-STARRS/DR1/color-i-r-g/',
+            showReticle: true,
+            allowFullZoomout: true,
+            showContextMenu: true,
+            showCooGridControl: true,
+            fov: 360
+            }}
+        );
+        """.format(ra0, dec0)
 
         ras = pdf['i:ra'].values
         decs = pdf['i:dec'].values

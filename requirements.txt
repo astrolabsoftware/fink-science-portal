@@ -45,7 +45,6 @@ dash-iconify==0.1.2
 dash-mantine-components==0.12.1
 dash-renderer==1.9.1
 dash-table==5.0.0
-dash-trich-components==1.0.0
 dash-autocomplete-input==0.0.7
 decorator==4.4.2
 dill==0.3.6
@@ -58,8 +57,8 @@ fastavro==1.6.0
 fink-client==3.1
 fink-filters==3.11
 fink-science==3.6.0
-fink-utils==0.13.8
-fink-spins==0.3.2
+fink-utils==0.13.12
+fink-spins==0.3.7
 Flask==1.1.2
 Flask-Caching==1.10.1
 Flask-Compress==1.5.0
@@ -201,4 +200,3 @@ yarl==1.8.1
 zipp==3.4.1
 zope.event==4.5.0
 zope.interface==5.2.0
-git+https://github.com/astrolabsoftware/fink-spins@0.2.0
