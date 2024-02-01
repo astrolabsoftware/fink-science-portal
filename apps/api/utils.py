@@ -282,10 +282,9 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 results.update(result)
             client.setRangeScan(False)
         else:
-            # Do we really need this separate branch?.. Is it much faster than range scan?..
             results = {}
             for pix in pixs:
-                to_search = "key:key:{}".format(pix)
+                to_search = "key:key:{}_".format(pix)
                 result = client.scan(
                     "",
                     to_search,
