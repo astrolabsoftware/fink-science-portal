@@ -89,6 +89,27 @@ def hbase_to_dict(hbase_output):
 
     return optimized
 
+def convert_datatype(series: pd.Series, type_: type) -> pd.Series:
+    """ Convert Series from HBase data with proper type
+
+    Parameters
+    ----------
+    series: pd.Series
+        a column of the DataFrame
+    type_: type
+        Python built-in type (int, str, float)
+
+    Notes
+    ----------
+    For `int` column, we convert first to float due to
+    the possible presence of NaN, and then convert to Int64.
+    See https://pandas.pydata.org/pandas-docs/version/1.3/user_guide/integer_na.html
+    """
+    if type_ == int:
+        return convert_datatype(series.astype(float), 'Int64')
+
+    return series.astype(type_)
+
 def format_hbase_output(
         hbase_output, schema_client,
         group_alerts: bool, truncated: bool = False,
@@ -118,8 +139,11 @@ def format_hbase_output(
             pdfs = pdfs.drop(columns=colname)
 
     # Type conversion
-    pdfs = pdfs.astype(
-        {i: hbase_type_converter[schema_client.type(i)] for i in pdfs.columns})
+    for col in pdfs.columns:
+        pdfs[col] = convert_datatype(
+            pdfs[col],
+            hbase_type_converter[schema_client.type(i)]
+        )
 
     # cast 'nan' into `[]` for easier json decoding
     for col in ['d:lc_features_g', 'd:lc_features_r']:
