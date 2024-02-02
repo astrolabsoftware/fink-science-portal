@@ -39,6 +39,7 @@ from apps.utils import get_miriade_data
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
+from apps.utils import convert_datatype
 from apps.utils import isoify_time
 from apps.utils import hbase_to_dict
 
@@ -613,9 +614,11 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         pdf = pdf.drop(columns=['key:time'])
 
     # Type conversion
-    pdf = pdf.astype(
-        {i: hbase_type_converter[schema_client.type(i)] for i in pdf.columns}
-    )
+    for col in pdfs.columns:
+        pdfs[col] = convert_datatype(
+            pdfs[col],
+            hbase_type_converter[schema_client.type(col)]
+        )
 
     return pdf
 
@@ -1615,8 +1618,11 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
 
     # Type conversion
     schema = client.schema()
-    pdf = pdf.astype(
-        {i: hbase_type_converter[schema.type(i)] for i in pdf.columns})
+    for col in pdfs.columns:
+        pdfs[col] = convert_datatype(
+            pdfs[col],
+            hbase_type_converter[schema.type(col)]
+        )
 
     client.close()
 
