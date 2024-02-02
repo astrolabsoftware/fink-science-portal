@@ -142,7 +142,7 @@ def format_hbase_output(
     for col in pdfs.columns:
         pdfs[col] = convert_datatype(
             pdfs[col],
-            hbase_type_converter[schema_client.type(i)]
+            hbase_type_converter[schema_client.type(col)]
         )
 
     # cast 'nan' into `[]` for easier json decoding
