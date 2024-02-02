@@ -56,7 +56,8 @@ hbase_type_converter = {
     'float': float,
     'double': float,
     'string': str,
-    'fits/image': str
+    'fits/image': str,
+    'boolean': bool
 }
 
 class_colors = {
