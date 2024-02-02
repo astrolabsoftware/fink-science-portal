@@ -1085,6 +1085,9 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
         )
         pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
 
+        # See https://github.com/astrolabsoftware/fink-science-portal/issues/579
+        pdf = pdf.replace(regex={r'^\x00.*$': 0})
+
     client.close()
 
     return pdf
