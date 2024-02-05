@@ -29,6 +29,7 @@ import pandas as pd
 from datetime import datetime, timedelta, date
 import yaml
 import textwrap
+import requests
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
