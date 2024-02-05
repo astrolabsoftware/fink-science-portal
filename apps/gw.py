@@ -345,7 +345,7 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
                 showContextMenu: true,
                 showCooGridControl: true,
                 fov: 360
-            }}z
+            }}
         );
         """.format(ra0, dec0)
 
