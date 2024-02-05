@@ -2521,11 +2521,13 @@ def integrate_aladin_lite(object_data):
     img = """
     var aladin = A.aladin('#aladin-lite-div',
               {{
-                survey: 'P/PanSTARRS/DR1/color/z/zg/g',
+                survey: 'https://alasky.cds.unistra.fr/Pan-STARRS/DR1/color-i-r-g/',
                 fov: 0.025,
                 target: '{} {}',
                 reticleColor: '#ff89ff',
-                reticleSize: 32
+                reticleSize: 32,
+                showContextMenu: true,
+                showCooGridControl: true,
     }});
     var cat = 'https://axel.u-strasbg.fr/HiPSCatService/Simbad';
     var hips = A.catalogHiPS(cat, {{onClick: 'showTable', name: 'Simbad'}});
