@@ -112,7 +112,7 @@ def test_class() -> None:
     """
     pdf = get_an_object(number=3, object_class="Solar System MPC")
 
-    assert np.alltrue([i == 'Solar System MPC' for i in pdf['v:classification'].values])
+    assert np.all([i == 'Solar System MPC' for i in pdf['v:classification'].values])
 
 
 if __name__ == "__main__":

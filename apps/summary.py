@@ -490,7 +490,7 @@ def is_sso(pdfs):
     if str(payload) == 'null' or str(payload) == 'None':
         return False
 
-    if np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values]):
+    if np.all([i == payload for i in pdfs['i:ssnamenr'].values]):
         return True
 
     return False
@@ -529,17 +529,13 @@ def store_query(name):
     else:
         oid = name[1:]
 
-    r = request_api(
+    pdf = request_api(
         '/api/v1/objects',
         json={
             'objectId': oid,
             'withupperlim': True,
             'withcutouts': False,
-        }
-    )
-
-    pdf = pd.read_json(
-        r,
+        },
         dtype={'i:ssnamenr':str} # Force reading this field as string
     )
 
@@ -550,16 +546,14 @@ def store_query(name):
     pdfsUV = pdf[pdf['d:tag'] == 'badquality']
 
     payload = pdfs['i:ssnamenr'].values[0]
-    is_sso = np.alltrue([i == payload for i in pdfs['i:ssnamenr'].values])
+    is_sso = np.all([i == payload for i in pdfs['i:ssnamenr'].values])
     if str(payload) != 'null' and is_sso:
-        r = request_api(
+        pdfsso = request_api(
             '/api/v1/sso',
             json={
                 'n_or_d': payload,
             }
         )
-
-        pdfsso = pd.read_json(r)
 
         if pdfsso.empty:
             # This can happen for SSO candidate with a ssnamenr
@@ -650,13 +644,12 @@ def make_qrcode(path):
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
-    r = request_api(
+    pdf = request_api(
         '/api/v1/objects',
         json={
             'objectId': name[1:],
         }
     )
-    pdf = pd.read_json(r)
 
     if pdf.empty:
         layout_ = html.Div(

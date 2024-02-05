@@ -198,7 +198,7 @@ def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=Tr
         DataFrame with statistics data, ordered from
         oldest (top) to most recent (bottom)
     """
-    r = request_api(
+    pdf = request_api(
         '/api/v1/statistics',
         json={
             'date': date,
@@ -207,8 +207,6 @@ def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=Tr
         }
     )
 
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
     pdf = pdf.sort_values(index_by)
     pdf = pdf.set_index(index_by, drop=drop)
 
@@ -271,11 +269,14 @@ def readstamp(stamp: str, return_type='array', gzipped=True) -> np.array:
                 data.seek(0)
         return data
 
+    if not isinstance(stamp, io.BytesIO):
+        stamp = io.BytesIO(stamp)
+
     if gzipped:
-        with gzip.open(io.BytesIO(stamp), 'rb') as f:
+        with gzip.open(stamp, 'rb') as f:
             return extract_stamp(io.BytesIO(f.read()))
     else:
-        return extract_stamp(io.BytesIO(stamp))
+        return extract_stamp(stamp)
 
 def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') -> pd.DataFrame:
     """ Query and uncompress cutout data from the HBase table
@@ -724,7 +725,7 @@ def retrieve_oid_from_metaname(name):
         json={
             'internal_name_encoded': name,
         },
-        get_json=True
+        output='json'
     )
 
     if r != []:
@@ -768,14 +769,18 @@ from app import server
 import apps.api
 from flask import Response
 from json import loads as json_loads
+import io
 
-def request_api(endpoint, json=None, get_json=False, method='POST'):
+def request_api(endpoint, json=None, output='pandas', method='POST', **kwargs):
+    """
+    Output is one of 'pandas' (default), 'raw' or 'json'
+    """
     if LOCALAPI:
         # Use local API
         urls = server.url_map.bind('')
         func_name = urls.match(endpoint, method)
-        if len(func_name) == 2 and func_name[0][0] == '.':
-            func = getattr(apps.api.api, func_name[0][1:])
+        if len(func_name) == 2 and func_name[0].startswith('api.'):
+            func = getattr(apps.api.api, func_name[0].split('.')[1])
 
             if method == 'GET':
                 # No args?..
@@ -789,10 +794,12 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
             else:
                 result = res
 
-            if get_json:
+            if output == 'json':
                 return json_loads(result)
-            else:
+            elif output == 'raw':
                 return result
+            else:
+                return pd.read_json(result, **kwargs)
         else:
             return None
     else:
@@ -808,10 +815,12 @@ def request_api(endpoint, json=None, get_json=False, method='POST'):
                 '{}{}'.format(APIURL, endpoint)
             )
 
-        if get_json:
+        if output == 'json':
             return r.json()
+        elif output == 'raw':
+            return io.BytesIO(r.content)
         else:
-            return r.content
+            return pd.read_json(io.BytesIO(r.content), **kwargs)
 
 # TODO: split these UI snippets into separate file?..
 import dash_mantine_components as dmc

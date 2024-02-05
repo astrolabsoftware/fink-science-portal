@@ -73,7 +73,7 @@ def test_simple_classsearch() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.alltrue(pdf['v:classification'].values == 'Early SN Ia candidate')
+    assert np.all(pdf['v:classification'].values == 'Early SN Ia candidate')
 
 def test_simbad_classsearch() -> None:
     """
@@ -87,7 +87,7 @@ def test_simbad_classsearch() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.alltrue(pdf['v:classification'].values == 'QSO')
+    assert np.all(pdf['v:classification'].values == 'QSO')
 
 # def test_tns_classsearch() -> None:
 #     """
@@ -104,7 +104,7 @@ def test_simbad_classsearch() -> None:
 #     assert len(pdf) == 9, len(pdf)
 #
 #     # print(pdf['i:fid'].values)
-#     assert np.alltrue(pdf['i:fid'].values > 0)
+#     assert np.all(pdf['i:fid'].values > 0)
 
 def test_classsearch_and_date() -> None:
     """
@@ -118,11 +118,11 @@ def test_classsearch_and_date() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.alltrue(pdf['v:classification'].values == 'Early SN Ia candidate')
+    assert np.all(pdf['v:classification'].values == 'Early SN Ia candidate')
 
-    assert np.alltrue(pdf['v:lastdate'].values < '2021-12-01')
+    assert np.all(pdf['v:lastdate'].values < '2021-12-01')
 
-    assert np.alltrue(pdf['v:lastdate'].values >= '2021-11-01')
+    assert np.all(pdf['v:lastdate'].values >= '2021-11-01')
 
 def test_classsearch_and_cols_with_sort() -> None:
     """
@@ -170,7 +170,7 @@ def test_query_url() -> None:
     cols = ['i:ra', 'i:dec']
 
     isclose = np.isclose(pdf1[cols], pdf2[cols])
-    assert np.alltrue(isclose)
+    assert np.all(isclose)
 
 def test_various_outputs() -> None:
     """
@@ -190,7 +190,7 @@ def test_various_outputs() -> None:
         cols2 = cols1 if fmt != 'votable' else ['i_ra', 'i_dec']
 
         isclose = np.isclose(pdf1[cols1], pdf2[cols2])
-        assert np.alltrue(isclose), fmt
+        assert np.all(isclose), fmt
 
 
 if __name__ == "__main__":

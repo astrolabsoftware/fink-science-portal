@@ -122,8 +122,8 @@ def test_time_boundaries() -> None:
 
     assert not pdf.empty
 
-    assert np.alltrue(pdf['d:jd'].values >= Time('2023-01-01', format='iso').jd)
-    assert np.alltrue(pdf['d:jd'].values <= Time('2023-12-31', format='iso').jd)
+    assert np.all(pdf['d:jd'].values >= Time('2023-01-01', format='iso').jd)
+    assert np.all(pdf['d:jd'].values <= Time('2023-12-31', format='iso').jd)
 
 
 if __name__ == "__main__":

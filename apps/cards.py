@@ -786,7 +786,7 @@ def generate_tns_badge(oid):
             'name': oid,
             'reverse': True
         },
-        get_json=True
+        output='json'
     )
 
     if r != []:
@@ -917,7 +917,7 @@ def generate_metadata_name(oid):
         json={
             'objectId': oid,
         },
-        get_json=True
+        output='json'
     )
 
     if r != []:

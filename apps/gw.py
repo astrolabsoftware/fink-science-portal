@@ -116,7 +116,7 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
     except URLError:
         return "error"
 
-    r = request_api(
+    pdf = request_api(
         '/api/v1/bayestar',
         json={
             'bayestar': str(data),
@@ -124,8 +124,6 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
             'output-format': 'json'
         }
     )
-
-    pdf = pd.read_json(r)
 
     # return pdf.to_json(), "done"
     return pdf.to_json()
