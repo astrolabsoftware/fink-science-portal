@@ -45,7 +45,6 @@ docutils==0.20.1
 emcee==3.1.4
 faust-cchardet==2.1.19
 fink-filters==3.25
-fink-science @ git+https://github.com/astrolabsoftware/fink-science@2ba99e03e594fce3480a10b68ed8264b93e165b4
 fink-spins==0.3.7
 fink-utils==0.13.11
 Flask==3.0.1
@@ -157,3 +156,4 @@ Werkzeug==3.0.1
 wrapt==1.16.0
 yarl==1.9.4
 zipp==3.17.0
+git+https://github.com/astrolabsoftware/fink-science@5.6.2
