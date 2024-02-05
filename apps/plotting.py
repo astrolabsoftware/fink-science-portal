@@ -1353,7 +1353,7 @@ def draw_lightcurve_preview(name) -> dict:
     cols = [
         'i:jd', 'i:magpsf', 'i:sigmapsf', 'i:fid', 'i:isdiffpos', 'i:distnr', 'i:magnr', 'i:sigmagnr', 'd:tag'
     ]
-    r = request_api(
+    pdf = request_api(
       '/api/v1/objects',
       json={
         'objectId': name,
@@ -1362,7 +1362,6 @@ def draw_lightcurve_preview(name) -> dict:
         'output-format': 'json'
       }
     )
-    pdf = pd.read_json(r)
 
     # Mask upper-limits (but keep measurements with bad quality)
     mag_ = pdf['i:magpsf']
@@ -1949,11 +1948,11 @@ def extract_cutout(object_data, time0, kind):
         2D array containing cutout data
     """
     pdf_ = pd.read_json(object_data)
-    pdf_ = pdf_.sort_values('i:jd', ascending=False)
 
     if time0 is None:
         position = 0
     else:
+        pdf_ = pdf_.sort_values('i:jd', ascending=False)
         # Round to avoid numerical precision issues
         jds = pdf_['i:jd'].apply(lambda x: np.round(x, 3)).values
         jd0 = np.round(Time(time0, format='iso').jd, 3)
@@ -1962,20 +1961,26 @@ def extract_cutout(object_data, time0, kind):
         else:
             return None
 
+    # Construct the query
+    payload = {
+        'objectId': pdf_['i:objectId'].values[0],
+        'kind': kind.capitalize(),
+        'output-format': 'FITS',
+    }
+
+    if position > 0 and 'i:candid' in pdf_.columns:
+        payload['candid'] = str(pdf_['i:candid'].values[position])
+
     # Extract the cutout data
     r = request_api(
         '/api/v1/cutouts',
-        json={
-            'objectId': pdf_['i:objectId'].values[0],
-            'candid': str(pdf_['i:candid'].values[position]),
-            'kind': kind.capitalize(),
-            'output-format': 'FITS',
-        }
+        json=payload,
+        output='raw'
     )
 
     cutout = readstamp(r, gzipped=False)
 
-    if pdf_['i:isdiffpos'].values[position] == 'f' and kind == 'difference':
+    if kind == 'difference' and 'i:isdiffpos' in pdf_.columns and pdf_['i:isdiffpos'].values[position] == 'f':
         # Negative event, let's invert the diff cutout
         cutout *= -1
 
@@ -2040,7 +2045,6 @@ def draw_cutouts_modal(object_data, date_modal_select, is_open):
             cutout = extract_cutout(object_data, date_modal_select, kind=kind)
             if cutout is None:
                 return no_update
-
             data = draw_cutout(cutout, kind, id_type='stamp_modal')
         except OSError:
             data = dcc.Markdown("Load fail, refresh the page")
@@ -2064,23 +2068,8 @@ def draw_cutouts_quickview(name, kinds=['science']):
     figs = []
     for kind in kinds:
         try:
-            # transfer only necessary columns
-            cols = [
-                'i:objectId',
-                'i:candid',
-                'i:jd',
-                'i:isdiffpos',
-                'b:cutout{}_stampData'.format(kind.capitalize()),
-            ]
-            # Transfer cutout name data
-            r = request_api(
-                '/api/v1/objects',
-                json={
-                    'objectId': name,
-                    'columns': ','.join(cols)
-                }
-            )
-            object_data = r
+            # We may manually construct the payload to avoid extra API call
+            object_data = '{{"i:objectId":{{"0": "{}"}}}}'.format(name)
             data = extract_cutout(object_data, None, kind=kind)
             figs.append(draw_cutout(data, kind, zoom=False))
         except OSError:

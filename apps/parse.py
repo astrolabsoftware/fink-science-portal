@@ -40,7 +40,7 @@ def call_resolver(data, kind, reverse=False, **kwargs):
                     'objectId': data,
                     'columns': "i:ra,i:dec",
                 },
-                get_json=True,
+                output='json'
             )
         else:
             params = {
@@ -53,7 +53,7 @@ def call_resolver(data, kind, reverse=False, **kwargs):
             payload = request_api(
                 '/api/v1/resolver',
                 json=params,
-                get_json=True
+                output='json'
             )
     except:
         payload = None

@@ -27,7 +27,7 @@ def callback_telemetry(func):
             return [x for sub in arg for x in flatten(sub)]
 
         def generate_results_dict(function_output, outputs_list):
-            if isinstance(function_output, tuple):
+            if isinstance(function_output, tuple) or isinstance(outputs_list, list):
                 output_strs = [
                     f"{output}.{output['property']}" for output in flatten(outputs_list)
                 ]

@@ -29,6 +29,7 @@ import pandas as pd
 from datetime import datetime, timedelta, date
 import yaml
 import textwrap
+import requests
 
 from fink_utils.xmatch.simbad import get_simbad_labels
 
@@ -371,7 +372,7 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
                 'columns': columns,
                 'output-format': 'json'
             },
-            get_json=True
+            output='json'
         )
         if r != []:
             payload = r[0]

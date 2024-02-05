@@ -601,11 +601,10 @@ def display_table_results(table):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    r = request_api(
+    pdf = request_api(
         '/api/v1/columns',
         method='GET'
     )
-    pdf = pd.read_json(r)
 
     fink_fields = ['d:' + i for i in pdf.loc['Fink science module outputs (d:)']['fields'].keys()]
     ztf_fields = ['i:' + i for i in pdf.loc['ZTF original fields (i:)']['fields'].keys()]
@@ -984,14 +983,14 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         return data, columns
     elif groupby2 is True:
         pdf = pd.DataFrame.from_dict(data)
-        if not np.alltrue(pdf['i:ssnamenr'] == 'null'):
+        if not np.all(pdf['i:ssnamenr'] == 'null'):
             mask = ~pdf.duplicated(subset='i:ssnamenr') | (pdf['i:ssnamenr'] == 'null')
             pdf = pdf[mask]
             data = pdf.to_dict('records')
         return data, columns
     elif groupby3 is True:
         pdf = pd.DataFrame.from_dict(data)
-        if not np.alltrue(pdf['d:tracklet'] == ''):
+        if not np.all(pdf['d:tracklet'] == ''):
             mask = ~pdf.duplicated(subset='d:tracklet') | (pdf['d:tracklet'] == '')
             pdf = pdf[mask]
             data = pdf.to_dict('records')
@@ -1080,7 +1079,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
     elif query['action'] == 'objectid':
         # Search objects by objectId
         msg = "ObjectId search with {} name {}".format('partial' if query.get('partial') else 'exact', query['object'])
-        r = request_api(
+        pdf = request_api(
             '/api/v1/explorer',
             json={
                 'objectId': query['object'],
@@ -1090,7 +1089,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
     elif query['action'] == 'sso':
         # Solar System Objects
         msg = "Solar System object search with ssnamenr {}".format(query['params']['sso'])
-        r = request_api(
+        pdf = request_api(
             '/api/v1/sso',
             json={
                 'n_or_d': query['params']['sso']
@@ -1104,7 +1103,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             'id': query['object']
         }
 
-        r = request_api(
+        pdf = request_api(
             '/api/v1/tracklet',
             json=payload
         )
@@ -1145,7 +1144,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
             payload['window'] = window
 
-        r = request_api(
+        pdf = request_api(
             '/api/v1/explorer',
             json=payload
         )
@@ -1187,7 +1186,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
             payload['stopdate'] = stopdate
 
-        r = request_api(
+        pdf = request_api(
             '/api/v1/latests',
             json=payload
         )
@@ -1219,7 +1218,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
             payload['window'] = window
 
-        r = request_api(
+        pdf = request_api(
             '/api/v1/explorer',
             json=payload
         )
@@ -1248,7 +1247,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
             payload['stop_date'] = stopdate
 
-        r = request_api(
+        pdf = request_api(
             '/api/v1/anomaly',
             json=payload
         )
@@ -1276,7 +1275,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
             payload['seed'] = seed
 
-        r = request_api(
+        pdf = request_api(
             '/api/v1/random',
             json=payload
         )
@@ -1295,9 +1294,6 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
         history.remove(value) # Remove duplicates
     history.append(value)
     history = history[-10:] # Limit it to 10 latest entries
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
 
     if query['action'] == 'random':
         # Keep only latest alert from all objects

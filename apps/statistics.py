@@ -341,14 +341,13 @@ def generate_night_list():
 def generate_col_list():
     """ Generate the list of available columns
     """
-    r = request_api(
+    pdf = request_api(
         '/api/v1/statistics',
         json={
             'output-format': 'json',
             'schema': True
         }
     )
-    pdf = pd.read_json(r)
     schema_list = list(pdf['schema'])
 
     labels = [
@@ -382,7 +381,7 @@ def get_data_one_night(night):
     """
     cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
 
-    r = request_api(
+    pdf = request_api(
         '/api/v1/statistics',
         json={
             'date': night,
@@ -390,9 +389,6 @@ def get_data_one_night(night):
             'columns': ''
         }
     )
-
-    # Format output in a DataFrame
-    pdf = pd.read_json(r)
 
     return pdf
 

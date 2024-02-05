@@ -56,9 +56,9 @@ def test_simple_ssosearch() -> None:
 
     assert not pdf.empty
 
-    assert np.alltrue(pdf['i:ssnamenr'].values > 0)
+    assert np.all(pdf['i:ssnamenr'].values > 0)
 
-    assert np.alltrue(pdf['d:roid'].values == 3)
+    assert np.all(pdf['d:roid'].values == 3)
 
     assert len(pdf.groupby('i:ssnamenr').count()) == 1
 

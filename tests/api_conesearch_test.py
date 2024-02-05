@@ -164,7 +164,7 @@ def test_coordinates() -> None:
 
     magpsf = pdf1['i:magpsf'].values
     for pdf in [pdf2, pdf3, pdf4, pdf5]:
-        assert np.alltrue(pdf['i:magpsf'].values == magpsf)
+        assert np.all(pdf['i:magpsf'].values == magpsf)
 
 def test_bad_request() -> None:
     """
@@ -208,7 +208,7 @@ def test_various_outputs() -> None:
         cols2 = cols1 if fmt != 'votable' else ['i_ra', 'i_dec']
 
         isclose = np.isclose(pdf1[cols1], pdf2[cols2])
-        assert np.alltrue(isclose), fmt
+        assert np.all(isclose), fmt
 
 
 if __name__ == "__main__":

@@ -750,7 +750,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             io.BytesIO(),
             mimetype='image/png',
             as_attachment=True,
-            attachment_filename=filename
+            download_name=filename
         )
     # Extract cutouts
     if output_format == 'FITS':
@@ -777,7 +777,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             array,
             mimetype='application/octet-stream',
             as_attachment=True,
-            attachment_filename=filename
+            download_name=filename
         )
     # send the array
     elif output_format == 'array':
@@ -815,7 +815,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         datab,
         mimetype='image/png',
         as_attachment=True,
-        attachment_filename=filename)
+        download_name=filename)
 
 def perform_xmatch(payload: dict) -> pd.DataFrame:
     """ Extract data returned by HBase and jsonify it
@@ -929,7 +929,7 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
             '{}/api/v1/explorer'.format(APIURL),
             json=payload_data
         )
-        pdf = pd.read_json(r.content)
+        pdf = pd.read_json(io.BytesIO(r.content))
 
         # Loop over results and construct the dataframe
         if not pdf.empty:
