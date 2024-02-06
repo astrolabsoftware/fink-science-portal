@@ -10,7 +10,7 @@ The backend is using [Apache HBase](https://hbase.apache.org/), a distributed no
 
 ## Backend structure
 
-After each observation night, the data is aggregated and pushed into Apache HBase tables. The main table contains all alert data processed by Fink since 2019-11-01. This represents more than 217 million alerts collected, and about 147 million scientifically valid (8.0 TB) as of 01/2023. The main table data is indexed along the `objectId` of alerts, and the emission date `jd`.
+After each observation night, the data is aggregated and pushed into Apache HBase tables. The main table contains all alert data processed by Fink since 2019-11-01. This represents more than 217 million alerts collected, and about 147 million scientifically valid (8.0 TB) as of 01/2024. The main table data is indexed along the `objectId` of alerts, and the emission date `jd`.
 
 In order to allow multi-indexing with HBase, we create _index tables_. These tables are indexed along different properties (time, sky position, classification, ...). They contain the same number of rows than the main table but fewer columns. These index tables are used to perform fast search along arbitrary properties and isolate interesting candidates, while the main table is used to display final data.
 
