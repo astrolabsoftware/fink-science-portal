@@ -913,6 +913,22 @@ def columns_arguments():
         }, ignore_index=True
     )
 
+    ztf_candidate = ztf_candidate._append(
+        {
+            "name": "fink_broker_version",
+            "type": "string",
+            "doc": "Fink broker (fink-broker) version used to process the data"
+        }, ignore_index=True
+    )
+
+    ztf_candidate = ztf_candidate._append(
+        {
+            "name": "fink_science_version",
+            "type": "string",
+            "doc": "Science modules (fink-science) version used to process the data"
+        }, ignore_index=True
+    )
+
     ztf_cutouts = pd.DataFrame.from_dict(
         [
             {
