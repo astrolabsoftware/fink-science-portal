@@ -39,6 +39,7 @@ from apps.utils import get_miriade_data
 from apps.utils import format_hbase_output
 from apps.utils import extract_cutouts
 from apps.utils import hbase_type_converter
+from apps.utils import convert_datatype
 from apps.utils import isoify_time
 from apps.utils import hbase_to_dict
 
@@ -613,9 +614,11 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         pdf = pdf.drop(columns=['key:time'])
 
     # Type conversion
-    pdf = pdf.astype(
-        {i: hbase_type_converter[schema_client.type(i)] for i in pdf.columns}
-    )
+    for col in pdf.columns:
+        pdf[col] = convert_datatype(
+            pdf[col],
+            hbase_type_converter[schema_client.type(col)]
+        )
 
     return pdf
 
@@ -1081,6 +1084,9 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
             0, True, True
         )
         pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+
+        # See https://github.com/astrolabsoftware/fink-science-portal/issues/579
+        pdf = pdf.replace(regex={r'^\x00.*$': 0})
 
     client.close()
 
@@ -1615,8 +1621,11 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
 
     # Type conversion
     schema = client.schema()
-    pdf = pdf.astype(
-        {i: hbase_type_converter[schema.type(i)] for i in pdf.columns})
+    for col in pdf.columns:
+        pdf[col] = convert_datatype(
+            pdf[col],
+            hbase_type_converter[schema.type(col)]
+        )
 
     client.close()
 
