@@ -614,9 +614,9 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         pdf = pdf.drop(columns=['key:time'])
 
     # Type conversion
-    for col in pdfs.columns:
-        pdfs[col] = convert_datatype(
-            pdfs[col],
+    for col in pdf.columns:
+        pdf[col] = convert_datatype(
+            pdf[col],
             hbase_type_converter[schema_client.type(col)]
         )
 
