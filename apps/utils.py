@@ -50,8 +50,10 @@ import apps.api
 simbad_types = get_simbad_labels('old_and_new')
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
+# For int we use `Int64` due to the presence of NaN
+# See https://pandas.pydata.org/pandas-docs/version/1.3/user_guide/integer_na.html
 hbase_type_converter = {
-    'integer': int,
+    'integer': 'Int64',
     'long': int,
     'float': float,
     'double': float,
@@ -98,16 +100,8 @@ def convert_datatype(series: pd.Series, type_: type) -> pd.Series:
     series: pd.Series
         a column of the DataFrame
     type_: type
-        Python built-in type (int, str, float)
-
-    Notes
-    ----------
-    For `int` column, we convert first to float due to
-    the possible presence of NaN, and then convert to Int64.
-    See https://pandas.pydata.org/pandas-docs/version/1.3/user_guide/integer_na.html
+        Python built-in type (Int64, int, str, float, bool)
     """
-    if type_ == int:
-        return convert_datatype(series.astype(float), 'Int64')
 
     return series.astype(type_)
 
