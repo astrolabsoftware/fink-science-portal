@@ -891,21 +891,21 @@ def columns_arguments():
     r = requests.get('https://raw.githubusercontent.com/ZwickyTransientFacility/ztf-avro-alert/master/schema/candidate.avsc')
     tmp = pd.DataFrame.from_dict(r.json())
     ztf_candidate = tmp['fields'].apply(pd.Series)
-    ztf_candidate = ztf_candidate.append(
+    ztf_candidate = ztf_candidate._append(
         {
             "name": "schemavsn",
             "type": "string",
             "doc": "schema version used"
         }, ignore_index=True
     )
-    ztf_candidate = ztf_candidate.append(
+    ztf_candidate = ztf_candidate._append(
         {
             "name": "publisher",
             "type": "string",
             "doc": "origin of alert packet"
         }, ignore_index=True
     )
-    ztf_candidate = ztf_candidate.append(
+    ztf_candidate = ztf_candidate._append(
         {
             "name": "objectId",
             "type": "string",
@@ -922,14 +922,14 @@ def columns_arguments():
             }
         ]
     )
-    ztf_cutouts = ztf_cutouts.append(
+    ztf_cutouts = ztf_cutouts._append(
         {
             "name": "cutoutTemplate_stampData",
             "type": "array",
             "doc": "2D array from the Template cutout FITS"
         }, ignore_index=True
     )
-    ztf_cutouts = ztf_cutouts.append(
+    ztf_cutouts = ztf_cutouts._append(
         {
             "name": "cutoutDifference_stampData",
             "type": "array",
@@ -955,7 +955,6 @@ def columns_arguments():
         ]
     )
 
-    # Science modules
     fink_derived = pd.DataFrame(
         [
             {'name': 'constellation', 'type': 'string', 'doc': 'Name of the constellation an alert on the sky is in'},
