@@ -968,6 +968,8 @@ def columns_arguments():
             {'name': 'mangrove_2MASS_name', 'type': 'string', 'doc': '2MASS source designation of closest source from Mangrove catalog; if exists within 1 arcmin.'},
             {'name': 'mangrove_lum_dist', 'type': 'string', 'doc': 'Luminosity distance of closest source from Mangrove catalog; if exists within 1 arcmin.'},
             {'name': 'mangrove_ang_dist', 'type': 'string', 'doc': 'Angular distance of closest source from Mangrove catalog; if exists within 1 arcmin.'},
+            {'name': 'spicy_id', 'type': 'string', 'doc': 'Unique source designation of closest source from SPICY catalog; if exists within 1.2 arcsec.'},
+            {'name': 'spicy_class', 'type': 'string', 'doc': 'Class name of closest source from SPICY catalog; if exists within 1.2 arcsec.'},
             {'name': 'mulens', 'type': 'double', 'doc': 'Probability score of an alert to be a microlensing event by [LIA](https://github.com/dgodinez77/LIA).'},
             {'name': 'rf_snia_vs_nonia', 'type': 'double', 'doc': 'Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.'},
             {'name': 'rf_kn_vs_nonkn', 'type': 'double', 'doc': 'Probability of an alert to be a Kilonova using a PCA & Random Forest Classifier (binary classification). Higher is better.'},
