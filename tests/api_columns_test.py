@@ -123,7 +123,7 @@ def test_recent_object() -> None:
         }
     )
 
-    assert r2.status_code == 200, r.content
+    assert r2.status_code == 200, r2.content
 
     pdf = pd.read_json(io.BytesIO(r2.content))
 
@@ -136,7 +136,7 @@ def test_old_object() -> None:
     >>> test_old_object()
     """
     objectId = 'ZTF21abfmbix'
-    r2 = requests.post(
+    r = requests.post(
         '{}/api/v1/objects'.format(APIURL),
         json={
             'objectId': objectId,
@@ -147,9 +147,9 @@ def test_old_object() -> None:
         }
     )
 
-    assert r2.status_code == 200, r.content
+    assert r.status_code == 200, r.content
 
-    pdf = pd.read_json(io.BytesIO(r2.content))
+    pdf = pd.read_json(io.BytesIO(r.content))
 
     check_old_columns(pdf.columns, objectId)
 
