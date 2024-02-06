@@ -50,6 +50,8 @@ def cutouttest(objectId='ZTF21aaxtctv', kind='Science', stretch='sigmoid', color
         json=payload
     )
 
+    assert r.status_code == 200, r.content
+
     if output_format == 'PNG':
         # Format output in a DataFrame
         data = im.open(io.BytesIO(r.content))

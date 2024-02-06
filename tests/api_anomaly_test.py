@@ -48,6 +48,8 @@ def anomalysearch(n=10, start_date=None, stop_date=None, output_format='json', c
         json=payload
     )
 
+    assert r.status_code == 200, r.content
+
     if output_format == 'json':
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))

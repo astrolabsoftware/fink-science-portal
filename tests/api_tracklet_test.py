@@ -37,6 +37,8 @@ def trackletsearch(date='2021-08-10', columns='*', output_format='json'):
         json=payload
     )
 
+    assert r.status_code == 200, r.content
+
     if output_format == 'json':
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))

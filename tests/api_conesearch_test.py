@@ -47,6 +47,8 @@ def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate=None, wi
         json=payload
     )
 
+    assert r.status_code == 200, r.content
+
     if output_format == 'json':
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))

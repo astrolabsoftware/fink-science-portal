@@ -38,6 +38,8 @@ def get_an_object(oid='ZTF21abfmbix', output_format='json', columns='*', withupp
         }
     )
 
+    assert r.status_code == 200, r.content
+
     if output_format == 'json':
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))

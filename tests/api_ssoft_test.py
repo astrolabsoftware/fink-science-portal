@@ -70,6 +70,8 @@ def ssoftsearch(version=None, flavor=None, sso_number=None, sso_name=None, schem
         json=payload
     )
 
+    assert r.status_code == 200, r.content
+
     if output_format == 'json':
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))
