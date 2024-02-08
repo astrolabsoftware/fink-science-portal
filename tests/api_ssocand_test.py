@@ -44,6 +44,8 @@ def ssocandsearch(kind='orbParams', trajectory_id=None, start_date=None, stop_da
         '{}/api/v1/ssocand'.format(APIURL),
         json=payload
     )
+    
+    assert r.status_code == 200, r.content
 
     if output_format == 'json':
         # Format output in a DataFrame

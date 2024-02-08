@@ -41,6 +41,8 @@ def get_an_object(number=1, output_format='json', columns='*', object_class="", 
         json=payload
     )
 
+    assert r.status_code == 200, r.content
+
     if output_format == 'json':
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))

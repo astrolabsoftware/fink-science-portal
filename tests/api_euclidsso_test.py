@@ -39,6 +39,8 @@ def push_euclid(fn='old_ssopipe.txt'):
         }
     )
 
+    assert r.status_code == 200, r.content
+
     return r.content
 
 def pull_euclid(pipeline='ssopipe', dates='20210101', columns='*', output_format='json'):
@@ -56,6 +58,8 @@ def pull_euclid(pipeline='ssopipe', dates='20210101', columns='*', output_format
         '{}/api/v1/eucliddata'.format(APIURL),
         json=payload
     )
+
+    assert r.status_code == 200, r.content
 
     if output_format == 'json':
         # Format output in a DataFrame

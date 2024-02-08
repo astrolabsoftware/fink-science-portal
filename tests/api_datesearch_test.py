@@ -35,6 +35,8 @@ def datesearch(startdate='2021-07-01 05:59:37.000', window=1/24/60, output_forma
         json=payload
     )
 
+    assert r.status_code == 200, r.content
+
     if output_format == 'json':
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))

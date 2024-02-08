@@ -36,6 +36,8 @@ def xmatchtest(catalog='mycatalog.csv', header='RA,Dec,ID,Time', radius=1.5, win
         json=payload
     )
 
+    assert r.status_code == 200, r.content
+
     pdf = pd.read_json(io.BytesIO(r.content))
 
     return pdf
