@@ -942,7 +942,7 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
     width: int, optional
         dbc.Col width parameter. Default is 4.
     """
-    if kind == 'asas-sn-var':
+    if kind == 'asas-sn-variable':
         if radius is None:
             radius = 0.5
         button = dbc.Col(
