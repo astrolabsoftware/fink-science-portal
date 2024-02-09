@@ -309,7 +309,7 @@ def parse_query(string, timeout=None):
 
     elif query['type'] == 'ztf':
         query['action'] = 'objectid'
-        #TODO: uppercase the ZTF prefix!
+        query['object'] = query['object'][:3].upper() + query['object'][3:]
 
     elif query['type'] == 'tracklet':
         query['action'] = 'tracklet'
