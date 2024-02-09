@@ -2988,7 +2988,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
         fitfunc = func_hg1g2_with_spin
         params = ['H', 'G1', 'G2', 'R', 'alpha0', 'delta0']
         bounds = (
-            [0, 0, 0, 1e-1, 0, -np.pi/2],
+            [0, 0, 0, 3e-1, 0, -np.pi/2],
             [30, 1, 1, 1, 2*np.pi, np.pi/2]
         )
         p0 = [15.0, 0.15, 0.15, 0.8, np.pi, 0.0]
