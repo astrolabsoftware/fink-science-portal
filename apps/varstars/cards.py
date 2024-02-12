@@ -102,7 +102,7 @@ def card_variable_button(object_data):
                                 card_neighbourhood(pdf),
                                 dbc.Row(
                                     [
-                                        create_button_for_external_conesearch(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5),
+                                        create_button_for_external_conesearch(kind='asas-sn-variable', ra0=ra0, dec0=dec0, radius=0.5),
                                         create_button_for_external_conesearch(kind='snad', ra0=ra0, dec0=dec0, radius=5),
                                         create_button_for_external_conesearch(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1)
                                     ], justify='around',

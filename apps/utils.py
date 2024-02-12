@@ -945,7 +945,7 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
     width: int, optional
         dbc.Col width parameter. Default is 4.
     """
-    if kind == 'asas-sn':
+    if kind == 'asas-sn-variable':
         if radius is None:
             radius = 0.5
         button = dbc.Col(
@@ -953,6 +953,15 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
                 style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-color': 'black'},
                 title='ASAS-SN',
                 href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius={}&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0, radius)
+            ),
+            width=width
+        )
+    elif kind == 'asas-sn':
+        button = dbc.Col(
+            template_button_for_external_conesearch(
+                style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-color': 'black'},
+                title='ASAS-SN',
+                href='https://asas-sn.osu.edu/?ra={}&dec={}'.format(ra0, dec0)
             ),
             width=width
         )
