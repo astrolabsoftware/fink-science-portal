@@ -127,8 +127,8 @@ def format_hbase_output(
         if _ in pdfs.columns:
             pdfs = pdfs.drop(columns=_)
 
-    if 'spicy_name' in pdfs.columns:
-        pdfs = pdfs.drop(columns='spicy_name')
+    if 'd:spicy_name' in pdfs.columns:
+        pdfs = pdfs.drop(columns='d:spicy_name')
 
     # Remove cutouts if their fields are here but empty
     for _ in ['Difference', 'Science', 'Template']:
