@@ -28,6 +28,8 @@ import visdcc
 
 import textwrap
 
+AU_TO_KM=149597870700
+
 def get_sso_data(ssnamenr):
     """ Extract SSO data from various providers (SSODNET, MPC)
     """
@@ -435,6 +437,11 @@ def card_sso_rocks_params(data):
             ],
         )
         return card
+
+    if data.parameters.dynamical.orbital_elements.semi_major_axis.unit == 'km':
+        semi_major_axis = data.parameters.dynamical.orbital_elements.semi_major_axis.value / AU_TO_KM
+    else:
+        semi_major_axis = data.parameters.dynamical.orbital_elements.semi_major_axis.value
 
     text = r"""
     ##### Name: `{}` / `{}`
