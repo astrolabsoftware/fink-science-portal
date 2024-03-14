@@ -478,7 +478,7 @@ def card_sso_rocks_params(data):
         data.parameters.dynamical.orbital_elements.periapsis_distance.value,
         data.parameters.dynamical.orbital_elements.mean_motion.value,
         data.parameters.dynamical.orbital_elements.orbital_period.value,
-        data.parameters.dynamical.tisserand_parameter.jupiter.value,
+        data.parameters.dynamical.tisserand_parameters.jupiter.value,
     )
 
     if data.parameters.physical.spin is not None:
