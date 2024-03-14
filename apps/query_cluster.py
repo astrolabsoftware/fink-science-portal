@@ -20,6 +20,7 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 from app import app
+from app import APIURL
 from apps.mining.utils import upload_file_hdfs, submit_spark_job
 from apps.mining.utils import estimate_size_gb_ztf, estimate_size_gb_elasticc
 from apps.utils import request_api
@@ -225,8 +226,10 @@ def display_filter_tab(trans_datasource):
             ]
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
+                dmc.Anchor("here", href="{}/api/v1/columns".format(APIURL), size="xs", target="_blank"),
+                " (and also ",
                 dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
-                " for fields description and ",
+                ") for fields description and ",
                 dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
                 " for examples."
             ]
