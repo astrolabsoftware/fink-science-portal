@@ -384,7 +384,7 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                     data['number'],
                     data['period'],
                     data['semimajor_axis'],
-                    data['perihelion_distance'],
+                    data['periapsis_distance'],
                     data['eccentricity'],
                     data['inclination'],
                     data['ascending_node'],
