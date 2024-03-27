@@ -39,7 +39,7 @@ external_stylesheets = [
 ]
 external_scripts = [
     '//code.jquery.com/jquery-1.12.1.min.js',
-    '//aladin.u-strasbg.fr/AladinLite/api/v3/latest/aladin.js',
+    '//aladin.u-strasbg.fr/AladinLite/api/v3/3.2.0/aladin.js',
     '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
 ]
 
