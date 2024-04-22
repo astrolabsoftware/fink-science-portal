@@ -129,7 +129,7 @@ SecretStorage==3.3.3
 six==1.16.0
 snowballstemmer==2.2.0
 soupsieve==2.5
-space-rocks==1.9.1
+space-rocks==1.9.8
 Sphinx==7.2.6
 sphinx-astropy==1.9.1
 sphinx-automodapi==0.16.0
