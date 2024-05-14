@@ -12,8 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html
 import dash_bootstrap_components as dbc
+from dash import html
 
 msg = """
 Fink is a broker infrastructure enabling a wide range of applications and services to connect to large streams of alerts issued from telescopes all over the world.
@@ -40,67 +40,67 @@ layout = html.Div([
     dbc.Container([
         dbc.Row(
             [
-                dbc.Col(html.H2("Fink infrastructure"), className="mb-5 mt-5")
-            ]
+                dbc.Col(html.H2("Fink infrastructure"), className="mb-5 mt-5"),
+            ],
         ),
         dbc.Row(
             dbc.Col(
                 html.Img(
                     src="/assets/infrastructure.png",
-                    height='300px',
-                    width='75%'
-                )
-            ), style={'textAlign': 'center'}
+                    height="300px",
+                    width="75%",
+                ),
+            ), style={"textAlign": "center"},
         ),
         dbc.Row(
-            html.H5(children=msg_infra, className='text-align')
+            html.H5(children=msg_infra, className="text-align"),
         ),
         dbc.Row(
             [
-                dbc.Col(html.H2("Fink results"), className="mb-5 mt-5")
-            ]
+                dbc.Col(html.H2("Fink results"), className="mb-5 mt-5"),
+            ],
         ),
         dbc.Row(
             [
                 dbc.Col(
-                    html.H5(children=msg_results, className='text-align')
+                    html.H5(children=msg_results, className="text-align"),
                 ),
                 dbc.Col(
                     html.Img(
                         src="/assets/footprint_nside128.png",
-                        height='500px',
-                        width='100%'
-                    )
+                        height="500px",
+                        width="100%",
+                    ),
                 ),
-            ]
+            ],
         ),
         dbc.Row(
             [
-                dbc.Col(html.H2("LSST alert ecosystem"), className="mb-5 mt-5")
-            ]
+                dbc.Col(html.H2("LSST alert ecosystem"), className="mb-5 mt-5"),
+            ],
         ),
         dbc.Row(
             [
-                dbc.Col(html.H5(children=msg_alert, className='text-align')),
-            ]
+                dbc.Col(html.H5(children=msg_alert, className="text-align")),
+            ],
         ),
         dbc.Row(
             [
-                dbc.Col(html.H2("Acknowledgments"), className="mb-5 mt-5")
-            ]
+                dbc.Col(html.H2("Acknowledgments"), className="mb-5 mt-5"),
+            ],
         ),
         dbc.Row(
             [
-                dbc.Col(html.H5(children=msg_thanks, className='text-align')),
-            ]
+                dbc.Col(html.H5(children=msg_thanks, className="text-align")),
+            ],
         ),
         html.Br(),
         dbc.Row([
-            html.Img(src="/assets/cnrs.png", height='100px', width='100px'),
-            html.Img(src="/assets/lsstfr.png", height='100px', width='200px'),
-            html.Img(src="/assets/ztf.png", height='100px', width='150px'),
-        ], justify='center'),
-        html.Br()
-    ])
+            html.Img(src="/assets/cnrs.png", height="100px", width="100px"),
+            html.Img(src="/assets/lsstfr.png", height="100px", width="200px"),
+            html.Img(src="/assets/ztf.png", height="100px", width="150px"),
+        ], justify="center"),
+        html.Br(),
+    ]),
 
 ])
