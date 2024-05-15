@@ -12,11 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import requests
 import json
 
+import requests
+
+
 def upload_file_hdfs(code, webhdfs, namenode, user, filename):
-    """ Upload a file to HDFS
+    """Upload a file to HDFS
 
     Parameters
     ----------
@@ -34,7 +36,7 @@ def upload_file_hdfs(code, webhdfs, namenode, user, filename):
         Name on the file to be created
 
     Returns
-    ---------
+    -------
     status_code: int
         HTTP status code. 201 is a success.
     text: str
@@ -42,7 +44,7 @@ def upload_file_hdfs(code, webhdfs, namenode, user, filename):
     """
     try:
         response = requests.put(
-            '{}/{}?op=CREATE&user.name={}&namenoderpcaddress={}&createflag=&createparent=true&overwrite=true'.format(webhdfs, filename, user, namenode),
+            f"{webhdfs}/{filename}?op=CREATE&user.name={user}&namenoderpcaddress={namenode}&createflag=&createparent=true&overwrite=true",
             data=code,
         )
         status_code = response.status_code
@@ -52,13 +54,13 @@ def upload_file_hdfs(code, webhdfs, namenode, user, filename):
         text = e
 
     if status_code != 201:
-        print('Status code: {}'.format(status_code))
-        print('Log: {}'.format(text))
+        print(f"Status code: {status_code}")
+        print(f"Log: {text}")
 
     return status_code, text
 
 def submit_spark_job(livyhost, filename, spark_conf, job_args):
-    """ Submit a job on the Spark cluster via Livy (batch mode)
+    """Submit a job on the Spark cluster via Livy (batch mode)
 
     Parameters
     ----------
@@ -74,56 +76,56 @@ def submit_spark_job(livyhost, filename, spark_conf, job_args):
         ['-arg1=val1', '-arg2=val2', ...]
 
     Returns
-    ----------
+    -------
     """
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
 
     data = {
-    'conf': spark_conf,
-    'file': filename,
-    'args': job_args
+    "conf": spark_conf,
+    "file": filename,
+    "args": job_args,
     }
     response = requests.post(
-        'http://' + livyhost + '/batches',
+        "http://" + livyhost + "/batches",
         data=json.dumps(data),
-        headers=headers
+        headers=headers,
     )
 
-    batchid = response.json()['id']
+    batchid = response.json()["id"]
 
     if response.status_code != 201:
-        print('Batch ID {}'.format(batchid))
-        print('Status code: {}'.format(response.status_code))
-        print('Log: {}'.format(response.text))
+        print(f"Batch ID {batchid}")
+        print(f"Status code: {response.status_code}")
+        print(f"Log: {response.text}")
 
     return batchid, response.status_code, response.text
 
 def estimate_size_gb_ztf(trans_content):
-    """ Estimate the size of the data to download
+    """Estimate the size of the data to download
 
     Parameters
     ----------
     trans_content: str
         Name as given by content_tab
     """
-    if trans_content == 'Full packet':
+    if trans_content == "Full packet":
         sizeGb = 55. / 1024 / 1024
-    elif trans_content == 'Lightcurve':
+    elif trans_content == "Lightcurve":
         sizeGb = 1.4 / 1024 / 1024
-    elif trans_content == 'Cutouts':
+    elif trans_content == "Cutouts":
         sizeGb = 41. / 1024 / 1024
 
     return sizeGb
 
 def estimate_size_gb_elasticc(trans_content):
-    """ Estimate the size of the data to download
+    """Estimate the size of the data to download
 
     Parameters
     ----------
     trans_content: str
         Name as given by content_tab
     """
-    if trans_content == 'Full packet':
+    if trans_content == "Full packet":
         sizeGb = 1.4 / 1024 / 1024
 
     return sizeGb

@@ -12,41 +12,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, dash_table, Input, Output, State
+import textwrap
+
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
+import rocks
+from dash import Input, Output, dcc, html
 from dash_iconify import DashIconify
 
-from apps.utils import queryMPC, convert_mpc_type
-from apps.utils import help_popover
-
-from app import app, APIURL
-
-import rocks
-
-import visdcc
-
-import textwrap
+from app import APIURL, app
+from apps.utils import convert_mpc_type, help_popover, queryMPC
 
 AU_TO_M=149597870700
 
 def get_sso_data(ssnamenr):
-    """ Extract SSO data from various providers (SSODNET, MPC)
+    """Extract SSO data from various providers (SSODNET, MPC)
     """
     data = rocks.Rock(
         ssnamenr,
-        skip_id_check=False
+        skip_id_check=False,
     )
-    if data.id_ == '':
-        if ssnamenr.startswith('C/'):
-            kind = 'comet'
-            ssnamenr = ssnamenr[:-2] + ' ' + ssnamenr[-2:]
+    if data.id_ == "":
+        if ssnamenr.startswith("C/"):
+            kind = "comet"
+            ssnamenr = ssnamenr[:-2] + " " + ssnamenr[-2:]
             data = queryMPC(ssnamenr, kind=kind)
-        elif (ssnamenr[-1] == 'P'):
-            kind = 'comet'
+        elif (ssnamenr[-1] == "P"):
+            kind = "comet"
             data = queryMPC(ssnamenr, kind=kind)
         else:
-            kind = 'asteroid'
+            kind = "asteroid"
             data = queryMPC(ssnamenr, kind=kind)
 
         if data.empty:
@@ -60,47 +55,43 @@ def card_sso_left(ssnamenr):
     """
     ssnamenr_ = str(ssnamenr)
 
-    python_download = """import requests
+    python_download = f"""import requests
 import pandas as pd
 import io
 
-# get data for {}
+# get data for {ssnamenr}
 r = requests.post(
-    '{}/api/v1/sso',
+    '{APIURL}/api/v1/sso',
     json={{
-        'n_or_d': '{}',
+        'n_or_d': '{ssnamenr}',
         'withEphem': True,
         'output-format': 'json'
     }}
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(io.BytesIO(r.content))""".format(
-        ssnamenr,
-        APIURL,
-        ssnamenr
-    )
+pdf = pd.read_json(io.BytesIO(r.content))"""
 
-    curl_download = """
+    curl_download = f"""
 curl -H "Content-Type: application/json" -X POST \\
-    -d '{{"n_or_d":"{}", "output-format":"csv"}}' \\
-    {}/api/v1/sso -o {}.csv
-    """.format(ssnamenr, APIURL, ssnamenr)
+    -d '{{"n_or_d":"{ssnamenr}", "output-format":"csv"}}' \\
+    {APIURL}/api/v1/sso -o {ssnamenr}.csv
+    """
 
     download_tab = dmc.Tabs(
         [
             dmc.TabsList(
                 [
                     dmc.Tab("Python", value="Python"),
-                    dmc.Tab("Curl", value="Curl")
+                    dmc.Tab("Curl", value="Curl"),
                 ],
             ),
             dmc.TabsPanel(children=dmc.Prism(children=python_download, language="python"), value="Python"),
-            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl")
-        ], color="red", value="Python"
+            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl"),
+        ], color="red", value="Python",
     )
 
-    if ssnamenr_ != 'null':
+    if ssnamenr_ != "null":
         ssnamenr_ = str(ssnamenr)
         data, kind = get_sso_data(ssnamenr_)
         if kind is not None:
@@ -119,7 +110,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:database-export",
                                 color=dmc.theme.DEFAULT_COLORS["red"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
@@ -129,53 +120,53 @@ curl -H "Content-Type: application/json" -X POST \\
                                     [
                                         dmc.Button(
                                             "JSON",
-                                            id='download_sso_json',
+                                            id="download_sso_json",
                                             variant="outline",
-                                            color='indigo',
+                                            color="indigo",
                                             compact=True,
                                             leftIcon=[DashIconify(icon="mdi:code-json")],
                                         ),
                                         dmc.Button(
                                             "CSV",
-                                            id='download_sso_csv',
+                                            id="download_sso_csv",
                                             variant="outline",
-                                            color='indigo',
+                                            color="indigo",
                                             compact=True,
                                             leftIcon=[DashIconify(icon="mdi:file-csv-outline")],
                                         ),
                                         dmc.Button(
                                             "VOTable",
-                                            id='download_sso_votable',
+                                            id="download_sso_votable",
                                             variant="outline",
-                                            color='indigo',
+                                            color="indigo",
                                             compact=True,
                                             leftIcon=[DashIconify(icon="mdi:xml")],
                                         ),
                                         help_popover(
                                             [
-                                                dcc.Markdown('You may also download the data programmatically.'),
+                                                dcc.Markdown("You may also download the data programmatically."),
                                                 download_tab,
-                                                dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                                                dcc.Markdown(f"See {APIURL}/api for more options"),
                                             ],
-                                            'help_download_sso',
+                                            "help_download_sso",
                                             trigger=dmc.ActionIcon(
                                                     DashIconify(icon="mdi:help"),
-                                                    id='help_download_sso',
+                                                    id="help_download_sso",
                                                     variant="outline",
-                                                    color='indigo',
+                                                    color="indigo",
                                             ),
                                         ),
                                         # FIXME: is it correct way to get ssnamenr field?..
-                                        html.Div(str(data.number), id='download_sso_ssnamenr', className='d-none'),
-                                        html.Div(APIURL, id='download_sso_apiurl', className='d-none'),
-                                    ], position="center", spacing="xs"
-                                )
+                                        html.Div(str(data.number), id="download_sso_ssnamenr", className="d-none"),
+                                        html.Div(APIURL, id="download_sso_apiurl", className="d-none"),
+                                    ], position="center", spacing="xs",
+                                ),
                             ],
                         ),
 
                     ),
                 ],
-                value='api'
+                value="api",
             ),
             dmc.AccordionItem(
                 [
@@ -186,7 +177,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:external-link",
                                 color=dmc.theme.DEFAULT_COLORS["orange"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
@@ -196,43 +187,43 @@ curl -H "Content-Type: application/json" -X POST \\
                                     [
                                         dbc.Col(
                                             dbc.Button(
-                                                className='btn btn-default zoom btn-circle btn-lg',
-                                                style={'background-image': 'url(/assets/buttons/imcce.png)', 'background-size': 'cover'},
-                                                color='light',
+                                                className="btn btn-default zoom btn-circle btn-lg",
+                                                style={"background-image": "url(/assets/buttons/imcce.png)", "background-size": "cover"},
+                                                color="light",
                                                 outline=True,
-                                                id='IMCCE',
+                                                id="IMCCE",
                                                 target="_blank",
-                                                href='https://ssp.imcce.fr/forms/ssocard/{}'.format(data.id_)
+                                                href=f"https://ssp.imcce.fr/forms/ssocard/{data.id_}",
                                             ), width=4),
                                         dbc.Col(
                                             dbc.Button(
-                                                className='btn btn-default zoom btn-circle btn-lg',
-                                                style={'background-image': 'url(/assets/buttons/mpc.jpg)', 'background-size': 'cover'},
-                                                color='dark',
+                                                className="btn btn-default zoom btn-circle btn-lg",
+                                                style={"background-image": "url(/assets/buttons/mpc.jpg)", "background-size": "cover"},
+                                                color="dark",
                                                 outline=True,
-                                                id='MPC',
+                                                id="MPC",
                                                 target="_blank",
-                                                href='https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={}'.format(ssnamenr_)
+                                                href=f"https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={ssnamenr_}",
                                             ), width=4),
                                         dbc.Col(
                                             dbc.Button(
-                                                className='btn btn-default zoom btn-circle btn-lg',
-                                                style={'background-image': 'url(/assets/buttons/nasa.png)', 'background-size': 'cover'},
-                                                color='dark',
+                                                className="btn btn-default zoom btn-circle btn-lg",
+                                                style={"background-image": "url(/assets/buttons/nasa.png)", "background-size": "cover"},
+                                                color="dark",
                                                 outline=True,
-                                                id='JPL',
+                                                id="JPL",
                                                 target="_blank",
-                                                href='https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={}'.format(ssnamenr_),
-                                            ), width=4
+                                                href=f"https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={ssnamenr_}",
+                                            ), width=4,
                                         ),
-                                    ], justify='around'
+                                    ], justify="around",
                                 ),
-                                align='center'
-                            )
+                                align="center",
+                            ),
                         ],
                     ),
                 ],
-                value='external'
+                value="external",
             ),
         ]
 
@@ -248,23 +239,23 @@ curl -H "Content-Type: application/json" -X POST \\
                                     icon="majesticons:comet",
                                     color=dmc.theme.DEFAULT_COLORS["dark"][6],
                                     width=20,
-                                )
+                                ),
                             ],
                         ),
                         dmc.AccordionPanel(
                             [
                                 dmc.Paper(
                                     card_properties,
-                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'}
-                                )
+                                    radius="sm", p="xs", shadow="sm", withBorder=True, style={"width": "100%"},
+                                ),
                             ],
                         ),
                     ],
-                    value='sso'
+                    value="sso",
                 ),
-                *extra_items
-            ], value='sso',
-            styles={'content':{'padding':'5px'}}
+                *extra_items,
+            ], value="sso",
+            styles={"content":{"padding":"5px"}},
         )
     else:
         card = html.Div()
@@ -297,35 +288,35 @@ function(n_clicks, name, apiurl){
 }
 """
 app.clientside_callback(
-    download_js.replace('$FORMAT', 'json').replace('$EXTENSION', 'json'),
-    Output('download_sso_json', 'n_clicks'),
+    download_js.replace("$FORMAT", "json").replace("$EXTENSION", "json"),
+    Output("download_sso_json", "n_clicks"),
     [
-        Input('download_sso_json', 'n_clicks'),
-        Input('download_sso_ssnamenr', 'children'),
-        Input('download_sso_apiurl', 'children'),
-    ]
+        Input("download_sso_json", "n_clicks"),
+        Input("download_sso_ssnamenr", "children"),
+        Input("download_sso_apiurl", "children"),
+    ],
 )
 app.clientside_callback(
-    download_js.replace('$FORMAT', 'csv').replace('$EXTENSION', 'csv'),
-    Output('download_sso_csv', 'n_clicks'),
+    download_js.replace("$FORMAT", "csv").replace("$EXTENSION", "csv"),
+    Output("download_sso_csv", "n_clicks"),
     [
-        Input('download_sso_csv', 'n_clicks'),
-        Input('download_sso_ssnamenr', 'children'),
-        Input('download_sso_apiurl', 'children'),
-    ]
+        Input("download_sso_csv", "n_clicks"),
+        Input("download_sso_ssnamenr", "children"),
+        Input("download_sso_apiurl", "children"),
+    ],
 )
 app.clientside_callback(
-    download_js.replace('$FORMAT', 'votable').replace('$EXTENSION', 'vot'),
-    Output('download_sso_votable', 'n_clicks'),
+    download_js.replace("$FORMAT", "votable").replace("$EXTENSION", "vot"),
+    Output("download_sso_votable", "n_clicks"),
     [
-        Input('download_sso_votable', 'n_clicks'),
-        Input('download_sso_ssnamenr', 'children'),
-        Input('download_sso_apiurl', 'children'),
-    ]
+        Input("download_sso_votable", "n_clicks"),
+        Input("download_sso_ssnamenr", "children"),
+        Input("download_sso_apiurl", "children"),
+    ],
 )
 
 def card_sso_mpc_params(data, ssnamenr, kind):
-    """ MPC parameters
+    """MPC parameters
     """
     if data is None:
         card = html.Div(
@@ -335,26 +326,26 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                     ##### Name: `None`
                     Orbit type: `None`
                     """,
-                    className='markdown markdown-pre',
-                )
+                    className="markdown markdown-pre",
+                ),
             ],
         )
         return card
-    if kind == 'comet':
-        name = data['n_or_d']
-        orbit_type = 'Comet'
+    if kind == "comet":
+        name = data["n_or_d"]
+        orbit_type = "Comet"
         abs_mag = None
         phase_slope = None
         neo = 0
-    elif kind == 'asteroid':
-        if data['name'] is None:
+    elif kind == "asteroid":
+        if data["name"] is None:
             name = ssnamenr
         else:
-            name = data['name']
-        orbit_type = convert_mpc_type(int(data['orbit_type']))
-        abs_mag = data['absolute_magnitude']
-        phase_slope = data['phase_slope']
-        neo = int(data['neo'])
+            name = data["name"]
+        orbit_type = convert_mpc_type(int(data["orbit_type"]))
+        abs_mag = data["absolute_magnitude"]
+        phase_slope = data["phase_slope"]
+        neo = int(data["neo"])
 
     card = html.Div(
         [
@@ -381,30 +372,30 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                 """.format(
                     name,
                     orbit_type,
-                    data['number'],
-                    data['period'],
-                    data['semimajor_axis'],
-                    data['perihelion_distance'],
-                    data['eccentricity'],
-                    data['inclination'],
-                    data['ascending_node'],
-                    data['argument_of_perihelion'],
-                    float(data['perihelion_date_jd']) - 2400000.5,
-                    data['mean_anomaly'],
-                    float(data['epoch_jd']) - 2400000.5,
+                    data["number"],
+                    data["period"],
+                    data["semimajor_axis"],
+                    data["perihelion_distance"],
+                    data["eccentricity"],
+                    data["inclination"],
+                    data["ascending_node"],
+                    data["argument_of_perihelion"],
+                    float(data["perihelion_date_jd"]) - 2400000.5,
+                    data["mean_anomaly"],
+                    float(data["epoch_jd"]) - 2400000.5,
                     abs_mag,
                     phase_slope,
-                    neo
+                    neo,
                 ),
-                className='markdown markdown-pre',
+                className="markdown markdown-pre",
             ),
         ],
-        className='ps-2 pe-2',
+        className="ps-2 pe-2",
     )
     return card
 
 def card_sso_rocks_params(data):
-    """ IMCCE parameters from Rocks
+    """IMCCE parameters from Rocks
     """
     if data is None:
         card = html.Div(
@@ -414,7 +405,7 @@ def card_sso_rocks_params(data):
                 "Parent body: None", html.Br(),
                 "Dynamical system: None", html.Br(),
                 dmc.Divider(
-                    label='Physical parameters',
+                    label="Physical parameters",
                     variant="solid",
                     style={"marginTop": 20, "marginBottom": 20},
                 ),
@@ -422,7 +413,7 @@ def card_sso_rocks_params(data):
                 "Absolute magnitude (mag): None", html.Br(),
                 "Diameter (km): None", html.Br(),
                 dmc.Divider(
-                    label='Dynamical parameters',
+                    label="Dynamical parameters",
                     variant="solid",
                     style={"marginTop": 20, "marginBottom": 20},
                 ),
@@ -439,48 +430,32 @@ def card_sso_rocks_params(data):
         return card
 
     # Convert km in AU
-    if data.parameters.dynamical.orbital_elements.semi_major_axis.unit == 'km':
+    if data.parameters.dynamical.orbital_elements.semi_major_axis.unit == "km":
         semi_major_axis = data.parameters.dynamical.orbital_elements.semi_major_axis.value / AU_TO_M * 1000
     else:
         semi_major_axis = data.parameters.dynamical.orbital_elements.semi_major_axis.value
 
-    text = r"""
-    ##### Name: `{}` / `{}`
-    Class: `{}`
-    Parent body: `{}`
-    Dynamical system: `{}`
+    text = rf"""
+    ##### Name: `{data.name}` / `{data.number}`
+    Class: `{data.class_}`
+    Parent body: `{data.parent}`
+    Dynamical system: `{data.system}`
 
     ###### Physical parameters
-    Taxonomical class: `{}`
-    Absolute magnitude (mag): `{}`
-    Diameter (km): `{}`
+    Taxonomical class: `{data.parameters.physical.taxonomy.class_.value}`
+    Absolute magnitude (mag): `{data.parameters.physical.absolute_magnitude.value}`
+    Diameter (km): `{data.parameters.physical.diameter.value}`
 
     ###### Dynamical parameters
-    a (AU): `{}`
-    e: `{}`
-    i (deg): `{}`
-    Omega (deg): `{}`
-    argPeri (deg): `{}`
-    Mean motion (deg/day): `{}`
-    Orbital period (day): `{}`
-    Tisserand parameter: `{}`
-    """.format(
-        data.name, data.number,
-        data.class_,
-        data.parent,
-        data.system,
-        data.parameters.physical.taxonomy.class_.value,
-        data.parameters.physical.absolute_magnitude.value,
-        data.parameters.physical.diameter.value,
-        semi_major_axis,
-        data.parameters.dynamical.orbital_elements.eccentricity.value,
-        data.parameters.dynamical.orbital_elements.inclination.value,
-        data.parameters.dynamical.orbital_elements.node_longitude.value,
-        data.parameters.dynamical.orbital_elements.periapsis_distance.value,
-        data.parameters.dynamical.orbital_elements.mean_motion.value,
-        data.parameters.dynamical.orbital_elements.orbital_period.value,
-        data.parameters.dynamical.tisserand_parameters.jupiter.value,
-    )
+    a (AU): `{semi_major_axis}`
+    e: `{data.parameters.dynamical.orbital_elements.eccentricity.value}`
+    i (deg): `{data.parameters.dynamical.orbital_elements.inclination.value}`
+    Omega (deg): `{data.parameters.dynamical.orbital_elements.node_longitude.value}`
+    argPeri (deg): `{data.parameters.dynamical.orbital_elements.periapsis_distance.value}`
+    Mean motion (deg/day): `{data.parameters.dynamical.orbital_elements.mean_motion.value}`
+    Orbital period (day): `{data.parameters.dynamical.orbital_elements.orbital_period.value}`
+    Tisserand parameter: `{data.parameters.dynamical.tisserand_parameters.jupiter.value}`
+    """
 
     if data.parameters.physical.spin is not None:
         text = textwrap.dedent(text) # Remove indentation
@@ -489,16 +464,16 @@ def card_sso_rocks_params(data):
 
         for _, avail_spin in enumerate(data.parameters.physical.spin):
             text += "\n"
-            text += """<h6 children="{}" class="dashed" style="margin-top: 5px; margin-bottom: 0;"/>\n\n""".format(avail_spin.bibref.shortbib)
-            text += "RA0 (deg): `{}`\n".format(avail_spin.RA0.value)
-            text += "DEC0 (deg): `{}`\n".format(avail_spin.DEC0.value)
+            text += f"""<h6 children="{avail_spin.bibref.shortbib}" class="dashed" style="margin-top: 5px; margin-bottom: 0;"/>\n\n"""
+            text += f"RA0 (deg): `{avail_spin.RA0.value}`\n"
+            text += f"DEC0 (deg): `{avail_spin.DEC0.value}`\n"
 
     card = html.Div(
         dcc.Markdown(
             text,
             dangerously_allow_html=True,
-            className='markdown markdown-pre'
+            className="markdown markdown-pre",
         ),
-        className='ps-2 pe-2',
+        className="ps-2 pe-2",
     )
     return card
