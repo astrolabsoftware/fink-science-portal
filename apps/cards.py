@@ -351,10 +351,10 @@ def make_modal_stamps(pdf):
                             searchable=True,
                             nothingFound="No options found",
                             id="date_modal_select",
-                            value=pdf["v:lastdate"].values[0],
+                            value=pdf["v:lastdate"].to_numpy()[0],
                             data=[
                                 {"value": i, "label": i}
-                                for i in pdf["v:lastdate"].values
+                                for i in pdf["v:lastdate"].to_numpy()
                             ],
                             zIndex=10000000,
                         ),
@@ -456,9 +456,9 @@ clientside_callback(
 def card_id(pdf):
     """Add a card containing basic alert data"""
     # pdf = pd.read_json(object_data)
-    objectid = pdf["i:objectId"].values[0]
-    ra0 = pdf["i:ra"].values[0]
-    dec0 = pdf["i:dec"].values[0]
+    objectid = pdf["i:objectId"].to_numpy()[0]
+    ra0 = pdf["i:ra"].to_numpy()[0]
+    dec0 = pdf["i:dec"].to_numpy()[0]
 
     python_download = f"""import requests
 import pandas as pd
@@ -1025,10 +1025,10 @@ def card_id1(object_data, object_uppervalid, object_upper):
     """Add a card containing basic alert data"""
     pdf = pd.read_json(object_data)
 
-    objectid = pdf["i:objectId"].values[0]
-    date_end = pdf["v:lastdate"].values[0]
-    discovery_date = pdf["v:lastdate"].values[-1]
-    jds = pdf["i:jd"].values
+    objectid = pdf["i:objectId"].to_numpy()[0]
+    date_end = pdf["v:lastdate"].to_numpy()[0]
+    discovery_date = pdf["v:lastdate"].to_numpy()[-1]
+    jds = pdf["i:jd"].to_numpy()
     ndet = len(pdf)
 
     pdf_upper_valid = pd.read_json(object_uppervalid)

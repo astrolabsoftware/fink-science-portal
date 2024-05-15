@@ -76,8 +76,8 @@ def card_variable_button(object_data):
     """Add a card containing button to fit for variable stars"""
     pdf = pd.read_json(object_data)
 
-    ra0 = pdf["i:ra"].values[0]
-    dec0 = pdf["i:dec"].values[0]
+    ra0 = pdf["i:ra"].to_numpy()[0]
+    dec0 = pdf["i:dec"].to_numpy()[0]
 
     card1 = dmc.AccordionMultiple(
         disableChevronRotation=True,

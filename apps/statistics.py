@@ -205,7 +205,7 @@ def create_stat_row(object_stats):
 
 def create_stat_generic(pdf):
     """Show basic stats. Used in the mobile app."""
-    n_ = pdf["key:key"].values[-1]
+    n_ = pdf["key:key"].to_numpy()[-1]
     night = n_[4:8] + "-" + n_[8:10] + "-" + n_[10:12]
 
     c0 = [
@@ -214,18 +214,18 @@ def create_stat_generic(pdf):
     ]
 
     c1 = [
-        html.H3(html.B("{:,}".format(pdf["basic:sci"].values[-1]))),
+        html.H3(html.B("{:,}".format(pdf["basic:sci"].to_numpy()[-1]))),
         html.P("Alerts processed"),
     ]
 
     c2 = [
-        html.H3(html.B("{:,}".format(np.sum(pdf["basic:sci"].values)))),
+        html.H3(html.B("{:,}".format(np.sum(pdf["basic:sci"].to_numpy())))),
         html.P("Since 2019/11/01"),
     ]
 
-    mask = ~np.isnan(pdf["class:Unknown"].values)
-    n_alert_unclassified = np.sum(pdf["class:Unknown"].values[mask])
-    n_alert_classified = np.sum(pdf["basic:sci"].values) - n_alert_unclassified
+    mask = ~np.isnan(pdf["class:Unknown"].to_numpy())
+    n_alert_unclassified = np.sum(pdf["class:Unknown"].to_numpy()[mask])
+    n_alert_classified = np.sum(pdf["basic:sci"].to_numpy()) - n_alert_unclassified
 
     c3 = [
         html.H3(html.B(f"{n_alert_classified:,}")),
@@ -346,7 +346,7 @@ def generate_night_list():
         options=[
             *[
                 {"label": label, "value": value}
-                for label, value in zip(labels[::-1], pdf["key:key"].values[::-1])
+                for label, value in zip(labels[::-1], pdf["key:key"].to_numpy()[::-1])
             ],
         ],
         id="dropdown_days",

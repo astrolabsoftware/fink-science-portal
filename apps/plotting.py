@@ -524,18 +524,18 @@ def plot_variable_star(
         pdf_release = pd.DataFrame()
 
     # Should we correct DC magnitudes for the nearby source?..
-    is_dc_corrected = is_source_behind(pdf["i:distnr"].values[0])
+    is_dc_corrected = is_source_behind(pdf["i:distnr"].to_numpy()[0])
 
     if is_dc_corrected:
         mag, err = np.transpose(
             [
                 dc_mag(*args)
                 for args in zip(
-                    pdf["i:magpsf"].astype(float).values,
-                    pdf["i:sigmapsf"].astype(float).values,
-                    pdf["i:magnr"].astype(float).values,
-                    pdf["i:sigmagnr"].astype(float).values,
-                    pdf["i:isdiffpos"].values,
+                    pdf["i:magpsf"].astype(float).to_numpy(),
+                    pdf["i:sigmapsf"].astype(float).to_numpy(),
+                    pdf["i:magnr"].astype(float).to_numpy(),
+                    pdf["i:sigmagnr"].astype(float).to_numpy(),
+                    pdf["i:isdiffpos"].to_numpy(),
                 )
             ],
         )
@@ -613,7 +613,7 @@ def plot_variable_star(
         (1, "g", COLORS_ZTF[0]),
         (2, "r", COLORS_ZTF[1]),
     ):
-        if fid in np.unique(pdf["i:fid"].values):
+        if fid in np.unique(pdf["i:fid"].to_numpy()):
             # Original data
             idx = pdf["i:fid"] == fid
             figure["data"].append(
@@ -860,7 +860,7 @@ def plot_classbar(object_data):
     alert_per_class = grouped["i:objectId"].to_dict()
 
     # descending date values
-    top_labels = pdf["v:classification"].values[::-1]
+    top_labels = pdf["v:classification"].to_numpy()[::-1]
     customdata = convert_jd(pdf["i:jd"])[::-1]
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
@@ -1013,7 +1013,7 @@ def draw_lightcurve(
         pdf_release = pd.DataFrame()
 
     # Exclude lower-quality points overlapping higher-quality ones
-    mask = np.in1d(pdf_upperv["i:jd"].values, pdf["i:jd"].values)
+    mask = np.in1d(pdf_upperv["i:jd"].to_numpy(), pdf["i:jd"].to_numpy())
     pdf_upperv, dates_upperv = (_[~mask] for _ in (pdf_upperv, dates_upperv))
 
     # shortcuts
@@ -1021,7 +1021,7 @@ def draw_lightcurve(
     err = pdf["i:sigmapsf"]
 
     # Should we correct DC magnitudes for the nearby source?..
-    is_dc_corrected = is_source_behind(pdf["i:distnr"].values[0])
+    is_dc_corrected = is_source_behind(pdf["i:distnr"].to_numpy()[0])
 
     # We should never modify global variables!!!
     layout = deepcopy(layout_lightcurve)
@@ -1037,11 +1037,11 @@ def draw_lightcurve(
                 [
                     dc_mag(*args)
                     for args in zip(
-                        mag.astype(float).values,
-                        err.astype(float).values,
-                        pdf["i:magnr"].astype(float).values,
-                        pdf["i:sigmagnr"].astype(float).values,
-                        pdf["i:isdiffpos"].values,
+                        mag.astype(float).to_numpy(),
+                        err.astype(float).to_numpy(),
+                        pdf["i:magnr"].astype(float).to_numpy(),
+                        pdf["i:sigmagnr"].astype(float).to_numpy(),
+                        pdf["i:isdiffpos"].to_numpy(),
                     )
                 ],
             )
@@ -1058,13 +1058,13 @@ def draw_lightcurve(
             [
                 apparent_flux(*args)
                 for args in zip(
-                    mag.astype(float).values,
-                    err.astype(float).values,
-                    pdf["i:magnr"].astype(float).values
+                    mag.astype(float).to_numpy(),
+                    err.astype(float).to_numpy(),
+                    pdf["i:magnr"].astype(float).to_numpy()
                     if is_dc_corrected
                     else [99.0] * len(pdf.index),
-                    pdf["i:sigmagnr"].astype(float).values,
-                    pdf["i:isdiffpos"].values,
+                    pdf["i:sigmagnr"].astype(float).to_numpy(),
+                    pdf["i:isdiffpos"].to_numpy(),
                 )
             ],
         )
@@ -1476,7 +1476,7 @@ def draw_lightcurve_preview(name) -> dict:
     err = pdf["i:sigmapsf"]
 
     # Should we correct DC magnitudes for the nearby source?..
-    is_dc_corrected = is_source_behind(pdf["i:distnr"].values[0])
+    is_dc_corrected = is_source_behind(pdf["i:distnr"].to_numpy()[0])
 
     # We should never modify global variables!!!
     layout = deepcopy(layout_lightcurve_preview)
@@ -1494,11 +1494,11 @@ def draw_lightcurve_preview(name) -> dict:
             [
                 dc_mag(*args)
                 for args in zip(
-                    mag.astype(float).values,
-                    err.astype(float).values,
-                    pdf["i:magnr"].astype(float).values,
-                    pdf["i:sigmagnr"].astype(float).values,
-                    pdf["i:isdiffpos"].values,
+                    mag.astype(float).to_numpy(),
+                    err.astype(float).to_numpy(),
+                    pdf["i:magnr"].astype(float).to_numpy(),
+                    pdf["i:sigmagnr"].astype(float).to_numpy(),
+                    pdf["i:isdiffpos"].to_numpy(),
                 )
             ],
         )
@@ -1695,10 +1695,10 @@ def extract_max_t2(pdf):
         return pd.DataFrame()
 
     series = pdf[cols][filt].apply(lambda x: np.array(x) == np.max(x), axis=1)
-    df_tmp = pd.DataFrame(list(series.values), columns=pdf[cols].columns).T.sum(axis=1)
+    df_tmp = pd.DataFrame(list(series.to_numpy()), columns=pdf[cols].columns).T.sum(axis=1)
     df = pd.DataFrame(
         {
-            "r": df_tmp.values,
+            "r": df_tmp.to_numpy(),
             "theta": df_tmp.index,
         },
         columns=["r", "theta"],
@@ -2067,7 +2067,7 @@ def extract_cutout(object_data, time0, kind):
     else:
         pdf_ = pdf_.sort_values("i:jd", ascending=False)
         # Round to avoid numerical precision issues
-        jds = pdf_["i:jd"].apply(lambda x: np.round(x, 3)).values
+        jds = pdf_["i:jd"].apply(lambda x: np.round(x, 3)).to_numpy()
         jd0 = np.round(Time(time0, format="iso").jd, 3)
         if jd0 in jds:
             position = np.where(jds == jd0)[0][0]
@@ -2076,13 +2076,13 @@ def extract_cutout(object_data, time0, kind):
 
     # Construct the query
     payload = {
-        "objectId": pdf_["i:objectId"].values[0],
+        "objectId": pdf_["i:objectId"].to_numpy()[0],
         "kind": kind.capitalize(),
         "output-format": "FITS",
     }
 
     if position > 0 and "i:candid" in pdf_.columns:
-        payload["candid"] = str(pdf_["i:candid"].values[position])
+        payload["candid"] = str(pdf_["i:candid"].to_numpy()[position])
 
     # Extract the cutout data
     r = request_api(
@@ -2096,7 +2096,7 @@ def extract_cutout(object_data, time0, kind):
     if (
         kind == "difference"
         and "i:isdiffpos" in pdf_.columns
-        and pdf_["i:isdiffpos"].values[position] == "f"
+        and pdf_["i:isdiffpos"].to_numpy()[position] == "f"
     ):
         # Negative event, let's invert the diff cutout
         cutout *= -1
@@ -2462,18 +2462,18 @@ def plot_mulens(n_clicks, object_data):
     pdf = pdf.sort_values("i:jd", ascending=False)
 
     # Should we correct DC magnitudes for the nearby source?..
-    is_dc_corrected = is_source_behind(pdf["i:distnr"].values[0])
+    is_dc_corrected = is_source_behind(pdf["i:distnr"].to_numpy()[0])
 
     if is_dc_corrected:
         mag, err = np.transpose(
             [
                 dc_mag(*args)
                 for args in zip(
-                    pdf["i:magpsf"].astype(float).values,
-                    pdf["i:sigmapsf"].astype(float).values,
-                    pdf["i:magnr"].astype(float).values,
-                    pdf["i:sigmagnr"].astype(float).values,
-                    pdf["i:isdiffpos"].values,
+                    pdf["i:magpsf"].astype(float).to_numpy(),
+                    pdf["i:sigmapsf"].astype(float).to_numpy(),
+                    pdf["i:magnr"].astype(float).to_numpy(),
+                    pdf["i:sigmagnr"].astype(float).to_numpy(),
+                    pdf["i:isdiffpos"].to_numpy(),
                 )
             ],
         )
@@ -2484,20 +2484,20 @@ def plot_mulens(n_clicks, object_data):
         mag, err = pdf["i:magpsf"], pdf["i:sigmapsf"]
 
     current_event = event.Event()
-    current_event.name = pdf["i:objectId"].values[0]
+    current_event.name = pdf["i:objectId"].to_numpy()[0]
 
-    current_event.ra = pdf["i:ra"].values[0]
-    current_event.dec = pdf["i:dec"].values[0]
+    current_event.ra = pdf["i:ra"].to_numpy()[0]
+    current_event.dec = pdf["i:dec"].to_numpy()[0]
 
     filts = {1: "g", 2: "r"}
-    for fid in np.unique(pdf["i:fid"].values):
-        mask = pdf["i:fid"].values == fid
+    for fid in np.unique(pdf["i:fid"].to_numpy()):
+        mask = pdf["i:fid"].to_numpy() == fid
         telescope = telescopes.Telescope(
             name=f"ztf_{filts[fid]}",
             camera_filter=format(filts[fid]),
             light_curve_magnitude=np.transpose(
                 [
-                    pdf["i:jd"].values[mask],
+                    pdf["i:jd"].to_numpy()[mask],
                     mag[mask],
                     err[mask],
                 ],
@@ -2549,7 +2549,7 @@ def plot_mulens(n_clicks, object_data):
         (2, "r", COLORS_ZTF[1]),
     ):
         dates = convert_jd(normalised_lightcurves[index][:, 0])
-        if fid in np.unique(pdf["i:fid"].values):
+        if fid in np.unique(pdf["i:fid"].to_numpy()):
             figure["data"].append(
                 {
                     "x": dates,
@@ -2674,8 +2674,8 @@ def integrate_aladin_lite(object_data):
     pdf = pdf.sort_values("i:jd", ascending=False)
 
     # Coordinate of the current alert
-    ra0 = pdf["i:ra"].values[0]
-    dec0 = pdf["i:dec"].values[0]
+    ra0 = pdf["i:ra"].to_numpy()[0]
+    dec0 = pdf["i:dec"].to_numpy()[0]
 
     # Javascript. Note the use {{}} for dictionary
     img = f"""
@@ -2865,7 +2865,7 @@ def draw_sso_residual(pdf) -> dict:
     if "SDSS:g" not in pdf.columns:
         return dbc.Alert(
             "No colors available from ephemerides for {}".format(
-                pdf["i:ssnamenr"].values[0]
+                pdf["i:ssnamenr"].to_numpy()[0]
             ),
             color="danger",
         )
@@ -3000,7 +3000,7 @@ def draw_sso_astrometry(pdf) -> dict:
 
     if "RA" not in pdf.columns:
         return dbc.Alert(
-            "No ephemerides available for {}".format(pdf["i:ssnamenr"].values[0]),
+            "No ephemerides available for {}".format(pdf["i:ssnamenr"].to_numpy()[0]),
             color="danger",
         )
 
@@ -3086,7 +3086,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
     if "i:magpsf_red" not in pdf.columns:
         return dbc.Alert(
-            "No ephemerides available for {}".format(pdf["i:ssnamenr"].values[0]),
+            "No ephemerides available for {}".format(pdf["i:ssnamenr"].to_numpy()[0]),
             color="danger",
         )
 
@@ -3097,7 +3097,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
     # Disctionary for filters
     filters = {1: "g", 2: "r", 3: "i"}
-    filts = np.unique(pdf["i:fid"].values)
+    filts = np.unique(pdf["i:fid"].to_numpy())
 
     figs = []
     residual_figs = []
@@ -3118,7 +3118,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             [30, 1, 1],
         )
         p0 = [15.0, 0.15, 0.15]
-        x = np.deg2rad(pdf["Phase"].values)
+        x = np.deg2rad(pdf["Phase"].to_numpy())
     elif switch_func == "HG12":
         fitfunc = func_hg12
         params = ["H", "G12"]
@@ -3127,7 +3127,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             [30, 1],
         )
         p0 = [15.0, 0.15]
-        x = np.deg2rad(pdf["Phase"].values)
+        x = np.deg2rad(pdf["Phase"].to_numpy())
     elif switch_func == "HG":
         fitfunc = func_hg
         params = ["H", "G"]
@@ -3136,7 +3136,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             [30, 1],
         )
         p0 = [15.0, 0.15]
-        x = np.deg2rad(pdf["Phase"].values)
+        x = np.deg2rad(pdf["Phase"].to_numpy())
     elif switch_func == "SHG1G2":
         fitfunc = func_hg1g2_with_spin
         params = ["H", "G1", "G2", "R", "alpha0", "delta0"]
@@ -3146,9 +3146,9 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
         )
         p0 = [15.0, 0.15, 0.15, 0.8, np.pi, 0.0]
         x = [
-            np.deg2rad(pdf["Phase"].values),
-            np.deg2rad(pdf["i:ra"].values),
-            np.deg2rad(pdf["i:dec"].values),
+            np.deg2rad(pdf["Phase"].to_numpy()),
+            np.deg2rad(pdf["i:ra"].to_numpy()),
+            np.deg2rad(pdf["i:dec"].to_numpy()),
         ]
 
     layout_sso_phasecurve["title"]["text"] = "Reduced &#967;<sup>2</sup>: "
@@ -3162,12 +3162,12 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
         # Multi-band fit
         outdic = estimate_sso_params(
-            magpsf_red=pdf["i:magpsf_red"].values,
-            sigmapsf=pdf["i:sigmapsf"].values,
-            phase=np.deg2rad(pdf["Phase"].values),
-            filters=pdf["i:fid"].values,
-            ra=np.deg2rad(pdf["i:ra"].values),
-            dec=np.deg2rad(pdf["i:dec"].values),
+            magpsf_red=pdf["i:magpsf_red"].to_numpy(),
+            sigmapsf=pdf["i:sigmapsf"].to_numpy(),
+            phase=np.deg2rad(pdf["Phase"].to_numpy()),
+            filters=pdf["i:fid"].to_numpy(),
+            ra=np.deg2rad(pdf["i:ra"].to_numpy()),
+            dec=np.deg2rad(pdf["i:dec"].to_numpy()),
             p0=p0,
             bounds=bounds,
             model=switch_func,
@@ -3203,11 +3203,11 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
             figs.append(
                 {
-                    "x": pdf.loc[cond, "Phase"].values,
-                    "y": ydata.values,
+                    "x": pdf.loc[cond, "Phase"].to_numpy(),
+                    "y": ydata.to_numpy(),
                     "error_y": {
                         "type": "data",
-                        "array": pdf.loc[cond, "i:sigmapsf"].values,
+                        "array": pdf.loc[cond, "i:sigmapsf"].to_numpy(),
                         "visible": True,
                         "width": 0,
                         "opacity": 0.5,
@@ -3233,7 +3233,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
             figs.append(
                 {
-                    "x": pdf.loc[cond, "Phase"].values,
+                    "x": pdf.loc[cond, "Phase"].to_numpy(),
                     "y": fitfunc(xx, *popt),
                     "mode": "markers",
                     "name": f"fit {filters[f]}",
@@ -3248,11 +3248,11 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
             residual_figs.append(
                 {
-                    "x": pdf.loc[cond, "Phase"].values,
-                    "y": ydata.values - fitfunc(xx, *popt),
+                    "x": pdf.loc[cond, "Phase"].to_numpy(),
+                    "y": ydata.to_numpy() - fitfunc(xx, *popt),
                     "error_y": {
                         "type": "data",
-                        "array": pdf.loc[cond, "i:sigmapsf"].values,
+                        "array": pdf.loc[cond, "i:sigmapsf"].to_numpy(),
                         "visible": True,
                         "width": 0,
                         "opacity": 0.5,
@@ -3275,12 +3275,12 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
         )
 
         outdic = estimate_sso_params(
-            magpsf_red=pdf["i:magpsf_red"].values,
-            sigmapsf=pdf["i:sigmapsf"].values,
-            phase=np.deg2rad(pdf["Phase"].values),
-            filters=pdf["i:fid"].values,
-            ra=np.deg2rad(pdf["i:ra"].values),
-            dec=np.deg2rad(pdf["i:dec"].values),
+            magpsf_red=pdf["i:magpsf_red"].to_numpy(),
+            sigmapsf=pdf["i:sigmapsf"].to_numpy(),
+            phase=np.deg2rad(pdf["Phase"].to_numpy()),
+            filters=pdf["i:fid"].to_numpy(),
+            ra=np.deg2rad(pdf["i:ra"].to_numpy()),
+            dec=np.deg2rad(pdf["i:dec"].to_numpy()),
             p0=p0,
             bounds=bounds,
             model=switch_func,
@@ -3309,16 +3309,16 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             else:
                 popt.append(np.deg2rad(outdic[param + suffix]))
 
-        color = compute_color_correction(pdf["i:fid"].values)
-        ydata = pdf["i:magpsf_red"].values + color
+        color = compute_color_correction(pdf["i:fid"].to_numpy())
+        ydata = pdf["i:magpsf_red"].to_numpy() + color
 
         figs.append(
             {
-                "x": pdf["Phase"].values,
+                "x": pdf["Phase"].to_numpy(),
                 "y": ydata,
                 "error_y": {
                     "type": "data",
-                    "array": pdf["i:sigmapsf"].values,
+                    "array": pdf["i:sigmapsf"].to_numpy(),
                     "visible": True,
                     "width": 0,
                     "opacity": 0.5,
@@ -3339,7 +3339,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
         figs.append(
             {
-                "x": pdf["Phase"].values,
+                "x": pdf["Phase"].to_numpy(),
                 "y": fitfunc(x, *popt),
                 "mode": "markers",
                 "name": "fit combined",
@@ -3354,11 +3354,11 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
         residual_figs.append(
             {
-                "x": pdf["Phase"].values,
+                "x": pdf["Phase"].to_numpy(),
                 "y": ydata - fitfunc(x, *popt),
                 "error_y": {
                     "type": "data",
-                    "array": pdf["i:sigmapsf"].values,
+                    "array": pdf["i:sigmapsf"].to_numpy(),
                     "visible": True,
                     "width": 0,
                     "opacity": 0.5,
@@ -3615,7 +3615,7 @@ def alert_properties(object_data, clickData):
     if clickData is not None:
         time0 = clickData["points"][0]["x"]
         # Round to avoid numerical precision issues
-        jds = pdf_["i:jd"].apply(lambda x: np.round(x, 3)).values
+        jds = pdf_["i:jd"].apply(lambda x: np.round(x, 3)).to_numpy()
         jd0 = np.round(Time(time0, format="iso").jd, 3)
         if jd0 in jds:
             pdf_ = pdf_[jds == jd0]
@@ -3623,7 +3623,7 @@ def alert_properties(object_data, clickData):
             return no_update
 
     pdf = pdf_.head(1)
-    pdf = pd.DataFrame({"Name": pdf.columns, "Value": pdf.values[0]})
+    pdf = pd.DataFrame({"Name": pdf.columns, "Value": pdf.to_numpy()[0]})
     columns = [
         {
             "id": c,
@@ -3705,7 +3705,7 @@ def plot_heatmap(object_stats):
     """Plot heatmap"""
     pdf = pd.read_json(object_stats)
     pdf["date"] = [
-        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime for x in pdf.index.values
+        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime for x in pdf.index.to_numpy()
     ]
     years = np.unique(pdf["date"].apply(lambda x: x.year)).tolist()
 
@@ -3716,7 +3716,7 @@ def plot_heatmap(object_stats):
     pdf.index = pd.DatetimeIndex(pdf.date)
     pdf = pdf.drop(columns="date")
     pdf = pdf.reindex(idx, fill_value=0)
-    pdf["date"] = pdf.index.values
+    pdf["date"] = pdf.index.to_numpy()
 
     fig = display_years(pdf, years)
 
@@ -3759,7 +3759,7 @@ def plot_stat_evolution(param_name, switch):
     pdf = pdf.fillna(0)
 
     pdf["date"] = [
-        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime for x in pdf.index.values
+        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime for x in pdf.index.to_numpy()
     ]
 
     if param_name in dic_names:
@@ -4029,7 +4029,7 @@ def display_years(pdf, years):
     fig = make_subplots(rows=len(years), cols=1, subplot_titles=years)
     for i, year in enumerate(years):
         # select the data for the year
-        data = pdf[pdf["date"].apply(lambda x: x.year == year)]["basic:sci"].values
+        data = pdf[pdf["date"].apply(lambda x: x.year == year)]["basic:sci"].to_numpy()
 
         # Display year
         display_year(data, year=year, fig=fig, row=i, month_lines=True)
@@ -4052,15 +4052,15 @@ def make_daily_card(
 ):
     """ """
     if withpercent and norm != 0:
-        text = [f"{int(i) / norm * 100:.0f}%" for i in pdf.values[0]]
+        text = [f"{int(i) / norm * 100:.0f}%" for i in pdf.to_numpy()[0]]
     else:
-        text = pdf.values[0]
+        text = pdf.to_numpy()[0]
 
     pdf = pdf.replace("", 0)
     pdf = pdf.fillna(0).astype(int)
     fig = go.Figure(
         [
-            go.Bar(x=pdf.columns, y=pdf.values[0], text=text, textposition="auto"),
+            go.Bar(x=pdf.columns, y=pdf.to_numpy()[0], text=text, textposition="auto"),
         ],
     )
 
@@ -4138,7 +4138,7 @@ def hist_sci_raw(dropdown_days):
     pdf = pdf[pdf.index == dropdown_days]
 
     pdf = pdf.rename(columns={"basic:raw": "Received", "basic:sci": "Processed"})
-    norm = int(pdf["Received"].values[0])
+    norm = int(pdf["Received"].to_numpy()[0])
 
     description = """
     Received alerts go through a series of quality cuts defined by Fink.
@@ -4176,7 +4176,7 @@ def hist_catalogued(dropdown_days):
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
-    norm = int(pdf["basic:sci"].values[0])
+    norm = int(pdf["basic:sci"].to_numpy()[0])
     pdf = pdf.drop(columns=["basic:sci"])
 
     description = """
@@ -4212,7 +4212,7 @@ def hist_classified(dropdown_days):
         dropdown_days = pdf.index[-1]
     pdf = pdf[pdf.index == dropdown_days]
 
-    norm = int(pdf["basic:sci"].values[0])
+    norm = int(pdf["basic:sci"].to_numpy()[0])
     pdf = pdf.drop(columns=["basic:sci"])
 
     description = """

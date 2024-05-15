@@ -338,8 +338,8 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
         pdf["v:lastdate"] = convert_jd(pdf["i:jd"])
         pdf["i:objectId"] = pdf["i:objectId"].apply(markdownify_objectid)
         # Coordinate of the first alert
-        ra0 = pdf["i:ra"].values[0]
-        dec0 = pdf["i:dec"].values[0]
+        ra0 = pdf["i:ra"].to_numpy()[0]
+        dec0 = pdf["i:dec"].to_numpy()[0]
 
         # Javascript. Note the use {{}} for dictionary
         # Force redraw of the Aladin lite window
@@ -360,20 +360,20 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
         );
         """
 
-        ras = pdf["i:ra"].values
-        decs = pdf["i:dec"].values
-        filts = pdf["i:fid"].values
+        ras = pdf["i:ra"].to_numpy()
+        decs = pdf["i:dec"].to_numpy()
+        filts = pdf["i:fid"].to_numpy()
         filts_dic = {1: "g", 2: "r"}
-        times = pdf["v:lastdate"].values
+        times = pdf["v:lastdate"].to_numpy()
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [
             link.format(
                 APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
             )
-            for i in pdf["i:objectId"].values
+            for i in pdf["i:objectId"].to_numpy()
         ]
-        # mags = pdf['i:magpsf'].values
-        classes = pdf["d:classification"].values
+        # mags = pdf['i:magpsf'].to_numpy()
+        classes = pdf["d:classification"].to_numpy()
         n_alert_per_class = (
             pdf.groupby("d:classification").count().to_dict()["i:objectId"]
         )

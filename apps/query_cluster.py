@@ -38,7 +38,7 @@ from apps.utils import request_api
 simbad_types = get_simbad_labels("old_and_new")
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
-tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].values
+tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
 tns_types = sorted(tns_types, key=lambda s: s.lower())
 
 elasticc_v1_classes = pd.read_csv("assets/elasticc_v1_classes.csv")
@@ -288,7 +288,7 @@ def display_filter_tab(trans_datasource):
                 {"label": "All classes", "value": "allclasses"},
                 *[
                     {"label": str(simtype), "value": simtype}
-                    for simtype in sorted(elasticc_v1_classes["classId"].values)
+                    for simtype in sorted(elasticc_v1_classes["classId"].to_numpy())
                 ],
             ]
             description = [
@@ -322,7 +322,7 @@ def display_filter_tab(trans_datasource):
                 {"label": "All classes", "value": "allclasses"},
                 *[
                     {"label": str(simtype), "value": simtype}
-                    for simtype in sorted(elasticc_v2_classes["classId"].values)
+                    for simtype in sorted(elasticc_v2_classes["classId"].to_numpy())
                 ],
             ]
             description = [
@@ -356,7 +356,7 @@ def display_filter_tab(trans_datasource):
                 {"label": "All classes", "value": "allclasses"},
                 *[
                     {"label": str(simtype), "value": simtype}
-                    for simtype in sorted(elasticc_v2p1_classes["classId"].values)
+                    for simtype in sorted(elasticc_v2p1_classes["classId"].to_numpy())
                 ],
             ]
             description = [
@@ -494,7 +494,7 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
                         dic[elem] = 0
                     else:
                         dic[elem.replace("(TNS) ", "class:")] = int(
-                            dic["basic:sci"] * coeffs_per_class[filt]["coeff"].values[0]
+                            dic["basic:sci"] * coeffs_per_class[filt]["coeff"].to_numpy()[0]
                         )
             count = np.sum([i[1] for i in dic.items() if "class:" in i[0]])
         else:
@@ -520,7 +520,7 @@ def estimate_alert_number_elasticc(
         tmp = (dstart + timedelta(i)).strftime("%Y%m%d")
         filt = elasticc_dates["date"] == tmp
         if np.sum(filt) > 0:
-            dic["basic:sci"] += int(elasticc_dates[filt]["count"].values[0])
+            dic["basic:sci"] += int(elasticc_dates[filt]["count"].to_numpy()[0])
 
     # Add class estimation
     if (class_select is not None) and (class_select != []):
@@ -537,7 +537,7 @@ def estimate_alert_number_elasticc(
                     dic[elem] = 0
                 else:
                     coeff = (
-                        elasticc_classes[filt]["count"].values[0]
+                        elasticc_classes[filt]["count"].to_numpy()[0]
                         / elasticc_classes["count"].sum()
                     )
                     dic["class:" + str(elem)] = int(dic["basic:sci"] * coeff)

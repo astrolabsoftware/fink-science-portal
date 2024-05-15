@@ -128,7 +128,7 @@ def format_hbase_output(
     # Remove cutouts if their fields are here but empty
     for _ in ["Difference", "Science", "Template"]:
         colname = f"b:cutout{_}_stampData"
-        if colname in pdfs.columns and pdfs[colname].values[0].startswith("binary:ZTF"):
+        if colname in pdfs.columns and pdfs[colname].to_numpy()[0].startswith("binary:ZTF"):
             pdfs = pdfs.drop(columns=colname)
 
     # Type conversion
@@ -163,7 +163,7 @@ def format_hbase_output(
             pdfs["d:tracklet"],
         )
 
-        pdfs["v:classification"] = classifications.values
+        pdfs["v:classification"] = classifications.to_numpy()
 
         if extract_color:
             # Extract color evolution

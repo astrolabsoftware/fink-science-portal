@@ -268,7 +268,7 @@ def tab5_content(object_soo):
     if pdf.empty:
         ssnamenr = "null"
     else:
-        ssnamenr = pdf["i:ssnamenr"].values[0]
+        ssnamenr = pdf["i:ssnamenr"].to_numpy()[0]
 
     msg = """
     Alert data from ZTF, with ephemerides provided by the
@@ -551,11 +551,11 @@ def tabs(pdf):
 
 def is_sso(pdfs):
     """Auxiliary function to check whether the object is a SSO"""
-    payload = pdfs["i:ssnamenr"].values[0]
+    payload = pdfs["i:ssnamenr"].to_numpy()[0]
     if str(payload) == "null" or str(payload) == "None":
         return False
 
-    if np.all([i == payload for i in pdfs["i:ssnamenr"].values]):
+    if np.all([i == payload for i in pdfs["i:ssnamenr"].to_numpy()]):
         return True
 
     return False
@@ -563,7 +563,7 @@ def is_sso(pdfs):
 
 def is_tracklet(pdfs):
     """Auxiliary function to check whether the object is a tracklet"""
-    payload = pdfs["d:tracklet"].values[0]
+    payload = pdfs["d:tracklet"].to_numpy()[0]
 
     if str(payload).startswith("TRCK"):
         return True
@@ -614,8 +614,8 @@ def store_query(name):
     pdfsU = pdf[pdf["d:tag"] == "upperlim"]
     pdfsUV = pdf[pdf["d:tag"] == "badquality"]
 
-    payload = pdfs["i:ssnamenr"].values[0]
-    is_sso = np.all([i == payload for i in pdfs["i:ssnamenr"].values])
+    payload = pdfs["i:ssnamenr"].to_numpy()[0]
+    is_sso = np.all([i == payload for i in pdfs["i:ssnamenr"].to_numpy()])
     if str(payload) != "null" and is_sso:
         pdfsso = request_api(
             "/api/v1/sso",
@@ -638,7 +638,7 @@ def store_query(name):
     else:
         pdfsso = pd.DataFrame()
 
-    payload = pdfs["d:tracklet"].values[0]
+    payload = pdfs["d:tracklet"].to_numpy()[0]
 
     if str(payload).startswith("TRCK"):
         r = request_api(

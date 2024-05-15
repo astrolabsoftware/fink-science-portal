@@ -906,7 +906,7 @@ def latest_objects(payload=None):
 def class_arguments():
     """Obtain all Fink derived class"""
     # TNS
-    tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].values
+    tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
     tns_types = sorted(tns_types, key=lambda s: s.lower())
     tns_types = ["(TNS) " + x for x in tns_types]
 
@@ -916,7 +916,7 @@ def class_arguments():
     simbad_types = ["(SIMBAD) " + x for x in simbad_types]
 
     # Fink science modules
-    fink_types = pd.read_csv("assets/fink_types.csv", header=None)[0].values
+    fink_types = pd.read_csv("assets/fink_types.csv", header=None)[0].to_numpy()
     fink_types = sorted(fink_types, key=lambda s: s.lower())
 
     types = {

@@ -57,7 +57,7 @@ import numpy as np
 
 import urllib
 
-tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].values
+tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
 tns_types = sorted(tns_types, key=lambda s: s.lower())
 
 fink_classes = [
@@ -790,8 +790,8 @@ def display_skymap(data, columns, is_open):
         pdf = pd.DataFrame(data)
 
         # Coordinate of the first alert
-        ra0 = pdf["i:ra"].values[0]
-        dec0 = pdf["i:dec"].values[0]
+        ra0 = pdf["i:ra"].to_numpy()[0]
+        dec0 = pdf["i:dec"].to_numpy()[0]
 
         # Javascript. Note the use {{}} for dictionary
         # Force redraw of the Aladin lite window
@@ -812,30 +812,30 @@ def display_skymap(data, columns, is_open):
         );
         """.format(ra0, dec0)
 
-        ras = pdf["i:ra"].values
-        decs = pdf["i:dec"].values
-        filts = pdf["i:fid"].values
+        ras = pdf["i:ra"].to_numpy()
+        decs = pdf["i:dec"].to_numpy()
+        filts = pdf["i:fid"].to_numpy()
         filts_dic = {1: "g", 2: "r"}
 
         if "v:lastdate" not in pdf.columns:
             # conesearch does not expose v:lastdate
             pdf["v:lastdate"] = convert_jd(pdf["i:jd"])
-        times = pdf["v:lastdate"].values
+        times = pdf["v:lastdate"].to_numpy()
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [
             link.format(
                 APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
             )
-            for i in pdf["i:objectId"].values
+            for i in pdf["i:objectId"].to_numpy()
         ]
-        mags = pdf["i:magpsf"].values
+        mags = pdf["i:magpsf"].to_numpy()
 
         if "v:classification" not in pdf.columns:
             if "d:classification" in pdf.columns:
                 pdf["v:classification"] = pdf["d:classification"]
             else:
                 pdf["v:classification"] = "Unknown"
-        classes = pdf["v:classification"].values
+        classes = pdf["v:classification"].to_numpy()
         n_alert_per_class = (
             pdf.groupby("v:classification").count().to_dict()["i:objectId"]
         )

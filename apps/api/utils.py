@@ -160,8 +160,8 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             # workaround -- see https://github.com/astrolabsoftware/fink-science-portal/issues/216
             mask = np.array(
                 [
-                    False if float(i) in pdf["i:jd"].values else True
-                    for i in pdfUP["i:jd"].values
+                    False if float(i) in pdf["i:jd"].to_numpy() else True
+                    for i in pdfUP["i:jd"].to_numpy()
                 ]
             )
             pdfUP = pdfUP[mask]
@@ -414,7 +414,7 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
         truncated = True
 
     # Search for latest alerts for a specific class
-    tns_classes = pd.read_csv("assets/tns_types.csv", header=None)[0].values
+    tns_classes = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
     is_tns = payload["class"].startswith("(TNS)") and (
         payload["class"].split("(TNS) ")[1] in tns_classes
     )
@@ -807,7 +807,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         )
     client.close()
 
-    array = pdf["b:cutout{}_stampData".format(payload["kind"])].values[0]
+    array = pdf["b:cutout{}_stampData".format(payload["kind"])].to_numpy()[0]
 
     # send the FITS file
     if output_format == "FITS":
@@ -927,28 +927,28 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
     unique_cols = np.unique(colnames + colnames_added_values).tolist()
 
     # check units
-    ra0 = df[raname].values[0]
+    ra0 = df[raname].to_numpy()[0]
     if "h" in str(ra0):
         coords = [
             SkyCoord(ra, dec, frame="icrs")
-            for ra, dec in zip(df[raname].values, df[decname].values)
+            for ra, dec in zip(df[raname].to_numpy(), df[decname].to_numpy())
         ]
     elif ":" in str(ra0) or " " in str(ra0):
         coords = [
             SkyCoord(ra, dec, frame="icrs", unit=(u.hourangle, u.deg))
-            for ra, dec in zip(df[raname].values, df[decname].values)
+            for ra, dec in zip(df[raname].to_numpy(), df[decname].to_numpy())
         ]
     else:
         coords = [
             SkyCoord(ra, dec, frame="icrs", unit="deg")
-            for ra, dec in zip(df[raname].values, df[decname].values)
+            for ra, dec in zip(df[raname].to_numpy(), df[decname].to_numpy())
         ]
     ras = [coord.ra.deg for coord in coords]
     decs = [coord.dec.deg for coord in coords]
-    ids = df[idname].values
+    ids = df[idname].to_numpy()
 
     if len(header) == 4:
-        times = df[timename].values
+        times = df[timename].to_numpy()
     else:
         times = np.zeros_like(ras)
 
@@ -1534,7 +1534,7 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
             # ssnmanenr -> MPC name & number
             if not pdfs.empty:
                 client = connect_to_hbase_table("ztf.sso_resolver")
-                ssnamenrs = np.unique(pdfs["i:ssnamenr"].values)
+                ssnamenrs = np.unique(pdfs["i:ssnamenr"].to_numpy())
                 results = {}
                 for ssnamenr in ssnamenrs:
                     result = client.scan(

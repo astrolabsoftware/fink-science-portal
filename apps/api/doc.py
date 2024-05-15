@@ -229,7 +229,7 @@ columns = [
 
 for col in columns:
     # 2D array
-    data = pdf[col].values[0]
+    data = pdf[col].to_numpy()[0]
 
     # do whatever plotting
 
@@ -792,7 +792,7 @@ r = requests.post(
 
 pdf_candid = pd.read_json(r.content)
 # Get the first alert
-first_alert = pdf_candid['i:candid'].values[-1]
+first_alert = pdf_candid['i:candid'].to_numpy()[-1]
 
 # get data for ZTF21aaxtctv
 r = requests.post(
@@ -860,7 +860,7 @@ r = requests.post(
 )
 
 pdf = pd.read_json(io.BytesIO(r.content))
-array = pdf['b:cutoutScience_stampData'].values[0]
+array = pdf['b:cutoutScience_stampData'].to_numpy()[0]
 ```
 
 """
@@ -1593,7 +1593,7 @@ if r.json() != []:
 
     # Format output in a DataFrame
     pdf = pd.read_json(io.BytesIO(r.content))
-    print('Object(s) in ZTF: {}'.format(pdf['i:objectId'].values))
+    print('Object(s) in ZTF: {}'.format(pdf['i:objectId'].to_numpy()))
 else:
     print('No objects found')
 ```
@@ -1676,7 +1676,7 @@ and then search for corresponding alerts for all `ssnamenr`:
 r = requests.post(
   'https://fink-portal.org/api/v1/sso',
   json={
-    'n_or_d': ','.join(pdf['i:ssnamenr'].values),
+    'n_or_d': ','.join(pdf['i:ssnamenr'].to_numpy()),
     'columns': 'i:objectId,i:ra,i:dec,i:magpsf,i:sigmapsf,i:ssnamenr'
   }
 )

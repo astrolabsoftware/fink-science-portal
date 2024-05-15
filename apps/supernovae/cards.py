@@ -184,43 +184,43 @@ def card_sn_properties(clickData1, clickData2, clickData3, clickData4, object_da
     if clickData is not None:
         time0 = clickData["points"][0]["x"]
         # Round to avoid numerical precision issues
-        jds = pdf["i:jd"].apply(lambda x: np.round(x, 3)).values
+        jds = pdf["i:jd"].apply(lambda x: np.round(x, 3)).to_numpy()
         jd0 = np.round(Time(time0, format="iso").jd, 3)
         position = np.where(jds == jd0)[0][0]
     else:
         position = 0
 
-    date0 = pdf["v:lastdate"].values[position]
-    id0 = pdf["i:objectId"].values[position]
-    snn_snia_vs_nonia = pdf["d:snn_snia_vs_nonia"].values[position]
-    snn_sn_vs_all = pdf["d:snn_sn_vs_all"].values[position]
-    rf_snia_vs_nonia = pdf["d:rf_snia_vs_nonia"].values[position]
-    classtar = pdf["i:classtar"].values[position]
-    drb = pdf["i:drb"].values[position]
+    date0 = pdf["v:lastdate"].to_numpy()[position]
+    id0 = pdf["i:objectId"].to_numpy()[position]
+    snn_snia_vs_nonia = pdf["d:snn_snia_vs_nonia"].to_numpy()[position]
+    snn_sn_vs_all = pdf["d:snn_sn_vs_all"].to_numpy()[position]
+    rf_snia_vs_nonia = pdf["d:rf_snia_vs_nonia"].to_numpy()[position]
+    classtar = pdf["i:classtar"].to_numpy()[position]
+    drb = pdf["i:drb"].to_numpy()[position]
 
-    g_minus_r = get_first_finite_value(pdf["v:g-r"].values, position)
-    sigma_g_minus_r = get_first_finite_value(pdf["v:sigma(g-r)"].values, position)
+    g_minus_r = get_first_finite_value(pdf["v:g-r"].to_numpy(), position)
+    sigma_g_minus_r = get_first_finite_value(pdf["v:sigma(g-r)"].to_numpy(), position)
 
-    rate_g_minus_r = get_first_finite_value(pdf["v:rate(g-r)"].values, position)
+    rate_g_minus_r = get_first_finite_value(pdf["v:rate(g-r)"].to_numpy(), position)
     sigma_rate_g_minus_r = get_first_finite_value(
-        pdf["v:sigma(rate(g-r))"].values, position
+        pdf["v:sigma(rate(g-r))"].to_numpy(), position
     )
 
     rate_g = get_first_finite_value(
-        pdf["v:rate"].values[position:][pdf["i:fid"][position:] == 1]
+        pdf["v:rate"].to_numpy()[position:][pdf["i:fid"][position:] == 1]
     )
     sigma_rate_g = get_first_finite_value(
-        pdf["v:sigma(rate)"].values[position:][pdf["i:fid"][position:] == 1]
+        pdf["v:sigma(rate)"].to_numpy()[position:][pdf["i:fid"][position:] == 1]
     )
 
     rate_r = get_first_finite_value(
-        pdf["v:rate"].values[position:][pdf["i:fid"][position:] == 2]
+        pdf["v:rate"].to_numpy()[position:][pdf["i:fid"][position:] == 2]
     )
     sigma_rate_r = get_first_finite_value(
-        pdf["v:sigma(rate)"].values[position:][pdf["i:fid"][position:] == 2]
+        pdf["v:sigma(rate)"].to_numpy()[position:][pdf["i:fid"][position:] == 2]
     )
 
-    classification = pdf["v:classification"].values[position]
+    classification = pdf["v:classification"].to_numpy()[position]
 
     simbad_types = get_simbad_labels("old_and_new")
     simbad_types = sorted(simbad_types, key=lambda s: s.lower())
