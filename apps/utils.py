@@ -12,67 +12,56 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import base64
+import gzip
+import io
+
 import healpy as hp
 import numpy as np
 import pandas as pd
-import gzip
-import io
-import requests
-import base64
-import yaml
-
 import qrcode
+import requests
+from astropy.convolution import Box2DKernel, Gaussian2DKernel
+from astropy.convolution import convolve as astropy_convolve
+from astropy.coordinates import SkyCoord, get_constellation
+from astropy.io import fits
+from astropy.time import Time
+from astropy.visualization import AsymmetricPercentileInterval, simple_norm
+from astroquery.mpc import MPC
+from fink_filters.classification import extract_fink_classification_
+from fink_utils.xmatch.simbad import get_simbad_labels
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
-from qrcode.image.styles.colormasks import RadialGradiantColorMask
 
-from astropy.io import fits
-from astroquery.mpc import MPC
-
-from astropy.convolution import convolve as astropy_convolve
-from astropy.convolution import Gaussian2DKernel
-from astropy.convolution import Box2DKernel
-
-from astropy.coordinates import SkyCoord, get_constellation
-import astropy.units as u
-
-from astropy.visualization import AsymmetricPercentileInterval, simple_norm
-from astropy.time import Time
-
-from fink_filters.classification import extract_fink_classification_
-from fink_utils.sso.utils import get_miriade_data, query_miriade
-from fink_utils.photometry.conversion import dc_mag
-from fink_utils.xmatch.simbad import get_simbad_labels
-
-from app import APIURL, LOCALAPI, nlimit, server
 import apps.api
+from app import APIURL, LOCALAPI, server
 
-simbad_types = get_simbad_labels('old_and_new')
+simbad_types = get_simbad_labels("old_and_new")
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
 # For int we use `Int64` due to the presence of NaN
 # See https://pandas.pydata.org/pandas-docs/version/1.3/user_guide/integer_na.html
 hbase_type_converter = {
-    'integer': 'Int64',
-    'long': int,
-    'float': float,
-    'double': float,
-    'string': str,
-    'fits/image': str,
-    'boolean': bool
+    "integer": "Int64",
+    "long": int,
+    "float": float,
+    "double": float,
+    "string": str,
+    "fits/image": str,
+    "boolean": bool,
 }
 
 class_colors = {
-        'Early SN Ia candidate': 'red',
-        'SN candidate': 'orange',
-        'Kilonova candidate': 'dark',
-        'Microlensing candidate': 'lime',
-        'Tracklet': "violet",
-        'Solar System MPC': "yellow",
-        'Solar System candidate': "indigo",
-        'Ambiguous': 'grape',
-        'Unknown': 'gray',
-        'Simbad': 'blue'
+        "Early SN Ia candidate": "red",
+        "SN candidate": "orange",
+        "Kilonova candidate": "dark",
+        "Microlensing candidate": "lime",
+        "Tracklet": "violet",
+        "Solar System MPC": "yellow",
+        "Solar System candidate": "indigo",
+        "Ambiguous": "grape",
+        "Unknown": "gray",
+        "Simbad": "blue",
     }
 
 def hbase_to_dict(hbase_output):
@@ -83,8 +72,9 @@ def hbase_to_dict(hbase_output):
     # optimized = {i: dict(j) for i, j in hbase_output.items()}
 
     # Here we assume JPype is already initialized
-    from org.json import JSONObject
     import json
+
+    from org.json import JSONObject
 
     # We do bulk export to JSON on Java side to avoid overheads of iterative access
     # and then parse it back to Dict in Python
@@ -93,7 +83,7 @@ def hbase_to_dict(hbase_output):
     return optimized
 
 def convert_datatype(series: pd.Series, type_: type) -> pd.Series:
-    """ Convert Series from HBase data with proper type
+    """Convert Series from HBase data with proper type
 
     Parameters
     ----------
@@ -102,7 +92,6 @@ def convert_datatype(series: pd.Series, type_: type) -> pd.Series:
     type_: type
         Python built-in type (Int64, int, str, float, bool)
     """
-
     return series.astype(type_)
 
 def format_hbase_output(
@@ -115,92 +104,92 @@ def format_hbase_output(
         return pd.DataFrame({})
 
     # Construct the dataframe
-    pdfs = pd.DataFrame.from_dict(hbase_to_dict(hbase_output), orient='index')
+    pdfs = pd.DataFrame.from_dict(hbase_to_dict(hbase_output), orient="index")
 
     # Tracklet cell contains null if there is nothing
     # and so HBase won't transfer data -- ignoring the column
-    if 'd:tracklet' not in pdfs.columns and not truncated:
-        pdfs['d:tracklet'] = np.zeros(len(pdfs), dtype='U20')
+    if "d:tracklet" not in pdfs.columns and not truncated:
+        pdfs["d:tracklet"] = np.zeros(len(pdfs), dtype="U20")
 
     # Remove hbase specific fields
-    for _ in ['key:key', 'key:time']:
+    for _ in ["key:key", "key:time"]:
         if _ in pdfs.columns:
             pdfs = pdfs.drop(columns=_)
 
-    if 'd:spicy_name' in pdfs.columns:
-        pdfs = pdfs.drop(columns='d:spicy_name')
+    if "d:spicy_name" in pdfs.columns:
+        pdfs = pdfs.drop(columns="d:spicy_name")
 
     # Remove cutouts if their fields are here but empty
-    for _ in ['Difference', 'Science', 'Template']:
-        colname = 'b:cutout{}_stampData'.format(_)
-        if colname in pdfs.columns and pdfs[colname].values[0].startswith('binary:ZTF'):
+    for _ in ["Difference", "Science", "Template"]:
+        colname = f"b:cutout{_}_stampData"
+        if colname in pdfs.columns and pdfs[colname].values[0].startswith("binary:ZTF"):
             pdfs = pdfs.drop(columns=colname)
 
     # Type conversion
     for col in pdfs.columns:
         pdfs[col] = convert_datatype(
             pdfs[col],
-            hbase_type_converter[schema_client.type(col)]
+            hbase_type_converter[schema_client.type(col)],
         )
 
     # cast 'nan' into `[]` for easier json decoding
-    for col in ['d:lc_features_g', 'd:lc_features_r']:
+    for col in ["d:lc_features_g", "d:lc_features_r"]:
         if col in pdfs.columns:
-            pdfs[col] = pdfs[col].replace('nan', '[]')
+            pdfs[col] = pdfs[col].replace("nan", "[]")
 
     pdfs = pdfs.copy() # Fix Pandas' "DataFrame is highly fragmented" warning
 
     if not truncated:
         # Fink final classification
         classifications = extract_fink_classification_(
-            pdfs['d:cdsxmatch'],
-            pdfs['d:roid'],
-            pdfs['d:mulens'],
-            pdfs['d:snn_snia_vs_nonia'],
-            pdfs['d:snn_sn_vs_all'],
-            pdfs['d:rf_snia_vs_nonia'],
-            pdfs['i:ndethist'],
-            pdfs['i:drb'],
-            pdfs['i:classtar'],
-            pdfs['i:jd'],
-            pdfs['i:jdstarthist'],
-            pdfs['d:rf_kn_vs_nonkn'],
-            pdfs['d:tracklet']
+            pdfs["d:cdsxmatch"],
+            pdfs["d:roid"],
+            pdfs["d:mulens"],
+            pdfs["d:snn_snia_vs_nonia"],
+            pdfs["d:snn_sn_vs_all"],
+            pdfs["d:rf_snia_vs_nonia"],
+            pdfs["i:ndethist"],
+            pdfs["i:drb"],
+            pdfs["i:classtar"],
+            pdfs["i:jd"],
+            pdfs["i:jdstarthist"],
+            pdfs["d:rf_kn_vs_nonkn"],
+            pdfs["d:tracklet"],
         )
 
-        pdfs['v:classification'] = classifications.values
+        pdfs["v:classification"] = classifications.values
 
         if extract_color:
             # Extract color evolution
             pdfs = extract_rate_and_color(pdfs)
 
         # Human readable time
-        pdfs['v:lastdate'] = convert_jd(pdfs['i:jd'])
-        pdfs['v:firstdate'] = convert_jd(pdfs['i:jdstarthist'])
-        pdfs['v:lapse'] = pdfs['i:jd'] - pdfs['i:jdstarthist']
+        pdfs["v:lastdate"] = convert_jd(pdfs["i:jd"])
+        pdfs["v:firstdate"] = convert_jd(pdfs["i:jdstarthist"])
+        pdfs["v:lapse"] = pdfs["i:jd"] - pdfs["i:jdstarthist"]
 
         if with_constellation:
             coords = SkyCoord(
-                pdfs['i:ra'],
-                pdfs['i:dec'],
-                unit='deg'
+                pdfs["i:ra"],
+                pdfs["i:dec"],
+                unit="deg",
             )
             constellations = get_constellation(coords)
-            pdfs['v:constellation'] = constellations
+            pdfs["v:constellation"] = constellations
 
     # Display only the last alert
-    if group_alerts and ('i:jd' in pdfs.columns) and ('i:objectId' in pdfs.columns):
-        pdfs['i:jd'] = pdfs['i:jd'].astype(float)
-        pdfs = pdfs.loc[pdfs.groupby('i:objectId')['i:jd'].idxmax()]
+    if group_alerts and ("i:jd" in pdfs.columns) and ("i:objectId" in pdfs.columns):
+        pdfs["i:jd"] = pdfs["i:jd"].astype(float)
+        pdfs = pdfs.loc[pdfs.groupby("i:objectId")["i:jd"].idxmax()]
 
     # sort values by time
-    if 'i:jd' in pdfs.columns:
-        pdfs = pdfs.sort_values('i:jd', ascending=False)
+    if "i:jd" in pdfs.columns:
+        pdfs = pdfs.sort_values("i:jd", ascending=False)
 
     return pdfs
 
-def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=True):
-    """ Query /statistics, and order the resulting dataframe
+def query_and_order_statistics(date="", columns="*", index_by="key:key", drop=True):
+    """Query /statistics, and order the resulting dataframe
 
     Parameters
     ----------
@@ -215,57 +204,54 @@ def query_and_order_statistics(date='', columns='*', index_by='key:key', drop=Tr
         Default is False.
 
     Returns
-    ----------
+    -------
     pdf: Pandas DataFrame
         DataFrame with statistics data, ordered from
         oldest (top) to most recent (bottom)
     """
     pdf = request_api(
-        '/api/v1/statistics',
+        "/api/v1/statistics",
         json={
-            'date': date,
-            'columns': columns,
-            'output-format': 'json'
-        }
+            "date": date,
+            "columns": columns,
+            "output-format": "json",
+        },
     )
 
     pdf = pdf.sort_values(index_by)
     pdf = pdf.set_index(index_by, drop=drop)
 
     # Remove hbase specific fields
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    if "key:time" in pdf.columns:
+        pdf = pdf.drop(columns=["key:time"])
 
     return pdf
 
 def isoify_time(t):
     try:
         tt = Time(t)
-    except ValueError as e:
+    except ValueError:
         ft = float(t)
         if ft // 2400000:
-            tt = Time(ft, format='jd')
+            tt = Time(ft, format="jd")
         else:
-            tt = Time(ft, format='mjd')
+            tt = Time(ft, format="mjd")
     return tt.iso
 
 def markdownify_objectid(objectid):
     """
     """
-    objectid_markdown = '[{}](/{})'.format(
-        objectid,
-        objectid
-    )
+    objectid_markdown = f"[{objectid}](/{objectid})"
     return objectid_markdown
 
 def extract_row(key: str, clientresult) -> dict:
-    """ Extract one row from the client result, and return result as dict
+    """Extract one row from the client result, and return result as dict
     """
     data = clientresult[key]
     return dict(data)
 
-def readstamp(stamp: str, return_type='array', gzipped=True) -> np.array:
-    """ Read the stamp data inside an alert.
+def readstamp(stamp: str, return_type="array", gzipped=True) -> np.array:
+    """Read the stamp data inside an alert.
 
     Parameters
     ----------
@@ -276,16 +262,16 @@ def readstamp(stamp: str, return_type='array', gzipped=True) -> np.array:
         Default is `array`.
 
     Returns
-    ----------
+    -------
     data: np.array
         2D array containing image data (`array`) or FITS file uncompressed as file-object (`FITS`)
     """
 
     def extract_stamp(fitsdata):
         with fits.open(fitsdata, ignore_missing_simple=True) as hdul:
-            if return_type == 'array':
+            if return_type == "array":
                 data = hdul[0].data
-            elif return_type == 'FITS':
+            elif return_type == "FITS":
                 data = io.BytesIO()
                 hdul.writeto(data)
                 data.seek(0)
@@ -295,13 +281,13 @@ def readstamp(stamp: str, return_type='array', gzipped=True) -> np.array:
         stamp = io.BytesIO(stamp)
 
     if gzipped:
-        with gzip.open(stamp, 'rb') as f:
+        with gzip.open(stamp, "rb") as f:
             return extract_stamp(io.BytesIO(f.read()))
     else:
         return extract_stamp(stamp)
 
-def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') -> pd.DataFrame:
-    """ Query and uncompress cutout data from the HBase table
+def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type="array") -> pd.DataFrame:
+    """Query and uncompress cutout data from the HBase table
 
     Inplace modifications
 
@@ -317,12 +303,11 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') ->
         array or original gzipped FITS
 
     Returns
-    ----------
+    -------
     pdf: Pandas DataFrame
         Modified original DataFrame with cutout data uncompressed (2D array)
     """
-
-    cols = ['b:cutoutScience_stampData', 'b:cutoutTemplate_stampData', 'b:cutoutDifference_stampData']
+    cols = ["b:cutoutScience_stampData", "b:cutoutTemplate_stampData", "b:cutoutDifference_stampData"]
 
     for colname in cols:
         # Skip unneeded columns, if only one is requested
@@ -330,10 +315,10 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') ->
             continue
 
         if colname not in pdf.columns:
-            pdf[colname] = 'binary:' + pdf['i:objectId'] + '_' + pdf['i:jd'].astype('str') + colname[1:]
+            pdf[colname] = "binary:" + pdf["i:objectId"] + "_" + pdf["i:jd"].astype("str") + colname[1:]
 
         pdf[colname] = pdf[colname].apply(
-            lambda x: readstamp(client.repository().get(x), return_type=return_type)
+            lambda x: readstamp(client.repository().get(x), return_type=return_type),
         )
 
     return pdf
@@ -341,21 +326,21 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type='array') ->
 def extract_properties(data: str, fieldnames: list):
     """
     """
-    pdfs = pd.DataFrame.from_dict(hbase_to_dict(data), orient='index')
+    pdfs = pd.DataFrame.from_dict(hbase_to_dict(data), orient="index")
     if fieldnames is not None:
         return pdfs[fieldnames]
     else:
         return pdfs
 
-def convert_jd(jd, to='iso', format='jd'):
-    """ Convert Julian Date into ISO date (UTC).
+def convert_jd(jd, to="iso", format="jd"):
+    """Convert Julian Date into ISO date (UTC).
     """
     return Time(jd, format=format).to_value(to)
 
-def convolve(image, smooth=3, kernel='gauss'):
-    """ Convolve 2D image. Hacked from aplpy
+def convolve(image, smooth=3, kernel="gauss"):
+    """Convolve 2D image. Hacked from aplpy
     """
-    if smooth is None and isinstance(kernel, str) and kernel in ['box', 'gauss']:
+    if smooth is None and isinstance(kernel, str) and kernel in ["box", "gauss"]:
         return image
 
     if smooth is not None and not np.isscalar(smooth):
@@ -369,20 +354,20 @@ def convolve(image, smooth=3, kernel='gauss'):
     image_fixed[np.isinf(image)] = np.nan
 
     if isinstance(kernel, str):
-        if kernel == 'gauss':
+        if kernel == "gauss":
             kernel = Gaussian2DKernel(
                 smooth, x_size=smooth * 5, y_size=smooth * 5)
-        elif kernel == 'box':
+        elif kernel == "box":
             kernel = Box2DKernel(smooth, x_size=smooth * 5, y_size=smooth * 5)
         else:
-            raise ValueError("Unknown kernel: {0}".format(kernel))
+            raise ValueError(f"Unknown kernel: {kernel}")
 
-    return astropy_convolve(image, kernel, boundary='extend')
+    return astropy_convolve(image, kernel, boundary="extend")
 
 def _data_stretch(
         image, vmin=None, vmax=None, pmin=0.25, pmax=99.75,
-        stretch='linear', vmid: float = 10, exponent=2):
-    """ Hacked from aplpy
+        stretch="linear", vmid: float = 10, exponent=2):
+    """Hacked from aplpy
     """
     if vmin is None or vmax is None:
         interval = AsymmetricPercentileInterval(pmin, pmax, n_samples=10000)
@@ -405,8 +390,8 @@ def _data_stretch(
         pass
         #log.info("vmax = %10.3e" % vmax)
 
-    if stretch == 'arcsinh':
-        stretch = 'asinh'
+    if stretch == "arcsinh":
+        stretch = "asinh"
 
     normalizer = simple_norm(
         image, stretch=stretch, power=exponent,
@@ -419,7 +404,7 @@ def _data_stretch(
     return data#.astype(np.uint8)
 
 def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
-    """ Conversion from magnitude to Fluxcal from SNANA manual
+    """Conversion from magnitude to Fluxcal from SNANA manual
 
     Parameters
     ----------
@@ -428,7 +413,7 @@ def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
     sigmapsf: float
 
     Returns
-    ----------
+    -------
     fluxcal: float
         Flux cal as used by SNANA
     fluxcal_err: float
@@ -460,11 +445,11 @@ def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
         Maximum delay between g and r data points to be considered for color computation, in days
 
     Returns
-    ----------
+    -------
     pdf: Pandas DataFrame
         Modified original DataFrame with added columns. Original order is not preserved
     """
-    pdfs = pdf.sort_values('i:jd')
+    pdfs = pdf.sort_values("i:jd")
 
     def fn(sub):
         """Extract everything relevant on the sub-group corresponding to single object.
@@ -474,45 +459,45 @@ def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
 
         # Extract magnitude rates separately in different filters
         for fid in [1, 2]:
-            idx = sub['i:fid'] == fid
+            idx = sub["i:fid"] == fid
 
-            dmag = sub['i:magpsf'][idx].diff()
-            dmagerr = np.hypot(sub['i:sigmapsf'][idx], sub['i:sigmapsf'][idx].shift())
-            djd = sub['i:jd'][idx].diff()
-            sub.loc[idx, 'v:rate'] = dmag / djd
-            sub.loc[idx, 'v:sigma(rate)'] = dmagerr / djd
+            dmag = sub["i:magpsf"][idx].diff()
+            dmagerr = np.hypot(sub["i:sigmapsf"][idx], sub["i:sigmapsf"][idx].shift())
+            djd = sub["i:jd"][idx].diff()
+            sub.loc[idx, "v:rate"] = dmag / djd
+            sub.loc[idx, "v:sigma(rate)"] = dmagerr / djd
 
             sidx.append(idx)
 
         if len(sidx) == 2:
             # We have both filters, let's try to also get the color!
-            colnames_gr = ['i:jd', 'i:magpsf', 'i:sigmapsf']
-            gr = pd.merge_asof(sub[sidx[0]][colnames_gr], sub[sidx[1]][colnames_gr], on='i:jd', suffixes=('_g', '_r'), direction='nearest', tolerance=tolerance)
+            colnames_gr = ["i:jd", "i:magpsf", "i:sigmapsf"]
+            gr = pd.merge_asof(sub[sidx[0]][colnames_gr], sub[sidx[1]][colnames_gr], on="i:jd", suffixes=("_g", "_r"), direction="nearest", tolerance=tolerance)
             # It is organized around g band points, r columns are null when unmatched
-            gr = gr.loc[~gr.isna()['i:magpsf_r']] # Keep only matched rows
+            gr = gr.loc[~gr.isna()["i:magpsf_r"]] # Keep only matched rows
 
-            gr['v:g-r'] = gr['i:magpsf_g'] - gr['i:magpsf_r']
-            gr['v:sigma(g-r)'] = np.hypot(gr['i:sigmapsf_g'], gr['i:sigmapsf_r'])
+            gr["v:g-r"] = gr["i:magpsf_g"] - gr["i:magpsf_r"]
+            gr["v:sigma(g-r)"] = np.hypot(gr["i:sigmapsf_g"], gr["i:sigmapsf_r"])
 
-            djd = gr['i:jd'].diff()
-            dgr = gr['v:g-r'].diff()
-            dgrerr = np.hypot(gr['v:sigma(g-r)'], gr['v:sigma(g-r)'].shift())
+            djd = gr["i:jd"].diff()
+            dgr = gr["v:g-r"].diff()
+            dgrerr = np.hypot(gr["v:sigma(g-r)"], gr["v:sigma(g-r)"].shift())
 
-            gr['v:rate(g-r)'] = dgr / djd
-            gr['v:sigma(rate(g-r))'] = dgrerr / djd
+            gr["v:rate(g-r)"] = dgr / djd
+            gr["v:sigma(rate(g-r))"] = dgrerr / djd
 
             # Now we may assign these color values also to corresponding r band points
-            sub = pd.merge_asof(sub, gr[['i:jd', 'v:g-r', 'v:sigma(g-r)', 'v:rate(g-r)', 'v:sigma(rate(g-r))']], direction='nearest', tolerance=tolerance)
+            sub = pd.merge_asof(sub, gr[["i:jd", "v:g-r", "v:sigma(g-r)", "v:rate(g-r)", "v:sigma(rate(g-r))"]], direction="nearest", tolerance=tolerance)
 
         return sub
 
     # Apply the subroutine defined above to individual objects, and merge the table back
-    pdfs = pdfs.groupby('i:objectId').apply(fn).droplevel(0)
+    pdfs = pdfs.groupby("i:objectId").apply(fn).droplevel(0)
 
     return pdfs
 
 def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
-    """ Extract g-r values for single object a pandas DataFrame
+    """Extract g-r values for single object a pandas DataFrame
 
     Parameters
     ----------
@@ -524,38 +509,38 @@ def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
         List of extra column names to keep in the output.
 
     Returns
-    ----------
+    -------
     pdf_gr: pandas DataFrame
         DataFrame containing the time and magnitudes of matched points,
         along with g-r color and its error
     """
     if colnames is None:
-        colnames = ['i:jd', 'i:magpsf', 'i:sigmapsf']
+        colnames = ["i:jd", "i:magpsf", "i:sigmapsf"]
     else:
-        colnames = ['i:jd', 'i:magpsf', 'i:sigmapsf'] + colnames
+        colnames = ["i:jd", "i:magpsf", "i:sigmapsf"] + colnames
         colnames = list(np.unique(colnames))
 
-    pdf_g = pdf[pdf['i:fid'] == 1][colnames]
-    pdf_r = pdf[pdf['i:fid'] == 2][colnames]
+    pdf_g = pdf[pdf["i:fid"] == 1][colnames]
+    pdf_r = pdf[pdf["i:fid"] == 2][colnames]
 
     # merge_asof expects sorted data
-    pdf_g = pdf_g.sort_values('i:jd')
-    pdf_r = pdf_r.sort_values('i:jd')
+    pdf_g = pdf_g.sort_values("i:jd")
+    pdf_r = pdf_r.sort_values("i:jd")
 
     # As merge_asof does not keep the second jd column - let's make it manually
-    pdf_g['v:mjd'] = pdf_g['i:jd'] - 2400000.5
-    pdf_r['v:mjd'] = pdf_r['i:jd'] - 2400000.5
+    pdf_g["v:mjd"] = pdf_g["i:jd"] - 2400000.5
+    pdf_r["v:mjd"] = pdf_r["i:jd"] - 2400000.5
 
-    pdf_gr = pd.merge_asof(pdf_g, pdf_r, on='i:jd', suffixes=('_g', '_r'), direction='nearest', tolerance=0.3)
-    pdf_gr = pdf_gr[~pdf_gr.isna()['i:magpsf_r']] # Keep only matched rows
+    pdf_gr = pd.merge_asof(pdf_g, pdf_r, on="i:jd", suffixes=("_g", "_r"), direction="nearest", tolerance=0.3)
+    pdf_gr = pdf_gr[~pdf_gr.isna()["i:magpsf_r"]] # Keep only matched rows
 
-    pdf_gr['v:g-r'] = pdf_gr['i:magpsf_g'] - pdf_gr['i:magpsf_r']
-    pdf_gr['v:sigma_g-r'] = np.hypot(pdf_gr['i:sigmapsf_g'], pdf_gr['i:sigmapsf_r'])
-    pdf_gr['v:delta_jd'] = pdf_gr['v:mjd_g'] - pdf_gr['v:mjd_r']
+    pdf_gr["v:g-r"] = pdf_gr["i:magpsf_g"] - pdf_gr["i:magpsf_r"]
+    pdf_gr["v:sigma_g-r"] = np.hypot(pdf_gr["i:sigmapsf_g"], pdf_gr["i:sigmapsf_r"])
+    pdf_gr["v:delta_jd"] = pdf_gr["v:mjd_g"] - pdf_gr["v:mjd_r"]
 
     return pdf_gr
 
-def queryMPC(number, kind='asteroid'):
+def queryMPC(number, kind="asteroid"):
     """Query MPC for information about object 'designation'.
 
     Parameters
@@ -604,7 +589,7 @@ def convert_mpc_type(index):
     return dic[index]
 
 def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
-    """ Compute the indices of superpixels that contain a subpixel.
+    """Compute the indices of superpixels that contain a subpixel.
 
     Note that nside_subpix > nside_superpix
     """
@@ -627,9 +612,9 @@ def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
     return idx
 
 def return_empty_query():
-    """ Wrapper for malformed query from URL
+    """Wrapper for malformed query from URL
     """
-    return '', '', None
+    return "", "", None
 
 def extract_parameter_value_from_url(param_dic, key, default):
     """
@@ -641,7 +626,7 @@ def extract_parameter_value_from_url(param_dic, key, default):
     return val
 
 def is_float(s: str) -> bool:
-    """ Check if s can be transformed as a float
+    """Check if s can be transformed as a float
     """
     try:
         float(s)
@@ -650,7 +635,7 @@ def is_float(s: str) -> bool:
         return False
 
 def extract_bayestar_query_url(search: str):
-    """ try to infer the query from an URL (GW search)
+    """Try to infer the query from an URL (GW search)
 
     Parameters
     ----------
@@ -659,7 +644,7 @@ def extract_bayestar_query_url(search: str):
         Typically starts with ?
 
     Returns
-    ----------
+    -------
     credible_level: float
         The credible level (0-1)
     event_name: str
@@ -669,20 +654,20 @@ def extract_bayestar_query_url(search: str):
     search = search[1:]
 
     # split parameters
-    parameters = search.split('&')
+    parameters = search.split("&")
 
     # Make a dictionary with the parameter keys and values
-    param_dic = {s.split('=')[0]: s.split('=')[1] for s in parameters}
+    param_dic = {s.split("=")[0]: s.split("=")[1] for s in parameters}
 
-    credible_level = extract_parameter_value_from_url(param_dic, 'credible_level', '')
-    event_name = extract_parameter_value_from_url(param_dic, 'event_name', '')
+    credible_level = extract_parameter_value_from_url(param_dic, "credible_level", "")
+    event_name = extract_parameter_value_from_url(param_dic, "event_name", "")
     if is_float(credible_level):
         credible_level = float(credible_level)
 
     return credible_level, event_name
 
 def sine_fit(x, a, b):
-    """ Sinusoidal function a*sin( 2*(x-b) )
+    """Sinusoidal function a*sin( 2*(x-b) )
     :x: float - in degrees
     :a: float - Amplitude
     :b: float - Phase offset
@@ -691,7 +676,7 @@ def sine_fit(x, a, b):
     return a * np.sin(2 * np.radians(x - b))
 
 def pil_to_b64(im, enc_format="png", **kwargs):
-    """ Converts a PIL Image into base64 string for HTML displaying
+    """Converts a PIL Image into base64 string for HTML displaying
 
     Parameters
     ----------
@@ -701,10 +686,9 @@ def pil_to_b64(im, enc_format="png", **kwargs):
         The image format for displaying.
 
     Returns
-    -----------
+    -------
     base64 encoding
     """
-
     buff = io.BytesIO()
     im.save(buff, format=enc_format, **kwargs)
     encoded = base64.b64encode(buff.getvalue()).decode("utf-8")
@@ -712,7 +696,7 @@ def pil_to_b64(im, enc_format="png", **kwargs):
     return encoded
 
 def generate_qr(data):
-    """ Generate a QR code from the data
+    """Generate a QR code from the data
 
     To check the generated QR code, simply use:
     >>> img = generate_qr("https://fink-broker.org")
@@ -724,7 +708,7 @@ def generate_qr(data):
         Typically an URL
 
     Returns
-    ----------
+    -------
     PIL image
     """
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L)
@@ -740,18 +724,18 @@ def generate_qr(data):
     return img
 
 def retrieve_oid_from_metaname(name):
-    """ Search for the corresponding ZTF objectId given a metaname
+    """Search for the corresponding ZTF objectId given a metaname
     """
     r = request_api(
-        '/api/v1/metadata',
+        "/api/v1/metadata",
         json={
-            'internal_name_encoded': name,
+            "internal_name_encoded": name,
         },
-        output='json'
+        output="json",
     )
 
     if r != []:
-        return r[0]['key:key']
+        return r[0]["key:key"]
     return None
 
 def get_first_finite_value(data, pos=0):
@@ -765,7 +749,7 @@ def get_first_finite_value(data, pos=0):
         Position in the array to start search
 
     Returns
-    ----------
+    -------
     Value from the array, or np.nan if no finite values found
     """
     data = data[pos:]
@@ -779,7 +763,7 @@ def get_first_finite_value(data, pos=0):
         return np.nan
 
 def get_first_value(pdf, colname, default=None):
-    """ Get first value from given column of a DataFrame, or default value if not exists.
+    """Get first value from given column of a DataFrame, or default value if not exists.
     """
     if colname in pdf.columns:
         return pdf.loc[0, colname]
@@ -787,24 +771,23 @@ def get_first_value(pdf, colname, default=None):
         return default
 
 # Access local or remove API endpoint
-from app import server
-import apps.api
-from flask import Response
 from json import loads as json_loads
-import io
 
-def request_api(endpoint, json=None, output='pandas', method='POST', **kwargs):
+from flask import Response
+
+
+def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
     """
     Output is one of 'pandas' (default), 'raw' or 'json'
     """
     if LOCALAPI:
         # Use local API
-        urls = server.url_map.bind('')
+        urls = server.url_map.bind("")
         func_name = urls.match(endpoint, method)
-        if len(func_name) == 2 and func_name[0].startswith('api.'):
-            func = getattr(apps.api.api, func_name[0].split('.')[1])
+        if len(func_name) == 2 and func_name[0].startswith("api."):
+            func = getattr(apps.api.api, func_name[0].split(".")[1])
 
-            if method == 'GET':
+            if method == "GET":
                 # No args?..
                 res = func()
             else:
@@ -816,9 +799,9 @@ def request_api(endpoint, json=None, output='pandas', method='POST', **kwargs):
             else:
                 result = res
 
-            if output == 'json':
+            if output == "json":
                 return json_loads(result)
-            elif output == 'raw':
+            elif output == "raw":
                 return result
             else:
                 return pd.read_json(result, **kwargs)
@@ -826,42 +809,42 @@ def request_api(endpoint, json=None, output='pandas', method='POST', **kwargs):
             return None
     else:
         # Use remote API
-        if method == 'POST':
+        if method == "POST":
             r = requests.post(
-                '{}{}'.format(APIURL, endpoint),
-                json=json
+                f"{APIURL}{endpoint}",
+                json=json,
             )
-        elif method == 'GET':
+        elif method == "GET":
                 # No args?..
             r = requests.get(
-                '{}{}'.format(APIURL, endpoint)
+                f"{APIURL}{endpoint}",
             )
 
-        if output == 'json':
+        if output == "json":
             return r.json()
-        elif output == 'raw':
+        elif output == "raw":
             return io.BytesIO(r.content)
         else:
             return pd.read_json(io.BytesIO(r.content), **kwargs)
 
 # TODO: split these UI snippets into separate file?..
-import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 from dash import html
+
 
 def loading(item):
     return dmc.LoadingOverlay(
         item,
         loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
         overlayOpacity=0.0,
-        zIndex=100000
+        zIndex=100000,
     )
 
 def help_popover(text, id, trigger=None, className=None):
     """
     Make clickable help icon with popover at the bottom right corner of current element
     """
-
     if trigger is None:
         trigger = html.I(
             className="fa fa-question-circle fa-1x",
@@ -876,26 +859,26 @@ def help_popover(text, id, trigger=None, className=None):
             dbc.Popover(
                 dbc.PopoverBody(
                     text,
-                    style={'overflow-y': 'auto', 'white-space': 'pre-wrap', 'max-height': '80vh'}),
+                    style={"overflow-y": "auto", "white-space": "pre-wrap", "max-height": "80vh"}),
                 target=id,
-                trigger='legacy',
-                placement='auto',
-                style={'width': '80vw', 'max-width': '800px'},
-                className='shadow-lg'
+                trigger="legacy",
+                placement="auto",
+                style={"width": "80vw", "max-width": "800px"},
+                className="shadow-lg",
             ),
-        ], className=className
+        ], className=className,
     )
 
 def template_button_for_external_conesearch(
-        className='btn btn-default zoom btn-circle btn-lg btn-image',
+        className="btn btn-default zoom btn-circle btn-lg btn-image",
         style={},
-        color='dark',
+        color="dark",
         outline=True,
-        title='',
-        target='_blank',
-        href=''
+        title="",
+        target="_blank",
+        href="",
     ):
-    """ Template button for external conesearch
+    """Template button for external conesearch
 
     Parameters
     ----------
@@ -920,13 +903,13 @@ def template_button_for_external_conesearch(
         outline=outline,
         title=title,
         target=target,
-        href=href
+        href=href,
     )
 
     return button
 
 def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, radius=None, width=4):
-    """ Create a button that triggers an external conesearch
+    """Create a button that triggers an external conesearch
 
     The button is wrapped within a dbc.Col object.
 
@@ -945,100 +928,100 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
     width: int, optional
         dbc.Col width parameter. Default is 4.
     """
-    if kind == 'asas-sn-variable':
+    if kind == "asas-sn-variable":
         if radius is None:
             radius = 0.5
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-color': 'black'},
-                title='ASAS-SN',
-                href='https://asas-sn.osu.edu/variables?ra={}&dec={}&radius={}&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&'.format(ra0, dec0, radius)
+                style={"background-image": "url(/assets/buttons/assassin_logo.png)", "background-color": "black"},
+                title="ASAS-SN",
+                href=f"https://asas-sn.osu.edu/variables?ra={ra0}&dec={dec0}&radius={radius}&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&",
             ),
-            width=width
+            width=width,
         )
-    elif kind == 'asas-sn':
+    elif kind == "asas-sn":
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/assassin_logo.png)', 'background-color': 'black'},
-                title='ASAS-SN',
-                href='https://asas-sn.osu.edu/?ra={}&dec={}'.format(ra0, dec0)
+                style={"background-image": "url(/assets/buttons/assassin_logo.png)", "background-color": "black"},
+                title="ASAS-SN",
+                href=f"https://asas-sn.osu.edu/?ra={ra0}&dec={dec0}",
             ),
-            width=width
+            width=width,
         )
-    elif kind == 'snad':
+    elif kind == "snad":
         if radius is None:
             radius = 5
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/snad.svg)'},
-                title='SNAD',
-                href='https://ztf.snad.space/search/{} {}/{}'.format(ra0, dec0, radius)
+                style={"background-image": "url(/assets/buttons/snad.svg)"},
+                title="SNAD",
+                href=f"https://ztf.snad.space/search/{ra0} {dec0}/{radius}",
             ),
-            width=width
+            width=width,
         )
-    elif kind == 'vsx':
+    elif kind == "vsx":
         if radius is None:
             radius = 0.1
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/vsx.png)'},
-                title='AAVSO VSX',
-                href="https://www.aavso.org/vsx/index.php?view=results.get&coords={}+{}&format=d&size={}".format(ra0, dec0, radius)
+                style={"background-image": "url(/assets/buttons/vsx.png)"},
+                title="AAVSO VSX",
+                href=f"https://www.aavso.org/vsx/index.php?view=results.get&coords={ra0}+{dec0}&format=d&size={radius}",
             ),
-            width=width
+            width=width,
         )
-    elif kind == 'tns':
+    elif kind == "tns":
         if radius is None:
             radius = 5
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/tns_logo.png)', 'background-size': 'auto 100%', 'background-position-x': 'left'},
-                title='TNS',
-                href='https://www.wis-tns.org/search?ra={}&decl={}&radius={}&coords_unit=arcsec'.format(ra0, dec0, radius)
+                style={"background-image": "url(/assets/buttons/tns_logo.png)", "background-size": "auto 100%", "background-position-x": "left"},
+                title="TNS",
+                href=f"https://www.wis-tns.org/search?ra={ra0}&decl={dec0}&radius={radius}&coords_unit=arcsec",
             ),
-            width=width
+            width=width,
         )
-    elif kind == 'simbad':
+    elif kind == "simbad":
         if radius is None:
             radius = 0.08
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/simbad.png)'},
-                title='SIMBAD',
-                href="http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={}%20{}&Radius={}".format(ra0, dec0, radius)
+                style={"background-image": "url(/assets/buttons/simbad.png)"},
+                title="SIMBAD",
+                href=f"http://simbad.u-strasbg.fr/simbad/sim-coo?Coord={ra0}%20{dec0}&Radius={radius}",
             ),
-            width=width
+            width=width,
         )
-    elif kind == 'datacentral':
+    elif kind == "datacentral":
         if radius is None:
             radius = 2.0
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/dclogo_small.png)'},
-                title='DataCentral Data Aggregation Service',
-                href='https://das.datacentral.org.au/open?RA={}&DEC={}&FOV={}&ERR={}'.format(ra0, dec0, 0.5, radius)
+                style={"background-image": "url(/assets/buttons/dclogo_small.png)"},
+                title="DataCentral Data Aggregation Service",
+                href=f"https://das.datacentral.org.au/open?RA={ra0}&DEC={dec0}&FOV={0.5}&ERR={radius}",
             ),
-            width=width
+            width=width,
         )
-    elif kind == 'ned':
+    elif kind == "ned":
         if radius is None:
             radius = 1.0
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)', 'background-color': 'black'},
-                title='NED',
-                href="http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={}&dec={}&radius={}&obj_sort=Distance+to+search+center&img_stamp=Yes".format(ra0, dec0, radius)
+                style={"background-image": "url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)", "background-color": "black"},
+                title="NED",
+                href=f"http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={ra0}&dec={dec0}&radius={radius}&obj_sort=Distance+to+search+center&img_stamp=Yes",
             ),
-            width=width
+            width=width,
         )
-    elif kind == 'sdss':
+    elif kind == "sdss":
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={'background-image': 'url(/assets/buttons/sdssIVlogo.png)'},
+                style={"background-image": "url(/assets/buttons/sdssIVlogo.png)"},
                 title="SDSS",
-                href="http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={}&dec={}".format(ra0, dec0)
+                href=f"http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra={ra0}&dec={dec0}",
             ),
-            width=width
+            width=width,
         )
 
     return button

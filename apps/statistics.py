@@ -12,39 +12,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, Input, Output
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
-
-from app import app
-from apps.utils import loading
-from apps.utils import request_api
-from apps.utils import query_and_order_statistics
-
 import numpy as np
 import pandas as pd
+from dash import Input, Output, dcc, html
 
-dcc.Location(id='url', refresh=False)
+from app import app
+from apps.utils import loading, query_and_order_statistics, request_api
+
+dcc.Location(id="url", refresh=False)
 
 dic_names = {
-    'key:key': 'Observation date in the form ztf_YYYYMMDD',
-    'basic:raw': 'Number of alerts received',
-    'basic:sci': 'Number of alerts processed (passing quality cuts)',
-    'basic:n_g': 'Number of measurements in the g band',
-    'basic:n_r': 'Number of measurements in the r band',
-    'basic:exposures': 'Number of exposures (30 seconds)',
-    'basic:fields': 'Number of fields visited',
-    'class:simbad_tot': 'Number of alerts with a counterpart in SIMBAD',
-    'class:simbad_gal': 'Number of alerts with a close-by candidate host-galaxy in SIMBAD',
-    'class:Solar System MPC': 'Number of alerts with a counterpart in MPC (SSO)',
-    'class:SN candidate': 'Number of alerts classified as SN by Fink',
-    'class:Early SN Ia candidate': 'Number of alerts classified as early SN Ia by Fink',
-    'class:Kilonova candidate': 'Number of alerts classified as Kilonova by Fink',
-    'class:Microlensing candidate': 'Number of alerts classified as Microlensing by Fink',
-    'class:SN candidate': 'Number of alerts classified as SN by Fink',
-    'class:Solar System candidate': 'Number of alerts classified as SSO candidates by Fink',
-    'class:Tracklet': 'Number of alerts classified as satelitte glints or space debris by Fink',
-    'class:Unknown': 'Number of alerts without classification'
+    "key:key": "Observation date in the form ztf_YYYYMMDD",
+    "basic:raw": "Number of alerts received",
+    "basic:sci": "Number of alerts processed (passing quality cuts)",
+    "basic:n_g": "Number of measurements in the g band",
+    "basic:n_r": "Number of measurements in the r band",
+    "basic:exposures": "Number of exposures (30 seconds)",
+    "basic:fields": "Number of fields visited",
+    "class:simbad_tot": "Number of alerts with a counterpart in SIMBAD",
+    "class:simbad_gal": "Number of alerts with a close-by candidate host-galaxy in SIMBAD",
+    "class:Solar System MPC": "Number of alerts with a counterpart in MPC (SSO)",
+    "class:SN candidate": "Number of alerts classified as SN by Fink",
+    "class:Early SN Ia candidate": "Number of alerts classified as early SN Ia by Fink",
+    "class:Kilonova candidate": "Number of alerts classified as Kilonova by Fink",
+    "class:Microlensing candidate": "Number of alerts classified as Microlensing by Fink",
+    "class:SN candidate": "Number of alerts classified as SN by Fink",
+    "class:Solar System candidate": "Number of alerts classified as SSO candidates by Fink",
+    "class:Tracklet": "Number of alerts classified as satelitte glints or space debris by Fink",
+    "class:Unknown": "Number of alerts without classification",
 }
 
 stat_doc = """
@@ -109,31 +106,31 @@ The schema of the dataframe is the following:
 {}
 
 All other fields starting with `class:` are crossmatch from the SIMBAD database.
-""".format(pd.DataFrame([dic_names]).T.rename(columns={0: 'description'}).to_markdown())
+""".format(pd.DataFrame([dic_names]).T.rename(columns={0: "description"}).to_markdown())
 
 @app.callback(
-    Output('object-stats', 'data'),
-    Input('url', 'pathname'),
+    Output("object-stats", "data"),
+    Input("url", "pathname"),
 )
 def store_stat_query(name):
-    """ Cache query results (data and upper limits) for easy re-use
+    """Cache query results (data and upper limits) for easy re-use
 
     https://dash.plotly.com/sharing-data-between-callbacks
     """
     pdf = query_and_order_statistics(
-        columns='basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown',
-        drop=False
+        columns="basic:raw,basic:sci,basic:fields,basic:exposures,class:Unknown",
+        drop=False,
     )
 
     return pdf.to_json()
 
 @app.callback(
-    Output('stat_row', 'children'),
-    Input('object-stats', 'data'),
-    prevent_initial_call=True
+    Output("stat_row", "children"),
+    Input("object-stats", "data"),
+    prevent_initial_call=True,
 )
 def create_stat_row(object_stats):
-    """ Show basic stats. Used in the desktop app.
+    """Show basic stats. Used in the desktop app.
     """
     pdf = pd.read_json(object_stats)
     c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
@@ -146,37 +143,37 @@ def create_stat_row(object_stats):
                     dbc.Col(c1_, md=6),
                 ],
                 style={
-                    'border-left': '1px solid #c4c0c0',
-                    'border-bottom': '1px solid #c4c0c0',
-                    'border-right': '1px solid #c4c0c0',
-                    'border-radius': '0px 0px 25px 25px',
-                    "text-align": "center"
-                }
+                    "border-left": "1px solid #c4c0c0",
+                    "border-bottom": "1px solid #c4c0c0",
+                    "border-right": "1px solid #c4c0c0",
+                    "border-radius": "0px 0px 25px 25px",
+                    "text-align": "center",
+                },
             ),
             md=5,
         ),
-        dbc.Col(c2_, md=3, style={'text-align': 'center'}),
-        dbc.Col(c3_, md=2, style={'text-align': 'center'}),
-        dbc.Col(c4_, md=2, style={'text-align': 'center'}),
+        dbc.Col(c2_, md=3, style={"text-align": "center"}),
+        dbc.Col(c3_, md=2, style={"text-align": "center"}),
+        dbc.Col(c4_, md=2, style={"text-align": "center"}),
     ]
 
 @app.callback(
-    Output('stat_row_mobile', 'children'),
-    Input('object-stats', 'data'),
-    prevent_initial_call=True
+    Output("stat_row_mobile", "children"),
+    Input("object-stats", "data"),
+    prevent_initial_call=True,
 )
 def create_stat_row(object_stats):
-    """ Show basic stats. Used in the mobile app.
+    """Show basic stats. Used in the mobile app.
     """
     pdf = pd.read_json(object_stats)
     c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
 
     rowify = lambda x: dbc.Row(
         children=[dbc.Col(children=x, width=10)],
-        justify='center',
+        justify="center",
         style={
-            "text-align": "center"
-        }
+            "text-align": "center",
+        },
     )
 
     row = [
@@ -193,46 +190,46 @@ def create_stat_row(object_stats):
         html.Br(), html.Br(),
         dbc.Card(
             dbc.CardBody(
-                dcc.Markdown('_Connect with a bigger screen to explore more statistics_')
-            )
+                dcc.Markdown("_Connect with a bigger screen to explore more statistics_"),
+            ),
         ),
     ]
 
     return row
 
 def create_stat_generic(pdf):
-    """ Show basic stats. Used in the mobile app.
+    """Show basic stats. Used in the mobile app.
     """
-    n_ = pdf['key:key'].values[-1]
-    night = n_[4:8] + '-' + n_[8:10] + '-' + n_[10:12]
+    n_ = pdf["key:key"].values[-1]
+    night = n_[4:8] + "-" + n_[8:10] + "-" + n_[10:12]
 
     c0 = [
         html.H3(html.B(night)),
-        html.P('Last ZTF observing night'),
+        html.P("Last ZTF observing night"),
     ]
 
     c1 = [
-        html.H3(html.B('{:,}'.format(pdf['basic:sci'].values[-1]))),
-        html.P('Alerts processed'),
+        html.H3(html.B("{:,}".format(pdf["basic:sci"].values[-1]))),
+        html.P("Alerts processed"),
     ]
 
     c2 = [
-        html.H3(html.B('{:,}'.format(np.sum(pdf['basic:sci'].values)))),
-        html.P('Since 2019/11/01')
+        html.H3(html.B("{:,}".format(np.sum(pdf["basic:sci"].values)))),
+        html.P("Since 2019/11/01"),
     ]
 
-    mask = ~np.isnan(pdf['class:Unknown'].values)
-    n_alert_unclassified = np.sum(pdf['class:Unknown'].values[mask])
-    n_alert_classified = np.sum(pdf['basic:sci'].values) - n_alert_unclassified
+    mask = ~np.isnan(pdf["class:Unknown"].values)
+    n_alert_unclassified = np.sum(pdf["class:Unknown"].values[mask])
+    n_alert_classified = np.sum(pdf["basic:sci"].values) - n_alert_unclassified
 
     c3 = [
-        html.H3(html.B('{:,}'.format(n_alert_classified))),
-        html.P('With classification')
+        html.H3(html.B(f"{n_alert_classified:,}")),
+        html.P("With classification"),
     ]
 
     c4 = [
-        html.H3(html.B('{:,}'.format(n_alert_unclassified))),
-        html.P('Without classification')
+        html.H3(html.B(f"{n_alert_unclassified:,}")),
+        html.P("Without classification"),
     ]
 
     return c0, c1, c2, c3, c4
@@ -246,10 +243,10 @@ def heatmap_content():
             dbc.Row(
                 [
                     dbc.Col(
-                        dmc.Skeleton(style={'width': '100%', 'height': '30pc'}, className="mt-3"),
-                        id='heatmap_stat'
-                    )
-                ], justify="center", className="g-0"
+                        dmc.Skeleton(style={"width": "100%", "height": "30pc"}, className="mt-3"),
+                        id="heatmap_stat",
+                    ),
+                ], justify="center", className="g-0",
             ),
         ],
     )
@@ -270,7 +267,7 @@ def timelines():
                 id="switch-cumulative",
                 switch=True,
             ),
-        ]
+        ],
     )
     layout_ = html.Div(
         [
@@ -278,13 +275,13 @@ def timelines():
             dbc.Row(
                 [
                     dbc.Col(generate_col_list(), md=10),
-                    dbc.Col(switch, md=2)
-                ], justify='around'
+                    dbc.Col(switch, md=2),
+                ], justify="around",
             ),
             loading(dbc.Row(
                 [
-                    dbc.Col(id='evolution')
-                ], justify="center", className="g-0"
+                    dbc.Col(id="evolution"),
+                ], justify="center", className="g-0",
             )),
         ],
     )
@@ -303,34 +300,34 @@ def daily_stats():
                     dbc.Col(id="hist_sci_raw", md=3),
                     dbc.Col(id="hist_classified", md=3),
                     dbc.Col(id="hist_catalogued", md=3),
-                    dbc.Col(id="hist_candidates", md=3)
-                ], justify='around'
+                    dbc.Col(id="hist_candidates", md=3),
+                ], justify="around",
             )),
             loading(dbc.Row(
                 [
-                    dbc.Col(id="daily_classification")
-                ], justify='around'
-            ))
+                    dbc.Col(id="daily_classification"),
+                ], justify="around",
+            )),
         ],
     )
 
     return layout_
 
 def generate_night_list():
-    """ Generate the list of available nights (last night first)
+    """Generate the list of available nights (last night first)
     """
-    pdf = query_and_order_statistics(columns='', drop=False)
+    pdf = query_and_order_statistics(columns="", drop=False)
 
-    labels = list(pdf['key:key'].apply(lambda x: x[4:8] + '-' + x[8:10] + '-' + x[10:12]))
+    labels = list(pdf["key:key"].apply(lambda x: x[4:8] + "-" + x[8:10] + "-" + x[10:12]))
 
     dropdown = dcc.Dropdown(
         options=[
             *[
-                {'label': label, 'value': value}
-                for label, value in zip(labels[::-1], pdf['key:key'].values[::-1])
-            ]
+                {"label": label, "value": value}
+                for label, value in zip(labels[::-1], pdf["key:key"].values[::-1])
+            ],
         ],
-        id='dropdown_days',
+        id="dropdown_days",
         searchable=True,
         clearable=True,
         placeholder=labels[-1],
@@ -339,19 +336,19 @@ def generate_night_list():
     return dropdown
 
 def generate_col_list():
-    """ Generate the list of available columns
+    """Generate the list of available columns
     """
     pdf = request_api(
-        '/api/v1/statistics',
+        "/api/v1/statistics",
         json={
-            'output-format': 'json',
-            'schema': True
-        }
+            "output-format": "json",
+            "schema": True,
+        },
     )
-    schema_list = list(pdf['schema'])
+    schema_list = list(pdf["schema"])
 
     labels = [
-        i.replace('class', 'SIMBAD')
+        i.replace("class", "SIMBAD")
         if i not in dic_names
         else dic_names[i]
         for i in schema_list
@@ -365,10 +362,10 @@ def generate_col_list():
     dropdown = dcc.Dropdown(
         options=[
             *[
-                {'label': label, 'value': value}
-                for label, value in zip(labels, schema_list)]
+                {"label": label, "value": value}
+                for label, value in zip(labels, schema_list)],
         ],
-        id='dropdown_params',
+        id="dropdown_params",
         searchable=True,
         clearable=True,
         placeholder="Choose a columns",
@@ -377,17 +374,17 @@ def generate_col_list():
     return dropdown
 
 def get_data_one_night(night):
-    """ Get the statistics for one night
+    """Get the statistics for one night
     """
-    cols = 'basic:raw,basic:sci,basic:fields,basic:exposures'
+    cols = "basic:raw,basic:sci,basic:fields,basic:exposures"
 
     pdf = request_api(
-        '/api/v1/statistics',
+        "/api/v1/statistics",
         json={
-            'date': night,
-            'output-format': 'json',
-            'columns': ''
-        }
+            "date": night,
+            "output-format": "json",
+            "columns": "",
+        },
     )
 
     return pdf
@@ -405,27 +402,27 @@ def layout():
             dbc.Tab(
                 dbc.Card(
                     dbc.CardBody(
-                        dcc.Markdown(stat_doc)
-                    )
+                        dcc.Markdown(stat_doc),
+                    ),
                 ),
                 label="Help",
-                label_style=label_style
+                label_style=label_style,
             ),
-        ]
+        ],
     )
 
     layout_ = dbc.Container(
         [
-            dbc.Row(id='stat_row', className="mt-3", justify="center"),
+            dbc.Row(id="stat_row", className="mt-3", justify="center"),
             dbc.Row(
                 [
                     dbc.Col(tabs_),
                 ],
-                justify="center", className="mt-3"
+                justify="center", className="mt-3",
             ),
-            dcc.Store(id='object-stats'),
+            dcc.Store(id="object-stats"),
         ],
-        fluid='lg',
+        fluid="lg",
     )
 
     return layout_
