@@ -38,16 +38,17 @@ from apps.euclid.utils import (
     compute_rowkey,
     load_euclid_header,
 )
-from apps.plotting import convolve, legacy_normalizer, sigmoid_normalizer
+from apps.plotting import legacy_normalizer, sigmoid_normalizer
 from apps.utils import (
     convert_datatype,
+    convolve,
     extract_cutouts,
     format_hbase_output,
-    get_miriade_data,
     hbase_to_dict,
     hbase_type_converter,
     isoify_time,
 )
+from fink_utils.sso.utils import get_miriade_data
 
 
 def return_object_pdf(payload: dict) -> pd.DataFrame:
