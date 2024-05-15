@@ -129,6 +129,7 @@ def card_sn_scores() -> html.Div:
     )
     return card
 
+
 @app.callback(
     Output("card_sn_properties", "children"),
     [
@@ -201,13 +202,23 @@ def card_sn_properties(clickData1, clickData2, clickData3, clickData4, object_da
     sigma_g_minus_r = get_first_finite_value(pdf["v:sigma(g-r)"].values, position)
 
     rate_g_minus_r = get_first_finite_value(pdf["v:rate(g-r)"].values, position)
-    sigma_rate_g_minus_r = get_first_finite_value(pdf["v:sigma(rate(g-r))"].values, position)
+    sigma_rate_g_minus_r = get_first_finite_value(
+        pdf["v:sigma(rate(g-r))"].values, position
+    )
 
-    rate_g = get_first_finite_value(pdf["v:rate"].values[position:][pdf["i:fid"][position:] == 1])
-    sigma_rate_g = get_first_finite_value(pdf["v:sigma(rate)"].values[position:][pdf["i:fid"][position:] == 1])
+    rate_g = get_first_finite_value(
+        pdf["v:rate"].values[position:][pdf["i:fid"][position:] == 1]
+    )
+    sigma_rate_g = get_first_finite_value(
+        pdf["v:sigma(rate)"].values[position:][pdf["i:fid"][position:] == 1]
+    )
 
-    rate_r = get_first_finite_value(pdf["v:rate"].values[position:][pdf["i:fid"][position:] == 2])
-    sigma_rate_r = get_first_finite_value(pdf["v:sigma(rate)"].values[position:][pdf["i:fid"][position:] == 2])
+    rate_r = get_first_finite_value(
+        pdf["v:rate"].values[position:][pdf["i:fid"][position:] == 2]
+    )
+    sigma_rate_r = get_first_finite_value(
+        pdf["v:sigma(rate)"].values[position:][pdf["i:fid"][position:] == 2]
+    )
 
     classification = pdf["v:classification"].values[position]
 
@@ -265,7 +276,10 @@ def card_sn_properties(clickData1, clickData2, clickData3, clickData4, object_da
                     ),
                     help_popover(msg, "help_sn"),
                 ],
-                radius="sm", p="xs", shadow="sm", withBorder=True,
+                radius="sm",
+                p="xs",
+                shadow="sm",
+                withBorder=True,
             ),
         ],
     )

@@ -443,6 +443,7 @@ layout_tracklet_lightcurve = dict(
     },
 )
 
+
 @app.callback(
     [
         Output("variable_plot", "children"),
@@ -465,7 +466,16 @@ layout_tracklet_lightcurve = dict(
         (Output("submit_variable", "loading"), True, False),
     ],
 )
-def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period_min, period_max, object_data, object_release):
+def plot_variable_star(
+    n_clicks,
+    nterms_base,
+    nterms_band,
+    manual_period,
+    period_min,
+    period_max,
+    object_data,
+    object_release,
+):
     """Fit for the period of a star using gatspy
 
     See https://zenodo.org/record/47887
@@ -491,8 +501,16 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
     # Prepare the data
     pdf_ = pd.read_json(object_data)
     cols = [
-        "i:jd", "i:magpsf", "i:sigmapsf", "i:fid", "i:distnr",
-        "i:magnr", "i:sigmagnr", "i:magzpsci", "i:isdiffpos", "i:objectId",
+        "i:jd",
+        "i:magpsf",
+        "i:sigmapsf",
+        "i:fid",
+        "i:distnr",
+        "i:magnr",
+        "i:sigmagnr",
+        "i:magzpsci",
+        "i:isdiffpos",
+        "i:objectId",
     ]
     pdf = pdf_.loc[:, cols]
     pdf = pdf.sort_values("i:jd", ascending=False)
@@ -511,7 +529,8 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
     if is_dc_corrected:
         mag, err = np.transpose(
             [
-                dc_mag(*args) for args in zip(
+                dc_mag(*args)
+                for args in zip(
                     pdf["i:magpsf"].astype(float).values,
                     pdf["i:sigmapsf"].astype(float).values,
                     pdf["i:magnr"].astype(float).values,
@@ -555,9 +574,10 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
     phase = jd % period
     tfit = np.linspace(0, period, 100)
     tfit_unfolded = np.linspace(
-        np.min(jd), np.max(jd),
+        np.min(jd),
+        np.max(jd),
         # Between 100 and 10000 points, to hopefully have 10 per period
-        min(10000, max(100, int(10*(np.max(jd) - np.min(jd))/period))),
+        min(10000, max(100, int(10 * (np.max(jd) - np.min(jd)) / period))),
     )
     dates_unfolded = convert_jd(tfit_unfolded)
 
@@ -566,7 +586,8 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
         {
             "data": [],
             "layout": copy.deepcopy(layout_phase),
-        } for _ in range(3)
+        }
+        for _ in range(3)
     )
 
     figure_unfolded["layout"]["xaxis"]["title"] = "Observation date"
@@ -588,33 +609,32 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
     <extra></extra>
     """
 
-    for fid,fname,color in (
-            (1, "g", COLORS_ZTF[0]),
-            (2, "r", COLORS_ZTF[1]),
+    for fid, fname, color in (
+        (1, "g", COLORS_ZTF[0]),
+        (2, "r", COLORS_ZTF[1]),
     ):
         if fid in np.unique(pdf["i:fid"].values):
             # Original data
             idx = pdf["i:fid"] == fid
-            figure["data"].append({
-                "x": phase[idx] / period,
-                "y": mag[idx],
-                "error_y": {
-                    "type": "data",
-                    "array": err[idx],
-                    "visible": True,
-                    "width": 0,
-                    "opacity": 0.5,
-                    "color": color,
-                },
-                "mode": "markers",
-                "name": f"{fname} band",
-                "legendgroup": f"{fname} band",
-                "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": 10,
-                    "color": color,
-                    "symbol": "o"},
-            })
+            figure["data"].append(
+                {
+                    "x": phase[idx] / period,
+                    "y": mag[idx],
+                    "error_y": {
+                        "type": "data",
+                        "array": err[idx],
+                        "visible": True,
+                        "width": 0,
+                        "opacity": 0.5,
+                        "color": color,
+                    },
+                    "mode": "markers",
+                    "name": f"{fname} band",
+                    "legendgroup": f"{fname} band",
+                    "hovertemplate": hovertemplate,
+                    "marker": {"size": 10, "color": color, "symbol": "o"},
+                }
+            )
 
             # Release data
             if not pdf_release.empty:
@@ -669,66 +689,68 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
                     },
                 )
 
-
             # Original data, unfolded
-            figure_unfolded["data"].append({
-                "x": dates[idx],
-                "y": mag[idx],
-                "error_y": {
-                    "type": "data",
-                    "array": err[idx],
-                    "visible": True,
-                    "width": 0,
-                    "opacity": 0.5,
-                    "color": color,
-                },
-                "mode": "markers",
-                "name": f"{fname} band",
-                "legendgroup": f"{fname} band",
-                "hovertemplate": hovertemplate_unfolded,
-                "marker": {
-                    "size": 10,
-                    "color": color,
-                    "symbol": "o"},
-            })
+            figure_unfolded["data"].append(
+                {
+                    "x": dates[idx],
+                    "y": mag[idx],
+                    "error_y": {
+                        "type": "data",
+                        "array": err[idx],
+                        "visible": True,
+                        "width": 0,
+                        "opacity": 0.5,
+                        "color": color,
+                    },
+                    "mode": "markers",
+                    "name": f"{fname} band",
+                    "legendgroup": f"{fname} band",
+                    "hovertemplate": hovertemplate_unfolded,
+                    "marker": {"size": 10, "color": color, "symbol": "o"},
+                }
+            )
 
             # Model
             magfit = model.predict(tfit, period=period, filts=fid)
-            figure["data"].append({
-                "x": tfit / period,
-                "y": magfit,
-                "mode": "lines",
-                "name": f"fit {fname} band",
-                "legendgroup": f"{fname} band",
-                "hovertemplate": hovertemplate_model,
-                "showlegend": False,
-                "line": {
-                    "color": color,
-                    "opacity": 0.5,
-                    "width": 2,
-                },
-            })
+            figure["data"].append(
+                {
+                    "x": tfit / period,
+                    "y": magfit,
+                    "mode": "lines",
+                    "name": f"fit {fname} band",
+                    "legendgroup": f"{fname} band",
+                    "hovertemplate": hovertemplate_model,
+                    "showlegend": False,
+                    "line": {
+                        "color": color,
+                        "opacity": 0.5,
+                        "width": 2,
+                    },
+                }
+            )
 
             # Model, unfolded
             magfit = model.predict(tfit_unfolded, period=period, filts=fid)
-            figure_unfolded["data"].append({
-                "x": dates_unfolded,
-                "y": magfit,
-                "mode": "lines",
-                "name": f"fit {fname} band",
-                "legendgroup": f"{fname} band",
-                "hovertemplate": hovertemplate_model,
-                "showlegend": False,
-                "line": {
-                    "color": color,
-                    "opacity": 0.5,
-                    "width": 0.5,
-                },
-            })
+            figure_unfolded["data"].append(
+                {
+                    "x": dates_unfolded,
+                    "y": magfit,
+                    "mode": "lines",
+                    "name": f"fit {fname} band",
+                    "legendgroup": f"{fname} band",
+                    "hovertemplate": hovertemplate_model,
+                    "showlegend": False,
+                    "line": {
+                        "color": color,
+                        "opacity": 0.5,
+                        "width": 0.5,
+                    },
+                }
+            )
 
     # Periodogram
     # periods,powers = model.periodogram_auto()
-    periods = 1/np.linspace(1/period_max, 1/period_min, 10000)
+    periods = 1 / np.linspace(1 / period_max, 1 / period_min, 10000)
     powers = model.periodogram(periods)
 
     figure_periodogram["layout"]["xaxis"]["title"] = "Period, days"
@@ -755,8 +777,11 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
         {
             "type": "line",
             "xref": "x",
-            "x0": period, "x1": period,
-            "yref": "paper", "y0": 0, "y1": 1,
+            "x0": period,
+            "x1": period,
+            "yref": "paper",
+            "y0": 0,
+            "y1": 1,
             "line": {"color": "#F5622E", "dash": "dash", "width": 1},
         },
     ]
@@ -771,7 +796,8 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
             },
             config={"displayModeBar": False},
             responsive=True,
-        ) for fig in [figure, figure_unfolded, figure_periodogram]
+        )
+        for fig in [figure, figure_unfolded, figure_periodogram]
     )
 
     # Layout
@@ -813,6 +839,7 @@ def plot_variable_star(n_clicks, nterms_base, nterms_band, manual_period, period
 
     return results, None
 
+
 @app.callback(
     Output("classbar", "figure"),
     [
@@ -840,7 +867,12 @@ def plot_classbar(object_data):
 
     palette = dmc.theme.DEFAULT_COLORS
 
-    colors = [palette[class_colors["Simbad"]][6] if j not in class_colors.keys() else palette[class_colors[j]][6] for j in top_labels]
+    colors = [
+        palette[class_colors["Simbad"]][6]
+        if j not in class_colors.keys()
+        else palette[class_colors[j]][6]
+        for j in top_labels
+    ]
 
     fig = go.Figure()
 
@@ -853,11 +885,14 @@ def plot_classbar(object_data):
                 showlegend = True
             is_seen.append(top_labels[i])
 
-            percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(int)
+            percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(
+                int
+            )
             name_legend = top_labels[i] + f": {percent}%"
             fig.add_trace(
                 go.Bar(
-                    x=[xd[i]], y=[yd],
+                    x=[xd[i]],
+                    y=[yd],
                     orientation="h",
                     width=0.3,
                     showlegend=showlegend,
@@ -908,6 +943,7 @@ def plot_classbar(object_data):
 
     return fig
 
+
 @app.callback(
     Output("lightcurve_cutouts", "figure"),
     [
@@ -920,7 +956,14 @@ def plot_classbar(object_data):
     ],
     prevent_initial_call=True,
 )
-def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, object_release, show_color) -> dict:
+def draw_lightcurve(
+    switch: int,
+    object_data,
+    object_upper,
+    object_uppervalid,
+    object_release,
+    show_color,
+) -> dict:
     """Draw object lightcurve with errorbars
 
     Parameters
@@ -938,8 +981,16 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
     # Primary high-quality data points
     pdf_ = pd.read_json(object_data)
     cols = [
-        "i:jd", "i:magpsf", "i:sigmapsf", "i:fid", "i:distnr",
-        "i:magnr", "i:sigmagnr", "i:magzpsci", "i:isdiffpos", "i:candid",
+        "i:jd",
+        "i:magpsf",
+        "i:sigmapsf",
+        "i:fid",
+        "i:distnr",
+        "i:magnr",
+        "i:sigmagnr",
+        "i:magzpsci",
+        "i:isdiffpos",
+        "i:candid",
     ]
     pdf = pdf_.loc[:, cols]
 
@@ -963,7 +1014,7 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
 
     # Exclude lower-quality points overlapping higher-quality ones
     mask = np.in1d(pdf_upperv["i:jd"].values, pdf["i:jd"].values)
-    pdf_upperv,dates_upperv = (_[~mask] for _ in (pdf_upperv,dates_upperv))
+    pdf_upperv, dates_upperv = (_[~mask] for _ in (pdf_upperv, dates_upperv))
 
     # shortcuts
     mag = pdf["i:magpsf"]
@@ -984,7 +1035,8 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
             # inplace replacement for DC corrected flux
             mag, err = np.transpose(
                 [
-                    dc_mag(*args) for args in zip(
+                    dc_mag(*args)
+                    for args in zip(
                         mag.astype(float).values,
                         err.astype(float).values,
                         pdf["i:magnr"].astype(float).values,
@@ -1004,10 +1056,13 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
         # inplace replacement
         mag, err = np.transpose(
             [
-                apparent_flux(*args) for args in zip(
+                apparent_flux(*args)
+                for args in zip(
                     mag.astype(float).values,
                     err.astype(float).values,
-                    pdf["i:magnr"].astype(float).values if is_dc_corrected else [99.0]*len(pdf.index),
+                    pdf["i:magnr"].astype(float).values
+                    if is_dc_corrected
+                    else [99.0] * len(pdf.index),
                     pdf["i:sigmagnr"].astype(float).values,
                     pdf["i:isdiffpos"].values,
                 )
@@ -1025,9 +1080,9 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
         "layout": layout,
     }
 
-    for fid,fname,color,color_negative in (
-            (1, "g", COLORS_ZTF[0], COLORS_ZTF_NEGATIVE[0]),
-            (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1]),
+    for fid, fname, color, color_negative in (
+        (1, "g", COLORS_ZTF[0], COLORS_ZTF_NEGATIVE[0]),
+        (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1]),
     ):
         # High-quality measurements
         hovertemplate = r"""
@@ -1054,16 +1109,22 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                 "customdata": np.stack(
                     (
                         pdf["i:jd"][idx] - 2400000.5,
-                        pdf["i:isdiffpos"][idx].apply(lambda x: "(-) " if x == "f" else ""),
-                    ), axis=-1,
+                        pdf["i:isdiffpos"][idx].apply(
+                            lambda x: "(-) " if x == "f" else ""
+                        ),
+                    ),
+                    axis=-1,
                 ),
                 "hovertemplate": hovertemplate,
                 "legendgroup": f"{fname} band",
-                "legendrank": 100 + 10*fid,
+                "legendrank": 100 + 10 * fid,
                 "marker": {
                     "size": 12,
-                    "color": pdf["i:isdiffpos"][idx].apply(lambda x: color_negative if x == "f" else color),
-                    "symbol": "o"},
+                    "color": pdf["i:isdiffpos"][idx].apply(
+                        lambda x: color_negative if x == "f" else color
+                    ),
+                    "symbol": "o",
+                },
             },
         )
 
@@ -1087,7 +1148,7 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                         "customdata": pdf_upper["i:jd"][idx] - 2400000.5,
                         "hovertemplate": hovertemplate_upper,
                         "legendgroup": f"{fname} band upper",
-                        "legendrank": 101 + 10*fid,
+                        "legendrank": 101 + 10 * fid,
                         "marker": {
                             "color": color,
                             "symbol": "triangle-down-open",
@@ -1142,8 +1203,11 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                         {
                             "type": "line",
                             "yref": "y",
-                            "y0": ref, "y1": ref,   # adding a horizontal line
-                            "xref": "paper", "x0": 0, "x1": 1,
+                            "y0": ref,
+                            "y1": ref,  # adding a horizontal line
+                            "xref": "paper",
+                            "x0": 0,
+                            "x1": 1,
                             "line": {"color": color, "dash": "dash", "width": 1},
                             "legendgroup": f"{fname} band",
                             "opacity": 0.3,
@@ -1176,7 +1240,7 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                         "customdata": pdf_release["mjd"][idx],
                         "hovertemplate": hovertemplate_release,
                         "legendgroup": f"{fname} band release",
-                        "legendrank": 102 + 10*fid,
+                        "legendrank": 102 + 10 * fid,
                         "marker": {
                             "color": color,
                             "symbol": ".",
@@ -1200,7 +1264,12 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
             pdf_ = pd.concat([pdf, pdf_upperv])
         elif switch == "DC magnitude":
             pdf_ = pd.DataFrame(
-                {"i:jd": pdf["i:jd"], "i:fid": pdf["i:fid"], "i:magpsf": mag, "i:sigmapsf": err},
+                {
+                    "i:jd": pdf["i:jd"],
+                    "i:fid": pdf["i:fid"],
+                    "i:magpsf": mag,
+                    "i:sigmapsf": err,
+                },
             )
 
             if not pdf_release.empty:
@@ -1210,7 +1279,9 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
                         pd.DataFrame(
                             {
                                 "i:jd": pdf_release["mjd"] + 2400000.5,
-                                "i:fid": pdf_release["filtercode"].map({"zg": 1, "zr": 2}),
+                                "i:fid": pdf_release["filtercode"].map(
+                                    {"zg": 1, "zr": 2}
+                                ),
                                 "i:magpsf": pdf_release["mag"],
                                 "i:sigmapsf": pdf_release["magerr"],
                             },
@@ -1263,14 +1334,19 @@ def draw_lightcurve(switch: int, object_data, object_upper, object_uppervalid, o
             figure["layout"]["shapes"].append(
                 {
                     "type": "line",
-                    "yref": "paper", "y0":0.325, "y1": 0.325,
-                    "xref": "paper", "x0": -0.1, "x1": 1.05,
+                    "yref": "paper",
+                    "y0": 0.325,
+                    "y1": 0.325,
+                    "xref": "paper",
+                    "x0": -0.1,
+                    "x1": 1.05,
                     "line": {"color": "gray", "width": 4},
                     "opacity": 0.1,
                 },
             )
 
     return figure
+
 
 @app.callback(
     Output("lightcurve_scores", "figure"),
@@ -1290,8 +1366,15 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     """
     pdf_ = pd.read_json(object_data)
     cols = [
-        "i:jd", "i:magpsf", "i:sigmapsf", "i:fid",
-        "i:magnr", "i:sigmagnr", "i:magzpsci", "i:isdiffpos", "i:candid",
+        "i:jd",
+        "i:magpsf",
+        "i:sigmapsf",
+        "i:fid",
+        "i:magnr",
+        "i:sigmagnr",
+        "i:magzpsci",
+        "i:isdiffpos",
+        "i:candid",
     ]
     pdf = pdf_.loc[:, cols]
 
@@ -1327,10 +1410,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
                 "name": "g band",
                 "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
                 "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": 12,
-                    "color": COLORS_ZTF[0],
-                    "symbol": "o"},
+                "marker": {"size": 12, "color": COLORS_ZTF[0], "symbol": "o"},
             },
             {
                 "x": dates[pdf["i:fid"] == 2],
@@ -1347,15 +1427,13 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
                 "name": "r band",
                 "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
                 "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": 12,
-                    "color": COLORS_ZTF[1],
-                    "symbol": "o"},
+                "marker": {"size": 12, "color": COLORS_ZTF[1], "symbol": "o"},
             },
         ],
         "layout": layout_lightcurve,
     }
     return figure
+
 
 def draw_lightcurve_preview(name) -> dict:
     """Draw object lightcurve with errorbars (SM view - DC mag fixed)
@@ -1365,16 +1443,24 @@ def draw_lightcurve_preview(name) -> dict:
     figure: dict
     """
     cols = [
-        "i:jd", "i:magpsf", "i:sigmapsf", "i:fid", "i:isdiffpos", "i:distnr", "i:magnr", "i:sigmagnr", "d:tag",
+        "i:jd",
+        "i:magpsf",
+        "i:sigmapsf",
+        "i:fid",
+        "i:isdiffpos",
+        "i:distnr",
+        "i:magnr",
+        "i:sigmagnr",
+        "d:tag",
     ]
     pdf = request_api(
-      "/api/v1/objects",
-      json={
-        "objectId": name,
-        "withupperlim": "True",
-        "columns": ",".join(cols),
-        "output-format": "json",
-      },
+        "/api/v1/objects",
+        json={
+            "objectId": name,
+            "withupperlim": "True",
+            "columns": ",".join(cols),
+            "output-format": "json",
+        },
     )
 
     # Mask upper-limits (but keep measurements with bad quality)
@@ -1406,7 +1492,8 @@ def draw_lightcurve_preview(name) -> dict:
         # inplace replacement for DC corrected flux
         mag, err = np.transpose(
             [
-                dc_mag(*args) for args in zip(
+                dc_mag(*args)
+                for args in zip(
                     mag.astype(float).values,
                     err.astype(float).values,
                     pdf["i:magnr"].astype(float).values,
@@ -1432,9 +1519,9 @@ def draw_lightcurve_preview(name) -> dict:
         "layout": layout,
     }
 
-    for fid,fname,color,color_negative in (
-            (1, "g", COLORS_ZTF[0], COLORS_ZTF_NEGATIVE[0]),
-            (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1]),
+    for fid, fname, color, color_negative in (
+        (1, "g", COLORS_ZTF[0], COLORS_ZTF_NEGATIVE[0]),
+        (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1]),
     ):
         idx = pdf["i:fid"] == fid
 
@@ -1450,7 +1537,7 @@ def draw_lightcurve_preview(name) -> dict:
                     "array": err[idx],
                     "visible": True,
                     "width": 0,
-                    "color": color, # It does not support arrays of colors so let's use positive one for all points
+                    "color": color,  # It does not support arrays of colors so let's use positive one for all points
                     "opacity": 0.5,
                 },
                 "mode": "markers",
@@ -1458,15 +1545,26 @@ def draw_lightcurve_preview(name) -> dict:
                 "customdata": np.stack(
                     (
                         pdf["i:jd"][idx] - 2400000.5,
-                        pdf["i:isdiffpos"].apply(lambda x: "(-) " if x == "f" else "")[idx],
-                        pdf["d:tag"].apply(lambda x: "" if x == "valid" else " (low quality)")[idx],
-                    ), axis=-1,
+                        pdf["i:isdiffpos"].apply(lambda x: "(-) " if x == "f" else "")[
+                            idx
+                        ],
+                        pdf["d:tag"].apply(
+                            lambda x: "" if x == "valid" else " (low quality)"
+                        )[idx],
+                    ),
+                    axis=-1,
                 ),
                 "hovertemplate": hovertemplate,
                 "marker": {
-                    "size": pdf["d:tag"].apply(lambda x: 12 if x == "valid" else 6)[idx],
-                    "color": pdf["i:isdiffpos"].apply(lambda x: color_negative if x == "f" else color)[idx],
-                    "symbol": pdf["d:tag"].apply(lambda x: "o" if x == "valid" else "triangle-up")[idx],
+                    "size": pdf["d:tag"].apply(lambda x: 12 if x == "valid" else 6)[
+                        idx
+                    ],
+                    "color": pdf["i:isdiffpos"].apply(
+                        lambda x: color_negative if x == "f" else color
+                    )[idx],
+                    "symbol": pdf["d:tag"].apply(
+                        lambda x: "o" if x == "valid" else "triangle-up"
+                    )[idx],
                     "line": {"width": 0},
                     "opacity": 1,
                 },
@@ -1481,8 +1579,11 @@ def draw_lightcurve_preview(name) -> dict:
                 {
                     "type": "line",
                     "yref": "y",
-                    "y0": ref, "y1": ref,   # adding a horizontal line
-                    "xref": "paper", "x0": 0, "x1": 1,
+                    "y0": ref,
+                    "y1": ref,  # adding a horizontal line
+                    "xref": "paper",
+                    "x0": 0,
+                    "x1": 1,
                     "line": {"color": color, "dash": "dash", "width": 1},
                     "legendgroup": f"{fname} band",
                     "opacity": 0.3,
@@ -1490,6 +1591,7 @@ def draw_lightcurve_preview(name) -> dict:
             )
 
     return figure
+
 
 @app.callback(
     Output("scores", "figure"),
@@ -1544,10 +1646,7 @@ def draw_scores(object_data) -> dict:
                     ),
                 ),
                 "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": 10,
-                    "color": "#15284F",
-                    "symbol": "circle"},
+                "marker": {"size": 10, "color": "#15284F", "symbol": "circle"},
             },
             {
                 "x": dates,
@@ -1561,10 +1660,7 @@ def draw_scores(object_data) -> dict:
                     ),
                 ),
                 "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": 10,
-                    "color": "#F5622E",
-                    "symbol": "square"},
+                "marker": {"size": 10, "color": "#F5622E", "symbol": "square"},
             },
             {
                 "x": dates,
@@ -1578,19 +1674,16 @@ def draw_scores(object_data) -> dict:
                     ),
                 ),
                 "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": 10,
-                    "color": "#3C8DFF",
-                    "symbol": "diamond"},
+                "marker": {"size": 10, "color": "#3C8DFF", "symbol": "diamond"},
             },
         ],
         "layout": layout_scores,
     }
     return figure
 
+
 def extract_max_t2(pdf):
-    """
-    """
+    """ """
     cols = [i for i in pdf.columns if i.startswith("d:t2")]
 
     if cols == []:
@@ -1612,6 +1705,7 @@ def extract_max_t2(pdf):
     )
 
     return df
+
 
 @app.callback(
     Output("t2", "children"),
@@ -1695,12 +1789,14 @@ def draw_t2(object_data) -> dict:
                     [
                         tooltip,
                         graph,
-                    ], position="center",
+                    ],
+                    position="center",
                 ),
             ],
         )
 
     return out
+
 
 @app.callback(
     Output("colors", "figure"),
@@ -1728,7 +1824,7 @@ def draw_color(object_data) -> dict:
     <extra></extra>
     """
     color = "#3C8DFF"
-    idx = pdf["i:fid"] == 1 # Show colors at g points only
+    idx = pdf["i:fid"] == 1  # Show colors at g points only
     figure = {
         "data": [
             {
@@ -1758,6 +1854,7 @@ def draw_color(object_data) -> dict:
         "layout": layout_colors,
     }
     return figure
+
 
 @app.callback(
     Output("colors_rate", "figure"),
@@ -1873,6 +1970,7 @@ def draw_color_rate(object_data) -> dict:
     }
     return figure
 
+
 # The function assumes that it got pairs of `relayoutData` and `figure` for each
 # of graphs where it will link x axis zoom, in both input and output. Outputs should
 # probably be declared with `allow_duplicate=True` if they are used in actual plotters too
@@ -1944,6 +2042,7 @@ clientside_callback(
     prevent_initial_call=True,
 )
 
+
 def extract_cutout(object_data, time0, kind):
     """Extract cutout data from the alert
 
@@ -1994,11 +2093,16 @@ def extract_cutout(object_data, time0, kind):
 
     cutout = readstamp(r, gzipped=False)
 
-    if kind == "difference" and "i:isdiffpos" in pdf_.columns and pdf_["i:isdiffpos"].values[position] == "f":
+    if (
+        kind == "difference"
+        and "i:isdiffpos" in pdf_.columns
+        and pdf_["i:isdiffpos"].values[position] == "f"
+    ):
         # Negative event, let's invert the diff cutout
         cutout *= -1
 
     return cutout
+
 
 @app.callback(
     Output("stamps", "children"),
@@ -2007,11 +2111,9 @@ def extract_cutout(object_data, time0, kind):
         Input("object-data", "data"),
     ],
     prevent_initial_call=True,
-
 )
 def draw_cutouts(clickData, object_data):
-    """Draw cutouts data based on lightcurve data
-    """
+    """Draw cutouts data based on lightcurve data"""
     if clickData is not None:
         jd0 = clickData["points"][0]["x"]
     else:
@@ -2038,6 +2140,7 @@ def draw_cutouts(clickData, object_data):
 
     return figs
 
+
 @app.callback(
     Output("stamps_modal_content", "children"),
     [
@@ -2048,8 +2151,7 @@ def draw_cutouts(clickData, object_data):
     prevent_initial_call=True,
 )
 def draw_cutouts_modal(object_data, date_modal_select, is_open):
-    """Draw cutouts data based on lightcurve data
-    """
+    """Draw cutouts data based on lightcurve data"""
     if not is_open:
         raise PreventUpdate
 
@@ -2076,9 +2178,9 @@ def draw_cutouts_modal(object_data, date_modal_select, is_open):
 
     return figs
 
+
 def draw_cutouts_quickview(name, kinds=["science"]):
-    """Draw Science cutout data for the preview service
-    """
+    """Draw Science cutout data for the preview service"""
     figs = []
     for kind in kinds:
         try:
@@ -2091,18 +2193,19 @@ def draw_cutouts_quickview(name, kinds=["science"]):
             figs.append(data)
     return figs
 
-def create_circular_mask(h, w, center=None, radius=None):
 
-    if center is None: # use the middle of the image
+def create_circular_mask(h, w, center=None, radius=None):
+    if center is None:  # use the middle of the image
         center = (int(w / 2), int(h / 2))
-    if radius is None: # use the smallest distance between the center and image walls
+    if radius is None:  # use the smallest distance between the center and image walls
         radius = min(center[0], center[1], w - center[0], h - center[1])
 
     Y, X = np.ogrid[:h, :w]
-    dist_from_center = np.sqrt((X - center[0])**2 + (Y - center[1])**2)
+    dist_from_center = np.sqrt((X - center[0]) ** 2 + (Y - center[1]) ** 2)
 
     mask = dist_from_center <= radius
     return mask
+
 
 def sigmoid(img: list) -> list:
     """Sigmoid function used for img_normalizer
@@ -2127,6 +2230,7 @@ def sigmoid(img: list) -> list:
     # perform sigmoid calculation and return it
     return 1 / (1 + exp_norm)
 
+
 def sigmoid_normalizer(img: list, vmin: float, vmax: float) -> list:
     """Image normalisation between vmin and vmax using Sigmoid function
 
@@ -2140,6 +2244,7 @@ def sigmoid_normalizer(img: list, vmin: float, vmax: float) -> list:
     out: float array where data are bounded between vmin and vmax
     """
     return (vmax - vmin) * sigmoid(img) + vmin
+
 
 def legacy_normalizer(data: list, stretch="asinh", pmin=0.5, pmax=99.5) -> list:
     """Old cutout normalizer which use the central pixel
@@ -2156,9 +2261,14 @@ def legacy_normalizer(data: list, stretch="asinh", pmin=0.5, pmax=99.5) -> list:
     size = len(data)
     vmax = data[int(size / 2), int(size / 2)]
     vmin = np.min(data) + 0.2 * np.median(np.abs(data - np.median(data)))
-    return _data_stretch(data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch)
+    return _data_stretch(
+        data, vmin=vmin, vmax=vmax, pmin=pmin, pmax=pmax, stretch=stretch
+    )
 
-def plain_normalizer(img: list, vmin: float, vmax: float, stretch="linear", pmin=0.5, pmax=99.5) -> list:
+
+def plain_normalizer(
+    img: list, vmin: float, vmax: float, stretch="linear", pmin=0.5, pmax=99.5
+) -> list:
     """Image normalisation between vmin and vmax
 
     Parameters
@@ -2171,21 +2281,28 @@ def plain_normalizer(img: list, vmin: float, vmax: float, stretch="linear", pmin
     out: float array where data are bounded between vmin and vmax
     """
     limits = np.percentile(img, [pmin, pmax])
-    data = _data_stretch(img, vmin=limits[0], vmax=limits[1], stretch=stretch, vmid=0.1, exponent=2)
+    data = _data_stretch(
+        img, vmin=limits[0], vmax=limits[1], stretch=stretch, vmid=0.1, exponent=2
+    )
     data = (vmax - vmin) * data + vmin
 
     return data
 
+
 def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True, id_type="stamp"):
-    """Draw a cutout data
-    """
+    """Draw a cutout data"""
     # Update graph data for stamps
     data = np.nan_to_num(data)
 
     # data = sigmoid_normalizer(data, lower_bound, upper_bound)
-    data = plain_normalizer(data, lower_bound, upper_bound,
-                            stretch="linear" if title in ["difference"] else "asinh",
-                            pmin=0.5, pmax=99.95)
+    data = plain_normalizer(
+        data,
+        lower_bound,
+        upper_bound,
+        stretch="linear" if title in ["difference"] else "asinh",
+        pmin=0.5,
+        pmax=99.95,
+    )
 
     data = data[::-1]
     # data = convolve(data, smooth=1, kernel='gauss')
@@ -2195,16 +2312,23 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True, id_type="s
 
     fig = go.Figure(
         data=go.Heatmap(
-            z=data, showscale=False, hoverinfo="skip", colorscale="Blues_r", zsmooth=zsmooth,
+            z=data,
+            showscale=False,
+            hoverinfo="skip",
+            colorscale="Blues_r",
+            zsmooth=zsmooth,
         ),
     )
     # Greys_r
 
     axis_template = dict(
         autorange=True,
-        showgrid=False, zeroline=False,
-        linecolor="black", showticklabels=False,
-        ticks="")
+        showgrid=False,
+        zeroline=False,
+        linecolor="black",
+        showticklabels=False,
+        ticks="",
+    )
 
     fig.update_layout(
         title=title,
@@ -2217,14 +2341,14 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True, id_type="s
     )
 
     fig.update_layout(width=shape[1], height=shape[0])
-    fig.update_layout(yaxis={"scaleanchor":"x", "scaleratio":1})
+    fig.update_layout(yaxis={"scaleanchor": "x", "scaleratio": 1})
 
-    style = {"display":"block", "aspect-ratio": "1", "margin": "1px"}
+    style = {"display": "block", "aspect-ratio": "1", "margin": "1px"}
     classname = "zoom"
     classname = ""
 
     graph = dcc.Graph(
-        id={"type":id_type, "id":title} if zoom else "undefined",
+        id={"type": id_type, "id": title} if zoom else "undefined",
         figure=fig,
         style=style,
         config={"displayModeBar": False},
@@ -2233,6 +2357,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True, id_type="s
     )
 
     return graph
+
 
 zoom_cutouts_js = """
 function zoom_cutouts(relayout_data, figure_states) {
@@ -2292,6 +2417,7 @@ clientside_callback(
     prevent_initial_call=True,
 )
 
+
 @app.callback(
     [
         Output("mulens_plot", "children"),
@@ -2318,8 +2444,18 @@ def plot_mulens(n_clicks, object_data):
 
     pdf_ = pd.read_json(object_data)
     cols = [
-        "i:jd", "i:magpsf", "i:sigmapsf", "i:fid", "i:ra", "i:dec", "i:distnr",
-        "i:magnr", "i:sigmagnr", "i:magzpsci", "i:isdiffpos", "i:objectId",
+        "i:jd",
+        "i:magpsf",
+        "i:sigmapsf",
+        "i:fid",
+        "i:ra",
+        "i:dec",
+        "i:distnr",
+        "i:magnr",
+        "i:sigmagnr",
+        "i:magzpsci",
+        "i:isdiffpos",
+        "i:objectId",
     ]
     pdf = pdf_.loc[:, cols]
     pdf["i:fid"] = pdf["i:fid"]
@@ -2331,7 +2467,8 @@ def plot_mulens(n_clicks, object_data):
     if is_dc_corrected:
         mag, err = np.transpose(
             [
-                dc_mag(*args) for args in zip(
+                dc_mag(*args)
+                for args in zip(
                     pdf["i:magpsf"].astype(float).values,
                     pdf["i:sigmapsf"].astype(float).values,
                     pdf["i:magnr"].astype(float).values,
@@ -2384,14 +2521,18 @@ def plot_mulens(n_clicks, object_data):
 
     results = current_event.fits[0]
 
-    normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(results, 0, results.fit_results)
+    normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(
+        results, 0, results.fit_results
+    )
 
     # Model
     create_the_fake_telescopes(results, results.fit_results)
 
     telescope_ = results.event.fake_telescopes[0]
 
-    flux_model = mulens_model.compute_the_microlensing_model(telescope_, results.model.compute_pyLIMA_parameters(results.fit_results))[0]
+    flux_model = mulens_model.compute_the_microlensing_model(
+        telescope_, results.model.compute_pyLIMA_parameters(results.fit_results)
+    )[0]
 
     time = telescope_.lightcurve_flux[:, 0]
     magnitude = microltoolbox.flux_to_magnitude(flux_model)
@@ -2403,9 +2544,9 @@ def plot_mulens(n_clicks, object_data):
 
     index = 0
 
-    for fid,fname,color in (
-            (1, "g", COLORS_ZTF[0]),
-            (2, "r", COLORS_ZTF[1]),
+    for fid, fname, color in (
+        (1, "g", COLORS_ZTF[0]),
+        (2, "r", COLORS_ZTF[1]),
     ):
         dates = convert_jd(normalised_lightcurves[index][:, 0])
         if fid in np.unique(pdf["i:fid"].values):
@@ -2424,10 +2565,7 @@ def plot_mulens(n_clicks, object_data):
                     "mode": "markers",
                     "name": f"{fname} band",
                     "text": dates,
-                    "marker": {
-                        "size": 12,
-                        "color": color,
-                        "symbol": "o"},
+                    "marker": {"size": 12, "color": color, "symbol": "o"},
                 },
             )
             index += 1
@@ -2497,6 +2635,7 @@ def plot_mulens(n_clicks, object_data):
 
     return results, None
 
+
 @app.callback(
     Output("aladin-lite-runner", "run"),
     Input("object-data", "data"),
@@ -2521,7 +2660,16 @@ def integrate_aladin_lite(object_data):
         ID of the alert
     """
     pdf_ = pd.read_json(object_data)
-    cols = ["i:jd", "i:ra", "i:dec", "i:ranr", "i:decnr", "i:magnr", "i:sigmagnr", "i:fid"]
+    cols = [
+        "i:jd",
+        "i:ra",
+        "i:dec",
+        "i:ranr",
+        "i:decnr",
+        "i:magnr",
+        "i:sigmagnr",
+        "i:fid",
+    ]
     pdf = pdf_.loc[:, cols]
     pdf = pdf.sort_values("i:jd", ascending=False)
 
@@ -2547,7 +2695,9 @@ def integrate_aladin_lite(object_data):
     """
 
     # Unique positions of nearest reference object
-    pdfnr = pdf[["i:ranr", "i:decnr", "i:magnr", "i:sigmagnr", "i:fid"]][np.isfinite(pdf["i:magnr"])].drop_duplicates()
+    pdfnr = pdf[["i:ranr", "i:decnr", "i:magnr", "i:sigmagnr", "i:fid"]][
+        np.isfinite(pdf["i:magnr"])
+    ].drop_duplicates()
 
     if len(pdfnr.index):
         img += """
@@ -2555,14 +2705,16 @@ def integrate_aladin_lite(object_data):
         var catnr_zr = A.catalog({name: 'ZTF Reference nearest, zr', sourceSize: 6, shape: 'plus', color: 'red', onClick: 'showPopup', limit: 1000});
         """
 
-        for i,row in pdfnr.iterrows():
+        for i, row in pdfnr.iterrows():
             img += """
             catnr_{}.addSources([A.source({}, {}, {{ZTF: 'Reference', mag: {:.2f}, err: {:.2f}, filter: '{}'}})]);
             """.format(
-                {1:"zg", 2:"zr", 3:"zi"}.get(row["i:fid"]),
-                row["i:ranr"], row["i:decnr"],
-                row["i:magnr"], row["i:sigmagnr"],
-                {1:"zg", 2:"zr", 3:"zi"}.get(row["i:fid"]),
+                {1: "zg", 2: "zr", 3: "zi"}.get(row["i:fid"]),
+                row["i:ranr"],
+                row["i:decnr"],
+                row["i:magnr"],
+                row["i:sigmagnr"],
+                {1: "zg", 2: "zr", 3: "zi"}.get(row["i:fid"]),
             )
 
         img += """aladin.addCatalog(catnr_zg);"""
@@ -2573,6 +2725,7 @@ def integrate_aladin_lite(object_data):
     img_to_show = [i for i in img.split("\n") if "// " not in i]
 
     return " ".join(img_to_show)
+
 
 def draw_sso_lightcurve(pdf) -> dict:
     """Draw SSO object lightcurve with errorbars, and ephemerides on top
@@ -2626,10 +2779,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         "name": "g band",
         "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
         "hovertemplate": hovertemplate,
-        "marker": {
-            "size": 6,
-            "color": COLORS_ZTF[0],
-            "symbol": "o"},
+        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
     }
     to_plot.append(gobs)
 
@@ -2645,7 +2795,8 @@ def draw_sso_lightcurve(pdf) -> dict:
                 "size": 6,
                 "color": COLORS_ZTF[0],
                 "symbol": "o",
-                "opacity": 0.5},
+                "opacity": 0.5,
+            },
         }
         to_plot.append(gephem)
 
@@ -2664,10 +2815,7 @@ def draw_sso_lightcurve(pdf) -> dict:
         "name": "r band",
         "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
         "hovertemplate": hovertemplate,
-        "marker": {
-            "size": 6,
-            "color": COLORS_ZTF[1],
-            "symbol": "o"},
+        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
     }
     to_plot.append(robs)
 
@@ -2683,7 +2831,8 @@ def draw_sso_lightcurve(pdf) -> dict:
                 "size": 6,
                 "color": COLORS_ZTF[1],
                 "symbol": "o",
-                "opacity": 0.5},
+                "opacity": 0.5,
+            },
         }
         to_plot.append(rephem)
 
@@ -2702,6 +2851,7 @@ def draw_sso_lightcurve(pdf) -> dict:
     card = dmc.Paper(graph)
     return card
 
+
 def draw_sso_residual(pdf) -> dict:
     """Draw SSO residuals (observation - ephemerides)
 
@@ -2714,7 +2864,9 @@ def draw_sso_residual(pdf) -> dict:
 
     if "SDSS:g" not in pdf.columns:
         return dbc.Alert(
-            "No colors available from ephemerides for {}".format(pdf["i:ssnamenr"].values[0]),
+            "No colors available from ephemerides for {}".format(
+                pdf["i:ssnamenr"].values[0]
+            ),
             color="danger",
         )
 
@@ -2762,10 +2914,7 @@ def draw_sso_residual(pdf) -> dict:
             ),
         ),
         "hovertemplate": hovertemplate,
-        "marker": {
-            "size": 6,
-            "color": COLORS_ZTF[0],
-            "symbol": "o"},
+        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
     }
 
     rresiduals = {
@@ -2788,13 +2937,10 @@ def draw_sso_residual(pdf) -> dict:
             ),
         ),
         "hovertemplate": hovertemplate,
-        "marker": {
-            "size": 6,
-            "color": COLORS_ZTF[1],
-            "symbol": "o"},
+        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
     }
 
-    longitude_arr = np.linspace(0,360,num=100)
+    longitude_arr = np.linspace(0, 360, num=100)
     gfit = {
         "x": longitude_arr,
         "y": sine_fit(longitude_arr, *popt1),
@@ -2836,6 +2982,7 @@ def draw_sso_residual(pdf) -> dict:
     )
     card = dmc.Paper(graph)
     return card
+
 
 def draw_sso_astrometry(pdf) -> dict:
     """Draw SSO object astrometry, that is difference position wrt ephemerides
@@ -2882,10 +3029,7 @@ def draw_sso_astrometry(pdf) -> dict:
             ),
         ),
         "hovertemplate": hovertemplate,
-        "marker": {
-            "size": 6,
-            "color": COLORS_ZTF[0],
-            "symbol": "o"},
+        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
     }
 
     diff_r = {
@@ -2900,10 +3044,7 @@ def draw_sso_astrometry(pdf) -> dict:
             ),
         ),
         "hovertemplate": hovertemplate,
-        "marker": {
-            "size": 6,
-            "color": COLORS_ZTF[1],
-            "symbol": "o"},
+        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
     }
 
     figure = {
@@ -2924,6 +3065,7 @@ def draw_sso_astrometry(pdf) -> dict:
     card = dmc.Paper(graph)
     return card
 
+
 @app.callback(
     Output("sso_phasecurve", "children"),
     [
@@ -2933,8 +3075,7 @@ def draw_sso_astrometry(pdf) -> dict:
     State("object-sso", "data"),
 )
 def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
-    """Draw SSO object phase curve
-    """
+    """Draw SSO object phase curve"""
     pdf = pd.read_json(object_sso)
     if pdf.empty:
         msg = """
@@ -3000,8 +3141,8 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
         fitfunc = func_hg1g2_with_spin
         params = ["H", "G1", "G2", "R", "alpha0", "delta0"]
         bounds = (
-            [0, 0, 0, 3e-1, 0, -np.pi/2],
-            [30, 1, 1, 1, 2*np.pi, np.pi/2],
+            [0, 0, 0, 3e-1, 0, -np.pi / 2],
+            [30, 1, 1, 1, 2 * np.pi, np.pi / 2],
         )
         p0 = [15.0, 0.15, 0.15, 0.8, np.pi, 0.0]
         x = [
@@ -3033,7 +3174,9 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             normalise_to_V=False,
         )
         if outdic["fit"] != 0:
-            return dbc.Alert("The fitting procedure could not converge.", color="danger")
+            return dbc.Alert(
+                "The fitting procedure could not converge.", color="danger"
+            )
 
         for i, f in enumerate(filts):
             cond = pdf["i:fid"] == f
@@ -3079,10 +3222,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                         ),
                     ),
                     "hovertemplate": hovertemplate,
-                    "marker": {
-                        "size": 6,
-                        "color": COLORS_ZTF[i],
-                        "symbol": "o"},
+                    "marker": {"size": 6, "color": COLORS_ZTF[i], "symbol": "o"},
                 },
             )
 
@@ -3147,7 +3287,9 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             normalise_to_V=True,
         )
         if outdic["fit"] != 0:
-            return dbc.Alert("The fitting procedure could not converge.", color="danger")
+            return dbc.Alert(
+                "The fitting procedure could not converge.", color="danger"
+            )
 
         popt = []
         for pindex, param in enumerate(params):
@@ -3191,10 +3333,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                     ),
                 ),
                 "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": 6,
-                    "color": COLORS_ZTF[0],
-                    "symbol": "o"},
+                "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
             },
         )
 
@@ -3252,7 +3391,8 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             "type": "text",
             # 'hideable': True,
             "presentation": "markdown",
-        } for c in df_table.columns
+        }
+        for c in df_table.columns
     ]
 
     table = dash_table.DataTable(
@@ -3303,6 +3443,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
         ],
     )
     return card
+
 
 def draw_tracklet_lightcurve(pdf) -> dict:
     """Draw tracklet object lightcurve with errorbars
@@ -3362,19 +3503,20 @@ def draw_tracklet_lightcurve(pdf) -> dict:
                 ),
             ),
             "hovertemplate": hovertemplate,
-            "marker": {
-                "size": 12,
-                "color": color,
-                "symbol": marker},
+            "marker": {"size": 12, "color": color, "symbol": marker},
         }
         return dic
 
     data_ = []
     for filt in np.unique(pdf["i:fid"]):
         if filt == 1:
-            data_.append(generate_plot(1, marker="o", color=COLORS_ZTF[0], showlegend=True))
+            data_.append(
+                generate_plot(1, marker="o", color=COLORS_ZTF[0], showlegend=True)
+            )
         elif filt == 2:
-            data_.append(generate_plot(2, marker="o", color=COLORS_ZTF[1], showlegend=True))
+            data_.append(
+                generate_plot(2, marker="o", color=COLORS_ZTF[1], showlegend=True)
+            )
 
     figure = {
         "data": data_,
@@ -3398,6 +3540,7 @@ def draw_tracklet_lightcurve(pdf) -> dict:
         ],
     )
     return card
+
 
 def draw_tracklet_radec(pdf) -> dict:
     """Draw tracklet object radec
@@ -3435,10 +3578,7 @@ def draw_tracklet_radec(pdf) -> dict:
                     ),
                 ),
                 "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": 12,
-                    "color": "#d62728",
-                    "symbol": "circle-open-dot"},
+                "marker": {"size": 12, "color": "#d62728", "symbol": "circle-open-dot"},
             },
         ],
         "layout": layout_sso_radec,
@@ -3459,6 +3599,7 @@ def draw_tracklet_radec(pdf) -> dict:
         ],
     )
     return card
+
 
 @app.callback(
     Output("alert_table", "children"),
@@ -3489,8 +3630,10 @@ def alert_properties(object_data, clickData):
             "name": c,
             # 'hideable': True,
             "presentation": "input",
-            "type": "text" if c == "Name" else "numeric", "format": dash_table.Format.Format(precision=8),
-        } for c in pdf.columns
+            "type": "text" if c == "Name" else "numeric",
+            "format": dash_table.Format.Format(precision=8),
+        }
+        for c in pdf.columns
     ]
     data = pdf.to_dict("records")
     table = dash_table.DataTable(
@@ -3516,7 +3659,8 @@ def alert_properties(object_data, clickData):
             "overflow-wrap": "anywhere",
             "max-width": "100%",
             "font-family": "sans-serif",
-            "fontSize": 14},
+            "fontSize": 14,
+        },
         style_filter={"backgroundColor": "rgb(238, 238, 238, 1.0)"},
         style_filter_conditional=[
             {
@@ -3543,12 +3687,14 @@ def alert_properties(object_data, clickData):
         ],
         style_header={
             "backgroundColor": "rgb(230, 230, 230, 1.0)",
-            "fontWeight": "bold", "textAlign": "center",
+            "fontWeight": "bold",
+            "textAlign": "center",
         },
         # Align the text in Markdown cells
         css=[dict(selector="p", rule="margin: 0; text-align: left")],
     )
     return table
+
 
 @app.callback(
     Output("heatmap_stat", "children"),
@@ -3556,12 +3702,10 @@ def alert_properties(object_data, clickData):
     prevent_initial_call=True,
 )
 def plot_heatmap(object_stats):
-    """Plot heatmap
-    """
+    """Plot heatmap"""
     pdf = pd.read_json(object_stats)
     pdf["date"] = [
-        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime
-        for x in pdf.index.values
+        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime for x in pdf.index.values
     ]
     years = np.unique(pdf["date"].apply(lambda x: x.year)).tolist()
 
@@ -3590,6 +3734,7 @@ def plot_heatmap(object_stats):
     )
     return card
 
+
 @app.callback(
     Output("evolution", "children"),
     [
@@ -3614,8 +3759,7 @@ def plot_stat_evolution(param_name, switch):
     pdf = pdf.fillna(0)
 
     pdf["date"] = [
-        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime
-        for x in pdf.index.values
+        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime for x in pdf.index.values
     ]
 
     if param_name in dic_names:
@@ -3628,7 +3772,9 @@ def plot_stat_evolution(param_name, switch):
         if param_name != "basic:sci":
             pdf["basic:sci"] = pdf["basic:sci"].astype(int).cumsum()
     if 2 in switch:
-        pdf[param_name] = pdf[param_name].astype(int) / pdf["basic:sci"].astype(int) * 100
+        pdf[param_name] = (
+            pdf[param_name].astype(int) / pdf["basic:sci"].astype(int) * 100
+        )
 
     pdf = pdf.rename(columns={param_name: newcol})
 
@@ -3669,7 +3815,10 @@ def plot_stat_evolution(param_name, switch):
     )
     return card
 
-def display_year(data, year: int = None, month_lines: bool = True, fig=None, row: int = None):
+
+def display_year(
+    data, year: int = None, month_lines: bool = True, fig=None, row: int = None
+):
     """Display one year as heatmap
 
     help from https://community.plotly.com/t/colored-calendar-heatmap-in-dash/10907/17
@@ -3698,16 +3847,32 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
 
     # should be put elsewhere as constants?
     month_names = [
-        "Jan", "Feb", "Mar",
-        "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep",
-        "Oct", "Nov", "Dec",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
     ]
     month_days = [
-        31, 28, 31,
-        30, 31, 30,
-        31, 31, 30,
-        31, 30, 31,
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
     ]
 
     # annees bisextiles
@@ -3728,7 +3893,8 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
     weeknumber_of_dates = [
         int(i.strftime("%V"))
         if not (int(i.strftime("%V")) == 1 and i.month == 12)
-        else 53 for i in dates_in_year
+        else 53
+        for i in dates_in_year
     ]
 
     # Careful, first days of January can belong to week 53...
@@ -3737,8 +3903,7 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
     if weeknumber_of_dates[0] == 53:
         weeknumber_of_dates = [i + 1 for i in weeknumber_of_dates]
         weeknumber_of_dates = [
-            1 if (j.month == 1 and i == 54)
-            else i
+            1 if (j.month == 1 and i == 54) else i
             for i, j in zip(weeknumber_of_dates, dates_in_year)
         ]
 
@@ -3763,8 +3928,8 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
             z=data,
             text=text,
             hoverinfo="text",
-            xgap=3, # this
-            ygap=3, # and this is used to make the grid-like apperance
+            xgap=3,  # this
+            ygap=3,  # and this is used to make the grid-like apperance
             showscale=False,
             colorscale=colorscale,
         ),
@@ -3778,12 +3943,8 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
                 width=1,
             ),
             hoverinfo="skip",
-
         )
-        for date, dow, wkn in zip(
-                dates_in_year,
-                weekdays_in_year,
-                weeknumber_of_dates):
+        for date, dow, wkn in zip(dates_in_year, weekdays_in_year, weeknumber_of_dates):
             if date.day == 1:
                 data += [
                     go.Scatter(
@@ -3810,14 +3971,18 @@ def display_year(data, year: int = None, month_lines: bool = True, fig=None, row
         title="Fink activity chart: number of ZTF alerts processed per night\n",
         height=150,
         yaxis=dict(
-            showline=False, showgrid=False, zeroline=False,
+            showline=False,
+            showgrid=False,
+            zeroline=False,
             tickmode="array",
             ticktext=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
             tickvals=[0, 1, 2, 3, 4, 5, 6],
             autorange="reversed",
         ),
         xaxis=dict(
-            showline=False, showgrid=False, zeroline=False,
+            showline=False,
+            showgrid=False,
+            zeroline=False,
             tickmode="array",
             ticktext=month_names,
             tickvals=month_positions,
@@ -3864,9 +4029,7 @@ def display_years(pdf, years):
     fig = make_subplots(rows=len(years), cols=1, subplot_titles=years)
     for i, year in enumerate(years):
         # select the data for the year
-        data = pdf[
-            pdf["date"].apply(lambda x: x.year == year)
-        ]["basic:sci"].values
+        data = pdf[pdf["date"].apply(lambda x: x.year == year)]["basic:sci"].values
 
         # Display year
         display_year(data, year=year, fig=fig, row=i, month_lines=True)
@@ -3875,9 +4038,19 @@ def display_years(pdf, years):
         fig.update_layout(height=200 * len(years))
     return fig
 
-def make_daily_card(pdf, color, linecolor, title, description, height="12pc", scale="lin", withpercent=True, norm=None):
-    """
-    """
+
+def make_daily_card(
+    pdf,
+    color,
+    linecolor,
+    title,
+    description,
+    height="12pc",
+    scale="lin",
+    withpercent=True,
+    norm=None,
+):
+    """ """
     if withpercent and norm != 0:
         text = [f"{int(i) / norm * 100:.0f}%" for i in pdf.values[0]]
     else:
@@ -3902,7 +4075,8 @@ def make_daily_card(pdf, color, linecolor, title, description, height="12pc", sc
     fig.update_traces(
         marker_color=color,
         marker_line_color=linecolor,
-        marker_line_width=1.5, opacity=0.6,
+        marker_line_width=1.5,
+        opacity=0.6,
     )
 
     if scale == "log":
@@ -3926,7 +4100,12 @@ def make_daily_card(pdf, color, linecolor, title, description, height="12pc", sc
                             title,
                             html.I(
                                 className="fa fa-question-circle fa-1x",
-                                style={"border": "0px black solid", "background": "rgba(255, 255, 255, 0.0)", "color": "#15284F90", "float": "right"},
+                                style={
+                                    "border": "0px black solid",
+                                    "background": "rgba(255, 255, 255, 0.0)",
+                                    "color": "#15284F90",
+                                    "float": "right",
+                                },
                                 id=myid,
                             ),
                         ],
@@ -3945,13 +4124,13 @@ def make_daily_card(pdf, color, linecolor, title, description, height="12pc", sc
     )
     return card
 
+
 @app.callback(
     Output("hist_sci_raw", "children"),
     Input("dropdown_days", "value"),
 )
 def hist_sci_raw(dropdown_days):
-    """Make an histogram
-    """
+    """Make an histogram"""
     pdf = query_and_order_statistics(columns="basic:raw,basic:sci")
 
     if dropdown_days is None or dropdown_days == "":
@@ -3967,22 +4146,31 @@ def hist_sci_raw(dropdown_days):
     """
 
     card = make_daily_card(
-        pdf[["Received", "Processed"]], color="rgb(158,202,225)", linecolor="rgb(8,48,107)", title="Quality cuts", description=description, norm=norm,
+        pdf[["Received", "Processed"]],
+        color="rgb(158,202,225)",
+        linecolor="rgb(8,48,107)",
+        title="Quality cuts",
+        description=description,
+        norm=norm,
     )
 
     return card
+
 
 @app.callback(
     Output("hist_catalogued", "children"),
     Input("dropdown_days", "value"),
 )
 def hist_catalogued(dropdown_days):
-    """Make an histogram
-    """
-    pdf = query_and_order_statistics(columns="class:Solar System MPC,class:simbad_tot,basic:sci")
+    """Make an histogram"""
+    pdf = query_and_order_statistics(
+        columns="class:Solar System MPC,class:simbad_tot,basic:sci"
+    )
     pdf = pdf.fillna(0)
 
-    pdf = pdf.rename(columns={"class:Solar System MPC": "MPC", "class:simbad_tot": "SIMBAD"})
+    pdf = pdf.rename(
+        columns={"class:Solar System MPC": "MPC", "class:simbad_tot": "SIMBAD"}
+    )
 
     if dropdown_days is None or dropdown_days == "":
         dropdown_days = pdf.index[-1]
@@ -3997,18 +4185,23 @@ def hist_catalogued(dropdown_days):
     """
 
     card = make_daily_card(
-        pdf, color="rgb(21, 40, 79)", linecolor="rgb(4, 14, 33)", title="Crossmatch to", description=description, norm=norm,
+        pdf,
+        color="rgb(21, 40, 79)",
+        linecolor="rgb(4, 14, 33)",
+        title="Crossmatch to",
+        description=description,
+        norm=norm,
     )
 
     return card
+
 
 @app.callback(
     Output("hist_classified", "children"),
     Input("dropdown_days", "value"),
 )
 def hist_classified(dropdown_days):
-    """Make an histogram
-    """
+    """Make an histogram"""
     pdf = query_and_order_statistics(columns="basic:sci,class:Unknown")
     pdf = pdf.fillna(0)
 
@@ -4028,19 +4221,26 @@ def hist_classified(dropdown_days):
     """
 
     card = make_daily_card(
-        pdf, color="rgb(245, 98, 46)", linecolor="rgb(135, 86, 69)", title="Classification", description=description, norm=norm,
+        pdf,
+        color="rgb(245, 98, 46)",
+        linecolor="rgb(135, 86, 69)",
+        title="Classification",
+        description=description,
+        norm=norm,
     )
 
     return card
+
 
 @app.callback(
     Output("hist_candidates", "children"),
     Input("dropdown_days", "value"),
 )
 def hist_candidates(dropdown_days):
-    """Make an histogram
-    """
-    pdf = query_and_order_statistics(columns="class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate")
+    """Make an histogram"""
+    pdf = query_and_order_statistics(
+        columns="class:Solar System candidate,class:SN candidate,class:Early SN Ia candidate,class:Kilonova candidate"
+    )
 
     pdf = pdf.rename(
         columns={
@@ -4060,18 +4260,23 @@ def hist_candidates(dropdown_days):
     """
 
     card = make_daily_card(
-        pdf, color="rgb(213, 213, 211)", linecolor="rgb(138, 138, 132)", title="Selected Fink candidates", description=description, withpercent=False,
+        pdf,
+        color="rgb(213, 213, 211)",
+        linecolor="rgb(138, 138, 132)",
+        title="Selected Fink candidates",
+        description=description,
+        withpercent=False,
     )
 
     return card
+
 
 @app.callback(
     Output("daily_classification", "children"),
     Input("dropdown_days", "value"),
 )
 def fields_exposures(dropdown_days):
-    """Make an histogram
-    """
+    """Make an histogram"""
     pdf = query_and_order_statistics(columns="*")
 
     to_drop = [i for i in pdf.columns if i.startswith("basic:")]
@@ -4087,13 +4292,17 @@ def fields_exposures(dropdown_days):
 
     card = make_daily_card(
         pdf,
-        color="rgb(21, 40, 79)", linecolor="rgb(4, 14, 33)",
+        color="rgb(21, 40, 79)",
+        linecolor="rgb(4, 14, 33)",
         title="Individual Fink classifications",
         description=description,
-        height="20pc", scale="log", withpercent=False,
+        height="20pc",
+        scale="log",
+        withpercent=False,
     )
 
     return card
+
 
 @app.callback(
     Output("coordinates", "children"),
@@ -4132,10 +4341,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         "name": "g band",
         "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
         "hovertemplate": hovertemplate,
-        "marker": {
-            "size": 6,
-            "color": COLORS_ZTF[0],
-            "symbol": "o"},
+        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
     }
 
     diff_r = {
@@ -4145,10 +4351,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         "name": "r band",
         "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
         "hovertemplate": hovertemplate,
-        "marker": {
-            "size": 6,
-            "color": COLORS_ZTF[1],
-            "symbol": "o"},
+        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
     }
 
     figure = {
@@ -4177,7 +4380,9 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         config={"displayModeBar": False},
         responsive=True,
     )
-    card1 = dmc.Paper(graph, radius="sm", p="xs", shadow="sm", withBorder=True, className="mb-1")
+    card1 = dmc.Paper(
+        graph, radius="sm", p="xs", shadow="sm", withBorder=True, className="mb-1"
+    )
 
     coord = SkyCoord(mean_ra, mean_dec, unit="deg")
 
@@ -4201,7 +4406,11 @@ def draw_alert_astrometry(object_data, kind) -> dict:
             dmc.Group(
                 [
                     html.Code(coords_deg, id="alert_coords_deg"),
-                    dcc.Clipboard(target_id="alert_coords_deg", title="Copy to clipboard", style={"color": "gray"}),
+                    dcc.Clipboard(
+                        target_id="alert_coords_deg",
+                        title="Copy to clipboard",
+                        style={"color": "gray"},
+                    ),
                 ],
                 position="apart",
                 style={"width": "100%"},
@@ -4209,7 +4418,11 @@ def draw_alert_astrometry(object_data, kind) -> dict:
             dmc.Group(
                 [
                     html.Code(coords_hms, id="alert_coords_hms"),
-                    dcc.Clipboard(target_id="alert_coords_hms", title="Copy to clipboard", style={"color": "gray"}),
+                    dcc.Clipboard(
+                        target_id="alert_coords_hms",
+                        title="Copy to clipboard",
+                        style={"color": "gray"},
+                    ),
                 ],
                 position="apart",
                 style={"width": "100%"},
@@ -4217,7 +4430,11 @@ def draw_alert_astrometry(object_data, kind) -> dict:
             dmc.Group(
                 [
                     html.Code(coords_hms2, id="alert_coords_hms2"),
-                    dcc.Clipboard(target_id="alert_coords_hms2", title="Copy to clipboard", style={"color": "gray"}),
+                    dcc.Clipboard(
+                        target_id="alert_coords_hms2",
+                        title="Copy to clipboard",
+                        style={"color": "gray"},
+                    ),
                 ],
                 position="apart",
                 style={"width": "100%"},

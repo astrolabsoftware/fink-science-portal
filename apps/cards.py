@@ -73,6 +73,7 @@ $$
 Note that we display the flux in milli-Jansky.
 """
 
+
 def card_lightcurve_summary():
     """Add a card containing the lightcurve
 
@@ -98,7 +99,14 @@ def card_lightcurve_summary():
                 dbc.Col(
                     dmc.ChipGroup(
                         [
-                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                            dmc.Chip(
+                                x,
+                                value=x,
+                                variant="outline",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                            )
                             for x in all_radio_options.keys()
                         ],
                         id="switch-mag-flux",
@@ -125,12 +133,14 @@ def card_lightcurve_summary():
                         id="lightcurve_request_release",
                         variant="outline",
                         color="gray",
-                        radius="xl", size="xs",
+                        radius="xl",
+                        size="xs",
                         compact=False,
                     ),
                     help_popover(
                         dcc.Markdown(
-                            lc_help, mathjax=True,
+                            lc_help,
+                            mathjax=True,
                         ),
                         "help_lc",
                         trigger=dmc.ActionIcon(
@@ -143,15 +153,16 @@ def card_lightcurve_summary():
                         ),
                     ),
                 ],
-                position="center", align="center",
+                position="center",
+                align="center",
             ),
         ],
     )
     return card
 
+
 def card_explanation_xmatch():
-    """Explain how xmatch works
-    """
+    """Explain how xmatch works"""
     msg = """
     The Fink Xmatch service allows you to cross-match your catalog data with
     all Fink alert data processed so far (more than 60 million alerts, from ZTF). Just drag and drop
@@ -184,6 +195,7 @@ def card_explanation_xmatch():
     )
     return card
 
+
 def create_external_conesearches(ra0, dec0):
     """Create two rows of buttons to trigger external conesearch
 
@@ -198,26 +210,44 @@ def create_external_conesearches(ra0, dec0):
     buttons = [
         dbc.Row(
             [
-                create_button_for_external_conesearch(kind="tns", ra0=ra0, dec0=dec0, radius=5, width=width),
-                create_button_for_external_conesearch(kind="simbad", ra0=ra0, dec0=dec0, radius=0.08, width=width),
-                create_button_for_external_conesearch(kind="snad", ra0=ra0, dec0=dec0, radius=5, width=width),
-                create_button_for_external_conesearch(kind="datacentral", ra0=ra0, dec0=dec0, radius=2.0, width=width),
-            ], justify="around",
+                create_button_for_external_conesearch(
+                    kind="tns", ra0=ra0, dec0=dec0, radius=5, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="simbad", ra0=ra0, dec0=dec0, radius=0.08, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="snad", ra0=ra0, dec0=dec0, radius=5, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="datacentral", ra0=ra0, dec0=dec0, radius=2.0, width=width
+                ),
+            ],
+            justify="around",
         ),
         dbc.Row(
             [
-                create_button_for_external_conesearch(kind="ned", ra0=ra0, dec0=dec0, radius=1.0, width=width),
-                create_button_for_external_conesearch(kind="sdss", ra0=ra0, dec0=dec0, width=width),
-                create_button_for_external_conesearch(kind="asas-sn", ra0=ra0, dec0=dec0, radius=0.5, width=width),
-                create_button_for_external_conesearch(kind="vsx", ra0=ra0, dec0=dec0, radius=0.1, width=width),
-            ], justify="around",
+                create_button_for_external_conesearch(
+                    kind="ned", ra0=ra0, dec0=dec0, radius=1.0, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="sdss", ra0=ra0, dec0=dec0, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="asas-sn", ra0=ra0, dec0=dec0, radius=0.5, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="vsx", ra0=ra0, dec0=dec0, radius=0.1, width=width
+                ),
+            ],
+            justify="around",
         ),
     ]
     return buttons
 
+
 def create_external_links_brokers(objectId):
-    """
-    """
+    """ """
     buttons = dbc.Row(
         [
             dbc.Col(
@@ -256,9 +286,11 @@ def create_external_links_brokers(objectId):
                     href=f"https://lasair-ztf.lsst.ac.uk/objects/{objectId}",
                 ),
             ),
-        ], justify="around",
+        ],
+        justify="around",
     )
     return buttons
+
 
 def card_neighbourhood(pdf):
     distnr = get_first_value(pdf, "i:distnr")
@@ -287,10 +319,15 @@ def card_neighbourhood(pdf):
                 className="markdown markdown-pre ps-2 pe-2",
             ),
         ],
-        radius="sm", p="xs", shadow="sm", withBorder=True, style={"width": "100%"},
+        radius="sm",
+        p="xs",
+        shadow="sm",
+        withBorder=True,
+        style={"width": "100%"},
     )
 
     return card
+
 
 def make_modal_stamps(pdf):
     return [
@@ -316,7 +353,8 @@ def make_modal_stamps(pdf):
                             id="date_modal_select",
                             value=pdf["v:lastdate"].values[0],
                             data=[
-                                {"value": i, "label": i} for i in pdf["v:lastdate"].values
+                                {"value": i, "label": i}
+                                for i in pdf["v:lastdate"].values
                             ],
                             zIndex=10000000,
                         ),
@@ -334,15 +372,17 @@ def make_modal_stamps(pdf):
                     close_button=True,
                     className="p-2 pe-4",
                 ),
-                loading(dbc.ModalBody(
-                    [
-                        dbc.Row(
-                            id="stamps_modal_content",
-                            justify="around",
-                            className="g-0 mx-auto",
-                        ),
-                    ],
-                )),
+                loading(
+                    dbc.ModalBody(
+                        [
+                            dbc.Row(
+                                id="stamps_modal_content",
+                                justify="around",
+                                className="g-0 mx-auto",
+                            ),
+                        ],
+                    )
+                ),
             ],
             id="stamps_modal",
             scrollable=True,
@@ -362,6 +402,7 @@ def make_modal_stamps(pdf):
             ),
         ),
     ]
+
 
 # Toggle stamps modal
 clientside_callback(
@@ -411,9 +452,9 @@ clientside_callback(
     prevent_initial_call=True,
 )
 
+
 def card_id(pdf):
-    """Add a card containing basic alert data
-    """
+    """Add a card containing basic alert data"""
     # pdf = pd.read_json(object_data)
     objectid = pdf["i:objectId"].values[0]
     ra0 = pdf["i:ra"].values[0]
@@ -450,10 +491,16 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.Tab("Curl", value="Curl"),
                 ],
             ),
-            dmc.TabsPanel(dmc.Prism(children=python_download, language="python"), value="Python"),
-            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl"),
+            dmc.TabsPanel(
+                dmc.Prism(children=python_download, language="python"), value="Python"
+            ),
+            dmc.TabsPanel(
+                children=dmc.Prism(children=curl_download, language="bash"),
+                value="Curl",
+            ),
         ],
-        color="red", value="Python",
+        color="red",
+        value="Python",
     )
 
     card = dmc.AccordionMultiple(
@@ -476,11 +523,22 @@ curl -H "Content-Type: application/json" -X POST \\
                                 dmc.Paper(
                                     [
                                         dbc.Row(
-                                            dmc.Skeleton(style={"width": "100%", "aspect-ratio": "3/1"}),
-                                            id="stamps", justify="around", className="g-0",
+                                            dmc.Skeleton(
+                                                style={
+                                                    "width": "100%",
+                                                    "aspect-ratio": "3/1",
+                                                }
+                                            ),
+                                            id="stamps",
+                                            justify="around",
+                                            className="g-0",
                                         ),
                                     ],
-                                    radius="sm", p="xs", shadow="sm", withBorder=True, style={"padding":"5px"},
+                                    radius="sm",
+                                    p="xs",
+                                    shadow="sm",
+                                    withBorder=True,
+                                    style={"padding": "5px"},
                                 ),
                             ),
                             dmc.Space(h=4),
@@ -527,7 +585,14 @@ curl -H "Content-Type: application/json" -X POST \\
                                 dbc.Col(
                                     dmc.ChipGroup(
                                         [
-                                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                                            dmc.Chip(
+                                                x,
+                                                value=x,
+                                                variant="outline",
+                                                color="orange",
+                                                radius="xl",
+                                                size="sm",
+                                            )
                                             for x in ["EQU", "GAL"]
                                         ],
                                         id="coordinates_chips",
@@ -566,7 +631,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             variant="outline",
                                             color="indigo",
                                             compact=True,
-                                            leftIcon=[DashIconify(icon="mdi:code-json")],
+                                            leftIcon=[
+                                                DashIconify(icon="mdi:code-json")
+                                            ],
                                         ),
                                         dmc.Button(
                                             "CSV",
@@ -574,7 +641,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             variant="outline",
                                             color="indigo",
                                             compact=True,
-                                            leftIcon=[DashIconify(icon="mdi:file-csv-outline")],
+                                            leftIcon=[
+                                                DashIconify(icon="mdi:file-csv-outline")
+                                            ],
                                         ),
                                         dmc.Button(
                                             "VOTable",
@@ -586,21 +655,35 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                         help_popover(
                                             [
-                                                dcc.Markdown("You may also download the data programmatically."),
+                                                dcc.Markdown(
+                                                    "You may also download the data programmatically."
+                                                ),
                                                 download_tab,
-                                                dcc.Markdown(f"See {APIURL}/api for more options"),
+                                                dcc.Markdown(
+                                                    f"See {APIURL}/api for more options"
+                                                ),
                                             ],
                                             "help_download",
                                             trigger=dmc.ActionIcon(
-                                                    DashIconify(icon="mdi:help"),
-                                                    id="help_download",
-                                                    variant="outline",
-                                                    color="indigo",
+                                                DashIconify(icon="mdi:help"),
+                                                id="help_download",
+                                                variant="outline",
+                                                color="indigo",
                                             ),
                                         ),
-                                        html.Div(objectid, id="download_objectid", className="d-none"),
-                                        html.Div(APIURL, id="download_apiurl", className="d-none"),
-                                    ], position="center", spacing="xs",
+                                        html.Div(
+                                            objectid,
+                                            id="download_objectid",
+                                            className="d-none",
+                                        ),
+                                        html.Div(
+                                            APIURL,
+                                            id="download_apiurl",
+                                            className="d-none",
+                                        ),
+                                    ],
+                                    position="center",
+                                    spacing="xs",
                                 ),
                             ],
                         ),
@@ -669,7 +752,10 @@ curl -H "Content-Type: application/json" -X POST \\
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Center(html.Div(id="qrcode"), style={"width": "100%", "height": "200"}),
+                            dmc.Center(
+                                html.Div(id="qrcode"),
+                                style={"width": "100%", "height": "200"},
+                            ),
                         ],
                     ),
                 ],
@@ -677,10 +763,11 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
         ],
         value=["stamps"],
-        styles={"content":{"padding":"5px"}},
+        styles={"content": {"padding": "5px"}},
     )
 
     return card
+
 
 # Downloads handling. Requires CORS to be enabled on the server.
 # TODO: We are mostly using it like this until GET requests properly initiate
@@ -735,6 +822,7 @@ app.clientside_callback(
     ],
 )
 
+
 def make_badge(text="", color=None, outline=None, tooltip=None, **kwargs):
     style = kwargs.pop("style", {})
     if outline is not None:
@@ -758,6 +846,7 @@ def make_badge(text="", color=None, outline=None, tooltip=None, **kwargs):
         )
 
     return badge
+
 
 def generate_tns_badge(oid):
     """Generate TNS badge
@@ -798,9 +887,9 @@ def generate_tns_badge(oid):
 
     return badge
 
+
 def generate_generic_badges(row, variant="dot"):
-    """Operates on first row of a DataFrame, or directly on Series from pdf.iterrow()
-    """
+    """Operates on first row of a DataFrame, or directly on Series from pdf.iterrow()"""
     if isinstance(row, pd.DataFrame):
         # Get first row from DataFrame
         row = row.loc[0]
@@ -864,7 +953,9 @@ def generate_generic_badges(row, variant="dot"):
                 outline="red" if is_source else None,
                 tooltip="""There is a source behind in ZTF reference image.
                 You might want to check the DC magnitude plot, and get DR photometry to see its long-term behaviour
-                """ if is_source else "Distance to closest object in ZTF reference image",
+                """
+                if is_source
+                else "Distance to closest object in ZTF reference image",
             ),
         )
 
@@ -891,6 +982,7 @@ def generate_generic_badges(row, variant="dot"):
         )
 
     return badges
+
 
 def generate_metadata_name(oid):
     """Generate name from metadata
@@ -919,6 +1011,7 @@ def generate_metadata_name(oid):
 
     return name
 
+
 @app.callback(
     Output("card_id_left", "children"),
     [
@@ -929,8 +1022,7 @@ def generate_metadata_name(oid):
     prevent_initial_call=True,
 )
 def card_id1(object_data, object_uppervalid, object_upper):
-    """Add a card containing basic alert data
-    """
+    """Add a card containing basic alert data"""
     pdf = pd.read_json(object_data)
 
     objectid = pdf["i:objectId"].values[0]
@@ -980,21 +1072,35 @@ def card_id1(object_data, object_uppervalid, object_upper):
     if meta_name is not None:
         extra_div = dbc.Row(
             [
-                dbc.Col(dmc.Title(meta_name, order=4, style={"color": "#15284F"}), width=10),
-            ], justify="start", align="center",
+                dbc.Col(
+                    dmc.Title(meta_name, order=4, style={"color": "#15284F"}), width=10
+                ),
+            ],
+            justify="start",
+            align="center",
         )
     else:
         extra_div = html.Div()
 
-    coords = SkyCoord(get_first_value(pdf, "i:ra"), get_first_value(pdf, "i:dec"), unit="deg")
+    coords = SkyCoord(
+        get_first_value(pdf, "i:ra"), get_first_value(pdf, "i:dec"), unit="deg"
+    )
 
     card = dmc.Paper(
         [
             dbc.Row(
                 [
-                    dbc.Col(dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size="lg"), width=2),
-                    dbc.Col(dmc.Title(objectid, order=1, style={"color": "#15284F"}), width=10),
-                ], justify="start", align="center",
+                    dbc.Col(
+                        dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size="lg"),
+                        width=2,
+                    ),
+                    dbc.Col(
+                        dmc.Title(objectid, order=1, style={"color": "#15284F"}),
+                        width=10,
+                    ),
+                ],
+                justify="start",
+                align="center",
             ),
             extra_div,
             html.Div(badges),
@@ -1009,24 +1115,33 @@ def card_id1(object_data, object_uppervalid, object_upper):
                     discovery_date[:19],
                     date_end[:19],
                     jds[0] - jds[-1],
-                    get_first_value(pdf, "i:jdendhist") - get_first_value(pdf, "i:jdstarthist"),
-                    ndet, nupper_valid, nupper,
+                    get_first_value(pdf, "i:jdendhist")
+                    - get_first_value(pdf, "i:jdstarthist"),
+                    ndet,
+                    nupper_valid,
+                    nupper,
                     coords.ra.to_string(pad=True, unit="hour", precision=2, sep=" "),
-                    coords.dec.to_string(pad=True, unit="deg", alwayssign=True, precision=1, sep=" "),
+                    coords.dec.to_string(
+                        pad=True, unit="deg", alwayssign=True, precision=1, sep=" "
+                    ),
                 ),
                 className="markdown markdown-pre ps-2 pe-2 mt-2",
             ),
-        ], radius="xl", p="md", shadow="xl", withBorder=True,
+        ],
+        radius="xl",
+        p="md",
+        shadow="xl",
+        withBorder=True,
     )
     return card
 
+
 def card_search_result(row, i):
-    """Display single item for search results
-    """
+    """Display single item for search results"""
     badges = []
 
     name = row["i:objectId"]
-    if name[0] == "[": # Markdownified
+    if name[0] == "[":  # Markdownified
         name = row["i:objectId"].split("[")[1].split("]")[0]
 
     # Handle different variants for key names from different API entry points
@@ -1090,7 +1205,9 @@ def card_search_result(row, i):
         Time(jdstart, format="jd").iso[:19],
         lastdate[:19],
         coords.ra.to_string(pad=True, unit="hour", precision=2, sep=" "),
-        coords.dec.to_string(pad=True, unit="deg", alwayssign=True, precision=1, sep=" "),
+        coords.dec.to_string(
+            pad=True, unit="deg", alwayssign=True, precision=1, sep=" "
+        ),
         coords.galactic.to_string(style="decimal"),
     )
 
@@ -1101,7 +1218,7 @@ def card_search_result(row, i):
         text += "Anomaly score: `{:.2f}`\n".format(row["d:anomaly_score"])
 
     if "v:separation_degree" in row:
-        corner_str = "{:.1f}''".format(row["v:separation_degree"]*3600)
+        corner_str = "{:.1f}''".format(row["v:separation_degree"] * 3600)
     else:
         corner_str = f"#{i!s}"
 
@@ -1132,7 +1249,11 @@ def card_search_result(row, i):
                                         "height": "12pc",
                                     },
                                 ),
-                                id={"type": "search_results_cutouts", "objectId": name, "index": i},
+                                id={
+                                    "type": "search_results_cutouts",
+                                    "objectId": name,
+                                    "index": i,
+                                },
                                 width="auto",
                             ),
                             dbc.Col(
@@ -1149,8 +1270,13 @@ def card_search_result(row, i):
                                         "height": "15pc",
                                     },
                                 ),
-                                id={"type": "search_results_lightcurve", "objectId": name, "index": i},
-                                xs=12, md=True,
+                                id={
+                                    "type": "search_results_lightcurve",
+                                    "objectId": name,
+                                    "index": i,
+                                },
+                                xs=12,
+                                md=True,
                             ),
                         ],
                         justify="start",

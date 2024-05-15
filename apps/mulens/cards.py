@@ -29,8 +29,7 @@ from apps.cards import card_neighbourhood
     prevent_initial_call=True,
 )
 def card_mulens(object_data):
-    """Add a card containing button to fit for microlensing events
-    """
+    """Add a card containing button to fit for microlensing events"""
     pdf = pd.read_json(object_data)
 
     ra0 = pdf["i:ra"].values[0]
@@ -62,14 +61,14 @@ def card_mulens(object_data):
         ],
         # Show it open by default
         value="neighbourhood",
-        styles={"content":{"padding":"5px"}},
+        styles={"content": {"padding": "5px"}},
     )
 
     return card1
 
+
 def card_explanation_mulens():
-    """Explain what is used to fit for microlensing events
-    """
+    """Explain what is used to fit for microlensing events"""
     msg = """
     Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed alongside with the plot.
 

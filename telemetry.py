@@ -1,4 +1,4 @@
-""" callback_telemetry.py -- Extend Dash to include logging of callbacks w/ context """
+"""callback_telemetry.py -- Extend Dash to include logging of callbacks w/ context"""
 
 import inspect
 import time
@@ -6,14 +6,15 @@ from functools import wraps
 
 from dash import Dash, callback_context
 
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
 LOG_CALLBACK_TELEMETRY = True
 
 # Borrowed from https://community.plotly.com/t/log-every-dash-callback-including-context-for-debug/74828/5
 
+
 def callback_telemetry(func):
-    """wrapper to provide telemetry for dash callbacks"""
+    """Wrapper to provide telemetry for dash callbacks"""
 
     @wraps(func)
     def timeit_wrapper(*args, **kwargs):
@@ -22,7 +23,7 @@ def callback_telemetry(func):
             return f"{module.__name__.split('.')[-1]}:{func_ref.__name__}"
 
         def flatten(arg):
-            if not isinstance(arg, list): # if not list
+            if not isinstance(arg, list):  # if not list
                 return [arg]
             return [x for sub in arg for x in flatten(sub)]
 
@@ -52,7 +53,9 @@ def callback_telemetry(func):
             f"___input:|{inputs_str}|\n___state:|{state_str}|\n__output:|{result_str}|"
         )
 
-        print(f"{Fore.BLUE}[TELEMETRY]{Style.RESET_ALL} {Style.BRIGHT}{Fore.RED}{get_callback_ref(func)}{Style.RESET_ALL}, {total_time:.4f}s\n{context}")
+        print(
+            f"{Fore.BLUE}[TELEMETRY]{Style.RESET_ALL} {Style.BRIGHT}{Fore.RED}{get_callback_ref(func)}{Style.RESET_ALL}, {total_time:.4f}s\n{context}"
+        )
 
         return result
 

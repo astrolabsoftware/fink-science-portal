@@ -23,11 +23,11 @@ from dash_iconify import DashIconify
 from app import APIURL, app
 from apps.utils import convert_mpc_type, help_popover, queryMPC
 
-AU_TO_M=149597870700
+AU_TO_M = 149597870700
+
 
 def get_sso_data(ssnamenr):
-    """Extract SSO data from various providers (SSODNET, MPC)
-    """
+    """Extract SSO data from various providers (SSODNET, MPC)"""
     data = rocks.Rock(
         ssnamenr,
         skip_id_check=False,
@@ -37,7 +37,7 @@ def get_sso_data(ssnamenr):
             kind = "comet"
             ssnamenr = ssnamenr[:-2] + " " + ssnamenr[-2:]
             data = queryMPC(ssnamenr, kind=kind)
-        elif (ssnamenr[-1] == "P"):
+        elif ssnamenr[-1] == "P":
             kind = "comet"
             data = queryMPC(ssnamenr, kind=kind)
         else:
@@ -50,9 +50,9 @@ def get_sso_data(ssnamenr):
     else:
         return data, None
 
+
 def card_sso_left(ssnamenr):
-    """
-    """
+    """ """
     ssnamenr_ = str(ssnamenr)
 
     python_download = f"""import requests
@@ -86,9 +86,17 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.Tab("Curl", value="Curl"),
                 ],
             ),
-            dmc.TabsPanel(children=dmc.Prism(children=python_download, language="python"), value="Python"),
-            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl"),
-        ], color="red", value="Python",
+            dmc.TabsPanel(
+                children=dmc.Prism(children=python_download, language="python"),
+                value="Python",
+            ),
+            dmc.TabsPanel(
+                children=dmc.Prism(children=curl_download, language="bash"),
+                value="Curl",
+            ),
+        ],
+        color="red",
+        value="Python",
     )
 
     if ssnamenr_ != "null":
@@ -124,7 +132,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             variant="outline",
                                             color="indigo",
                                             compact=True,
-                                            leftIcon=[DashIconify(icon="mdi:code-json")],
+                                            leftIcon=[
+                                                DashIconify(icon="mdi:code-json")
+                                            ],
                                         ),
                                         dmc.Button(
                                             "CSV",
@@ -132,7 +142,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             variant="outline",
                                             color="indigo",
                                             compact=True,
-                                            leftIcon=[DashIconify(icon="mdi:file-csv-outline")],
+                                            leftIcon=[
+                                                DashIconify(icon="mdi:file-csv-outline")
+                                            ],
                                         ),
                                         dmc.Button(
                                             "VOTable",
@@ -144,26 +156,39 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                         help_popover(
                                             [
-                                                dcc.Markdown("You may also download the data programmatically."),
+                                                dcc.Markdown(
+                                                    "You may also download the data programmatically."
+                                                ),
                                                 download_tab,
-                                                dcc.Markdown(f"See {APIURL}/api for more options"),
+                                                dcc.Markdown(
+                                                    f"See {APIURL}/api for more options"
+                                                ),
                                             ],
                                             "help_download_sso",
                                             trigger=dmc.ActionIcon(
-                                                    DashIconify(icon="mdi:help"),
-                                                    id="help_download_sso",
-                                                    variant="outline",
-                                                    color="indigo",
+                                                DashIconify(icon="mdi:help"),
+                                                id="help_download_sso",
+                                                variant="outline",
+                                                color="indigo",
                                             ),
                                         ),
                                         # FIXME: is it correct way to get ssnamenr field?..
-                                        html.Div(str(data.number), id="download_sso_ssnamenr", className="d-none"),
-                                        html.Div(APIURL, id="download_sso_apiurl", className="d-none"),
-                                    ], position="center", spacing="xs",
+                                        html.Div(
+                                            str(data.number),
+                                            id="download_sso_ssnamenr",
+                                            className="d-none",
+                                        ),
+                                        html.Div(
+                                            APIURL,
+                                            id="download_sso_apiurl",
+                                            className="d-none",
+                                        ),
+                                    ],
+                                    position="center",
+                                    spacing="xs",
                                 ),
                             ],
                         ),
-
                     ),
                 ],
                 value="api",
@@ -188,35 +213,50 @@ curl -H "Content-Type: application/json" -X POST \\
                                         dbc.Col(
                                             dbc.Button(
                                                 className="btn btn-default zoom btn-circle btn-lg",
-                                                style={"background-image": "url(/assets/buttons/imcce.png)", "background-size": "cover"},
+                                                style={
+                                                    "background-image": "url(/assets/buttons/imcce.png)",
+                                                    "background-size": "cover",
+                                                },
                                                 color="light",
                                                 outline=True,
                                                 id="IMCCE",
                                                 target="_blank",
                                                 href=f"https://ssp.imcce.fr/forms/ssocard/{data.id_}",
-                                            ), width=4),
+                                            ),
+                                            width=4,
+                                        ),
                                         dbc.Col(
                                             dbc.Button(
                                                 className="btn btn-default zoom btn-circle btn-lg",
-                                                style={"background-image": "url(/assets/buttons/mpc.jpg)", "background-size": "cover"},
+                                                style={
+                                                    "background-image": "url(/assets/buttons/mpc.jpg)",
+                                                    "background-size": "cover",
+                                                },
                                                 color="dark",
                                                 outline=True,
                                                 id="MPC",
                                                 target="_blank",
                                                 href=f"https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={ssnamenr_}",
-                                            ), width=4),
+                                            ),
+                                            width=4,
+                                        ),
                                         dbc.Col(
                                             dbc.Button(
                                                 className="btn btn-default zoom btn-circle btn-lg",
-                                                style={"background-image": "url(/assets/buttons/nasa.png)", "background-size": "cover"},
+                                                style={
+                                                    "background-image": "url(/assets/buttons/nasa.png)",
+                                                    "background-size": "cover",
+                                                },
                                                 color="dark",
                                                 outline=True,
                                                 id="JPL",
                                                 target="_blank",
                                                 href=f"https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={ssnamenr_}",
-                                            ), width=4,
+                                            ),
+                                            width=4,
                                         ),
-                                    ], justify="around",
+                                    ],
+                                    justify="around",
                                 ),
                                 align="center",
                             ),
@@ -246,7 +286,11 @@ curl -H "Content-Type: application/json" -X POST \\
                             [
                                 dmc.Paper(
                                     card_properties,
-                                    radius="sm", p="xs", shadow="sm", withBorder=True, style={"width": "100%"},
+                                    radius="sm",
+                                    p="xs",
+                                    shadow="sm",
+                                    withBorder=True,
+                                    style={"width": "100%"},
                                 ),
                             ],
                         ),
@@ -254,13 +298,15 @@ curl -H "Content-Type: application/json" -X POST \\
                     value="sso",
                 ),
                 *extra_items,
-            ], value="sso",
-            styles={"content":{"padding":"5px"}},
+            ],
+            value="sso",
+            styles={"content": {"padding": "5px"}},
         )
     else:
         card = html.Div()
 
     return card
+
 
 # Downloads handling. Requires CORS to be enabled on the server.
 # TODO: We are mostly using it like this until GET requests properly initiate
@@ -315,9 +361,9 @@ app.clientside_callback(
     ],
 )
 
+
 def card_sso_mpc_params(data, ssnamenr, kind):
-    """MPC parameters
-    """
+    """MPC parameters"""
     if data is None:
         card = html.Div(
             [
@@ -394,46 +440,66 @@ def card_sso_mpc_params(data, ssnamenr, kind):
     )
     return card
 
+
 def card_sso_rocks_params(data):
-    """IMCCE parameters from Rocks
-    """
+    """IMCCE parameters from Rocks"""
     if data is None:
         card = html.Div(
             [
                 html.H5("Name: None", className="card-title"),
-                "Class: None", html.Br(),
-                "Parent body: None", html.Br(),
-                "Dynamical system: None", html.Br(),
+                "Class: None",
+                html.Br(),
+                "Parent body: None",
+                html.Br(),
+                "Dynamical system: None",
+                html.Br(),
                 dmc.Divider(
                     label="Physical parameters",
                     variant="solid",
                     style={"marginTop": 20, "marginBottom": 20},
                 ),
-                "Taxonomical class: None", html.Br(),
-                "Absolute magnitude (mag): None", html.Br(),
-                "Diameter (km): None", html.Br(),
+                "Taxonomical class: None",
+                html.Br(),
+                "Absolute magnitude (mag): None",
+                html.Br(),
+                "Diameter (km): None",
+                html.Br(),
                 dmc.Divider(
                     label="Dynamical parameters",
                     variant="solid",
                     style={"marginTop": 20, "marginBottom": 20},
                 ),
-                "a (AU): None", html.Br(),
-                "e: None", html.Br(),
-                "i (deg): None", html.Br(),
-                "Omega (deg): None", html.Br(),
-                "argPeri (deg): None", html.Br(),
-                "Mean motion (deg/day): None", html.Br(),
-                "Orbital period (day): None", html.Br(),
-                "Tisserand parameter: None", html.Br(),
+                "a (AU): None",
+                html.Br(),
+                "e: None",
+                html.Br(),
+                "i (deg): None",
+                html.Br(),
+                "Omega (deg): None",
+                html.Br(),
+                "argPeri (deg): None",
+                html.Br(),
+                "Mean motion (deg/day): None",
+                html.Br(),
+                "Orbital period (day): None",
+                html.Br(),
+                "Tisserand parameter: None",
+                html.Br(),
             ],
         )
         return card
 
     # Convert km in AU
     if data.parameters.dynamical.orbital_elements.semi_major_axis.unit == "km":
-        semi_major_axis = data.parameters.dynamical.orbital_elements.semi_major_axis.value / AU_TO_M * 1000
+        semi_major_axis = (
+            data.parameters.dynamical.orbital_elements.semi_major_axis.value
+            / AU_TO_M
+            * 1000
+        )
     else:
-        semi_major_axis = data.parameters.dynamical.orbital_elements.semi_major_axis.value
+        semi_major_axis = (
+            data.parameters.dynamical.orbital_elements.semi_major_axis.value
+        )
 
     text = rf"""
     ##### Name: `{data.name}` / `{data.number}`
@@ -458,7 +524,7 @@ def card_sso_rocks_params(data):
     """
 
     if data.parameters.physical.spin is not None:
-        text = textwrap.dedent(text) # Remove indentation
+        text = textwrap.dedent(text)  # Remove indentation
         text += "\n"
         text += "###### Spin parameters\n"
 

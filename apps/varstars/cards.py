@@ -24,8 +24,7 @@ from apps.utils import create_button_for_external_conesearch
 
 
 def card_explanation_variable():
-    """Explain what is used to fit for variable stars
-    """
+    """Explain what is used to fit for variable stars"""
     msg = """
     Fill the fields on the right (or leave default), and press `Fit data` to
     perform a time series analysis of the data:
@@ -59,10 +58,12 @@ def card_explanation_variable():
                 ],
                 value="info",
             ),
-        ], value="info",
+        ],
+        value="info",
         id="card_explanation_variable",
     )
     return card
+
 
 @app.callback(
     Output("card_variable_button", "children"),
@@ -72,8 +73,7 @@ def card_explanation_variable():
     prevent_initial_call=True,
 )
 def card_variable_button(object_data):
-    """Add a card containing button to fit for variable stars
-    """
+    """Add a card containing button to fit for variable stars"""
     pdf = pd.read_json(object_data)
 
     ra0 = pdf["i:ra"].values[0]
@@ -100,10 +100,20 @@ def card_variable_button(object_data):
                                 card_neighbourhood(pdf),
                                 dbc.Row(
                                     [
-                                        create_button_for_external_conesearch(kind="asas-sn-variable", ra0=ra0, dec0=dec0, radius=0.5),
-                                        create_button_for_external_conesearch(kind="snad", ra0=ra0, dec0=dec0, radius=5),
-                                        create_button_for_external_conesearch(kind="vsx", ra0=ra0, dec0=dec0, radius=0.1),
-                                    ], justify="around",
+                                        create_button_for_external_conesearch(
+                                            kind="asas-sn-variable",
+                                            ra0=ra0,
+                                            dec0=dec0,
+                                            radius=0.5,
+                                        ),
+                                        create_button_for_external_conesearch(
+                                            kind="snad", ra0=ra0, dec0=dec0, radius=5
+                                        ),
+                                        create_button_for_external_conesearch(
+                                            kind="vsx", ra0=ra0, dec0=dec0, radius=0.1
+                                        ),
+                                    ],
+                                    justify="around",
                                     className="mb-2",
                                 ),
                             ],
@@ -114,7 +124,7 @@ def card_variable_button(object_data):
                 value="external",
             ),
         ],
-        styles={"content":{"padding":"5px"}},
+        styles={"content": {"padding": "5px"}},
     )
 
     return card1

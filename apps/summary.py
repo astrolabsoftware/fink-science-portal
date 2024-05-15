@@ -45,59 +45,68 @@ from apps.varstars.cards import card_explanation_variable
 
 dcc.Location(id="url", refresh=False)
 
+
 def tab1_content(pdf):
-    """Summary tab
-    """
-    tab1_content_ = html.Div([
-        dmc.Space(h=10),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Graph(
-                        style={
-                            "width": "100%",
-                            "height": "4pc",
-                        },
-                        config={"displayModeBar": False},
-                        id="classbar",
+    """Summary tab"""
+    tab1_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dcc.Graph(
+                            style={
+                                "width": "100%",
+                                "height": "4pc",
+                            },
+                            config={"displayModeBar": False},
+                            id="classbar",
+                        ),
+                        width=12,
                     ),
-                    width=12,
-                ),
-            ], justify="around",
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    card_lightcurve_summary(),
-                    md=8,
-                ),
-                dbc.Col(
-                    card_id(pdf),
-                    md=4,
-                ),
-            ], className="g-1",
-        ),
-    ])
+                ],
+                justify="around",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        card_lightcurve_summary(),
+                        md=8,
+                    ),
+                    dbc.Col(
+                        card_id(pdf),
+                        md=4,
+                    ),
+                ],
+                className="g-1",
+            ),
+        ]
+    )
 
     out = tab1_content_
 
     return out
 
+
 def tab2_content():
-    """Supernova tab
-    """
-    tab2_content_ = html.Div([
-        dmc.Space(h=10),
-        dbc.Row([
-            dbc.Col(card_sn_scores(), md=8),
-            dbc.Col(id="card_sn_properties", md=4),
-        ], className="g-1"),
-    ])
+    """Supernova tab"""
+    tab2_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
+                [
+                    dbc.Col(card_sn_scores(), md=8),
+                    dbc.Col(id="card_sn_properties", md=4),
+                ],
+                className="g-1",
+            ),
+        ]
+    )
     return tab2_content_
 
+
 def tab3_content():
-    """Variable stars tab
-    """
+    """Variable stars tab"""
     nterms_base = dmc.Container(
         [
             dbc.Label("Number of base terms"),
@@ -107,7 +116,8 @@ def tab3_content():
                 type="number",
                 id="nterms_base",
                 debounce=True,
-                min=0, max=4,
+                min=0,
+                max=4,
             ),
             dbc.Label("Number of band terms"),
             dbc.Input(
@@ -116,7 +126,8 @@ def tab3_content():
                 type="number",
                 id="nterms_band",
                 debounce=True,
-                min=0, max=4,
+                min=0,
+                max=4,
             ),
             dbc.Label("Set manually the period (days)"),
             dbc.Input(
@@ -144,79 +155,105 @@ def tab3_content():
                     ),
                 ],
             ),
-        ], className="mb-3",#, style={'width': '100%', 'display': 'inline-block'}
+        ],
+        className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
     )
 
     submit_varstar_button = dmc.Button(
         "Fit data",
         id="submit_variable",
-        color="dark", variant="outline", fullWidth=True, radius="xl",
+        color="dark",
+        variant="outline",
+        fullWidth=True,
+        radius="xl",
     )
 
     card2 = dmc.Paper(
         [
             nterms_base,
-        ], radius="sm", p="xs", shadow="sm", withBorder=True,
+        ],
+        radius="sm",
+        p="xs",
+        shadow="sm",
+        withBorder=True,
     )
 
-    tab3_content_ = html.Div([
-        dmc.Space(h=10),
-        dbc.Row([
-            dbc.Col(
-                loading(
-                    dmc.Paper(
-                        [
-                            html.Div(id="variable_plot"),
-                            card_explanation_variable(),
-                        ],
-                    ),
-                ), md=8,
-            ),
-            dbc.Col(
+    tab3_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
                 [
-                    html.Div(id="card_variable_button"),
-                    html.Br(),
-                    card2,
-                    html.Br(),
-                    submit_varstar_button,
-                ], md=4,
+                    dbc.Col(
+                        loading(
+                            dmc.Paper(
+                                [
+                                    html.Div(id="variable_plot"),
+                                    card_explanation_variable(),
+                                ],
+                            ),
+                        ),
+                        md=8,
+                    ),
+                    dbc.Col(
+                        [
+                            html.Div(id="card_variable_button"),
+                            html.Br(),
+                            card2,
+                            html.Br(),
+                            submit_varstar_button,
+                        ],
+                        md=4,
+                    ),
+                ],
+                className="g-1",
             ),
-        ], className="g-1"),
-    ])
+        ]
+    )
     return tab3_content_
 
+
 def tab4_content():
-    """Microlensing tab
-    """
+    """Microlensing tab"""
     submit_mulens_button = dmc.Button(
         "Fit data",
         id="submit_mulens",
-        color="dark", variant="outline", fullWidth=True, radius="xl",
+        color="dark",
+        variant="outline",
+        fullWidth=True,
+        radius="xl",
     )
 
-    tab4_content_ = html.Div([
-        dmc.Space(h=10),
-        dbc.Row([
-            dbc.Col(
-                loading(
-                    dmc.Paper(
-                        [
-                            html.Div(id="mulens_plot"),
-                            card_explanation_mulens(),
-                        ],
-                    ),
-                ), md=8,
-            ),
-            dbc.Col(
+    tab4_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
                 [
-                    html.Div(id="card_mulens"),
-                    html.Br(),
-                    submit_mulens_button,
-                ], md=4,
+                    dbc.Col(
+                        loading(
+                            dmc.Paper(
+                                [
+                                    html.Div(id="mulens_plot"),
+                                    card_explanation_mulens(),
+                                ],
+                            ),
+                        ),
+                        md=8,
+                    ),
+                    dbc.Col(
+                        [
+                            html.Div(id="card_mulens"),
+                            html.Br(),
+                            submit_mulens_button,
+                        ],
+                        md=4,
+                    ),
+                ],
+                className="g-1",
             ),
-        ], className="g-1"),
-    ])
+        ]
+    )
     return tab4_content_
+
 
 @app.callback(
     Output("tab_sso", "children"),
@@ -226,8 +263,7 @@ def tab4_content():
     prevent_initial_call=True,
 )
 def tab5_content(object_soo):
-    """SSO tab
-    """
+    """SSO tab"""
     pdf = pd.read_json(object_soo)
     if pdf.empty:
         ssnamenr = "null"
@@ -290,7 +326,11 @@ def tab5_content(object_soo):
                                             ),
                                         ],
                                     ),
-                                    dmc.AccordionPanel(dcc.Markdown("The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).")),
+                                    dmc.AccordionPanel(
+                                        dcc.Markdown(
+                                            "The residuals are the difference between the alert positions and the positions returned by the [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/)."
+                                        )
+                                    ),
                                 ],
                                 value="residuals",
                             ),
@@ -327,7 +367,14 @@ def tab5_content(object_soo):
                         dbc.Col(
                             dmc.ChipGroup(
                                 [
-                                    dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                                    dmc.Chip(
+                                        x,
+                                        value=x,
+                                        variant="outline",
+                                        color="orange",
+                                        radius="xl",
+                                        size="sm",
+                                    )
                                     for x in ["per-band", "combined"]
                                 ],
                                 id="switch-phase-curve-band",
@@ -342,7 +389,14 @@ def tab5_content(object_soo):
                         dbc.Col(
                             dmc.ChipGroup(
                                 [
-                                    dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                                    dmc.Chip(
+                                        x,
+                                        value=x,
+                                        variant="outline",
+                                        color="orange",
+                                        radius="xl",
+                                        size="sm",
+                                    )
                                     for x in ["SHG1G2", "HG1G2", "HG12", "HG"]
                                 ],
                                 id="switch-phase-curve-func",
@@ -367,7 +421,9 @@ def tab5_content(object_soo):
                                             ),
                                         ],
                                     ),
-                                    dmc.AccordionPanel(dcc.Markdown(msg_phase, mathjax=True)),
+                                    dmc.AccordionPanel(
+                                        dcc.Markdown(msg_phase, mathjax=True)
+                                    ),
                                 ],
                                 value="phase_curve",
                             ),
@@ -391,7 +447,8 @@ def tab5_content(object_soo):
                 dmc.TabsPanel(tab1, value="Lightcurve"),
                 dmc.TabsPanel(tab2, value="Astrometry"),
                 dmc.TabsPanel(tab3, value="Phase curve"),
-            ], value="Lightcurve",
+            ],
+            value="Lightcurve",
         )
     else:
         msg = """
@@ -412,12 +469,14 @@ def tab5_content(object_soo):
             dbc.Col(
                 [
                     card_sso_left(ssnamenr),
-                ], md=4,
+                ],
+                md=4,
             ),
         ],
         className="g-1",
     )
     return tab5_content_
+
 
 @app.callback(
     Output("tab_tracklet", "children"),
@@ -427,24 +486,26 @@ def tab5_content(object_soo):
     prevent_initial_call=True,
 )
 def tab6_content(object_tracklet):
-    """Tracklet tab
-    """
+    """Tracklet tab"""
     pdf = pd.read_json(object_tracklet)
-    tab6_content_ = html.Div([
-        dmc.Space(h=10),
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        draw_tracklet_lightcurve(pdf),
-                        html.Br(),
-                        draw_tracklet_radec(pdf),
-                    ],
-                ),
-            ],
-        ),
-    ])
+    tab6_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            draw_tracklet_lightcurve(pdf),
+                            html.Br(),
+                            draw_tracklet_radec(pdf),
+                        ],
+                    ),
+                ],
+            ),
+        ]
+    )
     return tab6_content_
+
 
 def tabs(pdf):
     tabs_ = dmc.Tabs(
@@ -452,13 +513,28 @@ def tabs(pdf):
             dmc.TabsList(
                 [
                     dmc.Tab("Summary", value="Summary"),
-                    dmc.Tab("Supernovae", value="Supernovae", disabled=len(pdf.index) == 1),
-                    dmc.Tab("Variable stars", value="Variable stars", disabled=len(pdf.index) == 1),
-                    dmc.Tab("Microlensing", value="Microlensing", disabled=len(pdf.index) == 1),
-                    dmc.Tab("Solar System", value="Solar System", disabled=not is_sso(pdf)),
-                    dmc.Tab("Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)),
+                    dmc.Tab(
+                        "Supernovae", value="Supernovae", disabled=len(pdf.index) == 1
+                    ),
+                    dmc.Tab(
+                        "Variable stars",
+                        value="Variable stars",
+                        disabled=len(pdf.index) == 1,
+                    ),
+                    dmc.Tab(
+                        "Microlensing",
+                        value="Microlensing",
+                        disabled=len(pdf.index) == 1,
+                    ),
+                    dmc.Tab(
+                        "Solar System", value="Solar System", disabled=not is_sso(pdf)
+                    ),
+                    dmc.Tab(
+                        "Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)
+                    ),
                     dmc.Tab("GRB", value="GRB", disabled=True),
-                ], position="right",
+                ],
+                position="right",
             ),
             dmc.TabsPanel(tab1_content(pdf), value="Summary"),
             dmc.TabsPanel(tab2_content(), value="Supernovae"),
@@ -466,10 +542,12 @@ def tabs(pdf):
             dmc.TabsPanel(tab4_content(), value="Microlensing"),
             dmc.TabsPanel(id="tab_sso", value="Solar System"),
             dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
-        ], value="Summary",
+        ],
+        value="Summary",
     )
 
     return tabs_
+
 
 def is_sso(pdfs):
     """Auxiliary function to check whether the object is a SSO"""
@@ -482,6 +560,7 @@ def is_sso(pdfs):
 
     return False
 
+
 def is_tracklet(pdfs):
     """Auxiliary function to check whether the object is a tracklet"""
     payload = pdfs["d:tracklet"].values[0]
@@ -490,6 +569,7 @@ def is_tracklet(pdfs):
         return True
 
     return False
+
 
 @app.callback(
     [
@@ -523,10 +603,12 @@ def store_query(name):
             "withupperlim": True,
             "withcutouts": False,
         },
-        dtype={"i:ssnamenr":str}, # Force reading this field as string
+        dtype={"i:ssnamenr": str},  # Force reading this field as string
     )
 
-    pdf["i:ssnamenr"].replace("None", "null", inplace=True) # For backwards compatibility
+    pdf["i:ssnamenr"].replace(
+        "None", "null", inplace=True
+    )  # For backwards compatibility
 
     pdfs = pdf[pdf["d:tag"] == "valid"]
     pdfsU = pdf[pdf["d:tag"] == "upperlim"]
@@ -570,7 +652,14 @@ def store_query(name):
     else:
         pdftracklet = pd.DataFrame()
 
-    return pdfs.to_json(), pdfsU.to_json(), pdfsUV.to_json(), pdfsso.to_json(), pdftracklet.to_json()
+    return (
+        pdfs.to_json(),
+        pdfsU.to_json(),
+        pdfsUV.to_json(),
+        pdfsso.to_json(),
+        pdftracklet.to_json(),
+    )
+
 
 @app.callback(
     [
@@ -604,13 +693,19 @@ def store_release_photometry(n_clicks, object_data):
         if not pdf_release.empty:
             pdf_release = pdf_release[["mjd", "mag", "magerr", "filtercode"]]
 
-            return pdf_release.to_json(), f"DR photometry: {len(pdf_release.index)} points", "DC magnitude"
+            return (
+                pdf_release.to_json(),
+                f"DR photometry: {len(pdf_release.index)} points",
+                "DC magnitude",
+            )
 
     except:
         import traceback
+
         traceback.print_exc()
 
     return no_update, "No DR photometry", no_update
+
 
 @app.callback(
     Output("qrcode", "children"),
@@ -623,6 +718,7 @@ def make_qrcode(path):
     qrimg = generate_qr(qrdata)
 
     return html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg))
+
 
 def layout(name):
     # even if there is one object ID, this returns  several alerts
@@ -639,10 +735,14 @@ def layout(name):
                 dmc.Center(
                     style={"height": "100%", "width": "100%"},
                     children=[
-                        dbc.Alert(f"{name[1:]} not found. Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).", color="danger"),
+                        dbc.Alert(
+                            f"{name[1:]} not found. Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).",
+                            color="danger",
+                        ),
                     ],
                 ),
-            ], className="bg-opaque-60",
+            ],
+            className="bg-opaque-60",
         )
     else:
         layout_ = html.Div(
@@ -653,8 +753,14 @@ def layout(name):
                             dbc.Row(
                                 [
                                     dbc.Col(
-                                        dmc.Skeleton(style={"width": "100%", "height": "15pc"}),
-                                        id="card_id_left", className="p-1", lg=12, md=6, sm=12,
+                                        dmc.Skeleton(
+                                            style={"width": "100%", "height": "15pc"}
+                                        ),
+                                        id="card_id_left",
+                                        className="p-1",
+                                        lg=12,
+                                        md=6,
+                                        sm=12,
                                     ),
                                     dbc.Col(
                                         html.Div(
@@ -675,21 +781,28 @@ def layout(name):
                                                 ),
                                             ],
                                             className="p-1",
-                                        ), lg=12, md=6, sm=12,
+                                        ),
+                                        lg=12,
+                                        md=6,
+                                        sm=12,
                                     ),
                                 ],
                                 className="g-0",
-                            ), lg=3, className="p-1",
+                            ),
+                            lg=3,
+                            className="p-1",
                         ),
                         dbc.Col(
                             [
                                 dmc.Space(h=10),
                                 tabs(pdf),
                             ],
-                            lg=9, className="p-1",
+                            lg=9,
+                            className="p-1",
                         ),
                     ],
-                    justify="around", className="g-0",
+                    justify="around",
+                    className="g-0",
                 ),
                 dcc.Store(id="object-data"),
                 dcc.Store(id="object-upper"),
@@ -697,7 +810,8 @@ def layout(name):
                 dcc.Store(id="object-sso"),
                 dcc.Store(id="object-tracklet"),
                 dcc.Store(id="object-release"),
-            ], className="bg-opaque-90",
+            ],
+            className="bg-opaque-90",
         )
 
     return layout_

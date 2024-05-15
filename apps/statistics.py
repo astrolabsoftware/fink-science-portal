@@ -108,6 +108,7 @@ The schema of the dataframe is the following:
 All other fields starting with `class:` are crossmatch from the SIMBAD database.
 """.format(pd.DataFrame([dic_names]).T.rename(columns={0: "description"}).to_markdown())
 
+
 @app.callback(
     Output("object-stats", "data"),
     Input("url", "pathname"),
@@ -124,14 +125,14 @@ def store_stat_query(name):
 
     return pdf.to_json()
 
+
 @app.callback(
     Output("stat_row", "children"),
     Input("object-stats", "data"),
     prevent_initial_call=True,
 )
 def create_stat_row(object_stats):
-    """Show basic stats. Used in the desktop app.
-    """
+    """Show basic stats. Used in the desktop app."""
     pdf = pd.read_json(object_stats)
     c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
 
@@ -157,14 +158,14 @@ def create_stat_row(object_stats):
         dbc.Col(c4_, md=2, style={"text-align": "center"}),
     ]
 
+
 @app.callback(
     Output("stat_row_mobile", "children"),
     Input("object-stats", "data"),
     prevent_initial_call=True,
 )
 def create_stat_row(object_stats):
-    """Show basic stats. Used in the mobile app.
-    """
+    """Show basic stats. Used in the mobile app."""
     pdf = pd.read_json(object_stats)
     c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
 
@@ -177,7 +178,8 @@ def create_stat_row(object_stats):
     )
 
     row = [
-        html.Br(), html.Br(),
+        html.Br(),
+        html.Br(),
         rowify(c0_),
         html.Br(),
         rowify(c1_),
@@ -187,19 +189,22 @@ def create_stat_row(object_stats):
         rowify(c3_),
         html.Br(),
         rowify(c4_),
-        html.Br(), html.Br(),
+        html.Br(),
+        html.Br(),
         dbc.Card(
             dbc.CardBody(
-                dcc.Markdown("_Connect with a bigger screen to explore more statistics_"),
+                dcc.Markdown(
+                    "_Connect with a bigger screen to explore more statistics_"
+                ),
             ),
         ),
     ]
 
     return row
 
+
 def create_stat_generic(pdf):
-    """Show basic stats. Used in the mobile app.
-    """
+    """Show basic stats. Used in the mobile app."""
     n_ = pdf["key:key"].values[-1]
     night = n_[4:8] + "-" + n_[8:10] + "-" + n_[10:12]
 
@@ -234,28 +239,32 @@ def create_stat_generic(pdf):
 
     return c0, c1, c2, c3, c4
 
+
 def heatmap_content():
-    """
-    """
+    """ """
 
     layout_ = html.Div(
         [
             dbc.Row(
                 [
                     dbc.Col(
-                        dmc.Skeleton(style={"width": "100%", "height": "30pc"}, className="mt-3"),
+                        dmc.Skeleton(
+                            style={"width": "100%", "height": "30pc"}, className="mt-3"
+                        ),
                         id="heatmap_stat",
                     ),
-                ], justify="center", className="g-0",
+                ],
+                justify="center",
+                className="g-0",
             ),
         ],
     )
 
     return layout_
 
+
 def timelines():
-    """
-    """
+    """ """
     switch = html.Div(
         [
             dbc.Checklist(
@@ -276,49 +285,62 @@ def timelines():
                 [
                     dbc.Col(generate_col_list(), md=10),
                     dbc.Col(switch, md=2),
-                ], justify="around",
+                ],
+                justify="around",
             ),
-            loading(dbc.Row(
-                [
-                    dbc.Col(id="evolution"),
-                ], justify="center", className="g-0",
-            )),
+            loading(
+                dbc.Row(
+                    [
+                        dbc.Col(id="evolution"),
+                    ],
+                    justify="center",
+                    className="g-0",
+                )
+            ),
         ],
     )
 
     return layout_
 
+
 def daily_stats():
-    """
-    """
+    """ """
     layout_ = html.Div(
         [
             html.Br(),
             dbc.Row(dbc.Col(generate_night_list())),
-            loading(dbc.Row(
-                [
-                    dbc.Col(id="hist_sci_raw", md=3),
-                    dbc.Col(id="hist_classified", md=3),
-                    dbc.Col(id="hist_catalogued", md=3),
-                    dbc.Col(id="hist_candidates", md=3),
-                ], justify="around",
-            )),
-            loading(dbc.Row(
-                [
-                    dbc.Col(id="daily_classification"),
-                ], justify="around",
-            )),
+            loading(
+                dbc.Row(
+                    [
+                        dbc.Col(id="hist_sci_raw", md=3),
+                        dbc.Col(id="hist_classified", md=3),
+                        dbc.Col(id="hist_catalogued", md=3),
+                        dbc.Col(id="hist_candidates", md=3),
+                    ],
+                    justify="around",
+                )
+            ),
+            loading(
+                dbc.Row(
+                    [
+                        dbc.Col(id="daily_classification"),
+                    ],
+                    justify="around",
+                )
+            ),
         ],
     )
 
     return layout_
 
+
 def generate_night_list():
-    """Generate the list of available nights (last night first)
-    """
+    """Generate the list of available nights (last night first)"""
     pdf = query_and_order_statistics(columns="", drop=False)
 
-    labels = list(pdf["key:key"].apply(lambda x: x[4:8] + "-" + x[8:10] + "-" + x[10:12]))
+    labels = list(
+        pdf["key:key"].apply(lambda x: x[4:8] + "-" + x[8:10] + "-" + x[10:12])
+    )
 
     dropdown = dcc.Dropdown(
         options=[
@@ -335,9 +357,9 @@ def generate_night_list():
 
     return dropdown
 
+
 def generate_col_list():
-    """Generate the list of available columns
-    """
+    """Generate the list of available columns"""
     pdf = request_api(
         "/api/v1/statistics",
         json={
@@ -348,9 +370,7 @@ def generate_col_list():
     schema_list = list(pdf["schema"])
 
     labels = [
-        i.replace("class", "SIMBAD")
-        if i not in dic_names
-        else dic_names[i]
+        i.replace("class", "SIMBAD") if i not in dic_names else dic_names[i]
         for i in schema_list
     ]
 
@@ -363,7 +383,8 @@ def generate_col_list():
         options=[
             *[
                 {"label": label, "value": value}
-                for label, value in zip(labels, schema_list)],
+                for label, value in zip(labels, schema_list)
+            ],
         ],
         id="dropdown_params",
         searchable=True,
@@ -373,9 +394,9 @@ def generate_col_list():
 
     return dropdown
 
+
 def get_data_one_night(night):
-    """Get the statistics for one night
-    """
+    """Get the statistics for one night"""
     cols = "basic:raw,basic:sci,basic:fields,basic:exposures"
 
     pdf = request_api(
@@ -389,9 +410,9 @@ def get_data_one_night(night):
 
     return pdf
 
+
 def layout():
-    """
-    """
+    """ """
     label_style = {"color": "#000"}
     tabs_ = dbc.Tabs(
         [
@@ -418,7 +439,8 @@ def layout():
                 [
                     dbc.Col(tabs_),
                 ],
-                justify="center", className="mt-3",
+                justify="center",
+                className="mt-3",
             ),
             dcc.Store(id="object-stats"),
         ],

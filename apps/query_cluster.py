@@ -55,6 +55,7 @@ elasticc_v2p1_dates["date"] = elasticc_v2p1_dates["date"].astype("str")
 
 coeffs_per_class = pd.read_parquet("assets/fclass_2022_060708_coeffs.parquet")
 
+
 @app.callback(
     Output("timeline_data_transfer", "children"),
     [
@@ -65,9 +66,10 @@ coeffs_per_class = pd.read_parquet("assets/fclass_2022_060708_coeffs.parquet")
         Input("trans_content", "value"),
     ],
 )
-def timeline_data_transfer(trans_datasource, date_range_picker, class_select, extra_cond, trans_content):
-    """
-    """
+def timeline_data_transfer(
+    trans_datasource, date_range_picker, class_select, extra_cond, trans_content
+):
+    """ """
     active_ = np.where(
         np.array([trans_datasource, date_range_picker, trans_content]) != None,
     )[0]
@@ -150,9 +152,9 @@ def timeline_data_transfer(trans_datasource, date_range_picker, class_select, ex
 
     return timeline
 
+
 def filter_tab():
-    """Section containing filtering options
-    """
+    """Section containing filtering options"""
     options = html.Div(
         [
             dmc.DateRangePicker(
@@ -186,9 +188,12 @@ def filter_tab():
             dmc.Space(h=10),
             dmc.Divider(variant="solid", label="Filters"),
             options,
-        ], id="filter_tab", style={"display": "none"},
+        ],
+        id="filter_tab",
+        style={"display": "none"},
     )
     return tab
+
 
 @app.callback(
     [
@@ -202,7 +207,8 @@ def filter_tab():
     ],
     [
         Input("trans_datasource", "value"),
-    ], prevent_initial_call=True,
+    ],
+    prevent_initial_call=True,
 )
 def display_filter_tab(trans_datasource):
     if trans_datasource is None:
@@ -214,28 +220,62 @@ def display_filter_tab(trans_datasource):
             data_class_select = [
                 {"label": "All classes", "value": "allclasses"},
                 {"label": "Unknown", "value": "Unknown"},
-                {"label": "(Fink) Early Supernova Ia candidates", "value": "Early SN Ia candidate"},
+                {
+                    "label": "(Fink) Early Supernova Ia candidates",
+                    "value": "Early SN Ia candidate",
+                },
                 {"label": "(Fink) Supernova candidates", "value": "SN candidate"},
                 {"label": "(Fink) Kilonova candidates", "value": "Kilonova candidate"},
-                {"label": "(Fink) Microlensing candidates", "value": "Microlensing candidate"},
+                {
+                    "label": "(Fink) Microlensing candidates",
+                    "value": "Microlensing candidate",
+                },
                 {"label": "(Fink) Solar System (MPC)", "value": "Solar System MPC"},
-                {"label": "(Fink) Solar System (candidates)", "value": "Solar System candidate"},
-                {"label": "(Fink) Tracklet (space debris & satellite glints)", "value": "Tracklet"},
+                {
+                    "label": "(Fink) Solar System (candidates)",
+                    "value": "Solar System candidate",
+                },
+                {
+                    "label": "(Fink) Tracklet (space debris & satellite glints)",
+                    "value": "Tracklet",
+                },
                 {"label": "(Fink) Ambiguous", "value": "Ambiguous"},
-                *[{"label": "(TNS) " + simtype, "value": "(TNS) " + simtype} for simtype in tns_types],
-                *[{"label": "(SIMBAD) " + simtype, "value": "(SIMBAD) " + simtype} for simtype in simbad_types],
+                *[
+                    {"label": "(TNS) " + simtype, "value": "(TNS) " + simtype}
+                    for simtype in tns_types
+                ],
+                *[
+                    {"label": "(SIMBAD) " + simtype, "value": "(SIMBAD) " + simtype}
+                    for simtype in simbad_types
+                ],
             ]
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
-                dmc.Anchor("here", href=f"{APIURL}/api/v1/columns", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here", href=f"{APIURL}/api/v1/columns", size="xs", target="_blank"
+                ),
                 " (and also ",
-                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/science/added_values/", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here",
+                    href="https://fink-broker.readthedocs.io/en/latest/science/added_values/",
+                    size="xs",
+                    target="_blank",
+                ),
                 ") for fields description and ",
-                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here",
+                    href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/",
+                    size="xs",
+                    target="_blank",
+                ),
                 " for examples.",
             ]
             placeholder = "e.g. candidate.magpsf > 19.5;"
-            labels = ["Lightcurve (~1.4 KB/alert)", "Cutouts (~41 KB/alert)", "Full packet (~55 KB/alert)"]
+            labels = [
+                "Lightcurve (~1.4 KB/alert)",
+                "Cutouts (~41 KB/alert)",
+                "Full packet (~55 KB/alert)",
+            ]
             values = ["Lightcurve", "Cutouts", "Full packet"]
             data_content = [
                 dmc.Radio(label=l, value=k, size="sm", color="orange")
@@ -246,13 +286,26 @@ def display_filter_tab(trans_datasource):
             maxDate = date(2026, 12, 5)
             data_class_select = [
                 {"label": "All classes", "value": "allclasses"},
-                *[{"label": str(simtype), "value": simtype} for simtype in sorted(elasticc_v1_classes["classId"].values)],
+                *[
+                    {"label": str(simtype), "value": simtype}
+                    for simtype in sorted(elasticc_v1_classes["classId"].values)
+                ],
             ]
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
-                dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here",
+                    href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema",
+                    size="xs",
+                    target="_blank",
+                ),
                 " for fields description and ",
-                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here",
+                    href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/",
+                    size="xs",
+                    target="_blank",
+                ),
                 " for examples.",
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
@@ -267,13 +320,26 @@ def display_filter_tab(trans_datasource):
             maxDate = date(2026, 12, 5)
             data_class_select = [
                 {"label": "All classes", "value": "allclasses"},
-                *[{"label": str(simtype), "value": simtype} for simtype in sorted(elasticc_v2_classes["classId"].values)],
+                *[
+                    {"label": str(simtype), "value": simtype}
+                    for simtype in sorted(elasticc_v2_classes["classId"].values)
+                ],
             ]
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
-                dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here",
+                    href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema",
+                    size="xs",
+                    target="_blank",
+                ),
                 " for fields description and ",
-                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here",
+                    href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/",
+                    size="xs",
+                    target="_blank",
+                ),
                 " for examples.",
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
@@ -288,13 +354,26 @@ def display_filter_tab(trans_datasource):
             maxDate = date(2026, 12, 5)
             data_class_select = [
                 {"label": "All classes", "value": "allclasses"},
-                *[{"label": str(simtype), "value": simtype} for simtype in sorted(elasticc_v2p1_classes["classId"].values)],
+                *[
+                    {"label": str(simtype), "value": simtype}
+                    for simtype in sorted(elasticc_v2p1_classes["classId"].values)
+                ],
             ]
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
-                dmc.Anchor("here", href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here",
+                    href="https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/#alertschema",
+                    size="xs",
+                    target="_blank",
+                ),
                 " for fields description and ",
-                dmc.Anchor("here", href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/", size="xs", target="_blank"),
+                dmc.Anchor(
+                    "here",
+                    href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/",
+                    size="xs",
+                    target="_blank",
+                ),
                 " for examples.",
             ]
             placeholder = "e.g. diaSource.psFlux > 0.0;"
@@ -305,11 +384,19 @@ def display_filter_tab(trans_datasource):
                 for l, k in zip(labels, values)
             ]
 
-        return {}, minDate, maxDate, data_class_select, description, placeholder, data_content
+        return (
+            {},
+            minDate,
+            maxDate,
+            data_class_select,
+            description,
+            placeholder,
+            data_content,
+        )
+
 
 def content_tab():
-    """Section containing filtering options
-    """
+    """Section containing filtering options"""
     tab = html.Div(
         [
             dmc.Space(h=10),
@@ -318,21 +405,26 @@ def content_tab():
                 id="trans_content",
                 label="Choose the content you want to retrieve",
             ),
-        ], style={"display": "none"}, id="content_tab",
+        ],
+        style={"display": "none"},
+        id="content_tab",
     )
     return tab
+
 
 @app.callback(
     Output("content_tab", "style"),
     [
         Input("date-range-picker", "value"),
-    ], prevent_initial_call=True,
+    ],
+    prevent_initial_call=True,
 )
 def update_content_tab(date_range_picker):
     if date_range_picker is None:
         PreventUpdate
     else:
         return {}
+
 
 def estimate_alert_number_ztf(date_range_picker, class_select):
     """Callback to estimate the number of alerts to be transfered
@@ -365,7 +457,6 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
     # Initialise count
     for column_name in column_names:
         dic[column_name] = 0
-
 
     for i in range(delta.days + 1):
         tmp = (dstart + timedelta(i)).strftime("%Y%m%d")
@@ -402,7 +493,9 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
                         # we do not apply any coefficients.
                         dic[elem] = 0
                     else:
-                        dic[elem.replace("(TNS) ", "class:")] = int(dic["basic:sci"] * coeffs_per_class[filt]["coeff"].values[0])
+                        dic[elem.replace("(TNS) ", "class:")] = int(
+                            dic["basic:sci"] * coeffs_per_class[filt]["coeff"].values[0]
+                        )
             count = np.sum([i[1] for i in dic.items() if "class:" in i[0]])
         else:
             # allclasses mean all alerts
@@ -412,9 +505,11 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
 
     return dic["basic:sci"], count
 
-def estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_dates, elasticc_classes):
-    """Callback to estimate the number of alerts to be transfered
-    """
+
+def estimate_alert_number_elasticc(
+    date_range_picker, class_select, elasticc_dates, elasticc_classes
+):
+    """Callback to estimate the number of alerts to be transfered"""
     dic = {"basic:sci": 0}
     dstart = date(*[int(i) for i in date_range_picker[0].split("-")])
     dstop = date(*[int(i) for i in date_range_picker[1].split("-")])
@@ -441,7 +536,10 @@ def estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_dat
                     # we do not apply any coefficients.
                     dic[elem] = 0
                 else:
-                    coeff = elasticc_classes[filt]["count"].values[0] / elasticc_classes["count"].sum()
+                    coeff = (
+                        elasticc_classes[filt]["count"].values[0]
+                        / elasticc_classes["count"].sum()
+                    )
                     dic["class:" + str(elem)] = int(dic["basic:sci"] * coeff)
             count = np.sum([i[1] for i in dic.items() if "class:" in i[0]])
         else:
@@ -451,6 +549,7 @@ def estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_dat
         count = dic["basic:sci"]
 
     return dic["basic:sci"], count
+
 
 @app.callback(
     Output("summary_tab", "children"),
@@ -463,9 +562,10 @@ def estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_dat
     ],
     prevent_initial_call=True,
 )
-def summary_tab(trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
-    """Section containing summary
-    """
+def summary_tab(
+    trans_content, trans_datasource, date_range_picker, class_select, extra_cond
+):
+    """Section containing summary"""
     if trans_content is None:
         html.Div(style={"display": "none"})
     elif date_range_picker is None:
@@ -482,19 +582,30 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
             total, count = estimate_alert_number_ztf(date_range_picker, class_select)
             sizeGb = estimate_size_gb_ztf(trans_content)
         elif trans_datasource == "ELASTiCC (v1)":
-            total, count = estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_v1_dates, elasticc_v1_classes)
+            total, count = estimate_alert_number_elasticc(
+                date_range_picker, class_select, elasticc_v1_dates, elasticc_v1_classes
+            )
             sizeGb = estimate_size_gb_elasticc(trans_content)
         elif trans_datasource == "ELASTiCC (v2.0)":
-            total, count = estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_v2_dates, elasticc_v2_classes)
+            total, count = estimate_alert_number_elasticc(
+                date_range_picker, class_select, elasticc_v2_dates, elasticc_v2_classes
+            )
             sizeGb = estimate_size_gb_elasticc(trans_content)
         elif trans_datasource == "ELASTiCC (v2.1)":
-            total, count = estimate_alert_number_elasticc(date_range_picker, class_select, elasticc_v2p1_dates, elasticc_v2p1_classes)
+            total, count = estimate_alert_number_elasticc(
+                date_range_picker,
+                class_select,
+                elasticc_v2p1_dates,
+                elasticc_v2p1_classes,
+            )
             sizeGb = estimate_size_gb_elasticc(trans_content)
 
         if count == 0:
             msg_title = "No alerts found. Try to update your criteria."
         else:
-            msg_title = f"Estimated number of alerts: {int(count):,} ({count / total * 100:.2f}%) or {count * sizeGb:.2f} GB",
+            msg_title = (
+                f"Estimated number of alerts: {int(count):,} ({count / total * 100:.2f}%) or {count * sizeGb:.2f} GB",
+            )
 
         if count == 0:
             icon = "codicon:chrome-close"
@@ -523,6 +634,7 @@ def summary_tab(trans_content, trans_datasource, date_range_picker, class_select
         )
         return tab
 
+
 def make_buttons():
     buttons = dmc.Group(
         [
@@ -537,17 +649,20 @@ def make_buttons():
     )
     return buttons
 
+
 @app.callback(
     Output("transfer_buttons", "style"),
     [
         Input("trans_content", "value"),
-    ], prevent_initial_call=True,
+    ],
+    prevent_initial_call=True,
 )
 def update_make_buttons(trans_content):
     if trans_content is None:
         PreventUpdate
     else:
         return {}
+
 
 @app.callback(
     Output("batch_log", "children"),
@@ -557,29 +672,38 @@ def update_make_buttons(trans_content):
     ],
 )
 def update_log(n_clicks, batchid):
-        if n_clicks:
-            if batchid != "":
-                response = requests.get(f"http://134.158.75.222:21111/batches/{batchid}/log")
+    if n_clicks:
+        if batchid != "":
+            response = requests.get(
+                f"http://134.158.75.222:21111/batches/{batchid}/log"
+            )
 
-                if "log" in response.json():
-                    failure_log = [row for row in response.json()["log"] if "Caused by" in row]
-                    if len(failure_log) > 0:
-                        failure_msg = [f"Batch ID: {batchid}", "Failed. Please, contact contact@fink-broker.org with your batch ID."]
-                        output = html.Div("\n".join(failure_msg), style={"whiteSpace": "pre-wrap"})
-                        return output
-                    # catch and return tailored error msg if fail (with batchid and contact@fink-broker.org)
-                    livy_log = [row for row in response.json()["log"] if "-Livy-" in row]
-                    livy_log = [f"Batch ID: {batchid}", "Starting..."] + livy_log
-                    output = html.Div("\n".join(livy_log), style={"whiteSpace": "pre-wrap"})
-                elif "msg" in response.json():
-                    output = html.Div(response.text)
-                return output
-            else:
-                return html.Div("batch ID is empty")
+            if "log" in response.json():
+                failure_log = [
+                    row for row in response.json()["log"] if "Caused by" in row
+                ]
+                if len(failure_log) > 0:
+                    failure_msg = [
+                        f"Batch ID: {batchid}",
+                        "Failed. Please, contact contact@fink-broker.org with your batch ID.",
+                    ]
+                    output = html.Div(
+                        "\n".join(failure_msg), style={"whiteSpace": "pre-wrap"}
+                    )
+                    return output
+                # catch and return tailored error msg if fail (with batchid and contact@fink-broker.org)
+                livy_log = [row for row in response.json()["log"] if "-Livy-" in row]
+                livy_log = [f"Batch ID: {batchid}", "Starting..."] + livy_log
+                output = html.Div("\n".join(livy_log), style={"whiteSpace": "pre-wrap"})
+            elif "msg" in response.json():
+                output = html.Div(response.text)
+            return output
+        else:
+            return html.Div("batch ID is empty")
+
 
 def make_final_helper():
-    """
-    """
+    """ """
     accordion = dmc.Accordion(
         children=[
             dmc.AccordionItem(
@@ -587,7 +711,9 @@ def make_final_helper():
                     dmc.AccordionControl("Monitor your job"),
                     dmc.AccordionPanel(
                         [
-                            dmc.Button("Update log", id="update_batch_log", color="orange"),
+                            dmc.Button(
+                                "Update log", id="update_batch_log", color="orange"
+                            ),
                             html.Div(id="batch_log"),
                         ],
                     ),
@@ -611,6 +737,7 @@ def make_final_helper():
     )
     return accordion
 
+
 @app.callback(
     Output("final_accordion_1", "children"),
     [
@@ -618,8 +745,7 @@ def make_final_helper():
     ],
 )
 def update_final_accordion1(topic_name):
-    """
-    """
+    """ """
     if topic_name != "":
         if "elasticc" in topic_name:
             partition = "classId"
@@ -646,6 +772,7 @@ def update_final_accordion1(topic_name):
 
         return out
 
+
 @app.callback(
     Output("submit_datatransfer", "disabled"),
     Output("streaming_info", "children"),
@@ -664,9 +791,15 @@ def update_final_accordion1(topic_name):
     ],
     prevent_initial_call=True,
 )
-def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, class_select, extra_cond):
-    """Submit a job to the Apache Spark cluster via Livy
-    """
+def submit_job(
+    n_clicks,
+    trans_content,
+    trans_datasource,
+    date_range_picker,
+    class_select,
+    extra_cond,
+):
+    """Submit a job to the Apache Spark cluster via Livy"""
     if n_clicks:
         # define unique topic name
         d = datetime.utcnow()
@@ -684,7 +817,9 @@ def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, cla
             fn = "assets/spark_elasticc_transfer.py"
             basepath = "/user/julien.peloton/elasticc-2023-training_v2"
         elif trans_datasource == "ELASTiCC (v2.1)":
-            topic_name = f"ftransfer_elasticc_v2p1_{d.date().isoformat()}_{d.microsecond}"
+            topic_name = (
+                f"ftransfer_elasticc_v2p1_{d.date().isoformat()}_{d.microsecond}"
+            )
             fn = "assets/spark_elasticc_transfer.py"
             basepath = "/user/julien.peloton/elasticc_training_v2p1_partitioned"
         filename = f"stream_{topic_name}.py"
@@ -754,13 +889,20 @@ def submit_job(n_clicks, trans_content, trans_datasource, date_range_picker, cla
 
 
 def query_builder():
-    """Build iteratively the query based on user inputs.
-    """
+    """Build iteratively the query based on user inputs."""
     tab = html.Div(
         [
             dmc.Divider(variant="solid", label="Data Source"),
             dmc.RadioGroup(
-                [dmc.Radio(k, value=k, size="sm", color="orange") for k in ["ZTF", "ELASTiCC (v1)", "ELASTiCC (v2.0)", "ELASTiCC (v2.1)"]],
+                [
+                    dmc.Radio(k, value=k, size="sm", color="orange")
+                    for k in [
+                        "ZTF",
+                        "ELASTiCC (v1)",
+                        "ELASTiCC (v2.0)",
+                        "ELASTiCC (v2.1)",
+                    ]
+                ],
                 id="trans_datasource",
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
@@ -769,9 +911,9 @@ def query_builder():
     )
     return tab
 
+
 def mining_helper():
-    """Helper
-    """
+    """Helper"""
     msg = """
     The Fink data transfer service allows you to select and transfer the Fink processed alert data at scale.
     We provide alert data from ZTF (more than 110 million alerts as of 2023), and from the DESC/ELASTiCC data challenge (more than 50 million alerts).
@@ -792,7 +934,11 @@ def mining_helper():
                     dmc.AccordionControl(
                         "Description",
                         icon=[
-                            DashIconify(icon="material-symbols:info-outline", width=30, color="black"),
+                            DashIconify(
+                                icon="material-symbols:info-outline",
+                                width=30,
+                                color="black",
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
@@ -806,7 +952,9 @@ def mining_helper():
                     dmc.AccordionControl(
                         "Log in",
                         icon=[
-                            DashIconify(icon="bx:log-in-circle", width=30, color="orange"),
+                            DashIconify(
+                                icon="bx:log-in-circle", width=30, color="orange"
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
@@ -819,9 +967,9 @@ def mining_helper():
     )
     return accordion
 
+
 def layout():
-    """Layout for the data transfer service
-    """
+    """Layout for the data transfer service"""
     qb = query_builder()
     ft = filter_tab()
     ct = content_tab()
@@ -866,7 +1014,9 @@ def layout():
                             html.Div(id="timeline_data_transfer"),
                             html.Br(),
                             mining_helper(),
-                        ], md=3, className="d-none d-md-block",
+                        ],
+                        md=3,
+                        className="d-none d-md-block",
                     ),
                     dbc.Col(
                         [
@@ -875,20 +1025,24 @@ def layout():
                             ct,
                             html.Div(id="summary_tab"),
                             dmc.Space(h=10),
-                            html.Div(btns, id="transfer_buttons", style={"display": "none"}),
+                            html.Div(
+                                btns, id="transfer_buttons", style={"display": "none"}
+                            ),
                             html.Div(id="streaming_info"),
                             html.Div("", id="batch_id", style={"display": "none"}),
                             html.Div("", id="topic_name", style={"display": "none"}),
                             make_final_helper(),
                             html.Br(),
                             html.Br(),
-
                         ],
-                        md=9),
+                        md=9,
+                    ),
                 ],
-                justify="around", className="g-2 mt-2",
+                justify="around",
+                className="g-2 mt-2",
             ),
-        ], fluid="lg",
+        ],
+        fluid="lg",
     )
 
     # Wrap it to re-define the background

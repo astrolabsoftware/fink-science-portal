@@ -64,6 +64,7 @@ from apps.api.utils import (
 
 api_bp = Blueprint("api", __name__)
 
+
 # Enable CORS for this blueprint only
 @api_bp.after_request
 def after_request(response):
@@ -71,6 +72,7 @@ def after_request(response):
     response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
     response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
     return response
+
 
 def layout():
     layout_ = dbc.Container(
@@ -94,7 +96,9 @@ def layout():
                                     dcc.Markdown(api_doc_object),
                                 ),
                             ),
-                        ], label="Retrieve object data", label_style = {"color": "#000"},
+                        ],
+                        label="Retrieve object data",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -103,7 +107,9 @@ def layout():
                                     dcc.Markdown(api_doc_explorer),
                                 ),
                             ),
-                        ], label="Query the database", label_style = {"color": "#000"},
+                        ],
+                        label="Query the database",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -112,7 +118,9 @@ def layout():
                                     dcc.Markdown(api_doc_latests),
                                 ),
                             ),
-                        ], label="Get latest alerts", label_style = {"color": "#000"},
+                        ],
+                        label="Get latest alerts",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -121,7 +129,9 @@ def layout():
                                     dcc.Markdown(api_doc_sso),
                                 ),
                             ),
-                        ], label="Solar System objects from MPC", label_style = {"color": "#000"},
+                        ],
+                        label="Solar System objects from MPC",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -130,7 +140,9 @@ def layout():
                                     dcc.Markdown(api_doc_ssocand),
                                 ),
                             ),
-                        ], label="Candidate Solar System objects", label_style = {"color": "#000"},
+                        ],
+                        label="Candidate Solar System objects",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -139,7 +151,9 @@ def layout():
                                     dcc.Markdown(api_doc_ssoft),
                                 ),
                             ),
-                        ], label="Solar System object parameters table", label_style = {"color": "#000"},
+                        ],
+                        label="Solar System object parameters table",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -148,7 +162,9 @@ def layout():
                                     dcc.Markdown(api_doc_tracklets),
                                 ),
                             ),
-                        ], label="Get Tracklet Objects", label_style = {"color": "#000"},
+                        ],
+                        label="Get Tracklet Objects",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -157,7 +173,9 @@ def layout():
                                     dcc.Markdown(api_doc_cutout),
                                 ),
                             ),
-                        ], label="Get Image data", label_style = {"color": "#000"},
+                        ],
+                        label="Get Image data",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -166,7 +184,9 @@ def layout():
                                     dcc.Markdown(api_doc_xmatch),
                                 ),
                             ),
-                        ], label="Xmatch", label_style = {"color": "#000"},
+                        ],
+                        label="Xmatch",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -175,7 +195,9 @@ def layout():
                                     dcc.Markdown(api_doc_bayestar),
                                 ),
                             ),
-                        ], label="Gravitational Waves", label_style = {"color": "#000"},
+                        ],
+                        label="Gravitational Waves",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -184,7 +206,9 @@ def layout():
                                     dcc.Markdown(api_doc_stats),
                                 ),
                             ),
-                        ], label="Statistics", label_style = {"color": "#000"},
+                        ],
+                        label="Statistics",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -193,7 +217,9 @@ def layout():
                                     dcc.Markdown(api_doc_anomaly),
                                 ),
                             ),
-                        ], label="Anomaly detection", label_style = {"color": "#000"},
+                        ],
+                        label="Anomaly detection",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -202,7 +228,9 @@ def layout():
                                     dcc.Markdown(api_doc_random),
                                 ),
                             ),
-                        ], label="Random objects", label_style = {"color": "#000"},
+                        ],
+                        label="Random objects",
+                        label_style={"color": "#000"},
                     ),
                     dbc.Tab(
                         [
@@ -211,11 +239,15 @@ def layout():
                                     dcc.Markdown(api_doc_resolver),
                                 ),
                             ),
-                        ], label="Name resolver", label_style = {"color": "#000"},
+                        ],
+                        label="Name resolver",
+                        label_style={"color": "#000"},
                     ),
                 ],
             ),
-        ], className="api mb-4 mt-4", fluid="lg",
+        ],
+        className="api mb-4 mt-4",
+        fluid="lg",
     )
     return layout_
 
@@ -740,20 +772,20 @@ args_metadata = [
     },
 ]
 
+
 @api_bp.route("/api/v1/objects", methods=["GET"])
 def return_object_arguments():
-    """Obtain information about retrieving object data
-    """
+    """Obtain information about retrieving object data"""
     if len(request.args) > 0:
         # POST from query URL
         return return_object(payload=request.args)
     else:
         return jsonify({"args": args_objects})
 
+
 @api_bp.route("/api/v1/objects", methods=["POST"])
 def return_object(payload=None):
-    """Retrieve object data from the Fink database
-    """
+    """Retrieve object data from the Fink database"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -777,26 +809,30 @@ def return_object(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdf, output_format)
 
+
 @api_bp.route("/api/v1/explorer", methods=["GET"])
 def query_db_arguments():
-    """Obtain information about querying the Fink database
-    """
+    """Obtain information about querying the Fink database"""
     if len(request.args) > 0:
         # POST from query URL
         return query_db(payload=request.args)
     else:
         return jsonify({"args": args_explorer})
 
+
 @api_bp.route("/api/v1/explorer", methods=["POST"])
 def query_db(payload=None):
-    """Query the Fink database
-    """
+    """Query the Fink database"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
 
     # Check the user specifies only one group
-    all_groups = [i["group"] for i in args_explorer if i["group"] is not None and i["name"] in payload]
+    all_groups = [
+        i["group"]
+        for i in args_explorer
+        if i["group"] is not None and i["name"] in payload
+    ]
     if len(np.unique(all_groups)) > 1:
         rep = {
             "status": "error",
@@ -828,20 +864,20 @@ def query_db(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdfs, output_format)
 
+
 @api_bp.route("/api/v1/latests", methods=["GET"])
 def latest_objects_arguments():
-    """Obtain information about latest objects
-    """
+    """Obtain information about latest objects"""
     if len(request.args) > 0:
         # POST from query URL
         return latest_objects(payload=request.args)
     else:
         return jsonify({"args": args_latest})
 
+
 @api_bp.route("/api/v1/latests", methods=["POST"])
 def latest_objects(payload=None):
-    """Get latest objects by class
-    """
+    """Get latest objects by class"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -865,10 +901,10 @@ def latest_objects(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdfs, output_format)
 
+
 @api_bp.route("/api/v1/classes", methods=["GET"])
 def class_arguments():
-    """Obtain all Fink derived class
-    """
+    """Obtain all Fink derived class"""
     # TNS
     tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].values
     tns_types = sorted(tns_types, key=lambda s: s.lower())
@@ -891,12 +927,14 @@ def class_arguments():
 
     return jsonify({"classnames": types})
 
+
 @api_bp.route("/api/v1/columns", methods=["GET"])
 def columns_arguments():
-    """Obtain all alert fields available and their type
-    """
+    """Obtain all alert fields available and their type"""
     # ZTF candidate fields
-    r = requests.get("https://raw.githubusercontent.com/ZwickyTransientFacility/ztf-avro-alert/master/schema/candidate.avsc")
+    r = requests.get(
+        "https://raw.githubusercontent.com/ZwickyTransientFacility/ztf-avro-alert/master/schema/candidate.avsc"
+    )
     tmp = pd.DataFrame.from_dict(r.json())
     ztf_candidate = tmp["fields"].apply(pd.Series)
     ztf_candidate = ztf_candidate._append(
@@ -904,21 +942,24 @@ def columns_arguments():
             "name": "schemavsn",
             "type": "string",
             "doc": "schema version used",
-        }, ignore_index=True,
+        },
+        ignore_index=True,
     )
     ztf_candidate = ztf_candidate._append(
         {
             "name": "publisher",
             "type": "string",
             "doc": "origin of alert packet",
-        }, ignore_index=True,
+        },
+        ignore_index=True,
     )
     ztf_candidate = ztf_candidate._append(
         {
             "name": "objectId",
             "type": "string",
             "doc": "object identifier or name",
-        }, ignore_index=True,
+        },
+        ignore_index=True,
     )
 
     ztf_candidate = ztf_candidate._append(
@@ -926,7 +967,8 @@ def columns_arguments():
             "name": "fink_broker_version",
             "type": "string",
             "doc": "Fink broker (fink-broker) version used to process the data",
-        }, ignore_index=True,
+        },
+        ignore_index=True,
     )
 
     ztf_candidate = ztf_candidate._append(
@@ -934,7 +976,8 @@ def columns_arguments():
             "name": "fink_science_version",
             "type": "string",
             "doc": "Science modules (fink-science) version used to process the data",
-        }, ignore_index=True,
+        },
+        ignore_index=True,
     )
 
     ztf_cutouts = pd.DataFrame.from_dict(
@@ -951,69 +994,247 @@ def columns_arguments():
             "name": "cutoutTemplate_stampData",
             "type": "array",
             "doc": "2D array from the Template cutout FITS",
-        }, ignore_index=True,
+        },
+        ignore_index=True,
     )
     ztf_cutouts = ztf_cutouts._append(
         {
             "name": "cutoutDifference_stampData",
             "type": "array",
             "doc": "2D array from the Difference cutout FITS",
-        }, ignore_index=True,
+        },
+        ignore_index=True,
     )
 
     # Science modules
     fink_science = pd.DataFrame(
         [
-            {"name": "cdsxmatch", "type": "string", "doc": "Object type of the closest source from SIMBAD database; if exists within 1 arcsec. See https://fink-portal.org/api/v1/classes"},
-            {"name": "gcvs", "type": "string", "doc": "Object type of the closest source from GCVS catalog; if exists within 1 arcsec."},
-            {"name": "vsx", "type": "string", "doc": "Object type of the closest source from VSX catalog; if exists within 1 arcsec."},
-            {"name": "DR3Name", "type": "string", "doc": "Unique source designation of closest source from Gaia catalog; if exists within 1 arcsec."},
-            {"name": "Plx", "type": "double", "doc": "Absolute stellar parallax (in milli-arcsecond) of the closest source from Gaia catalog; if exists within 1 arcsec."},
-            {"name": "e_Plx", "type": "double", "doc": "Standard error of the stellar parallax (in milli-arcsecond) of the closest source from Gaia catalog; if exists within 1 arcsec."},
-            {"name": "x3hsp", "type": "string", "doc": "Counterpart (cross-match) to the 3HSP catalog if exists within 1 arcminute."},
-            {"name": "x4lac", "type": "string", "doc": "Counterpart (cross-match) to the 4LAC DR3 catalog if exists within 1 arcminute."},
-            {"name": "mangrove_HyperLEDA_name", "type": "string", "doc": "HyperLEDA source designation of closest source from Mangrove catalog; if exists within 1 arcmin."},
-            {"name": "mangrove_2MASS_name", "type": "string", "doc": "2MASS source designation of closest source from Mangrove catalog; if exists within 1 arcmin."},
-            {"name": "mangrove_lum_dist", "type": "string", "doc": "Luminosity distance of closest source from Mangrove catalog; if exists within 1 arcmin."},
-            {"name": "mangrove_ang_dist", "type": "string", "doc": "Angular distance of closest source from Mangrove catalog; if exists within 1 arcmin."},
-            {"name": "spicy_id", "type": "string", "doc": "Unique source designation of closest source from SPICY catalog; if exists within 1.2 arcsec."},
-            {"name": "spicy_class", "type": "string", "doc": "Class name of closest source from SPICY catalog; if exists within 1.2 arcsec."},
-            {"name": "mulens", "type": "double", "doc": "Probability score of an alert to be a microlensing event by [LIA](https://github.com/dgodinez77/LIA)."},
-            {"name": "rf_snia_vs_nonia", "type": "double", "doc": "Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better."},
-            {"name": "rf_kn_vs_nonkn", "type": "double", "doc": "Probability of an alert to be a Kilonova using a PCA & Random Forest Classifier (binary classification). Higher is better."},
-            {"name": "roid", "type": "int", "doc": "Determine if the alert is a potential Solar System object (experimental). 0: likely not SSO, 1: first appearance but likely not SSO, 2: candidate SSO, 3: found in MPC."},
-            {"name": "snn_sn_vs_all", "type": "double", "doc": "The probability of an alert to be a SNe vs. anything else (variable stars and other categories in the training) using SuperNNova"},
-            {"name": "snn_snia_vs_nonia", "type": "double", "doc": "The probability of an alert to be a SN Ia vs. core-collapse SNe using SuperNNova"},
-            {"name": "anomaly_score", "type": "double", "doc": "Probability of an alert to be anomalous (lower values mean more anomalous observations) based on lc_*"},
-            {"name": "nalerthist", "type": "int", "doc": "Number of detections contained in each alert (current+history). Upper limits are not taken into account."},
-            {"name": "tracklet", "type": "string", "doc": "ID for fast moving objects, typically orbiting around the Earth. Of the format YYYY-MM-DD hh:mm:ss"},
-            {"name": "lc_features_g", "type": "string", "doc": "Numerous light curve features for the g band (see https://github.com/astrolabsoftware/fink-science/tree/master/fink_science/ad_features). Stored as string of array."},
-            {"name": "lc_features_r", "type": "string", "doc": "Numerous light curve features for the r band (see https://github.com/astrolabsoftware/fink-science/tree/master/fink_science/ad_features). Stored as string of array."},
-            {"name": "jd_first_real_det", "type": "double", "doc": "First variation time at 5 sigma contained in the alert history"},
-            {"name": "jdstarthist_dt", "type": "double", "doc": "Delta time between `jd_first_real_det` and the first variation time at 3 sigma (`jdstarthist`). If `jdstarthist_dt` > 30 days then the first variation time at 5 sigma is False (accurate for fast transient)."},
+            {
+                "name": "cdsxmatch",
+                "type": "string",
+                "doc": "Object type of the closest source from SIMBAD database; if exists within 1 arcsec. See https://fink-portal.org/api/v1/classes",
+            },
+            {
+                "name": "gcvs",
+                "type": "string",
+                "doc": "Object type of the closest source from GCVS catalog; if exists within 1 arcsec.",
+            },
+            {
+                "name": "vsx",
+                "type": "string",
+                "doc": "Object type of the closest source from VSX catalog; if exists within 1 arcsec.",
+            },
+            {
+                "name": "DR3Name",
+                "type": "string",
+                "doc": "Unique source designation of closest source from Gaia catalog; if exists within 1 arcsec.",
+            },
+            {
+                "name": "Plx",
+                "type": "double",
+                "doc": "Absolute stellar parallax (in milli-arcsecond) of the closest source from Gaia catalog; if exists within 1 arcsec.",
+            },
+            {
+                "name": "e_Plx",
+                "type": "double",
+                "doc": "Standard error of the stellar parallax (in milli-arcsecond) of the closest source from Gaia catalog; if exists within 1 arcsec.",
+            },
+            {
+                "name": "x3hsp",
+                "type": "string",
+                "doc": "Counterpart (cross-match) to the 3HSP catalog if exists within 1 arcminute.",
+            },
+            {
+                "name": "x4lac",
+                "type": "string",
+                "doc": "Counterpart (cross-match) to the 4LAC DR3 catalog if exists within 1 arcminute.",
+            },
+            {
+                "name": "mangrove_HyperLEDA_name",
+                "type": "string",
+                "doc": "HyperLEDA source designation of closest source from Mangrove catalog; if exists within 1 arcmin.",
+            },
+            {
+                "name": "mangrove_2MASS_name",
+                "type": "string",
+                "doc": "2MASS source designation of closest source from Mangrove catalog; if exists within 1 arcmin.",
+            },
+            {
+                "name": "mangrove_lum_dist",
+                "type": "string",
+                "doc": "Luminosity distance of closest source from Mangrove catalog; if exists within 1 arcmin.",
+            },
+            {
+                "name": "mangrove_ang_dist",
+                "type": "string",
+                "doc": "Angular distance of closest source from Mangrove catalog; if exists within 1 arcmin.",
+            },
+            {
+                "name": "spicy_id",
+                "type": "string",
+                "doc": "Unique source designation of closest source from SPICY catalog; if exists within 1.2 arcsec.",
+            },
+            {
+                "name": "spicy_class",
+                "type": "string",
+                "doc": "Class name of closest source from SPICY catalog; if exists within 1.2 arcsec.",
+            },
+            {
+                "name": "mulens",
+                "type": "double",
+                "doc": "Probability score of an alert to be a microlensing event by [LIA](https://github.com/dgodinez77/LIA).",
+            },
+            {
+                "name": "rf_snia_vs_nonia",
+                "type": "double",
+                "doc": "Probability of an alert to be a SNe Ia using a Random Forest Classifier (binary classification). Higher is better.",
+            },
+            {
+                "name": "rf_kn_vs_nonkn",
+                "type": "double",
+                "doc": "Probability of an alert to be a Kilonova using a PCA & Random Forest Classifier (binary classification). Higher is better.",
+            },
+            {
+                "name": "roid",
+                "type": "int",
+                "doc": "Determine if the alert is a potential Solar System object (experimental). 0: likely not SSO, 1: first appearance but likely not SSO, 2: candidate SSO, 3: found in MPC.",
+            },
+            {
+                "name": "snn_sn_vs_all",
+                "type": "double",
+                "doc": "The probability of an alert to be a SNe vs. anything else (variable stars and other categories in the training) using SuperNNova",
+            },
+            {
+                "name": "snn_snia_vs_nonia",
+                "type": "double",
+                "doc": "The probability of an alert to be a SN Ia vs. core-collapse SNe using SuperNNova",
+            },
+            {
+                "name": "anomaly_score",
+                "type": "double",
+                "doc": "Probability of an alert to be anomalous (lower values mean more anomalous observations) based on lc_*",
+            },
+            {
+                "name": "nalerthist",
+                "type": "int",
+                "doc": "Number of detections contained in each alert (current+history). Upper limits are not taken into account.",
+            },
+            {
+                "name": "tracklet",
+                "type": "string",
+                "doc": "ID for fast moving objects, typically orbiting around the Earth. Of the format YYYY-MM-DD hh:mm:ss",
+            },
+            {
+                "name": "lc_features_g",
+                "type": "string",
+                "doc": "Numerous light curve features for the g band (see https://github.com/astrolabsoftware/fink-science/tree/master/fink_science/ad_features). Stored as string of array.",
+            },
+            {
+                "name": "lc_features_r",
+                "type": "string",
+                "doc": "Numerous light curve features for the r band (see https://github.com/astrolabsoftware/fink-science/tree/master/fink_science/ad_features). Stored as string of array.",
+            },
+            {
+                "name": "jd_first_real_det",
+                "type": "double",
+                "doc": "First variation time at 5 sigma contained in the alert history",
+            },
+            {
+                "name": "jdstarthist_dt",
+                "type": "double",
+                "doc": "Delta time between `jd_first_real_det` and the first variation time at 3 sigma (`jdstarthist`). If `jdstarthist_dt` > 30 days then the first variation time at 5 sigma is False (accurate for fast transient).",
+            },
             {"name": "mag_rate", "type": "double", "doc": "Magnitude rate (mag/day)"},
-            {"name": "sigma_rate", "type": "double", "doc": "Magnitude rate error estimation (mag/day)"},
-            {"name": "lower_rate", "type": "double", "doc": "5% percentile of the magnitude rate sampling used for the error computation (`sigma_rate`)"},
-            {"name": "upper_rate", "type": "double", "doc": "95% percentile of the magnitude rate sampling used for the error computation (`sigma_rate`)"},
-            {"name": "delta_time", "type": "double", "doc": "Delta time between the the two measurement used for the magnitude rate `mag_rate`"},
-            {"name": "from_upper", "type": "boolean", "doc": "If True, the magnitude rate `mag_rate` has been computed using the last upper limit and the current measurement."},
-            {"name": "tag", "type": "string", "doc": "Quality tag among `valid`, `badquality` (does not satisfy quality cuts), and `upper` (upper limit measurement). Only available if `withupperlim` is set to True."},
+            {
+                "name": "sigma_rate",
+                "type": "double",
+                "doc": "Magnitude rate error estimation (mag/day)",
+            },
+            {
+                "name": "lower_rate",
+                "type": "double",
+                "doc": "5% percentile of the magnitude rate sampling used for the error computation (`sigma_rate`)",
+            },
+            {
+                "name": "upper_rate",
+                "type": "double",
+                "doc": "95% percentile of the magnitude rate sampling used for the error computation (`sigma_rate`)",
+            },
+            {
+                "name": "delta_time",
+                "type": "double",
+                "doc": "Delta time between the the two measurement used for the magnitude rate `mag_rate`",
+            },
+            {
+                "name": "from_upper",
+                "type": "boolean",
+                "doc": "If True, the magnitude rate `mag_rate` has been computed using the last upper limit and the current measurement.",
+            },
+            {
+                "name": "tag",
+                "type": "string",
+                "doc": "Quality tag among `valid`, `badquality` (does not satisfy quality cuts), and `upper` (upper limit measurement). Only available if `withupperlim` is set to True.",
+            },
         ],
     )
 
     fink_derived = pd.DataFrame(
         [
-            {"name": "constellation", "type": "string", "doc": "Name of the constellation an alert on the sky is in"},
-            {"name": "classification", "type": "string", "doc": "Fink inferred classification. See https://fink-portal.org/api/v1/classes"},
-            {"name": "g-r", "type": "double", "doc": "Last g-r measurement for this object."},
-            {"name": "sigma(g-r)", "type": "double", "doc": "Error of last g-r measurement for this object."},
-            {"name": "rate(g-r)", "type": "double", "doc": "g-r change rate in mag/day (between last and previous g-r measurements)."},
-            {"name": "sigma(rate(g-r))", "type": "double", "doc": "Error of g-r rate in mag/day (between last and previous g-r measurements)."},
-            {"name": "rate", "type": "double", "doc": "Brightness change rate in mag/day (between last and previous measurement in this filter)."},
-            {"name": "sigma(rate)", "type": "double", "doc": "Error of brightness change rate in mag/day (between last and previous measurement in this filter)."},
-            {"name": "lastdate", "type": "string", "doc": "Human readable datetime for the alert (from the i:jd field)."},
-            {"name": "firstdate", "type": "string", "doc": "Human readable datetime for the first detection of the object (from the i:jdstarthist field)."},
-            {"name": "lapse", "type": "double", "doc": "Number of days between first and last detection."},
+            {
+                "name": "constellation",
+                "type": "string",
+                "doc": "Name of the constellation an alert on the sky is in",
+            },
+            {
+                "name": "classification",
+                "type": "string",
+                "doc": "Fink inferred classification. See https://fink-portal.org/api/v1/classes",
+            },
+            {
+                "name": "g-r",
+                "type": "double",
+                "doc": "Last g-r measurement for this object.",
+            },
+            {
+                "name": "sigma(g-r)",
+                "type": "double",
+                "doc": "Error of last g-r measurement for this object.",
+            },
+            {
+                "name": "rate(g-r)",
+                "type": "double",
+                "doc": "g-r change rate in mag/day (between last and previous g-r measurements).",
+            },
+            {
+                "name": "sigma(rate(g-r))",
+                "type": "double",
+                "doc": "Error of g-r rate in mag/day (between last and previous g-r measurements).",
+            },
+            {
+                "name": "rate",
+                "type": "double",
+                "doc": "Brightness change rate in mag/day (between last and previous measurement in this filter).",
+            },
+            {
+                "name": "sigma(rate)",
+                "type": "double",
+                "doc": "Error of brightness change rate in mag/day (between last and previous measurement in this filter).",
+            },
+            {
+                "name": "lastdate",
+                "type": "string",
+                "doc": "Human readable datetime for the alert (from the i:jd field).",
+            },
+            {
+                "name": "firstdate",
+                "type": "string",
+                "doc": "Human readable datetime for the first detection of the object (from the i:jdstarthist field).",
+            },
+            {
+                "name": "lapse",
+                "type": "double",
+                "doc": "Number of days between first and last detection.",
+            },
         ],
     )
 
@@ -1023,28 +1244,42 @@ def columns_arguments():
     fink_derived = fink_derived.sort_values("name")
 
     types = {
-        "ZTF original fields (i:)": {i: {"type": j, "doc": k} for i, j, k in zip(ztf_candidate.name, ztf_candidate.type, ztf_candidate.doc)},
-        "ZTF original cutouts (b:)": {i: {"type": j, "doc": k} for i, j, k in zip(ztf_cutouts.name, ztf_cutouts.type, ztf_cutouts.doc)},
-        "Fink science module outputs (d:)": {i: {"type": j, "doc": k} for i, j, k in zip(fink_science.name, fink_science.type, fink_science.doc)},
-        "Fink on-the-fly added values (v:)": {i: {"type": j, "doc": k} for i, j, k in zip(fink_derived.name, fink_derived.type, fink_derived.doc)},
+        "ZTF original fields (i:)": {
+            i: {"type": j, "doc": k}
+            for i, j, k in zip(
+                ztf_candidate.name, ztf_candidate.type, ztf_candidate.doc
+            )
+        },
+        "ZTF original cutouts (b:)": {
+            i: {"type": j, "doc": k}
+            for i, j, k in zip(ztf_cutouts.name, ztf_cutouts.type, ztf_cutouts.doc)
+        },
+        "Fink science module outputs (d:)": {
+            i: {"type": j, "doc": k}
+            for i, j, k in zip(fink_science.name, fink_science.type, fink_science.doc)
+        },
+        "Fink on-the-fly added values (v:)": {
+            i: {"type": j, "doc": k}
+            for i, j, k in zip(fink_derived.name, fink_derived.type, fink_derived.doc)
+        },
     }
 
     return jsonify({"fields": types})
 
+
 @api_bp.route("/api/v1/sso", methods=["GET"])
 def return_sso_arguments():
-    """Obtain information about retrieving Solar System Object data
-    """
+    """Obtain information about retrieving Solar System Object data"""
     if len(request.args) > 0:
         # POST from query URL
         return return_sso(payload=request.args)
     else:
         return jsonify({"args": args_sso})
 
+
 @api_bp.route("/api/v1/sso", methods=["POST"])
 def return_sso(payload=None):
-    """Retrieve Solar System Object data from the Fink database
-    """
+    """Retrieve Solar System Object data from the Fink database"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1054,20 +1289,20 @@ def return_sso(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdf, output_format)
 
+
 @api_bp.route("/api/v1/ssocand", methods=["GET"])
 def return_ssocand_arguments():
-    """Obtain information about retrieving candidate Solar System Object data
-    """
+    """Obtain information about retrieving candidate Solar System Object data"""
     if len(request.args) > 0:
         # POST from query URL
         return return_ssocand(payload=request.args)
     else:
         return jsonify({"args": args_ssocand})
 
+
 @api_bp.route("/api/v1/ssocand", methods=["POST"])
 def return_ssocand(payload=None):
-    """Retrieve candidate Solar System Object data from the Fink database
-    """
+    """Retrieve candidate Solar System Object data from the Fink database"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1087,20 +1322,20 @@ def return_ssocand(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdf, output_format)
 
+
 @api_bp.route("/api/v1/tracklet", methods=["GET"])
 def return_tracklet_arguments():
-    """Obtain information about retrieving Tracklets
-    """
+    """Obtain information about retrieving Tracklets"""
     if len(request.args) > 0:
         # POST from query URL
         return return_tracklet(payload=request.args)
     else:
         return jsonify({"args": args_tracklet})
 
+
 @api_bp.route("/api/v1/tracklet", methods=["POST"])
 def return_tracklet(payload=None):
-    """Retrieve tracklet data from the Fink database
-    """
+    """Retrieve tracklet data from the Fink database"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1114,20 +1349,20 @@ def return_tracklet(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdf, output_format)
 
+
 @api_bp.route("/api/v1/cutouts", methods=["GET"])
 def cutouts_arguments():
-    """Obtain information about cutouts service
-    """
+    """Obtain information about cutouts service"""
     if len(request.args) > 0:
         # POST from query URL
         return return_cutouts(payload=request.args)
     else:
         return jsonify({"args": args_cutouts})
 
+
 @api_bp.route("/api/v1/cutouts", methods=["POST"])
 def return_cutouts(payload=None):
-    """Retrieve cutout data from the Fink database
-    """
+    """Retrieve cutout data from the Fink database"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1136,40 +1371,40 @@ def return_cutouts(payload=None):
 
     return format_and_send_cutout(payload)
 
+
 @api_bp.route("/api/v1/xmatch", methods=["GET"])
 def xmatch_arguments():
-    """Obtain information about the xmatch service
-    """
+    """Obtain information about the xmatch service"""
     if len(request.args) > 0:
         # POST from query URL
         return xmatch_user(payload=request.args)
     else:
         return jsonify({"args": args_xmatch})
 
+
 @api_bp.route("/api/v1/xmatch", methods=["POST"])
 def xmatch_user(payload=None):
-    """Xmatch with user uploaded catalog
-    """
+    """Xmatch with user uploaded catalog"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
 
     return perform_xmatch(payload)
 
+
 @api_bp.route("/api/v1/bayestar", methods=["GET"])
 def query_bayestar_arguments():
-    """Obtain information about inspecting a GW localization map
-    """
+    """Obtain information about inspecting a GW localization map"""
     if len(request.args) > 0:
         # POST from query URL
         return query_bayestar(payload=request.args)
     else:
         return jsonify({"args": args_bayestar})
 
+
 @api_bp.route("/api/v1/bayestar", methods=["POST"])
 def query_bayestar(payload=None):
-    """Query the Fink database to find alerts inside a GW localization map
-    """
+    """Query the Fink database to find alerts inside a GW localization map"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1183,20 +1418,20 @@ def query_bayestar(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdfs, output_format)
 
+
 @api_bp.route("/api/v1/statistics", methods=["GET"])
 def query_statistics_arguments():
-    """Obtain information about Fink statistics
-    """
+    """Obtain information about Fink statistics"""
     if len(request.args) > 0:
         # POST from query URL
         return return_statistics(payload=request.args)
     else:
         return jsonify({"args": args_stats})
 
+
 @api_bp.route("/api/v1/statistics", methods=["POST"])
 def return_statistics(payload=None):
-    """Retrieve statistics about Fink data
-    """
+    """Retrieve statistics about Fink data"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1206,20 +1441,20 @@ def return_statistics(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdf, output_format)
 
+
 @api_bp.route("/api/v1/random", methods=["GET"])
 def return_random_arguments():
-    """Obtain information about retrieving random object data
-    """
+    """Obtain information about retrieving random object data"""
     if len(request.args) > 0:
         # POST from query URL
         return return_random(payload=request.args)
     else:
         return jsonify({"args": args_random})
 
+
 @api_bp.route("/api/v1/random", methods=["POST"])
 def return_random(payload=None):
-    """Retrieve random object data from the Fink database
-    """
+    """Retrieve random object data from the Fink database"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1243,20 +1478,20 @@ def return_random(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdf, output_format)
 
+
 @api_bp.route("/api/v1/anomaly", methods=["GET"])
 def anomalous_objects_arguments():
-    """Obtain information about anomalous objects
-    """
+    """Obtain information about anomalous objects"""
     if len(request.args) > 0:
         # POST from query URL
         return anomalous_objects(payload=request.args)
     else:
         return jsonify({"args": args_anomaly})
 
+
 @api_bp.route("/api/v1/anomaly", methods=["POST"])
 def anomalous_objects(payload=None):
-    """Get anomalous objects
-    """
+    """Get anomalous objects"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1280,20 +1515,20 @@ def anomalous_objects(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdfs, output_format)
 
+
 @api_bp.route("/api/v1/ssoft", methods=["GET"])
 def ssoft_arguments():
-    """Obtain information about the Fink Flat Table
-    """
+    """Obtain information about the Fink Flat Table"""
     if len(request.args) > 0:
         # POST from query URL
         return ssoft_table(payload=request.args)
     else:
         return jsonify({"args": args_ssoft})
 
+
 @api_bp.route("/api/v1/ssoft", methods=["POST"])
 def ssoft_table(payload=None):
-    """Get the Fink Flat Table
-    """
+    """Get the Fink Flat Table"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1337,20 +1572,20 @@ def ssoft_table(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdfs, output_format)
 
+
 @api_bp.route("/api/v1/resolver", methods=["GET"])
 def resolver_arguments():
-    """Obtain information about the resolver service
-    """
+    """Obtain information about the resolver service"""
     if len(request.args) > 0:
         # POST from query URL
         return resolver_table(payload=request.args)
     else:
         return jsonify({"args": args_resolver})
 
+
 @api_bp.route("/api/v1/resolver", methods=["POST"])
 def resolver_table(payload=None):
-    """Get information about an object name
-    """
+    """Get information about an object name"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1374,20 +1609,20 @@ def resolver_table(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(pdfs, output_format)
 
+
 @api_bp.route("/api/v1/euclidin", methods=["GET"])
 def query_euclidin_arguments():
-    """Obtain information about Euclid input files
-    """
+    """Obtain information about Euclid input files"""
     if len(request.args) > 0:
         # POST from query URL
         return query_euclidin(payload=request.args)
     else:
         return jsonify({"args": args_euclidin})
 
+
 @api_bp.route("/api/v1/euclidin", methods=["POST"])
 def query_euclidin(payload=None):
-    """Upload Euclid data in Fink
-    """
+    """Upload Euclid data in Fink"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1406,20 +1641,20 @@ def query_euclidin(payload=None):
 
     return out
 
+
 @api_bp.route("/api/v1/eucliddata", methods=["GET"])
 def query_eucliddata_arguments():
-    """Obtain information about Euclid stored data
-    """
+    """Obtain information about Euclid stored data"""
     if len(request.args) > 0:
         # POST from query URL
         return query_eucliddata(payload=request.args)
     else:
         return jsonify({"args": args_eucliddata})
 
+
 @api_bp.route("/api/v1/eucliddata", methods=["POST"])
 def query_eucliddata(payload=None):
-    """Download Euclid data in Fink
-    """
+    """Download Euclid data in Fink"""
     # get payload from the JSON
     if payload is None:
         payload = request.json
@@ -1443,20 +1678,20 @@ def query_eucliddata(payload=None):
     output_format = payload.get("output-format", "json")
     return send_data(out, output_format)
 
+
 @api_bp.route("/api/v1/metadata", methods=["GET"])
 def metadata_arguments():
-    """Obtain information about uploading metadata
-    """
+    """Obtain information about uploading metadata"""
     if len(request.args) > 0:
         # POST from query URL
         return upload_metadata(payload=request.args)
     else:
         return jsonify({"args": args_metadata})
 
+
 @api_bp.route("/api/v1/metadata", methods=["POST"])
 def upload_metadata(payload=None):
-    """Upload metadata in Fink
-    """
+    """Upload metadata in Fink"""
     # get payload from the JSON
     if payload is None:
         payload = request.json

@@ -59,6 +59,7 @@ def upload_file_hdfs(code, webhdfs, namenode, user, filename):
 
     return status_code, text
 
+
 def submit_spark_job(livyhost, filename, spark_conf, job_args):
     """Submit a job on the Spark cluster via Livy (batch mode)
 
@@ -81,9 +82,9 @@ def submit_spark_job(livyhost, filename, spark_conf, job_args):
     headers = {"Content-Type": "application/json"}
 
     data = {
-    "conf": spark_conf,
-    "file": filename,
-    "args": job_args,
+        "conf": spark_conf,
+        "file": filename,
+        "args": job_args,
     }
     response = requests.post(
         "http://" + livyhost + "/batches",
@@ -100,6 +101,7 @@ def submit_spark_job(livyhost, filename, spark_conf, job_args):
 
     return batchid, response.status_code, response.text
 
+
 def estimate_size_gb_ztf(trans_content):
     """Estimate the size of the data to download
 
@@ -109,13 +111,14 @@ def estimate_size_gb_ztf(trans_content):
         Name as given by content_tab
     """
     if trans_content == "Full packet":
-        sizeGb = 55. / 1024 / 1024
+        sizeGb = 55.0 / 1024 / 1024
     elif trans_content == "Lightcurve":
         sizeGb = 1.4 / 1024 / 1024
     elif trans_content == "Cutouts":
-        sizeGb = 41. / 1024 / 1024
+        sizeGb = 41.0 / 1024 / 1024
 
     return sizeGb
+
 
 def estimate_size_gb_elasticc(trans_content):
     """Estimate the size of the data to download

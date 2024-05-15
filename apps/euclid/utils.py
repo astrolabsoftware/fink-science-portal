@@ -96,6 +96,7 @@ def load_euclid_header(pipeline=None):
 
     return HEADER
 
+
 def add_columns(pdf, pipeline: str, version: str, submission_date: int, eid: str):
     """Add Fink based column names to an incoming Euclid dataFrame
 
@@ -124,6 +125,7 @@ def add_columns(pdf, pipeline: str, version: str, submission_date: int, eid: str
 
     return pdf
 
+
 def compute_rowkey(row: dict, index: int):
     """Compute the row key based on a formatted dataframe
 
@@ -149,6 +151,7 @@ def compute_rowkey(row: dict, index: int):
     rowkey = "{}_{}_{}_{}".format(row["pipeline"], iso, row["EID"], index)
 
     return rowkey
+
 
 def check_header(pdf, euclid_header):
     """Check if the columns of the DataFrame match those expected

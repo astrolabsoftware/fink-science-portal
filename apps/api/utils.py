@@ -101,14 +101,19 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             "",
             to_evaluate,
             cols,
-            0, True, True,
+            0,
+            True,
+            True,
         )
         results.update(result)
 
     schema_client = client.schema()
 
     pdf = format_hbase_output(
-        results, schema_client, group_alerts=False, truncated=truncated,
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
     )
 
     if withcutouts:
@@ -123,7 +128,9 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "*",
-                0, False, False,
+                0,
+                False,
+                False,
             )
             resultsU.update(resultU)
 
@@ -135,7 +142,9 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "*",
-                0, False, False,
+                0,
+                False,
+                False,
             )
             resultsUP.update(resultUP)
 
@@ -148,12 +157,17 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
 
         if "i:jd" in pdfUP.columns:
             # workaround -- see https://github.com/astrolabsoftware/fink-science-portal/issues/216
-            mask = np.array([False if float(i) in pdf["i:jd"].values else True for i in pdfUP["i:jd"].values])
+            mask = np.array(
+                [
+                    False if float(i) in pdf["i:jd"].values else True
+                    for i in pdfUP["i:jd"].values
+                ]
+            )
             pdfUP = pdfUP[mask]
 
         # Hacky way to avoid converting concatenated column to float
-        pdfU["i:candid"] = -1 # None
-        pdfUP["i:candid"] = -1 # None
+        pdfU["i:candid"] = -1  # None
+        pdfUP["i:candid"] = -1  # None
 
         pdf_ = pd.concat((pdf, pdfU, pdfUP), axis=0)
 
@@ -170,6 +184,7 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
     client.close()
 
     return pdf
+
 
 def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
@@ -213,7 +228,9 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "*",
-                0, True, True,
+                0,
+                True,
+                True,
             )
             results.update(result)
 
@@ -227,7 +244,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
         ra, dec = payload["ra"], payload["dec"]
         radius = payload["radius"]
 
-        if float(radius) > 18000.:
+        if float(radius) > 18000.0:
             rep = {
                 "status": "error",
                 "text": "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n",
@@ -250,7 +267,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
 
         ra = coord.ra.deg
         dec = coord.dec.deg
-        radius_deg = float(radius) / 3600.
+        radius_deg = float(radius) / 3600.0
 
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
@@ -275,7 +292,9 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                     "",
                     to_search,
                     "*",
-                    0, True, True,
+                    0,
+                    True,
+                    True,
                 )
                 results.update(result)
             client.setRangeScan(False)
@@ -287,7 +306,9 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
                     "",
                     to_search,
                     "*",
-                    0, True, True,
+                    0,
+                    True,
+                    True,
                 )
                 results.update(result)
 
@@ -298,8 +319,8 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
         client = connect_to_hbase_table("ztf.jd")
 
         # Limit the time window to 3 hours days
-        if jd_stop - jd_start > 3/24:
-            jd_stop = jd_start + 3/24
+        if jd_stop - jd_start > 3 / 24:
+            jd_stop = jd_start + 3 / 24
 
         # Send the request. RangeScan.
         client.setRangeScan(True)
@@ -309,7 +330,9 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
             "",
             to_evaluate,
             "*",
-            0, True, True,
+            0,
+            True,
+            True,
         )
         schema_client = client.schema()
 
@@ -340,6 +363,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
         pdfs = pdfs[~mask]
 
     return pdfs
+
 
 def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
@@ -390,7 +414,9 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
 
     # Search for latest alerts for a specific class
     tns_classes = pd.read_csv("assets/tns_types.csv", header=None)[0].values
-    is_tns = payload["class"].startswith("(TNS)") and (payload["class"].split("(TNS) ")[1] in tns_classes)
+    is_tns = payload["class"].startswith("(TNS)") and (
+        payload["class"].split("(TNS) ")[1] in tns_classes
+    )
     if is_tns:
         client = connect_to_hbase_table("ztf.tns")
         classname = payload["class"].split("(TNS) ")[1]
@@ -401,7 +427,10 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
         results = client.scan(
             "",
             f"key:key:{classname}_{jd_start},key:key:{classname}_{jd_stop}",
-            cols, 0, True, True,
+            cols,
+            0,
+            True,
+            True,
         )
         schema_client = client.schema()
         group_alerts = True
@@ -420,7 +449,10 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
         results = client.scan(
             "",
             f"key:key:{classname}_{jd_start},key:key:{classname}_{jd_stop}",
-            cols, 0, False, False,
+            cols,
+            0,
+            False,
+            False,
         )
         schema_client = client.schema()
         group_alerts = False
@@ -435,7 +467,9 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
             "",
             to_evaluate,
             cols,
-            0, True, True,
+            0,
+            True,
+            True,
         )
         schema_client = client.schema()
         group_alerts = False
@@ -448,7 +482,8 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     # We want to return alerts
     # color computation is disabled
     pdfs = format_hbase_output(
-        results, schema_client,
+        results,
+        schema_client,
         group_alerts=group_alerts,
         extract_color=color,
         truncated=truncated,
@@ -456,6 +491,7 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     )
 
     return pdfs
+
 
 def return_sso_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
@@ -502,7 +538,9 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             "",
             to_evaluate,
             cols,
-            0, True, True,
+            0,
+            True,
+            True,
         )
         results.update(result)
 
@@ -526,6 +564,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             pdf = get_miriade_data(pdf)
 
     return pdf
+
 
 def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
@@ -585,7 +624,9 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         "",
         to_evaluate,
         "*",
-        0, False, False,
+        0,
+        False,
+        False,
     )
 
     schema_client = gen_client.schema()
@@ -608,6 +649,7 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         )
 
     return pdf
+
 
 def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
@@ -637,7 +679,9 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
         payload_name = payload["id"]
     elif "date" in payload:
         designation = payload["date"]
-        payload_name = "TRCK_" + designation.replace("-", "").replace(":", "").replace(" ", "_")
+        payload_name = "TRCK_" + designation.replace("-", "").replace(":", "").replace(
+            " ", "_"
+        )
     else:
         rep = {
             "status": "error",
@@ -653,7 +697,9 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
         "",
         to_evaluate,
         cols,
-        0, True, True,
+        0,
+        True,
+        True,
     )
 
     schema_client = client.schema()
@@ -670,6 +716,7 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
     )
 
     return pdf
+
 
 def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and jsonify it
@@ -712,14 +759,17 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         "",
         "key:key:{}".format(payload["objectId"]),
         "b:cutout{}_stampData,i:objectId,i:jd,i:candid".format(payload["kind"]),
-        0, True, True,
+        0,
+        True,
+        True,
     )
 
     # Format the results
     schema_client = client.schema()
 
     pdf = format_hbase_output(
-        results, schema_client,
+        results,
+        schema_client,
         group_alerts=False,
         truncated=True,
         extract_color=False,
@@ -768,7 +818,9 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         )
     # send the array
     elif output_format == "array":
-        return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(orient="records")
+        return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
+            orient="records"
+        )
 
     array = np.nan_to_num(np.array(array, dtype=float))
     if stretch == "sigmoid":
@@ -799,10 +851,9 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     data.save(datab, format="PNG")
     datab.seek(0)
     return send_file(
-        datab,
-        mimetype="image/png",
-        as_attachment=True,
-        download_name=filename)
+        datab, mimetype="image/png", as_attachment=True, download_name=filename
+    )
+
 
 def perform_xmatch(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and jsonify it
@@ -821,7 +872,7 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
     df = pd.read_csv(io.StringIO(payload["catalog"]))
 
     radius = float(payload["radius"])
-    if radius > 18000.:
+    if radius > 18000.0:
         rep = {
             "status": "error",
             "text": "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n",
@@ -849,7 +900,12 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
 
     # Fink columns of interest
     colnames = [
-        "i:objectId", "i:ra", "i:dec", "i:jd", "d:cdsxmatch", "i:ndethist",
+        "i:objectId",
+        "i:ra",
+        "i:dec",
+        "i:jd",
+        "d:cdsxmatch",
+        "i:ndethist",
     ]
 
     colnames_added_values = [
@@ -904,7 +960,6 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
                 "radius": radius,
                 "startdate_conesearch": time_start,
                 "window_days_conesearch": window_days,
-
             }
         else:
             payload_data = {
@@ -939,6 +994,7 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
 
     return join_df.to_json(orient="records")
 
+
 def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and jsonify it
 
@@ -961,7 +1017,11 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     if "bayestar" in payload:
         bayestar_data = payload["bayestar"]
     elif "event_name" in payload:
-        r = requests.get("https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz".format(payload["event_name"]))
+        r = requests.get(
+            "https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz".format(
+                payload["event_name"]
+            )
+        )
         if r.status_code == 200:
             bayestar_data = str(r.content)
         else:
@@ -1011,7 +1071,9 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
             "",
             to_search,
             "*",
-            0, True, True,
+            0,
+            True,
+            True,
         )
         results.update(result)
 
@@ -1035,6 +1097,7 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     mask = (pdfs["i:jd"] - pdfs["i:jdstarthist"]) <= n_day_max
 
     return pdfs[mask]
+
 
 def return_statistics_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and jsonify it
@@ -1068,7 +1131,9 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
             "",
             to_evaluate,
             cols,
-            0, True, True,
+            0,
+            True,
+            True,
         )
         pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
 
@@ -1079,9 +1144,9 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
 
     return pdf
 
+
 def send_data(pdf, output_format):
-    """
-    """
+    """ """
     if output_format == "json":
         return pdf.to_json(orient="records")
     elif output_format == "csv":
@@ -1104,6 +1169,7 @@ def send_data(pdf, output_format):
         "text": f"Output format `{output_format}` is not supported. Choose among json, csv, or parquet\n",
     }
     return Response(str(rep), 400)
+
 
 def return_random_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
@@ -1173,7 +1239,10 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             results = client.scan(
                 "",
                 f"key:key:{jdstart},key:key:{jdstop}",
-                "", 0, False, False,
+                "",
+                0,
+                False,
+                False,
             )
 
     oids = list(dict(results).keys())
@@ -1192,17 +1261,23 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
             "",
             f"key:key:{oid_}",
             f"{cols}",
-            0, False, False,
+            0,
+            False,
+            False,
         )
         results.update(result)
 
     pdf = format_hbase_output(
-        results, client.schema(), group_alerts=False, truncated=truncated,
+        results,
+        client.schema(),
+        group_alerts=False,
+        truncated=truncated,
     )
 
     client.close()
 
     return pdf
+
 
 def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
@@ -1255,7 +1330,9 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
         "",
         to_evaluate,
         cols,
-        0, True, True,
+        0,
+        True,
+        True,
     )
     schema_client = client.schema()
     client.close()
@@ -1263,7 +1340,8 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     # We want to return alerts
     # color computation is disabled
     pdfs = format_hbase_output(
-        results, schema_client,
+        results,
+        schema_client,
         group_alerts=False,
         extract_color=False,
         truncated=truncated,
@@ -1271,6 +1349,7 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     )
 
     return pdfs
+
 
 def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
     """Send the Fink Flat Table
@@ -1342,6 +1421,7 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
 
     return pdf
 
+
 def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
 
@@ -1377,7 +1457,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 "",
                 "*",
-                0, False, False,
+                0,
+                False,
+                False,
             )
         elif reverse:
             # Prefix search on second part of the key which is `fullname_internalname`
@@ -1386,7 +1468,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "*",
-                0, False, False,
+                0,
+                False,
+                False,
             )
         else:
             # indices are case-insensitive
@@ -1395,7 +1479,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "*",
-                0, False, False,
+                0,
+                False,
+                False,
             )
 
         # Restore default limits
@@ -1411,7 +1497,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "i:objectId,d:cdsxmatch,i:ra,i:dec,i:candid,i:jd",
-                0, False, False,
+                0,
+                False,
+                False,
             )
             client.close()
             pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
@@ -1435,7 +1523,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "i:objectId,i:ssnamenr",
-                0, False, False,
+                0,
+                False,
+                False,
             )
             client.close()
             pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
@@ -1450,7 +1540,9 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                         "",
                         f"i:ssnamenr:{ssnamenr}:exact",
                         "i:number,i:name,i:ssnamenr",
-                        0, False, False,
+                        0,
+                        False,
+                        False,
                     )
                     results.update(result)
                 client.close()
@@ -1472,12 +1564,15 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "i:ssnamenr,i:name,i:number",
-                0, False, False,
+                0,
+                False,
+                False,
             )
             client.close()
             pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
 
     return pdfs
+
 
 def upload_euclid_data(payload: dict) -> pd.DataFrame:
     """Upload Euclid data
@@ -1544,8 +1639,10 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
             payload["pipeline"],
             payload["version"],
             payload["date"],
-        ), 200,
+        ),
+        200,
     )
+
 
 def download_euclid_data(payload: dict) -> pd.DataFrame:
     """Download Euclid data
@@ -1593,7 +1690,9 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
         "",
         to_evaluate,
         cols,
-        0, False, False,
+        0,
+        False,
+        False,
     )
 
     pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
@@ -1616,9 +1715,9 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
 
     return pdf
 
+
 def post_metadata(payload: dict) -> Response:
-    """Upload metadata in Fink
-    """
+    """Upload metadata in Fink"""
     client = connect_to_hbase_table("ztf.metadata")
     encoded = payload["internal_name"].replace(" ", "")
     client.put(
@@ -1637,34 +1736,39 @@ def post_metadata(payload: dict) -> Response:
             payload["username"],
             APIURL,
             encoded,
-        ), 200,
+        ),
+        200,
     )
 
+
 def retrieve_metadata(objectId: str) -> pd.DataFrame:
-    """Retrieve metadata in Fink given a ZTF object ID
-    """
+    """Retrieve metadata in Fink given a ZTF object ID"""
     client = connect_to_hbase_table("ztf.metadata")
     to_evaluate = f"key:key:{objectId}"
     results = client.scan(
         "",
         to_evaluate,
         "*",
-        0, False, False,
+        0,
+        False,
+        False,
     )
     pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
     client.close()
     return pdf
 
+
 def retrieve_oid(metaname: str, field: str) -> pd.DataFrame:
-    """Retrieve a ZTF object ID given metadata in Fink
-    """
+    """Retrieve a ZTF object ID given metadata in Fink"""
     client = connect_to_hbase_table("ztf.metadata")
     to_evaluate = f"d:{field}:{metaname}:exact"
     results = client.scan(
         "",
         to_evaluate,
         "*",
-        0, True, True,
+        0,
+        True,
+        True,
     )
     pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
     client.close()

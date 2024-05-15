@@ -59,6 +59,7 @@ def call_resolver(data, kind, reverse=False, **kwargs):
 
     return payload
 
+
 name_patterns = [
     {
         "type": "ztf",
@@ -79,6 +80,7 @@ name_patterns = [
     #     'min': 3
     # },
 ]
+
 
 def parse_query(string, timeout=None):
     """Parse (probably incomplete) query
@@ -130,7 +132,7 @@ def parse_query(string, timeout=None):
     if not string:
         return query
 
-    string = string.replace(",", " ") # TODO: preserve quoted commas?..
+    string = string.replace(",", " ")  # TODO: preserve quoted commas?..
 
     # Sanitize the times to ISO format so that they parse as single tokens
     string = re.sub(
@@ -141,7 +143,7 @@ def parse_query(string, timeout=None):
 
     # Split the string into tokens
     try:
-        tokens = shlex.split(string, posix=True) # It will also handle quoted strings
+        tokens = shlex.split(string, posix=True)  # It will also handle quoted strings
     except:
         return query
 
@@ -217,8 +219,12 @@ def parse_query(string, timeout=None):
                 string,
             )
             if m:
-                query["params"]["ra"] = (float(m[1]) + float(m[2])/60 + float(m[3])/3600)*15
-                query["params"]["dec"] = (float(m[5]) + float(m[6])/60 + float(m[7])/3600)
+                query["params"]["ra"] = (
+                    float(m[1]) + float(m[2]) / 60 + float(m[3]) / 3600
+                ) * 15
+                query["params"]["dec"] = (
+                    float(m[5]) + float(m[6]) / 60 + float(m[7]) / 3600
+                )
 
                 if m[4] == "-":
                     query["params"]["dec"] *= -1
@@ -238,17 +244,29 @@ def parse_query(string, timeout=None):
                 query["type"] = "unresolved"
 
     # Should we resolve object name?..
-    if query["object"] and query["type"] == "ztf" and not query["partial"] and "r" in query["params"]:
+    if (
+        query["object"]
+        and query["type"] == "ztf"
+        and not query["partial"]
+        and "r" in query["params"]
+    ):
         res = call_resolver(query["object"], "ztf")
         if res:
             query["params"]["ra"] = res[0]["i:ra"]
             query["params"]["dec"] = res[0]["i:dec"]
 
-    if query["object"] and query["type"] not in ["ztf", "tracklet", "coordinates", None]:
+    if query["object"] and query["type"] not in [
+        "ztf",
+        "tracklet",
+        "coordinates",
+        None,
+    ]:
         for reverse in [False, True]:
             if "ra" not in query["params"] and query["object"][0].isalpha():
                 # TNS
-                res = call_resolver(query["object"], "tns", timeout=timeout, reverse=reverse)
+                res = call_resolver(
+                    query["object"], "tns", timeout=timeout, reverse=reverse
+                )
                 if res:
                     query["object"] = res[0]["d:fullname"]
                     query["type"] = "tns"
@@ -260,7 +278,11 @@ def parse_query(string, timeout=None):
                         # Make list of unique names not equal to the first one
                         query["completions"] = list(
                             np.unique(
-                                [_["d:fullname"] for _ in res if _["d:fullname"] != res[0]["d:fullname"]],
+                                [
+                                    _["d:fullname"]
+                                    for _ in res
+                                    if _["d:fullname"] != res[0]["d:fullname"]
+                                ],
                             ),
                         )
 
@@ -277,20 +299,26 @@ def parse_query(string, timeout=None):
                 query["params"]["dec"] = res[0]["jdedeg"]
 
         if "ra" not in query["params"]:
-                # SSO - final test
-                res = call_resolver(query["object"], "ssodnet", timeout=timeout)
-                if res:
-                    query["object"] = res[0]["i:name"]
-                    query["params"]["sso"] = res[0]["i:ssnamenr"]
-                    query["type"] = "sso"
-                    query["hint"] = "SSO object / {} {}".format(res[0]["i:ssnamenr"], res[0]["i:name"])
+            # SSO - final test
+            res = call_resolver(query["object"], "ssodnet", timeout=timeout)
+            if res:
+                query["object"] = res[0]["i:name"]
+                query["params"]["sso"] = res[0]["i:ssnamenr"]
+                query["type"] = "sso"
+                query["hint"] = "SSO object / {} {}".format(
+                    res[0]["i:ssnamenr"], res[0]["i:name"]
+                )
 
-                    if len(res) > 1:
-                        query["completions"] = list(
-                            dict.fromkeys(
-                                [(_["i:ssnamenr"], _["i:ssnamenr"] + " " + _["i:name"]) for _ in res if _["i:ssnamenr"] != res[0]["i:ssnamenr"]],
-                            ),
-                        )
+                if len(res) > 1:
+                    query["completions"] = list(
+                        dict.fromkeys(
+                            [
+                                (_["i:ssnamenr"], _["i:ssnamenr"] + " " + _["i:name"])
+                                for _ in res
+                                if _["i:ssnamenr"] != res[0]["i:ssnamenr"]
+                            ],
+                        ),
+                    )
 
     # Handle aliases
     aliases = {"radius": "r"}
@@ -328,7 +356,9 @@ def parse_query(string, timeout=None):
     elif "last" in query["params"]:
         query["action"] = "class"
         query["params"]["class"] = "All classes"
-        query["hint"] = "Latest objects / {}, {} objects".format(query["params"]["class"], query["params"]["last"])
+        query["hint"] = "Latest objects / {}, {} objects".format(
+            query["params"]["class"], query["params"]["last"]
+        )
 
     elif "after" in query["params"]:
         query["action"] = "daterange"

@@ -44,8 +44,7 @@ from apps.utils import (
 
 
 def extract_moc(fn, credible_level):
-    """
-    """
+    """ """
     payload = urlopen(fn).read()
     with fits.open(io.BytesIO(payload)) as hdul:
         data = hdul[1].data
@@ -60,16 +59,15 @@ def extract_moc(fn, credible_level):
 
     prob = probdensity * area
 
-
     cumul_to = np.linspace(0.5, 0.9, 5)[::-1]
     colors = ["blue", "green", "yellow", "orange", "red"]
     moc = MOC.from_valued_healpix_cells(uniq, prob, max_order, cumul_to=credible_level)
 
     return moc
 
+
 def extract_skyfrac_degree(fn, credible_level):
-    """
-    """
+    """ """
     payload = urlopen(fn).read()
     with gzip.open(io.BytesIO(payload), "rb") as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
@@ -87,8 +85,11 @@ def extract_skyfrac_degree(fn, credible_level):
 
     npix = len(hpx)
     nside = hp.npix2nside(npix)
-    skyfrac = np.sum(credible_levels <= credible_level) * hp.nside2pixarea(nside, degrees=True)
+    skyfrac = np.sum(credible_levels <= credible_level) * hp.nside2pixarea(
+        nside, degrees=True
+    )
     return skyfrac
+
 
 @app.callback(
     Output("gw-data", "data"),
@@ -100,11 +101,15 @@ def extract_skyfrac_degree(fn, credible_level):
     ],
 )
 def query_bayestar(submit, credible_level, superevent_name, searchurl):
-    """
-    """
+    """ """
     if searchurl != "":
         credible_level, superevent_name = extract_bayestar_query_url(searchurl)
-        empty_query = (superevent_name is None) or (superevent_name == "") or (credible_level is None) or (credible_level == "")
+        empty_query = (
+            (superevent_name is None)
+            or (superevent_name == "")
+            or (credible_level is None)
+            or (credible_level == "")
+        )
         if empty_query:
             raise PreventUpdate
     else:
@@ -134,9 +139,9 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
     # return pdf.to_json(), "done"
     return pdf.to_json()
 
+
 def populate_result_table_gw(data, columns):
-    """Define options of the results table, and add data and columns
-    """
+    """Define options of the results table, and add data and columns"""
     page_size = 10
     markdown_options = {"link_target": "_blank"}
 
@@ -168,6 +173,7 @@ def populate_result_table_gw(data, columns):
     )
     return table
 
+
 @app.callback(
     [
         Output("gw-table", "children"),
@@ -181,8 +187,7 @@ def populate_result_table_gw(data, columns):
     ],
 )
 def show_table(nclick, gw_data, superevent_name, searchurl):
-    """
-    """
+    """ """
     if searchurl == "":
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if button_id != "gw-loading-button":
@@ -231,16 +236,17 @@ def show_table(nclick, gw_data, superevent_name, searchurl):
                 "type": "text",
                 # 'hideable': True,
                 "presentation": "markdown",
-            } for c in colnames_to_display
+            }
+            for c in colnames_to_display
         ]
 
         table = populate_result_table_gw(data, columns)
 
         return table, None
 
+
 def card_explanation():
-    """Explain what is used to fit for variable stars
-    """
+    """Explain what is used to fit for variable stars"""
     msg = """
     Enter a superevent name on the left (check [O3](https://gracedb.ligo.org/superevents/public/O3/) or [O4](https://gracedb.ligo.org/superevents/public/O4/) runs if you are unsure),
     and enter a credible level. Note that the values in the resulting credible level map vary inversely with probability density: the most probable pixel is
@@ -281,6 +287,7 @@ def card_explanation():
         id="card_explanation",
     )
     return card
+
 
 @app.callback(
     [
@@ -359,12 +366,21 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
         filts_dic = {1: "g", 2: "r"}
         times = pdf["v:lastdate"].values
         link = '<a target="_blank" href="{}/{}">{}</a>'
-        titles = [link.format(APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]) for i in pdf["i:objectId"].values]
+        titles = [
+            link.format(
+                APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
+            )
+            for i in pdf["i:objectId"].values
+        ]
         # mags = pdf['i:magpsf'].values
         classes = pdf["d:classification"].values
-        n_alert_per_class = pdf.groupby("d:classification").count().to_dict()["i:objectId"]
+        n_alert_per_class = (
+            pdf.groupby("d:classification").count().to_dict()["i:objectId"]
+        )
         cats = []
-        for ra, dec, fid, time_, title, class_ in zip(ras, decs, filts, times, titles, classes):
+        for ra, dec, fid, time_, title, class_ in zip(
+            ras, decs, filts, times, titles, classes
+        ):
             if class_ in simbad_types:
                 cat = f"cat_{simbad_types.index(class_)}"
                 color = class_colors["Simbad"]
@@ -377,7 +393,9 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
                 color = class_colors["Simbad"]
 
             if cat not in cats:
-                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + f" ({n_alert_per_class[class_]})", color)
+                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(
+                    cat, class_ + f" ({n_alert_per_class[class_]})", color
+                )
                 cats.append(cat)
             img += f"""{cat}.addSources([A.source({ra}, {dec}, {{objectId: '{title}', filter: '{filts_dic[fid]}', time: '{time_}', Classification: '{class_}'}})]);"""
 
@@ -397,6 +415,7 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
     else:
         return "", {"display": "none"}, hide_progress
 
+
 def display_skymap_gw():
     """Display the sky map in the explorer tab results (Aladin lite)
 
@@ -415,6 +434,7 @@ def display_skymap_gw():
             style={"display": "none"},
         ),
     )
+
 
 @app.callback(
     output=Output("gw-trigger", "children"),
@@ -439,7 +459,9 @@ def display_skymap_gw():
     ],
     background=True,
 )
-def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, credible_level):
+def callback_progress_bar(
+    set_progress, n_clicks, searchurl, superevent_name, credible_level
+):
     if searchurl == "":
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if button_id != "gw-loading-button":
@@ -453,20 +475,30 @@ def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, cr
     except URLError:
         return "Error"
 
-    rate = 0.15 # second/deg2
+    rate = 0.15  # second/deg2
     for i in range(int(total)):
         time.sleep(rate)
         set_progress((str(i + 1), str(int(total))))
     return "Loaded!"
 
+
 def layout():
-    """Layout for the GW counterpart search
-    """
+    """Layout for the GW counterpart search"""
     description = [
         "Enter an event name from the ",
-        dmc.Anchor("O3", href="https://gracedb.ligo.org/superevents/public/O3/", size="xs", target="_blank"),
+        dmc.Anchor(
+            "O3",
+            href="https://gracedb.ligo.org/superevents/public/O3/",
+            size="xs",
+            target="_blank",
+        ),
         " or ",
-        dmc.Anchor("O4", href="https://gracedb.ligo.org/superevents/public/O4/", size="xs", target="_blank"),
+        dmc.Anchor(
+            "O4",
+            href="https://gracedb.ligo.org/superevents/public/O4/",
+            size="xs",
+            target="_blank",
+        ),
         " runs (e.g. S230709bi).",
     ]
     supervent_name = html.Div(
@@ -480,7 +512,8 @@ def layout():
                 description=description,
                 placeholder="e.g. S230709bi",
             ),
-        ], id="superevent_name_selector",
+        ],
+        id="superevent_name_selector",
         className="mb-2",
     )
 
@@ -499,7 +532,8 @@ def layout():
                 step=0.05,
                 id="credible_level",
             ),
-        ], id="credible_level_selector",
+        ],
+        id="credible_level_selector",
         className="mb-4",
     )
 
@@ -525,14 +559,17 @@ def layout():
                     dmc.Title(
                         children="Gravitational Waves",
                         style={"color": "#15284F"},
-                            order=2,
+                        order=2,
                     ),
                 ],
                 align="center",
                 justify="center",
             ),
             dbc.Alert(
-                dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.", link_target="_blank"),
+                dcc.Markdown(
+                    "This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.",
+                    link_target="_blank",
+                ),
                 dismissable=True,
                 is_open=True,
                 color="light",
@@ -553,13 +590,21 @@ def layout():
                             submit_gw,
                             html.Div(id="gw-trigger", style={"display": "none"}),
                             dcc.Store(data="", id="gw-data"),
-                        ], md=3,
+                        ],
+                        md=3,
                         # className="d-none d-md-block"
                     ),
                     dbc.Col(
                         [
                             dmc.Space(h=10),
-                            html.Progress(id="progress_bar", style={"display": "none", "width": "100%", "height": "5pc"}),
+                            html.Progress(
+                                id="progress_bar",
+                                style={
+                                    "display": "none",
+                                    "width": "100%",
+                                    "height": "5pc",
+                                },
+                            ),
                             display_skymap_gw(),
                             dmc.Space(h=10),
                             dmc.Paper(
@@ -568,13 +613,16 @@ def layout():
                                     card_explanation(),
                                 ],
                             ),
-                        ], md=9,
+                        ],
+                        md=9,
                     ),
                 ],
-                justify="around", className="g-2",
+                justify="around",
+                className="g-2",
             ),
             html.Br(),
-        ], fluid="lg",
+        ],
+        fluid="lg",
     )
 
     # Wrap it to re-define the background

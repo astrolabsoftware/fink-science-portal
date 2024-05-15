@@ -38,7 +38,14 @@ def initialise_jvm(path=None):
 
     jpype.attachThreadToJVM()
 
-def connect_to_hbase_table(tablename: str, schema_name=None, nlimit=10000, setphysicalrepo=False, config_path=None):
+
+def connect_to_hbase_table(
+    tablename: str,
+    schema_name=None,
+    nlimit=10000,
+    setphysicalrepo=False,
+    config_path=None,
+):
     """Return a client connected to a HBase table
 
     Parameters
@@ -76,12 +83,21 @@ def connect_to_hbase_table(tablename: str, schema_name=None, nlimit=10000, setph
     client.connect(tablename, schema_name)
     if setphysicalrepo:
         import com.Lomikel.HBaser.FilesBinaryDataRepository
+
         client.setRepository(com.Lomikel.HBaser.FilesBinaryDataRepository())
     client.setLimit(nlimit)
 
     return client
 
-def create_or_update_hbase_table(tablename: str, families: list, schema_name: str, schema: dict, create=False, config_path=None):
+
+def create_or_update_hbase_table(
+    tablename: str,
+    families: list,
+    schema_name: str,
+    schema: dict,
+    create=False,
+    config_path=None,
+):
     """Create or update a table in HBase
 
     By default (create=False), it will only update the schema of the table

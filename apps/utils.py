@@ -52,17 +52,18 @@ hbase_type_converter = {
 }
 
 class_colors = {
-        "Early SN Ia candidate": "red",
-        "SN candidate": "orange",
-        "Kilonova candidate": "dark",
-        "Microlensing candidate": "lime",
-        "Tracklet": "violet",
-        "Solar System MPC": "yellow",
-        "Solar System candidate": "indigo",
-        "Ambiguous": "grape",
-        "Unknown": "gray",
-        "Simbad": "blue",
-    }
+    "Early SN Ia candidate": "red",
+    "SN candidate": "orange",
+    "Kilonova candidate": "dark",
+    "Microlensing candidate": "lime",
+    "Tracklet": "violet",
+    "Solar System MPC": "yellow",
+    "Solar System candidate": "indigo",
+    "Ambiguous": "grape",
+    "Unknown": "gray",
+    "Simbad": "blue",
+}
+
 
 def hbase_to_dict(hbase_output):
     """
@@ -82,6 +83,7 @@ def hbase_to_dict(hbase_output):
 
     return optimized
 
+
 def convert_datatype(series: pd.Series, type_: type) -> pd.Series:
     """Convert Series from HBase data with proper type
 
@@ -94,12 +96,16 @@ def convert_datatype(series: pd.Series, type_: type) -> pd.Series:
     """
     return series.astype(type_)
 
+
 def format_hbase_output(
-        hbase_output, schema_client,
-        group_alerts: bool, truncated: bool = False,
-        extract_color: bool = True, with_constellation: bool = True):
-    """
-    """
+    hbase_output,
+    schema_client,
+    group_alerts: bool,
+    truncated: bool = False,
+    extract_color: bool = True,
+    with_constellation: bool = True,
+):
+    """ """
     if len(hbase_output) == 0:
         return pd.DataFrame({})
 
@@ -137,7 +143,7 @@ def format_hbase_output(
         if col in pdfs.columns:
             pdfs[col] = pdfs[col].replace("nan", "[]")
 
-    pdfs = pdfs.copy() # Fix Pandas' "DataFrame is highly fragmented" warning
+    pdfs = pdfs.copy()  # Fix Pandas' "DataFrame is highly fragmented" warning
 
     if not truncated:
         # Fink final classification
@@ -188,6 +194,7 @@ def format_hbase_output(
 
     return pdfs
 
+
 def query_and_order_statistics(date="", columns="*", index_by="key:key", drop=True):
     """Query /statistics, and order the resulting dataframe
 
@@ -227,6 +234,7 @@ def query_and_order_statistics(date="", columns="*", index_by="key:key", drop=Tr
 
     return pdf
 
+
 def isoify_time(t):
     try:
         tt = Time(t)
@@ -238,17 +246,18 @@ def isoify_time(t):
             tt = Time(ft, format="mjd")
     return tt.iso
 
+
 def markdownify_objectid(objectid):
-    """
-    """
+    """ """
     objectid_markdown = f"[{objectid}](/{objectid})"
     return objectid_markdown
 
+
 def extract_row(key: str, clientresult) -> dict:
-    """Extract one row from the client result, and return result as dict
-    """
+    """Extract one row from the client result, and return result as dict"""
     data = clientresult[key]
     return dict(data)
+
 
 def readstamp(stamp: str, return_type="array", gzipped=True) -> np.array:
     """Read the stamp data inside an alert.
@@ -286,7 +295,10 @@ def readstamp(stamp: str, return_type="array", gzipped=True) -> np.array:
     else:
         return extract_stamp(stamp)
 
-def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type="array") -> pd.DataFrame:
+
+def extract_cutouts(
+    pdf: pd.DataFrame, client, col=None, return_type="array"
+) -> pd.DataFrame:
     """Query and uncompress cutout data from the HBase table
 
     Inplace modifications
@@ -307,7 +319,11 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type="array") ->
     pdf: Pandas DataFrame
         Modified original DataFrame with cutout data uncompressed (2D array)
     """
-    cols = ["b:cutoutScience_stampData", "b:cutoutTemplate_stampData", "b:cutoutDifference_stampData"]
+    cols = [
+        "b:cutoutScience_stampData",
+        "b:cutoutTemplate_stampData",
+        "b:cutoutDifference_stampData",
+    ]
 
     for colname in cols:
         # Skip unneeded columns, if only one is requested
@@ -315,7 +331,13 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type="array") ->
             continue
 
         if colname not in pdf.columns:
-            pdf[colname] = "binary:" + pdf["i:objectId"] + "_" + pdf["i:jd"].astype("str") + colname[1:]
+            pdf[colname] = (
+                "binary:"
+                + pdf["i:objectId"]
+                + "_"
+                + pdf["i:jd"].astype("str")
+                + colname[1:]
+            )
 
         pdf[colname] = pdf[colname].apply(
             lambda x: readstamp(client.repository().get(x), return_type=return_type),
@@ -323,30 +345,32 @@ def extract_cutouts(pdf: pd.DataFrame, client, col=None, return_type="array") ->
 
     return pdf
 
+
 def extract_properties(data: str, fieldnames: list):
-    """
-    """
+    """ """
     pdfs = pd.DataFrame.from_dict(hbase_to_dict(data), orient="index")
     if fieldnames is not None:
         return pdfs[fieldnames]
     else:
         return pdfs
 
+
 def convert_jd(jd, to="iso", format="jd"):
-    """Convert Julian Date into ISO date (UTC).
-    """
+    """Convert Julian Date into ISO date (UTC)."""
     return Time(jd, format=format).to_value(to)
 
+
 def convolve(image, smooth=3, kernel="gauss"):
-    """Convolve 2D image. Hacked from aplpy
-    """
+    """Convolve 2D image. Hacked from aplpy"""
     if smooth is None and isinstance(kernel, str) and kernel in ["box", "gauss"]:
         return image
 
     if smooth is not None and not np.isscalar(smooth):
-        raise ValueError("smooth= should be an integer - for more complex "
-                         "kernels, pass an array containing the kernel "
-                         "to the kernel= option")
+        raise ValueError(
+            "smooth= should be an integer - for more complex "
+            "kernels, pass an array containing the kernel "
+            "to the kernel= option"
+        )
 
     # The Astropy convolution doesn't treat +/-Inf values correctly yet, so we
     # convert to NaN here.
@@ -355,8 +379,7 @@ def convolve(image, smooth=3, kernel="gauss"):
 
     if isinstance(kernel, str):
         if kernel == "gauss":
-            kernel = Gaussian2DKernel(
-                smooth, x_size=smooth * 5, y_size=smooth * 5)
+            kernel = Gaussian2DKernel(smooth, x_size=smooth * 5, y_size=smooth * 5)
         elif kernel == "box":
             kernel = Box2DKernel(smooth, x_size=smooth * 5, y_size=smooth * 5)
         else:
@@ -364,11 +387,18 @@ def convolve(image, smooth=3, kernel="gauss"):
 
     return astropy_convolve(image, kernel, boundary="extend")
 
+
 def _data_stretch(
-        image, vmin=None, vmax=None, pmin=0.25, pmax=99.75,
-        stretch="linear", vmid: float = 10, exponent=2):
-    """Hacked from aplpy
-    """
+    image,
+    vmin=None,
+    vmax=None,
+    pmin=0.25,
+    pmax=99.75,
+    stretch="linear",
+    vmid: float = 10,
+    exponent=2,
+):
+    """Hacked from aplpy"""
     if vmin is None or vmax is None:
         interval = AsymmetricPercentileInterval(pmin, pmax, n_samples=10000)
         try:
@@ -377,31 +407,38 @@ def _data_stretch(
             vmin_auto = vmax_auto = 0
 
     if vmin is None:
-        #log.info("vmin = %10.3e (auto)" % vmin_auto)
+        # log.info("vmin = %10.3e (auto)" % vmin_auto)
         vmin = vmin_auto
     else:
         pass
-        #log.info("vmin = %10.3e" % vmin)
+        # log.info("vmin = %10.3e" % vmin)
 
     if vmax is None:
-        #log.info("vmax = %10.3e (auto)" % vmax_auto)
+        # log.info("vmax = %10.3e (auto)" % vmax_auto)
         vmax = vmax_auto
     else:
         pass
-        #log.info("vmax = %10.3e" % vmax)
+        # log.info("vmax = %10.3e" % vmax)
 
     if stretch == "arcsinh":
         stretch = "asinh"
 
     normalizer = simple_norm(
-        image, stretch=stretch, power=exponent,
-        asinh_a=vmid, min_cut=vmin, max_cut=vmax, clip=False)
+        image,
+        stretch=stretch,
+        power=exponent,
+        asinh_a=vmid,
+        min_cut=vmin,
+        max_cut=vmax,
+        clip=False,
+    )
 
     data = normalizer(image, clip=True).filled(0)
     data = np.nan_to_num(data)
-    #data = np.clip(data * 255., 0., 255.)
+    # data = np.clip(data * 255., 0., 255.)
 
-    return data#.astype(np.uint8)
+    return data  # .astype(np.uint8)
+
 
 def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
     """Conversion from magnitude to Fluxcal from SNANA manual
@@ -423,9 +460,10 @@ def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
     if magpsf is None:
         return None, None
     fluxcal = 10 ** (-0.4 * magpsf) * 10 ** (11)
-    fluxcal_err = 9.21034 * 10 ** 10 * np.exp(-0.921034 * magpsf) * sigmapsf
+    fluxcal_err = 9.21034 * 10**10 * np.exp(-0.921034 * magpsf) * sigmapsf
 
     return fluxcal, fluxcal_err
+
 
 def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
     """Extract magnitude rates in different filters, color, and color change rate.
@@ -472,9 +510,16 @@ def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
         if len(sidx) == 2:
             # We have both filters, let's try to also get the color!
             colnames_gr = ["i:jd", "i:magpsf", "i:sigmapsf"]
-            gr = pd.merge_asof(sub[sidx[0]][colnames_gr], sub[sidx[1]][colnames_gr], on="i:jd", suffixes=("_g", "_r"), direction="nearest", tolerance=tolerance)
+            gr = pd.merge_asof(
+                sub[sidx[0]][colnames_gr],
+                sub[sidx[1]][colnames_gr],
+                on="i:jd",
+                suffixes=("_g", "_r"),
+                direction="nearest",
+                tolerance=tolerance,
+            )
             # It is organized around g band points, r columns are null when unmatched
-            gr = gr.loc[~gr.isna()["i:magpsf_r"]] # Keep only matched rows
+            gr = gr.loc[~gr.isna()["i:magpsf_r"]]  # Keep only matched rows
 
             gr["v:g-r"] = gr["i:magpsf_g"] - gr["i:magpsf_r"]
             gr["v:sigma(g-r)"] = np.hypot(gr["i:sigmapsf_g"], gr["i:sigmapsf_r"])
@@ -487,7 +532,20 @@ def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
             gr["v:sigma(rate(g-r))"] = dgrerr / djd
 
             # Now we may assign these color values also to corresponding r band points
-            sub = pd.merge_asof(sub, gr[["i:jd", "v:g-r", "v:sigma(g-r)", "v:rate(g-r)", "v:sigma(rate(g-r))"]], direction="nearest", tolerance=tolerance)
+            sub = pd.merge_asof(
+                sub,
+                gr[
+                    [
+                        "i:jd",
+                        "v:g-r",
+                        "v:sigma(g-r)",
+                        "v:rate(g-r)",
+                        "v:sigma(rate(g-r))",
+                    ]
+                ],
+                direction="nearest",
+                tolerance=tolerance,
+            )
 
         return sub
 
@@ -495,6 +553,7 @@ def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
     pdfs = pdfs.groupby("i:objectId").apply(fn).droplevel(0)
 
     return pdfs
+
 
 def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
     """Extract g-r values for single object a pandas DataFrame
@@ -531,14 +590,22 @@ def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
     pdf_g["v:mjd"] = pdf_g["i:jd"] - 2400000.5
     pdf_r["v:mjd"] = pdf_r["i:jd"] - 2400000.5
 
-    pdf_gr = pd.merge_asof(pdf_g, pdf_r, on="i:jd", suffixes=("_g", "_r"), direction="nearest", tolerance=0.3)
-    pdf_gr = pdf_gr[~pdf_gr.isna()["i:magpsf_r"]] # Keep only matched rows
+    pdf_gr = pd.merge_asof(
+        pdf_g,
+        pdf_r,
+        on="i:jd",
+        suffixes=("_g", "_r"),
+        direction="nearest",
+        tolerance=0.3,
+    )
+    pdf_gr = pdf_gr[~pdf_gr.isna()["i:magpsf_r"]]  # Keep only matched rows
 
     pdf_gr["v:g-r"] = pdf_gr["i:magpsf_g"] - pdf_gr["i:magpsf_r"]
     pdf_gr["v:sigma_g-r"] = np.hypot(pdf_gr["i:sigmapsf_g"], pdf_gr["i:sigmapsf_r"])
     pdf_gr["v:delta_jd"] = pdf_gr["v:mjd_g"] - pdf_gr["v:mjd_r"]
 
     return pdf_gr
+
 
 def queryMPC(number, kind="asteroid"):
     """Query MPC for information about object 'designation'.
@@ -572,6 +639,7 @@ def queryMPC(number, kind="asteroid"):
     orbit = pd.Series(mpc)
     return orbit
 
+
 def convert_mpc_type(index):
     dic = {
         0: "Unclassified (mostly Main Belters)",
@@ -587,6 +655,7 @@ def convert_mpc_type(index):
         10: "Distant Objects",
     }
     return dic[index]
+
 
 def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
     """Compute the indices of superpixels that contain a subpixel.
@@ -611,28 +680,29 @@ def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
 
     return idx
 
+
 def return_empty_query():
-    """Wrapper for malformed query from URL
-    """
+    """Wrapper for malformed query from URL"""
     return "", "", None
 
+
 def extract_parameter_value_from_url(param_dic, key, default):
-    """
-    """
+    """ """
     if key in param_dic:
         val = param_dic[key]
     else:
         val = default
     return val
 
+
 def is_float(s: str) -> bool:
-    """Check if s can be transformed as a float
-    """
+    """Check if s can be transformed as a float"""
     try:
         float(s)
         return True
     except ValueError:
         return False
+
 
 def extract_bayestar_query_url(search: str):
     """Try to infer the query from an URL (GW search)
@@ -666,6 +736,7 @@ def extract_bayestar_query_url(search: str):
 
     return credible_level, event_name
 
+
 def sine_fit(x, a, b):
     """Sinusoidal function a*sin( 2*(x-b) )
     :x: float - in degrees
@@ -674,6 +745,7 @@ def sine_fit(x, a, b):
 
     """
     return a * np.sin(2 * np.radians(x - b))
+
 
 def pil_to_b64(im, enc_format="png", **kwargs):
     """Converts a PIL Image into base64 string for HTML displaying
@@ -694,6 +766,7 @@ def pil_to_b64(im, enc_format="png", **kwargs):
     encoded = base64.b64encode(buff.getvalue()).decode("utf-8")
 
     return encoded
+
 
 def generate_qr(data):
     """Generate a QR code from the data
@@ -723,9 +796,9 @@ def generate_qr(data):
 
     return img
 
+
 def retrieve_oid_from_metaname(name):
-    """Search for the corresponding ZTF objectId given a metaname
-    """
+    """Search for the corresponding ZTF objectId given a metaname"""
     r = request_api(
         "/api/v1/metadata",
         json={
@@ -737,6 +810,7 @@ def retrieve_oid_from_metaname(name):
     if r != []:
         return r[0]["key:key"]
     return None
+
 
 def get_first_finite_value(data, pos=0):
     """Returns first finite value from the array at or after given position.
@@ -762,13 +836,14 @@ def get_first_finite_value(data, pos=0):
     else:
         return np.nan
 
+
 def get_first_value(pdf, colname, default=None):
-    """Get first value from given column of a DataFrame, or default value if not exists.
-    """
+    """Get first value from given column of a DataFrame, or default value if not exists."""
     if colname in pdf.columns:
         return pdf.loc[0, colname]
     else:
         return default
+
 
 # Access local or remove API endpoint
 from json import loads as json_loads
@@ -815,7 +890,7 @@ def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
                 json=json,
             )
         elif method == "GET":
-                # No args?..
+            # No args?..
             r = requests.get(
                 f"{APIURL}{endpoint}",
             )
@@ -826,6 +901,7 @@ def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
             return io.BytesIO(r.content)
         else:
             return pd.read_json(io.BytesIO(r.content), **kwargs)
+
 
 # TODO: split these UI snippets into separate file?..
 import dash_bootstrap_components as dbc
@@ -840,6 +916,7 @@ def loading(item):
         overlayOpacity=0.0,
         zIndex=100000,
     )
+
 
 def help_popover(text, id, trigger=None, className=None):
     """
@@ -859,25 +936,32 @@ def help_popover(text, id, trigger=None, className=None):
             dbc.Popover(
                 dbc.PopoverBody(
                     text,
-                    style={"overflow-y": "auto", "white-space": "pre-wrap", "max-height": "80vh"}),
+                    style={
+                        "overflow-y": "auto",
+                        "white-space": "pre-wrap",
+                        "max-height": "80vh",
+                    },
+                ),
                 target=id,
                 trigger="legacy",
                 placement="auto",
                 style={"width": "80vw", "max-width": "800px"},
                 className="shadow-lg",
             ),
-        ], className=className,
+        ],
+        className=className,
     )
 
+
 def template_button_for_external_conesearch(
-        className="btn btn-default zoom btn-circle btn-lg btn-image",
-        style={},
-        color="dark",
-        outline=True,
-        title="",
-        target="_blank",
-        href="",
-    ):
+    className="btn btn-default zoom btn-circle btn-lg btn-image",
+    style={},
+    color="dark",
+    outline=True,
+    title="",
+    target="_blank",
+    href="",
+):
     """Template button for external conesearch
 
     Parameters
@@ -908,7 +992,10 @@ def template_button_for_external_conesearch(
 
     return button
 
-def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, radius=None, width=4):
+
+def create_button_for_external_conesearch(
+    kind: str, ra0: float, dec0: float, radius=None, width=4
+):
     """Create a button that triggers an external conesearch
 
     The button is wrapped within a dbc.Col object.
@@ -933,7 +1020,10 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
             radius = 0.5
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={"background-image": "url(/assets/buttons/assassin_logo.png)", "background-color": "black"},
+                style={
+                    "background-image": "url(/assets/buttons/assassin_logo.png)",
+                    "background-color": "black",
+                },
                 title="ASAS-SN",
                 href=f"https://asas-sn.osu.edu/variables?ra={ra0}&dec={dec0}&radius={radius}&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=VI&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&",
             ),
@@ -942,7 +1032,10 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
     elif kind == "asas-sn":
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={"background-image": "url(/assets/buttons/assassin_logo.png)", "background-color": "black"},
+                style={
+                    "background-image": "url(/assets/buttons/assassin_logo.png)",
+                    "background-color": "black",
+                },
                 title="ASAS-SN",
                 href=f"https://asas-sn.osu.edu/?ra={ra0}&dec={dec0}",
             ),
@@ -975,7 +1068,11 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
             radius = 5
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={"background-image": "url(/assets/buttons/tns_logo.png)", "background-size": "auto 100%", "background-position-x": "left"},
+                style={
+                    "background-image": "url(/assets/buttons/tns_logo.png)",
+                    "background-size": "auto 100%",
+                    "background-position-x": "left",
+                },
                 title="TNS",
                 href=f"https://www.wis-tns.org/search?ra={ra0}&decl={dec0}&radius={radius}&coords_unit=arcsec",
             ),
@@ -1008,7 +1105,10 @@ def create_button_for_external_conesearch(kind: str, ra0: float, dec0: float, ra
             radius = 1.0
         button = dbc.Col(
             template_button_for_external_conesearch(
-                style={"background-image": "url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)", "background-color": "black"},
+                style={
+                    "background-image": "url(/assets/buttons/NEDVectorLogo_WebBanner_100pxTall_2NoStars.png)",
+                    "background-color": "black",
+                },
                 title="NED",
                 href=f"http://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0&ra={ra0}&dec={dec0}&radius={radius}&obj_sort=Distance+to+search+center&img_stamp=Yes",
             ),
