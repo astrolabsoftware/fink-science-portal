@@ -33,9 +33,9 @@ from apps.plotting import (
 )
 from apps.sso.cards import card_sso_left
 from apps.supernovae.cards import card_sn_scores
+from fink_utils.sso.utils import get_miriade_data
 from apps.utils import (
     generate_qr,
-    get_miriade_data,
     loading,
     pil_to_b64,
     request_api,
