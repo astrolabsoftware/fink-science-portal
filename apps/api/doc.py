@@ -15,50 +15,32 @@
 import pandas as pd
 
 from app import APIURL
-
 from apps.statistics import dic_names
 
-api_doc_summary = """
+api_doc_summary = f"""
 # Fink API
 
 ## Summary of services
 
 | HTTP Method | URI | Action | Availability |
 |-------------|-----|--------|--------------|
-| POST/GET | {}/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/sso | Get confirmed Solar System Object data | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/ssocand | Get candidate Solar System Object data | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/tracklet | Get tracklet data | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/bayestar | Cross-match LIGO/Virgo sky map with Fink alert data| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/statistics | Statistics concerning Fink alert data| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/anomaly | Fink alerts with large anomaly score| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/random | Draw random objects from the Fink database| &#x2611;&#xFE0F; |
-| POST/GET  | {}/api/v1/ssoft  | Get the Fink Solar System table | &#x2611;&#xFE0F; |
-| POST/GET  | {}/api/v1/resolver  | Resolve names | &#x2611;&#xFE0F; |
-| GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
-| GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-)
+| POST/GET | {APIURL}/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/sso | Get confirmed Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/ssocand | Get candidate Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/tracklet | Get tracklet data | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/bayestar | Cross-match LIGO/Virgo sky map with Fink alert data| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/statistics | Statistics concerning Fink alert data| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/anomaly | Fink alerts with large anomaly score| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/random | Draw random objects from the Fink database| &#x2611;&#xFE0F; |
+| POST/GET  | {APIURL}/api/v1/ssoft  | Get the Fink Solar System table | &#x2611;&#xFE0F; |
+| POST/GET  | {APIURL}/api/v1/resolver  | Resolve names | &#x2611;&#xFE0F; |
+| GET  | {APIURL}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
+| GET  | {APIURL}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
+"""
 
 api_doc_object = """
 ## Retrieve object data
@@ -1120,7 +1102,7 @@ The schema of the dataframe is the following:
 
 All other fields starting with `class:` are crossmatch from the SIMBAD database.
 """.format(
-    pd.DataFrame([dic_names]).T.rename(columns={0: "description"}).to_markdown()
+    pd.DataFrame([dic_names]).T.rename(columns={0: "description"}).to_markdown(),
 )
 
 api_doc_random = """
