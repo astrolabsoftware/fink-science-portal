@@ -635,7 +635,7 @@ def store_query(name):
             if name:
                 pdfsso["i:ssnamenr"] = name
 
-            pdfsso = get_miriade_data(pdfsso)
+            pdfsso = get_miriade_data(pdfsso, withecl=False)
     else:
         pdfsso = pd.DataFrame()
 
