@@ -16,76 +16,78 @@ import requests
 import datetime
 
 import pandas as pd
-import numpy as np
 
 import io
 import sys
 
 APIURL = sys.argv[1]
 
-def ssoftsearch(version=None, flavor=None, sso_number=None, sso_name=None, schema=None, output_format='parquet'):
-    """ Perform a sso search in the Science Portal using the Fink REST API
-    """
-    payload = {
-        'output-format': output_format
-    }
+
+def ssoftsearch(
+    version=None,
+    flavor=None,
+    sso_number=None,
+    sso_name=None,
+    schema=None,
+    output_format="parquet",
+):
+    """Perform a sso search in the Science Portal using the Fink REST API"""
+    payload = {"output-format": output_format}
 
     if version is not None:
         payload.update(
             {
-                'version': version,
+                "version": version,
             }
         )
 
     if flavor is not None:
         payload.update(
             {
-                'flavor': flavor,
+                "flavor": flavor,
             }
         )
 
     if sso_number is not None:
         payload.update(
             {
-                'sso_number': sso_number,
+                "sso_number": sso_number,
             }
         )
 
     if sso_name is not None:
         payload.update(
             {
-                'sso_name': sso_name,
+                "sso_name": sso_name,
             }
         )
 
     if schema is not None:
         payload.update(
             {
-                'schema': True,
+                "schema": True,
             }
         )
 
-    r = requests.post(
-        '{}/api/v1/ssoft'.format(APIURL),
-        json=payload
-    )
+    r = requests.post("{}/api/v1/ssoft".format(APIURL), json=payload)
 
     assert r.status_code == 200, r.content
 
-    if output_format == 'json':
+    if output_format == "json":
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))
-    elif output_format == 'csv':
+    elif output_format == "csv":
         pdf = pd.read_csv(io.BytesIO(r.content))
-    elif output_format == 'parquet':
+    elif output_format == "parquet":
         pdf = pd.read_parquet(io.BytesIO(r.content))
 
     return pdf
 
+
 def default_ssoft() -> None:
     """
     Examples
-    ---------
+    --------
     >>> default_ssoft()
     """
     pdf = ssoftsearch()
@@ -93,45 +95,71 @@ def default_ssoft() -> None:
     assert not pdf.empty
 
     now = datetime.datetime.now()
-    current_date = '{}.{:02d}'.format(now.year, now.month)
+    current_date = "{}.{:02d}".format(now.year, now.month)
 
-    assert pdf['version'].values[0] == current_date
+    assert pdf["version"].to_numpy()[0] == current_date
 
-    assert 'alpha0' in pdf.columns
+    assert "alpha0" in pdf.columns
+
 
 def previous_ssoft() -> None:
     """
     Examples
-    ---------
+    --------
     >>> previous_ssoft()
     """
-    pdf = ssoftsearch(version='2023.07')
+    pdf = ssoftsearch(version="2023.07")
 
     assert not pdf.empty
+
 
 def test_ids() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_ids()
     """
-    pdf = ssoftsearch(sso_number='33803')
+    pdf = ssoftsearch(sso_number="33803")
 
     assert len(pdf) == 1
 
-    pdf = ssoftsearch(sso_name='Benoitcarry')
+    pdf = ssoftsearch(sso_name="Benoitcarry")
 
     assert len(pdf) == 1
+
 
 def test_schema() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_schema()
     """
-    pdf = ssoftsearch(schema=True, output_format='json')
+    pdf = ssoftsearch()
 
-    assert len(pdf) == 55, 'Found {} entries'.format(len(pdf))
+    schema = ssoftsearch(schema=True, output_format="json")
+
+    # check columns
+    msg = "Found {} entries in the DataFrame and {} entries in the schema".format(
+        len(pdf), len(schema)
+    )
+    assert set(schema["args"].keys()) == set(pdf.columns), msg
+
+
+def compare_schema() -> None:
+    """
+    Examples
+    --------
+    >>> compare_schema()
+    """
+    schema1 = ssoftsearch(schema=True, output_format="json")
+
+    # get the schema
+    r = requests.get("https://fink-portal.org/api/v1/ssoft?schema")
+    schema2 = r.json()
+
+    keys1 = set(schema1["args"].keys())
+    keys2 = set(schema2["args"].keys())
+    assert keys1 == keys2, [keys1, keys2]
 
 
 if __name__ == "__main__":

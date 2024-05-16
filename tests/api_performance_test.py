@@ -1,4 +1,4 @@
-# Copyright 2022 AstroLab Software
+# Copyright 2022-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
 # limitations under the License.
 import requests
 import pandas as pd
-import numpy as np
 import time
 
 import io
@@ -22,53 +21,55 @@ import sys
 
 APIURL = sys.argv[1]
 
-def classsearch(myclass='Solar System MPC', n=100000, startdate='2022-03-03', stopdate='2022-03-04', output_format='json', columns='*'):
-    """ Perform a heavy class search in the Science Portal using the Fink REST API
-    """
+
+def classsearch(
+    myclass="Solar System MPC",
+    n=100000,
+    startdate="2022-03-03",
+    stopdate="2022-03-04",
+    output_format="json",
+    columns="*",
+):
+    """Perform a heavy class search in the Science Portal using the Fink REST API"""
     payload = {
-        'class': myclass,
-        'n': n,
-        'columns': columns,
-        'output-format': output_format
+        "class": myclass,
+        "n": n,
+        "columns": columns,
+        "output-format": output_format,
     }
 
     if startdate is not None:
-        payload.update(
-            {
-                'startdate': startdate,
-                'stopdate': stopdate
-            }
-        )
+        payload.update({"startdate": startdate, "stopdate": stopdate})
 
-    r = requests.post(
-        '{}/api/v1/latests'.format(APIURL),
-        json=payload
-    )
+    r = requests.post("{}/api/v1/latests".format(APIURL), json=payload)
 
     assert r.status_code == 200, r.content
 
-    if output_format == 'json':
+    if output_format == "json":
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))
-    elif output_format == 'csv':
+    elif output_format == "csv":
         pdf = pd.read_csv(io.BytesIO(r.content))
-    elif output_format == 'parquet':
+    elif output_format == "parquet":
         pdf = pd.read_parquet(io.BytesIO(r.content))
 
     return pdf
 
+
 def test_heavy_classsearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_heavy_classsearch()
     """
     t0 = time.time()
-    pdf = classsearch(columns='i:objectId,i:magpsf,i:jd,d:rf_snia_vs_nonia')
+    classsearch(columns="i:objectId,i:magpsf,i:jd,d:rf_snia_vs_nonia")
     dt = time.time() - t0
 
     # less than 45 seconds to get 21,000 objects
-    assert dt < 45, 'Spent {} seconds in querying for MPC objects -- too long!'.format(dt)
+    assert dt < 45, "Spent {} seconds in querying for MPC objects -- too long!".format(
+        dt
+    )
 
 
 if __name__ == "__main__":
