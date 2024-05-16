@@ -70,9 +70,9 @@ def timeline_data_transfer(
     trans_datasource, date_range_picker, class_select, extra_cond, trans_content
 ):
     """ """
-    active_ = np.where(
-        np.array([trans_datasource, date_range_picker, trans_content]) != None,
-    )[0]
+    steps = [trans_datasource, date_range_picker, trans_content]
+
+    active_ = np.where(np.array([i is not None for i in steps]))[0]
     tmp = len(active_)
     nsteps = 0 if tmp < 0 else tmp
 
@@ -212,7 +212,7 @@ def filter_tab():
 )
 def display_filter_tab(trans_datasource):
     if trans_datasource is None:
-        PreventUpdate
+        PreventUpdate # noqa: B018
     else:
         if trans_datasource == "ZTF":
             minDate = date(2019, 11, 1)
@@ -278,8 +278,8 @@ def display_filter_tab(trans_datasource):
             ]
             values = ["Lightcurve", "Cutouts", "Full packet"]
             data_content = [
-                dmc.Radio(label=l, value=k, size="sm", color="orange")
-                for l, k in zip(labels, values)
+                dmc.Radio(label=label, value=k, size="sm", color="orange")
+                for label, k in zip(labels, values)
             ]
         elif trans_datasource == "ELASTiCC (v1)":
             minDate = date(2023, 11, 27)
@@ -312,8 +312,8 @@ def display_filter_tab(trans_datasource):
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
             data_content = [
-                dmc.Radio(label=l, value=k, size="sm", color="orange")
-                for l, k in zip(labels, values)
+                dmc.Radio(label=label, value=k, size="sm", color="orange")
+                for label, k in zip(labels, values)
             ]
         elif trans_datasource == "ELASTiCC (v2.0)":
             minDate = date(2023, 11, 27)
@@ -346,8 +346,8 @@ def display_filter_tab(trans_datasource):
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
             data_content = [
-                dmc.Radio(label=l, value=k, size="sm", color="orange")
-                for l, k in zip(labels, values)
+                dmc.Radio(label=label, value=k, size="sm", color="orange")
+                for label, k in zip(labels, values)
             ]
         elif trans_datasource == "ELASTiCC (v2.1)":
             minDate = date(2023, 11, 27)
@@ -380,8 +380,8 @@ def display_filter_tab(trans_datasource):
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
             data_content = [
-                dmc.Radio(label=l, value=k, size="sm", color="orange")
-                for l, k in zip(labels, values)
+                dmc.Radio(label=label, value=k, size="sm", color="orange")
+                for label, k in zip(labels, values)
             ]
 
         return (
@@ -421,7 +421,7 @@ def content_tab():
 )
 def update_content_tab(date_range_picker):
     if date_range_picker is None:
-        PreventUpdate
+        PreventUpdate  # noqa: B018
     else:
         return {}
 
@@ -569,7 +569,7 @@ def summary_tab(
     if trans_content is None:
         html.Div(style={"display": "none"})
     elif date_range_picker is None:
-        PreventUpdate
+        PreventUpdate  # noqa: B018
     else:
         msg = """
         You are about to submit a job on the Fink Apache Spark & Kafka clusters.
@@ -659,7 +659,7 @@ def make_buttons():
 )
 def update_make_buttons(trans_content):
     if trans_content is None:
-        PreventUpdate
+        PreventUpdate  # noqa: B018
     else:
         return {}
 
@@ -854,13 +854,11 @@ def submit_job(
             "-path_to_tns=/spark_mongo_tmp/julien.peloton/tns.parquet",
         ]
         if class_select is not None:
-            for elem in class_select:
-                job_args.append(f"-fclass={elem}")
+            [job_args.append(f"-fclass={elem}") for elem in class_select]
 
         if extra_cond is not None:
             extra_cond_list = extra_cond.split(";")
-            for elem in extra_cond_list:
-                job_args.append(f"-extraCond={elem.strip()}")
+            [job_args.append(f"-extraCond={elem.strip()}") for elem in extra_cond_list]
 
         # submit the job
         filepath = "hdfs:///user/{}/{}".format(input_args["USER"], filename)
@@ -974,7 +972,6 @@ def layout():
     ft = filter_tab()
     ct = content_tab()
     btns = make_buttons()
-    fh = make_final_helper()
 
     title = dbc.Row(
         children=[

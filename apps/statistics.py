@@ -38,7 +38,6 @@ dic_names = {
     "class:Early SN Ia candidate": "Number of alerts classified as early SN Ia by Fink",
     "class:Kilonova candidate": "Number of alerts classified as Kilonova by Fink",
     "class:Microlensing candidate": "Number of alerts classified as Microlensing by Fink",
-    "class:SN candidate": "Number of alerts classified as SN by Fink",
     "class:Solar System candidate": "Number of alerts classified as SSO candidates by Fink",
     "class:Tracklet": "Number of alerts classified as satelitte glints or space debris by Fink",
     "class:Unknown": "Number of alerts without classification",
@@ -164,18 +163,20 @@ def create_stat_row(object_stats):
     Input("object-stats", "data"),
     prevent_initial_call=True,
 )
-def create_stat_row(object_stats):
+def create_stat_row_callback(object_stats):
     """Show basic stats. Used in the mobile app."""
     pdf = pd.read_json(object_stats)
     c0_, c1_, c2_, c3_, c4_ = create_stat_generic(pdf)
 
-    rowify = lambda x: dbc.Row(
-        children=[dbc.Col(children=x, width=10)],
-        justify="center",
-        style={
-            "text-align": "center",
-        },
-    )
+    def rowify(column):
+        """Create a row for a column"""
+        return dbc.Row(
+            children=[dbc.Col(children=column, width=10)],
+            justify="center",
+            style={
+                "text-align": "center",
+            },
+        )
 
     row = [
         html.Br(),
@@ -397,8 +398,6 @@ def generate_col_list():
 
 def get_data_one_night(night):
     """Get the statistics for one night"""
-    cols = "basic:raw,basic:sci,basic:fields,basic:exposures"
-
     pdf = request_api(
         "/api/v1/statistics",
         json={

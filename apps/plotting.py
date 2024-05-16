@@ -878,7 +878,7 @@ def plot_classbar(object_data):
 
     is_seen = []
     for i in range(len(x_data[0])):
-        for xd, yd, label in zip(x_data, y_data, top_labels):
+        for xd, yd in zip(x_data, y_data):
             if top_labels[i] in is_seen:
                 showlegend = False
             else:
@@ -1121,7 +1121,7 @@ def draw_lightcurve(
                 "marker": {
                     "size": 12,
                     "color": pdf["i:isdiffpos"][idx].apply(
-                        lambda x: color_negative if x == "f" else color
+                        lambda x, color_negative=color_negative, color=color: color_negative if x == "f" else color
                     ),
                     "symbol": "o",
                 },
@@ -1560,7 +1560,7 @@ def draw_lightcurve_preview(name) -> dict:
                         idx
                     ],
                     "color": pdf["i:isdiffpos"].apply(
-                        lambda x: color_negative if x == "f" else color
+                        lambda x, color_negative=color_negative, color=color: color_negative if x == "f" else color
                     )[idx],
                     "symbol": pdf["d:tag"].apply(
                         lambda x: "o" if x == "valid" else "triangle-up"
@@ -2179,16 +2179,18 @@ def draw_cutouts_modal(object_data, date_modal_select, is_open):
     return figs
 
 
-def draw_cutouts_quickview(name, kinds=["science"]):
+def draw_cutouts_quickview(name, kinds=None):
     """Draw Science cutout data for the preview service"""
+    if kinds is None:
+        kinds = ["science"]
     figs = []
     for kind in kinds:
-        try:
+        try:  # noqa: PERF203
             # We may manually construct the payload to avoid extra API call
             object_data = f'{{"i:objectId":{{"0": "{name}"}}}}'
             data = extract_cutout(object_data, None, kind=kind)
             figs.append(draw_cutout(data, kind, zoom=False))
-        except OSError:
+        except OSError:  # noqa: PERF203
             data = dcc.Markdown("Load fail, refresh the page")
             figs.append(data)
     return figs
@@ -2200,8 +2202,8 @@ def create_circular_mask(h, w, center=None, radius=None):
     if radius is None:  # use the smallest distance between the center and image walls
         radius = min(center[0], center[1], w - center[0], h - center[1])
 
-    Y, X = np.ogrid[:h, :w]
-    dist_from_center = np.sqrt((X - center[0]) ** 2 + (Y - center[1]) ** 2)
+    x, y = np.ogrid[:h, :w]
+    dist_from_center = np.sqrt((x - center[0]) ** 2 + (y - center[1]) ** 2)
 
     mask = dist_from_center <= radius
     return mask
@@ -2705,7 +2707,7 @@ def integrate_aladin_lite(object_data):
         var catnr_zr = A.catalog({name: 'ZTF Reference nearest, zr', sourceSize: 6, shape: 'plus', color: 'red', onClick: 'showPopup', limit: 1000});
         """
 
-        for i, row in pdfnr.iterrows():
+        for _, row in pdfnr.iterrows():
             img += """
             catnr_{}.addSources([A.source({}, {}, {{ZTF: 'Reference', mag: {:.2f}, err: {:.2f}, filter: '{}'}})]);
             """.format(
@@ -2728,8 +2730,7 @@ def integrate_aladin_lite(object_data):
 
 
 def draw_sso_lightcurve(pdf) -> dict:
-    """Draw SSO object lightcurve with errorbars, and ephemerides on top
-    from the miriade IMCCE service.
+    """Draw SSO object lightcurve with errorbars, and ephemerides on top from the miriade IMCCE service.
 
     Returns
     -------
@@ -2985,8 +2986,7 @@ def draw_sso_residual(pdf) -> dict:
 
 
 def draw_sso_astrometry(pdf) -> dict:
-    """Draw SSO object astrometry, that is difference position wrt ephemerides
-    from the miriade IMCCE service.
+    """Draw SSO object astrometry, that is difference position wrt ephemerides from the miriade IMCCE service.
 
     Returns
     -------
@@ -4029,7 +4029,7 @@ def display_years(pdf, years):
     fig = make_subplots(rows=len(years), cols=1, subplot_titles=years)
     for i, year in enumerate(years):
         # select the data for the year
-        data = pdf[pdf["date"].apply(lambda x: x.year == year)]["basic:sci"].to_numpy()
+        data = pdf[pdf["date"].apply(lambda x, year=year: x.year == year)]["basic:sci"].to_numpy()
 
         # Display year
         display_year(data, year=year, fig=fig, row=i, month_lines=True)
@@ -4313,8 +4313,9 @@ def fields_exposures(dropdown_days):
     prevent_initial_call=True,
 )
 def draw_alert_astrometry(object_data, kind) -> dict:
-    """Draw SSO object astrometry, that is difference position wrt ephemerides
-    from the miriade IMCCE service.
+    """Draw SSO object astrometry
+
+    This is the difference position wrt ephemerides from the miriade IMCCE service.
 
     Returns
     -------

@@ -54,7 +54,7 @@ def call_resolver(data, kind, reverse=False, **kwargs):
                 json=params,
                 output="json",
             )
-    except:
+    except ValueError:
         payload = None
 
     return payload
@@ -144,7 +144,7 @@ def parse_query(string, timeout=None):
     # Split the string into tokens
     try:
         tokens = shlex.split(string, posix=True)  # It will also handle quoted strings
-    except:
+    except AttributeError:
         return query
 
     unparsed = []
