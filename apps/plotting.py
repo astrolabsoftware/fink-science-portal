@@ -1121,7 +1121,9 @@ def draw_lightcurve(
                 "marker": {
                     "size": 12,
                     "color": pdf["i:isdiffpos"][idx].apply(
-                        lambda x, color_negative=color_negative, color=color: color_negative if x == "f" else color
+                        lambda x,
+                        color_negative=color_negative,
+                        color=color: color_negative if x == "f" else color
                     ),
                     "symbol": "o",
                 },
@@ -1560,7 +1562,9 @@ def draw_lightcurve_preview(name) -> dict:
                         idx
                     ],
                     "color": pdf["i:isdiffpos"].apply(
-                        lambda x, color_negative=color_negative, color=color: color_negative if x == "f" else color
+                        lambda x,
+                        color_negative=color_negative,
+                        color=color: color_negative if x == "f" else color
                     )[idx],
                     "symbol": pdf["d:tag"].apply(
                         lambda x: "o" if x == "valid" else "triangle-up"
@@ -1695,7 +1699,9 @@ def extract_max_t2(pdf):
         return pd.DataFrame()
 
     series = pdf[cols][filt].apply(lambda x: np.array(x) == np.max(x), axis=1)
-    df_tmp = pd.DataFrame(list(series.to_numpy()), columns=pdf[cols].columns).T.sum(axis=1)
+    df_tmp = pd.DataFrame(list(series.to_numpy()), columns=pdf[cols].columns).T.sum(
+        axis=1
+    )
     df = pd.DataFrame(
         {
             "r": df_tmp.to_numpy(),
@@ -3705,7 +3711,8 @@ def plot_heatmap(object_stats):
     """Plot heatmap"""
     pdf = pd.read_json(object_stats)
     pdf["date"] = [
-        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime for x in pdf.index.to_numpy()
+        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime
+        for x in pdf.index.to_numpy()
     ]
     years = np.unique(pdf["date"].apply(lambda x: x.year)).tolist()
 
@@ -3759,7 +3766,8 @@ def plot_stat_evolution(param_name, switch):
     pdf = pdf.fillna(0)
 
     pdf["date"] = [
-        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime for x in pdf.index.to_numpy()
+        Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime
+        for x in pdf.index.to_numpy()
     ]
 
     if param_name in dic_names:
@@ -4029,7 +4037,9 @@ def display_years(pdf, years):
     fig = make_subplots(rows=len(years), cols=1, subplot_titles=years)
     for i, year in enumerate(years):
         # select the data for the year
-        data = pdf[pdf["date"].apply(lambda x, year=year: x.year == year)]["basic:sci"].to_numpy()
+        data = pdf[pdf["date"].apply(lambda x, year=year: x.year == year)][
+            "basic:sci"
+        ].to_numpy()
 
         # Display year
         display_year(data, year=year, fig=fig, row=i, month_lines=True)

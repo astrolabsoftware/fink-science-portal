@@ -21,7 +21,7 @@ from dash import Input, Output, dcc, html
 from dash_iconify import DashIconify
 
 from app import APIURL, app
-from apps.utils import convert_mpc_type, help_popover, queryMPC
+from apps.utils import convert_mpc_type, help_popover, query_mpc
 
 AU_TO_M = 149597870700
 
@@ -36,13 +36,13 @@ def get_sso_data(ssnamenr):
         if ssnamenr.startswith("C/"):
             kind = "comet"
             ssnamenr = ssnamenr[:-2] + " " + ssnamenr[-2:]
-            data = queryMPC(ssnamenr, kind=kind)
+            data = query_mpc(ssnamenr, kind=kind)
         elif ssnamenr[-1] == "P":
             kind = "comet"
-            data = queryMPC(ssnamenr, kind=kind)
+            data = query_mpc(ssnamenr, kind=kind)
         else:
             kind = "asteroid"
-            data = queryMPC(ssnamenr, kind=kind)
+            data = query_mpc(ssnamenr, kind=kind)
 
         if data.empty:
             return None, None

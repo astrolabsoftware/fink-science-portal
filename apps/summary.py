@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from urllib.error import URLError
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
@@ -606,8 +607,8 @@ def store_query(name):
         dtype={"i:ssnamenr": str},  # Force reading this field as string
     )
 
-    pdf["i:ssnamenr"].replace(
-        "None", "null", inplace=True
+    pdf["i:ssnamenr"] = pdf["i:ssnamenr"].replace(
+        "None", "null"
     )  # For backwards compatibility
 
     pdfs = pdf[pdf["d:tag"] == "valid"]
@@ -699,7 +700,7 @@ def store_release_photometry(n_clicks, object_data):
                 "DC magnitude",
             )
 
-    except:
+    except URLError:
         import traceback
 
         traceback.print_exc()

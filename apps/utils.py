@@ -36,6 +36,16 @@ from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 import apps.api
 from app import APIURL, LOCALAPI, server
 
+# TODO: split these UI snippets into separate file?..
+import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
+from dash import html
+
+# Access local or remove API endpoint
+from json import loads as json_loads
+
+from flask import Response
+
 simbad_types = get_simbad_labels("old_and_new")
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
 
@@ -66,9 +76,7 @@ class_colors = {
 
 
 def hbase_to_dict(hbase_output):
-    """
-    Optimize hbase output TreeMap for faster conversion to DataFrame
-    """
+    """Optimize hbase output TreeMap for faster conversion to DataFrame"""
     # Naive Python implementation
     # optimized = {i: dict(j) for i, j in hbase_output.items()}
 
@@ -128,7 +136,9 @@ def format_hbase_output(
     # Remove cutouts if their fields are here but empty
     for _ in ["Difference", "Science", "Template"]:
         colname = f"b:cutout{_}_stampData"
-        if colname in pdfs.columns and pdfs[colname].to_numpy()[0].startswith("binary:ZTF"):
+        if colname in pdfs.columns and pdfs[colname].to_numpy()[0].startswith(
+            "binary:ZTF"
+        ):
             pdfs = pdfs.drop(columns=colname)
 
     # Type conversion
@@ -467,7 +477,10 @@ def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
 
 def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
     """Extract magnitude rates in different filters, color, and color change rate.
-    Fills the following fields:
+
+    Notes
+    -----
+    It fills the following fields:
     - v:rate - magnitude change rate for this filter, defined as magnitude difference since previous measurement, divided by time difference
     - v:sigma(rate) - error of previous value, estimated from per-point errors
     - v:g-r - color, defined by subtracting the measurements in g and r filter closer than `tolerance` days. Is assigned to both g and r data points with the same value
@@ -491,6 +504,9 @@ def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
 
     def fn(sub):
         """Extract everything relevant on the sub-group corresponding to single object.
+
+        Notes
+        -----
         Assumes it is already sorted by time.
         """
         sidx = []
@@ -607,7 +623,7 @@ def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
     return pdf_gr
 
 
-def queryMPC(number, kind="asteroid"):
+def query_mpc(number, kind="asteroid"):
     """Query MPC for information about object 'designation'.
 
     Parameters
@@ -632,8 +648,6 @@ def queryMPC(number, kind="asteroid"):
             mpc = mpc[0]
         except IndexError:
             return pd.Series({})
-    except IndexError:
-        return pd.Series({})
     except RuntimeError:
         return pd.Series({})
     orbit = pd.Series(mpc)
@@ -739,9 +753,15 @@ def extract_bayestar_query_url(search: str):
 
 def sine_fit(x, a, b):
     """Sinusoidal function a*sin( 2*(x-b) )
-    :x: float - in degrees
-    :a: float - Amplitude
-    :b: float - Phase offset
+
+    Parameters
+    ----------
+    x: float
+        in degrees
+    a: float
+        Amplitude
+    b: float
+        Phase offset
 
     """
     return a * np.sin(2 * np.radians(x - b))
@@ -845,16 +865,8 @@ def get_first_value(pdf, colname, default=None):
         return default
 
 
-# Access local or remove API endpoint
-from json import loads as json_loads
-
-from flask import Response
-
-
 def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
-    """
-    Output is one of 'pandas' (default), 'raw' or 'json'
-    """
+    """Output is one of 'pandas' (default), 'raw' or 'json'"""
     if LOCALAPI:
         # Use local API
         urls = server.url_map.bind("")
@@ -903,12 +915,6 @@ def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
             return pd.read_json(io.BytesIO(r.content), **kwargs)
 
 
-# TODO: split these UI snippets into separate file?..
-import dash_bootstrap_components as dbc
-import dash_mantine_components as dmc
-from dash import html
-
-
 def loading(item):
     return dmc.LoadingOverlay(
         item,
@@ -919,9 +925,7 @@ def loading(item):
 
 
 def help_popover(text, id, trigger=None, className=None):
-    """
-    Make clickable help icon with popover at the bottom right corner of current element
-    """
+    """Make clickable help icon with popover at the bottom right corner of current element"""
     if trigger is None:
         trigger = html.I(
             className="fa fa-question-circle fa-1x",
@@ -955,7 +959,7 @@ def help_popover(text, id, trigger=None, className=None):
 
 def template_button_for_external_conesearch(
     className="btn btn-default zoom btn-circle btn-lg btn-image",
-    style={},
+    style=None,
     color="dark",
     outline=True,
     title="",
@@ -980,6 +984,9 @@ def template_button_for_external_conesearch(
     href: str, optional
         targeted URL
     """
+    if style is None:
+        style = {}
+
     button = dbc.Button(
         className=className,
         style=style,

@@ -212,7 +212,7 @@ def filter_tab():
 )
 def display_filter_tab(trans_datasource):
     if trans_datasource is None:
-        PreventUpdate # noqa: B018
+        PreventUpdate  # noqa: B018
     else:
         if trans_datasource == "ZTF":
             minDate = date(2019, 11, 1)
@@ -494,7 +494,8 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
                         dic[elem] = 0
                     else:
                         dic[elem.replace("(TNS) ", "class:")] = int(
-                            dic["basic:sci"] * coeffs_per_class[filt]["coeff"].to_numpy()[0]
+                            dic["basic:sci"]
+                            * coeffs_per_class[filt]["coeff"].to_numpy()[0]
                         )
             count = np.sum([i[1] for i in dic.items() if "class:" in i[0]])
         else:

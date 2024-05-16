@@ -300,7 +300,9 @@ def card_explanation():
         Input("url", "search"),
     ],
 )
-def display_skymap_gw_callback(nclick, gw_data, credible_level, superevent_name, searchurl):
+def display_skymap_gw_callback(
+    nclick, gw_data, credible_level, superevent_name, searchurl
+):
     """Display explorer result on a sky map (Aladin lite).
 
     TODO: image is not displayed correctly the first time
