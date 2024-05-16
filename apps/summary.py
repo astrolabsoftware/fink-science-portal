@@ -642,14 +642,13 @@ def store_query(name):
     payload = pdfs["d:tracklet"].to_numpy()[0]
 
     if str(payload).startswith("TRCK"):
-        r = request_api(
+        pdftracklet = request_api(
             "/api/v1/tracklet",
             json={
                 "id": payload,
             },
         )
 
-        pdftracklet = pd.read_json(r)
     else:
         pdftracklet = pd.DataFrame()
 
