@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,6 @@ def card_sn_scores() -> html.Div:
         - `rate r`: magnitude increase rate per day for the `r` band.
         """,
     )
-    label_style = {"color": "#000"}
     card = html.Div(
         [
             dmc.Paper(graph_lc),
@@ -191,7 +190,6 @@ def card_sn_properties(clickData1, clickData2, clickData3, clickData4, object_da
         position = 0
 
     date0 = pdf["v:lastdate"].to_numpy()[position]
-    id0 = pdf["i:objectId"].to_numpy()[position]
     snn_snia_vs_nonia = pdf["d:snn_snia_vs_nonia"].to_numpy()[position]
     snn_sn_vs_all = pdf["d:snn_sn_vs_all"].to_numpy()[position]
     rf_snia_vs_nonia = pdf["d:rf_snia_vs_nonia"].to_numpy()[position]

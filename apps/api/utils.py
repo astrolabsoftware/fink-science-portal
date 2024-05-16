@@ -1,4 +1,4 @@
-# Copyright 2022 AstroLab Software
+# Copyright 2022-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ from astropy.table import Table
 from astropy.time import Time, TimeDelta
 from flask import Response, send_file
 from matplotlib import cm
-from PIL import Image as im
+from PIL import Image
 
 from app import APIURL
 from apps.client import connect_to_hbase_table
@@ -843,11 +843,11 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     if "colormap" in payload:
         colormap = getattr(cm, payload["colormap"])
     else:
-        colormap = lambda x: x
+        colormap = lambda x: x  # noqa: E731
     array = np.uint8(colormap(array) * 255)
 
     # Convert to PNG
-    data = im.fromarray(array)
+    data = Image.fromarray(array)
     datab = io.BytesIO()
     data.save(datab, format="PNG")
     datab.seek(0)
@@ -982,11 +982,7 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
             pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
     # Final join
-    join_df = pd.merge(
-        pdfs,
-        df,
-        on=idname,
-    )
+    join_df = pdfs.merge(df, on=idname)
 
     # reorganise columns order
     no_duplicate = np.where(pdfs.columns != idname)[0]

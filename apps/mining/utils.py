@@ -1,4 +1,4 @@
-# Copyright 2023 AstroLab Software
+# Copyright 2023-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,6 +78,12 @@ def submit_spark_job(livyhost, filename, spark_conf, job_args):
 
     Returns
     -------
+    batchid: int
+        The number of the submitted batch
+    response.status_code: int
+        HTTP status code
+    response.text: str
+        Payload
     """
     headers = {"Content-Type": "application/json"}
 

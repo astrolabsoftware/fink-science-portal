@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,9 +31,6 @@ from apps.cards import card_neighbourhood
 def card_mulens(object_data):
     """Add a card containing button to fit for microlensing events"""
     pdf = pd.read_json(object_data)
-
-    ra0 = pdf["i:ra"].to_numpy()[0]
-    dec0 = pdf["i:dec"].to_numpy()[0]
 
     card1 = dmc.AccordionMultiple(
         disableChevronRotation=True,
