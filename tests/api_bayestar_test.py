@@ -20,33 +20,33 @@ import sys
 
 APIURL = sys.argv[1]
 
-def bayestartest(bayestar='bayestar.fits.gz', event_name='', credible_level=0.1, output_format='json'):
-    """Perform a GW search in the Science Portal using the Fink REST API
-    """
-    if event_name != '':
+
+def bayestartest(
+    bayestar="bayestar.fits.gz", event_name="", credible_level=0.1, output_format="json"
+):
+    """Perform a GW search in the Science Portal using the Fink REST API"""
+    if event_name != "":
         payload = {
-            'event_name': event_name,
-            'credible_level': credible_level,
-            'output-format': output_format
+            "event_name": event_name,
+            "credible_level": credible_level,
+            "output-format": output_format,
         }
     else:
-        data = open(bayestar, 'rb').read()
+        data = open(bayestar, "rb").read()
         payload = {
-            'bayestar': str(data),
-            'credible_level': credible_level,
-            'output-format': output_format
+            "bayestar": str(data),
+            "credible_level": credible_level,
+            "output-format": output_format,
         }
 
-    r = requests.post(
-        '{}/api/v1/bayestar'.format(APIURL),
-        json=payload
-    )
+    r = requests.post("{}/api/v1/bayestar".format(APIURL), json=payload)
 
     assert r.status_code == 200, r.content
 
     pdf = pd.read_json(io.BytesIO(r.content))
 
     return pdf
+
 
 def test_bayestar() -> None:
     """
@@ -58,11 +58,15 @@ def test_bayestar() -> None:
 
     assert len(pdf) == 14, len(pdf)
 
-    a = pdf.groupby('d:classification').count()\
-        .sort_values('i:objectId', ascending=False)['i:objectId']\
+    a = (
+        pdf.groupby("d:classification")
+        .count()
+        .sort_values("i:objectId", ascending=False)["i:objectId"]
         .to_dict()
+    )
 
-    assert a['Unknown'] == 4, a
+    assert a["Unknown"] == 4, a
+
 
 def test_name_bayestar() -> None:
     """
@@ -70,7 +74,7 @@ def test_name_bayestar() -> None:
     --------
     >>> test_name_bayestar()
     """
-    pdf1 = bayestartest(event_name='S200219ac')
+    pdf1 = bayestartest(event_name="S200219ac")
     pdf2 = bayestartest()
 
     assert pdf1.equals(pdf2)

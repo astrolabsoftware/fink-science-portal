@@ -1,4 +1,4 @@
-# Copyright 2022 AstroLab Software
+# Copyright 2022-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,33 +22,40 @@ import sys
 APIURL = sys.argv[1]
 
 # Implement random name generator
-OID = 'ZTF21abfmbix'
+OID = "ZTF21abfmbix"
 
-def get_an_object(oid='ZTF21abfmbix', output_format='json', columns='*', withupperlim=False, withcutouts=False):
-    """Query an object from the Science Portal using the Fink REST API
-    """
+
+def get_an_object(
+    oid="ZTF21abfmbix",
+    output_format="json",
+    columns="*",
+    withupperlim=False,
+    withcutouts=False,
+):
+    """Query an object from the Science Portal using the Fink REST API"""
     r = requests.post(
-        '{}/api/v1/objects'.format(APIURL),
+        "{}/api/v1/objects".format(APIURL),
         json={
-            'objectId': oid,
-            'columns': columns,
-            'output-format': output_format,
-            'withupperlim': withupperlim,
-            'withcutouts': withcutouts
-        }
+            "objectId": oid,
+            "columns": columns,
+            "output-format": output_format,
+            "withupperlim": withupperlim,
+            "withcutouts": withcutouts,
+        },
     )
 
     assert r.status_code == 200, r.content
 
-    if output_format == 'json':
+    if output_format == "json":
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))
-    elif output_format == 'csv':
+    elif output_format == "csv":
         pdf = pd.read_csv(io.BytesIO(r.content))
-    elif output_format == 'parquet':
+    elif output_format == "parquet":
         pdf = pd.read_parquet(io.BytesIO(r.content))
 
     return pdf
+
 
 def test_single_object() -> None:
     """
@@ -60,15 +67,17 @@ def test_single_object() -> None:
 
     assert not pdf.empty
 
+
 def test_single_object_csv() -> None:
     """
     Examples
     --------
     >>> test_single_object_csv()
     """
-    pdf = get_an_object(oid=OID, output_format='csv')
+    pdf = get_an_object(oid=OID, output_format="csv")
 
     assert not pdf.empty
+
 
 def test_single_object_parquet() -> None:
     """
@@ -76,9 +85,10 @@ def test_single_object_parquet() -> None:
     --------
     >>> test_single_object_parquet()
     """
-    pdf = get_an_object(oid=OID, output_format='parquet')
+    pdf = get_an_object(oid=OID, output_format="parquet")
 
     assert not pdf.empty
+
 
 def test_column_selection() -> None:
     """
@@ -86,9 +96,10 @@ def test_column_selection() -> None:
     --------
     >>> test_column_selection()
     """
-    pdf = get_an_object(oid=OID, columns='i:jd,i:magpsf')
+    pdf = get_an_object(oid=OID, columns="i:jd,i:magpsf")
 
-    assert len(pdf.columns) == 2, 'I count {} columns'.format(len(pdf.columns))
+    assert len(pdf.columns) == 2, "I count {} columns".format(len(pdf.columns))
+
 
 def test_column_length() -> None:
     """
@@ -98,7 +109,8 @@ def test_column_length() -> None:
     """
     pdf = get_an_object(oid=OID)
 
-    assert len(pdf.columns) == 128, 'I count {} columns'.format(len(pdf.columns))
+    assert len(pdf.columns) == 128, "I count {} columns".format(len(pdf.columns))
+
 
 def test_withupperlim() -> None:
     """
@@ -107,7 +119,8 @@ def test_withupperlim() -> None:
     >>> test_withupperlim()
     """
     pdf = get_an_object(oid=OID, withupperlim=True)
-    assert 'd:tag' in pdf.columns
+    assert "d:tag" in pdf.columns
+
 
 def test_withcutouts() -> None:
     """
@@ -117,9 +130,10 @@ def test_withcutouts() -> None:
     """
     pdf = get_an_object(oid=OID, withcutouts=True)
 
-    assert type(pdf['b:cutoutScience_stampData'].to_numpy()[0]) == list
-    assert type(pdf['b:cutoutTemplate_stampData'].to_numpy()[0]) == list
-    assert type(pdf['b:cutoutDifference_stampData'].to_numpy()[0]) == list
+    assert isinstance(pdf["b:cutoutScience_stampData"].to_numpy()[0], list)
+    assert isinstance(pdf["b:cutoutTemplate_stampData"].to_numpy()[0], list)
+    assert isinstance(pdf["b:cutoutDifference_stampData"].to_numpy()[0], list)
+
 
 def test_formatting() -> None:
     """
@@ -130,8 +144,13 @@ def test_formatting() -> None:
     pdf = get_an_object(oid=OID)
 
     # stupid python cast...
-    assert type(pdf['i:fid'].to_numpy()[0]) == np.int64, type(pdf['i:fid'].to_numpy()[0])
-    assert type(pdf['i:magpsf'].to_numpy()[0]) == np.double, type(pdf['i:magpsf'].to_numpy()[0])
+    assert type(pdf["i:fid"].to_numpy()[0]) == np.int64, type(
+        pdf["i:fid"].to_numpy()[0]
+    )
+    assert type(pdf["i:magpsf"].to_numpy()[0]) == np.double, type(
+        pdf["i:magpsf"].to_numpy()[0]
+    )
+
 
 def test_misc() -> None:
     """
@@ -140,8 +159,9 @@ def test_misc() -> None:
     >>> test_misc()
     """
     pdf = get_an_object(oid=OID)
-    assert np.all(pdf['i:fid'].to_numpy() > 0)
-    assert np.all(pdf['i:magpsf'].to_numpy() > 6)
+    assert np.all(pdf["i:fid"].to_numpy() > 0)
+    assert np.all(pdf["i:magpsf"].to_numpy() > 6)
+
 
 def test_bad_request() -> None:
     """
@@ -149,9 +169,10 @@ def test_bad_request() -> None:
     --------
     >>> test_bad_request()
     """
-    pdf = get_an_object(oid='ldfksjflkdsjf')
+    pdf = get_an_object(oid="ldfksjflkdsjf")
 
     assert pdf.empty
+
 
 def test_multiple_objects() -> None:
     """
@@ -159,23 +180,25 @@ def test_multiple_objects() -> None:
     --------
     >>> test_multiple_objects()
     """
-    OIDS_ = ['ZTF21abfmbix', 'ZTF21aaxtctv', 'ZTF21abfaohe']
-    OIDS = ','.join(OIDS_)
+    OIDS_ = ["ZTF21abfmbix", "ZTF21aaxtctv", "ZTF21abfaohe"]
+    OIDS = ",".join(OIDS_)
     pdf = get_an_object(oid=OIDS)
 
-    n_oids = len(np.unique(pdf.groupby('i:objectId').count()['i:ra']))
+    n_oids = len(np.unique(pdf.groupby("i:objectId").count()["i:ra"]))
     assert n_oids == 3
 
     n_oids_single = 0
     len_object = 0
     for oid in OIDS_:
         pdf_ = get_an_object(oid=oid)
-        n_oid = len(np.unique(pdf_.groupby('i:objectId').count()['i:ra']))
+        n_oid = len(np.unique(pdf_.groupby("i:objectId").count()["i:ra"]))
         n_oids_single += n_oid
         len_object += len(pdf_)
 
-    assert n_oids == n_oids_single, '{} is not equal to {}'.format(n_oids, n_oids_single)
-    assert len_object == len(pdf), '{} is not equal to {}'.format(len_object, len(pdf))
+    assert n_oids == n_oids_single, "{} is not equal to {}".format(
+        n_oids, n_oids_single
+    )
+    assert len_object == len(pdf), "{} is not equal to {}".format(len_object, len(pdf))
 
 
 if __name__ == "__main__":

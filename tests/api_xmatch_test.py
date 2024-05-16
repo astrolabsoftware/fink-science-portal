@@ -20,20 +20,17 @@ import sys
 
 APIURL = sys.argv[1]
 
-def xmatchtest(catalog='mycatalog.csv', header='RA,Dec,ID,Time', radius=1.5, window=7):
-    """Perform a xmatch search in the Science Portal using the Fink REST API
-    """
+
+def xmatchtest(catalog="mycatalog.csv", header="RA,Dec,ID,Time", radius=1.5, window=7):
+    """Perform a xmatch search in the Science Portal using the Fink REST API"""
     payload = {
-        'catalog': open(catalog).read(),
-        'header': header,
-        'radius': radius, # in arcsecond
-        'window': window # in days
+        "catalog": open(catalog).read(),
+        "header": header,
+        "radius": radius,  # in arcsecond
+        "window": window,  # in days
     }
 
-    r = requests.post(
-        '{}/api/v1/xmatch'.format(APIURL),
-        json=payload
-    )
+    r = requests.post("{}/api/v1/xmatch".format(APIURL), json=payload)
 
     assert r.status_code == 200, r.content
 
@@ -41,8 +38,10 @@ def xmatchtest(catalog='mycatalog.csv', header='RA,Dec,ID,Time', radius=1.5, win
 
     return pdf
 
+
 def test_xmatch() -> None:
     """
+
     Examples
     --------
     >>> test_xmatch()
@@ -51,7 +50,7 @@ def test_xmatch() -> None:
 
     assert len(pdf) == 1, len(pdf)
 
-    assert pdf['ID'].to_numpy()[0] == 'AnObjectMatching'
+    assert pdf["ID"].to_numpy()[0] == "AnObjectMatching"
 
 
 if __name__ == "__main__":

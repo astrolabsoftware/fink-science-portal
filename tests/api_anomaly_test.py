@@ -24,44 +24,36 @@ import json
 
 APIURL = sys.argv[1]
 
-def anomalysearch(n=10, start_date=None, stop_date=None, output_format='json', cols=None):
-    """Perform a search for anomaly
-    """
-    payload = {
-        'n': n,
-        'output-format': output_format
-    }
+
+def anomalysearch(
+    n=10, start_date=None, stop_date=None, output_format="json", cols=None
+):
+    """Perform a search for anomaly"""
+    payload = {"n": n, "output-format": output_format}
 
     if start_date is not None:
-        payload.update(
-            {
-                'start_date': start_date,
-                'stop_date': stop_date
-            }
-        )
+        payload.update({"start_date": start_date, "stop_date": stop_date})
 
     if cols is not None:
-        payload.update({'columns': cols})
+        payload.update({"columns": cols})
 
-    r = requests.post(
-        '{}/api/v1/anomaly'.format(APIURL),
-        json=payload
-    )
+    r = requests.post("{}/api/v1/anomaly".format(APIURL), json=payload)
 
     assert r.status_code == 200, r.content
 
-    if output_format == 'json':
+    if output_format == "json":
         # Format output in a DataFrame
         pdf = pd.read_json(io.BytesIO(r.content))
-    elif output_format == 'csv':
+    elif output_format == "csv":
         pdf = pd.read_csv(io.BytesIO(r.content))
-    elif output_format == 'parquet':
+    elif output_format == "parquet":
         pdf = pd.read_parquet(io.BytesIO(r.content))
-    elif output_format == 'votable':
+    elif output_format == "votable":
         vt = votable.parse(io.BytesIO(r.content))
         pdf = vt.get_first_table().to_table().to_pandas()
 
     return pdf
+
 
 def test_simple_anomaly() -> None:
     """
@@ -75,7 +67,8 @@ def test_simple_anomaly() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.all(pdf['d:anomaly_score'].to_numpy() < 0)
+    assert np.all(pdf["d:anomaly_score"].to_numpy() < 0)
+
 
 def test_anomaly_and_date() -> None:
     """
@@ -83,13 +76,14 @@ def test_anomaly_and_date() -> None:
     --------
     >>> test_anomaly_and_date()
     """
-    pdf = anomalysearch(start_date='2023-01-25', stop_date='2023-01-25')
+    pdf = anomalysearch(start_date="2023-01-25", stop_date="2023-01-25")
 
     assert not pdf.empty
 
     assert len(pdf) == 10, len(pdf)
 
-    assert 'ZTF23aaaatwl' in pdf['i:objectId'].to_numpy()
+    assert "ZTF23aaaatwl" in pdf["i:objectId"].to_numpy()
+
 
 def test_anomaly_and_cols_with_sort() -> None:
     """
@@ -97,15 +91,16 @@ def test_anomaly_and_cols_with_sort() -> None:
     --------
     >>> test_anomaly_and_cols_with_sort()
     """
-    pdf = anomalysearch(cols='i:jd,i:objectId')
+    pdf = anomalysearch(cols="i:jd,i:objectId")
 
     assert not pdf.empty
 
     assert len(pdf.columns) == 2, len(pdf.columns)
 
-    assert 'i:jd' in pdf.columns
-    assert 'i:objectId' in pdf.columns
-    assert 'v:classifation' not in pdf.columns
+    assert "i:jd" in pdf.columns
+    assert "i:objectId" in pdf.columns
+    assert "v:classifation" not in pdf.columns
+
 
 def test_query_url() -> None:
     """
@@ -120,10 +115,11 @@ def test_query_url() -> None:
     pdf2 = pd.read_json(io.BytesIO(r.content))
 
     # subset of cols to avoid type issues
-    cols = ['d:anomaly_score']
+    cols = ["d:anomaly_score"]
 
     isclose = np.isclose(pdf1[cols], pdf2[cols])
     assert np.all(isclose)
+
 
 def test_various_outputs() -> None:
     """
@@ -131,19 +127,20 @@ def test_various_outputs() -> None:
     --------
     >>> test_various_outputs()
     """
-    pdf1 = anomalysearch(output_format='json')
+    pdf1 = anomalysearch(output_format="json")
 
-    for fmt in ['csv', 'parquet', 'votable']:
+    for fmt in ["csv", "parquet", "votable"]:
         pdf2 = anomalysearch(output_format=fmt)
 
         # subset of cols to avoid type issues
-        cols1 = ['d:anomaly_score']
+        cols1 = ["d:anomaly_score"]
 
         # https://docs.astropy.org/en/stable/io/votable/api_exceptions.html#w02-x-attribute-y-is-invalid-must-be-a-standard-xml-id
-        cols2 = cols1 if fmt != 'votable' else ['d_anomaly_score']
+        cols2 = cols1 if fmt != "votable" else ["d_anomaly_score"]
 
         isclose = np.isclose(pdf1[cols1], pdf2[cols2])
         assert np.all(isclose), fmt
+
 
 def test_feature_array() -> None:
     """
@@ -153,13 +150,13 @@ def test_feature_array() -> None:
     """
     pdf = anomalysearch()
 
-    a_feature = pdf['d:lc_features_g'].to_numpy()[0]
+    a_feature = pdf["d:lc_features_g"].to_numpy()[0]
     assert isinstance(a_feature, str), a_feature
 
-    for col in ['d:lc_features_g', 'd:lc_features_r']:
-        pdf[col] =  pdf[col].apply(lambda x: json.loads(x))
+    for col in ["d:lc_features_g", "d:lc_features_r"]:
+        pdf[col] = pdf[col].apply(lambda x: json.loads(x))
 
-    a_feature = pdf['d:lc_features_g'].to_numpy()[0]
+    a_feature = pdf["d:lc_features_g"].to_numpy()[0]
     assert isinstance(a_feature, list), a_feature
 
 
