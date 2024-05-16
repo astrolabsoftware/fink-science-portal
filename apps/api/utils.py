@@ -1,4 +1,4 @@
-# Copyright 2022 AstroLab Software
+# Copyright 2022-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,49 +12,47 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import io
-import gzip
-import yaml
-import requests
 import datetime
-
-import pandas as pd
-import numpy as np
-import healpy as hp
-
-from PIL import Image as im
-from matplotlib import cm
+import gzip
+import io
 
 import astropy.units as u
+import healpy as hp
+import numpy as np
+import pandas as pd
+import requests
+import yaml
 from astropy.coordinates import SkyCoord
-from astropy.time import Time, TimeDelta
 from astropy.io import fits, votable
 from astropy.table import Table
+from astropy.time import Time, TimeDelta
+from flask import Response, send_file
+from matplotlib import cm
+from PIL import Image
 
 from app import APIURL
-
 from apps.client import connect_to_hbase_table
+from apps.euclid.utils import (
+    add_columns,
+    check_header,
+    compute_rowkey,
+    load_euclid_header,
+)
+from apps.plotting import legacy_normalizer, sigmoid_normalizer
+from apps.utils import (
+    convert_datatype,
+    convolve,
+    extract_cutouts,
+    format_hbase_output,
+    hbase_to_dict,
+    hbase_type_converter,
+    isoify_time,
+)
+from fink_utils.sso.utils import get_miriade_data
 
-from apps.utils import get_miriade_data
-from apps.utils import format_hbase_output
-from apps.utils import extract_cutouts
-from apps.utils import hbase_type_converter
-from apps.utils import convert_datatype
-from apps.utils import isoify_time
-from apps.utils import hbase_to_dict
-
-from apps.euclid.utils import load_euclid_header
-from apps.euclid.utils import add_columns
-from apps.euclid.utils import compute_rowkey
-from apps.euclid.utils import check_header
-
-from apps.plotting import legacy_normalizer, convolve, sigmoid_normalizer
-
-from flask import Response
-from flask import send_file
 
 def return_object_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/objects
 
@@ -67,35 +65,35 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'columns' in payload:
-        cols = payload['columns'].replace(" ", "")
+    if "columns" in payload:
+        cols = payload["columns"].replace(" ", "")
     else:
-        cols = '*'
+        cols = "*"
 
-    if ',' in payload['objectId']:
+    if "," in payload["objectId"]:
         # multi-objects search
-        splitids = payload['objectId'].split(',')
-        objectids = ['key:key:{}'.format(i.strip()) for i in splitids]
+        splitids = payload["objectId"].split(",")
+        objectids = [f"key:key:{i.strip()}" for i in splitids]
     else:
         # single object search
-        objectids = ["key:key:{}".format(payload['objectId'])]
+        objectids = ["key:key:{}".format(payload["objectId"])]
 
-    if 'withcutouts' in payload and str(payload['withcutouts']) == 'True':
+    if "withcutouts" in payload and str(payload["withcutouts"]) == "True":
         withcutouts = True
     else:
         withcutouts = False
 
-    if 'withupperlim' in payload and str(payload['withupperlim']) == 'True':
+    if "withupperlim" in payload and str(payload["withupperlim"]) == "True":
         withupperlim = True
     else:
         withupperlim = False
 
-    if cols == '*':
+    if cols == "*":
         truncated = False
     else:
         truncated = True
 
-    client = connect_to_hbase_table('ztf')
+    client = connect_to_hbase_table("ztf")
 
     # Get data from the main table
     results = {}
@@ -104,21 +102,26 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             "",
             to_evaluate,
             cols,
-            0, True, True
+            0,
+            True,
+            True,
         )
         results.update(result)
 
     schema_client = client.schema()
 
     pdf = format_hbase_output(
-        results, schema_client, group_alerts=False, truncated=truncated
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
     )
 
     if withcutouts:
         pdf = extract_cutouts(pdf, client)
 
     if withupperlim:
-        clientU = connect_to_hbase_table('ztf.upper')
+        clientU = connect_to_hbase_table("ztf.upper")
         # upper limits
         resultsU = {}
         for to_evaluate in objectids:
@@ -126,44 +129,53 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 to_evaluate,
                 "*",
-                0, False, False
+                0,
+                False,
+                False,
             )
             resultsU.update(resultU)
 
         # bad quality
-        clientUV = connect_to_hbase_table('ztf.uppervalid')
+        clientUV = connect_to_hbase_table("ztf.uppervalid")
         resultsUP = {}
         for to_evaluate in objectids:
             resultUP = clientUV.scan(
                 "",
                 to_evaluate,
                 "*",
-                0, False, False
+                0,
+                False,
+                False,
             )
             resultsUP.update(resultUP)
 
-        pdfU = pd.DataFrame.from_dict(hbase_to_dict(resultsU), orient='index')
-        pdfUP = pd.DataFrame.from_dict(hbase_to_dict(resultsUP), orient='index')
+        pdfU = pd.DataFrame.from_dict(hbase_to_dict(resultsU), orient="index")
+        pdfUP = pd.DataFrame.from_dict(hbase_to_dict(resultsUP), orient="index")
 
-        pdf['d:tag'] = 'valid'
-        pdfU['d:tag'] = 'upperlim'
-        pdfUP['d:tag'] = 'badquality'
+        pdf["d:tag"] = "valid"
+        pdfU["d:tag"] = "upperlim"
+        pdfUP["d:tag"] = "badquality"
 
-        if 'i:jd' in pdfUP.columns:
+        if "i:jd" in pdfUP.columns:
             # workaround -- see https://github.com/astrolabsoftware/fink-science-portal/issues/216
-            mask = np.array([False if float(i) in pdf['i:jd'].values else True for i in pdfUP['i:jd'].values])
+            mask = np.array(
+                [
+                    False if float(i) in pdf["i:jd"].to_numpy() else True
+                    for i in pdfUP["i:jd"].to_numpy()
+                ]
+            )
             pdfUP = pdfUP[mask]
 
         # Hacky way to avoid converting concatenated column to float
-        pdfU['i:candid'] = -1 # None
-        pdfUP['i:candid'] = -1 # None
+        pdfU["i:candid"] = -1  # None
+        pdfUP["i:candid"] = -1  # None
 
         pdf_ = pd.concat((pdf, pdfU, pdfUP), axis=0)
 
         # replace
-        if 'i:jd' in pdf_.columns:
-            pdf_['i:jd'] = pdf_['i:jd'].astype(float)
-            pdf = pdf_.sort_values('i:jd', ascending=False)
+        if "i:jd" in pdf_.columns:
+            pdf_["i:jd"] = pdf_["i:jd"].astype(float)
+            pdf = pdf_.sort_values("i:jd", ascending=False)
         else:
             pdf = pdf_
 
@@ -174,8 +186,9 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
 
     return pdf
 
+
 def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/explorer
 
@@ -190,70 +203,72 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     """
     truncated = False
 
-    if 'startdate' in payload:
-        jd_start = Time(isoify_time(payload['startdate'])).jd
+    if "startdate" in payload:
+        jd_start = Time(isoify_time(payload["startdate"])).jd
     else:
-        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_start = Time("2019-11-01 00:00:00").jd
 
-    if 'stopdate' in payload:
-        jd_stop = Time(isoify_time(payload['stopdate'])).jd
-    elif 'window' in payload and 'startdate' in payload:
-        window = float(payload['window'])
+    if "stopdate" in payload:
+        jd_stop = Time(isoify_time(payload["stopdate"])).jd
+    elif "window" in payload and "startdate" in payload:
+        window = float(payload["window"])
         jd_stop = jd_start + window
     else:
         jd_stop = Time.now().jd
 
-    n = int(payload.get('n', 1000))
+    n = int(payload.get("n", 1000))
 
     if user_group == 0:
         # objectId search
-        client = connect_to_hbase_table('ztf')
+        client = connect_to_hbase_table("ztf")
         results = {}
-        for oid in payload['objectId'].split(','):
+        for oid in payload["objectId"].split(","):
             # objectId search
-            to_evaluate = "key:key:{}".format(oid.strip())
+            to_evaluate = f"key:key:{oid.strip()}"
             result = client.scan(
                 "",
                 to_evaluate,
                 "*",
-                0, True, True
+                0,
+                True,
+                True,
             )
             results.update(result)
 
         schema_client = client.schema()
     elif user_group == 1:
         # Conesearch with optional date range
-        client = connect_to_hbase_table('ztf.pixel128')
+        client = connect_to_hbase_table("ztf.pixel128")
         client.setLimit(n)
 
         # Interpret user input
-        ra, dec = payload['ra'], payload['dec']
-        radius = payload['radius']
+        ra, dec = payload["ra"], payload["dec"]
+        radius = payload["radius"]
 
-        if float(radius) > 18000.:
+        if float(radius) > 18000.0:
             rep = {
-                'status': 'error',
-                'text': "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n"
+                "status": "error",
+                "text": "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n",
             }
             return Response(str(rep), 400)
 
         try:
-            if 'h' in str(ra):
-                coord = SkyCoord(ra, dec, frame='icrs')
-            elif ':' in str(ra) or ' ' in str(ra):
-                coord = SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
+            if "h" in str(ra):
+                coord = SkyCoord(ra, dec, frame="icrs")
+            elif ":" in str(ra) or " " in str(ra):
+                coord = SkyCoord(ra, dec, frame="icrs", unit=(u.hourangle, u.deg))
             else:
-                coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
+                coord = SkyCoord(ra, dec, frame="icrs", unit="deg")
         except ValueError as e:
             rep = {
-                'status': 'error',
-                'text': e
+                "status": "error",
+                "text": e,
             }
             return Response(str(rep), 400)
 
         ra = coord.ra.deg
         dec = coord.dec.deg
-        radius_deg = float(radius) / 3600.
+        radius_deg = float(radius) / 3600.0
 
         # angle to vec conversion
         vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
@@ -265,32 +280,36 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
             nside,
             vec,
             np.pi / 180 * radius_deg,
-            inclusive=True
+            inclusive=True,
         )
 
         # Filter by time
-        if 'startdate' in payload:
+        if "startdate" in payload:
             client.setRangeScan(True)
             results = {}
             for pix in pixs:
-                to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jd_start, pix, jd_stop)
+                to_search = f"key:key:{pix}_{jd_start},key:key:{pix}_{jd_stop}"
                 result = client.scan(
                     "",
                     to_search,
                     "*",
-                    0, True, True
+                    0,
+                    True,
+                    True,
                 )
                 results.update(result)
             client.setRangeScan(False)
         else:
             results = {}
             for pix in pixs:
-                to_search = "key:key:{}_".format(pix)
+                to_search = f"key:key:{pix}_"
                 result = client.scan(
                     "",
                     to_search,
                     "*",
-                    0, True, True
+                    0,
+                    True,
+                    True,
                 )
                 results.update(result)
 
@@ -298,21 +317,23 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
         truncated = True
     else:
         # Plain date search
-        client = connect_to_hbase_table('ztf.jd')
+        client = connect_to_hbase_table("ztf.jd")
 
         # Limit the time window to 3 hours days
-        if jd_stop - jd_start > 3/24:
-            jd_stop = jd_start + 3/24
+        if jd_stop - jd_start > 3 / 24:
+            jd_stop = jd_start + 3 / 24
 
         # Send the request. RangeScan.
         client.setRangeScan(True)
         client.setLimit(n)
-        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
+        to_evaluate = f"key:key:{jd_start},key:key:{jd_stop}"
         results = client.scan(
             "",
             to_evaluate,
             "*",
-            0, True, True
+            0,
+            True,
+            True,
         )
         schema_client = client.schema()
 
@@ -323,29 +344,30 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
         schema_client,
         truncated=truncated,
         group_alerts=True,
-        extract_color=False
+        extract_color=False,
     )
 
     # For conesearch, sort by distance
     if (user_group == 1) and (len(pdfs) > 0):
         sep = coord.separation(
             SkyCoord(
-                pdfs['i:ra'],
-                pdfs['i:dec'],
-                unit='deg'
-            )
+                pdfs["i:ra"],
+                pdfs["i:dec"],
+                unit="deg",
+            ),
         ).deg
 
-        pdfs['v:separation_degree'] = sep
-        pdfs = pdfs.sort_values('v:separation_degree', ascending=True)
+        pdfs["v:separation_degree"] = sep
+        pdfs = pdfs.sort_values("v:separation_degree", ascending=True)
 
-        mask = pdfs['v:separation_degree'] > radius_deg
+        mask = pdfs["v:separation_degree"] > radius_deg
         pdfs = pdfs[~mask]
 
     return pdfs
 
+
 def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/latests
 
@@ -360,66 +382,66 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'n' not in payload:
+    if "n" not in payload:
         nalerts = 10
     else:
-        nalerts = int(payload['n'])
+        nalerts = int(payload["n"])
 
-    if 'startdate' not in payload:
+    if "startdate" not in payload:
         # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_start = Time("2019-11-01 00:00:00").jd
     else:
-        jd_start = Time(payload['startdate']).jd
+        jd_start = Time(payload["startdate"]).jd
 
-    if 'stopdate' not in payload:
+    if "stopdate" not in payload:
         jd_stop = Time.now().jd
     else:
-        jd_stop = Time(payload['stopdate']).jd
+        jd_stop = Time(payload["stopdate"]).jd
 
-    if 'color' not in payload:
+    if "color" not in payload:
         color = False
     else:
         color = True
 
-    if 'columns' in payload:
-        cols = payload['columns'].replace(" ", "")
+    if "columns" in payload:
+        cols = payload["columns"].replace(" ", "")
     else:
-        cols = '*'
+        cols = "*"
 
-    if cols == '*':
+    if cols == "*":
         truncated = False
     else:
         truncated = True
 
     # Search for latest alerts for a specific class
-    tns_classes = pd.read_csv('assets/tns_types.csv', header=None)[0].values
-    is_tns = payload['class'].startswith('(TNS)') and (payload['class'].split('(TNS) ')[1] in tns_classes)
+    tns_classes = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
+    is_tns = payload["class"].startswith("(TNS)") and (
+        payload["class"].split("(TNS) ")[1] in tns_classes
+    )
     if is_tns:
-        client = connect_to_hbase_table('ztf.tns')
-        classname = payload['class'].split('(TNS) ')[1]
+        client = connect_to_hbase_table("ztf.tns")
+        classname = payload["class"].split("(TNS) ")[1]
         client.setLimit(nalerts)
         client.setRangeScan(True)
         client.setReversed(True)
 
         results = client.scan(
             "",
-            "key:key:{}_{},key:key:{}_{}".format(
-                classname,
-                jd_start,
-                classname,
-                jd_stop
-            ),
-            cols, 0, True, True
+            f"key:key:{classname}_{jd_start},key:key:{classname}_{jd_stop}",
+            cols,
+            0,
+            True,
+            True,
         )
         schema_client = client.schema()
         group_alerts = True
-    elif payload['class'].startswith('(SIMBAD)') or payload['class'] != 'allclasses':
-        if payload['class'].startswith('(SIMBAD)'):
-            classname = payload['class'].split('(SIMBAD) ')[1]
+    elif payload["class"].startswith("(SIMBAD)") or payload["class"] != "allclasses":
+        if payload["class"].startswith("(SIMBAD)"):
+            classname = payload["class"].split("(SIMBAD) ")[1]
         else:
-            classname = payload['class']
+            classname = payload["class"]
 
-        client = connect_to_hbase_table('ztf.class')
+        client = connect_to_hbase_table("ztf.class")
 
         client.setLimit(nalerts)
         client.setRangeScan(True)
@@ -427,28 +449,28 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
 
         results = client.scan(
             "",
-            "key:key:{}_{},key:key:{}_{}".format(
-                classname,
-                jd_start,
-                classname,
-                jd_stop
-            ),
-            cols, 0, False, False
+            f"key:key:{classname}_{jd_start},key:key:{classname}_{jd_stop}",
+            cols,
+            0,
+            False,
+            False,
         )
         schema_client = client.schema()
         group_alerts = False
-    elif payload['class'] == 'allclasses':
-        client = connect_to_hbase_table('ztf.jd')
+    elif payload["class"] == "allclasses":
+        client = connect_to_hbase_table("ztf.jd")
         client.setLimit(nalerts)
         client.setRangeScan(True)
         client.setReversed(True)
 
-        to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
+        to_evaluate = f"key:key:{jd_start},key:key:{jd_stop}"
         results = client.scan(
             "",
             to_evaluate,
             cols,
-            0, True, True
+            0,
+            True,
+            True,
         )
         schema_client = client.schema()
         group_alerts = False
@@ -461,17 +483,19 @@ def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     # We want to return alerts
     # color computation is disabled
     pdfs = format_hbase_output(
-        results, schema_client,
+        results,
+        schema_client,
         group_alerts=group_alerts,
         extract_color=color,
         truncated=truncated,
-        with_constellation=True
+        with_constellation=True,
     )
 
     return pdfs
 
+
 def return_sso_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/sso
 
@@ -484,38 +508,40 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'columns' in payload:
-        cols = payload['columns'].replace(' ', '')
+    if "columns" in payload:
+        cols = payload["columns"].replace(" ", "")
     else:
-        cols = '*'
+        cols = "*"
 
-    if cols == '*':
+    if cols == "*":
         truncated = False
     else:
         truncated = True
 
-    n_or_d = str(payload['n_or_d'])
+    n_or_d = str(payload["n_or_d"])
 
-    if ',' in n_or_d:
+    if "," in n_or_d:
         # multi-objects search
-        splitids = n_or_d.replace(' ', '').split(',')
+        splitids = n_or_d.replace(" ", "").split(",")
 
         # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = ['key:key:{}_'.format(i.strip()) for i in splitids]
+        names = [f"key:key:{i.strip()}_" for i in splitids]
     else:
         # single object search
         # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = ["key:key:{}_".format(n_or_d.replace(' ', ''))]
+        names = ["key:key:{}_".format(n_or_d.replace(" ", ""))]
 
     # Get data from the main table
-    client = connect_to_hbase_table('ztf.ssnamenr')
+    client = connect_to_hbase_table("ztf.ssnamenr")
     results = {}
     for to_evaluate in names:
         result = client.scan(
             "",
             to_evaluate,
             cols,
-            0, True, True
+            0,
+            True,
+            True,
         )
         results.update(result)
 
@@ -529,19 +555,20 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         schema_client,
         group_alerts=False,
         truncated=truncated,
-        extract_color=False
+        extract_color=False,
     )
 
-    if 'withEphem' in payload:
-        if payload['withEphem'] == 'True' or payload['withEphem'] is True:
+    if "withEphem" in payload:
+        if payload["withEphem"] == "True" or payload["withEphem"] is True:
             # We should probably add a timeout
             # and try/except in case of miriade shutdown
             pdf = get_miriade_data(pdf)
 
     return pdf
 
+
 def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/ssocand
 
@@ -554,35 +581,35 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'ssoCandId' in payload:
-        trajectory_id = str(payload['ssoCandId'])
+    if "ssoCandId" in payload:
+        trajectory_id = str(payload["ssoCandId"])
     else:
         trajectory_id = None
 
-    if 'maxnumber' in payload:
-        maxnumber = payload['maxnumber']
+    if "maxnumber" in payload:
+        maxnumber = payload["maxnumber"]
     else:
         maxnumber = 10000
 
-    payload_name = payload['kind']
+    payload_name = payload["kind"]
 
-    if payload_name == 'orbParams':
-        gen_client = connect_to_hbase_table('ztf.orb_cand')
+    if payload_name == "orbParams":
+        gen_client = connect_to_hbase_table("ztf.orb_cand")
 
         if trajectory_id is not None:
-            to_evaluate = "key:key:cand_{}".format(trajectory_id)
+            to_evaluate = f"key:key:cand_{trajectory_id}"
         else:
             to_evaluate = "key:key:cand_"
-    elif payload_name == 'lightcurves':
-        gen_client = connect_to_hbase_table('ztf.sso_cand')
+    elif payload_name == "lightcurves":
+        gen_client = connect_to_hbase_table("ztf.sso_cand")
 
-        if 'start_date' in payload:
-            start_date = Time(payload['start_date'], format='iso').jd
+        if "start_date" in payload:
+            start_date = Time(payload["start_date"], format="iso").jd
         else:
-            start_date = Time('2019-11-01', format='iso').jd
+            start_date = Time("2019-11-01", format="iso").jd
 
-        if 'stop_date' in payload:
-            stop_date = Time(payload['stop_date'], format='iso').jd
+        if "stop_date" in payload:
+            stop_date = Time(payload["stop_date"], format="iso").jd
         else:
             stop_date = Time.now().jd
 
@@ -590,15 +617,17 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         gen_client.setLimit(maxnumber)
 
         if trajectory_id is not None:
-            gen_client.setEvaluation("ssoCandId.equals('{}')".format(trajectory_id))
+            gen_client.setEvaluation(f"ssoCandId.equals('{trajectory_id}')")
 
-        to_evaluate = "key:key:{}_,key:key:{}_".format(start_date, stop_date)
+        to_evaluate = f"key:key:{start_date}_,key:key:{stop_date}_"
 
     results = gen_client.scan(
         "",
         to_evaluate,
-        '*',
-        0, False, False
+        "*",
+        0,
+        False,
+        False,
     )
 
     schema_client = gen_client.schema()
@@ -608,22 +637,23 @@ def return_ssocand_pdf(payload: dict) -> pd.DataFrame:
         return pd.DataFrame({})
 
     # Construct the dataframe
-    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
 
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    if "key:time" in pdf.columns:
+        pdf = pdf.drop(columns=["key:time"])
 
     # Type conversion
     for col in pdf.columns:
         pdf[col] = convert_datatype(
             pdf[col],
-            hbase_type_converter[schema_client.type(col)]
+            hbase_type_converter[schema_client.type(col)],
         )
 
     return pdf
 
+
 def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/tracklet
 
@@ -636,37 +666,41 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'columns' in payload:
-        cols = payload['columns'].replace(" ", "")
+    if "columns" in payload:
+        cols = payload["columns"].replace(" ", "")
     else:
-        cols = '*'
+        cols = "*"
 
-    if cols == '*':
+    if cols == "*":
         truncated = False
     else:
         truncated = True
 
-    if 'id' in payload:
-        payload_name = payload['id']
-    elif 'date' in payload:
-        designation = payload['date']
-        payload_name = 'TRCK_' + designation.replace('-', '').replace(':', '').replace(' ', '_')
+    if "id" in payload:
+        payload_name = payload["id"]
+    elif "date" in payload:
+        designation = payload["date"]
+        payload_name = "TRCK_" + designation.replace("-", "").replace(":", "").replace(
+            " ", "_"
+        )
     else:
         rep = {
-            'status': 'error',
-            'text': "You need to specify a date at the format YYYY-MM-DD hh:mm:ss\n"
+            "status": "error",
+            "text": "You need to specify a date at the format YYYY-MM-DD hh:mm:ss\n",
         }
         return Response(str(rep), 400)
 
     # Note the trailing _
-    to_evaluate = "key:key:{}".format(payload_name)
+    to_evaluate = f"key:key:{payload_name}"
 
-    client = connect_to_hbase_table('ztf.tracklet')
+    client = connect_to_hbase_table("ztf.tracklet")
     results = client.scan(
         "",
         to_evaluate,
         cols,
-        0, True, True
+        0,
+        True,
+        True,
     )
 
     schema_client = client.schema()
@@ -679,13 +713,14 @@ def return_tracklet_pdf(payload: dict) -> pd.DataFrame:
         schema_client,
         group_alerts=False,
         truncated=truncated,
-        extract_color=False
+        extract_color=False,
     )
 
     return pdf
 
+
 def format_and_send_cutout(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and jsonify it
+    """Extract data returned by HBase and jsonify it
 
     Data is from /api/v1/cutouts
 
@@ -698,49 +733,52 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    output_format = payload.get('output-format', 'PNG')
+    output_format = payload.get("output-format", "PNG")
 
     # default stretch is sigmoid
-    if 'stretch' in payload:
-        stretch = payload['stretch']
+    if "stretch" in payload:
+        stretch = payload["stretch"]
     else:
-        stretch = 'sigmoid'
+        stretch = "sigmoid"
 
     # default name based on parameters
-    filename = '{}_{}'.format(
-        payload['objectId'],
-        payload['kind']
+    filename = "{}_{}".format(
+        payload["objectId"],
+        payload["kind"],
     )
 
-    if output_format == 'PNG':
-        filename = filename + '.png'
-    elif output_format == 'JPEG':
-        filename = filename + '.jpg'
-    elif output_format == 'FITS':
-        filename = filename + '.fits'
+    if output_format == "PNG":
+        filename = filename + ".png"
+    elif output_format == "JPEG":
+        filename = filename + ".jpg"
+    elif output_format == "FITS":
+        filename = filename + ".fits"
 
     # Query the Database (object query)
-    client = connect_to_hbase_table('ztf')
+    client = connect_to_hbase_table("ztf")
     results = client.scan(
         "",
-        "key:key:{}".format(payload['objectId']),
-        "b:cutout{}_stampData,i:objectId,i:jd,i:candid".format(payload['kind']),
-        0, True, True
+        "key:key:{}".format(payload["objectId"]),
+        "b:cutout{}_stampData,i:objectId,i:jd,i:candid".format(payload["kind"]),
+        0,
+        True,
+        True,
     )
 
     # Format the results
     schema_client = client.schema()
 
     pdf = format_hbase_output(
-        results, schema_client,
+        results,
+        schema_client,
         group_alerts=False,
         truncated=True,
-        extract_color=False
+        extract_color=False,
     )
 
     # Extract only the alert of interest
-    if 'candid' in payload:
-        pdf = pdf[pdf['i:candid'].astype(str) == str(payload['candid'])]
+    if "candid" in payload:
+        pdf = pdf[pdf["i:candid"].astype(str) == str(payload["candid"])]
     else:
         # pdf has been sorted in `format_hbase_output`
         pdf = pdf.iloc[0:1]
@@ -748,77 +786,78 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     if pdf.empty:
         return send_file(
             io.BytesIO(),
-            mimetype='image/png',
+            mimetype="image/png",
             as_attachment=True,
-            download_name=filename
+            download_name=filename,
         )
     # Extract cutouts
-    if output_format == 'FITS':
+    if output_format == "FITS":
         pdf = extract_cutouts(
             pdf,
             client,
-            col='b:cutout{}_stampData'.format(payload['kind']),
-            return_type='FITS'
+            col="b:cutout{}_stampData".format(payload["kind"]),
+            return_type="FITS",
         )
     else:
         pdf = extract_cutouts(
             pdf,
             client,
-            col='b:cutout{}_stampData'.format(payload['kind']),
-            return_type='array'
+            col="b:cutout{}_stampData".format(payload["kind"]),
+            return_type="array",
         )
     client.close()
 
-    array = pdf['b:cutout{}_stampData'.format(payload['kind'])].values[0]
+    array = pdf["b:cutout{}_stampData".format(payload["kind"])].to_numpy()[0]
 
     # send the FITS file
-    if output_format == 'FITS':
+    if output_format == "FITS":
         return send_file(
             array,
-            mimetype='application/octet-stream',
+            mimetype="application/octet-stream",
             as_attachment=True,
-            download_name=filename
+            download_name=filename,
         )
     # send the array
-    elif output_format == 'array':
-        return pdf[['b:cutout{}_stampData'.format(payload['kind'])]].to_json(orient='records')
+    elif output_format == "array":
+        return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
+            orient="records"
+        )
 
     array = np.nan_to_num(np.array(array, dtype=float))
-    if stretch == 'sigmoid':
+    if stretch == "sigmoid":
         array = sigmoid_normalizer(array, 0, 1)
     elif stretch is not None:
         pmin = 0.5
-        if 'pmin' in payload:
-            pmin = float(payload['pmin'])
+        if "pmin" in payload:
+            pmin = float(payload["pmin"])
         pmax = 99.5
-        if 'pmax' in payload:
-            pmax = float(payload['pmax'])
+        if "pmax" in payload:
+            pmax = float(payload["pmax"])
         array = legacy_normalizer(array, stretch=stretch, pmin=pmin, pmax=pmax)
 
-    if 'convolution_kernel' in payload:
-        assert payload['convolution_kernel'] in ['gauss', 'box']
-        array = convolve(array, smooth=1, kernel=payload['convolution_kernel'])
+    if "convolution_kernel" in payload:
+        assert payload["convolution_kernel"] in ["gauss", "box"]
+        array = convolve(array, smooth=1, kernel=payload["convolution_kernel"])
 
     # colormap
     if "colormap" in payload:
-        colormap = getattr(cm, payload['colormap'])
+        colormap = getattr(cm, payload["colormap"])
     else:
-        colormap = lambda x: x
+        colormap = lambda x: x  # noqa: E731
     array = np.uint8(colormap(array) * 255)
 
     # Convert to PNG
-    data = im.fromarray(array)
+    data = Image.fromarray(array)
     datab = io.BytesIO()
-    data.save(datab, format='PNG')
+    data.save(datab, format="PNG")
     datab.seek(0)
     return send_file(
-        datab,
-        mimetype='image/png',
-        as_attachment=True,
-        download_name=filename)
+        datab, mimetype="image/png", as_attachment=True, download_name=filename
+    )
+
 
 def perform_xmatch(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and jsonify it
+    """Extract data returned by HBase and jsonify it
 
     Data is from /api/v1/xmatch
 
@@ -831,129 +870,130 @@ def perform_xmatch(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    df = pd.read_csv(io.StringIO(payload['catalog']))
+    df = pd.read_csv(io.StringIO(payload["catalog"]))
 
-    radius = float(payload['radius'])
-    if radius > 18000.:
+    radius = float(payload["radius"])
+    if radius > 18000.0:
         rep = {
-            'status': 'error',
-            'text': "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n"
+            "status": "error",
+            "text": "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n",
         }
         return Response(str(rep), 400)
 
-    header = payload['header']
+    header = payload["header"]
 
-    header = [i.strip() for i in header.split(',')]
+    header = [i.strip() for i in header.split(",")]
     if len(header) == 3:
         raname, decname, idname = header
     elif len(header) == 4:
         raname, decname, idname, timename = header
     else:
         rep = {
-            'status': 'error',
-            'text': "Header should contain 3 or 4 entries from your catalog. E.g. RA,DEC,ID or RA,DEC,ID,Time\n"
+            "status": "error",
+            "text": "Header should contain 3 or 4 entries from your catalog. E.g. RA,DEC,ID or RA,DEC,ID,Time\n",
         }
         return Response(str(rep), 400)
 
-    if 'window' in payload:
-        window_days = payload['window']
+    if "window" in payload:
+        window_days = payload["window"]
     else:
         window_days = None
 
     # Fink columns of interest
     colnames = [
-        'i:objectId', 'i:ra', 'i:dec', 'i:jd', 'd:cdsxmatch', 'i:ndethist'
+        "i:objectId",
+        "i:ra",
+        "i:dec",
+        "i:jd",
+        "d:cdsxmatch",
+        "i:ndethist",
     ]
 
     colnames_added_values = [
-        'd:cdsxmatch',
-        'd:roid',
-        'd:mulens_class_1',
-        'd:mulens_class_2',
-        'd:snn_snia_vs_nonia',
-        'd:snn_sn_vs_all',
-        'd:rf_snia_vs_nonia',
-        'i:ndethist',
-        'i:drb',
-        'i:classtar',
-        'd:rf_kn_vs_nonkn',
-        'i:jdstarthist'
+        "d:cdsxmatch",
+        "d:roid",
+        "d:mulens_class_1",
+        "d:mulens_class_2",
+        "d:snn_snia_vs_nonia",
+        "d:snn_sn_vs_all",
+        "d:rf_snia_vs_nonia",
+        "i:ndethist",
+        "i:drb",
+        "i:classtar",
+        "d:rf_kn_vs_nonkn",
+        "i:jdstarthist",
     ]
 
     unique_cols = np.unique(colnames + colnames_added_values).tolist()
 
     # check units
-    ra0 = df[raname].values[0]
-    if 'h' in str(ra0):
+    ra0 = df[raname].to_numpy()[0]
+    if "h" in str(ra0):
         coords = [
-            SkyCoord(ra, dec, frame='icrs')
-            for ra, dec in zip(df[raname].values, df[decname].values)
+            SkyCoord(ra, dec, frame="icrs")
+            for ra, dec in zip(df[raname].to_numpy(), df[decname].to_numpy())
         ]
-    elif ':' in str(ra0) or ' ' in str(ra0):
+    elif ":" in str(ra0) or " " in str(ra0):
         coords = [
-            SkyCoord(ra, dec, frame='icrs', unit=(u.hourangle, u.deg))
-            for ra, dec in zip(df[raname].values, df[decname].values)
+            SkyCoord(ra, dec, frame="icrs", unit=(u.hourangle, u.deg))
+            for ra, dec in zip(df[raname].to_numpy(), df[decname].to_numpy())
         ]
     else:
         coords = [
-            SkyCoord(ra, dec, frame='icrs', unit='deg')
-            for ra, dec in zip(df[raname].values, df[decname].values)
+            SkyCoord(ra, dec, frame="icrs", unit="deg")
+            for ra, dec in zip(df[raname].to_numpy(), df[decname].to_numpy())
         ]
     ras = [coord.ra.deg for coord in coords]
     decs = [coord.dec.deg for coord in coords]
-    ids = df[idname].values
+    ids = df[idname].to_numpy()
 
     if len(header) == 4:
-        times = df[timename].values
+        times = df[timename].to_numpy()
     else:
         times = np.zeros_like(ras)
 
-    pdfs = pd.DataFrame(columns=unique_cols + [idname] + ['v:classification'])
+    pdfs = pd.DataFrame(columns=unique_cols + [idname] + ["v:classification"])
     for oid, ra, dec, time_start in zip(ids, ras, decs, times):
         if len(header) == 4:
             payload_data = {
-                'ra': ra,
-                'dec': dec,
-                'radius': radius,
-                'startdate_conesearch': time_start,
-                'window_days_conesearch': window_days
-
+                "ra": ra,
+                "dec": dec,
+                "radius": radius,
+                "startdate_conesearch": time_start,
+                "window_days_conesearch": window_days,
             }
         else:
             payload_data = {
-                'ra': ra,
-                'dec': dec,
-                'radius': radius
+                "ra": ra,
+                "dec": dec,
+                "radius": radius,
             }
         r = requests.post(
-            '{}/api/v1/explorer'.format(APIURL),
-            json=payload_data
+            f"{APIURL}/api/v1/explorer",
+            json=payload_data,
         )
         pdf = pd.read_json(io.BytesIO(r.content))
 
         # Loop over results and construct the dataframe
         if not pdf.empty:
             pdf[idname] = [oid] * len(pdf)
-            if 'd:rf_kn_vs_nonkn' not in pdf.columns:
-                pdf['d:rf_kn_vs_nonkn'] = np.zeros(len(pdf), dtype=float)
+            if "d:rf_kn_vs_nonkn" not in pdf.columns:
+                pdf["d:rf_kn_vs_nonkn"] = np.zeros(len(pdf), dtype=float)
             pdfs = pd.concat((pdfs, pdf), ignore_index=True)
 
     # Final join
-    join_df = pd.merge(
-        pdfs,
-        df,
-        on=idname
-    )
+    join_df = pdfs.merge(df, on=idname)
 
     # reorganise columns order
     no_duplicate = np.where(pdfs.columns != idname)[0]
     cols = list(df.columns) + list(pdfs.columns[no_duplicate])
     join_df = join_df[cols]
 
-    return join_df.to_json(orient='records')
+    return join_df.to_json(orient="records")
+
 
 def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and jsonify it
+    """Extract data returned by HBase and jsonify it
 
     Data is from /api/v1/bayestar
 
@@ -971,23 +1011,27 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     n_day_max = 6
 
     # Interpret user input
-    if 'bayestar' in payload:
-        bayestar_data = payload['bayestar']
-    elif 'event_name' in payload:
-        r = requests.get('https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(payload['event_name']))
+    if "bayestar" in payload:
+        bayestar_data = payload["bayestar"]
+    elif "event_name" in payload:
+        r = requests.get(
+            "https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz".format(
+                payload["event_name"]
+            )
+        )
         if r.status_code == 200:
             bayestar_data = str(r.content)
         else:
-            return pd.DataFrame([{'status': r.content}])
-    credible_level_threshold = float(payload['credible_level'])
+            return pd.DataFrame([{"status": r.content}])
+    credible_level_threshold = float(payload["credible_level"])
 
-    with gzip.open(io.BytesIO(eval(bayestar_data)), 'rb') as f:
+    with gzip.open(io.BytesIO(eval(bayestar_data)), "rb") as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
             data = hdul[1].data
             header = hdul[1].header
 
-    hpx = data['PROB']
-    if header['ORDERING'] == 'NESTED':
+    hpx = data["PROB"]
+    if header["ORDERING"] == "NESTED":
         hpx = hp.reorder(hpx, n2r=True)
 
     i = np.flipud(np.argsort(hpx))
@@ -1012,19 +1056,21 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
     # grouping by later.
 
     # 1 day before the event, to 6 days after the event
-    jdstart = Time(header['DATE-OBS']).jd - n_day_min
+    jdstart = Time(header["DATE-OBS"]).jd - n_day_min
     jdend = jdstart + n_day_max
 
-    client = connect_to_hbase_table('ztf.pixel128')
+    client = connect_to_hbase_table("ztf.pixel128")
     client.setRangeScan(True)
     results = {}
     for pix in pixs:
-        to_search = "key:key:{}_{},key:key:{}_{}".format(pix, jdstart, pix, jdend)
+        to_search = f"key:key:{pix}_{jdstart},key:key:{pix}_{jdend}"
         result = client.scan(
             "",
             to_search,
             "*",
-            0, True, True
+            0,
+            True,
+            True,
         )
         results.update(result)
 
@@ -1036,21 +1082,22 @@ def return_bayestar_pdf(payload: dict) -> pd.DataFrame:
         schema_client,
         truncated=True,
         group_alerts=True,
-        extract_color=False
+        extract_color=False,
     )
 
     if pdfs.empty:
         return pdfs
 
-    pdfs['v:jdstartgw'] = Time(header['DATE-OBS']).jd
+    pdfs["v:jdstartgw"] = Time(header["DATE-OBS"]).jd
 
     # remove alerts with clear wrong jdstarthist
-    mask = (pdfs['i:jd'] - pdfs['i:jdstarthist']) <= n_day_max
+    mask = (pdfs["i:jd"] - pdfs["i:jdstarthist"]) <= n_day_max
 
     return pdfs[mask]
 
+
 def return_statistics_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and jsonify it
+    """Extract data returned by HBase and jsonify it
 
     Data is from /api/v1/statistics
 
@@ -1063,63 +1110,66 @@ def return_statistics_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'columns' in payload:
-        cols = payload['columns']
+    if "columns" in payload:
+        cols = payload["columns"]
     else:
-        cols = '*'
+        cols = "*"
 
-    client = connect_to_hbase_table('statistics_class')
-    if 'schema' in payload and str(payload['schema']) == 'True':
+    client = connect_to_hbase_table("statistics_class")
+    if "schema" in payload and str(payload["schema"]) == "True":
         schema = client.schema()
         results = list(schema.columnNames())
-        pdf = pd.DataFrame({'schema': results})
+        pdf = pd.DataFrame({"schema": results})
     else:
-        payload_date = payload['date']
+        payload_date = payload["date"]
 
-        to_evaluate = "key:key:ztf_{}".format(payload_date)
+        to_evaluate = f"key:key:ztf_{payload_date}"
         results = client.scan(
             "",
             to_evaluate,
             cols,
-            0, True, True
+            0,
+            True,
+            True,
         )
-        pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+        pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
 
         # See https://github.com/astrolabsoftware/fink-science-portal/issues/579
-        pdf = pdf.replace(regex={r'^\x00.*$': 0})
+        pdf = pdf.replace(regex={r"^\x00.*$": 0})
 
     client.close()
 
     return pdf
 
+
 def send_data(pdf, output_format):
-    """
-    """
-    if output_format == 'json':
-        return pdf.to_json(orient='records')
-    elif output_format == 'csv':
+    """ """
+    if output_format == "json":
+        return pdf.to_json(orient="records")
+    elif output_format == "csv":
         return pdf.to_csv(index=False)
-    elif output_format == 'votable':
+    elif output_format == "votable":
         f = io.BytesIO()
         table = Table.from_pandas(pdf)
         vt = votable.from_table(table)
         votable.writeto(vt, f)
         f.seek(0)
         return f.read()
-    elif output_format == 'parquet':
+    elif output_format == "parquet":
         f = io.BytesIO()
         pdf.to_parquet(f)
         f.seek(0)
         return f.read()
 
     rep = {
-        'status': 'error',
-        'text': "Output format `{}` is not supported. Choose among json, csv, or parquet\n".format(output_format)
+        "status": "error",
+        "text": f"Output format `{output_format}` is not supported. Choose among json, csv, or parquet\n",
     }
     return Response(str(rep), 400)
 
+
 def return_random_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/random
 
@@ -1132,93 +1182,102 @@ def return_random_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'columns' in payload:
-        cols = payload['columns'].replace(" ", "")
+    if "columns" in payload:
+        cols = payload["columns"].replace(" ", "")
     else:
-        cols = '*'
+        cols = "*"
 
-    if 'class' in payload and str(payload['class']) != "":
+    if "class" in payload and str(payload["class"]) != "":
         classsearch = True
     else:
         classsearch = False
 
-    if cols == '*':
+    if cols == "*":
         truncated = False
     else:
         truncated = True
 
-    if int(payload['n']) > 16:
+    if int(payload["n"]) > 16:
         number = 16
     else:
-        number = int(payload['n'])
+        number = int(payload["n"])
 
-    seed = payload.get('seed', None)
+    seed = payload.get("seed")
     if seed is not None:
-        np.random.seed(int(payload['seed']))
+        np.random.seed(int(payload["seed"]))
 
     # logic
-    client = connect_to_hbase_table('ztf.jd')
+    client = connect_to_hbase_table("ztf.jd")
     results = []
     client.setLimit(1000)
     client.setRangeScan(True)
 
-    jd_low = Time('2019-11-02 03:00:00.0').jd
+    jd_low = Time("2019-11-02 03:00:00.0").jd
     jd_high = Time.now().jd
 
     # 1 month
     delta_min = 43200
-    delta_jd = TimeDelta(delta_min * 60, format='sec').jd
+    delta_jd = TimeDelta(delta_min * 60, format="sec").jd
     while len(results) == 0:
         jdstart = np.random.uniform(jd_low, jd_high)
         jdstop = jdstart + delta_jd
 
         if classsearch:
             payload_data = {
-                'class': payload['class'],
-                'n': number,
-                'startdate': Time(jdstart, format='jd').iso,
-                'stopdate': Time(jdstop, format='jd').iso,
-                'columns': "",
-                'output-format': 'json'
+                "class": payload["class"],
+                "n": number,
+                "startdate": Time(jdstart, format="jd").iso,
+                "stopdate": Time(jdstop, format="jd").iso,
+                "columns": "",
+                "output-format": "json",
             }
             results = return_latests_pdf(payload_data, return_raw=True)
         else:
             results = client.scan(
                 "",
-                "key:key:{},key:key:{}".format(jdstart, jdstop),
-                "", 0, False, False
+                f"key:key:{jdstart},key:key:{jdstop}",
+                "",
+                0,
+                False,
+                False,
             )
 
     oids = list(dict(results).keys())
-    oids = np.array([i.split('_')[-1] for i in oids])
+    oids = np.array([i.split("_")[-1] for i in oids])
 
     index_oid = np.random.randint(0, len(oids), number)
     oid = oids[index_oid]
     client.close()
 
-    client = connect_to_hbase_table('ztf')
+    client = connect_to_hbase_table("ztf")
     client.setLimit(2000)
     # Get data from the main table
     results = {}
     for oid_ in oid:
         result = client.scan(
             "",
-            "key:key:{}".format(oid_),
-            "{}".format(cols),
-            0, False, False
+            f"key:key:{oid_}",
+            f"{cols}",
+            0,
+            False,
+            False,
         )
         results.update(result)
 
     pdf = format_hbase_output(
-        results, client.schema(), group_alerts=False, truncated=truncated
+        results,
+        client.schema(),
+        group_alerts=False,
+        truncated=truncated,
     )
 
     client.close()
 
     return pdf
 
+
 def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/anomaly
 
@@ -1231,44 +1290,46 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'n' not in payload:
+    if "n" not in payload:
         nalerts = 10
     else:
-        nalerts = int(payload['n'])
+        nalerts = int(payload["n"])
 
-    if 'start_date' not in payload:
+    if "start_date" not in payload:
         # start of the Fink operations
-        jd_start = Time('2019-11-01 00:00:00').jd
+        jd_start = Time("2019-11-01 00:00:00").jd
     else:
-        jd_start = Time(payload['start_date']).jd
+        jd_start = Time(payload["start_date"]).jd
 
-    if 'stop_date' not in payload:
+    if "stop_date" not in payload:
         jd_stop = Time.now().jd
     else:
         # allow to get unique day
-        jd_stop = Time(payload['stop_date']).jd + 1
+        jd_stop = Time(payload["stop_date"]).jd + 1
 
-    if 'columns' in payload:
-        cols = payload['columns'].replace(" ", "")
+    if "columns" in payload:
+        cols = payload["columns"].replace(" ", "")
     else:
-        cols = '*'
+        cols = "*"
 
-    if cols == '*':
+    if cols == "*":
         truncated = False
     else:
         truncated = True
 
-    client = connect_to_hbase_table('ztf.anomaly')
+    client = connect_to_hbase_table("ztf.anomaly")
     client.setLimit(nalerts)
     client.setRangeScan(True)
     client.setReversed(True)
 
-    to_evaluate = "key:key:{},key:key:{}".format(jd_start, jd_stop)
+    to_evaluate = f"key:key:{jd_start},key:key:{jd_stop}"
     results = client.scan(
         "",
         to_evaluate,
         cols,
-        0, True, True
+        0,
+        True,
+        True,
     )
     schema_client = client.schema()
     client.close()
@@ -1276,17 +1337,19 @@ def return_anomalous_objects_pdf(payload: dict) -> pd.DataFrame:
     # We want to return alerts
     # color computation is disabled
     pdfs = format_hbase_output(
-        results, schema_client,
+        results,
+        schema_client,
         group_alerts=False,
         extract_color=False,
         truncated=truncated,
-        with_constellation=True
+        with_constellation=True,
     )
 
     return pdfs
 
+
 def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
-    """ Send the Fink Flat Table
+    """Send the Fink Flat Table
 
     Data is from /api/v1/ssoft
 
@@ -1299,64 +1362,65 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    if 'version' in payload:
-        version = payload['version']
+    if "version" in payload:
+        version = payload["version"]
 
         # version needs YYYY.MM
-        yyyymm = version.split('.')
+        yyyymm = version.split(".")
         if (len(yyyymm[0]) != 4) or (len(yyyymm[1]) != 2):
             rep = {
-                'status': 'error',
-                'text': "version needs to be YYYY.MM\n"
+                "status": "error",
+                "text": "version needs to be YYYY.MM\n",
             }
             return Response(str(rep), 400)
-        if version < '2023.07':
+        if version < "2023.07":
             rep = {
-                'status': 'error',
-                'text': "version starts on 2023.07\n"
+                "status": "error",
+                "text": "version starts on 2023.07\n",
             }
             return Response(str(rep), 400)
     else:
         now = datetime.datetime.now()
-        version = '{}.{:02d}'.format(now.year, now.month)
+        version = f"{now.year}.{now.month:02d}"
 
-    if 'flavor' in payload:
-        flavor = payload['flavor']
-        if flavor not in ['SHG1G2', 'HG1G2', 'HG']:
+    if "flavor" in payload:
+        flavor = payload["flavor"]
+        if flavor not in ["SHG1G2", "HG1G2", "HG"]:
             rep = {
-                'status': 'error',
-                'text': "flavor needs to be in ['SHG1G2', 'HG1G2', 'HG']\n"
+                "status": "error",
+                "text": "flavor needs to be in ['SHG1G2', 'HG1G2', 'HG']\n",
             }
             return Response(str(rep), 400)
     else:
-        flavor = 'SHG1G2'
+        flavor = "SHG1G2"
 
-    input_args = yaml.load(open('config_datatransfer.yml'), yaml.Loader)
+    input_args = yaml.load(open("config_datatransfer.yml"), yaml.Loader)
     r = requests.get(
-        '{}/SSOFT/ssoft_{}_{}.parquet?op=OPEN&user.name={}&namenoderpcaddress={}'.format(
-            input_args['WEBHDFS'],
+        "{}/SSOFT/ssoft_{}_{}.parquet?op=OPEN&user.name={}&namenoderpcaddress={}".format(
+            input_args["WEBHDFS"],
             flavor,
             version,
-            input_args['USER'],
-            input_args['NAMENODE']
-        )
+            input_args["USER"],
+            input_args["NAMENODE"],
+        ),
     )
 
     pdf = pd.read_parquet(io.BytesIO(r.content))
 
-    if 'sso_name' in payload:
-        mask = pdf['sso_name'] == pdf['sso_name']
+    if "sso_name" in payload:
+        mask = pdf["sso_name"] == pdf["sso_name"]
         pdf = pdf[mask]
-        pdf = pdf[pdf['sso_name'].astype('str') == payload['sso_name']]
-    elif 'sso_number' in payload:
-        mask = pdf['sso_number'] == pdf['sso_number']
+        pdf = pdf[pdf["sso_name"].astype("str") == payload["sso_name"]]
+    elif "sso_number" in payload:
+        mask = pdf["sso_number"] == pdf["sso_number"]
         pdf = pdf[mask]
-        pdf = pdf[pdf['sso_number'].astype('int') == int(payload['sso_number'])]
+        pdf = pdf[pdf["sso_number"].astype("int") == int(payload["sso_number"])]
 
     return pdf
 
+
 def return_resolver_pdf(payload: dict) -> pd.DataFrame:
-    """ Extract data returned by HBase and format it in a Pandas dataframe
+    """Extract data returned by HBase and format it in a Pandas dataframe
 
     Data is from /api/v1/resolver
 
@@ -1369,20 +1433,20 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
     ----------
     out: pandas dataframe
     """
-    resolver = payload['resolver']
-    name = payload['name']
-    if 'nmax' in payload:
-        nmax = payload['nmax']
+    resolver = payload["resolver"]
+    name = payload["name"]
+    if "nmax" in payload:
+        nmax = payload["nmax"]
     else:
         nmax = 10
 
     reverse = False
-    if 'reverse' in payload:
-        if payload['reverse'] is True:
+    if "reverse" in payload:
+        if payload["reverse"] is True:
             reverse = True
 
-    if resolver == 'tns':
-        client = connect_to_hbase_table('ztf.tns_resolver')
+    if resolver == "tns":
+        client = connect_to_hbase_table("ztf.tns_resolver")
         client.setLimit(nmax)
         if name == "":
             # return the full table
@@ -1390,112 +1454,125 @@ def return_resolver_pdf(payload: dict) -> pd.DataFrame:
                 "",
                 "",
                 "*",
-                0, False, False
+                0,
+                False,
+                False,
+            )
+        elif reverse:
+            # Prefix search on second part of the key which is `fullname_internalname`
+            to_evaluate = f"key:key:_{name}:substring"
+            results = client.scan(
+                "",
+                to_evaluate,
+                "*",
+                0,
+                False,
+                False,
             )
         else:
-            # TNS poll -- take the first nmax occurences
-            if reverse:
-                # Prefix search on second part of the key which is `fullname_internalname`
-                to_evaluate = "key:key:_{}:substring".format(name)
-                results = client.scan(
-                    "",
-                    to_evaluate,
-                    "*",
-                    0, False, False
-                )
-            else:
-                # indices are case-insensitive
-                to_evaluate = "key:key:{}".format(name.lower())
-                results = client.scan(
-                    "",
-                    to_evaluate,
-                    "*",
-                    0, False, False
-                )
+            # indices are case-insensitive
+            to_evaluate = f"key:key:{name.lower()}"
+            results = client.scan(
+                "",
+                to_evaluate,
+                "*",
+                0,
+                False,
+                False,
+            )
 
         # Restore default limits
         client.close()
 
-        pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
-    elif resolver == 'simbad':
-        client = connect_to_hbase_table('ztf')
+        pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
+    elif resolver == "simbad":
+        client = connect_to_hbase_table("ztf")
         if reverse:
-            to_evaluate = "key:key:{}".format(name)
+            to_evaluate = f"key:key:{name}"
             client.setLimit(nmax)
             results = client.scan(
                 "",
                 to_evaluate,
                 "i:objectId,d:cdsxmatch,i:ra,i:dec,i:candid,i:jd",
-                0, False, False
+                0,
+                False,
+                False,
             )
             client.close()
-            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
         else:
             r = requests.get(
-                'http://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/~S?{}'.format(name)
+                f"http://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/~S?{name}",
             )
 
             check = pd.read_xml(io.BytesIO(r.content))
-            if 'Resolver' in check.columns:
-                pdfs = pd.read_xml(io.BytesIO(r.content), xpath='.//Resolver')
+            if "Resolver" in check.columns:
+                pdfs = pd.read_xml(io.BytesIO(r.content), xpath=".//Resolver")
             else:
                 pdfs = pd.DataFrame()
-    elif resolver == 'ssodnet':
+    elif resolver == "ssodnet":
         if reverse:
             # ZTF alerts -> ssnmanenr
-            client = connect_to_hbase_table('ztf')
-            to_evaluate = "key:key:{}".format(name)
+            client = connect_to_hbase_table("ztf")
+            to_evaluate = f"key:key:{name}"
             client.setLimit(nmax)
             results = client.scan(
                 "",
                 to_evaluate,
                 "i:objectId,i:ssnamenr",
-                0, False, False
+                0,
+                False,
+                False,
             )
             client.close()
-            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
 
             # ssnmanenr -> MPC name & number
             if not pdfs.empty:
-                client = connect_to_hbase_table('ztf.sso_resolver')
-                ssnamenrs = np.unique(pdfs['i:ssnamenr'].values)
+                client = connect_to_hbase_table("ztf.sso_resolver")
+                ssnamenrs = np.unique(pdfs["i:ssnamenr"].to_numpy())
                 results = {}
                 for ssnamenr in ssnamenrs:
                     result = client.scan(
                         "",
-                        "i:ssnamenr:{}:exact".format(ssnamenr),
+                        f"i:ssnamenr:{ssnamenr}:exact",
                         "i:number,i:name,i:ssnamenr",
-                        0, False, False
+                        0,
+                        False,
+                        False,
                     )
                     results.update(result)
                 client.close()
-                pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+                pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
         else:
             # MPC -> ssnamenr
             # keys follow the pattern <name>-<deduplication>
-            client = connect_to_hbase_table('ztf.sso_resolver')
+            client = connect_to_hbase_table("ztf.sso_resolver")
 
             if nmax == 1:
                 # Prefix with internal marker
-                to_evaluate = "key:key:{}-".format(name.lower())
+                to_evaluate = f"key:key:{name.lower()}-"
             elif nmax > 1:
                 # This enables e.g. autocompletion tasks
                 client.setLimit(nmax)
-                to_evaluate = "key:key:{}".format(name.lower())
+                to_evaluate = f"key:key:{name.lower()}"
 
             results = client.scan(
                 "",
                 to_evaluate,
                 "i:ssnamenr,i:name,i:number",
-                0, False, False
+                0,
+                False,
+                False,
             )
             client.close()
-            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+            pdfs = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
 
     return pdfs
 
+
 def upload_euclid_data(payload: dict) -> pd.DataFrame:
-    """ Upload Euclid data
+    """Upload Euclid data
 
     Data is from /api/v1/euclidin
 
@@ -1509,19 +1586,19 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     out: pandas dataframe
     """
     # Interpret user input
-    data = payload['payload']
-    pipeline_name = payload['pipeline'].lower()
+    data = payload["payload"]
+    pipeline_name = payload["pipeline"].lower()
 
     # Read data into pandas DataFrame
-    pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=' ', index_col=False)
+    pdf = pd.read_csv(io.BytesIO(eval(data)), header=0, sep=" ", index_col=False)
 
     # Add Fink defined columns
     pdf = add_columns(
         pdf,
         pipeline_name,
-        payload['version'],
-        payload['date'],
-        payload['EID']
+        payload["version"],
+        payload["date"],
+        payload["EID"],
     )
 
     # Load official headers for HBase
@@ -1529,41 +1606,43 @@ def upload_euclid_data(payload: dict) -> pd.DataFrame:
     euclid_header = header.keys()
 
     msg = check_header(pdf, list(euclid_header))
-    if msg != 'ok':
+    if msg != "ok":
         return Response(msg, 400)
 
     # Push data in the HBase table
-    mode = payload.get('mode', 'production')
-    if mode == 'production':
-        table = 'euclid.in'
-    elif mode == 'sandbox':
-        table = 'euclid.test'
-    client = connect_to_hbase_table(table, schema_name='schema_{}'.format(pipeline_name))
+    mode = payload.get("mode", "production")
+    if mode == "production":
+        table = "euclid.in"
+    elif mode == "sandbox":
+        table = "euclid.test"
+    client = connect_to_hbase_table(table, schema_name=f"schema_{pipeline_name}")
 
     for index, row in pdf.iterrows():
         # Compute the row key
         rowkey = compute_rowkey(row, index)
 
         # Compute the payload
-        out = ['d:{}:{}'.format(name, value) for name, value in row.items()]
+        out = [f"d:{name}:{value}" for name, value in row.items()]
 
         client.put(
             rowkey,
-            out
+            out,
         )
     client.close()
 
     return Response(
-        '{} - {} - {} - {} - Uploaded!'.format(
-            payload['EID'],
-            payload['pipeline'],
-            payload['version'],
-            payload['date'],
-        ), 200
+        "{} - {} - {} - {} - Uploaded!".format(
+            payload["EID"],
+            payload["pipeline"],
+            payload["version"],
+            payload["date"],
+        ),
+        200,
     )
 
+
 def download_euclid_data(payload: dict) -> pd.DataFrame:
-    """ Download Euclid data
+    """Download Euclid data
 
     Data is from /api/v1/eucliddata
 
@@ -1577,111 +1656,118 @@ def download_euclid_data(payload: dict) -> pd.DataFrame:
     out: pandas dataframe
     """
     # Interpret user input
-    pipeline = payload['pipeline'].lower()
+    pipeline = payload["pipeline"].lower()
 
-    if 'columns' in payload:
-        cols = payload['columns'].replace(" ", "")
+    if "columns" in payload:
+        cols = payload["columns"].replace(" ", "")
     else:
-        cols = '*'
+        cols = "*"
 
     # Push data in the HBase table
-    mode = payload.get('mode', 'production')
-    if mode == 'production':
-        table = 'euclid.in'
-    elif mode == 'sandbox':
-        table = 'euclid.test'
+    mode = payload.get("mode", "production")
+    if mode == "production":
+        table = "euclid.in"
+    elif mode == "sandbox":
+        table = "euclid.test"
 
-    client = connect_to_hbase_table(table, schema_name='schema_{}'.format(pipeline))
+    client = connect_to_hbase_table(table, schema_name=f"schema_{pipeline}")
 
     # TODO: put a regex instead?
-    if ":" in payload['dates']:
-        start, stop = payload['dates'].split(':')
-        to_evaluate = "key:key:{}_{},key:key:{}_{}".format(pipeline, start, pipeline, stop)
+    if ":" in payload["dates"]:
+        start, stop = payload["dates"].split(":")
+        to_evaluate = f"key:key:{pipeline}_{start},key:key:{pipeline}_{stop}"
         client.setRangeScan(True)
-    elif payload['dates'].replace(' ', '') == '*':
-        to_evaluate = "key:key:{}".format(pipeline)
+    elif payload["dates"].replace(" ", "") == "*":
+        to_evaluate = f"key:key:{pipeline}"
     else:
-        start = payload['dates']
-        to_evaluate = "key:key:{}_{}".format(pipeline, start)
+        start = payload["dates"]
+        to_evaluate = f"key:key:{pipeline}_{start}"
 
     results = client.scan(
         "",
         to_evaluate,
         cols,
-        0, False, False
+        0,
+        False,
+        False,
     )
 
-    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
 
     # Remove hbase specific fields
-    if 'key:key' in pdf.columns:
-        pdf = pdf.drop(columns=['key:key'])
-    if 'key:time' in pdf.columns:
-        pdf = pdf.drop(columns=['key:time'])
+    if "key:key" in pdf.columns:
+        pdf = pdf.drop(columns=["key:key"])
+    if "key:time" in pdf.columns:
+        pdf = pdf.drop(columns=["key:time"])
 
     # Type conversion
     schema = client.schema()
     for col in pdf.columns:
         pdf[col] = convert_datatype(
             pdf[col],
-            hbase_type_converter[schema.type(col)]
+            hbase_type_converter[schema.type(col)],
         )
 
     client.close()
 
     return pdf
 
+
 def post_metadata(payload: dict) -> Response:
-    """ Upload metadata in Fink
-    """
-    client = connect_to_hbase_table('ztf.metadata')
-    encoded = payload['internal_name'].replace(' ', '')
+    """Upload metadata in Fink"""
+    client = connect_to_hbase_table("ztf.metadata")
+    encoded = payload["internal_name"].replace(" ", "")
     client.put(
-        payload['objectId'].strip(),
+        payload["objectId"].strip(),
         [
-            'd:internal_name:{}'.format(payload['internal_name']),
-            'd:internal_name_encoded:{}'.format(encoded),
-            'd:comments:{}'.format(payload['comments']),
-            'd:username:{}'.format(payload['username'])
-        ]
+            "d:internal_name:{}".format(payload["internal_name"]),
+            f"d:internal_name_encoded:{encoded}",
+            "d:comments:{}".format(payload["comments"]),
+            "d:username:{}".format(payload["username"]),
+        ],
     )
     client.close()
 
     return Response(
-        'Thanks {} - You can visit {}/{}'.format(
-            payload['username'],
+        "Thanks {} - You can visit {}/{}".format(
+            payload["username"],
             APIURL,
             encoded,
-        ), 200
+        ),
+        200,
     )
 
+
 def retrieve_metadata(objectId: str) -> pd.DataFrame:
-    """ Retrieve metadata in Fink given a ZTF object ID
-    """
-    client = connect_to_hbase_table('ztf.metadata')
-    to_evaluate = "key:key:{}".format(objectId)
+    """Retrieve metadata in Fink given a ZTF object ID"""
+    client = connect_to_hbase_table("ztf.metadata")
+    to_evaluate = f"key:key:{objectId}"
     results = client.scan(
         "",
         to_evaluate,
         "*",
-        0, False, False
+        0,
+        False,
+        False,
     )
-    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
     client.close()
     return pdf
 
+
 def retrieve_oid(metaname: str, field: str) -> pd.DataFrame:
-    """ Retrieve a ZTF object ID given metadata in Fink
-    """
-    client = connect_to_hbase_table('ztf.metadata')
-    to_evaluate = "d:{}:{}:exact".format(field, metaname)
+    """Retrieve a ZTF object ID given metadata in Fink"""
+    client = connect_to_hbase_table("ztf.metadata")
+    to_evaluate = f"d:{field}:{metaname}:exact"
     results = client.scan(
         "",
         to_evaluate,
         "*",
-        0, True, True
+        0,
+        True,
+        True,
     )
-    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient='index')
+    pdf = pd.DataFrame.from_dict(hbase_to_dict(results), orient="index")
     client.close()
 
     return pdf

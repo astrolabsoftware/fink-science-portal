@@ -27,25 +27,26 @@ cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
 background_callback_manager = DiskcacheManager(cache)
 
-args = yaml.load(open('config.yml'), yaml.Loader)
+args = yaml.load(open("config.yml"), yaml.Loader)
 
-APIURL = args['APIURL']
-LOCALAPI = args.get('LOCALAPI', False)
+APIURL = args["APIURL"]
+LOCALAPI = args.get("LOCALAPI", False)
 
 # bootstrap theme
 external_stylesheets = [
     dbc.themes.SPACELAB,
-    '//use.fontawesome.com/releases/v5.7.2/css/all.css',
+    "//use.fontawesome.com/releases/v5.7.2/css/all.css",
 ]
 external_scripts = [
-    '//code.jquery.com/jquery-1.12.1.min.js',
-    '//aladin.u-strasbg.fr/AladinLite/api/v3/3.2.0/aladin.js',
-    '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
+    "//code.jquery.com/jquery-1.12.1.min.js",
+    "//aladin.u-strasbg.fr/AladinLite/api/v3/3.2.0/aladin.js",
+    "//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
 ]
 
 # Enable verbose logging on callbacks, if requested
-if 'DASH_TELEMETRY' in os.environ:
+if "DASH_TELEMETRY" in os.environ:
     from telemetry import DashWithTelemetry
+
     factory = DashWithTelemetry
 else:
     factory = dash.Dash
@@ -54,19 +55,16 @@ app = factory(
     __name__,
     external_stylesheets=external_stylesheets,
     external_scripts=external_scripts,
-    meta_tags=[{
-        "name": "viewport",
-        "content": "width=device-width, initial-scale=1"
-    }],
+    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
     long_callback_manager=long_callback_manager,
     background_callback_manager=background_callback_manager,
     update_title=None,
-    title='Fink Science Portal'
+    title="Fink Science Portal",
 )
 
 nlimit = 10000
 
-app.server.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
+app.server.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 server = app.server
 
 app.config.suppress_callback_exceptions = True

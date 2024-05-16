@@ -15,50 +15,32 @@
 import pandas as pd
 
 from app import APIURL
-
 from apps.statistics import dic_names
 
-api_doc_summary = """
+api_doc_summary = f"""
 # Fink API
 
 ## Summary of services
 
 | HTTP Method | URI | Action | Availability |
 |-------------|-----|--------|--------------|
-| POST/GET | {}/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/sso | Get confirmed Solar System Object data | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/ssocand | Get candidate Solar System Object data | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/tracklet | Get tracklet data | &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/bayestar | Cross-match LIGO/Virgo sky map with Fink alert data| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/statistics | Statistics concerning Fink alert data| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/anomaly | Fink alerts with large anomaly score| &#x2611;&#xFE0F; |
-| POST/GET | {}/api/v1/random | Draw random objects from the Fink database| &#x2611;&#xFE0F; |
-| POST/GET  | {}/api/v1/ssoft  | Get the Fink Solar System table | &#x2611;&#xFE0F; |
-| POST/GET  | {}/api/v1/resolver  | Resolve names | &#x2611;&#xFE0F; |
-| GET  | {}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
-| GET  | {}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
-""".format(
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-    APIURL,
-)
+| POST/GET | {APIURL}/api/v1/objects| Retrieve single object data from the Fink database | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/explorer | Query the Fink alert database | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/latests | Get latest alerts by class | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/sso | Get confirmed Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/ssocand | Get candidate Solar System Object data | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/tracklet | Get tracklet data | &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/cutouts | Retrieve cutout data from the Fink database| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/xmatch | Cross-match user-defined catalog with Fink alert data| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/bayestar | Cross-match LIGO/Virgo sky map with Fink alert data| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/statistics | Statistics concerning Fink alert data| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/anomaly | Fink alerts with large anomaly score| &#x2611;&#xFE0F; |
+| POST/GET | {APIURL}/api/v1/random | Draw random objects from the Fink database| &#x2611;&#xFE0F; |
+| POST/GET  | {APIURL}/api/v1/ssoft  | Get the Fink Solar System table | &#x2611;&#xFE0F; |
+| POST/GET  | {APIURL}/api/v1/resolver  | Resolve names | &#x2611;&#xFE0F; |
+| GET  | {APIURL}/api/v1/classes  | Display all Fink derived classification | &#x2611;&#xFE0F; |
+| GET  | {APIURL}/api/v1/columns  | Display all available alert fields and their type | &#x2611;&#xFE0F; |
+"""
 
 api_doc_object = """
 ## Retrieve object data
@@ -247,7 +229,7 @@ columns = [
 
 for col in columns:
     # 2D array
-    data = pdf[col].values[0]
+    data = pdf[col].to_numpy()[0]
 
     # do whatever plotting
 
@@ -810,7 +792,7 @@ r = requests.post(
 
 pdf_candid = pd.read_json(r.content)
 # Get the first alert
-first_alert = pdf_candid['i:candid'].values[-1]
+first_alert = pdf_candid['i:candid'].to_numpy()[-1]
 
 # get data for ZTF21aaxtctv
 r = requests.post(
@@ -878,7 +860,7 @@ r = requests.post(
 )
 
 pdf = pd.read_json(io.BytesIO(r.content))
-array = pdf['b:cutoutScience_stampData'].values[0]
+array = pdf['b:cutoutScience_stampData'].to_numpy()[0]
 ```
 
 """
@@ -1120,7 +1102,7 @@ The schema of the dataframe is the following:
 
 All other fields starting with `class:` are crossmatch from the SIMBAD database.
 """.format(
-    pd.DataFrame([dic_names]).T.rename(columns={0: "description"}).to_markdown()
+    pd.DataFrame([dic_names]).T.rename(columns={0: "description"}).to_markdown(),
 )
 
 api_doc_random = """
@@ -1611,7 +1593,7 @@ if r.json() != []:
 
     # Format output in a DataFrame
     pdf = pd.read_json(io.BytesIO(r.content))
-    print('Object(s) in ZTF: {}'.format(pdf['i:objectId'].values))
+    print('Object(s) in ZTF: {}'.format(pdf['i:objectId'].to_numpy()))
 else:
     print('No objects found')
 ```
@@ -1694,7 +1676,7 @@ and then search for corresponding alerts for all `ssnamenr`:
 r = requests.post(
   'https://fink-portal.org/api/v1/sso',
   json={
-    'n_or_d': ','.join(pdf['i:ssnamenr'].values),
+    'n_or_d': ','.join(pdf['i:ssnamenr'].to_numpy()),
     'columns': 'i:objectId,i:ra,i:dec,i:magpsf,i:sigmapsf,i:ssnamenr'
   }
 )

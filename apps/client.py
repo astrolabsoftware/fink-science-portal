@@ -12,18 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from apps import __file__ as apps_loc
 import os
+
 import jpype
 import jpype.imports
-
 import numpy as np
-
 import yaml
+
+from apps import __file__ as apps_loc
 
 
 def initialise_jvm(path=None):
-    """ Start a JVM
+    """Start a JVM
 
     Parameters
     ----------
@@ -32,14 +32,21 @@ def initialise_jvm(path=None):
     """
     if not jpype.isJVMStarted():
         if path is None:
-            path = os.path.dirname(apps_loc) + '/../bin/FinkBrowser.exe.jar'
-        jarpath = "-Djava.class.path={}".format(path)
+            path = os.path.dirname(apps_loc) + "/../bin/FinkBrowser.exe.jar"
+        jarpath = f"-Djava.class.path={path}"
         jpype.startJVM(jpype.getDefaultJVMPath(), "-ea", jarpath, convertStrings=True)
 
     jpype.attachThreadToJVM()
 
-def connect_to_hbase_table(tablename: str, schema_name=None, nlimit=10000, setphysicalrepo=False, config_path=None):
-    """ Return a client connected to a HBase table
+
+def connect_to_hbase_table(
+    tablename: str,
+    schema_name=None,
+    nlimit=10000,
+    setphysicalrepo=False,
+    config_path=None,
+):
+    """Return a client connected to a HBase table
 
     Parameters
     ----------
@@ -58,10 +65,10 @@ def connect_to_hbase_table(tablename: str, schema_name=None, nlimit=10000, setph
     initialise_jvm()
 
     if config_path is None:
-        config_path = os.path.dirname(apps_loc) + '/../config.yml'
+        config_path = os.path.dirname(apps_loc) + "/../config.yml"
     args = yaml.load(
         open(config_path),
-        yaml.Loader
+        yaml.Loader,
     )
 
     import com.Lomikel.HBaser
@@ -69,20 +76,29 @@ def connect_to_hbase_table(tablename: str, schema_name=None, nlimit=10000, setph
 
     Init.init()
 
-    client = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT'])
+    client = com.Lomikel.HBaser.HBaseClient(args["HBASEIP"], args["ZOOPORT"])
 
     if schema_name is None:
-        schema_name = args['SCHEMAVER']
+        schema_name = args["SCHEMAVER"]
     client.connect(tablename, schema_name)
     if setphysicalrepo:
         import com.Lomikel.HBaser.FilesBinaryDataRepository
+
         client.setRepository(com.Lomikel.HBaser.FilesBinaryDataRepository())
     client.setLimit(nlimit)
 
     return client
 
-def create_or_update_hbase_table(tablename: str, families: list, schema_name: str, schema: dict, create=False, config_path=None):
-    """ Create or update a table in HBase
+
+def create_or_update_hbase_table(
+    tablename: str,
+    families: list,
+    schema_name: str,
+    schema: dict,
+    create=False,
+    config_path=None,
+):
+    """Create or update a table in HBase
 
     By default (create=False), it will only update the schema of the table
     otherwise it will create the table in HBase and push the schema. The schema
@@ -111,10 +127,10 @@ def create_or_update_hbase_table(tablename: str, families: list, schema_name: st
     initialise_jvm()
 
     if config_path is None:
-        config_path = os.path.dirname(apps_loc) + '/../config.yml'
+        config_path = os.path.dirname(apps_loc) + "/../config.yml"
     args = yaml.load(
         open(config_path),
-        yaml.Loader
+        yaml.Loader,
     )
 
     import com.Lomikel.HBaser
@@ -122,7 +138,7 @@ def create_or_update_hbase_table(tablename: str, families: list, schema_name: st
 
     Init.init()
 
-    client = com.Lomikel.HBaser.HBaseClient(args['HBASEIP'], args['ZOOPORT'])
+    client = com.Lomikel.HBaser.HBaseClient(args["HBASEIP"], args["ZOOPORT"])
 
     if create:
         # Create the table and connect without schema
@@ -133,7 +149,7 @@ def create_or_update_hbase_table(tablename: str, families: list, schema_name: st
         client.connect(tablename, None)
 
     # Push the schema
-    out = ['{}:{}:{}'.format(families[0], colname, coltype) for colname, coltype in schema.items()]
+    out = [f"{families[0]}:{colname}:{coltype}" for colname, coltype in schema.items()]
     client.put(schema_name, out)
 
     client.close()

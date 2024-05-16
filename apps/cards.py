@@ -12,29 +12,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, Input, Output, State, clientside_callback
-import dash_bootstrap_components as dbc
-import dash_mantine_components as dmc
-from dash_iconify import DashIconify
-
-from app import app, APIURL
-
-from apps.plotting import all_radio_options
-from apps.utils import class_colors
-from apps.utils import simbad_types
-from apps.utils import loading, help_popover
-from apps.utils import request_api
-from apps.utils import create_button_for_external_conesearch
-from apps.utils import get_first_value
-
-from fink_utils.photometry.utils import is_source_behind
-
-import pandas as pd
-import numpy as np
 import textwrap
 
-from astropy.time import Time
+import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
+import numpy as np
+import pandas as pd
 from astropy.coordinates import SkyCoord
+from astropy.time import Time
+from dash import Input, Output, State, clientside_callback, dcc, html
+from dash_iconify import DashIconify
+from fink_utils.photometry.utils import is_source_behind
+
+from app import APIURL, app
+from apps.plotting import all_radio_options
+from apps.utils import (
+    class_colors,
+    create_button_for_external_conesearch,
+    get_first_value,
+    help_popover,
+    loading,
+    request_api,
+    simbad_types,
+)
 
 lc_help = r"""
 ##### Difference magnitude
@@ -73,11 +73,12 @@ $$
 Note that we display the flux in milli-Jansky.
 """
 
+
 def card_lightcurve_summary():
-    """ Add a card containing the lightcurve
+    """Add a card containing the lightcurve
 
     Returns
-    ----------
+    -------
     card: dbc.Card
         Card with the lightcurve drawn inside
     """
@@ -85,73 +86,83 @@ def card_lightcurve_summary():
         [
             loading(
                 dcc.Graph(
-                    id='lightcurve_cutouts',
+                    id="lightcurve_cutouts",
                     style={
-                        'width': '100%',
-                        'height': '30pc'
+                        "width": "100%",
+                        "height": "30pc",
                     },
-                    config={'displayModeBar': False},
-                    className="mb-2"
-                )
+                    config={"displayModeBar": False},
+                    className="mb-2",
+                ),
             ),
             dbc.Row(
                 dbc.Col(
                     dmc.ChipGroup(
                         [
-                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
+                            dmc.Chip(
+                                x,
+                                value=x,
+                                variant="outline",
+                                color="orange",
+                                radius="xl",
+                                size="sm",
+                            )
                             for x in all_radio_options.keys()
                         ],
                         id="switch-mag-flux",
                         value="Difference magnitude",
                         spacing="xl",
-                        position='center',
+                        position="center",
                         multiple=False,
-                    )
+                    ),
                 ),
-                className='mb-2'
+                className="mb-2",
             ),
             dmc.Group(
                 [
                     dmc.Switch(
                         "Color",
-                        id='lightcurve_show_color',
-                        color='gray',
-                        radius='xl',
-                        size='sm',
-                        persistence=True
+                        id="lightcurve_show_color",
+                        color="gray",
+                        radius="xl",
+                        size="sm",
+                        persistence=True,
                     ),
                     dmc.Button(
                         "Get DR photometry",
-                        id='lightcurve_request_release',
+                        id="lightcurve_request_release",
                         variant="outline",
-                        color='gray',
-                        radius='xl', size='xs',
+                        color="gray",
+                        radius="xl",
+                        size="xs",
                         compact=False,
                     ),
                     help_popover(
                         dcc.Markdown(
-                            lc_help, mathjax=True
+                            lc_help,
+                            mathjax=True,
                         ),
-                        'help_lc',
+                        "help_lc",
                         trigger=dmc.ActionIcon(
                             DashIconify(icon="mdi:help"),
-                            id='help_lc',
-                            color='gray',
+                            id="help_lc",
+                            color="gray",
                             variant="outline",
-                            radius='xl',
-                            size='md',
-                        )
+                            radius="xl",
+                            size="md",
+                        ),
                     ),
                 ],
-                position='center', align='center'
-            )
-        ]
+                position="center",
+                align="center",
+            ),
+        ],
     )
     return card
 
+
 def card_explanation_xmatch():
-    """ Explain how xmatch works
-    """
+    """Explain how xmatch works"""
     msg = """
     The Fink Xmatch service allows you to cross-match your catalog data with
     all Fink alert data processed so far (more than 60 million alerts, from ZTF). Just drag and drop
@@ -179,13 +190,14 @@ def card_explanation_xmatch():
     """
     card = dbc.Card(
         dbc.CardBody(
-            dcc.Markdown(msg)
-        )
+            dcc.Markdown(msg),
+        ),
     )
     return card
 
+
 def create_external_conesearches(ra0, dec0):
-    """ Create two rows of buttons to trigger external conesearch
+    """Create two rows of buttons to trigger external conesearch
 
     Parameters
     ----------
@@ -198,103 +210,124 @@ def create_external_conesearches(ra0, dec0):
     buttons = [
         dbc.Row(
             [
-                create_button_for_external_conesearch(kind='tns', ra0=ra0, dec0=dec0, radius=5, width=width),
-                create_button_for_external_conesearch(kind='simbad', ra0=ra0, dec0=dec0, radius=0.08, width=width),
-                create_button_for_external_conesearch(kind='snad', ra0=ra0, dec0=dec0, radius=5, width=width),
-                create_button_for_external_conesearch(kind='datacentral', ra0=ra0, dec0=dec0, radius=2.0, width=width)
-            ], justify='around'
+                create_button_for_external_conesearch(
+                    kind="tns", ra0=ra0, dec0=dec0, radius=5, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="simbad", ra0=ra0, dec0=dec0, radius=0.08, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="snad", ra0=ra0, dec0=dec0, radius=5, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="datacentral", ra0=ra0, dec0=dec0, radius=2.0, width=width
+                ),
+            ],
+            justify="around",
         ),
         dbc.Row(
             [
-                create_button_for_external_conesearch(kind='ned', ra0=ra0, dec0=dec0, radius=1.0, width=width),
-                create_button_for_external_conesearch(kind='sdss', ra0=ra0, dec0=dec0, width=width),
-                create_button_for_external_conesearch(kind='asas-sn', ra0=ra0, dec0=dec0, radius=0.5, width=width),
-                create_button_for_external_conesearch(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1, width=width)
-            ], justify='around'
+                create_button_for_external_conesearch(
+                    kind="ned", ra0=ra0, dec0=dec0, radius=1.0, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="sdss", ra0=ra0, dec0=dec0, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="asas-sn", ra0=ra0, dec0=dec0, radius=0.5, width=width
+                ),
+                create_button_for_external_conesearch(
+                    kind="vsx", ra0=ra0, dec0=dec0, radius=0.1, width=width
+                ),
+            ],
+            justify="around",
         ),
     ]
     return buttons
 
+
 def create_external_links_brokers(objectId):
-    """
-    """
+    """ """
     buttons = dbc.Row(
         [
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg zoom btn-image',
-                    style={'background-image': 'url(/assets/buttons/logo_alerce.png)'},
-                    color='dark',
+                    className="btn btn-default btn-circle btn-lg zoom btn-image",
+                    style={"background-image": "url(/assets/buttons/logo_alerce.png)"},
+                    color="dark",
                     outline=True,
-                    id='alerce',
-                    title='ALeRCE',
+                    id="alerce",
+                    title="ALeRCE",
                     target="_blank",
-                    href='https://alerce.online/object/{}'.format(objectId)
-                )
+                    href=f"https://alerce.online/object/{objectId}",
+                ),
             ),
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg zoom btn-image',
-                    style={'background-image': 'url(/assets/buttons/logo_antares.png)'},
-                    color='dark',
+                    className="btn btn-default btn-circle btn-lg zoom btn-image",
+                    style={"background-image": "url(/assets/buttons/logo_antares.png)"},
+                    color="dark",
                     outline=True,
-                    id='antares',
-                    title='ANTARES',
+                    id="antares",
+                    title="ANTARES",
                     target="_blank",
-                    href='https://antares.noirlab.edu/loci?query=%7B%22currentPage%22%3A1,%22filters%22%3A%5B%7B%22type%22%3A%22query_string%22,%22field%22%3A%7B%22query%22%3A%22%2a{}%2a%22,%22fields%22%3A%5B%22properties.ztf_object_id%22,%22locus_id%22%5D%7D,%22value%22%3Anull,%22text%22%3A%22ID%20Lookup%3A%20ZTF21abfmbix%22%7D%5D,%22sortBy%22%3A%22properties.newest_alert_observation_time%22,%22sortDesc%22%3Atrue,%22perPage%22%3A25%7D'.format(objectId)
-                )
+                    href=f"https://antares.noirlab.edu/loci?query=%7B%22currentPage%22%3A1,%22filters%22%3A%5B%7B%22type%22%3A%22query_string%22,%22field%22%3A%7B%22query%22%3A%22%2a{objectId}%2a%22,%22fields%22%3A%5B%22properties.ztf_object_id%22,%22locus_id%22%5D%7D,%22value%22%3Anull,%22text%22%3A%22ID%20Lookup%3A%20ZTF21abfmbix%22%7D%5D,%22sortBy%22%3A%22properties.newest_alert_observation_time%22,%22sortDesc%22%3Atrue,%22perPage%22%3A25%7D",
+                ),
             ),
             dbc.Col(
                 dbc.Button(
-                    className='btn btn-default btn-circle btn-lg zoom btn-image',
-                    style={'background-image': 'url(/assets/buttons/logo_lasair.png)'},
-                    color='dark',
+                    className="btn btn-default btn-circle btn-lg zoom btn-image",
+                    style={"background-image": "url(/assets/buttons/logo_lasair.png)"},
+                    color="dark",
                     outline=True,
-                    id='lasair',
-                    title='Lasair',
+                    id="lasair",
+                    title="Lasair",
                     target="_blank",
-                    href='https://lasair-ztf.lsst.ac.uk/objects/{}'.format(objectId)
-                )
+                    href=f"https://lasair-ztf.lsst.ac.uk/objects/{objectId}",
+                ),
             ),
-        ], justify='around'
+        ],
+        justify="around",
     )
     return buttons
 
+
 def card_neighbourhood(pdf):
-    distnr = get_first_value(pdf, 'i:distnr')
-    ssnamenr = get_first_value(pdf, 'i:ssnamenr')
-    distpsnr1 = get_first_value(pdf, 'i:distpsnr1')
-    neargaia = get_first_value(pdf, 'i:neargaia')
-    constellation = get_first_value(pdf, 'v:constellation')
-    gaianame = get_first_value(pdf, 'd:DR3Name')
-    cdsxmatch = get_first_value(pdf, 'd:cdsxmatch')
-    vsx = get_first_value(pdf, 'd:vsx')
-    gcvs = get_first_value(pdf, 'd:gcvs')
+    distnr = get_first_value(pdf, "i:distnr")
+    ssnamenr = get_first_value(pdf, "i:ssnamenr")
+    distpsnr1 = get_first_value(pdf, "i:distpsnr1")
+    neargaia = get_first_value(pdf, "i:neargaia")
+    constellation = get_first_value(pdf, "v:constellation")
+    gaianame = get_first_value(pdf, "d:DR3Name")
+    cdsxmatch = get_first_value(pdf, "d:cdsxmatch")
+    vsx = get_first_value(pdf, "d:vsx")
+    gcvs = get_first_value(pdf, "d:gcvs")
 
     card = dmc.Paper(
         [
             dcc.Markdown(
-                """
-                Constellation: `{}`
-                Class (SIMBAD): `{}`
-                Class (VSX/GCVS): `{}` / `{}`
-                Name (MPC): `{}`
-                Name (Gaia): `{}`
-                Distance (Gaia): `{:.2f}` arcsec
-                Distance (PS1): `{:.2f}` arcsec
-                Distance (ZTF): `{:.2f}` arcsec
-                """.format(
-                    constellation,
-                    cdsxmatch, vsx, gcvs, ssnamenr, gaianame,
-                    float(neargaia), float(distpsnr1), float(distnr)
-                ),
-                className="markdown markdown-pre ps-2 pe-2"
+                f"""
+                Constellation: `{constellation}`
+                Class (SIMBAD): `{cdsxmatch}`
+                Class (VSX/GCVS): `{vsx}` / `{gcvs}`
+                Name (MPC): `{ssnamenr}`
+                Name (Gaia): `{gaianame}`
+                Distance (Gaia): `{float(neargaia):.2f}` arcsec
+                Distance (PS1): `{float(distpsnr1):.2f}` arcsec
+                Distance (ZTF): `{float(distnr):.2f}` arcsec
+                """,
+                className="markdown markdown-pre ps-2 pe-2",
             ),
         ],
-        radius='sm', p='xs', shadow='sm', withBorder=True, style={'width': '100%'},
+        radius="sm",
+        p="xs",
+        shadow="sm",
+        withBorder=True,
+        style={"width": "100%"},
     )
 
     return card
+
 
 def make_modal_stamps(pdf):
     return [
@@ -309,8 +342,8 @@ def make_modal_stamps(pdf):
                             n_clicks=0,
                             variant="default",
                             size=36,
-                            color='gray',
-                            className='me-1'
+                            color="gray",
+                            className="me-1",
                         ),
                         dmc.Select(
                             label="",
@@ -318,9 +351,10 @@ def make_modal_stamps(pdf):
                             searchable=True,
                             nothingFound="No options found",
                             id="date_modal_select",
-                            value=pdf['v:lastdate'].values[0],
+                            value=pdf["v:lastdate"].to_numpy()[0],
                             data=[
-                                {"value": i, "label": i} for i in pdf['v:lastdate'].values
+                                {"value": i, "label": i}
+                                for i in pdf["v:lastdate"].to_numpy()
                             ],
                             zIndex=10000000,
                         ),
@@ -331,27 +365,29 @@ def make_modal_stamps(pdf):
                             n_clicks=0,
                             variant="default",
                             size=36,
-                            color='gray',
-                            className='ms-1'
+                            color="gray",
+                            className="ms-1",
                         ),
                     ],
                     close_button=True,
-                    className="p-2 pe-4"
+                    className="p-2 pe-4",
                 ),
-                loading(dbc.ModalBody(
-                    [
-                        dbc.Row(
-                            id='stamps_modal_content',
-                            justify='around',
-                            className='g-0 mx-auto',
-                        ),
-                    ]
-                )),
+                loading(
+                    dbc.ModalBody(
+                        [
+                            dbc.Row(
+                                id="stamps_modal_content",
+                                justify="around",
+                                className="g-0 mx-auto",
+                            ),
+                        ],
+                    )
+                ),
             ],
             id="stamps_modal",
             scrollable=True,
             centered=True,
-            size='xl',
+            size="xl",
             # style={'max-width': '800px'}
         ),
         dmc.Center(
@@ -362,10 +398,11 @@ def make_modal_stamps(pdf):
                 variant="default",
                 radius=30,
                 size=36,
-                color='gray'
+                color="gray",
             ),
         ),
     ]
+
 
 # Toggle stamps modal
 clientside_callback(
@@ -415,40 +452,36 @@ clientside_callback(
     prevent_initial_call=True,
 )
 
-def card_id(pdf):
-    """ Add a card containing basic alert data
-    """
-    # pdf = pd.read_json(object_data)
-    objectid = pdf['i:objectId'].values[0]
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
 
-    python_download = """import requests
+def card_id(pdf):
+    """Add a card containing basic alert data"""
+    # pdf = pd.read_json(object_data)
+    objectid = pdf["i:objectId"].to_numpy()[0]
+    ra0 = pdf["i:ra"].to_numpy()[0]
+    dec0 = pdf["i:dec"].to_numpy()[0]
+
+    python_download = f"""import requests
 import pandas as pd
 import io
 
-# get data for {}
+# get data for {objectid}
 r = requests.post(
-    '{}/api/v1/objects',
+    '{APIURL}/api/v1/objects',
     json={{
-        'objectId': '{}',
+        'objectId': '{objectid}',
         'output-format': 'json'
     }}
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(io.BytesIO(r.content))""".format(
-        objectid,
-        APIURL,
-        objectid
-    )
+pdf = pd.read_json(io.BytesIO(r.content))"""
 
-    curl_download = """
+    curl_download = f"""
 curl -H "Content-Type: application/json" -X POST \\
-    -d '{{"objectId":"{}", "output-format":"csv"}}' \\
-    {}/api/v1/objects \\
-    -o {}.csv
-    """.format(objectid, APIURL, objectid)
+    -d '{{"objectId":"{objectid}", "output-format":"csv"}}' \\
+    {APIURL}/api/v1/objects \\
+    -o {objectid}.csv
+    """
 
     download_tab = dmc.Tabs(
         [
@@ -458,10 +491,16 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.Tab("Curl", value="Curl"),
                 ],
             ),
-            dmc.TabsPanel(dmc.Prism(children=python_download, language="python"), value="Python"),
-            dmc.TabsPanel(children=dmc.Prism(children=curl_download, language="bash"), value="Curl"),
+            dmc.TabsPanel(
+                dmc.Prism(children=python_download, language="python"), value="Python"
+            ),
+            dmc.TabsPanel(
+                children=dmc.Prism(children=curl_download, language="bash"),
+                value="Curl",
+            ),
         ],
-        color="red", value="Python"
+        color="red",
+        value="Python",
     )
 
     card = dmc.AccordionMultiple(
@@ -475,7 +514,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:flare",
                                 color=dmc.theme.DEFAULT_COLORS["dark"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
@@ -484,19 +523,30 @@ curl -H "Content-Type: application/json" -X POST \\
                                 dmc.Paper(
                                     [
                                         dbc.Row(
-                                            dmc.Skeleton(style={'width': '100%', 'aspect-ratio': '3/1'}),
-                                            id='stamps', justify='around', className="g-0"
+                                            dmc.Skeleton(
+                                                style={
+                                                    "width": "100%",
+                                                    "aspect-ratio": "3/1",
+                                                }
+                                            ),
+                                            id="stamps",
+                                            justify="around",
+                                            className="g-0",
                                         ),
                                     ],
-                                    radius='sm', p='xs', shadow='sm', withBorder=True, style={'padding':'5px'}
-                                )
+                                    radius="sm",
+                                    p="xs",
+                                    shadow="sm",
+                                    withBorder=True,
+                                    style={"padding": "5px"},
+                                ),
                             ),
                             dmc.Space(h=4),
                             *make_modal_stamps(pdf),
-                        ]
+                        ],
                     ),
                 ],
-                value='stamps'
+                value="stamps",
             ),
             dmc.AccordionItem(
                 [
@@ -507,14 +557,14 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:file-description",
                                 color=dmc.theme.DEFAULT_COLORS["blue"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
-                        html.Div([], id='alert_table'),
+                        html.Div([], id="alert_table"),
                     ),
                 ],
-                value='last_alert'
+                value="last_alert",
             ),
             dmc.AccordionItem(
                 [
@@ -525,31 +575,38 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:target",
                                 color=dmc.theme.DEFAULT_COLORS["orange"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
                         [
-                            html.Div(id='coordinates'),
+                            html.Div(id="coordinates"),
                             dbc.Row(
                                 dbc.Col(
                                     dmc.ChipGroup(
                                         [
-                                            dmc.Chip(x, value=x, variant="outline", color="orange", radius="xl", size="sm")
-                                            for x in ['EQU', 'GAL']
+                                            dmc.Chip(
+                                                x,
+                                                value=x,
+                                                variant="outline",
+                                                color="orange",
+                                                radius="xl",
+                                                size="sm",
+                                            )
+                                            for x in ["EQU", "GAL"]
                                         ],
                                         id="coordinates_chips",
                                         value="EQU",
                                         spacing="xl",
-                                        position='center',
+                                        position="center",
                                         multiple=False,
-                                    )
-                                )
+                                    ),
+                                ),
                             ),
                         ],
                     ),
                 ],
-                value='coordinates'
+                value="coordinates",
             ),
             dmc.AccordionItem(
                 [
@@ -560,7 +617,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:database-export",
                                 color=dmc.theme.DEFAULT_COLORS["red"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
@@ -570,51 +627,69 @@ curl -H "Content-Type: application/json" -X POST \\
                                     [
                                         dmc.Button(
                                             "JSON",
-                                            id='download_json',
+                                            id="download_json",
                                             variant="outline",
-                                            color='indigo',
+                                            color="indigo",
                                             compact=True,
-                                            leftIcon=[DashIconify(icon="mdi:code-json")],
+                                            leftIcon=[
+                                                DashIconify(icon="mdi:code-json")
+                                            ],
                                         ),
                                         dmc.Button(
                                             "CSV",
-                                            id='download_csv',
+                                            id="download_csv",
                                             variant="outline",
-                                            color='indigo',
+                                            color="indigo",
                                             compact=True,
-                                            leftIcon=[DashIconify(icon="mdi:file-csv-outline")],
+                                            leftIcon=[
+                                                DashIconify(icon="mdi:file-csv-outline")
+                                            ],
                                         ),
                                         dmc.Button(
                                             "VOTable",
-                                            id='download_votable',
+                                            id="download_votable",
                                             variant="outline",
-                                            color='indigo',
+                                            color="indigo",
                                             compact=True,
                                             leftIcon=[DashIconify(icon="mdi:xml")],
                                         ),
                                         help_popover(
                                             [
-                                                dcc.Markdown('You may also download the data programmatically.'),
+                                                dcc.Markdown(
+                                                    "You may also download the data programmatically."
+                                                ),
                                                 download_tab,
-                                                dcc.Markdown('See {}/api for more options'.format(APIURL)),
+                                                dcc.Markdown(
+                                                    f"See {APIURL}/api for more options"
+                                                ),
                                             ],
-                                            'help_download',
+                                            "help_download",
                                             trigger=dmc.ActionIcon(
-                                                    DashIconify(icon="mdi:help"),
-                                                    id='help_download',
-                                                    variant="outline",
-                                                    color='indigo',
+                                                DashIconify(icon="mdi:help"),
+                                                id="help_download",
+                                                variant="outline",
+                                                color="indigo",
                                             ),
                                         ),
-                                        html.Div(objectid, id='download_objectid', className='d-none'),
-                                        html.Div(APIURL, id='download_apiurl', className='d-none'),
-                                    ], position="center", spacing="xs"
-                                )
+                                        html.Div(
+                                            objectid,
+                                            id="download_objectid",
+                                            className="d-none",
+                                        ),
+                                        html.Div(
+                                            APIURL,
+                                            id="download_apiurl",
+                                            className="d-none",
+                                        ),
+                                    ],
+                                    position="center",
+                                    spacing="xs",
+                                ),
                             ],
                         ),
                     ),
                 ],
-                value='api'
+                value="api",
             ),
             dmc.AccordionItem(
                 [
@@ -625,20 +700,20 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:external-link",
                                 color="#15284F",
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
                         dmc.Stack(
                             [
                                 card_neighbourhood(pdf),
-                                *create_external_conesearches(ra0, dec0)
+                                *create_external_conesearches(ra0, dec0),
                             ],
-                            align='center'
-                        )
+                            align="center",
+                        ),
                     ),
                 ],
-                value='external'
+                value="external",
             ),
             dmc.AccordionItem(
                 [
@@ -649,19 +724,19 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:atom-2",
                                 color=dmc.theme.DEFAULT_COLORS["green"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
                         dmc.Stack(
                             [
-                                create_external_links_brokers(objectid)
+                                create_external_links_brokers(objectid),
                             ],
-                            align='center'
-                        )
+                            align="center",
+                        ),
                     ),
                 ],
-                value='external_brokers'
+                value="external_brokers",
             ),
             dmc.AccordionItem(
                 [
@@ -672,23 +747,27 @@ curl -H "Content-Type: application/json" -X POST \\
                                 icon="tabler:share",
                                 color=dmc.theme.DEFAULT_COLORS["gray"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
                         [
-                            dmc.Center(html.Div(id='qrcode'), style={'width': '100%', 'height': '200'})
+                            dmc.Center(
+                                html.Div(id="qrcode"),
+                                style={"width": "100%", "height": "200"},
+                            ),
                         ],
                     ),
                 ],
-                value='qr'
+                value="qr",
             ),
         ],
-        value=['stamps'],
-        styles={'content':{'padding':'5px'}}
+        value=["stamps"],
+        styles={"content": {"padding": "5px"}},
     )
 
     return card
+
 
 # Downloads handling. Requires CORS to be enabled on the server.
 # TODO: We are mostly using it like this until GET requests properly initiate
@@ -716,44 +795,45 @@ function(n_clicks, name, apiurl){
 }
 """
 app.clientside_callback(
-    download_js.replace('$FORMAT', 'json').replace('$EXTENSION', 'json'),
-    Output('download_json', 'n_clicks'),
+    download_js.replace("$FORMAT", "json").replace("$EXTENSION", "json"),
+    Output("download_json", "n_clicks"),
     [
-        Input('download_json', 'n_clicks'),
-        Input('download_objectid', 'children'),
-        Input('download_apiurl', 'children'),
-    ]
+        Input("download_json", "n_clicks"),
+        Input("download_objectid", "children"),
+        Input("download_apiurl", "children"),
+    ],
 )
 app.clientside_callback(
-    download_js.replace('$FORMAT', 'csv').replace('$EXTENSION', 'csv'),
-    Output('download_csv', 'n_clicks'),
+    download_js.replace("$FORMAT", "csv").replace("$EXTENSION", "csv"),
+    Output("download_csv", "n_clicks"),
     [
-        Input('download_csv', 'n_clicks'),
-        Input('download_objectid', 'children'),
-        Input('download_apiurl', 'children'),
-    ]
+        Input("download_csv", "n_clicks"),
+        Input("download_objectid", "children"),
+        Input("download_apiurl", "children"),
+    ],
 )
 app.clientside_callback(
-    download_js.replace('$FORMAT', 'votable').replace('$EXTENSION', 'vot'),
-    Output('download_votable', 'n_clicks'),
+    download_js.replace("$FORMAT", "votable").replace("$EXTENSION", "vot"),
+    Output("download_votable", "n_clicks"),
     [
-        Input('download_votable', 'n_clicks'),
-        Input('download_objectid', 'children'),
-        Input('download_apiurl', 'children'),
-    ]
+        Input("download_votable", "n_clicks"),
+        Input("download_objectid", "children"),
+        Input("download_apiurl", "children"),
+    ],
 )
 
+
 def make_badge(text="", color=None, outline=None, tooltip=None, **kwargs):
-    style = kwargs.pop('style', {})
+    style = kwargs.pop("style", {})
     if outline is not None:
-        style['border-color'] = outline
+        style["border-color"] = outline
 
     badge = dmc.Badge(
         text,
         color=color,
-        variant=kwargs.pop('variant', 'dot'),
+        variant=kwargs.pop("variant", "dot"),
         style=style,
-        **kwargs
+        **kwargs,
     )
 
     if tooltip is not None:
@@ -761,14 +841,15 @@ def make_badge(text="", color=None, outline=None, tooltip=None, **kwargs):
             badge,
             label=tooltip,
             color=outline if outline is not None else color,
-            className='d-inline',
+            className="d-inline",
             multiline=True,
         )
 
     return badge
 
+
 def generate_tns_badge(oid):
-    """ Generate TNS badge
+    """Generate TNS badge
 
     Parameters
     ----------
@@ -776,39 +857,39 @@ def generate_tns_badge(oid):
         ZTF object ID
 
     Returns
-    ----------
+    -------
     badge: dmc.Badge or None
     """
     r = request_api(
-        '/api/v1/resolver',
+        "/api/v1/resolver",
         json={
-            'resolver': 'tns',
-            'name': oid,
-            'reverse': True
+            "resolver": "tns",
+            "name": oid,
+            "reverse": True,
         },
-        output='json'
+        output="json",
     )
 
     if r != []:
         payload = r[-1]
 
-        if payload['d:type'] != 'nan':
-            msg = 'TNS: {} ({})'.format(payload['d:fullname'], payload['d:type'])
+        if payload["d:type"] != "nan":
+            msg = "TNS: {} ({})".format(payload["d:fullname"], payload["d:type"])
         else:
-            msg = 'TNS: {}'.format(payload['d:fullname'])
+            msg = "TNS: {}".format(payload["d:fullname"])
         badge = make_badge(
             msg,
-            color='red',
-            tooltip="Transient Name Server classification"
+            color="red",
+            tooltip="Transient Name Server classification",
         )
     else:
         badge = None
 
     return badge
 
-def generate_generic_badges(row, variant='dot'):
-    """Operates on first row of a DataFrame, or directly on Series from pdf.iterrow()
-    """
+
+def generate_generic_badges(row, variant="dot"):
+    """Operates on first row of a DataFrame, or directly on Series from pdf.iterrow()"""
     if isinstance(row, pd.DataFrame):
         # Get first row from DataFrame
         row = row.loc[0]
@@ -816,92 +897,95 @@ def generate_generic_badges(row, variant='dot'):
     badges = []
 
     # SSO
-    ssnamenr = row.get('i:ssnamenr')
-    if ssnamenr and ssnamenr != 'null':
+    ssnamenr = row.get("i:ssnamenr")
+    if ssnamenr and ssnamenr != "null":
         badges.append(
             make_badge(
-                "SSO: {}".format(ssnamenr),
+                f"SSO: {ssnamenr}",
                 variant=variant,
-                color='yellow',
-                tooltip="Nearest Solar System object"
-            )
+                color="yellow",
+                tooltip="Nearest Solar System object",
+            ),
         )
 
-    tracklet = row.get('d:tracklet')
-    if tracklet and tracklet != 'null':
+    tracklet = row.get("d:tracklet")
+    if tracklet and tracklet != "null":
         badges.append(
             make_badge(
-                "{}".format(tracklet),
+                f"{tracklet}",
                 variant=variant,
-                color='violet',
-                tooltip="Fink detected tracklet"
-            )
+                color="violet",
+                tooltip="Fink detected tracklet",
+            ),
         )
 
-    gcvs = row.get('d:gcvs')
-    if gcvs and gcvs != 'Unknown':
+    gcvs = row.get("d:gcvs")
+    if gcvs and gcvs != "Unknown":
         badges.append(
             make_badge(
-                "GCVS: {}".format(gcvs),
+                f"GCVS: {gcvs}",
                 variant=variant,
-                color=class_colors['Simbad'],
-                tooltip="General Catalogue of Variable Stars classification"
-            )
+                color=class_colors["Simbad"],
+                tooltip="General Catalogue of Variable Stars classification",
+            ),
         )
 
-    vsx = row.get('d:vsx')
-    if vsx and vsx != 'Unknown':
+    vsx = row.get("d:vsx")
+    if vsx and vsx != "Unknown":
         badges.append(
             make_badge(
-                "VSX: {}".format(vsx),
+                f"VSX: {vsx}",
                 variant=variant,
-                color=class_colors['Simbad'],
-                tooltip="AAVSO VSX classification"
-            )
+                color=class_colors["Simbad"],
+                tooltip="AAVSO VSX classification",
+            ),
         )
 
     # Nearby objects
-    distnr = row.get('i:distnr')
+    distnr = row.get("i:distnr")
     if distnr:
         is_source = is_source_behind(distnr)
         badges.append(
             make_badge(
-                "ZTF: {:.1f}\"".format(distnr),
+                f'ZTF: {distnr:.1f}"',
                 variant=variant,
-                color='cyan',
-                outline='red' if is_source else None,
+                color="cyan",
+                outline="red" if is_source else None,
                 tooltip="""There is a source behind in ZTF reference image.
                 You might want to check the DC magnitude plot, and get DR photometry to see its long-term behaviour
-                """ if is_source else "Distance to closest object in ZTF reference image",
-            )
+                """
+                if is_source
+                else "Distance to closest object in ZTF reference image",
+            ),
         )
 
-    distpsnr = row.get('i:distpsnr1')
+    distpsnr = row.get("i:distpsnr1")
     if distpsnr:
         badges.append(
             make_badge(
-                "PS1: {:.1f}\"".format(distpsnr),
+                f'PS1: {distpsnr:.1f}"',
                 variant=variant,
-                color='teal',
-                tooltip="Distance to closest object in Pan-STARRS DR1 catalogue"
-            )
+                color="teal",
+                tooltip="Distance to closest object in Pan-STARRS DR1 catalogue",
+            ),
         )
 
-    distgaia = row.get('i:neargaia')
+    distgaia = row.get("i:neargaia")
     if distgaia:
         badges.append(
             make_badge(
-                "Gaia: {:.1f}\"".format(distgaia),
+                f'Gaia: {distgaia:.1f}"',
                 variant=variant,
-                color='teal',
+                color="teal",
                 tooltip="Distance to closest object in Gaia DR3 catalogue",
-            )
+            ),
         )
 
     return badges
 
+
 def generate_metadata_name(oid):
-    """ Generate name from metadata
+    """Generate name from metadata
 
     Parameters
     ----------
@@ -909,47 +993,47 @@ def generate_metadata_name(oid):
         ZTF object ID
 
     Returns
-    ----------
+    -------
     name: str
     """
     r = request_api(
-        '/api/v1/metadata',
+        "/api/v1/metadata",
         json={
-            'objectId': oid,
+            "objectId": oid,
         },
-        output='json'
+        output="json",
     )
 
     if r != []:
-        name = r[0]['d:internal_name']
+        name = r[0]["d:internal_name"]
     else:
         name = None
 
     return name
 
+
 @app.callback(
-    Output('card_id_left', 'children'),
+    Output("card_id_left", "children"),
     [
-        Input('object-data', 'data'),
-        Input('object-uppervalid', 'data'),
-        Input('object-upper', 'data')
+        Input("object-data", "data"),
+        Input("object-uppervalid", "data"),
+        Input("object-upper", "data"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def card_id1(object_data, object_uppervalid, object_upper):
-    """ Add a card containing basic alert data
-    """
+    """Add a card containing basic alert data"""
     pdf = pd.read_json(object_data)
 
-    objectid = pdf['i:objectId'].values[0]
-    date_end = pdf['v:lastdate'].values[0]
-    discovery_date = pdf['v:lastdate'].values[-1]
-    jds = pdf['i:jd'].values
+    objectid = pdf["i:objectId"].to_numpy()[0]
+    date_end = pdf["v:lastdate"].to_numpy()[0]
+    discovery_date = pdf["v:lastdate"].to_numpy()[-1]
+    jds = pdf["i:jd"].to_numpy()
     ndet = len(pdf)
 
     pdf_upper_valid = pd.read_json(object_uppervalid)
     if not pdf_upper_valid.empty:
-        mask = pdf_upper_valid['i:jd'].apply(lambda x: x not in jds)
+        mask = pdf_upper_valid["i:jd"].apply(lambda x: x not in jds)
         nupper_valid = len(pdf_upper_valid[mask])
     else:
         nupper_valid = 0
@@ -961,48 +1045,62 @@ def card_id1(object_data, object_uppervalid, object_upper):
         nupper = 0
 
     badges = []
-    for c in np.unique(pdf['v:classification']):
+    for c in np.unique(pdf["v:classification"]):
         if c in simbad_types:
-            color = class_colors['Simbad']
+            color = class_colors["Simbad"]
         elif c in class_colors.keys():
             color = class_colors[c]
         else:
             # Sometimes SIMBAD mess up names :-)
-            color = class_colors['Simbad']
+            color = class_colors["Simbad"]
 
         badges.append(
             make_badge(
                 c,
                 color=color,
-                tooltip="Fink classification"
-            )
+                tooltip="Fink classification",
+            ),
         )
 
-    tns_badge = generate_tns_badge(get_first_value(pdf, 'i:objectId'))
+    tns_badge = generate_tns_badge(get_first_value(pdf, "i:objectId"))
     if tns_badge is not None:
         badges.append(tns_badge)
 
-    badges += generate_generic_badges(pdf, variant='dot')
+    badges += generate_generic_badges(pdf, variant="dot")
 
-    meta_name = generate_metadata_name(get_first_value(pdf, 'i:objectId'))
+    meta_name = generate_metadata_name(get_first_value(pdf, "i:objectId"))
     if meta_name is not None:
         extra_div = dbc.Row(
             [
-                dbc.Col(dmc.Title(meta_name, order=4, style={'color': '#15284F'}), width=10),
-            ], justify='start', align="center"
+                dbc.Col(
+                    dmc.Title(meta_name, order=4, style={"color": "#15284F"}), width=10
+                ),
+            ],
+            justify="start",
+            align="center",
         )
     else:
         extra_div = html.Div()
 
-    coords = SkyCoord(get_first_value(pdf, 'i:ra'), get_first_value(pdf, 'i:dec'), unit='deg')
+    coords = SkyCoord(
+        get_first_value(pdf, "i:ra"), get_first_value(pdf, "i:dec"), unit="deg"
+    )
 
     card = dmc.Paper(
         [
             dbc.Row(
                 [
-                    dbc.Col(dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size='lg'), width=2),
-                    dbc.Col(dmc.Title(objectid, order=1, style={'color': '#15284F'}), width=10),
-                ], justify='start', align="center"
+                    dbc.Col(
+                        dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size="lg"),
+                        width=2,
+                    ),
+                    dbc.Col(
+                        dmc.Title(objectid, order=1, style={"color": "#15284F"}),
+                        width=10,
+                    ),
+                ],
+                justify="start",
+                align="center",
             ),
             extra_div,
             html.Div(badges),
@@ -1017,74 +1115,83 @@ def card_id1(object_data, object_uppervalid, object_upper):
                     discovery_date[:19],
                     date_end[:19],
                     jds[0] - jds[-1],
-                    get_first_value(pdf, 'i:jdendhist') - get_first_value(pdf, 'i:jdstarthist'),
-                    ndet, nupper_valid, nupper,
-                    coords.ra.to_string(pad=True, unit='hour', precision=2, sep=' '),
-                    coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
+                    get_first_value(pdf, "i:jdendhist")
+                    - get_first_value(pdf, "i:jdstarthist"),
+                    ndet,
+                    nupper_valid,
+                    nupper,
+                    coords.ra.to_string(pad=True, unit="hour", precision=2, sep=" "),
+                    coords.dec.to_string(
+                        pad=True, unit="deg", alwayssign=True, precision=1, sep=" "
+                    ),
                 ),
-                className="markdown markdown-pre ps-2 pe-2 mt-2"
+                className="markdown markdown-pre ps-2 pe-2 mt-2",
             ),
-        ], radius='xl', p='md', shadow='xl', withBorder=True
+        ],
+        radius="xl",
+        p="md",
+        shadow="xl",
+        withBorder=True,
     )
     return card
 
+
 def card_search_result(row, i):
-    """Display single item for search results
-    """
+    """Display single item for search results"""
     badges = []
 
-    name = row['i:objectId']
-    if name[0] == '[': # Markdownified
-        name = row['i:objectId'].split('[')[1].split(']')[0]
+    name = row["i:objectId"]
+    if name[0] == "[":  # Markdownified
+        name = row["i:objectId"].split("[")[1].split("]")[0]
 
     # Handle different variants for key names from different API entry points
     classification = None
-    for key in ['v:classification', 'd:classification']:
+    for key in ["v:classification", "d:classification"]:
         if key in row:
             # Classification
             classification = row.get(key)
             if classification in simbad_types:
-                color = class_colors['Simbad']
+                color = class_colors["Simbad"]
             elif classification in class_colors.keys():
                 color = class_colors[classification]
             else:
                 # Sometimes SIMBAD mess up names :-)
-                color = class_colors['Simbad']
+                color = class_colors["Simbad"]
 
             badges.append(
                 make_badge(
                     classification,
-                    variant='outline',
+                    variant="outline",
                     color=color,
-                    tooltip='Fink classification'
-                )
+                    tooltip="Fink classification",
+                ),
             )
 
-    cdsxmatch = row.get('d:cdsxmatch')
-    if cdsxmatch and cdsxmatch != 'Unknown' and cdsxmatch != classification:
+    cdsxmatch = row.get("d:cdsxmatch")
+    if cdsxmatch and cdsxmatch != "Unknown" and cdsxmatch != classification:
         badges.append(
             make_badge(
-                "SIMBAD: {}".format(cdsxmatch),
-                variant='outline',
-                color=class_colors['Simbad'],
-                tooltip='SIMBAD classification'
-            )
+                f"SIMBAD: {cdsxmatch}",
+                variant="outline",
+                color=class_colors["Simbad"],
+                tooltip="SIMBAD classification",
+            ),
         )
 
-    badges += generate_generic_badges(row, variant='outline')
+    badges += generate_generic_badges(row, variant="outline")
 
-    if 'i:ndethist' in row:
-        ndethist = row.get('i:ndethist')
-    elif 'd:nalerthist' in row:
-        ndethist = row.get('d:nalerthist')
+    if "i:ndethist" in row:
+        ndethist = row.get("i:ndethist")
+    elif "d:nalerthist" in row:
+        ndethist = row.get("d:nalerthist")
     else:
-        ndethist = '?'
+        ndethist = "?"
 
-    jdend = row.get('i:jdendhist', row.get('i:jd'))
-    jdstart = row.get('i:jdstarthist')
-    lastdate = row.get('i:lastdate', Time(jdend, format='jd').iso)
+    jdend = row.get("i:jdendhist", row.get("i:jd"))
+    jdstart = row.get("i:jdstarthist")
+    lastdate = row.get("i:lastdate", Time(jdend, format="jd").iso)
 
-    coords = SkyCoord(row['i:ra'], row['i:dec'], unit='deg')
+    coords = SkyCoord(row["i:ra"], row["i:dec"], unit="deg")
 
     text = """
     `{}` detection(s) in `{:.1f}` days
@@ -1095,23 +1202,25 @@ def card_search_result(row, i):
     """.format(
         ndethist,
         jdend - jdstart,
-        Time(jdstart, format='jd').iso[:19],
+        Time(jdstart, format="jd").iso[:19],
         lastdate[:19],
-        coords.ra.to_string(pad=True, unit='hour', precision=2, sep=' '),
-        coords.dec.to_string(pad=True, unit='deg', alwayssign=True, precision=1, sep=' '),
-        coords.galactic.to_string(style='decimal'),
+        coords.ra.to_string(pad=True, unit="hour", precision=2, sep=" "),
+        coords.dec.to_string(
+            pad=True, unit="deg", alwayssign=True, precision=1, sep=" "
+        ),
+        coords.galactic.to_string(style="decimal"),
     )
 
     text = textwrap.dedent(text)
-    if 'i:rb' in row:
-        text += "RealBogus: `{:.2f}`\n".format(row['i:rb'])
-    if 'd:anomaly_score' in row:
-        text += "Anomaly score: `{:.2f}`\n".format(row['d:anomaly_score'])
+    if "i:rb" in row:
+        text += "RealBogus: `{:.2f}`\n".format(row["i:rb"])
+    if "d:anomaly_score" in row:
+        text += "Anomaly score: `{:.2f}`\n".format(row["d:anomaly_score"])
 
-    if 'v:separation_degree' in row:
-        corner_str = "{:.1f}''".format(row['v:separation_degree']*3600)
+    if "v:separation_degree" in row:
+        corner_str = "{:.1f}''".format(row["v:separation_degree"] * 3600)
     else:
-        corner_str = '#{}'.format(str(i))
+        corner_str = f"#{i!s}"
 
     item = dbc.Card(
         [
@@ -1121,48 +1230,57 @@ def card_search_result(row, i):
                     html.A(
                         dmc.Group(
                             [
-                                dmc.Text("{}".format(name), weight=700, size=26),
-                                dmc.Space(w='sm'),
-                                *badges
+                                dmc.Text(f"{name}", weight=700, size=26),
+                                dmc.Space(w="sm"),
+                                *badges,
                             ],
                             spacing=3,
                         ),
-                        href='/{}'.format(name),
-                        target='_blank',
-                        className='text-decoration-none',
+                        href=f"/{name}",
+                        target="_blank",
+                        className="text-decoration-none",
                     ),
                     dbc.Row(
                         [
                             dbc.Col(
                                 dmc.Skeleton(
                                     style={
-                                        'width': '12pc',
-                                        'height': '12pc',
+                                        "width": "12pc",
+                                        "height": "12pc",
                                     },
                                 ),
-                                id={'type': 'search_results_cutouts', 'objectId': name, 'index': i},
-                                width='auto'
+                                id={
+                                    "type": "search_results_cutouts",
+                                    "objectId": name,
+                                    "index": i,
+                                },
+                                width="auto",
                             ),
                             dbc.Col(
                                 dcc.Markdown(
                                     text,
-                                    style={'white-space': 'pre-wrap'},
+                                    style={"white-space": "pre-wrap"},
                                 ),
-                                width='auto',
+                                width="auto",
                             ),
                             dbc.Col(
                                 dmc.Skeleton(
                                     style={
-                                        'width': '100%',
-                                        'height': '15pc'
+                                        "width": "100%",
+                                        "height": "15pc",
                                     },
                                 ),
-                                id={'type': 'search_results_lightcurve', 'objectId': name, 'index': i},
-                                xs=12, md=True,
+                                id={
+                                    "type": "search_results_lightcurve",
+                                    "objectId": name,
+                                    "index": i,
+                                },
+                                xs=12,
+                                md=True,
                             ),
                         ],
-                        justify='start',
-                        className='g-2',
+                        justify="start",
+                        className="g-2",
                     ),
                     # Upper right corner badge
                     dbc.Badge(
@@ -1172,11 +1290,11 @@ def card_search_result(row, i):
                         text_color="dark",
                         className="position-absolute top-0 start-100 translate-middle border",
                     ),
-                ]
-            )
+                ],
+            ),
         ],
-        color='white',
-        className='mb-2 shadow border-1'
+        color="white",
+        className="mb-2 shadow border-1",
     )
 
     return item

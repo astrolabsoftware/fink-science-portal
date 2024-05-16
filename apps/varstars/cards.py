@@ -12,22 +12,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, dash_table, Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
+import pandas as pd
+from dash import Input, Output, dcc
 from dash_iconify import DashIconify
 
 from app import app
-
 from apps.cards import card_neighbourhood
 from apps.utils import create_button_for_external_conesearch
 
-import pandas as pd
-import numpy as np
 
 def card_explanation_variable():
-    """ Explain what is used to fit for variable stars
-    """
+    """Explain what is used to fit for variable stars"""
     msg = """
     Fill the fields on the right (or leave default), and press `Fit data` to
     perform a time series analysis of the data:
@@ -54,32 +51,33 @@ def card_explanation_variable():
                                 icon="tabler:help-hexagon",
                                 color="#3C8DFF",
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(dcc.Markdown(msg)),
                 ],
-                value="info"
+                value="info",
             ),
-        ], value='info',
-        id='card_explanation_variable'
+        ],
+        value="info",
+        id="card_explanation_variable",
     )
     return card
+
 
 @app.callback(
     Output("card_variable_button", "children"),
     [
-        Input('object-data', 'data'),
+        Input("object-data", "data"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def card_variable_button(object_data):
-    """ Add a card containing button to fit for variable stars
-    """
+    """Add a card containing button to fit for variable stars"""
     pdf = pd.read_json(object_data)
 
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
+    ra0 = pdf["i:ra"].to_numpy()[0]
+    dec0 = pdf["i:dec"].to_numpy()[0]
 
     card1 = dmc.AccordionMultiple(
         disableChevronRotation=True,
@@ -93,7 +91,7 @@ def card_variable_button(object_data):
                                 icon="tabler:atom-2",
                                 color=dmc.theme.DEFAULT_COLORS["green"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
@@ -102,21 +100,31 @@ def card_variable_button(object_data):
                                 card_neighbourhood(pdf),
                                 dbc.Row(
                                     [
-                                        create_button_for_external_conesearch(kind='asas-sn-variable', ra0=ra0, dec0=dec0, radius=0.5),
-                                        create_button_for_external_conesearch(kind='snad', ra0=ra0, dec0=dec0, radius=5),
-                                        create_button_for_external_conesearch(kind='vsx', ra0=ra0, dec0=dec0, radius=0.1)
-                                    ], justify='around',
-                                    className='mb-2'
+                                        create_button_for_external_conesearch(
+                                            kind="asas-sn-variable",
+                                            ra0=ra0,
+                                            dec0=dec0,
+                                            radius=0.5,
+                                        ),
+                                        create_button_for_external_conesearch(
+                                            kind="snad", ra0=ra0, dec0=dec0, radius=5
+                                        ),
+                                        create_button_for_external_conesearch(
+                                            kind="vsx", ra0=ra0, dec0=dec0, radius=0.1
+                                        ),
+                                    ],
+                                    justify="around",
+                                    className="mb-2",
                                 ),
                             ],
-                            align='center'
+                            align="center",
                         ),
                     ),
                 ],
-                value="external"
+                value="external",
             ),
         ],
-        styles={'content':{'padding':'5px'}}
+        styles={"content": {"padding": "5px"}},
     )
 
     return card1

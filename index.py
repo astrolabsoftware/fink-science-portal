@@ -13,7 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash
-from dash import html, dcc, Input, Output, State, dash_table, no_update, clientside_callback, ALL, MATCH
+from dash import (
+    html,
+    dcc,
+    Input,
+    Output,
+    State,
+    dash_table,
+    no_update,
+    clientside_callback,
+    ALL,
+    MATCH,
+)
 from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
@@ -30,14 +41,12 @@ from app import APIURL
 
 from apps import summary, about, statistics, query_cluster, gw
 from apps.api import api
-from apps import __version__ as portal_version
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time
 from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
 from apps.utils import loading, help_popover
-from apps.utils import class_colors
 from apps.utils import request_api
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 from apps.cards import card_search_result
@@ -48,26 +57,26 @@ import numpy as np
 
 import urllib
 
-tns_types = pd.read_csv('assets/tns_types.csv', header=None)[0].values
+tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
 tns_types = sorted(tns_types, key=lambda s: s.lower())
 
 fink_classes = [
-    'All classes',
-    'Anomaly',
-    'Unknown',
+    "All classes",
+    "Anomaly",
+    "Unknown",
     # Fink derived classes
-    'Early SN Ia candidate',
-    'SN candidate',
-    'Kilonova candidate',
-    'Microlensing candidate',
-    'Solar System MPC',
-    'Solar System candidate',
-    'Tracklet',
-    'Ambiguous',
+    "Early SN Ia candidate",
+    "SN candidate",
+    "Kilonova candidate",
+    "Microlensing candidate",
+    "Solar System MPC",
+    "Solar System candidate",
+    "Tracklet",
+    "Ambiguous",
     # TNS classified data
-    *['(TNS) ' + t for t in tns_types],
+    *["(TNS) " + t for t in tns_types],
     # Simbad crossmatch
-    *['(SIMBAD) ' + t for t in simbad_types]
+    *["(SIMBAD) " + t for t in simbad_types],
 ]
 
 message_help = """
@@ -186,172 +195,188 @@ The button `Sky Map` will open a popup with embedded Aladin sky map showing the 
 
 # Smart search field
 quick_fields = [
-    ['class', 'Alert class\nSelect one of Fink supported classes from the menu'],
-    ['last', 'Number of latest alerts to show'],
-    ['radius', 'Radius for cone search\nMay be used as either `r` or `radius`\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly'],
-    ['after', 'Lower timit on alert time\nISO time, MJD or JD'],
-    ['before', 'Upper timit on alert time\nISO time, MJD or JD'],
-    ['window', 'Time window length\nDays'],
-    ['random', 'Number of random objects to show'],
+    ["class", "Alert class\nSelect one of Fink supported classes from the menu"],
+    ["last", "Number of latest alerts to show"],
+    [
+        "radius",
+        "Radius for cone search\nMay be used as either `r` or `radius`\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly",
+    ],
+    ["after", "Lower timit on alert time\nISO time, MJD or JD"],
+    ["before", "Upper timit on alert time\nISO time, MJD or JD"],
+    ["window", "Time window length\nDays"],
+    ["random", "Number of random objects to show"],
 ]
 
 fink_search_bar = [
-        html.Div(
-            [
-                html.Span('Quick fields:', className='text-secondary'),
-            ] + [
-                html.Span(
-                    [
-                        html.A(
-                            __[0],
-                            title=__[1],
-                            id={'type': 'search_bar_quick_field', 'index': _, 'text': __[0]},
-                            n_clicks=0,
-                            className='ms-2 link text-decoration-none'
-                        ),
-                        " "
-                    ]
-                ) for _,__ in enumerate(quick_fields)
-            ] + [
-                html.Span(
-                    dmc.Switch(
-                        radius="xl",
-                        size='sm',
-                        offLabel=DashIconify(icon="radix-icons:id-card", width=15),
-                        onLabel=DashIconify(icon="radix-icons:table", width=15),
-                        color="orange",
-                        checked=False,
-                        persistence=True,
-                        id="results_table_switch"
-                    ),
-                    className='float-end',
-                    title='Show results as cards or table'
-                ),
-            ],
-            className="ps-4 pe-4 mb-0 mt-1"
-        ),
-
-] + [html.Div(
-    # className='p-0 m-0 border shadow-sm rounded-3',
-    className='pt-0 pb-0 ps-1 pe-1 m-0 rcorners2 shadow',
-    id="search_bar",
-    # className='rcorners2',
-    children=[
-        dbc.InputGroup(
-            [
-                # History
-                dmc.Menu(
-                    [
-                        dmc.MenuTarget(
-                            dmc.ActionIcon(
-                                DashIconify(icon="bi:clock-history"),
-                                color='gray',
-                                variant="transparent",
-                                radius='xl',
-                                size='lg',
-                                title='Search history'
-                            )
-                        ),
-                        dmc.MenuDropdown(
-                            [
-                                dmc.MenuLabel("Search history is empty"),
-                            ],
-                            className='shadow rounded',
-                            id='search_history_menu'
-                        )
-                    ],
-                    zIndex=1000000,
-                ),
-                # Main input
-                AutocompleteInput(
-                    id='search_bar_input',
-                    placeholder='Search, and you will find',
-                    component='input',
-                    trigger=[
-                        'class:', 'class=',
-                        'last:', 'last=',
-                        'radius:', 'radius=',
-                        'r:', 'r=',
-                    ],
-                    options={
-                        'class:':fink_classes, 'class=':fink_classes,
-                        'last:':['1', '10', '100', '1000'], 'last=':['1', '10', '100', '1000'],
-                        'radius:':['10', '60', '10m', '30m'], 'radius=':['10', '60', '10m', '30m'],
-                        'r:':['10', '60', '10m', '30m'], 'r=':['10', '60', '10m', '30m'],
-                    },
-                    maxOptions=0,
-                    className="inputbar form-control border-0",
-                    quoteWhitespaces=True,
-                    autoFocus=True,
-                    ignoreCase=True,
-                    triggerInsideWord=False,
-                    matchAny=True,
-                ),
-                # Clear
-                dmc.ActionIcon(
-                    DashIconify(icon="mdi:clear-bold"),
-                    n_clicks=0,
-                    id="search_bar_clear",
-                    color='gray',
-                    variant="transparent",
-                    radius='xl',
-                    size='lg',
-                    title='Clear the input',
-                ),
-                # Submit
-                dbc.Spinner(
-                    dmc.ActionIcon(
-                        DashIconify(icon="tabler:search", width=20),
+    html.Div(
+        [
+            html.Span("Quick fields:", className="text-secondary"),
+        ]
+        + [
+            html.Span(
+                [
+                    html.A(
+                        __[0],
+                        title=__[1],
+                        id={
+                            "type": "search_bar_quick_field",
+                            "index": _,
+                            "text": __[0],
+                        },
                         n_clicks=0,
-                        id="search_bar_submit",
-                        color='gray',
-                        variant="transparent",
-                        radius='xl',
-                        size='lg',
-                        loaderProps={'variant': 'dots', 'color': 'orange'},
-                        title='Search'
-                    ), size='sm', color='warning'
-                ),
-                # Help popup
-                help_popover(
-                    [
-                        dcc.Markdown(message_help)
-                    ],
-                    'help_search',
-                    trigger=dmc.ActionIcon(
-                        DashIconify(icon="mdi:help"),
-                        id='help_search',
-                        color='gray',
-                        variant="transparent",
-                        radius='xl',
-                        size='lg',
-                        # className="d-none d-sm-flex"
-                        title='Show some help',
+                        className="ms-2 link text-decoration-none",
                     ),
+                    " ",
+                ]
+            )
+            for _, __ in enumerate(quick_fields)
+        ]
+        + [
+            html.Span(
+                dmc.Switch(
+                    radius="xl",
+                    size="sm",
+                    offLabel=DashIconify(icon="radix-icons:id-card", width=15),
+                    onLabel=DashIconify(icon="radix-icons:table", width=15),
+                    color="orange",
+                    checked=False,
+                    persistence=True,
+                    id="results_table_switch",
                 ),
-            ]
-        ),
-        # Search suggestions
-        dbc.Collapse(
-            dbc.ListGroup(
-                id='search_bar_suggestions',
+                className="float-end",
+                title="Show results as cards or table",
             ),
-            id='search_bar_suggestions_collapser',
-            is_open=False,
-        ),
-        # Debounce timer
-        dcc.Interval(
-            id="search_bar_timer",
-            interval=2000,
-            max_intervals=1,
-            disabled=True
-        ),
-        dcc.Store(
-            id='search_history_store',
-            storage_type='local',
-        ),
-    ],
-)]
+        ],
+        className="ps-4 pe-4 mb-0 mt-1",
+    ),
+] + [
+    html.Div(
+        # className='p-0 m-0 border shadow-sm rounded-3',
+        className="pt-0 pb-0 ps-1 pe-1 m-0 rcorners2 shadow",
+        id="search_bar",
+        # className='rcorners2',
+        children=[
+            dbc.InputGroup(
+                [
+                    # History
+                    dmc.Menu(
+                        [
+                            dmc.MenuTarget(
+                                dmc.ActionIcon(
+                                    DashIconify(icon="bi:clock-history"),
+                                    color="gray",
+                                    variant="transparent",
+                                    radius="xl",
+                                    size="lg",
+                                    title="Search history",
+                                )
+                            ),
+                            dmc.MenuDropdown(
+                                [
+                                    dmc.MenuLabel("Search history is empty"),
+                                ],
+                                className="shadow rounded",
+                                id="search_history_menu",
+                            ),
+                        ],
+                        zIndex=1000000,
+                    ),
+                    # Main input
+                    AutocompleteInput(
+                        id="search_bar_input",
+                        placeholder="Search, and you will find",
+                        component="input",
+                        trigger=[
+                            "class:",
+                            "class=",
+                            "last:",
+                            "last=",
+                            "radius:",
+                            "radius=",
+                            "r:",
+                            "r=",
+                        ],
+                        options={
+                            "class:": fink_classes,
+                            "class=": fink_classes,
+                            "last:": ["1", "10", "100", "1000"],
+                            "last=": ["1", "10", "100", "1000"],
+                            "radius:": ["10", "60", "10m", "30m"],
+                            "radius=": ["10", "60", "10m", "30m"],
+                            "r:": ["10", "60", "10m", "30m"],
+                            "r=": ["10", "60", "10m", "30m"],
+                        },
+                        maxOptions=0,
+                        className="inputbar form-control border-0",
+                        quoteWhitespaces=True,
+                        autoFocus=True,
+                        ignoreCase=True,
+                        triggerInsideWord=False,
+                        matchAny=True,
+                    ),
+                    # Clear
+                    dmc.ActionIcon(
+                        DashIconify(icon="mdi:clear-bold"),
+                        n_clicks=0,
+                        id="search_bar_clear",
+                        color="gray",
+                        variant="transparent",
+                        radius="xl",
+                        size="lg",
+                        title="Clear the input",
+                    ),
+                    # Submit
+                    dbc.Spinner(
+                        dmc.ActionIcon(
+                            DashIconify(icon="tabler:search", width=20),
+                            n_clicks=0,
+                            id="search_bar_submit",
+                            color="gray",
+                            variant="transparent",
+                            radius="xl",
+                            size="lg",
+                            loaderProps={"variant": "dots", "color": "orange"},
+                            title="Search",
+                        ),
+                        size="sm",
+                        color="warning",
+                    ),
+                    # Help popup
+                    help_popover(
+                        [dcc.Markdown(message_help)],
+                        "help_search",
+                        trigger=dmc.ActionIcon(
+                            DashIconify(icon="mdi:help"),
+                            id="help_search",
+                            color="gray",
+                            variant="transparent",
+                            radius="xl",
+                            size="lg",
+                            # className="d-none d-sm-flex"
+                            title="Show some help",
+                        ),
+                    ),
+                ]
+            ),
+            # Search suggestions
+            dbc.Collapse(
+                dbc.ListGroup(
+                    id="search_bar_suggestions",
+                ),
+                id="search_bar_suggestions_collapser",
+                is_open=False,
+            ),
+            # Debounce timer
+            dcc.Interval(
+                id="search_bar_timer", interval=2000, max_intervals=1, disabled=True
+            ),
+            dcc.Store(
+                id="search_history_store",
+                storage_type="local",
+            ),
+        ],
+    )
+]
 
 # Time-based debounce from https://joetatusko.com/2023/07/11/time-based-debouncing-with-plotly-dash/
 clientside_callback(
@@ -367,22 +392,20 @@ clientside_callback(
             return [dash_clientside.no_update, false];
     }
     """,
-    [
-        Output('search_bar_timer', 'n_intervals'),
-        Output('search_bar_timer', 'disabled')
-    ],
-    Input('search_bar_input', 'value'),
-    Input('search_bar_input', 'n_submit'),
-    Input('search_bar_submit', 'n_clicks'),
-    State('search_bar_timer', 'n_intervals'),
+    [Output("search_bar_timer", "n_intervals"), Output("search_bar_timer", "disabled")],
+    Input("search_bar_input", "value"),
+    Input("search_bar_input", "n_submit"),
+    Input("search_bar_submit", "n_clicks"),
+    State("search_bar_timer", "n_intervals"),
     prevent_initial_call=True,
 )
 
+
 # Search history
 @app.callback(
-    Output('search_history_menu', 'children'),
-    Input('search_history_store', 'timestamp'),
-    Input('search_history_store', 'data'),
+    Output("search_history_menu", "children"),
+    Input("search_history_store", "timestamp"),
+    Input("search_history_store", "data"),
 )
 def update_search_history_menu(timestamp, history):
     if history:
@@ -391,23 +414,25 @@ def update_search_history_menu(timestamp, history):
         ] + [
             dmc.MenuItem(
                 item,
-                id={'type': 'search_bar_completion', 'index': 1000 + i, 'text': item},
-            ) for i,item in enumerate(history[::-1])
+                id={"type": "search_bar_completion", "index": 1000 + i, "text": item},
+            )
+            for i, item in enumerate(history[::-1])
         ]
     else:
         return no_update
 
+
 # Update suggestions on (debounced) input
 @app.callback(
-    Output('search_bar_suggestions', 'children'),
-    Output('search_bar_submit', 'children'),
-    Output('search_bar_suggestions_collapser', 'is_open'),
-    Input('search_bar_timer', 'n_intervals'),
-    Input('search_bar_input', 'n_submit'),
-    Input('search_bar_submit', 'n_clicks'),
+    Output("search_bar_suggestions", "children"),
+    Output("search_bar_submit", "children"),
+    Output("search_bar_suggestions_collapser", "is_open"),
+    Input("search_bar_timer", "n_intervals"),
+    Input("search_bar_input", "n_submit"),
+    Input("search_bar_submit", "n_clicks"),
     # Next input uses dynamically created source, so has to be pattern-matching
-    Input({'type':'search_bar_suggestion', 'value':ALL}, 'n_clicks'),
-    State('search_bar_input', 'value'),
+    Input({"type": "search_bar_suggestion", "value": ALL}, "n_clicks"),
+    State("search_bar_input", "value"),
     prevent_initial_call=True,
 )
 def update_suggestions(n_intervals, n_submit, n_clicks, s_n_clicks, value):
@@ -415,9 +440,9 @@ def update_suggestions(n_intervals, n_submit, n_clicks, s_n_clicks, value):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if triggered_id in [
-            'search_bar_input',
-            'search_bar_submit',
-            '{"type":"search_bar_suggestion","value":0}'
+        "search_bar_input",
+        "search_bar_submit",
+        '{"type":"search_bar_suggestion","value":0}',
     ]:
         return no_update, no_update, False
 
@@ -431,26 +456,20 @@ def update_suggestions(n_intervals, n_submit, n_clicks, s_n_clicks, value):
     query = parse_query(value, timeout=5)
     suggestions = []
 
-    params = query['params']
+    params = query["params"]
 
-    if not query['action']:
+    if not query["action"]:
         return None, no_update, False
 
-    if query['action'] == 'unknown':
-        content = [
-            html.Div(
-                html.Em(
-                    'Query not recognized',
-                    className='m-0')
-            )
-        ]
+    if query["action"] == "unknown":
+        content = [html.Div(html.Em("Query not recognized", className="m-0"))]
     else:
         content = []
 
-        if query['completions']:
+        if query["completions"]:
             completions = []
 
-            for i,item in enumerate(query['completions']):
+            for i, item in enumerate(query["completions"]):
                 if isinstance(item, list) or isinstance(item, tuple):
                     # We expect it to be (name, ext)
                     name = item[0]
@@ -462,10 +481,10 @@ def update_suggestions(n_intervals, n_submit, n_clicks, s_n_clicks, value):
                 completions.append(
                     html.A(
                         ext,
-                        id={'type': 'search_bar_completion', 'index': i, 'text': name},
+                        id={"type": "search_bar_completion", "index": i, "text": name},
                         title=name,
                         n_clicks=0,
-                        className='ms-2 link text-decoration-none'
+                        className="ms-2 link text-decoration-none",
                     )
                 )
 
@@ -473,25 +492,32 @@ def update_suggestions(n_intervals, n_submit, n_clicks, s_n_clicks, value):
                 dbc.ListGroupItem(
                     html.Div(
                         [
-                            html.Span('Did you mean:', className='text-secondary'),
-                        ] + completions
+                            html.Span("Did you mean:", className="text-secondary"),
+                        ]
+                        + completions
                     ),
-                    className="border-bottom p-1 mt-1 small"
+                    className="border-bottom p-1 mt-1 small",
                 )
             )
 
         content += [
-            dmc.Group([
-                html.Strong(query['object']) if query['object'] else None,
-                dmc.Badge(query['type'], variant="outline", color='blue') if query['type'] else None,
-                dmc.Badge(query['action'], variant="outline", color='red'),
-            ], noWrap=False, position='left'),
-            html.P(query['hint'], className='m-0'),
+            dmc.Group(
+                [
+                    html.Strong(query["object"]) if query["object"] else None,
+                    dmc.Badge(query["type"], variant="outline", color="blue")
+                    if query["type"]
+                    else None,
+                    dmc.Badge(query["action"], variant="outline", color="red"),
+                ],
+                noWrap=False,
+                position="left",
+            ),
+            html.P(query["hint"], className="m-0"),
         ]
 
     if len(params):
         content += [
-            html.Small(" ".join(["{}={}".format(_,params[_]) for _ in params]))
+            html.Small(" ".join(["{}={}".format(_, params[_]) for _ in params]))
         ]
 
     suggestion = dbc.ListGroupItem(
@@ -499,13 +525,14 @@ def update_suggestions(n_intervals, n_submit, n_clicks, s_n_clicks, value):
         action=True,
         n_clicks=0,
         # We make it pattern-matching so that it is possible to catch it in global callbacks
-        id={'type':'search_bar_suggestion', 'value':0},
-        className='border-0'
+        id={"type": "search_bar_suggestion", "value": 0},
+        className="border-0",
     )
 
     suggestions.append(suggestion)
 
     return suggestions, no_update, True
+
 
 # Completion clicked
 clientside_callback(
@@ -524,9 +551,9 @@ clientside_callback(
         return dash_clientside.no_update;
     }
     """,
-    Output('search_bar_input', 'value', allow_duplicate=True),
-    Input({'type': 'search_bar_completion', 'index': ALL, 'text': ALL}, 'n_clicks'),
-    prevent_initial_call=True
+    Output("search_bar_input", "value", allow_duplicate=True),
+    Input({"type": "search_bar_completion", "index": ALL, "text": ALL}, "n_clicks"),
+    prevent_initial_call=True,
 )
 
 # Quick field clicked
@@ -549,10 +576,10 @@ clientside_callback(
         return dash_clientside.no_update;
     }
     """,
-    Output('search_bar_input', 'value', allow_duplicate=True),
-    Input({'type': 'search_bar_quick_field', 'index': ALL, 'text': ALL}, 'n_clicks'),
-    State('search_bar_input', 'value'),
-    prevent_initial_call=True
+    Output("search_bar_input", "value", allow_duplicate=True),
+    Input({"type": "search_bar_quick_field", "index": ALL, "text": ALL}, "n_clicks"),
+    State("search_bar_input", "value"),
+    prevent_initial_call=True,
 )
 
 # Clear inpit field
@@ -562,9 +589,9 @@ clientside_callback(
         return '';
     }
     """,
-    Output('search_bar_input', 'value', allow_duplicate=True),
-    Input('search_bar_clear', 'n_clicks'),
-    prevent_initial_call=True
+    Output("search_bar_input", "value", allow_duplicate=True),
+    Input("search_bar_clear", "n_clicks"),
+    prevent_initial_call=True,
 )
 
 # Disable clear button for empty input field
@@ -577,13 +604,13 @@ clientside_callback(
             return true;
     }
     """,
-    Output('search_bar_clear', 'disabled'),
-    Input('search_bar_input', 'value')
+    Output("search_bar_clear", "disabled"),
+    Input("search_bar_input", "value"),
 )
 
+
 def display_table_results(table):
-    """ Display explorer results in the form of a table with a dropdown
-    menu on top to insert more data columns.
+    """Display explorer results in the form of a table with a dropdown menu on top to insert more data columns.
 
     The dropdown menu options are taken from the client schema (ZTF & Fink). It also
     contains other derived fields from the portal (fink_additional_fields).
@@ -594,35 +621,44 @@ def display_table_results(table):
         Dash DataTable containing the results. Can be empty.
 
     Returns
-    ----------
+    -------
     out: list of objects
         The list of objects contain:
           1. A dropdown menu to add new columns in the table
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    pdf = request_api(
-        '/api/v1/columns',
-        method='GET'
-    )
+    pdf = request_api("/api/v1/columns", method="GET")
 
-    fink_fields = ['d:' + i for i in pdf.loc['Fink science module outputs (d:)']['fields'].keys()]
-    ztf_fields = ['i:' + i for i in pdf.loc['ZTF original fields (i:)']['fields'].keys()]
+    fink_fields = [
+        "d:" + i for i in pdf.loc["Fink science module outputs (d:)"]["fields"].keys()
+    ]
+    ztf_fields = [
+        "i:" + i for i in pdf.loc["ZTF original fields (i:)"]["fields"].keys()
+    ]
     fink_additional_fields = [
-        'v:constellation', 'v:g-r', 'v:rate(g-r)',
-        'v:classification',
-        'v:lastdate', 'v:firstdate', 'v:lapse'
+        "v:constellation",
+        "v:g-r",
+        "v:rate(g-r)",
+        "v:classification",
+        "v:lastdate",
+        "v:firstdate",
+        "v:lapse",
     ]
 
     dropdown = dcc.Dropdown(
-        id='field-dropdown2',
+        id="field-dropdown2",
         options=[
-            {'label': 'Fink science module outputs', 'disabled': True, 'value': 'None'},
-            *[{'label': field, 'value': field} for field in fink_fields],
-            {'label': 'Fink additional values', 'disabled': True, 'value': 'None'},
-            *[{'label': field, 'value': field} for field in fink_additional_fields],
-            {'label': 'Original ZTF fields (subset)', 'disabled': True, 'value': 'None'},
-            *[{'label': field, 'value': field} for field in ztf_fields]
+            {"label": "Fink science module outputs", "disabled": True, "value": "None"},
+            *[{"label": field, "value": field} for field in fink_fields],
+            {"label": "Fink additional values", "disabled": True, "value": "None"},
+            *[{"label": field, "value": field} for field in fink_additional_fields],
+            {
+                "label": "Original ZTF fields (subset)",
+                "disabled": True,
+                "value": "None",
+            },
+            *[{"label": field, "value": field} for field in ztf_fields],
         ],
         searchable=True,
         clearable=True,
@@ -635,7 +671,7 @@ def display_table_results(table):
         label="Unique objects",
         color="orange",
         checked=False,
-        id="alert-object-switch"
+        id="alert-object-switch",
     )
     switch_description = "Toggle the switch to list each object only once. Only the latest alert will be displayed."
 
@@ -645,7 +681,7 @@ def display_table_results(table):
         label="Unique SSO",
         color="orange",
         checked=False,
-        id="alert-sso-switch"
+        id="alert-sso-switch",
     )
     switch_sso_description = "Toggle the switch to list each Solar System Object only once. Only the latest alert will be displayed."
 
@@ -655,17 +691,14 @@ def display_table_results(table):
         label="Unique tracklets",
         color="orange",
         checked=False,
-        id="alert-tracklet-switch"
+        id="alert-tracklet-switch",
     )
     switch_tracklet_description = "Toggle the switch to list each Tracklet only once (fast moving objects). Only the latest alert will be displayed."
 
     results = [
         dbc.Row(
             [
-                dbc.Col(
-                    dropdown,
-                    lg=5, md=6
-                ),
+                dbc.Col(dropdown, lg=5, md=6),
                 dbc.Col(
                     dmc.Tooltip(
                         children=switch,
@@ -674,9 +707,9 @@ def display_table_results(table):
                         withArrow=True,
                         transition="fade",
                         transitionDuration=200,
-                        label=switch_description
+                        label=switch_description,
                     ),
-                    md='auto',
+                    md="auto",
                 ),
                 dbc.Col(
                     dmc.Tooltip(
@@ -686,9 +719,9 @@ def display_table_results(table):
                         withArrow=True,
                         transition="fade",
                         transitionDuration=200,
-                        label=switch_sso_description
+                        label=switch_sso_description,
                     ),
-                    md='auto'
+                    md="auto",
                 ),
                 dbc.Col(
                     dmc.Tooltip(
@@ -698,27 +731,29 @@ def display_table_results(table):
                         withArrow=True,
                         transition="fade",
                         transitionDuration=200,
-                        label=switch_tracklet_description
+                        label=switch_tracklet_description,
                     ),
-                    md='auto'
+                    md="auto",
                 ),
             ],
-            align='center', justify='start',
-            className='mb-2',
+            align="center",
+            justify="start",
+            className="mb-2",
         ),
-        table
+        table,
     ]
 
     return [
         html.Div(
             results,
-            className='results-inner bg-opaque-100 rounded mb-4 p-2 border shadow',
-            style={'overflow': 'visible'},
+            className="results-inner bg-opaque-100 rounded mb-4 p-2 border shadow",
+            style={"overflow": "visible"},
         )
     ]
 
+
 @app.callback(
-    Output('aladin-lite-div-skymap', 'run'),
+    Output("aladin-lite-div-skymap", "run"),
     [
         Input("result_table", "data"),
         Input("result_table", "columns"),
@@ -726,7 +761,7 @@ def display_table_results(table):
     ],
 )
 def display_skymap(data, columns, is_open):
-    """ Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
+    """Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
 
     TODO: image is not displayed correctly the first time
 
@@ -740,9 +775,6 @@ def display_skymap(data, columns, is_open):
     Input: takes the validation flag (0: no results, 1: results) and table data
     Output: Display a sky image around the alert position from aladin.
     """
-    ctx = dash.callback_context
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
     if not is_open:
         return no_update
 
@@ -754,8 +786,8 @@ def display_skymap(data, columns, is_open):
         pdf = pd.DataFrame(data)
 
         # Coordinate of the first alert
-        ra0 = pdf['i:ra'].values[0]
-        dec0 = pdf['i:dec'].values[0]
+        ra0 = pdf["i:ra"].to_numpy()[0]
+        dec0 = pdf["i:dec"].to_numpy()[0]
 
         # Javascript. Note the use {{}} for dictionary
         # Force redraw of the Aladin lite window
@@ -776,54 +808,68 @@ def display_skymap(data, columns, is_open):
         );
         """.format(ra0, dec0)
 
-        ras = pdf['i:ra'].values
-        decs = pdf['i:dec'].values
-        filts = pdf['i:fid'].values
-        filts_dic = {1: 'g', 2: 'r'}
+        ras = pdf["i:ra"].to_numpy()
+        decs = pdf["i:dec"].to_numpy()
+        filts = pdf["i:fid"].to_numpy()
+        filts_dic = {1: "g", 2: "r"}
 
-        if 'v:lastdate' not in pdf.columns:
+        if "v:lastdate" not in pdf.columns:
             # conesearch does not expose v:lastdate
-            pdf['v:lastdate'] = convert_jd(pdf['i:jd'])
-        times = pdf['v:lastdate'].values
+            pdf["v:lastdate"] = convert_jd(pdf["i:jd"])
+        times = pdf["v:lastdate"].to_numpy()
         link = '<a target="_blank" href="{}/{}">{}</a>'
-        titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
-        mags = pdf['i:magpsf'].values
+        titles = [
+            link.format(
+                APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
+            )
+            for i in pdf["i:objectId"].to_numpy()
+        ]
+        mags = pdf["i:magpsf"].to_numpy()
 
-        if 'v:classification' not in pdf.columns:
-            if 'd:classification' in pdf.columns:
-                pdf['v:classification'] = pdf['d:classification']
+        if "v:classification" not in pdf.columns:
+            if "d:classification" in pdf.columns:
+                pdf["v:classification"] = pdf["d:classification"]
             else:
-                pdf['v:classification'] = 'Unknown'
-        classes = pdf['v:classification'].values
-        n_alert_per_class = pdf.groupby('v:classification').count().to_dict()['i:objectId']
+                pdf["v:classification"] = "Unknown"
+        classes = pdf["v:classification"].to_numpy()
+        n_alert_per_class = (
+            pdf.groupby("v:classification").count().to_dict()["i:objectId"]
+        )
         cats = []
-        for ra, dec, fid, time_, title, mag, class_ in zip(ras, decs, filts, times, titles, mags, classes):
+        for ra, dec, fid, time_, title, mag, class_ in zip(
+            ras, decs, filts, times, titles, mags, classes
+        ):
             if class_ in simbad_types:
-                cat = 'cat_{}'.format(simbad_types.index(class_))
-                color = class_colors['Simbad']
+                cat = "cat_{}".format(simbad_types.index(class_))
+                color = class_colors["Simbad"]
             elif class_ in class_colors.keys():
-                cat = 'cat_{}'.format(class_.replace(' ', '_'))
+                cat = "cat_{}".format(class_.replace(" ", "_"))
                 color = class_colors[class_]
             else:
                 # Sometimes SIMBAD mess up names :-)
-                cat = 'cat_{}'.format(class_)
-                color = class_colors['Simbad']
+                cat = "cat_{}".format(class_)
+                color = class_colors["Simbad"]
 
             if cat not in cats:
-                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ' ({})'.format(n_alert_per_class[class_]), color)
+                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(
+                    cat, class_ + " ({})".format(n_alert_per_class[class_]), color
+                )
                 cats.append(cat)
-            img += """{}.addSources([A.source({}, {}, {{objectId: '{}', mag: {:.2f}, filter: '{}', time: '{}', Classification: '{}'}})]);""".format(cat, ra, dec, title, mag, filts_dic[fid], time_, class_)
+            img += """{}.addSources([A.source({}, {}, {{objectId: '{}', mag: {:.2f}, filter: '{}', time: '{}', Classification: '{}'}})]);""".format(
+                cat, ra, dec, title, mag, filts_dic[fid], time_, class_
+            )
 
         for cat in sorted(cats):
             img += """a.addCatalog({});""".format(cat)
 
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
-        img_to_show = [i for i in img.split('\n') if '// ' not in i]
+        img_to_show = [i for i in img.split("\n") if "// " not in i]
 
         return " ".join(img_to_show)
     else:
         return ""
+
 
 def modal_skymap():
     button = dmc.Button(
@@ -833,8 +879,8 @@ def modal_skymap():
         leftIcon=[DashIconify(icon="bi:stars")],
         color="gray",
         fullWidth=True,
-        variant='default',
-        radius='xl'
+        variant="default",
+        radius="xl",
     )
 
     modal = html.Div(
@@ -846,24 +892,30 @@ def modal_skymap():
                         dbc.ModalBody(
                             html.Div(
                                 [
-                                    visdcc.Run_js(id='aladin-lite-div-skymap', style={'border': '0'}),
+                                    visdcc.Run_js(
+                                        id="aladin-lite-div-skymap",
+                                        style={"border": "0"},
+                                    ),
                                     # dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
-                                ], style={
-                                    'width': '100%',
-                                    'height': '100%',
-                                }
+                                ],
+                                style={
+                                    "width": "100%",
+                                    "height": "100%",
+                                },
                             ),
                             className="p-1",
-                            style={'height': '30pc'},
+                            style={"height": "30pc"},
                         )
                     ),
                     dbc.ModalFooter(
                         dmc.Button(
-                            "Close", id="close_modal_skymap", className="ml-auto",
+                            "Close",
+                            id="close_modal_skymap",
+                            className="ml-auto",
                             color="gray",
                             # fullWidth=True,
-                            variant='default',
-                            radius='xl'
+                            variant="default",
+                            radius="xl",
                         ),
                     ),
                 ],
@@ -877,6 +929,7 @@ def modal_skymap():
 
     return modal
 
+
 clientside_callback(
     """
     function toggle_modal_skymap(n1, n2, is_open) {
@@ -887,24 +940,21 @@ clientside_callback(
     }
     """,
     Output("modal_skymap", "is_open"),
-    [
-        Input("open_modal_skymap", "n_clicks"),
-        Input("close_modal_skymap", "n_clicks")
-    ],
+    [Input("open_modal_skymap", "n_clicks"), Input("close_modal_skymap", "n_clicks")],
     [State("modal_skymap", "is_open")],
     prevent_initial_call=True,
 )
 
+
 def populate_result_table(data, columns):
-    """ Define options of the results table, and add data and columns
-    """
+    """Define options of the results table, and add data and columns"""
     page_size = 100
-    markdown_options = {'link_target': '_blank'}
+    markdown_options = {"link_target": "_blank"}
 
     table = dash_table.DataTable(
         data=data,
         columns=columns,
-        id='result_table',
+        id="result_table",
         page_size=page_size,
         # page_action='none',
         style_as_list_view=True,
@@ -913,29 +963,32 @@ def populate_result_table(data, columns):
         markdown_options=markdown_options,
         # fixed_columns={'headers': True, 'data': 1},
         style_data={
-            'backgroundColor': 'rgb(248, 248, 248, 1.0)',
+            "backgroundColor": "rgb(248, 248, 248, 1.0)",
         },
-        style_table={'maxWidth': '100%', 'overflowX': 'scroll'},
+        style_table={"maxWidth": "100%", "overflowX": "scroll"},
         style_cell={
-            'padding': '5px',
-            'textAlign': 'right',
-            'overflow': 'hidden',
-            'font-family': 'sans-serif',
-            'fontSize': 14},
+            "padding": "5px",
+            "textAlign": "right",
+            "overflow": "hidden",
+            "font-family": "sans-serif",
+            "fontSize": 14,
+        },
         style_data_conditional=[
             {
-                'if': {'column_id': 'i:objectId'},
-                'backgroundColor': 'rgb(240, 240, 240, 1.0)',
+                "if": {"column_id": "i:objectId"},
+                "backgroundColor": "rgb(240, 240, 240, 1.0)",
             }
         ],
         style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold', 'textAlign': 'center'
+            "backgroundColor": "rgb(230, 230, 230)",
+            "fontWeight": "bold",
+            "textAlign": "center",
         },
         # Align the text in Markdown cells
-        css=[dict(selector="p", rule="margin: 0; text-align: left")]
+        css=[dict(selector="p", rule="margin: 0; text-align: left")],
     )
     return table
+
 
 @app.callback(
     [
@@ -943,96 +996,105 @@ def populate_result_table(data, columns):
         Output("result_table", "columns"),
     ],
     [
-        Input('field-dropdown2', 'value'),
-        Input('alert-object-switch', 'checked'),
-        Input('alert-sso-switch', 'checked'),
-        Input('alert-tracklet-switch', 'checked')
+        Input("field-dropdown2", "value"),
+        Input("alert-object-switch", "checked"),
+        Input("alert-sso-switch", "checked"),
+        Input("alert-tracklet-switch", "checked"),
     ],
     [
         State("result_table", "data"),
         State("result_table", "columns"),
-    ]
+    ],
 )
 def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
-    """ Update table by adding new columns (no server call)
-    """
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    """Update table by adding new columns (no server call)"""
+    changed_id = [p["prop_id"] for p in dash.callback_context.triggered][0]
     # Adding new columns (no client call)
-    if 'field-dropdown2' in changed_id:
+    if "field-dropdown2" in changed_id:
         if field_dropdown is None or len(columns) == 0:
             raise PreventUpdate
 
-        incolumns = any(c.get('id') == field_dropdown for c in columns)
+        incolumns = any(c.get("id") == field_dropdown for c in columns)
 
         if incolumns is True:
             raise PreventUpdate
 
-        columns.append({
-            'name': field_dropdown,
-            'id': field_dropdown,
-            'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
-            'presentation': 'markdown' if field_dropdown == 'i:objectId' else 'input',
-            # 'hideable': True,
-        })
+        columns.append(
+            {
+                "name": field_dropdown,
+                "id": field_dropdown,
+                "type": "numeric",
+                "format": dash_table.Format.Format(precision=8),
+                "presentation": "markdown"
+                if field_dropdown == "i:objectId"
+                else "input",
+                # 'hideable': True,
+            }
+        )
 
         return data, columns
     elif groupby1 is True:
         pdf = pd.DataFrame.from_dict(data)
-        pdf = pdf.drop_duplicates(subset='i:objectId', keep="first")
-        data = pdf.to_dict('records')
+        pdf = pdf.drop_duplicates(subset="i:objectId", keep="first")
+        data = pdf.to_dict("records")
         return data, columns
     elif groupby2 is True:
         pdf = pd.DataFrame.from_dict(data)
-        if not np.all(pdf['i:ssnamenr'] == 'null'):
-            mask = ~pdf.duplicated(subset='i:ssnamenr') | (pdf['i:ssnamenr'] == 'null')
+        if not np.all(pdf["i:ssnamenr"] == "null"):
+            mask = ~pdf.duplicated(subset="i:ssnamenr") | (pdf["i:ssnamenr"] == "null")
             pdf = pdf[mask]
-            data = pdf.to_dict('records')
+            data = pdf.to_dict("records")
         return data, columns
     elif groupby3 is True:
         pdf = pd.DataFrame.from_dict(data)
-        if not np.all(pdf['d:tracklet'] == ''):
-            mask = ~pdf.duplicated(subset='d:tracklet') | (pdf['d:tracklet'] == '')
+        if not np.all(pdf["d:tracklet"] == ""):
+            mask = ~pdf.duplicated(subset="d:tracklet") | (pdf["d:tracklet"] == "")
             pdf = pdf[mask]
-            data = pdf.to_dict('records')
+            data = pdf.to_dict("records")
         return data, columns
     else:
         raise PreventUpdate
 
+
 # Prepare and display the results
 @app.callback(
     [
-        Output('results', 'children'),
-        Output('logo', 'is_open'),
-        Output('search_bar_submit', 'children', allow_duplicate=True),
-        Output('search_history_store', 'data'),
+        Output("results", "children"),
+        Output("logo", "is_open"),
+        Output("search_bar_submit", "children", allow_duplicate=True),
+        Output("search_history_store", "data"),
     ],
     [
-        Input('search_bar_input', 'n_submit'),
-        Input('search_bar_submit', 'n_clicks'),
+        Input("search_bar_input", "n_submit"),
+        Input("search_bar_submit", "n_clicks"),
         # Next input uses dynamically created source, so has to be pattern-matching
-        Input({'type':'search_bar_suggestion', 'value':ALL}, 'n_clicks'),
-        Input('url', 'search'),
+        Input({"type": "search_bar_suggestion", "value": ALL}, "n_clicks"),
+        Input("url", "search"),
     ],
-    State('search_bar_input', 'value'),
-    State('search_history_store', 'data'),
-    State('results_table_switch', 'checked'),
+    State("search_bar_input", "value"),
+    State("search_history_store", "data"),
+    State("results_table_switch", "checked"),
     # prevent_initial_call=True
-    prevent_initial_call='initial_duplicate',
+    prevent_initial_call="initial_duplicate",
 )
 def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_table):
-    """ Parse the search string and query the database
-    """
+    """Parse the search string and query the database"""
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if not triggered_id:
         # FIXME: ???
-        triggered_id = 'url'
+        triggered_id = "url"
 
     # Safeguards against triggering on initial mount of components
-    if ((triggered_id == 'search_bar_input' and not n_submit) or
-        (triggered_id == 'search_bar_submit' and not n_clicks) or
-        (triggered_id == '{"type":"search_bar_suggestion","value":0}' and (not s_n_clicks or not s_n_clicks[0])) or
-        (triggered_id == 'url' and not searchurl)):
+    if (
+        (triggered_id == "search_bar_input" and not n_submit)
+        or (triggered_id == "search_bar_submit" and not n_clicks)
+        or (
+            triggered_id == '{"type":"search_bar_suggestion","value":0}'
+            and (not s_n_clicks or not s_n_clicks[0])
+        )
+        or (triggered_id == "url" and not searchurl)
+    ):
         raise PreventUpdate
 
     if not value and not searchurl:
@@ -1040,298 +1102,285 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
         return None, no_update, no_update, no_update
 
     colnames_to_display = {
-        'i:objectId': 'objectId',
-        'i:ra': 'RA (deg)',
-        'i:dec': 'Dec (deg)',
-        'v:lastdate': 'Last alert',
-        'v:classification': 'Classification',
-        'i:ndethist': 'Number of measurements',
-        'v:lapse': 'Time variation (day)'
+        "i:objectId": "objectId",
+        "i:ra": "RA (deg)",
+        "i:dec": "Dec (deg)",
+        "v:lastdate": "Last alert",
+        "v:classification": "Classification",
+        "i:ndethist": "Number of measurements",
+        "v:lapse": "Time variation (day)",
     }
 
-    if searchurl and triggered_id == 'url':
+    if searchurl and triggered_id == "url":
         # Parse GET parameters from url
-        params = dict(
-            urllib.parse.parse_qsl(
-                urllib.parse.urlparse(searchurl).query
-            )
-        )
+        params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(searchurl).query))
         # Construct the query from them
         query = {}
-        for _ in ['action', 'partial', 'object']:
+        for _ in ["action", "partial", "object"]:
             if _ in params:
                 query[_] = params.pop(_)
-        query['params'] = params
+        query["params"] = params
     else:
         value = value.strip()
         query = parse_query(value)
 
-    if not query or not query['action']:
+    if not query or not query["action"]:
         return None, no_update, no_update, no_update
 
-    if query['action'] == 'unknown':
-        return dbc.Alert(
-            'Query not recognized: {}'.format(value),
-            color='danger',
-            className='shadow-sm'
-        ), no_update, no_update, no_update
+    if query["action"] == "unknown":
+        return (
+            dbc.Alert(
+                "Query not recognized: {}".format(value),
+                color="danger",
+                className="shadow-sm",
+            ),
+            no_update,
+            no_update,
+            no_update,
+        )
 
-    elif query['action'] == 'objectid':
+    elif query["action"] == "objectid":
         # Search objects by objectId
-        msg = "ObjectId search with {} name {}".format('partial' if query.get('partial') else 'exact', query['object'])
+        msg = "ObjectId search with {} name {}".format(
+            "partial" if query.get("partial") else "exact", query["object"]
+        )
         pdf = request_api(
-            '/api/v1/explorer',
+            "/api/v1/explorer",
             json={
-                'objectId': query['object'],
-            }
+                "objectId": query["object"],
+            },
         )
 
-    elif query['action'] == 'sso':
+    elif query["action"] == "sso":
         # Solar System Objects
-        msg = "Solar System object search with ssnamenr {}".format(query['params']['sso'])
-        pdf = request_api(
-            '/api/v1/sso',
-            json={
-                'n_or_d': query['params']['sso']
-            }
+        msg = "Solar System object search with ssnamenr {}".format(
+            query["params"]["sso"]
         )
+        pdf = request_api("/api/v1/sso", json={"n_or_d": query["params"]["sso"]})
 
-    elif query['action'] == 'tracklet':
+    elif query["action"] == "tracklet":
         # Tracklet by (partial) name
-        msg = "Tracklet search with {} name {}".format('partial' if query.get('partial') else 'exact', query['object'])
-        payload = {
-            'id': query['object']
-        }
-
-        pdf = request_api(
-            '/api/v1/tracklet',
-            json=payload
+        msg = "Tracklet search with {} name {}".format(
+            "partial" if query.get("partial") else "exact", query["object"]
         )
+        payload = {"id": query["object"]}
 
-    elif query['action'] == 'conesearch':
+        pdf = request_api("/api/v1/tracklet", json=payload)
+
+    elif query["action"] == "conesearch":
         # Conesearch
-        ra = float(query['params'].get('ra'))
-        dec = float(query['params'].get('dec'))
+        ra = float(query["params"].get("ra"))
+        dec = float(query["params"].get("dec"))
         # Default is 10 arcsec, max is 5 degrees
-        sr = min(float(query['params'].get('r', 10)), 18000)
+        sr = min(float(query["params"].get("r", 10)), 18000)
 
-        msg = "Cone search with center at {:.4f} {:.3f} and radius {:.1f} arcsec".format(ra, dec, sr)
+        msg = (
+            "Cone search with center at {:.4f} {:.3f} and radius {:.1f} arcsec".format(
+                ra, dec, sr
+            )
+        )
 
         payload = {
-            'ra': ra,
-            'dec': dec,
-            'radius': sr,
+            "ra": ra,
+            "dec": dec,
+            "radius": sr,
         }
 
-        if 'after' in query['params']:
-            startdate = isoify_time(query['params']['after'])
+        if "after" in query["params"]:
+            startdate = isoify_time(query["params"]["after"])
 
-            msg += ' after {}'.format(startdate)
+            msg += " after {}".format(startdate)
 
-            payload['startdate'] = startdate
+            payload["startdate"] = startdate
 
-        if 'before' in query['params']:
-            stopdate = isoify_time(query['params']['before'])
+        if "before" in query["params"]:
+            stopdate = isoify_time(query["params"]["before"])
 
-            msg += ' before {}'.format(stopdate)
+            msg += " before {}".format(stopdate)
 
-            payload['stopdate'] = stopdate
+            payload["stopdate"] = stopdate
 
-        elif 'window' in query['params']:
-            window = query['params']['window']
+        elif "window" in query["params"]:
+            window = query["params"]["window"]
 
-            msg += ' window {} days'.format(window)
+            msg += " window {} days".format(window)
 
-            payload['window'] = window
+            payload["window"] = window
 
-        pdf = request_api(
-            '/api/v1/explorer',
-            json=payload
-        )
+        pdf = request_api("/api/v1/explorer", json=payload)
 
         colnames_to_display = {
-            'i:objectId': 'objectId',
-            'v:separation_degree': 'Separation (degree)',
-            'd:classification': 'Classification',
-            'd:nalerthist': 'Number of measurements',
-            'v:lapse': 'Time variation (day)'
+            "i:objectId": "objectId",
+            "v:separation_degree": "Separation (degree)",
+            "d:classification": "Classification",
+            "d:nalerthist": "Number of measurements",
+            "v:lapse": "Time variation (day)",
         }
 
-    elif query['action'] == 'class':
+    elif query["action"] == "class":
         # Class-based search
-        alert_class = query['params'].get('class')
-        if not alert_class or alert_class == 'All classes':
-            alert_class = 'allclasses'
+        alert_class = query["params"].get("class")
+        if not alert_class or alert_class == "All classes":
+            alert_class = "allclasses"
 
-        n_last = int(query['params'].get('last', 100))
+        n_last = int(query["params"].get("last", 100))
 
         msg = "Last {} objects with class '{}'".format(n_last, alert_class)
 
-        payload = {
-            'class': alert_class,
-            'n': n_last
-        }
+        payload = {"class": alert_class, "n": n_last}
 
-        if 'after' in query['params']:
-            startdate = isoify_time(query['params']['after'])
+        if "after" in query["params"]:
+            startdate = isoify_time(query["params"]["after"])
 
-            msg += ' after {}'.format(startdate)
+            msg += " after {}".format(startdate)
 
-            payload['startdate'] = startdate
+            payload["startdate"] = startdate
 
-        if 'before' in query['params']:
-            stopdate = isoify_time(query['params']['before'])
+        if "before" in query["params"]:
+            stopdate = isoify_time(query["params"]["before"])
 
-            msg += ' before {}'.format(stopdate)
+            msg += " before {}".format(stopdate)
 
-            payload['stopdate'] = stopdate
+            payload["stopdate"] = stopdate
 
-        pdf = request_api(
-            '/api/v1/latests',
-            json=payload
-        )
+        pdf = request_api("/api/v1/latests", json=payload)
 
-    elif query['action'] == 'daterange':
+    elif query["action"] == "daterange":
         # Date range search
         msg = "Objects in date range"
 
         payload = {}
 
-        if 'after' in query['params']:
-            startdate = isoify_time(query['params']['after'])
+        if "after" in query["params"]:
+            startdate = isoify_time(query["params"]["after"])
 
-            msg += ' after {}'.format(startdate)
+            msg += " after {}".format(startdate)
 
-            payload['startdate'] = startdate
+            payload["startdate"] = startdate
 
-        if 'before' in query['params']:
-            stopdate = isoify_time(query['params']['before'])
+        if "before" in query["params"]:
+            stopdate = isoify_time(query["params"]["before"])
 
-            msg += ' before {}'.format(stopdate)
+            msg += " before {}".format(stopdate)
 
-            payload['stopdate'] = stopdate
+            payload["stopdate"] = stopdate
 
-        elif 'window' in query['params']:
-            window = query['params']['window']
+        elif "window" in query["params"]:
+            window = query["params"]["window"]
 
-            msg += ' window {} days'.format(window)
+            msg += " window {} days".format(window)
 
-            payload['window'] = window
+            payload["window"] = window
 
-        pdf = request_api(
-            '/api/v1/explorer',
-            json=payload
-        )
+        pdf = request_api("/api/v1/explorer", json=payload)
 
-    elif query['action'] == 'anomaly':
+    elif query["action"] == "anomaly":
         # Anomaly search
-        n_last = int(query['params'].get('last', 100))
+        n_last = int(query["params"].get("last", 100))
 
         msg = "Last {} anomalies".format(n_last)
 
-        payload = {
-            'n': n_last
-        }
+        payload = {"n": n_last}
 
-        if 'after' in query['params']:
-            startdate = isoify_time(query['params']['after'])
+        if "after" in query["params"]:
+            startdate = isoify_time(query["params"]["after"])
 
-            msg += ' after {}'.format(startdate)
+            msg += " after {}".format(startdate)
 
-            payload['start_date'] = startdate
+            payload["start_date"] = startdate
 
-        if 'before' in query['params']:
-            stopdate = isoify_time(query['params']['before'])
+        if "before" in query["params"]:
+            stopdate = isoify_time(query["params"]["before"])
 
-            msg += ' before {}'.format(stopdate)
+            msg += " before {}".format(stopdate)
 
-            payload['stop_date'] = stopdate
+            payload["stop_date"] = stopdate
 
-        pdf = request_api(
-            '/api/v1/anomaly',
-            json=payload
-        )
+        pdf = request_api("/api/v1/anomaly", json=payload)
 
-    elif query['action'] == 'random':
-        n_random = int(query['params'].get('random', 10))
+    elif query["action"] == "random":
+        n_random = int(query["params"].get("random", 10))
 
         msg = "Random {} objects".format(n_random)
 
-        payload = {
-            'n': n_random
-        }
+        payload = {"n": n_random}
 
-        if 'class' in query['params']:
-            alert_class = query['params']['class']
+        if "class" in query["params"]:
+            alert_class = query["params"]["class"]
 
-            msg += ' with class {}'.format(alert_class)
+            msg += " with class {}".format(alert_class)
 
-            payload['class'] = alert_class
+            payload["class"] = alert_class
 
-        if 'seed' in query['params']:
-            seed = query['params']['seed']
+        if "seed" in query["params"]:
+            seed = query["params"]["seed"]
 
-            msg += ' seed {}'.format(seed)
+            msg += " seed {}".format(seed)
 
-            payload['seed'] = seed
+            payload["seed"] = seed
 
-        pdf = request_api(
-            '/api/v1/random',
-            json=payload
-        )
+        pdf = request_api("/api/v1/random", json=payload)
 
     else:
-        return dbc.Alert(
-            'Unhandled query: {}'.format(query),
-            color='danger',
-            className='shadow-sm'
-        ), no_update, no_update, no_update
+        return (
+            dbc.Alert(
+                "Unhandled query: {}".format(query),
+                color="danger",
+                className="shadow-sm",
+            ),
+            no_update,
+            no_update,
+            no_update,
+        )
 
     # Add to history
     if not history:
         history = []
     while value in history:
-        history.remove(value) # Remove duplicates
+        history.remove(value)  # Remove duplicates
     history.append(value)
-    history = history[-10:] # Limit it to 10 latest entries
+    history = history[-10:]  # Limit it to 10 latest entries
 
-    if query['action'] == 'random':
+    if query["action"] == "random":
         # Keep only latest alert from all objects
-        pdf = pdf.loc[pdf.groupby('i:objectId')['i:jd'].idxmax()]
+        pdf = pdf.loc[pdf.groupby("i:objectId")["i:jd"].idxmax()]
 
-    msg = "{} - {} found".format(msg, 'nothing' if pdf.empty else str(len(pdf.index)) + ' objects')
+    msg = "{} - {} found".format(
+        msg, "nothing" if pdf.empty else str(len(pdf.index)) + " objects"
+    )
 
     if pdf.empty:
         # text, header = text_noresults(query, query_type, dropdown_option, searchurl)
-        return dbc.Alert(
-            msg,
-            color="warning",
-            className='shadow-sm'
-        ), no_update, no_update, history
+        return (
+            dbc.Alert(msg, color="warning", className="shadow-sm"),
+            no_update,
+            no_update,
+            history,
+        )
     else:
         # Make clickable objectId
-        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
+        pdf["i:objectId"] = pdf["i:objectId"].apply(markdownify_objectid)
 
         # Sort the results
-        if query['action'] == 'conesearch':
-            pdf['v:lapse'] = pdf['i:jd'] - pdf['i:jdstarthist']
-            data = pdf.sort_values(
-                'v:separation_degree', ascending=True
-            )
+        if query["action"] == "conesearch":
+            pdf["v:lapse"] = pdf["i:jd"] - pdf["i:jdstarthist"]
+            data = pdf.sort_values("v:separation_degree", ascending=True)
         else:
-            data = pdf.sort_values('i:jd', ascending=False)
+            data = pdf.sort_values("i:jd", ascending=False)
 
         if show_table:
-            data = data.to_dict('records')
+            data = data.to_dict("records")
 
             columns = [
                 {
-                    'id': c,
-                    'name': colnames_to_display[c],
-                    'type': 'numeric', 'format': dash_table.Format.Format(precision=8),
+                    "id": c,
+                    "name": colnames_to_display[c],
+                    "type": "numeric",
+                    "format": dash_table.Format.Format(precision=8),
                     # 'hideable': True,
-                    'presentation': 'markdown' if c == 'i:objectId' else 'input',
-                } for c in colnames_to_display.keys()
+                    "presentation": "markdown" if c == "i:objectId" else "input",
+                }
+                for c in colnames_to_display.keys()
             ]
 
             table = populate_result_table(data, columns)
@@ -1343,95 +1392,90 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             # Common header for the results
             dbc.Row(
                 [
-                    dbc.Col(
-                        msg,
-                        md='auto'
-                    ),
+                    dbc.Col(msg, md="auto"),
                     dbc.Col(
                         dbc.Row(
                             [
-                                dbc.Col(
-                                    modal_skymap(),
-                                    xs='auto'
-                                ),
+                                dbc.Col(modal_skymap(), xs="auto"),
                                 dbc.Col(
                                     help_popover(
                                         dcc.Markdown(msg_info),
-                                        id='help_msg_info',
+                                        id="help_msg_info",
                                         trigger=dmc.ActionIcon(
                                             DashIconify(icon="mdi:help"),
-                                            id='help_msg_info',
-                                            color='gray',
+                                            id="help_msg_info",
+                                            color="gray",
                                             variant="default",
-                                            radius='xl',
-                                            size='lg',
+                                            radius="xl",
+                                            size="lg",
                                         ),
                                     ),
-                                    xs='auto'
+                                    xs="auto",
                                 ),
                             ],
-                            justify='end'
+                            justify="end",
                         ),
-                        md='auto'
-                    )
+                        md="auto",
+                    ),
                 ],
-                align='end', justify='between',
-                className='m-2'
+                align="end",
+                justify="between",
+                className="m-2",
             ),
         ] + results_
 
         return results, False, no_update, history
 
+
 def display_cards_results(pdf, page_size=10):
     results_ = [
         # Data storage
         dcc.Store(
-            id='results_store',
-            storage_type='memory',
+            id="results_store",
+            storage_type="memory",
             data=pdf.to_json(),
         ),
         dcc.Store(
-            id='results_page_size_store',
-            storage_type='memory',
+            id="results_page_size_store",
+            storage_type="memory",
             data=str(page_size),
         ),
         # For Aladin
         dcc.Store(
-            id='result_table',
-            storage_type='memory',
-            data=pdf.to_dict('records'),
+            id="result_table",
+            storage_type="memory",
+            data=pdf.to_dict("records"),
         ),
         # Actual display of results
-        html.Div(
-            id='results_paginated'
-        ),
+        html.Div(id="results_paginated"),
     ]
 
-    npages = int(np.ceil(len(pdf.index)/page_size))
+    npages = int(np.ceil(len(pdf.index) / page_size))
     results_ += [
         dmc.Space(h=10),
         dmc.Group(
             dmc.Pagination(
-                id='results_pagination',
+                id="results_pagination",
                 page=1,
                 total=npages,
                 siblings=1,
                 withControls=True,
                 withEdges=True,
             ),
-            position='center',
-            className='d-none' if npages == 1 else ''
+            position="center",
+            className="d-none" if npages == 1 else "",
         ),
         dmc.Space(h=20),
     ]
 
     return results_
 
+
 @app.callback(
-    Output('results_paginated', 'children'),
-    Input('results_pagination', 'page'),
-    State('results_store', 'data'),
-    State('results_page_size_store', 'data'),
+    Output("results_paginated", "children"),
+    Input("results_pagination", "page"),
+    State("results_store", "data"),
+    State("results_page_size_store", "data"),
 )
 def on_paginate(page, data, page_size):
     pdf = pd.read_json(data)
@@ -1443,12 +1487,13 @@ def on_paginate(page, data, page_size):
     results = []
 
     # Slice to selected page
-    pdf_ = pdf.iloc[(page-1)*page_size : min(page*page_size, len(pdf.index))]
+    pdf_ = pdf.iloc[(page - 1) * page_size : min(page * page_size, len(pdf.index))]
 
-    for i,row in pdf_.iterrows():
+    for i, row in pdf_.iterrows():
         results.append(card_search_result(row, i))
 
     return results
+
 
 # Scroll to top on paginate
 clientside_callback(
@@ -1458,40 +1503,47 @@ clientside_callback(
         return dash_clientside.no_update;
     }
     """,
-    Output('results_pagination', 'page'), # Fake output!!!
-    Input('results_pagination', 'page'),
+    Output("results_pagination", "page"),  # Fake output!!!
+    Input("results_pagination", "page"),
     prevent_initial_call=True,
 )
 
+
 @app.callback(
-    Output({'type': 'search_results_lightcurve', 'objectId': MATCH, 'index': MATCH}, 'children'),
-    Input({'type': 'search_results_lightcurve', 'objectId': MATCH, 'index': MATCH}, 'id')
+    Output(
+        {"type": "search_results_lightcurve", "objectId": MATCH, "index": MATCH},
+        "children",
+    ),
+    Input(
+        {"type": "search_results_lightcurve", "objectId": MATCH, "index": MATCH}, "id"
+    ),
 )
 def on_load_lightcurve(lc_id):
     if lc_id:
         # print(lc_id['objectId'])
-        fig = draw_lightcurve_preview(lc_id['objectId'])
+        fig = draw_lightcurve_preview(lc_id["objectId"])
         return dcc.Graph(
             figure=fig,
-            config={'displayModeBar': False},
-            style={
-                'width': '100%',
-                'height': '15pc'
-            },
-            responsive=True
+            config={"displayModeBar": False},
+            style={"width": "100%", "height": "15pc"},
+            responsive=True,
         )
 
     return no_update
 
+
 @app.callback(
-    Output({'type': 'search_results_cutouts', 'objectId': MATCH, 'index': MATCH}, 'children'),
-    Input({'type': 'search_results_cutouts', 'objectId': MATCH, 'index': MATCH}, 'id')
+    Output(
+        {"type": "search_results_cutouts", "objectId": MATCH, "index": MATCH},
+        "children",
+    ),
+    Input({"type": "search_results_cutouts", "objectId": MATCH, "index": MATCH}, "id"),
 )
 def on_load_cutouts(lc_id):
     if lc_id:
         return html.Div(
-            draw_cutouts_quickview(lc_id['objectId']),
-            style={'width': '12pc', 'height': '12pc'},
+            draw_cutouts_quickview(lc_id["objectId"]),
+            style={"width": "12pc", "height": "12pc"},
         )
         # figs = draw_cutouts_quickview(lc_id['objectId'], ['science', 'template', 'difference'])
         # return dbc.Row(
@@ -1503,6 +1555,7 @@ def on_load_cutouts(lc_id):
         # )
 
     return no_update
+
 
 clientside_callback(
     """
@@ -1535,12 +1588,12 @@ clientside_callback(
     """,
     Output("drawer", "opened"),
     Input("drawer-button", "n_clicks"),
-    Input('url', 'pathname'),
+    Input("url", "pathname"),
     prevent_initial_call=True,
 )
 
 navbar = dmc.Header(
-    id='navbar',
+    id="navbar",
     height=55,
     fixed=True,
     zIndex=1000,
@@ -1562,75 +1615,95 @@ navbar = dmc.Header(
                         children=[
                             # Burger
                             dmc.ActionIcon(
-                                DashIconify(icon="dashicons:menu", width=30), id="drawer-button", n_clicks=0
+                                DashIconify(icon="dashicons:menu", width=30),
+                                id="drawer-button",
+                                n_clicks=0,
                             ),
                             dmc.Anchor(
-                                dmc.Group([
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="ion:search-outline",
-                                            width=22,
+                                dmc.Group(
+                                    [
+                                        dmc.ThemeIcon(
+                                            DashIconify(
+                                                icon="ion:search-outline",
+                                                width=22,
+                                            ),
+                                            radius=30,
+                                            size=32,
+                                            variant="outline",
+                                            color="gray",
                                         ),
-                                        radius=30,
-                                        size=32,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    dmc.MediaQuery(
-                                        "Search",
-                                        smallerThan="sm",
-                                        styles={"display": "none"},
-                                    ),
-                                ], spacing='xs'),
-                                href='/',
-                                variant='text',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        dmc.MediaQuery(
+                                            "Search",
+                                            smallerThan="sm",
+                                            styles={"display": "none"},
+                                        ),
+                                    ],
+                                    spacing="xs",
+                                ),
+                                href="/",
+                                variant="text",
+                                style={
+                                    "textTransform": "capitalize",
+                                    "textDecoration": "none",
+                                },
                                 color="gray",
                             ),
                             dmc.Anchor(
-                                dmc.Group([
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="ion:cloud-download-outline",
-                                            width=22,
+                                dmc.Group(
+                                    [
+                                        dmc.ThemeIcon(
+                                            DashIconify(
+                                                icon="ion:cloud-download-outline",
+                                                width=22,
+                                            ),
+                                            radius=30,
+                                            size=32,
+                                            variant="outline",
+                                            color="gray",
                                         ),
-                                        radius=30,
-                                        size=32,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    dmc.MediaQuery(
-                                        "Data Transfer",
-                                        smallerThan="sm",
-                                        styles={"display": "none"},
-                                    ),
-                                ], spacing='xs'),
-                                href='/download',
-                                variant='text',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        dmc.MediaQuery(
+                                            "Data Transfer",
+                                            smallerThan="sm",
+                                            styles={"display": "none"},
+                                        ),
+                                    ],
+                                    spacing="xs",
+                                ),
+                                href="/download",
+                                variant="text",
+                                style={
+                                    "textTransform": "capitalize",
+                                    "textDecoration": "none",
+                                },
                                 color="gray",
                             ),
                             dmc.Anchor(
-                                dmc.Group([
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="ion:infinite-outline",
-                                            width=22,
+                                dmc.Group(
+                                    [
+                                        dmc.ThemeIcon(
+                                            DashIconify(
+                                                icon="ion:infinite-outline",
+                                                width=22,
+                                            ),
+                                            radius=30,
+                                            size=32,
+                                            variant="outline",
+                                            color="gray",
                                         ),
-                                        radius=30,
-                                        size=32,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    dmc.MediaQuery(
-                                        "Gravitational Waves",
-                                        smallerThan="sm",
-                                        styles={"display": "none"},
-                                    ),
-                                ], spacing='xs'),
-                                href='/gw',
-                                variant='text',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        dmc.MediaQuery(
+                                            "Gravitational Waves",
+                                            smallerThan="sm",
+                                            styles={"display": "none"},
+                                        ),
+                                    ],
+                                    spacing="xs",
+                                ),
+                                href="/gw",
+                                variant="text",
+                                style={
+                                    "textTransform": "capitalize",
+                                    "textDecoration": "none",
+                                },
                                 color="gray",
                             ),
                         ],
@@ -1641,29 +1714,35 @@ navbar = dmc.Header(
                         align="flex-end",
                         children=[
                             dmc.Anchor(
-                                dmc.Group([
-                                    dmc.ThemeIcon(
-                                        DashIconify(
-                                            icon="ion:stats-chart-outline",
-                                            width=22,
+                                dmc.Group(
+                                    [
+                                        dmc.ThemeIcon(
+                                            DashIconify(
+                                                icon="ion:stats-chart-outline",
+                                                width=22,
+                                            ),
+                                            radius=30,
+                                            size=32,
+                                            variant="outline",
+                                            color="gray",
                                         ),
-                                        radius=30,
-                                        size=32,
-                                        variant="outline",
-                                        color="gray",
-                                    ),
-                                    dmc.MediaQuery(
-                                        "Statistics",
-                                        smallerThan="sm",
-                                        styles={"display": "none"},
-                                    ),
-                                ], spacing='xs'),
-                                href='/stats',
-                                variant='text',
-                                style={"textTransform": "capitalize", "textDecoration": "none"},
+                                        dmc.MediaQuery(
+                                            "Statistics",
+                                            smallerThan="sm",
+                                            styles={"display": "none"},
+                                        ),
+                                    ],
+                                    spacing="xs",
+                                ),
+                                href="/stats",
+                                variant="text",
+                                style={
+                                    "textTransform": "capitalize",
+                                    "textDecoration": "none",
+                                },
                                 color="gray",
                             ),
-                        ]
+                        ],
                     ),
                     # Sidebar
                     dmc.Drawer(
@@ -1672,7 +1751,9 @@ navbar = dmc.Header(
                                 labelPosition="left",
                                 label=[
                                     DashIconify(
-                                        icon='tabler:search', width=15, style={"marginRight": 10}
+                                        icon="tabler:search",
+                                        width=15,
+                                        style={"marginRight": 10},
                                     ),
                                     "Explore",
                                 ],
@@ -1681,30 +1762,42 @@ navbar = dmc.Header(
                             dmc.Stack(
                                 [
                                     dmc.Anchor(
-                                        'Search',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='/',
+                                        "Search",
+                                        style={
+                                            "textTransform": "capitalize",
+                                            "textDecoration": "none",
+                                        },
+                                        href="/",
                                         size="sm",
                                         color="gray",
                                     ),
                                     dmc.Anchor(
-                                        'Data Transfer',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='/download',
+                                        "Data Transfer",
+                                        style={
+                                            "textTransform": "capitalize",
+                                            "textDecoration": "none",
+                                        },
+                                        href="/download",
                                         size="sm",
                                         color="gray",
                                     ),
                                     dmc.Anchor(
-                                        'Gravitational Waves',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='/gw',
+                                        "Gravitational Waves",
+                                        style={
+                                            "textTransform": "capitalize",
+                                            "textDecoration": "none",
+                                        },
+                                        href="/gw",
                                         size="sm",
                                         color="gray",
                                     ),
                                     dmc.Anchor(
-                                        'Statistics',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='/stats',
+                                        "Statistics",
+                                        style={
+                                            "textTransform": "capitalize",
+                                            "textDecoration": "none",
+                                        },
+                                        href="/stats",
                                         size="sm",
                                         color="gray",
                                     ),
@@ -1717,7 +1810,9 @@ navbar = dmc.Header(
                                 labelPosition="left",
                                 label=[
                                     DashIconify(
-                                        icon='carbon:api', width=15, style={"marginRight": 10}
+                                        icon="carbon:api",
+                                        width=15,
+                                        style={"marginRight": 10},
                                     ),
                                     "Learn",
                                 ],
@@ -1726,16 +1821,22 @@ navbar = dmc.Header(
                             dmc.Stack(
                                 [
                                     dmc.Anchor(
-                                        '{ API }',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='/api',
+                                        "{ API }",
+                                        style={
+                                            "textTransform": "capitalize",
+                                            "textDecoration": "none",
+                                        },
+                                        href="/api",
                                         size="sm",
                                         color="gray",
                                     ),
                                     dmc.Anchor(
-                                        'Tutorials',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='https://github.com/astrolabsoftware/fink-tutorials',
+                                        "Tutorials",
+                                        style={
+                                            "textTransform": "capitalize",
+                                            "textDecoration": "none",
+                                        },
+                                        href="https://github.com/astrolabsoftware/fink-tutorials",
                                         size="sm",
                                         color="gray",
                                     ),
@@ -1748,7 +1849,9 @@ navbar = dmc.Header(
                                 labelPosition="left",
                                 label=[
                                     DashIconify(
-                                        icon='tabler:external-link', width=15, style={"marginRight": 10}
+                                        icon="tabler:external-link",
+                                        width=15,
+                                        style={"marginRight": 10},
                                     ),
                                     "External links",
                                 ],
@@ -1757,19 +1860,25 @@ navbar = dmc.Header(
                             dmc.Stack(
                                 [
                                     dmc.Anchor(
-                                        'Fink broker',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='https://fink-broker.org',
+                                        "Fink broker",
+                                        style={
+                                            "textTransform": "capitalize",
+                                            "textDecoration": "none",
+                                        },
+                                        href="https://fink-broker.org",
                                         size="sm",
                                         color="gray",
                                     ),
                                     dmc.Anchor(
-                                        'Portal bug tracker',
-                                        style={"textTransform": "capitalize", "textDecoration": "none"},
-                                        href='https://github.com/astrolabsoftware/fink-science-portal',
+                                        "Portal bug tracker",
+                                        style={
+                                            "textTransform": "capitalize",
+                                            "textDecoration": "none",
+                                        },
+                                        href="https://github.com/astrolabsoftware/fink-science-portal",
                                         size="sm",
                                         color="gray",
-                                    )
+                                    ),
                                 ],
                                 align="left",
                                 spacing="sm",
@@ -1780,7 +1889,7 @@ navbar = dmc.Header(
                         id="drawer",
                         padding="md",
                         zIndex=1e7,
-                        transition='pop-top-left',
+                        transition="pop-top-left",
                     ),
                     # dmc.ThemeSwitcher(
                     #     id="color-scheme-toggle",
@@ -1788,23 +1897,26 @@ navbar = dmc.Header(
                     # ),
                 ],
             ),
-        )
+        ),
     ],
 )
 
 # embedding the navigation bar
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    navbar,
-    html.Div(id='page-content', className='home', style={'padding-top': '55px'}),
-])
+app.layout = html.Div(
+    [
+        dcc.Location(id="url", refresh=False),
+        navbar,
+        html.Div(id="page-content", className="home", style={"padding-top": "55px"}),
+    ]
+)
+
 
 @app.callback(
-    Output('page-content', 'children'),
+    Output("page-content", "children"),
     [
-        Input('url', 'pathname'),
-        Input('url', 'search'),
-    ]
+        Input("url", "pathname"),
+        Input("url", "search"),
+    ],
 )
 def display_page(pathname, searchurl):
     layout = html.Div(
@@ -1818,70 +1930,80 @@ def display_page(pathname, searchurl):
                                 dbc.Col(
                                     html.Img(
                                         src="/assets/Fink_PrimaryLogo_WEB.png",
-                                        height='100%',
-                                        width='40%',
-                                        style={'min-width': '250px'},
+                                        height="100%",
+                                        width="40%",
+                                        style={"min-width": "250px"},
                                     )
-                                ), style={'textAlign': 'center'}, className="mt-3",
+                                ),
+                                style={"textAlign": "center"},
+                                className="mt-3",
                             ),
                             query="(max-height: 400px) or (max-width: 300px)",
-                            styles={'display': 'none'},
-                        ), is_open=True, id='logo',
+                            styles={"display": "none"},
+                        ),
+                        is_open=True,
+                        id="logo",
                     ),
                     dbc.Row(
                         dbc.Col(
                             fink_search_bar,
-                            lg={'size':8, 'offset':2},
-                            md={'size':10, 'offset':1},
-                        ), className="mt-3 mb-3"
+                            lg={"size": 8, "offset": 2},
+                            md={"size": 10, "offset": 1},
+                        ),
+                        className="mt-3 mb-3",
                     ),
-                ], fluid="lg"
+                ],
+                fluid="lg",
             ),
             dbc.Container(
                 # Default content for results part - search history
                 dbc.Row(
                     dbc.Col(
-                        id='search_history',
+                        id="search_history",
                         # Size should match the one of fink_search_bar above
-                        lg={'size':8, 'offset':2},
-                        md={'size':10, 'offset':1},
-                    ), className="m-3"
+                        lg={"size": 8, "offset": 2},
+                        md={"size": 10, "offset": 1},
+                    ),
+                    className="m-3",
                 ),
-                id='results',
-                fluid="xxl"
-            )
+                id="results",
+                fluid="xxl",
+            ),
         ]
     )
-    if pathname == '/about':
+    if pathname == "/about":
         return about.layout
-    elif pathname == '/api':
+    elif pathname == "/api":
         return api.layout()
-    elif pathname == '/stats':
+    elif pathname == "/stats":
         return statistics.layout()
-    elif pathname == '/download':
+    elif pathname == "/download":
         return query_cluster.layout()
-    elif pathname == '/gw':
+    elif pathname == "/gw":
         return gw.layout()
-    elif pathname.startswith('/ZTF'):
+    elif pathname.startswith("/ZTF"):
         return summary.layout(pathname)
     else:
         if pathname[1:]:
             # check this is not a name generated by a user
             oid = retrieve_oid_from_metaname(pathname[1:])
             if oid is not None:
-                return summary.layout('/' + oid)
+                return summary.layout("/" + oid)
         return layout
+
 
 # register the API
 try:
     from apps.api.api import api_bp
-    server.register_blueprint(api_bp, url_prefix='/')
-    server.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
-    server.config['JSON_SORT_KEYS'] = False
-except ImportError as e:
-    print('API not yet registered')
 
-if __name__ == '__main__':
+    server.register_blueprint(api_bp, url_prefix="/")
+    server.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
+    server.config["JSON_SORT_KEYS"] = False
+except ImportError:
+    print("API not yet registered")
+
+if __name__ == "__main__":
     import yaml
-    input_args = yaml.load(open('config.yml'), yaml.Loader)
-    app.run_server(input_args['IP'], debug=True, port=input_args['PORT'])
+
+    input_args = yaml.load(open("config.yml"), yaml.Loader)
+    app.run_server(input_args["IP"], debug=True, port=input_args["PORT"])

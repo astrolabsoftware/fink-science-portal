@@ -12,38 +12,42 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import dash
-from dash import html, dcc, Input, Output, State, callback_context as ctx, no_update, dash_table
-from dash.exceptions import PreventUpdate
+import gzip
+import io
+import time
+from urllib.request import URLError, urlopen
+
+import astropy.units as u
+import astropy_healpix as ah
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
-from dash_iconify import DashIconify
-import visdcc
-
-import io
-import gzip
-import time
-import pandas as pd
 import healpy as hp
 import numpy as np
-from urllib.request import urlopen, URLError
+import pandas as pd
+import visdcc
 from astropy.io import fits
+from dash import Input, Output, State, dash_table, dcc, html
+from dash import callback_context as ctx
+from dash.exceptions import PreventUpdate
+from dash_iconify import DashIconify
 from mocpy import MOC
-import astropy_healpix as ah
-import astropy.units as u
 
-from app import app, APIURL
-from apps.utils import markdownify_objectid, convert_jd, simbad_types, class_colors
-from apps.utils import extract_bayestar_query_url
-from apps.utils import request_api
+from app import APIURL, app
+from apps.utils import (
+    class_colors,
+    convert_jd,
+    extract_bayestar_query_url,
+    markdownify_objectid,
+    request_api,
+    simbad_types,
+)
+
 
 def extract_moc(fn, credible_level):
-    """
-    """
+    """ """
     payload = urlopen(fn).read()
     with fits.open(io.BytesIO(payload)) as hdul:
         data = hdul[1].data
-        header = hdul[1].header
         max_order = hdul[1].header["MOCORDER"]
 
     uniq = data["UNIQ"]
@@ -54,24 +58,21 @@ def extract_moc(fn, credible_level):
 
     prob = probdensity * area
 
-
-    cumul_to = np.linspace(0.5, 0.9, 5)[::-1]
-    colors = ["blue", "green", "yellow", "orange", "red"]
     moc = MOC.from_valued_healpix_cells(uniq, prob, max_order, cumul_to=credible_level)
 
     return moc
 
+
 def extract_skyfrac_degree(fn, credible_level):
-    """
-    """
+    """ """
     payload = urlopen(fn).read()
-    with gzip.open(io.BytesIO(payload), 'rb') as f:
+    with gzip.open(io.BytesIO(payload), "rb") as f:
         with fits.open(io.BytesIO(f.read())) as hdul:
             data = hdul[1].data
             header = hdul[1].header
 
-    hpx = data['PROB']
-    if header['ORDERING'] == 'NESTED':
+    hpx = data["PROB"]
+    if header["ORDERING"] == "NESTED":
         hpx = hp.reorder(hpx, n2r=True)
 
     i = np.flipud(np.argsort(hpx))
@@ -81,24 +82,31 @@ def extract_skyfrac_degree(fn, credible_level):
 
     npix = len(hpx)
     nside = hp.npix2nside(npix)
-    skyfrac = np.sum(credible_levels <= credible_level) * hp.nside2pixarea(nside, degrees=True)
+    skyfrac = np.sum(credible_levels <= credible_level) * hp.nside2pixarea(
+        nside, degrees=True
+    )
     return skyfrac
+
 
 @app.callback(
     Output("gw-data", "data"),
     [
-        Input('gw-loading-button', 'n_clicks'),
-        Input('credible_level', 'value'),
-        Input('superevent_name', 'value'),
-        Input('url', 'search'),
-    ]
+        Input("gw-loading-button", "n_clicks"),
+        Input("credible_level", "value"),
+        Input("superevent_name", "value"),
+        Input("url", "search"),
+    ],
 )
 def query_bayestar(submit, credible_level, superevent_name, searchurl):
-    """
-    """
-    if searchurl != '':
+    """ """
+    if searchurl != "":
         credible_level, superevent_name = extract_bayestar_query_url(searchurl)
-        empty_query = (superevent_name is None) or (superevent_name == '') or (credible_level is None) or (credible_level == '')
+        empty_query = (
+            (superevent_name is None)
+            or (superevent_name == "")
+            or (credible_level is None)
+            or (credible_level == "")
+        )
         if empty_query:
             raise PreventUpdate
     else:
@@ -106,61 +114,62 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
         if button_id != "gw-loading-button":
             raise PreventUpdate
 
-    if superevent_name == '':
+    if superevent_name == "":
         raise PreventUpdate
 
     # Query Fink
-    fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
+    fn = f"https://gracedb.ligo.org/api/superevents/{superevent_name}/files/bayestar.fits.gz"
     try:
         data = urlopen(fn).read()
     except URLError:
         return "error"
 
     pdf = request_api(
-        '/api/v1/bayestar',
+        "/api/v1/bayestar",
         json={
-            'bayestar': str(data),
-            'credible_level': float(credible_level),
-            'output-format': 'json'
-        }
+            "bayestar": str(data),
+            "credible_level": float(credible_level),
+            "output-format": "json",
+        },
     )
 
     # return pdf.to_json(), "done"
     return pdf.to_json()
 
+
 def populate_result_table_gw(data, columns):
-    """ Define options of the results table, and add data and columns
-    """
+    """Define options of the results table, and add data and columns"""
     page_size = 10
-    markdown_options = {'link_target': '_blank'}
+    markdown_options = {"link_target": "_blank"}
 
     table = dash_table.DataTable(
         data=data,
         columns=columns,
-        id='result_table_gw',
+        id="result_table_gw",
         page_size=page_size,
         style_as_list_view=True,
         sort_action="native",
         filter_action="native",
         markdown_options=markdown_options,
-        fixed_columns={'headers': True, 'data': 1},
+        fixed_columns={"headers": True, "data": 1},
         style_data={
-            'backgroundColor': 'rgb(248, 248, 248, .7)'
+            "backgroundColor": "rgb(248, 248, 248, .7)",
         },
-        style_table={'maxWidth': '100%'},
-        style_cell={'padding': '5px', 'textAlign': 'center', 'overflow': 'hidden'},
+        style_table={"maxWidth": "100%"},
+        style_cell={"padding": "5px", "textAlign": "center", "overflow": "hidden"},
         style_data_conditional=[
             {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248, .7)'
-            }
+                "if": {"row_index": "odd"},
+                "backgroundColor": "rgb(248, 248, 248, .7)",
+            },
         ],
         style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        }
+            "backgroundColor": "rgb(230, 230, 230)",
+            "fontWeight": "bold",
+        },
     )
     return table
+
 
 @app.callback(
     [
@@ -168,16 +177,15 @@ def populate_result_table_gw(data, columns):
         Output("card_explanation", "value"),
     ],
     [
-        Input('gw-loading-button', 'n_clicks'),
-        Input('gw-data', 'data'),
-        Input('superevent_name', 'value'),
-        Input('url', 'search'),
+        Input("gw-loading-button", "n_clicks"),
+        Input("gw-data", "data"),
+        Input("superevent_name", "value"),
+        Input("url", "search"),
     ],
 )
 def show_table(nclick, gw_data, superevent_name, searchurl):
-    """
-    """
-    if searchurl == '':
+    """ """
+    if searchurl == "":
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if button_id != "gw-loading-button":
             raise PreventUpdate
@@ -187,54 +195,55 @@ def show_table(nclick, gw_data, superevent_name, searchurl):
     if gw_data == "":
         return dmc.Alert(
             "Enter a valid superevent name",
-            title='Oops!',
+            title="Oops!",
             color="red",
-            withCloseButton=True
+            withCloseButton=True,
         ), "info"
 
     if gw_data == "error":
         return dmc.Alert(
-            "Could not find an event named {} on GraceDB".format(superevent_name),
-            title='Oops!',
+            f"Could not find an event named {superevent_name} on GraceDB",
+            title="Oops!",
             color="red",
-            withCloseButton=True
+            withCloseButton=True,
         ), "info"
 
     pdf = pd.read_json(gw_data)
     if pdf.empty:
         return dmc.Alert(
-            "No counterparts found in Fink for the event named {}".format(superevent_name),
-            title='Oops!',
+            f"No counterparts found in Fink for the event named {superevent_name}",
+            title="Oops!",
             color="red",
-            withCloseButton=True
+            withCloseButton=True,
         ), "info"
     else:
         colnames_to_display = {
-            'i:objectId': 'objectId',
-            'd:classification': 'Classification',
-            'd:nalerthist': 'Number of measurements',
-            'v:gw_lapse': 'Delay (day)',
+            "i:objectId": "objectId",
+            "d:classification": "Classification",
+            "d:nalerthist": "Number of measurements",
+            "v:gw_lapse": "Delay (day)",
         }
-        pdf['v:gw_lapse'] = pdf['i:jdstarthist'] - pdf['v:jdstartgw']
-        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
-        data = pdf.sort_values('v:gw_lapse', ascending=True).to_dict('records')
+        pdf["v:gw_lapse"] = pdf["i:jdstarthist"] - pdf["v:jdstartgw"]
+        pdf["i:objectId"] = pdf["i:objectId"].apply(markdownify_objectid)
+        data = pdf.sort_values("v:gw_lapse", ascending=True).to_dict("records")
         columns = [
             {
-                'id': c,
-                'name': colnames_to_display[c],
-                'type': 'text',
+                "id": c,
+                "name": colnames_to_display[c],
+                "type": "text",
                 # 'hideable': True,
-                'presentation': 'markdown',
-            } for c in colnames_to_display.keys()
+                "presentation": "markdown",
+            }
+            for c in colnames_to_display
         ]
 
         table = populate_result_table_gw(data, columns)
 
         return table, None
 
+
 def card_explanation():
-    """ Explain what is used to fit for variable stars
-    """
+    """Explain what is used to fit for variable stars"""
     msg = """
     Enter a superevent name on the left (check [O3](https://gracedb.ligo.org/superevents/public/O3/) or [O4](https://gracedb.ligo.org/superevents/public/O4/) runs if you are unsure),
     and enter a credible level. Note that the values in the resulting credible level map vary inversely with probability density: the most probable pixel is
@@ -263,35 +272,38 @@ def card_explanation():
                                 icon="tabler:help-hexagon",
                                 color="#3C8DFF",
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(dcc.Markdown(msg, link_target="_blank")),
                 ],
-                value="info"
+                value="info",
             ),
         ],
         value="info",
-        id="card_explanation"
+        id="card_explanation",
     )
     return card
 
+
 @app.callback(
     [
-        Output('aladin-lite-div-skymap-gw', 'run'),
-        Output('container_skymap', 'style'),
-        Output("progress_bar", "style")
+        Output("aladin-lite-div-skymap-gw", "run"),
+        Output("container_skymap", "style"),
+        Output("progress_bar", "style"),
     ],
     [
-        Input('gw-loading-button', 'n_clicks'),
-        Input('gw-data', 'data'),
-        Input('credible_level', 'value'),
-        Input('superevent_name', 'value'),
-        Input('url', 'search'),
+        Input("gw-loading-button", "n_clicks"),
+        Input("gw-data", "data"),
+        Input("credible_level", "value"),
+        Input("superevent_name", "value"),
+        Input("url", "search"),
     ],
 )
-def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchurl):
-    """ Display explorer result on a sky map (Aladin lite).
+def display_skymap_gw_callback(
+    nclick, gw_data, credible_level, superevent_name, searchurl
+):
+    """Display explorer result on a sky map (Aladin lite).
 
     TODO: image is not displayed correctly the first time
 
@@ -305,7 +317,7 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
     Input: takes the validation flag (0: no results, 1: results) and table data
     Output: Display a sky image around the alert position from aladin.
     """
-    if searchurl == '':
+    if searchurl == "":
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if button_id != "gw-loading-button":
             raise PreventUpdate
@@ -318,25 +330,25 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
     if gw_data == "error":
         raise PreventUpdate
 
-    hide_progress = {'display': 'none', 'width': '100%', 'height': '5pc'}
+    hide_progress = {"display": "none", "width": "100%", "height": "5pc"}
 
     pdf = pd.read_json(gw_data)
     if len(pdf) > 0:
-        pdf['v:lastdate'] = convert_jd(pdf['i:jd'])
-        pdf['i:objectId'] = pdf['i:objectId'].apply(markdownify_objectid)
+        pdf["v:lastdate"] = convert_jd(pdf["i:jd"])
+        pdf["i:objectId"] = pdf["i:objectId"].apply(markdownify_objectid)
         # Coordinate of the first alert
-        ra0 = pdf['i:ra'].values[0]
-        dec0 = pdf['i:dec'].values[0]
+        ra0 = pdf["i:ra"].to_numpy()[0]
+        dec0 = pdf["i:dec"].to_numpy()[0]
 
         # Javascript. Note the use {{}} for dictionary
         # Force redraw of the Aladin lite window
         img = """var container = document.getElementById('aladin-lite-div-skymap-gw');var txt = ''; container.innerHTML = txt;"""
 
         # Aladin lite
-        img += """
+        img += f"""
         var a = A.aladin('#aladin-lite-div-skymap-gw',
             {{
-                target: '{} {}',
+                target: '{ra0} {dec0}',
                 survey: 'https://alasky.cds.unistra.fr/Pan-STARRS/DR1/color-z-zg-g/',
                 showReticle: true,
                 allowFullZoomout: true,
@@ -345,128 +357,153 @@ def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchur
                 fov: 360
             }}
         );
-        """.format(ra0, dec0)
+        """
 
-        ras = pdf['i:ra'].values
-        decs = pdf['i:dec'].values
-        filts = pdf['i:fid'].values
-        filts_dic = {1: 'g', 2: 'r'}
-        times = pdf['v:lastdate'].values
+        ras = pdf["i:ra"].to_numpy()
+        decs = pdf["i:dec"].to_numpy()
+        filts = pdf["i:fid"].to_numpy()
+        filts_dic = {1: "g", 2: "r"}
+        times = pdf["v:lastdate"].to_numpy()
         link = '<a target="_blank" href="{}/{}">{}</a>'
-        titles = [link.format(APIURL, i.split(']')[0].split('[')[1], i.split(']')[0].split('[')[1]) for i in pdf['i:objectId'].values]
-        # mags = pdf['i:magpsf'].values
-        classes = pdf['d:classification'].values
-        n_alert_per_class = pdf.groupby('d:classification').count().to_dict()['i:objectId']
+        titles = [
+            link.format(
+                APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
+            )
+            for i in pdf["i:objectId"].to_numpy()
+        ]
+        # mags = pdf['i:magpsf'].to_numpy()
+        classes = pdf["d:classification"].to_numpy()
+        n_alert_per_class = (
+            pdf.groupby("d:classification").count().to_dict()["i:objectId"]
+        )
         cats = []
-        for ra, dec, fid, time_, title, class_ in zip(ras, decs, filts, times, titles, classes):
+        for ra, dec, fid, time_, title, class_ in zip(
+            ras, decs, filts, times, titles, classes
+        ):
             if class_ in simbad_types:
-                cat = 'cat_{}'.format(simbad_types.index(class_))
-                color = class_colors['Simbad']
+                cat = f"cat_{simbad_types.index(class_)}"
+                color = class_colors["Simbad"]
             elif class_ in class_colors.keys():
-                cat = 'cat_{}'.format(class_.replace(' ', '_'))
+                cat = "cat_{}".format(class_.replace(" ", "_"))
                 color = class_colors[class_]
             else:
                 # Sometimes SIMBAD mess up names :-)
-                cat = 'cat_{}'.format(class_)
-                color = class_colors['Simbad']
+                cat = f"cat_{class_}"
+                color = class_colors["Simbad"]
 
             if cat not in cats:
-                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(cat, class_ + ' ({})'.format(n_alert_per_class[class_]), color)
+                img += """var {} = A.catalog({{name: '{}', sourceSize: 15, shape: 'circle', color: '{}', onClick: 'showPopup', limit: 1000}});""".format(
+                    cat, class_ + f" ({n_alert_per_class[class_]})", color
+                )
                 cats.append(cat)
-            img += """{}.addSources([A.source({}, {}, {{objectId: '{}', filter: '{}', time: '{}', Classification: '{}'}})]);""".format(cat, ra, dec, title, filts_dic[fid], time_, class_)
+            img += f"""{cat}.addSources([A.source({ra}, {dec}, {{objectId: '{title}', filter: '{filts_dic[fid]}', time: '{time_}', Classification: '{class_}'}})]);"""
 
         for cat in sorted(cats):
-            img += """a.addCatalog({});""".format(cat)
+            img += f"""a.addCatalog({cat});"""
 
-        fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.multiorder.fits'.format(superevent_name)
+        fn = f"https://gracedb.ligo.org/api/superevents/{superevent_name}/files/bayestar.multiorder.fits"
         mm = extract_moc(fn, credible_level)
-        img += """var json = {};""".format(mm.to_string(format='json'))
+        img += """var json = {};""".format(mm.to_string(format="json"))
         img += """var moc = A.MOCFromJSON(json, {opacity: 0.25, color: 'white', lineWidth: 1}); a.addMOC(moc);"""
 
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
-        img_to_show = [i for i in img.split('\n') if '// ' not in i]
+        img_to_show = [i for i in img.split("\n") if "// " not in i]
 
-        return " ".join(img_to_show), {'width': '100%', 'height': '25pc'}, hide_progress
+        return " ".join(img_to_show), {"width": "100%", "height": "25pc"}, hide_progress
     else:
-        return "", {'display': 'none'}, hide_progress
+        return "", {"display": "none"}, hide_progress
+
 
 def display_skymap_gw():
-    """ Display the sky map in the explorer tab results (Aladin lite)
+    """Display the sky map in the explorer tab results (Aladin lite)
 
     It uses `visdcc` to execute javascript directly.
 
     Returns
-    ---------
+    -------
     out: list of objects
     """
     return dbc.Container(
         html.Div(
             [
-                visdcc.Run_js(id='aladin-lite-div-skymap-gw'),
+                visdcc.Run_js(id="aladin-lite-div-skymap-gw"),
             ],
-            id='container_skymap',
-            style={'display': 'none'}
-        )
+            id="container_skymap",
+            style={"display": "none"},
+        ),
     )
+
 
 @app.callback(
     output=Output("gw-trigger", "children"),
     inputs=[
         Input("gw-loading-button", "n_clicks"),
-        Input('url', 'search'),
+        Input("url", "search"),
     ],
     running=[
         (
             Output("progress_bar", "style"),
-            {"visibility": "visible", 'width': '100%', 'height': '5pc'},
-            {'display': 'none', 'width': '100%', 'height': '5pc'},
+            {"visibility": "visible", "width": "100%", "height": "5pc"},
+            {"display": "none", "width": "100%", "height": "5pc"},
         ),
     ],
     progress=[
         Output("progress_bar", "value"),
-        Output("progress_bar", "max")
+        Output("progress_bar", "max"),
     ],
     state=[
-        State("superevent_name", 'value'),
-        State('credible_level', 'value')
+        State("superevent_name", "value"),
+        State("credible_level", "value"),
     ],
     background=True,
 )
-def callback_progress_bar(set_progress, n_clicks, searchurl, superevent_name, credible_level):
-    if searchurl == '':
+def callback_progress_bar(
+    set_progress, n_clicks, searchurl, superevent_name, credible_level
+):
+    if searchurl == "":
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if button_id != "gw-loading-button":
             raise PreventUpdate
     else:
         credible_level, superevent_name = extract_bayestar_query_url(searchurl)
 
-    fn = 'https://gracedb.ligo.org/api/superevents/{}/files/bayestar.fits.gz'.format(superevent_name)
+    fn = f"https://gracedb.ligo.org/api/superevents/{superevent_name}/files/bayestar.fits.gz"
     try:
         total = extract_skyfrac_degree(fn, credible_level)
     except URLError:
         return "Error"
 
-    rate = 0.15 # second/deg2
+    rate = 0.15  # second/deg2
     for i in range(int(total)):
         time.sleep(rate)
         set_progress((str(i + 1), str(int(total))))
     return "Loaded!"
 
+
 def layout():
-    """ Layout for the GW counterpart search
-    """
+    """Layout for the GW counterpart search"""
     description = [
         "Enter an event name from the ",
-        dmc.Anchor("O3", href="https://gracedb.ligo.org/superevents/public/O3/", size="xs", target="_blank"),
+        dmc.Anchor(
+            "O3",
+            href="https://gracedb.ligo.org/superevents/public/O3/",
+            size="xs",
+            target="_blank",
+        ),
         " or ",
-        dmc.Anchor("O4", href="https://gracedb.ligo.org/superevents/public/O4/", size="xs", target="_blank"),
-        " runs (e.g. S230709bi)."
+        dmc.Anchor(
+            "O4",
+            href="https://gracedb.ligo.org/superevents/public/O4/",
+            size="xs",
+            target="_blank",
+        ),
+        " runs (e.g. S230709bi).",
     ]
     supervent_name = html.Div(
         [
             dmc.Space(h=10),
-            dmc.Divider(variant="solid", label='Superevent'),
+            dmc.Divider(variant="solid", label="Superevent"),
             dmc.Space(h=10),
             dmc.TextInput(
                 id="superevent_name",
@@ -474,14 +511,15 @@ def layout():
                 description=description,
                 placeholder="e.g. S230709bi",
             ),
-        ], id='superevent_name_selector',
-        className='mb-2'
+        ],
+        id="superevent_name_selector",
+        className="mb-2",
     )
 
     credible_level = html.Div(
         [
             dmc.Space(h=10),
-            dmc.Divider(variant="solid", label='Credible level'),
+            dmc.Divider(variant="solid", label="Credible level"),
             dmc.Space(h=10),
             dmc.NumberInput(
                 label=None,
@@ -491,10 +529,11 @@ def layout():
                 min=0.0,
                 max=1.0,
                 step=0.05,
-                id='credible_level'
+                id="credible_level",
             ),
-        ], id='credible_level_selector',
-        className='mb-4'
+        ],
+        id="credible_level_selector",
+        className="mb-4",
     )
 
     submit_gw = dmc.Center(
@@ -503,12 +542,12 @@ def layout():
                 "Search for alerts matching",
                 id="gw-loading-button",
                 leftIcon=DashIconify(icon="fluent:database-plug-connected-20-filled"),
-                loaderProps={'variant': 'dots', 'color': 'orange'},
+                loaderProps={"variant": "dots", "color": "orange"},
                 variant="outline",
-                color='indigo'
+                color="indigo",
             ),
         ],
-        className='mb-4'
+        className="mb-4",
     )
 
     title_div = dbc.Row(
@@ -517,22 +556,25 @@ def layout():
             dmc.Stack(
                 children=[
                     dmc.Title(
-                        children='Gravitational Waves',
-                        style={'color': '#15284F'},
-                            order=2
+                        children="Gravitational Waves",
+                        style={"color": "#15284F"},
+                        order=2,
                     ),
                 ],
                 align="center",
                 justify="center",
             ),
             dbc.Alert(
-                dcc.Markdown("This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.", link_target="_blank"),
+                dcc.Markdown(
+                    "This service is still experimental. Open an issue on [GH](https://github.com/astrolabsoftware/fink-science-portal/issues) if you experience problems or if you have suggestions.",
+                    link_target="_blank",
+                ),
                 dismissable=True,
                 is_open=True,
                 color="light",
-                className="d-none d-md-block"
-            )
-        ]
+                className="d-none d-md-block",
+            ),
+        ],
     )
 
     layout_ = dbc.Container(
@@ -545,36 +587,47 @@ def layout():
                             supervent_name,
                             credible_level,
                             submit_gw,
-                            html.Div(id="gw-trigger", style={'display': 'none'}),
-                            dcc.Store(data='', id='gw-data'),
-                        ], md=3,
+                            html.Div(id="gw-trigger", style={"display": "none"}),
+                            dcc.Store(data="", id="gw-data"),
+                        ],
+                        md=3,
                         # className="d-none d-md-block"
                     ),
                     dbc.Col(
                         [
                             dmc.Space(h=10),
-                            html.Progress(id="progress_bar", style={'display': 'none', 'width': '100%', 'height': '5pc'}),
+                            html.Progress(
+                                id="progress_bar",
+                                style={
+                                    "display": "none",
+                                    "width": "100%",
+                                    "height": "5pc",
+                                },
+                            ),
                             display_skymap_gw(),
                             dmc.Space(h=10),
                             dmc.Paper(
                                 [
-                                    html.Div(id='gw-table'),
-                                    card_explanation()
-                                ]
+                                    html.Div(id="gw-table"),
+                                    card_explanation(),
+                                ],
                             ),
-                        ], md=9
+                        ],
+                        md=9,
                     ),
                 ],
-                justify="around", className="g-2"
+                justify="around",
+                className="g-2",
             ),
-            html.Br()
-        ], fluid='lg'
+            html.Br(),
+        ],
+        fluid="lg",
     )
 
     # Wrap it to re-define the background
     layout_ = html.Div(
         layout_,
-        className="bg-opaque-90"
+        className="bg-opaque-90",
     )
 
     return layout_

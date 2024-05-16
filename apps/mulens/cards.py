@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,30 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dash import html, dcc, dash_table, Input, Output, State
-import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
+import pandas as pd
+from dash import Input, Output, dcc
 from dash_iconify import DashIconify
 
 from app import app
 from apps.cards import card_neighbourhood
 
-import pandas as pd
 
 @app.callback(
     Output("card_mulens", "children"),
     [
-        Input('object-data', 'data'),
+        Input("object-data", "data"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def card_mulens(object_data):
-    """ Add a card containing button to fit for microlensing events
-    """
+    """Add a card containing button to fit for microlensing events"""
     pdf = pd.read_json(object_data)
-
-    ra0 = pdf['i:ra'].values[0]
-    dec0 = pdf['i:dec'].values[0]
 
     card1 = dmc.AccordionMultiple(
         disableChevronRotation=True,
@@ -49,7 +44,7 @@ def card_mulens(object_data):
                                 icon="tabler:atom-2",
                                 color=dmc.theme.DEFAULT_COLORS["green"][6],
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(
@@ -58,19 +53,19 @@ def card_mulens(object_data):
                         ],
                     ),
                 ],
-                value='neighbourhood',
+                value="neighbourhood",
             ),
         ],
         # Show it open by default
-        value='neighbourhood',
-        styles={'content':{'padding':'5px'}}
+        value="neighbourhood",
+        styles={"content": {"padding": "5px"}},
     )
 
     return card1
 
+
 def card_explanation_mulens():
-    """ Explain what is used to fit for microlensing events
-    """
+    """Explain what is used to fit for microlensing events"""
     msg = """
     Press `Fit data` to perform a time series analysis of the data. Fitted parameters will be displayed alongside with the plot.
 
@@ -89,15 +84,15 @@ def card_explanation_mulens():
                                 icon="tabler:help-hexagon",
                                 color="#3C8DFF",
                                 width=20,
-                            )
+                            ),
                         ],
                     ),
                     dmc.AccordionPanel(dcc.Markdown(msg)),
                 ],
-                value='info'
+                value="info",
             ),
         ],
-        value='info',
-        id='card_explanation_mulens'
+        value="info",
+        id="card_explanation_mulens",
     )
     return card
