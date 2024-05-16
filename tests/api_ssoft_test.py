@@ -129,9 +129,29 @@ def test_schema() -> None:
     ---------
     >>> test_schema()
     """
-    pdf = ssoftsearch(schema=True, output_format='json')
+    pdf = ssoftsearch()
 
-    assert len(pdf) == 55, 'Found {} entries'.format(len(pdf))
+    schema = ssoftsearch(schema=True, output_format='json')
+
+    # check columns
+    msg = 'Found {} entries in the DataFrame and {} entries in the schema'.format(len(pdf), len(schema))
+    assert set(schema['args'].keys()) == set(pdf.columns), msg
+
+def compare_schema() -> None:
+    """
+    Examples
+    --------
+    >>> compare_schema()
+    """
+    schema1 = ssoftsearch(schema=True, output_format='json')
+
+    # get the schema
+    r = requests.get('https://fink-portal.org/api/v1/ssoft?schema')
+    schema2 = r.json()
+
+    keys1 = set(schema1['args'].keys())
+    keys2 = set(schema2['args'].keys())
+    assert keys1 == keys2, [keys1, keys2]
 
 
 if __name__ == "__main__":
