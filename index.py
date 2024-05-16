@@ -610,8 +610,7 @@ clientside_callback(
 
 
 def display_table_results(table):
-    """Display explorer results in the form of a table with a dropdown
-    menu on top to insert more data columns.
+    """Display explorer results in the form of a table with a dropdown menu on top to insert more data columns.
 
     The dropdown menu options are taken from the client schema (ZTF & Fink). It also
     contains other derived fields from the portal (fink_additional_fields).
@@ -776,9 +775,6 @@ def display_skymap(data, columns, is_open):
     Input: takes the validation flag (0: no results, 1: results) and table data
     Output: Display a sky image around the alert position from aladin.
     """
-    ctx = dash.callback_context
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-
     if not is_open:
         return no_update
 

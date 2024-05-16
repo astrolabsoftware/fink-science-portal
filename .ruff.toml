@@ -38,7 +38,7 @@ target-version = "py38"
 [lint]
 # Rules can be found at https://docs.astral.sh/ruff/rules
 select = ["E4", "E7", "E9", "F", "E1", "E2", "C901", "W", "N", "D", "B", "C4", "PD", "PERF"]
-ignore = ["C408", "D400", "D401", "D100", "D102", "D103", "D415", "N812", "PLR0913"]
+ignore = ["C408", "D400", "D401", "D100", "D102", "D103", "D104", "D415", "D419", "N812", "N803", "PLR0913", "C901"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

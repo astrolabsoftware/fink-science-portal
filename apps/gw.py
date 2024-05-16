@@ -48,7 +48,6 @@ def extract_moc(fn, credible_level):
     payload = urlopen(fn).read()
     with fits.open(io.BytesIO(payload)) as hdul:
         data = hdul[1].data
-        header = hdul[1].header
         max_order = hdul[1].header["MOCORDER"]
 
     uniq = data["UNIQ"]
@@ -59,8 +58,6 @@ def extract_moc(fn, credible_level):
 
     prob = probdensity * area
 
-    cumul_to = np.linspace(0.5, 0.9, 5)[::-1]
-    colors = ["blue", "green", "yellow", "orange", "red"]
     moc = MOC.from_valued_healpix_cells(uniq, prob, max_order, cumul_to=credible_level)
 
     return moc
@@ -303,7 +300,7 @@ def card_explanation():
         Input("url", "search"),
     ],
 )
-def display_skymap_gw(nclick, gw_data, credible_level, superevent_name, searchurl):
+def display_skymap_gw_callback(nclick, gw_data, credible_level, superevent_name, searchurl):
     """Display explorer result on a sky map (Aladin lite).
 
     TODO: image is not displayed correctly the first time
