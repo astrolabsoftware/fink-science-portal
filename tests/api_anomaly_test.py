@@ -25,7 +25,7 @@ import json
 APIURL = sys.argv[1]
 
 def anomalysearch(n=10, start_date=None, stop_date=None, output_format='json', cols=None):
-    """ Perform a search for anomaly
+    """Perform a search for anomaly
     """
     payload = {
         'n': n,
@@ -66,7 +66,7 @@ def anomalysearch(n=10, start_date=None, stop_date=None, output_format='json', c
 def test_simple_anomaly() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_simple_anomaly()
     """
     pdf = anomalysearch()
@@ -75,12 +75,12 @@ def test_simple_anomaly() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.all(pdf['d:anomaly_score'].values < 0)
+    assert np.all(pdf['d:anomaly_score'].to_numpy() < 0)
 
 def test_anomaly_and_date() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_anomaly_and_date()
     """
     pdf = anomalysearch(start_date='2023-01-25', stop_date='2023-01-25')
@@ -89,12 +89,12 @@ def test_anomaly_and_date() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert 'ZTF23aaaatwl' in pdf['i:objectId'].values
+    assert 'ZTF23aaaatwl' in pdf['i:objectId'].to_numpy()
 
 def test_anomaly_and_cols_with_sort() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_anomaly_and_cols_with_sort()
     """
     pdf = anomalysearch(cols='i:jd,i:objectId')
@@ -110,7 +110,7 @@ def test_anomaly_and_cols_with_sort() -> None:
 def test_query_url() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_query_url()
     """
     pdf1 = anomalysearch()
@@ -128,7 +128,7 @@ def test_query_url() -> None:
 def test_various_outputs() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_various_outputs()
     """
     pdf1 = anomalysearch(output_format='json')
@@ -148,18 +148,18 @@ def test_various_outputs() -> None:
 def test_feature_array() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_feature_array()
     """
     pdf = anomalysearch()
 
-    a_feature = pdf['d:lc_features_g'].values[0]
+    a_feature = pdf['d:lc_features_g'].to_numpy()[0]
     assert isinstance(a_feature, str), a_feature
 
     for col in ['d:lc_features_g', 'd:lc_features_r']:
         pdf[col] =  pdf[col].apply(lambda x: json.loads(x))
 
-    a_feature = pdf['d:lc_features_g'].values[0]
+    a_feature = pdf['d:lc_features_g'].to_numpy()[0]
     assert isinstance(a_feature, list), a_feature
 
 

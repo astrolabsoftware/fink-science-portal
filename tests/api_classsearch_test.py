@@ -24,7 +24,7 @@ import sys
 APIURL = sys.argv[1]
 
 def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=None, output_format='json', cols=None):
-    """ Perform a class search in the Science Portal using the Fink REST API
+    """Perform a class search in the Science Portal using the Fink REST API
     """
     payload = {
         'class': myclass,
@@ -66,7 +66,7 @@ def classsearch(myclass='Early SN Ia candidate', n=10, startdate=None, stopdate=
 def test_simple_classsearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_simple_classsearch()
     """
     pdf = classsearch()
@@ -75,12 +75,12 @@ def test_simple_classsearch() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.all(pdf['v:classification'].values == 'Early SN Ia candidate')
+    assert np.all(pdf['v:classification'].to_numpy() == 'Early SN Ia candidate')
 
 def test_simbad_classsearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_simbad_classsearch()
     """
     pdf = classsearch(myclass='(SIMBAD) QSO')
@@ -89,7 +89,7 @@ def test_simbad_classsearch() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.all(pdf['v:classification'].values == 'QSO')
+    assert np.all(pdf['v:classification'].to_numpy() == 'QSO')
 
 # def test_tns_classsearch() -> None:
 #     """
@@ -105,13 +105,13 @@ def test_simbad_classsearch() -> None:
 #     # and among the 10 first alerts, there are 2 with the same objectId
 #     assert len(pdf) == 9, len(pdf)
 #
-#     # print(pdf['i:fid'].values)
-#     assert np.all(pdf['i:fid'].values > 0)
+#     # print(pdf['i:fid'].to_numpy())
+#     assert np.all(pdf['i:fid'].to_numpy() > 0)
 
 def test_classsearch_and_date() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_classsearch_and_date()
     """
     pdf = classsearch(startdate='2021-11-01', stopdate='2021-12-01')
@@ -120,16 +120,16 @@ def test_classsearch_and_date() -> None:
 
     assert len(pdf) == 10, len(pdf)
 
-    assert np.all(pdf['v:classification'].values == 'Early SN Ia candidate')
+    assert np.all(pdf['v:classification'].to_numpy() == 'Early SN Ia candidate')
 
-    assert np.all(pdf['v:lastdate'].values < '2021-12-01')
+    assert np.all(pdf['v:lastdate'].to_numpy() < '2021-12-01')
 
-    assert np.all(pdf['v:lastdate'].values >= '2021-11-01')
+    assert np.all(pdf['v:lastdate'].to_numpy() >= '2021-11-01')
 
 def test_classsearch_and_cols_with_sort() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_classsearch_and_cols_with_sort()
     """
     pdf = classsearch(cols='i:jd,i:objectId')
@@ -145,7 +145,7 @@ def test_classsearch_and_cols_with_sort() -> None:
 def test_classsearch_and_cols_without_sort() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_classsearch_and_cols_without_sort()
     """
     pdf = classsearch(cols='i:objectId')
@@ -159,7 +159,7 @@ def test_classsearch_and_cols_without_sort() -> None:
 def test_query_url() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_query_url()
     """
     pdf1 = classsearch()
@@ -177,7 +177,7 @@ def test_query_url() -> None:
 def test_various_outputs() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_various_outputs()
     """
     pdf1 = classsearch(output_format='json')

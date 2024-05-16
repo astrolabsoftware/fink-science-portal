@@ -22,7 +22,7 @@ import sys
 APIURL = sys.argv[1]
 
 def get_an_object(number=1, output_format='json', columns='*', object_class="", seed=None):
-    """ Query an object from the Science Portal using the Fink REST API
+    """Query an object from the Science Portal using the Fink REST API
     """
     payload = {
         'n': number,
@@ -56,7 +56,7 @@ def get_an_object(number=1, output_format='json', columns='*', object_class="", 
 def test_single_object() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_single_object()
     """
     pdf = get_an_object(number=1)
@@ -66,7 +66,7 @@ def test_single_object() -> None:
 def test_multiple_objects() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_multiple_objects()
     """
     pdf = get_an_object(number=3)
@@ -77,29 +77,29 @@ def test_multiple_objects() -> None:
 def test_seed() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_seed()
     """
     pdf1 = get_an_object(number=1, seed=54859)
     pdf2 = get_an_object(number=1, seed=54859)
 
-    oid1 = np.unique(pdf1['i:objectId'].values)
-    oid2 = np.unique(pdf2['i:objectId'].values)
+    oid1 = np.unique(pdf1['i:objectId'].to_numpy())
+    oid2 = np.unique(pdf2['i:objectId'].to_numpy())
 
     assert oid1 == oid2
 
     pdf1 = get_an_object(number=1)
     pdf2 = get_an_object(number=1)
 
-    oid1 = np.unique(pdf1['i:objectId'].values)
-    oid2 = np.unique(pdf2['i:objectId'].values)
+    oid1 = np.unique(pdf1['i:objectId'].to_numpy())
+    oid2 = np.unique(pdf2['i:objectId'].to_numpy())
 
     assert oid1 != oid2
 
 def test_column_selection() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_column_selection()
     """
     pdf = get_an_object(number=1, columns='i:jd,i:magpsf')
@@ -109,12 +109,12 @@ def test_column_selection() -> None:
 def test_class() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_class()
     """
     pdf = get_an_object(number=3, object_class="Solar System MPC")
 
-    assert np.all([i == 'Solar System MPC' for i in pdf['v:classification'].values])
+    assert np.all([i == 'Solar System MPC' for i in pdf['v:classification'].to_numpy()])
 
 
 if __name__ == "__main__":

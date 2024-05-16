@@ -14,7 +14,6 @@
 # limitations under the License.
 import requests
 import pandas as pd
-import numpy as np
 
 import io
 import sys
@@ -22,7 +21,7 @@ import sys
 APIURL = sys.argv[1]
 
 def get_fields_per_family():
-    """ Get fields exposed in /api/v1/columns
+    """Get fields exposed in /api/v1/columns
     """
     r = requests.get('{}/api/v1/columns'.format(APIURL))
 
@@ -42,7 +41,7 @@ def get_fields_per_family():
 
 
 def check_recent_columns(columns, objectId):
-    """ Check the alert columns correspond to what is defined in /api/v1/columns
+    """Check the alert columns correspond to what is defined in /api/v1/columns
     """
     fields_per_family = get_fields_per_family()
 
@@ -58,7 +57,7 @@ def check_recent_columns(columns, objectId):
         assert len(outside_definition) == 0, ('Not in defined fields', family, outside_definition, objectId)
 
 def check_old_columns(columns, objectId):
-    """ Check the alert columns correspond to what is defined in /api/v1/columns
+    """Check the alert columns correspond to what is defined in /api/v1/columns
     """
     fields_per_family = get_fields_per_family()
 
@@ -94,10 +93,10 @@ def check_old_columns(columns, objectId):
             assert len(outside_definition) == 0, ('Not in defined fields', family, outside_definition, objectId)
 
 def test_recent_object() -> None:
-    """ This is supposed to fail if apps/api/api.py@columns_arguments is not updated correctly
+    """This is supposed to fail if apps/api/api.py@columns_arguments is not updated correctly
 
     Examples
-    ---------
+    --------
     >>> test_recent_object()
     """
     r = requests.post(
@@ -132,7 +131,7 @@ def test_recent_object() -> None:
 def test_old_object() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_old_object()
     """
     objectId = 'ZTF21abfmbix'

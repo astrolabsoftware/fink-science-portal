@@ -24,7 +24,7 @@ import sys
 APIURL = sys.argv[1]
 
 def ssocandsearch(kind='orbParams', trajectory_id=None, start_date=None, stop_date=None, maxnumber=None, output_format='json'):
-    """ Perform a sso candidate search in the Science Portal using the Fink REST API
+    """Perform a sso candidate search in the Science Portal using the Fink REST API
     """
     payload = {
         'kind': kind,
@@ -44,7 +44,7 @@ def ssocandsearch(kind='orbParams', trajectory_id=None, start_date=None, stop_da
         '{}/api/v1/ssocand'.format(APIURL),
         json=payload
     )
-    
+
     assert r.status_code == 200, r.content
 
     if output_format == 'json':
@@ -60,7 +60,7 @@ def ssocandsearch(kind='orbParams', trajectory_id=None, start_date=None, stop_da
 def test_orbparam() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_orbparam()
     """
     pdf = ssocandsearch()
@@ -74,7 +74,7 @@ def test_orbparam() -> None:
 def test_lightcurves() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_lightcurves()
     """
     pdf = ssocandsearch(kind='lightcurves')
@@ -87,7 +87,7 @@ def test_lightcurves() -> None:
 def test_lightcurves_max() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_lightcurves_max()
     """
     pdf = ssocandsearch(kind='lightcurves')
@@ -102,7 +102,7 @@ def test_lightcurves_max() -> None:
 def test_lightcurves_traj() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_lightcurves_traj()
     """
     pdf = ssocandsearch(kind='lightcurves', trajectory_id='FF20230725aaaacgw')
@@ -115,7 +115,7 @@ def test_lightcurves_traj() -> None:
 def test_time_boundaries() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_time_boundaries()
     """
     pdf = ssocandsearch(
@@ -124,8 +124,8 @@ def test_time_boundaries() -> None:
 
     assert not pdf.empty
 
-    assert np.all(pdf['d:jd'].values >= Time('2023-01-01', format='iso').jd)
-    assert np.all(pdf['d:jd'].values <= Time('2023-12-31', format='iso').jd)
+    assert np.all(pdf['d:jd'].to_numpy() >= Time('2023-01-01', format='iso').jd)
+    assert np.all(pdf['d:jd'].to_numpy() <= Time('2023-12-31', format='iso').jd)
 
 
 if __name__ == "__main__":

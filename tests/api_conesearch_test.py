@@ -25,7 +25,7 @@ import sys
 APIURL = sys.argv[1]
 
 def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate=None, window=None, output_format='json'):
-    """ Perform a conesearch in the Science Portal using the Fink REST API
+    """Perform a conesearch in the Science Portal using the Fink REST API
     """
     payload = {
         'ra': ra,
@@ -65,7 +65,7 @@ def conesearch(ra='193.8217409', dec='2.8973184', radius='5', startdate=None, wi
 def test_simple_conesearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_simple_conesearch()
     """
     ra0 = 193.8217
@@ -82,7 +82,7 @@ def test_simple_conesearch() -> None:
 
     # Check the candidate is found no further away than the radius
     coord0 = SkyCoord(ra0, dec0, unit='deg')
-    coord1 = SkyCoord(pdf['i:ra'].values[0], pdf['i:dec'].values[0], unit='deg')
+    coord1 = SkyCoord(pdf['i:ra'].to_numpy()[0], pdf['i:dec'].to_numpy()[0], unit='deg')
 
     sep = coord0.separation(coord1).degree * 3600
 
@@ -91,7 +91,7 @@ def test_simple_conesearch() -> None:
 def test_conesearch_with_dates() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_conesearch_with_dates()
     """
     # at this date, one object
@@ -121,7 +121,7 @@ def test_conesearch_with_dates() -> None:
 def test_bad_radius_conesearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_bad_radius_conesearch()
     """
     payload = {
@@ -145,7 +145,7 @@ def test_bad_radius_conesearch() -> None:
 def test_empty_conesearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_empty_conesearch()
     """
     pdf = conesearch(ra=0, dec=0, radius=1)
@@ -155,7 +155,7 @@ def test_empty_conesearch() -> None:
 def test_coordinates() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_coordinates()
     """
     pdf1 = conesearch(ra=193.822, dec=2.89732)
@@ -164,14 +164,14 @@ def test_coordinates() -> None:
     pdf4 = conesearch(ra='12 55 17.218', dec='+02 53 50.35')
     pdf5 = conesearch(ra='12:55:17.218', dec='02:53:50.35')
 
-    magpsf = pdf1['i:magpsf'].values
+    magpsf = pdf1['i:magpsf'].to_numpy()
     for pdf in [pdf2, pdf3, pdf4, pdf5]:
-        assert np.all(pdf['i:magpsf'].values == magpsf)
+        assert np.all(pdf['i:magpsf'].to_numpy() == magpsf)
 
 def test_bad_request() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_bad_request()
     """
     payload = {
@@ -195,7 +195,7 @@ def test_bad_request() -> None:
 def test_various_outputs() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_various_outputs()
     """
     pdf1 = conesearch(output_format='json')

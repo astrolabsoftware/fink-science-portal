@@ -26,7 +26,7 @@ import sys
 APIURL = sys.argv[1]
 
 def cutouttest(objectId='ZTF21aaxtctv', kind='Science', stretch='sigmoid', colormap='viridis', pmin=0.5, pmax=99.5, convolution_kernel=None, output_format='PNG', candid=None):
-    """ Perform a cutout search in the Science Portal using the Fink REST API
+    """Perform a cutout search in the Science Portal using the Fink REST API
     """
     payload = {
         'objectId': objectId,
@@ -59,14 +59,14 @@ def cutouttest(objectId='ZTF21aaxtctv', kind='Science', stretch='sigmoid', color
         data = fits.open(io.BytesIO(r.content), ignore_missing_simple=True)
     elif output_format == 'array':
         pdf = pd.read_json(io.BytesIO(r.content))
-        data = pdf['b:cutout{}_stampData'.format(kind)].values[0]
+        data = pdf['b:cutout{}_stampData'.format(kind)].to_numpy()[0]
 
     return data
 
 def test_png_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_png_cutout()
     """
     data = cutouttest()
@@ -77,7 +77,7 @@ def test_png_cutout() -> None:
 def test_fits_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_fits_cutout()
     """
     data = cutouttest(output_format='FITS')
@@ -88,7 +88,7 @@ def test_fits_cutout() -> None:
 def test_array_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_array_cutout()
     """
     data = cutouttest(output_format='array')
@@ -99,7 +99,7 @@ def test_array_cutout() -> None:
 def test_kind_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_kind_cutout()
     """
     data1 = cutouttest(kind='Science', output_format='array')
@@ -112,7 +112,7 @@ def test_kind_cutout() -> None:
 def test_pvalues_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_pvalues_cutout()
     """
     # pmin and pmax have no effect if stretch = sigmoid
@@ -130,7 +130,7 @@ def test_pvalues_cutout() -> None:
 def test_stretch_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_stretch_cutout()
     """
     # pmin and pmax have no effect if stretch = sigmoid
@@ -143,7 +143,7 @@ def test_stretch_cutout() -> None:
 def test_colormap_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_colormap_cutout()
     """
     data1 = cutouttest()
@@ -154,7 +154,7 @@ def test_colormap_cutout() -> None:
 def test_convolution_kernel_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_convolution_kernel_cutout()
     """
     data1 = cutouttest()
@@ -165,7 +165,7 @@ def test_convolution_kernel_cutout() -> None:
 def test_candid_cutout() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_candid_cutout()
     """
     data1 = cutouttest()

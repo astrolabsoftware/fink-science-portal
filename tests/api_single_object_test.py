@@ -25,7 +25,7 @@ APIURL = sys.argv[1]
 OID = 'ZTF21abfmbix'
 
 def get_an_object(oid='ZTF21abfmbix', output_format='json', columns='*', withupperlim=False, withcutouts=False):
-    """ Query an object from the Science Portal using the Fink REST API
+    """Query an object from the Science Portal using the Fink REST API
     """
     r = requests.post(
         '{}/api/v1/objects'.format(APIURL),
@@ -53,7 +53,7 @@ def get_an_object(oid='ZTF21abfmbix', output_format='json', columns='*', withupp
 def test_single_object() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_single_object()
     """
     pdf = get_an_object(oid=OID)
@@ -63,7 +63,7 @@ def test_single_object() -> None:
 def test_single_object_csv() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_single_object_csv()
     """
     pdf = get_an_object(oid=OID, output_format='csv')
@@ -73,7 +73,7 @@ def test_single_object_csv() -> None:
 def test_single_object_parquet() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_single_object_parquet()
     """
     pdf = get_an_object(oid=OID, output_format='parquet')
@@ -83,7 +83,7 @@ def test_single_object_parquet() -> None:
 def test_column_selection() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_column_selection()
     """
     pdf = get_an_object(oid=OID, columns='i:jd,i:magpsf')
@@ -93,7 +93,7 @@ def test_column_selection() -> None:
 def test_column_length() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_column_length()
     """
     pdf = get_an_object(oid=OID)
@@ -103,7 +103,7 @@ def test_column_length() -> None:
 def test_withupperlim() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_withupperlim()
     """
     pdf = get_an_object(oid=OID, withupperlim=True)
@@ -112,41 +112,41 @@ def test_withupperlim() -> None:
 def test_withcutouts() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_withcutouts()
     """
     pdf = get_an_object(oid=OID, withcutouts=True)
 
-    assert type(pdf['b:cutoutScience_stampData'].values[0]) == list
-    assert type(pdf['b:cutoutTemplate_stampData'].values[0]) == list
-    assert type(pdf['b:cutoutDifference_stampData'].values[0]) == list
+    assert type(pdf['b:cutoutScience_stampData'].to_numpy()[0]) == list
+    assert type(pdf['b:cutoutTemplate_stampData'].to_numpy()[0]) == list
+    assert type(pdf['b:cutoutDifference_stampData'].to_numpy()[0]) == list
 
 def test_formatting() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_formatting()
     """
     pdf = get_an_object(oid=OID)
 
     # stupid python cast...
-    assert type(pdf['i:fid'].values[0]) == np.int64, type(pdf['i:fid'].values[0])
-    assert type(pdf['i:magpsf'].values[0]) == np.double, type(pdf['i:magpsf'].values[0])
+    assert type(pdf['i:fid'].to_numpy()[0]) == np.int64, type(pdf['i:fid'].to_numpy()[0])
+    assert type(pdf['i:magpsf'].to_numpy()[0]) == np.double, type(pdf['i:magpsf'].to_numpy()[0])
 
 def test_misc() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_misc()
     """
     pdf = get_an_object(oid=OID)
-    assert np.all(pdf['i:fid'].values > 0)
-    assert np.all(pdf['i:magpsf'].values > 6)
+    assert np.all(pdf['i:fid'].to_numpy() > 0)
+    assert np.all(pdf['i:magpsf'].to_numpy() > 6)
 
 def test_bad_request() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_bad_request()
     """
     pdf = get_an_object(oid='ldfksjflkdsjf')
@@ -156,7 +156,7 @@ def test_bad_request() -> None:
 def test_multiple_objects() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_multiple_objects()
     """
     OIDS_ = ['ZTF21abfmbix', 'ZTF21aaxtctv', 'ZTF21abfaohe']

@@ -14,7 +14,6 @@
 # limitations under the License.
 import requests
 import pandas as pd
-import numpy as np
 
 import io
 import sys
@@ -22,7 +21,7 @@ import sys
 APIURL = sys.argv[1]
 
 def bayestartest(bayestar='bayestar.fits.gz', event_name='', credible_level=0.1, output_format='json'):
-    """ Perform a GW search in the Science Portal using the Fink REST API
+    """Perform a GW search in the Science Portal using the Fink REST API
     """
     if event_name != '':
         payload = {
@@ -52,7 +51,7 @@ def bayestartest(bayestar='bayestar.fits.gz', event_name='', credible_level=0.1,
 def test_bayestar() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_bayestar()
     """
     pdf = bayestartest()
@@ -68,7 +67,7 @@ def test_bayestar() -> None:
 def test_name_bayestar() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_name_bayestar()
     """
     pdf1 = bayestartest(event_name='S200219ac')

@@ -14,7 +14,6 @@
 # limitations under the License.
 import requests
 import pandas as pd
-import numpy as np
 
 import io
 import sys
@@ -22,7 +21,7 @@ import sys
 APIURL = sys.argv[1]
 
 def xmatchtest(catalog='mycatalog.csv', header='RA,Dec,ID,Time', radius=1.5, window=7):
-    """ Perform a xmatch search in the Science Portal using the Fink REST API
+    """Perform a xmatch search in the Science Portal using the Fink REST API
     """
     payload = {
         'catalog': open(catalog).read(),
@@ -45,14 +44,14 @@ def xmatchtest(catalog='mycatalog.csv', header='RA,Dec,ID,Time', radius=1.5, win
 def test_xmatch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_xmatch()
     """
     pdf = xmatchtest()
 
     assert len(pdf) == 1, len(pdf)
 
-    assert pdf['ID'].values[0] == 'AnObjectMatching'
+    assert pdf['ID'].to_numpy()[0] == 'AnObjectMatching'
 
 
 if __name__ == "__main__":

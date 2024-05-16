@@ -22,7 +22,7 @@ import sys
 APIURL = sys.argv[1]
 
 def datesearch(startdate='2021-07-01 05:59:37.000', window=1/24/60, output_format='json'):
-    """ Perform a date search in the Science Portal using the Fink REST API
+    """Perform a date search in the Science Portal using the Fink REST API
     """
     payload = {
         'startdate': startdate,
@@ -50,7 +50,7 @@ def datesearch(startdate='2021-07-01 05:59:37.000', window=1/24/60, output_forma
 def test_simple_datesearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_simple_datesearch()
     """
     pdf = datesearch()
@@ -64,10 +64,9 @@ def test_simple_datesearch() -> None:
 def test_bad_datesearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_bad_datesearch()
     """
-
     pdf1 = datesearch('2021-07-01 05:59:37.000', window=3/24)
 
     # The window is rounded to 3 hours so results should be equal

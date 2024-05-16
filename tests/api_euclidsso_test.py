@@ -15,7 +15,6 @@
 import requests
 import pandas as pd
 
-from astropy.io import votable
 
 import io
 import sys
@@ -23,7 +22,7 @@ import sys
 APIURL = sys.argv[1]
 
 def push_euclid(fn='old_ssopipe.txt'):
-    """ Push Euclid SSO data
+    """Push Euclid SSO data
     """
     data = open(fn, 'rb').read()
 
@@ -44,7 +43,7 @@ def push_euclid(fn='old_ssopipe.txt'):
     return r.content
 
 def pull_euclid(pipeline='ssopipe', dates='20210101', columns='*', output_format='json'):
-    """ Pull Euclid data
+    """Pull Euclid data
     """
     payload = {
         'pipeline': pipeline,
@@ -74,7 +73,7 @@ def pull_euclid(pipeline='ssopipe', dates='20210101', columns='*', output_format
 def test_euclid_push() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_euclid_push()
     """
     msg = push_euclid()
@@ -86,7 +85,7 @@ def test_euclid_push() -> None:
 def test_euclid_single_date() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_euclid_single_date()
     """
     pdf = pull_euclid(dates='20210101')
@@ -100,7 +99,7 @@ def test_euclid_single_date() -> None:
 def test_euclid_range_date() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_euclid_range_date()
     """
     pdf = pull_euclid(dates='20210101:20210102')
@@ -114,7 +113,7 @@ def test_euclid_range_date() -> None:
 def test_euclid_all_date() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_euclid_all_date()
     """
     pdf = pull_euclid(dates='*')
@@ -128,7 +127,7 @@ def test_euclid_all_date() -> None:
 def test_euclid_columns() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_euclid_columns()
     """
     pdf = pull_euclid(dates='20210101', columns='d:INDEX')

@@ -14,7 +14,6 @@
 # limitations under the License.
 import requests
 import pandas as pd
-import numpy as np
 
 from astropy.io import votable
 
@@ -24,7 +23,7 @@ import sys
 APIURL = sys.argv[1]
 
 def resolver(resolver='', name='', nmax=None, reverse=None, output_format='json'):
-    """ Perform a conesearch in the Science Portal using the Fink REST API
+    """Perform a conesearch in the Science Portal using the Fink REST API
     """
     payload = {
         'resolver': resolver,
@@ -69,7 +68,7 @@ def resolver(resolver='', name='', nmax=None, reverse=None, output_format='json'
 def test_tns_fulltable() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_tns_fulltable()
     """
     pdf = resolver(resolver='tns', name='', nmax=100000)
@@ -83,7 +82,7 @@ def test_tns_fulltable() -> None:
 def test_tns_resolver() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_tns_resolver()
     """
     pdf = resolver(resolver='tns', name='SN 2023')
@@ -101,7 +100,7 @@ def test_tns_resolver() -> None:
 def test_tns_lower_case() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_tns_lower_case()
     """
     pdf = resolver(resolver='tns', name='sn 2023')
@@ -115,7 +114,7 @@ def test_tns_lower_case() -> None:
 def test_reverse_tns_resolver() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_reverse_tns_resolver()
     """
     pdf = resolver(resolver='tns', name='ZTF23aaaahln', reverse=True)
@@ -126,12 +125,12 @@ def test_reverse_tns_resolver() -> None:
     # One object found
     assert len(pdf) == 1
 
-    assert pdf['d:fullname'].values[0] == 'SN 2023Q', pdf.columns
+    assert pdf['d:fullname'].to_numpy()[0] == 'SN 2023Q', pdf.columns
 
 def test_nmax() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_nmax()
     """
     pdf = resolver(resolver='tns', name='SN 2023', nmax=20)
@@ -145,7 +144,7 @@ def test_nmax() -> None:
 def test_simbad_resolver() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_simbad_resolver()
     """
     pdf = resolver(resolver='simbad', name='Markarian 2')
@@ -156,7 +155,7 @@ def test_simbad_resolver() -> None:
     # One object found
     assert len(pdf) == 1
 
-    assert pdf['oname'].values[0].replace(' ', '') == 'Mrk2', pdf['oname'].values[0]
+    assert pdf['oname'].to_numpy()[0].replace(' ', '') == 'Mrk2', pdf['oname'].to_numpy()[0]
 
     cols = [
         'name', 'oid', 'oname', 'otype',
@@ -169,7 +168,7 @@ def test_simbad_resolver() -> None:
 def test_reverse_simbad_resolver() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_reverse_simbad_resolver()
     """
     pdf = resolver(resolver='simbad', name='ZTF18aabfjoi', reverse=True)
@@ -180,12 +179,12 @@ def test_reverse_simbad_resolver() -> None:
     # One object found
     assert len(pdf) == 5, len(pdf)
 
-    assert pdf['d:cdsxmatch'].values[0] == 'GinGroup', pdf['d:cdsxmatch'].values
+    assert pdf['d:cdsxmatch'].to_numpy()[0] == 'GinGroup', pdf['d:cdsxmatch'].to_numpy()
 
 def test_ssodnet_resolver() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_ssodnet_resolver()
     """
     pdf = resolver(resolver='ssodnet', name='624188')
@@ -196,12 +195,12 @@ def test_ssodnet_resolver() -> None:
     # One object found
     assert len(pdf) == 4, pdf
 
-    assert '2002MA06' in pdf['i:ssnamenr'].values, pdf
+    assert '2002MA06' in pdf['i:ssnamenr'].to_numpy(), pdf
 
 def test_ssodnet_lower_case() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_ssodnet_lower_case()
     """
     pdf = resolver(resolver='ssodnet', name='julienpeloton')
@@ -212,12 +211,12 @@ def test_ssodnet_lower_case() -> None:
     # One object found
     assert len(pdf) == 1, pdf
 
-    assert 'Julienpeloton' in pdf['i:name'].values, pdf
+    assert 'Julienpeloton' in pdf['i:name'].to_numpy(), pdf
 
 def test_reverse_ssodnet_resolver() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_reverse_ssodnet_resolver()
     """
     pdf = resolver(resolver='ssodnet', name='ZTF23aabccya', reverse=True)
@@ -228,8 +227,8 @@ def test_reverse_ssodnet_resolver() -> None:
     # One object found
     assert len(pdf) == 3, len(pdf)
 
-    assert 'Julienpeloton' in pdf['i:name'].values, pdf
-    assert 33803 in pdf['i:number'].values, pdf
+    assert 'Julienpeloton' in pdf['i:name'].to_numpy(), pdf
+    assert 33803 in pdf['i:number'].to_numpy(), pdf
 
 
 if __name__ == "__main__":

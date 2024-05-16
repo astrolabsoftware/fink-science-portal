@@ -16,7 +16,6 @@ import requests
 import datetime
 
 import pandas as pd
-import numpy as np
 
 import io
 import sys
@@ -24,7 +23,7 @@ import sys
 APIURL = sys.argv[1]
 
 def ssoftsearch(version=None, flavor=None, sso_number=None, sso_name=None, schema=None, output_format='parquet'):
-    """ Perform a sso search in the Science Portal using the Fink REST API
+    """Perform a sso search in the Science Portal using the Fink REST API
     """
     payload = {
         'output-format': output_format
@@ -85,7 +84,7 @@ def ssoftsearch(version=None, flavor=None, sso_number=None, sso_name=None, schem
 def default_ssoft() -> None:
     """
     Examples
-    ---------
+    --------
     >>> default_ssoft()
     """
     pdf = ssoftsearch()
@@ -95,14 +94,14 @@ def default_ssoft() -> None:
     now = datetime.datetime.now()
     current_date = '{}.{:02d}'.format(now.year, now.month)
 
-    assert pdf['version'].values[0] == current_date
+    assert pdf['version'].to_numpy()[0] == current_date
 
     assert 'alpha0' in pdf.columns
 
 def previous_ssoft() -> None:
     """
     Examples
-    ---------
+    --------
     >>> previous_ssoft()
     """
     pdf = ssoftsearch(version='2023.07')
@@ -112,7 +111,7 @@ def previous_ssoft() -> None:
 def test_ids() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_ids()
     """
     pdf = ssoftsearch(sso_number='33803')
@@ -126,7 +125,7 @@ def test_ids() -> None:
 def test_schema() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_schema()
     """
     pdf = ssoftsearch()

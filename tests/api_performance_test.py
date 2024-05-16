@@ -14,7 +14,6 @@
 # limitations under the License.
 import requests
 import pandas as pd
-import numpy as np
 import time
 
 import io
@@ -23,7 +22,7 @@ import sys
 APIURL = sys.argv[1]
 
 def classsearch(myclass='Solar System MPC', n=100000, startdate='2022-03-03', stopdate='2022-03-04', output_format='json', columns='*'):
-    """ Perform a heavy class search in the Science Portal using the Fink REST API
+    """Perform a heavy class search in the Science Portal using the Fink REST API
     """
     payload = {
         'class': myclass,
@@ -60,7 +59,7 @@ def classsearch(myclass='Solar System MPC', n=100000, startdate='2022-03-03', st
 def test_heavy_classsearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_heavy_classsearch()
     """
     t0 = time.time()

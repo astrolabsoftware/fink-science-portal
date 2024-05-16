@@ -24,7 +24,7 @@ import sys
 APIURL = sys.argv[1]
 
 def trackletsearch(date='2021-08-10', columns='*', output_format='json'):
-    """ Perform a tracklet search in the Science Portal using the Fink REST API
+    """Perform a tracklet search in the Science Portal using the Fink REST API
     """
     payload = {
         'date': date,
@@ -52,21 +52,21 @@ def trackletsearch(date='2021-08-10', columns='*', output_format='json'):
 def test_simple_trackletsearch() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_simple_trackletsearch()
     """
     pdf = trackletsearch()
 
     assert not pdf.empty
 
-    assert np.all(pdf['d:tracklet'].values != '')
+    assert np.all(pdf['d:tracklet'].to_numpy() != '')
 
-    assert np.all([i.startswith('TRCK') for i in pdf['d:tracklet'].values])
+    assert np.all([i.startswith('TRCK') for i in pdf['d:tracklet'].to_numpy()])
 
 def test_fulldate() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_fulldate()
     """
     pdf = trackletsearch(date='2021-10-22 09:19:49')
@@ -74,19 +74,19 @@ def test_fulldate() -> None:
 
     assert np.all(
         [
-            np.round(i, 3) == np.round(jd0, 3) for i in pdf['i:jd'].values
+            np.round(i, 3) == np.round(jd0, 3) for i in pdf['i:jd'].to_numpy()
         ]
-    ), (jd0, pdf['i:jd'].values)
+    ), (jd0, pdf['i:jd'].to_numpy())
 
 def test_single_tracklet() -> None:
     """
     Examples
-    ---------
+    --------
     >>> test_single_tracklet()
     """
     pdf = trackletsearch(date='2021-10-22 09:19:49 00')
 
-    assert np.all(pdf['d:tracklet'].values == 'TRCK_20211022_091949_00')
+    assert np.all(pdf['d:tracklet'].to_numpy() == 'TRCK_20211022_091949_00')
 
 
 if __name__ == "__main__":
