@@ -144,10 +144,10 @@ def test_formatting() -> None:
     pdf = get_an_object(oid=OID)
 
     # stupid python cast...
-    assert type(pdf["i:fid"].to_numpy()[0]) == np.int64, type(
+    assert isinstance(pdf["i:fid"].to_numpy()[0], np.int64), type(
         pdf["i:fid"].to_numpy()[0]
     )
-    assert type(pdf["i:magpsf"].to_numpy()[0]) == np.double, type(
+    assert isinstance(pdf["i:magpsf"].to_numpy()[0], np.double), type(
         pdf["i:magpsf"].to_numpy()[0]
     )
 
