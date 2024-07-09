@@ -3942,7 +3942,7 @@ def display_year(
             colorscale=colorscale,
             zmax=300000,  # avoid large peaks
             zmid=150000,
-            zmin=0
+            zmin=0,
         ),
     ]
 
