@@ -870,8 +870,20 @@ def generate_tns_badge(oid):
         output="json",
     )
 
-    if r != []:
-        payload = r[-1]
+    if (r != []) and (r.status_code == 200):
+        entries = [i["d:fullname"] for i in r]
+        if len(entries) > 1:
+            # AT & SN?
+            try:
+                # Keep SN
+                index = [i.startswith('SN') for i in entries].index(True)
+            except ValueError as e:
+                # no SN in list -- take the first one
+                index = 0
+        else:
+            index = 0
+
+        payload = r[index]
 
         if payload["d:type"] != "nan":
             msg = "TNS: {} ({})".format(payload["d:fullname"], payload["d:type"])
