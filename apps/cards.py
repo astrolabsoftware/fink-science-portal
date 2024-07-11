@@ -878,7 +878,7 @@ def generate_tns_badge(oid):
                 # Keep SN
                 index = [i.startswith('SN') for i in entries].index(True)
             except ValueError as e:
-                # no SN in list -- take the first one
+                # no SN in list -- take the first one (most recent)
                 index = 0
         else:
             index = 0
