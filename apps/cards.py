@@ -870,7 +870,7 @@ def generate_tns_badge(oid):
         output="json",
     )
 
-    if (r != []) and (r.status_code == 200):
+    if r != []:
         entries = [i["d:fullname"] for i in r]
         if len(entries) > 1:
             # AT & SN?
