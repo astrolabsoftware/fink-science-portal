@@ -46,6 +46,10 @@ def get_sso_data(ssnamenr):
 
         if data.empty:
             return None, None
+
+        # add empty id_ used by imcce services later
+        data.id_ = ""
+
         return data, kind
     else:
         return data, None
