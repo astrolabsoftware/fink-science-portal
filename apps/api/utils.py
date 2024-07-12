@@ -1405,6 +1405,9 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
         ),
     )
 
+    if payload.get("output-format", "parquet") != "parquet":
+        return pd.read_parquet(io.BytesIO(r.content))
+
     if "sso_name" in payload:
         pdf = pd.read_parquet(io.BytesIO(r.content))
         mask = pdf["sso_name"] == pdf["sso_name"]
