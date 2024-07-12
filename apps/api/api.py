@@ -1563,14 +1563,18 @@ def ssoft_table(payload=None):
         # return the schema of the table
         return jsonify({"args": ssoft_columns})
 
-    pdfs = return_ssoft_pdf(payload)
+    out = return_ssoft_pdf(payload)
 
     # Error propagation
-    if isinstance(pdfs, Response):
-        return pdfs
+    if isinstance(out, Response):
+        return out
 
-    output_format = payload.get("output-format", "json")
-    return send_data(pdfs, output_format)
+    if isinstance(out, pd.DataFrame):
+        output_format = payload.get("output-format", "json")
+        return send_data(out, output_format)
+
+    # return the binary
+    return out
 
 
 @api_bp.route("/api/v1/resolver", methods=["GET"])

@@ -1405,18 +1405,21 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
         ),
     )
 
-    pdf = pd.read_parquet(io.BytesIO(r.content))
-
     if "sso_name" in payload:
+        pdf = pd.read_parquet(io.BytesIO(r.content))
         mask = pdf["sso_name"] == pdf["sso_name"]
         pdf = pdf[mask]
         pdf = pdf[pdf["sso_name"].astype("str") == payload["sso_name"]]
+        return pdf
     elif "sso_number" in payload:
+        pdf = pd.read_parquet(io.BytesIO(r.content))
         mask = pdf["sso_number"] == pdf["sso_number"]
         pdf = pdf[mask]
         pdf = pdf[pdf["sso_number"].astype("int") == int(payload["sso_number"])]
+        return pdf
 
-    return pdf
+    # return blob
+    return io.BytesIO(r.content)
 
 
 def return_resolver_pdf(payload: dict) -> pd.DataFrame:
