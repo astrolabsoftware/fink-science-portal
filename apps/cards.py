@@ -95,59 +95,63 @@ def card_lightcurve_summary():
                     className="mb-2",
                 ),
             ),
-            dmc.Group(
+            dmc.Stack(
                 [
-                    dmc.RadioGroup(
-                        id="switch-mag-flux",
-                        children=dmc.Group(
-                            [
-                                dmc.Radio(k, value=k, color="orange") for k in all_radio_options.keys()
-                            ]
-                        ),
-                        value="Difference magnitude",
-                        size="sm",
+                    dmc.Group(
+                        [
+                            dmc.RadioGroup(
+                                id="switch-mag-flux",
+                                children=dmc.Group(
+                                    [
+                                        dmc.Radio(k, value=k, color="orange") for k in all_radio_options.keys()
+                                    ]
+                                ),
+                                value="Difference magnitude",
+                                size="sm",
+                            ),
+                        ],
+                        justify="center",
+                        align="center",
                     ),
-                ],
-                justify="center",
-                align="center",
-            ),
-            dmc.Group(
-                [
-                    dmc.Switch(
-                        "Color",
-                        id="lightcurve_show_color",
-                        color="gray",
-                        radius="xl",
-                        size="sm",
-                        persistence=True,
+                    dmc.Group(
+                        [
+                            dmc.Switch(
+                                "Color",
+                                id="lightcurve_show_color",
+                                color="gray",
+                                radius="xl",
+                                size="sm",
+                                persistence=True,
+                            ),
+                            dmc.Button(
+                                "Get DR photometry",
+                                id="lightcurve_request_release",
+                                variant="outline",
+                                color="gray",
+                                radius="xl",
+                                size="xs",
+                            ),
+                            help_popover(
+                                dcc.Markdown(
+                                    lc_help,
+                                    mathjax=True,
+                                ),
+                                "help_lc",
+                                trigger=dmc.ActionIcon(
+                                    DashIconify(icon="mdi:help"),
+                                    id="help_lc",
+                                    color="gray",
+                                    variant="outline",
+                                    radius="xl",
+                                    size="md",
+                                ),
+                            ),
+                        ],
+                        justify="center",
+                        align="center",
                     ),
-                    dmc.Button(
-                        "Get DR photometry",
-                        id="lightcurve_request_release",
-                        variant="outline",
-                        color="gray",
-                        radius="xl",
-                        size="xs",
-                    ),
-                    help_popover(
-                        dcc.Markdown(
-                            lc_help,
-                            mathjax=True,
-                        ),
-                        "help_lc",
-                        trigger=dmc.ActionIcon(
-                            DashIconify(icon="mdi:help"),
-                            id="help_lc",
-                            color="gray",
-                            variant="outline",
-                            radius="xl",
-                            size="md",
-                        ),
-                    ),
-                ],
-                justify="center",
-                align="center",
-            ),
+                ]
+            )
         ],
     )
     return card #dmc.Paper([comp1, comp2, comp3]) #card
@@ -574,32 +578,12 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.AccordionPanel(
                         [
                             html.Div(id="coordinates"),
-                            dbc.Row(
-                                dbc.Col(
-                                    dmc.RadioGroup(
-                                        id="coordinates_chips",
-                                        value="EQU",
-                                        size="sm",
-                                        children=dmc.Group([dmc.Radio(k, value=k, color="orange") for k in ["EQU", "GAL"]])
-                                    ),
-                                    #dmc.ChipGroup(
-                                    #    [
-                                    #        dmc.Chip(
-                                    #            x,
-                                    #            value=x,
-                                    #            variant="outline",
-                                    #            color="orange",
-                                    #            radius="xl",
-                                    #            size="sm",
-                                    #        )
-                                    #        for x in ["EQU", "GAL"]
-                                    #    ],
-                                    #    id="coordinates_chips",
-                                    #    value="EQU",
-                                    #    spacing="xl",
-                                    #    position="center",
-                                    #    multiple=False,
-                                    #),
+                            dmc.Center(
+                                dmc.RadioGroup(
+                                    id="coordinates_chips",
+                                    value="EQU",
+                                    size="sm",
+                                    children=dmc.Group([dmc.Radio(k, value=k, color="orange") for k in ["EQU", "GAL"]])
                                 ),
                             ),
                         ],
@@ -678,6 +662,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                     ],
                                     align="center",
+                                    justify="center",
                                     gap="xs",
                                 ),
                             ],
