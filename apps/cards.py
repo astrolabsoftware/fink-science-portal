@@ -95,19 +95,18 @@ def card_lightcurve_summary():
                     className="mb-2",
                 ),
             ),
-            #dbc.Row(
-            #    [dbc.Col(
-            #        children=[dmc.SegmentedControl(
-            #            id="switch-mag-flux",
-            #            value="Difference magnitude",
-            #            color="orange",
-            #            radius="xl",
-            #            size="sm",
-            #            data=all_radio_options.keys()
-            #        ),],
-            #    )],
-            #    className="mb-2",
-            #),
+            dbc.Row(
+                [dbc.Col(
+                    children=[dmc.RadioGroup(
+                        id="switch-mag-flux",
+                        dmc.Group([dmc.Radio(k, value=k) for k in all_radio_options.keys()]),
+                        value="Difference magnitude",
+                        color="orange",
+                        size="sm",
+                    ),],
+                )],
+                className="mb-2",
+            ),
             dmc.Group(
                 [
                     dmc.Switch(
@@ -573,13 +572,12 @@ curl -H "Content-Type: application/json" -X POST \\
                             html.Div(id="coordinates"),
                             dbc.Row(
                                 dbc.Col(
-                                    dmc.SegmentedControl(
+                                    dmc.RadioGroup(
                                         id="coordinates_chips",
                                         value="EQU",
                                         color="orange",
-                                        radius="xl",
                                         size="sm",
-                                        data=["EQU", "GAL"]
+                                        children=dmc.Group([dmc.Radio(k, value=k) for k in ["EQU", "GAL"]])
                                     ),
                                     #dmc.ChipGroup(
                                     #    [
