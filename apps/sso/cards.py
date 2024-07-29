@@ -86,8 +86,8 @@ curl -H "Content-Type: application/json" -X POST \\
         [
             dmc.TabsList(
                 [
-                    dmc.Tab("Python", value="Python"),
-                    dmc.Tab("Curl", value="Curl"),
+                    dmc.TabsTab("Python", value="Python"),
+                    dmc.TabsTab("Curl", value="Curl"),
                 ],
             ),
             dmc.TabsPanel(
