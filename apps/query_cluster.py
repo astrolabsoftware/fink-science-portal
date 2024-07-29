@@ -684,7 +684,7 @@ def update_log(n_clicks, batchid):
 
             if "log" in response.json():
                 failure_log = [
-                    row for row in response.json()["log"] if "Caused by" in row
+                    row for row in response.json()["log"] if "Error" in row
                 ]
                 if len(failure_log) > 0:
                     failure_msg = [
