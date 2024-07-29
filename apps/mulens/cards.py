@@ -42,7 +42,7 @@ def card_mulens(object_data):
                         icon=[
                             DashIconify(
                                 icon="tabler:atom-2",
-                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["green"][6],
                                 width=20,
                             ),
                         ],

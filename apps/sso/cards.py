@@ -120,7 +120,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:database-export",
-                                color=dmc.theme.DEFAULT_COLORS["red"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["red"][6],
                                 width=20,
                             ),
                         ],
@@ -204,7 +204,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:external-link",
-                                color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["orange"][6],
                                 width=20,
                             ),
                         ],
@@ -281,7 +281,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             icon=[
                                 DashIconify(
                                     icon="majesticons:comet",
-                                    color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                    color=dmc.DEFAULT_THEME["colors"]["dark"][6],
                                     width=20,
                                 ),
                             ],
