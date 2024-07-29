@@ -278,10 +278,10 @@ def display_filter_tab(trans_datasource):
                 "Full packet (~55 KB/alert)",
             ]
             values = ["Lightcurve", "Cutouts", "Full packet"]
-            data_content = [
+            data_content = dmc.Group([
                 dmc.Radio(label=label, value=k, size="sm", color="orange")
                 for label, k in zip(labels, values)
-            ]
+            ])
         elif trans_datasource == "ELASTiCC (v1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -346,10 +346,10 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = [
+            data_content = dmc.Group([
                 dmc.Radio(label=label, value=k, size="sm", color="orange")
                 for label, k in zip(labels, values)
-            ]
+            ])
         elif trans_datasource == "ELASTiCC (v2.1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -380,10 +380,10 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = [
+            data_content = dmc.Group([
                 dmc.Radio(label=label, value=k, size="sm", color="orange")
                 for label, k in zip(labels, values)
-            ]
+            ])
 
         return (
             {},
