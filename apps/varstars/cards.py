@@ -79,8 +79,9 @@ def card_variable_button(object_data):
     ra0 = pdf["i:ra"].to_numpy()[0]
     dec0 = pdf["i:dec"].to_numpy()[0]
 
-    card1 = dmc.AccordionMultiple(
+    card1 = dmc.Accordion(
         disableChevronRotation=True,
+        multiple=True,
         children=[
             dmc.AccordionItem(
                 [

@@ -32,8 +32,9 @@ def card_mulens(object_data):
     """Add a card containing button to fit for microlensing events"""
     pdf = pd.read_json(object_data)
 
-    card1 = dmc.AccordionMultiple(
+    card1 = dmc.Accordion(
         disableChevronRotation=True,
+        multiple=True,
         children=[
             dmc.AccordionItem(
                 [

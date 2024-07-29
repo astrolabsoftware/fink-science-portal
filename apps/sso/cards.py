@@ -184,8 +184,8 @@ curl -H "Content-Type: application/json" -X POST \\
                                             className="d-none",
                                         ),
                                     ],
-                                    position="center",
-                                    spacing="xs",
+                                    justify="center",
+                                    align="center"
                                 ),
                             ],
                         ),
