@@ -71,11 +71,11 @@ def tab1_content(pdf):
             dbc.Row(
                 [
                     dbc.Col(
-                        card_lightcurve_summary(),
+                        children=[card_lightcurve_summary()],
                         md=8,
                     ),
                     dbc.Col(
-                        card_id(pdf),
+                        children=[card_id(pdf)],
                         md=4,
                     ),
                 ],
@@ -84,9 +84,7 @@ def tab1_content(pdf):
         ]
     )
 
-    out = tab1_content_
-
-    return out
+    return tab1_content_
 
 
 def tab2_content():
@@ -103,7 +101,7 @@ def tab2_content():
             ),
         ]
     )
-    return tab2_content_
+    return [tab2_content_]
 
 
 def tab3_content():
@@ -210,7 +208,7 @@ def tab3_content():
             ),
         ]
     )
-    return tab3_content_
+    return [tab3_content_]
 
 
 def tab4_content():
@@ -253,7 +251,7 @@ def tab4_content():
             ),
         ]
     )
-    return tab4_content_
+    return [tab4_content_]
 
 
 @app.callback(
@@ -440,9 +438,9 @@ def tab5_content(object_soo):
             [
                 dmc.TabsList(
                     [
-                        dmc.Tab("Lightcurve", value="Lightcurve"),
-                        dmc.Tab("Astrometry", value="Astrometry"),
-                        dmc.Tab("Phase curve", value="Phase curve"),
+                        dmc.TabsTab("Lightcurve", value="Lightcurve"),
+                        dmc.TabsTab("Astrometry", value="Astrometry"),
+                        dmc.TabsTab("Phase curve", value="Phase curve"),
                     ],
                 ),
                 dmc.TabsPanel(tab1, value="Lightcurve"),
@@ -513,36 +511,36 @@ def tabs(pdf):
         [
             dmc.TabsList(
                 [
-                    dmc.Tab("Summary", value="Summary"),
-                    dmc.Tab(
+                    dmc.TabsTab("Summary", value="Summary"),
+                    dmc.TabsTab(
                         "Supernovae", value="Supernovae", disabled=len(pdf.index) == 1
                     ),
-                    dmc.Tab(
+                    dmc.TabsTab(
                         "Variable stars",
                         value="Variable stars",
                         disabled=len(pdf.index) == 1,
                     ),
-                    dmc.Tab(
+                    dmc.TabsTab(
                         "Microlensing",
                         value="Microlensing",
                         disabled=len(pdf.index) == 1,
                     ),
-                    dmc.Tab(
+                    dmc.TabsTab(
                         "Solar System", value="Solar System", disabled=not is_sso(pdf)
                     ),
-                    dmc.Tab(
+                    dmc.TabsTab(
                         "Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)
                     ),
-                    dmc.Tab("GRB", value="GRB", disabled=True),
+                    dmc.TabsTab("GRB", value="GRB", disabled=True),
                 ],
-                position="right",
+                right=True,
             ),
-            dmc.TabsPanel(tab1_content(pdf), value="Summary"),
-            dmc.TabsPanel(tab2_content(), value="Supernovae"),
-            dmc.TabsPanel(tab3_content(), value="Variable stars"),
-            dmc.TabsPanel(tab4_content(), value="Microlensing"),
-            dmc.TabsPanel(id="tab_sso", value="Solar System"),
-            dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
+            dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
+            #dmc.TabsPanel(tab2_content(), value="Supernovae"),
+            #dmc.TabsPanel(tab3_content(), value="Variable stars"),
+            #dmc.TabsPanel(tab4_content(), value="Microlensing"),
+            #dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
+            #dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
         ],
         value="Summary",
     )
@@ -730,7 +728,7 @@ def layout(name):
     )
 
     if pdf.empty:
-        layout_ = html.Div(
+        layout_ = dmc.MantineProvider(
             [
                 dmc.Center(
                     style={"height": "100%", "width": "100%"},
@@ -742,10 +740,10 @@ def layout(name):
                     ],
                 ),
             ],
-            className="bg-opaque-60",
+            #className="bg-opaque-60",
         )
     else:
-        layout_ = html.Div(
+        layout_ = dmc.MantineProvider(
             [
                 dbc.Row(
                     [
@@ -811,7 +809,62 @@ def layout(name):
                 dcc.Store(id="object-tracklet"),
                 dcc.Store(id="object-release"),
             ],
-            className="bg-opaque-90",
+            #className="bg-opaque-90",
         )
 
-    return layout_
+    col1 = dbc.Col(
+                                        dmc.Skeleton(
+                                            style={"width": "100%", "height": "15pc"}
+                                        ),
+                                        id="card_id_left",
+                                        className="p-1",
+                                        lg=12,
+                                        md=6,
+                                        sm=12,
+                                    )
+    col2 = dbc.Col(
+                                        html.Div(
+                                            [
+                                                visdcc.Run_js(id="aladin-lite-runner"),
+                                                html.Div(
+                                                    dmc.Skeleton(
+                                                        style={
+                                                            "width": "100%",
+                                                            "height": "100%",
+                                                        },
+                                                    ),
+                                                    id="aladin-lite-div",
+                                                    style={
+                                                        "width": "100%",
+                                                        "height": "27pc",
+                                                    },
+                                                ),
+                                            ],
+                                            className="p-1",
+                                        ),
+                                        lg=12,
+                                        md=6,
+                                        sm=12,
+                                    )
+    struct_left = dbc.Row([col1, col2], className="g-0")
+    struct = dbc.Row(
+        [
+            dbc.Col(struct_left, lg=3, className="p-1"),
+            dbc.Col(
+                [
+                    dmc.Space(h=10),
+                    tabs(pdf),
+                ],
+                lg=9,
+                className="p-1",
+            ),
+            dcc.Store(id="object-data"),
+            dcc.Store(id="object-upper"),
+            dcc.Store(id="object-uppervalid"),
+            dcc.Store(id="object-sso"),
+            dcc.Store(id="object-tracklet"),
+            dcc.Store(id="object-release"),
+        ],
+        className="bg-opaque-90"
+    )
+    return dmc.MantineProvider(struct) #layout_
