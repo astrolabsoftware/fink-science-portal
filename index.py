@@ -705,8 +705,10 @@ def display_table_results(table):
                         width=220,
                         multiline=True,
                         withArrow=True,
-                        transition="fade",
-                        transitionDuration=200,
+                        transitionProps={
+                            "transition": "fade",
+                            "duration": 200
+                        },
                         label=switch_description,
                     ),
                     md="auto",
@@ -717,8 +719,10 @@ def display_table_results(table):
                         width=220,
                         multiline=True,
                         withArrow=True,
-                        transition="fade",
-                        transitionDuration=200,
+                        transitionProps={
+                            "transition": "fade",
+                            "duration": 200
+                        },
                         label=switch_sso_description,
                     ),
                     md="auto",
@@ -729,8 +733,10 @@ def display_table_results(table):
                         width=220,
                         multiline=True,
                         withArrow=True,
-                        transition="fade",
-                        transitionDuration=200,
+                        transitionProps={
+                            "transition": "fade",
+                            "duration": 200
+                        },
                         label=switch_tracklet_description,
                     ),
                     md="auto",
