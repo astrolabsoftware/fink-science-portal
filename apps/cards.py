@@ -99,7 +99,7 @@ def card_lightcurve_summary():
                 [dbc.Col(
                     children=[dmc.RadioGroup(
                         id="switch-mag-flux",
-                        dmc.Group([dmc.Radio(k, value=k) for k in all_radio_options.keys()]),
+                        children=dmc.Group([dmc.Radio(k, value=k) for k in all_radio_options.keys()]),
                         value="Difference magnitude",
                         color="orange",
                         size="sm",
