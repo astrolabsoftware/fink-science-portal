@@ -867,4 +867,4 @@ def layout(name):
         ],
         className="bg-opaque-90"
     )
-    return dmc.MantineProvider(struct) #layout_
+    return dmc.MantineProvider(dmc.Center(struct)) #layout_

@@ -32,6 +32,11 @@ h2 {
   background-size: cover;
 }
 
+.home_light {
+  background: var(--bgColor);
+  color: var(--textDefault);
+}
+
 /* Quasi-generic backgrounds, meant to be used in wrapper divs to override parent colors of the whole page */
 .bg-opaque-100 {
   width: 100%;
