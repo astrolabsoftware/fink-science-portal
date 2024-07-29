@@ -365,13 +365,13 @@ def tab5_content(object_soo):
                     dmc.Stack(
                         [
                             dmc.RadioGroup(
-                                children=dmc.Radio(k, value=k, color="orange" for k in ["per-band", "combined"]),
+                                children=dmc.Radio(k, value=k, color="orange") for k in ["per-band", "combined"]),
                                 id="switch-phase-curve-band",
                                 value="per-band",
                                 size="sm",
                             ),
                             dmc.RadioGroup(
-                                children=dmc.Radio(k, value=k, color="orange" for k in ["SHG1G2", "HG1G2", "HG12", "HG"]),
+                                children=dmc.Radio(k, value=k, color="orange") for k in ["SHG1G2", "HG1G2", "HG12", "HG"]),
                                 id="switch-phase-curve-func",
                                 value="HG1G2",
                                 size="sm",
