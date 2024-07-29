@@ -688,9 +688,14 @@ def update_log(n_clicks, batchid):
                     row for row in response.json()["log"] if np.any([i in row for i in bad_words])
                 ]
                 if len(failure_log) > 0:
+                    initial_traceback = failure_log[0]
+                    log = response.json()["log"]
+                    index = log.index(initial_traceback)
                     failure_msg = [
                         f"Batch ID: {batchid}",
-                        "Failed. Please, contact contact@fink-broker.org with your batch ID.",
+                        "Failed. Please, contact contact@fink-broker.org with your batch ID and the message below.",
+                        '------------- Traceback -------------'
+                        *log[index:]
                     ]
                     output = html.Div(
                         "\n".join(failure_msg), style={"whiteSpace": "pre-wrap"}
