@@ -1463,6 +1463,7 @@ def display_cards_results(pdf, page_size=10):
                 withEdges=True,
             ),
             align="center",
+            justify="center",
             className="d-none" if npages == 1 else "",
         ),
         dmc.Space(h=20),
