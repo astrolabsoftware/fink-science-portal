@@ -312,10 +312,10 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = [
+            data_content = dmc.Group([
                 dmc.Radio(label=label, value=k, size="sm", color="orange")
                 for label, k in zip(labels, values)
-            ]
+            ])
         elif trans_datasource == "ELASTiCC (v2.0)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -895,7 +895,7 @@ def query_builder():
         [
             dmc.Divider(variant="solid", label="Data Source"),
             dmc.RadioGroup(
-                [
+                children=dmc.Group([
                     dmc.Radio(k, value=k, size="sm", color="orange")
                     for k in [
                         "ZTF",
@@ -903,7 +903,7 @@ def query_builder():
                         "ELASTiCC (v2.0)",
                         "ELASTiCC (v2.1)",
                     ]
-                ],
+                ]),
                 id="trans_datasource",
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
