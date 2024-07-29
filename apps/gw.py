@@ -529,7 +529,6 @@ def layout():
                 min=0.0,
                 max=1.0,
                 step=0.05,
-                radius='xl',
                 id="credible_level",
             ),
         ],
