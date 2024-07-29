@@ -23,7 +23,7 @@ import os
 import yaml
 import diskcache
 
-dash._dash_renderer._set_react_version('18.2.0')
+dash._dash_renderer._set_react_version("18.2.0")
 
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
