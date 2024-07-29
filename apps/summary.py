@@ -515,7 +515,7 @@ def tabs(pdf):
                     ),
                     dmc.TabsTab("GRB", value="GRB", disabled=True),
                 ],
-                position="right",
+                justify="flex-end",
             ),
             dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
             dmc.TabsPanel(tab2_content(), value="Supernovae"),
