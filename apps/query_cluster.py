@@ -157,12 +157,13 @@ def filter_tab():
     """Section containing filtering options"""
     options = html.Div(
         [
-            dmc.DateRangePicker(
+            dmc.DatePicker(
+                type="range",
                 id="date-range-picker",
                 label="Date Range",
                 description="Pick up start and stop dates (included).",
                 hideOutsideDates=True,
-                amountOfMonths=2,
+                numberOfColumns=2,
                 allowSingleDateInRange=True,
                 required=True,
             ),
