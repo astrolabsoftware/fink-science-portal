@@ -532,7 +532,6 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                     ],
                                     radius="sm",
-                                    p="xs",
                                     shadow="sm",
                                     withBorder=True,
                                     style={"padding": "5px"},
