@@ -91,7 +91,7 @@ def timeline_data_transfer(
                         [
                             f"Source: {trans_datasource}",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                 ],
@@ -103,21 +103,21 @@ def timeline_data_transfer(
                         [
                             "Dates: {} - {}".format(*date_range_picker),
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                     dmc.Text(
                         [
                             f"Classe(s): {class_select}",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                     dmc.Text(
                         [
                             f"Conditions: {extra_cond}",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                 ],
@@ -130,7 +130,7 @@ def timeline_data_transfer(
                         [
                             f"Content: {trans_content}",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                 ],
@@ -141,7 +141,7 @@ def timeline_data_transfer(
                         [
                             "Trigger your job!",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                 ],
