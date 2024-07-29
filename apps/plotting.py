@@ -807,9 +807,9 @@ def plot_variable_star(
                 [
                     dmc.TabsList(
                         [
-                            dmc.Tab("Folded", value="folded"),
-                            dmc.Tab("Unfolded", value="unfolded"),
-                            dmc.Tab("Periodogram", value="periodogram"),
+                            dmc.TabsTab("Folded", value="folded"),
+                            dmc.TabsTab("Unfolded", value="unfolded"),
+                            dmc.TabsTab("Periodogram", value="periodogram"),
                         ],
                     ),
                     dmc.TabsPanel(
@@ -865,7 +865,7 @@ def plot_classbar(object_data):
     x_data = [[1] * len(top_labels)]
     y_data = top_labels
 
-    palette = dmc.theme.DEFAULT_COLORS
+    palette = dmc.DEFAULT_THEME["colors"]
 
     colors = [
         palette[class_colors["Simbad"]][6]
@@ -1796,7 +1796,7 @@ def draw_t2(object_data) -> dict:
                         tooltip,
                         graph,
                     ],
-                    position="center",
+                    justify="center",
                 ),
             ],
         )
@@ -4426,7 +4426,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
                         style={"color": "gray"},
                     ),
                 ],
-                position="apart",
+                justify="space-between",
                 style={"width": "100%"},
             ),
             dmc.Group(
@@ -4438,7 +4438,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
                         style={"color": "gray"},
                     ),
                 ],
-                position="apart",
+                justify="space-between",
                 style={"width": "100%"},
             ),
             dmc.Group(
@@ -4450,7 +4450,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
                         style={"color": "gray"},
                     ),
                 ],
-                position="apart",
+                justify="space-between",
                 style={"width": "100%"},
             ),
         ],
