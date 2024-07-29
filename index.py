@@ -702,7 +702,7 @@ def display_table_results(table):
                 dbc.Col(
                     dmc.Tooltip(
                         children=switch,
-                        width=220,
+                        w=220,
                         multiline=True,
                         withArrow=True,
                         transitionProps={
@@ -716,7 +716,7 @@ def display_table_results(table):
                 dbc.Col(
                     dmc.Tooltip(
                         children=switch_sso,
-                        width=220,
+                        w=220,
                         multiline=True,
                         withArrow=True,
                         transitionProps={
@@ -730,7 +730,7 @@ def display_table_results(table):
                 dbc.Col(
                     dmc.Tooltip(
                         children=switch_tracklet,
-                        width=220,
+                        w=220,
                         multiline=True,
                         withArrow=True,
                         transitionProps={
