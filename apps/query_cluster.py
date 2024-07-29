@@ -769,7 +769,7 @@ def update_final_accordion1(topic_name):
         out = html.Div(
             [
                 dcc.Markdown(msg, link_target="_blank"),
-                dmc.Prism(children=code_block, language="bash"),
+                dmc.CodeHighlight(code=code_block, language="bash"),
             ],
         )
 

@@ -1994,13 +1994,13 @@ def display_page(pathname, searchurl):
     if pathname == "/about":
         return about.layout, "home"
     elif pathname == "/api":
-        return api.layout(), "home"
+        return api.layout(), "home_light"
     elif pathname == "/stats":
-        return statistics.layout(), "home"
+        return statistics.layout(), "home_light"
     elif pathname == "/download":
-        return query_cluster.layout(), "home"
+        return query_cluster.layout(), "home_light"
     elif pathname == "/gw":
-        return gw.layout(), "home"
+        return gw.layout(), "home_light"
     elif pathname.startswith("/ZTF"):
         return summary.layout(pathname), "home_light"
     else:
