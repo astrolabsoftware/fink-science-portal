@@ -632,6 +632,7 @@ def summary_tab(
             [
                 dmc.Space(h=10),
                 dmc.Divider(variant="solid", label="Submit"),
+                dmc.Space(h=10),
                 block,
             ],
         )

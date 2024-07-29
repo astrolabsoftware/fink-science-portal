@@ -263,7 +263,7 @@ def main(args):
 
     # extract schema
     log.info("Determining data schema...")
-    schema = schema_converter.to_avro(df.coalesce(1).limit(1).schema)
+    schema = schema_converter.to_avro(df.coalesce(1).limit(100).schema)
 
     log.info("Schema OK...")
 
