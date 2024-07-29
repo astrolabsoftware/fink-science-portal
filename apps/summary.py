@@ -362,51 +362,23 @@ def tab5_content(object_soo):
                     dmc.Space(h=10),
                     html.Div(id="sso_phasecurve"),
                     html.Br(),
-                    dbc.Row(
-                        dbc.Col(
-                            dmc.ChipGroup(
-                                [
-                                    dmc.Chip(
-                                        x,
-                                        value=x,
-                                        variant="outline",
-                                        color="orange",
-                                        radius="xl",
-                                        size="sm",
-                                    )
-                                    for x in ["per-band", "combined"]
-                                ],
+                    dmc.Stack(
+                        [
+                            dmc.RadioGroup(
+                                children=dmc.Radio(k, value=k, color="orange" for k in ["per-band", "combined"]),
                                 id="switch-phase-curve-band",
                                 value="per-band",
-                                spacing="xl",
-                                position="center",
-                                multiple=False,
+                                size="sm",
                             ),
-                        ),
-                    ),
-                    dbc.Row(
-                        dbc.Col(
-                            dmc.ChipGroup(
-                                [
-                                    dmc.Chip(
-                                        x,
-                                        value=x,
-                                        variant="outline",
-                                        color="orange",
-                                        radius="xl",
-                                        size="sm",
-                                    )
-                                    for x in ["SHG1G2", "HG1G2", "HG12", "HG"]
-                                ],
+                            dmc.RadioGroup(
+                                children=dmc.Radio(k, value=k, color="orange" for k in ["SHG1G2", "HG1G2", "HG12", "HG"]),
                                 id="switch-phase-curve-func",
                                 value="HG1G2",
-                                spacing="xl",
-                                position="center",
-                                multiple=False,
+                                size="sm",
                             ),
-                        ),
+                        ]
                     ),
-                    dmc.Accordion(
+                   dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
                                 [
