@@ -95,16 +95,21 @@ def card_lightcurve_summary():
                     className="mb-2",
                 ),
             ),
-            dbc.Row(
-                [dbc.Col(
-                    children=[dmc.RadioGroup(
+            dmc.Group(
+                [
+                    dmc.RadioGroup(
                         id="switch-mag-flux",
-                        children=dmc.Group([dmc.Radio(k, value=k, color="orange") for k in all_radio_options.keys()]),
+                        children=dmc.Group(
+                            [
+                                dmc.Radio(k, value=k, color="orange") for k in all_radio_options.keys()
+                            ]
+                        ),
                         value="Difference magnitude",
                         size="sm",
-                    ),],
-                )],
-                className="mb-2",
+                    ),
+                ],
+                justify="center",
+                align="center",
             ),
             dmc.Group(
                 [
