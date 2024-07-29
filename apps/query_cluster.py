@@ -644,7 +644,7 @@ def make_buttons():
                 id="submit_datatransfer",
                 variant="outline",
                 color="indigo",
-                leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
+                leftSection=DashIconify(icon="fluent:database-plug-connected-20-filled"),
             ),
         ],
     )
