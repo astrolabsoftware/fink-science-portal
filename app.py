@@ -23,6 +23,8 @@ import os
 import yaml
 import diskcache
 
+dash._dash_renderer._set_react_version('18.2.0')
+
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
 background_callback_manager = DiskcacheManager(cache)
@@ -36,7 +38,14 @@ LOCALAPI = args.get("LOCALAPI", False)
 external_stylesheets = [
     dbc.themes.SPACELAB,
     "//use.fontawesome.com/releases/v5.7.2/css/all.css",
+    "https://unpkg.com/@mantine/dates@7/styles.css",
+    "https://unpkg.com/@mantine/code-highlight@7/styles.css",
+    "https://unpkg.com/@mantine/charts@7/styles.css",
+    "https://unpkg.com/@mantine/carousel@7/styles.css",
+    "https://unpkg.com/@mantine/notifications@7/styles.css",
+    "https://unpkg.com/@mantine/nprogress@7/styles.css",
 ]
+
 external_scripts = [
     "//code.jquery.com/jquery-1.12.1.min.js",
     "//aladin.u-strasbg.fr/AladinLite/api/v3/3.2.0/aladin.js",
