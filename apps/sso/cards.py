@@ -91,11 +91,11 @@ curl -H "Content-Type: application/json" -X POST \\
                 ],
             ),
             dmc.TabsPanel(
-                children=dmc.Prism(children=python_download, language="python"),
+                children=dmc.CodeHighlight(code=python_download, language="python"),
                 value="Python",
             ),
             dmc.TabsPanel(
-                children=dmc.Prism(children=curl_download, language="bash"),
+                children=dmc.CodeHighlight(code=curl_download, language="bash"),
                 value="Curl",
             ),
         ],
