@@ -384,7 +384,9 @@ def tab5_content(object_soo):
                                 value="HG1G2",
                                 size="sm",
                             ),
-                        ]
+                        ],
+                        align="center",
+                        justify="center"
                     ),
                    dmc.Accordion(
                         children=[
