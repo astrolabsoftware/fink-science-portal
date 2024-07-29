@@ -367,7 +367,8 @@ def tab5_content(object_soo):
                             dmc.RadioGroup(
                                 children=dmc.Group(
                                     [
-                                        dmc.Radio(k, value=k, color="orange") for k in ["per-band", "combined"]
+                                        dmc.Radio(k, value=k, color="orange")
+                                        for k in ["per-band", "combined"]
                                     ]
                                 ),
                                 id="switch-phase-curve-band",
@@ -377,7 +378,8 @@ def tab5_content(object_soo):
                             dmc.RadioGroup(
                                 children=dmc.Group(
                                     [
-                                        dmc.Radio(k, value=k, color="orange") for k in ["SHG1G2", "HG1G2", "HG12", "HG"]
+                                        dmc.Radio(k, value=k, color="orange")
+                                        for k in ["SHG1G2", "HG1G2", "HG12", "HG"]
                                     ]
                                 ),
                                 id="switch-phase-curve-func",
@@ -386,9 +388,9 @@ def tab5_content(object_soo):
                             ),
                         ],
                         align="center",
-                        justify="center"
+                        justify="center",
                     ),
-                   dmc.Accordion(
+                    dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
                                 [
@@ -722,67 +724,53 @@ def layout(name):
                     ],
                 ),
             ],
-            #className="bg-opaque-60",
+            # className="bg-opaque-60",
         )
+        return layout_
     else:
-        layout_ = dmc.MantineProvider(
+        col1 = dbc.Col(
+            dmc.Skeleton(style={"width": "100%", "height": "15pc"}),
+            id="card_id_left",
+            className="p-1",
+            lg=12,
+            md=6,
+            sm=12,
+        )
+        col2 = dbc.Col(
+            html.Div(
+                [
+                    visdcc.Run_js(id="aladin-lite-runner"),
+                    html.Div(
+                        dmc.Skeleton(
+                            style={
+                                "width": "100%",
+                                "height": "100%",
+                            },
+                        ),
+                        id="aladin-lite-div",
+                        style={
+                            "width": "100%",
+                            "height": "27pc",
+                        },
+                    ),
+                ],
+                className="p-1",
+            ),
+            lg=12,
+            md=6,
+            sm=12,
+        )
+        struct_left = dbc.Row([col1, col2], className="g-0")
+        struct = dbc.Row(
             [
-                dbc.Row(
+                dbc.Col(struct_left, lg=3, className="p-1"),
+                dbc.Col(
                     [
-                        dbc.Col(
-                            dbc.Row(
-                                [
-                                    dbc.Col(
-                                        dmc.Skeleton(
-                                            style={"width": "100%", "height": "15pc"}
-                                        ),
-                                        id="card_id_left",
-                                        className="p-1",
-                                        lg=12,
-                                        md=6,
-                                        sm=12,
-                                    ),
-                                    dbc.Col(
-                                        html.Div(
-                                            [
-                                                visdcc.Run_js(id="aladin-lite-runner"),
-                                                html.Div(
-                                                    dmc.Skeleton(
-                                                        style={
-                                                            "width": "100%",
-                                                            "height": "100%",
-                                                        },
-                                                    ),
-                                                    id="aladin-lite-div",
-                                                    style={
-                                                        "width": "100%",
-                                                        "height": "27pc",
-                                                    },
-                                                ),
-                                            ],
-                                            className="p-1",
-                                        ),
-                                        lg=12,
-                                        md=6,
-                                        sm=12,
-                                    ),
-                                ],
-                                className="g-0",
-                            ),
-                            lg=3,
-                            className="p-1",
-                        ),
-                        dbc.Col(
-                            [
-                                dmc.Space(h=10),
-                                tabs(pdf),
-                            ],
-                            lg=9,
-                            className="p-1",
-                        ),
+                        dmc.Space(h=10),
+                        tabs(pdf),
                     ],
-                    justify="around",
-                    className="g-0",
+                    lg=9,
+                    className="p-1",
                 ),
                 dcc.Store(id="object-data"),
                 dcc.Store(id="object-upper"),
@@ -791,62 +779,6 @@ def layout(name):
                 dcc.Store(id="object-tracklet"),
                 dcc.Store(id="object-release"),
             ],
-            #className="bg-opaque-90",
+            className="bg-opaque-90",
         )
-
-    col1 = dbc.Col(
-                                        dmc.Skeleton(
-                                            style={"width": "100%", "height": "15pc"}
-                                        ),
-                                        id="card_id_left",
-                                        className="p-1",
-                                        lg=12,
-                                        md=6,
-                                        sm=12,
-                                    )
-    col2 = dbc.Col(
-                                        html.Div(
-                                            [
-                                                visdcc.Run_js(id="aladin-lite-runner"),
-                                                html.Div(
-                                                    dmc.Skeleton(
-                                                        style={
-                                                            "width": "100%",
-                                                            "height": "100%",
-                                                        },
-                                                    ),
-                                                    id="aladin-lite-div",
-                                                    style={
-                                                        "width": "100%",
-                                                        "height": "27pc",
-                                                    },
-                                                ),
-                                            ],
-                                            className="p-1",
-                                        ),
-                                        lg=12,
-                                        md=6,
-                                        sm=12,
-                                    )
-    struct_left = dbc.Row([col1, col2], className="g-0")
-    struct = dbc.Row(
-        [
-            dbc.Col(struct_left, lg=3, className="p-1"),
-            dbc.Col(
-                [
-                    dmc.Space(h=10),
-                    tabs(pdf),
-                ],
-                lg=9,
-                className="p-1",
-            ),
-            dcc.Store(id="object-data"),
-            dcc.Store(id="object-upper"),
-            dcc.Store(id="object-uppervalid"),
-            dcc.Store(id="object-sso"),
-            dcc.Store(id="object-tracklet"),
-            dcc.Store(id="object-release"),
-        ],
-        className="bg-opaque-90"
-    )
-    return dmc.MantineProvider(dmc.Center(struct)) #layout_
+        return dmc.MantineProvider(dmc.Center(struct))

@@ -923,7 +923,7 @@ def loading(item):
                 loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
                 overlayProps={"radius": "sm", "blur": 2},
                 zIndex=100000,
-            )
+            ),
         ]
     )
 

@@ -278,10 +278,12 @@ def display_filter_tab(trans_datasource):
                 "Full packet (~55 KB/alert)",
             ]
             values = ["Lightcurve", "Cutouts", "Full packet"]
-            data_content = dmc.Group([
-                dmc.Radio(label=label, value=k, size="sm", color="orange")
-                for label, k in zip(labels, values)
-            ])
+            data_content = dmc.Group(
+                [
+                    dmc.Radio(label=label, value=k, size="sm", color="orange")
+                    for label, k in zip(labels, values)
+                ]
+            )
         elif trans_datasource == "ELASTiCC (v1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -312,10 +314,12 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = dmc.Group([
-                dmc.Radio(label=label, value=k, size="sm", color="orange")
-                for label, k in zip(labels, values)
-            ])
+            data_content = dmc.Group(
+                [
+                    dmc.Radio(label=label, value=k, size="sm", color="orange")
+                    for label, k in zip(labels, values)
+                ]
+            )
         elif trans_datasource == "ELASTiCC (v2.0)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -346,10 +350,12 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = dmc.Group([
-                dmc.Radio(label=label, value=k, size="sm", color="orange")
-                for label, k in zip(labels, values)
-            ])
+            data_content = dmc.Group(
+                [
+                    dmc.Radio(label=label, value=k, size="sm", color="orange")
+                    for label, k in zip(labels, values)
+                ]
+            )
         elif trans_datasource == "ELASTiCC (v2.1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -380,10 +386,12 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = dmc.Group([
-                dmc.Radio(label=label, value=k, size="sm", color="orange")
-                for label, k in zip(labels, values)
-            ])
+            data_content = dmc.Group(
+                [
+                    dmc.Radio(label=label, value=k, size="sm", color="orange")
+                    for label, k in zip(labels, values)
+                ]
+            )
 
         return (
             {},
@@ -647,7 +655,9 @@ def make_buttons():
                 id="submit_datatransfer",
                 variant="outline",
                 color="indigo",
-                leftSection=DashIconify(icon="fluent:database-plug-connected-20-filled"),
+                leftSection=DashIconify(
+                    icon="fluent:database-plug-connected-20-filled"
+                ),
             ),
         ],
     )
@@ -685,7 +695,9 @@ def update_log(n_clicks, batchid):
             if "log" in response.json():
                 bad_words = ["Error", "Traceback"]
                 failure_log = [
-                    row for row in response.json()["log"] if np.any([i in row for i in bad_words])
+                    row
+                    for row in response.json()["log"]
+                    if np.any([i in row for i in bad_words])
                 ]
                 if len(failure_log) > 0:
                     initial_traceback = failure_log[0]
@@ -694,8 +706,8 @@ def update_log(n_clicks, batchid):
                     failure_msg = [
                         f"Batch ID: {batchid}",
                         "Failed. Please, contact contact@fink-broker.org with your batch ID and the message below.",
-                        '------------- Traceback -------------',
-                        *log[index:]
+                        "------------- Traceback -------------",
+                        *log[index:],
                     ]
                     output = html.Div(
                         "\n".join(failure_msg), style={"whiteSpace": "pre-wrap"}
@@ -902,15 +914,17 @@ def query_builder():
         [
             dmc.Divider(variant="solid", label="Data Source"),
             dmc.RadioGroup(
-                children=dmc.Group([
-                    dmc.Radio(k, value=k, size="sm", color="orange")
-                    for k in [
-                        "ZTF",
-                        "ELASTiCC (v1)",
-                        "ELASTiCC (v2.0)",
-                        "ELASTiCC (v2.1)",
+                children=dmc.Group(
+                    [
+                        dmc.Radio(k, value=k, size="sm", color="orange")
+                        for k in [
+                            "ZTF",
+                            "ELASTiCC (v1)",
+                            "ELASTiCC (v2.0)",
+                            "ELASTiCC (v2.1)",
+                        ]
                     ]
-                ]),
+                ),
                 id="trans_datasource",
                 value=None,
                 label="Choose the type of alerts you want to retrieve",

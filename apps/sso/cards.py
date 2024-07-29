@@ -136,7 +136,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             variant="outline",
                                             color="indigo",
                                             size="compact-sm",
-                                            leftSection=DashIconify(icon="mdi:code-json")
+                                            leftSection=DashIconify(
+                                                icon="mdi:code-json"
+                                            ),
                                         ),
                                         dmc.Button(
                                             "CSV",
@@ -144,7 +146,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             variant="outline",
                                             color="indigo",
                                             size="compact-sm",
-                                            leftSection=DashIconify(icon="mdi:file-csv-outline")
+                                            leftSection=DashIconify(
+                                                icon="mdi:file-csv-outline"
+                                            ),
                                         ),
                                         dmc.Button(
                                             "VOTable",
@@ -185,7 +189,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                     ],
                                     justify="center",
-                                    align="center"
+                                    align="center",
                                 ),
                             ],
                         ),

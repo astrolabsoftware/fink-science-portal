@@ -541,7 +541,9 @@ def layout():
             dmc.Button(
                 "Search for alerts matching",
                 id="gw-loading-button",
-                leftSection=DashIconify(icon="fluent:database-plug-connected-20-filled"),
+                leftSection=DashIconify(
+                    icon="fluent:database-plug-connected-20-filled"
+                ),
                 loaderProps={"variant": "dots", "color": "orange"},
                 variant="outline",
                 color="indigo",

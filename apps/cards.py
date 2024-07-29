@@ -103,7 +103,8 @@ def card_lightcurve_summary():
                                 id="switch-mag-flux",
                                 children=dmc.Group(
                                     [
-                                        dmc.Radio(k, value=k, color="orange") for k in all_radio_options.keys()
+                                        dmc.Radio(k, value=k, color="orange")
+                                        for k in all_radio_options.keys()
                                     ]
                                 ),
                                 value="Difference magnitude",
@@ -151,10 +152,10 @@ def card_lightcurve_summary():
                         align="center",
                     ),
                 ]
-            )
+            ),
         ],
     )
-    return card #dmc.Paper([comp1, comp2, comp3]) #card
+    return card  # dmc.Paper([comp1, comp2, comp3]) #card
 
 
 def card_explanation_xmatch():
@@ -334,7 +335,7 @@ def make_modal_stamps(pdf):
                         dmc.ActionIcon(
                             DashIconify(icon="tabler:chevron-left"),
                             id="stamps_prev",
-                            #title="Next alert",
+                            # title="Next alert",
                             n_clicks=0,
                             variant="default",
                             size=36,
@@ -357,7 +358,7 @@ def make_modal_stamps(pdf):
                         dmc.ActionIcon(
                             DashIconify(icon="tabler:chevron-right"),
                             id="stamps_next",
-                            #title="Previous alert",
+                            # title="Previous alert",
                             n_clicks=0,
                             variant="default",
                             size=36,
@@ -488,7 +489,8 @@ curl -H "Content-Type: application/json" -X POST \\
                 ],
             ),
             dmc.TabsPanel(
-                dmc.CodeHighlight(code=python_download, language="python"), value="Python"
+                dmc.CodeHighlight(code=python_download, language="python"),
+                value="Python",
             ),
             dmc.TabsPanel(
                 children=dmc.CodeHighlight(code=curl_download, language="bash"),
@@ -582,7 +584,12 @@ curl -H "Content-Type: application/json" -X POST \\
                                     id="coordinates_chips",
                                     value="EQU",
                                     size="sm",
-                                    children=dmc.Group([dmc.Radio(k, value=k, color="orange") for k in ["EQU", "GAL"]])
+                                    children=dmc.Group(
+                                        [
+                                            dmc.Radio(k, value=k, color="orange")
+                                            for k in ["EQU", "GAL"]
+                                        ]
+                                    ),
                                 ),
                             ),
                         ],
@@ -613,7 +620,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             variant="outline",
                                             color="indigo",
                                             size="compact-sm",
-                                            leftSection=DashIconify(icon="mdi:code-json"),
+                                            leftSection=DashIconify(
+                                                icon="mdi:code-json"
+                                            ),
                                         ),
                                         dmc.Button(
                                             "CSV",
@@ -621,7 +630,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             variant="outline",
                                             color="indigo",
                                             size="compact-sm",
-                                            leftSection=DashIconify(icon="mdi:file-csv-outline"),
+                                            leftSection=DashIconify(
+                                                icon="mdi:file-csv-outline"
+                                            ),
                                         ),
                                         dmc.Button(
                                             "VOTable",
@@ -1221,7 +1232,9 @@ def card_search_result(row, i):
                     html.A(
                         dmc.Group(
                             [
-                                dmc.Text(f"{name}", style={"fontWeight": 700, "fontSize":26}),
+                                dmc.Text(
+                                    f"{name}", style={"fontWeight": 700, "fontSize": 26}
+                                ),
                                 dmc.Space(w="sm"),
                                 *badges,
                             ],
