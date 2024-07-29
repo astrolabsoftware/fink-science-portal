@@ -267,8 +267,9 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
         ]
 
-        card = dmc.AccordionMultiple(
+        card = dmc.Accordion(
             disableChevronRotation=True,
+            multiple=True,
             children=[
                 dmc.AccordionItem(
                     [
