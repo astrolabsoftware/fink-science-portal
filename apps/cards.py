@@ -99,9 +99,8 @@ def card_lightcurve_summary():
                 [dbc.Col(
                     children=[dmc.RadioGroup(
                         id="switch-mag-flux",
-                        children=dmc.Group([dmc.Radio(k, value=k) for k in all_radio_options.keys()]),
+                        children=dmc.Group([dmc.Radio(k, value=k, color="orange") for k in all_radio_options.keys()]),
                         value="Difference magnitude",
-                        color="orange",
                         size="sm",
                     ),],
                 )],
@@ -575,9 +574,8 @@ curl -H "Content-Type: application/json" -X POST \\
                                     dmc.RadioGroup(
                                         id="coordinates_chips",
                                         value="EQU",
-                                        color="orange",
                                         size="sm",
-                                        children=dmc.Group([dmc.Radio(k, value=k) for k in ["EQU", "GAL"]])
+                                        children=dmc.Group([dmc.Radio(k, value=k, color="orange") for k in ["EQU", "GAL"]])
                                     ),
                                     #dmc.ChipGroup(
                                     #    [
