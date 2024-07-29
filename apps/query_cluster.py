@@ -403,6 +403,7 @@ def content_tab():
             dmc.Space(h=10),
             dmc.Divider(variant="solid", label="Alert content"),
             dmc.RadioGroup(
+                children=[],
                 id="trans_content",
                 label="Choose the content you want to retrieve",
             ),
