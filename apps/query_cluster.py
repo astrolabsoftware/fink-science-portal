@@ -694,7 +694,7 @@ def update_log(n_clicks, batchid):
                     failure_msg = [
                         f"Batch ID: {batchid}",
                         "Failed. Please, contact contact@fink-broker.org with your batch ID and the message below.",
-                        '------------- Traceback -------------'
+                        '------------- Traceback -------------',
                         *log[index:]
                     ]
                     output = html.Div(
