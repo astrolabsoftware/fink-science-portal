@@ -135,7 +135,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                             id="download_sso_json",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
+                                            size="compact-sm",
                                             leftSection=DashIconify(icon="mdi:code-json")
                                         ),
                                         dmc.Button(
@@ -143,7 +143,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                             id="download_sso_csv",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
+                                            size="compact-sm",
                                             leftSection=DashIconify(icon="mdi:file-csv-outline")
                                         ),
                                         dmc.Button(
@@ -151,7 +151,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                             id="download_sso_votable",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
+                                            size="compact-sm",
                                             leftSection=DashIconify(icon="mdi:xml"),
                                         ),
                                         help_popover(
