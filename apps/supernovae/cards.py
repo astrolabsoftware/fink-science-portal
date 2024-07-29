@@ -89,10 +89,10 @@ def card_sn_scores() -> html.Div:
                         [
                             dmc.TabsList(
                                 [
-                                    dmc.Tab("SN scores", value="snt0"),
-                                    dmc.Tab("T2 scores", value="snt0a"),
-                                    dmc.Tab("Color evolution", value="snt1"),
-                                    dmc.Tab("Color and mag rate", value="snt2"),
+                                    dmc.TabsTab("SN scores", value="snt0"),
+                                    dmc.TabsTab("T2 scores", value="snt0a"),
+                                    dmc.TabsTab("Color evolution", value="snt1"),
+                                    dmc.TabsTab("Color and mag rate", value="snt2"),
                                 ],
                             ),
                             dmc.TabsPanel(
