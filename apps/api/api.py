@@ -1300,7 +1300,7 @@ def return_sso(payload=None):
         payload = request.json
 
     pdf = return_sso_pdf(payload)
-    
+
     # Error propagation
     if not isinstance(pdf, pd.DataFrame):
         return pdf

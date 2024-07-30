@@ -581,15 +581,15 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
 
             # get all cutouts
             cutouts = []
-            for k, result in results.items():
+            for result in results.values():
                 r = requests.post(
                     f"{APIURL}/api/v1/cutouts",
                     json={
                         "objectId": result["i:objectId"],
                         "candid": result["i:candid"],
                         "kind": cutout_kind,
-                        "output-format": cutout_format
-                    }
+                        "output-format": cutout_format,
+                    },
                 )
                 if r.status_code == 200:
                     # the result should be unique (based on candid)

@@ -22,7 +22,14 @@ import sys
 APIURL = sys.argv[1]
 
 
-def ssosearch(n_or_d="8467", withEphem=False, withCutouts=False, cutout_kind=None, columns="*", output_format="json"):
+def ssosearch(
+    n_or_d="8467",
+    withEphem=False,
+    withCutouts=False,
+    cutout_kind=None,
+    columns="*",
+    output_format="json",
+):
     """Perform a sso search in the Science Portal using the Fink REST API"""
     payload = {
         "n_or_d": n_or_d,
@@ -178,13 +185,14 @@ def test_withcutouts() -> None:
     pdf = ssosearch(withCutouts=True)
 
     assert "b:cutoutScience_stampData" in pdf.columns
-    assert isinstance(pdf["b:cutoutScience_stampData"].to_numpy()[0], list), pdf["b:cutoutScience_stampData"]
+    assert isinstance(pdf["b:cutoutScience_stampData"].to_numpy()[0], list), pdf[
+        "b:cutoutScience_stampData"
+    ]
 
     pdf = ssosearch(withCutouts=True, cutout_kind="Template")
 
     assert "b:cutoutTemplate_stampData" in pdf.columns
     assert isinstance(pdf["b:cutoutTemplate_stampData"].to_numpy()[0], list)
-
 
 
 if __name__ == "__main__":

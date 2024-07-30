@@ -34,7 +34,6 @@ def get_an_object(
     cutout_kind=None,
 ):
     """Query an object from the Science Portal using the Fink REST API"""
-
     payload = {
         "objectId": oid,
         "columns": columns,
@@ -44,12 +43,9 @@ def get_an_object(
     }
 
     if cutout_kind is not None:
-        payload.update({'cutout-kind': cutout_kind})
+        payload.update({"cutout-kind": cutout_kind})
 
-    r = requests.post(
-        "{}/api/v1/objects".format(APIURL),
-        json=payload
-    )
+    r = requests.post("{}/api/v1/objects".format(APIURL), json=payload)
 
     assert r.status_code == 200, r.content
 
