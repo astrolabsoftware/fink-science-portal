@@ -579,12 +579,31 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                 }
                 return Response(str(rep), 400)
 
-            pdf = extract_cutouts(
-                pdf,
-                client,
-                col="b:cutout{}_stampData".format(cutout_kind),
-                return_type=cutout_format,
+
+            colname = "b:cutout{}_stampData".format(cutout_kind)
+
+            pdf[colname] = (
+                "binary:"
+                + pdf["i:objectId"]
+                + "_"
+                + pdf["i:jd"].astype("str")
+                + colname[1:]
             )
+
+            from apps.utils import readstamp
+            pdf[colname] = pdf[colname].apply(
+                lambda x: readstamp(client.repository().get(x), return_type=cutout_format),
+            )
+
+
+
+
+            #pdf = extract_cutouts(
+            #    pdf,
+            #    client,
+            #    col="b:cutout{}_stampData".format(cutout_kind),
+            #    return_type=cutout_format,
+            #)
 
             client.close()
 
