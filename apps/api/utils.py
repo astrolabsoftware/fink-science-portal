@@ -597,7 +597,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                     }
                     return Response(str(rep), 400)
 
-        pdf["b:cutout{}_stampData".format(cutout_kind)] = cutouts
+            pdf["b:cutout{}_stampData".format(cutout_kind)] = cutouts
 
     if "withEphem" in payload:
         if payload["withEphem"] == "True" or payload["withEphem"] is True:
