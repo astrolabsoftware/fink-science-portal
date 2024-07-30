@@ -127,7 +127,11 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             return Response(str(rep), 400)
         # Default `None` returns all 3 cutouts
         cutout_kind = payload.get("cutout-kind", None)
-        pdf = extract_cutouts(pdf, client, col=cutout_kind, return_type=cutout_format)
+        if cutout_kind is None:
+            colname = None
+        else:
+            colname = "b:cutout{}_stampData".format(cutout_kind)
+        pdf = extract_cutouts(pdf, client, col=colname, return_type=cutout_format)
 
     if withupperlim:
         clientU = connect_to_hbase_table("ztf.upper")
