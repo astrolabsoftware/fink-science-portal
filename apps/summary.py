@@ -721,18 +721,16 @@ def layout(name):
                             title=f"{name[1:]} not found",
                             children="Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).",
                             color="gray",
-                            radius="md"
+                            radius="md",
                         ),
                     ],
                 ),
                 fluid=True,
-                className="home"
+                className="home",
             )
         )
         layout_ = dmc.MantineProvider(
-            [
-                inner
-            ],
+            [inner],
         )
         return layout_
     else:
@@ -741,9 +739,9 @@ def layout(name):
             id="card_id_left",
             className="p-1",
             span=12,
-            #lg=12,
-            #md=6,
-            #sm=12,
+            # lg=12,
+            # md=6,
+            # sm=12,
         )
         col2 = dmc.GridCol(
             html.Div(
@@ -765,9 +763,9 @@ def layout(name):
                 ],
                 className="p-1",
             ),
-            #lg=12,
-            #md=6,
-            #sm=12,
+            # lg=12,
+            # md=6,
+            # sm=12,
             span=12,
         )
         struct_left = dmc.Grid([col1, col2], gutter=0, className="g-0")
@@ -792,4 +790,6 @@ def layout(name):
             gutter="xl",
         )
         # I do not know why I have to pad here...
-        return dmc.MantineProvider(dmc.Container(struct, fluid="xxl", style={"padding-top": "20px"}))
+        return dmc.MantineProvider(
+            dmc.Container(struct, fluid="xxl", style={"padding-top": "20px"})
+        )
