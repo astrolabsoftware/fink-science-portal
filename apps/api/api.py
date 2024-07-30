@@ -1312,7 +1312,7 @@ def return_sso(payload=None):
     pdf = return_sso_pdf(payload)
     
     # Error propagation
-    if isinstance(pdf, Response):
+    if not isinstance(pdf, pd.DataFrame):
         return pdf
 
     output_format = payload.get("output-format", "json")
