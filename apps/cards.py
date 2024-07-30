@@ -1088,22 +1088,11 @@ def card_id1(object_data, object_uppervalid, object_upper):
         get_first_value(pdf, "i:ra"), get_first_value(pdf, "i:dec"), unit="deg"
     )
 
+    c1 = dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size="lg")
+    c2 = dmc.Title(objectid, order=1, style={"color": "#15284F"})
     card = dmc.Paper(
         [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size="lg"),
-                        width=2,
-                    ),
-                    dbc.Col(
-                        dmc.Title(objectid, order=1, style={"color": "#15284F"}),
-                        width=10,
-                    ),
-                ],
-                justify="start",
-                align="center",
-            ),
+            dmc.Grid([dmc.GridCol(c1, span=2), dmc.GridCol(c2, span=10)], gutter="xl"),
             extra_div,
             html.Div(badges),
             dcc.Markdown(

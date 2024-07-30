@@ -770,7 +770,7 @@ def layout(name):
             #sm=12,
             span=12,
         )
-        struct_left = dmc.Grid([col1, col2], gutter="md", className="g-0")
+        struct_left = dmc.Grid([col1, col2], gutter=0, className="g-0")
         struct = dmc.Grid(
             [
                 dmc.GridCol(struct_left, span=3, className="p-1"),
