@@ -850,13 +850,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             col="b:cutout{}_stampData".format(payload["kind"]),
             return_type="array",
         )
-    elif output_format == "raw":
-        pdf = extract_cutouts(
-            pdf,
-            client,
-            col="b:cutout{}_stampData".format(payload["kind"]),
-            return_type="raw",
-        )
+
     client.close()
 
     array = pdf["b:cutout{}_stampData".format(payload["kind"])].to_numpy()[0]
@@ -870,7 +864,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             download_name=filename,
         )
     # send the array
-    elif output_format in ["array", "raw"]:
+    elif output_format == "array":
         return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
             orient="records"
         )

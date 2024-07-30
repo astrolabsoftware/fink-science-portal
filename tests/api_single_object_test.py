@@ -31,17 +31,24 @@ def get_an_object(
     columns="*",
     withupperlim=False,
     withcutouts=False,
+    cutout_kind=None,
 ):
     """Query an object from the Science Portal using the Fink REST API"""
+
+    payload = {
+        "objectId": oid,
+        "columns": columns,
+        "output-format": output_format,
+        "withupperlim": withupperlim,
+        "withcutouts": withcutouts,
+    }
+
+    if cutout_kind is not None:
+        payload.update({'cutout-kind': cutout_kind})
+
     r = requests.post(
         "{}/api/v1/objects".format(APIURL),
-        json={
-            "objectId": oid,
-            "columns": columns,
-            "output-format": output_format,
-            "withupperlim": withupperlim,
-            "withcutouts": withcutouts,
-        },
+        json=payload
     )
 
     assert r.status_code == 200, r.content
@@ -133,6 +140,18 @@ def test_withcutouts() -> None:
     assert isinstance(pdf["b:cutoutScience_stampData"].to_numpy()[0], list)
     assert isinstance(pdf["b:cutoutTemplate_stampData"].to_numpy()[0], list)
     assert isinstance(pdf["b:cutoutDifference_stampData"].to_numpy()[0], list)
+
+
+def test_withcutouts_single_field() -> None:
+    """
+    Examples
+    --------
+    >>> test_withcutouts_single_field()
+    """
+    pdf = get_an_object(oid=OID, withcutouts=True, cutout_kind="Science")
+
+    assert isinstance(pdf["b:cutoutScience_stampData"].to_numpy()[0], list)
+    assert "b:cutoutTemplate_stampData" not in pdf.columns
 
 
 def test_formatting() -> None:
