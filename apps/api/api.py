@@ -1310,6 +1310,10 @@ def return_sso(payload=None):
         payload = request.json
 
     pdf = return_sso_pdf(payload)
+    
+    # Error propagation
+    if isinstance(pdf, Response):
+        return pdf
 
     output_format = payload.get("output-format", "json")
     return send_data(pdf, output_format)
