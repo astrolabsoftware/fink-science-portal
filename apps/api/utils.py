@@ -575,6 +575,8 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                 }
                 return Response(str(rep), 400)
 
+            colname = "b:cutout{}_stampData".format(cutout_kind)
+
             # get all cutouts
             cutouts = []
             for k, result in results.items():
@@ -589,7 +591,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                 )
                 if r.status_code == 200:
                     # the result should be unique (based on candid)
-                    cutouts.append(r.json()[0])
+                    cutouts.append(r.json()[0][colname])
                 else:
                     rep = {
                         "status": "error",
@@ -597,7 +599,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                     }
                     return Response(str(rep), 400)
 
-            pdf["b:cutout{}_stampData".format(cutout_kind)] = cutouts
+            pdf[colname] = cutouts
 
     if "withEphem" in payload:
         if payload["withEphem"] == "True" or payload["withEphem"] is True:
