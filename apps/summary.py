@@ -439,7 +439,7 @@ def tab5_content(object_soo):
         """
         left_side = [
             html.Br(),
-            dbc.Alert(msg, color="danger"),
+            dmc.Alert(children="", title=msg, radius="md", color="red"),
         ]
 
     tab5_content_ = dbc.Row(
@@ -712,31 +712,40 @@ def layout(name):
     )
 
     if pdf.empty:
-        layout_ = dmc.MantineProvider(
-            [
+        inner = html.Div(
+            children=dmc.Container(
                 dmc.Center(
                     style={"height": "100%", "width": "100%"},
                     children=[
-                        dbc.Alert(
-                            f"{name[1:]} not found. Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).",
-                            color="danger",
+                        dmc.Alert(
+                            title=f"{name[1:]} not found",
+                            children="Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).",
+                            color="gray",
+                            radius="md"
                         ),
                     ],
                 ),
+                fluid=True,
+                className="home"
+            )
+        )
+        layout_ = dmc.MantineProvider(
+            [
+                inner
             ],
-            className="bg-opaque-60",
         )
         return layout_
     else:
-        col1 = dbc.Col(
+        col1 = dmc.GridCol(
             dmc.Skeleton(style={"width": "100%", "height": "15pc"}),
             id="card_id_left",
             className="p-1",
-            lg=12,
-            md=6,
-            sm=12,
+            span=12,
+            #lg=12,
+            #md=6,
+            #sm=12,
         )
-        col2 = dbc.Col(
+        col2 = dmc.GridCol(
             html.Div(
                 [
                     visdcc.Run_js(id="aladin-lite-runner"),
@@ -756,20 +765,21 @@ def layout(name):
                 ],
                 className="p-1",
             ),
-            lg=12,
-            md=6,
-            sm=12,
+            #lg=12,
+            #md=6,
+            #sm=12,
+            span=12,
         )
-        struct_left = dbc.Row([col1, col2], className="g-0")
-        struct = dbc.Row(
+        struct_left = dmc.Grid([col1, col2], gutter="md", className="g-0")
+        struct = dmc.Grid(
             [
-                dbc.Col(struct_left, lg=3, className="p-1"),
-                dbc.Col(
+                dmc.GridCol(struct_left, span=3, className="p-1"),
+                dmc.GridCol(
                     [
                         dmc.Space(h=10),
                         tabs(pdf),
                     ],
-                    lg=9,
+                    span=9,
                     className="p-1",
                 ),
                 dcc.Store(id="object-data"),
@@ -779,6 +789,7 @@ def layout(name):
                 dcc.Store(id="object-tracklet"),
                 dcc.Store(id="object-release"),
             ],
-            className="bg-opaque-90",
+            gutter="xl",
         )
-        return dmc.MantineProvider(dmc.Center(struct))
+        # I do not know why I have to pad here...
+        return dmc.MantineProvider(dmc.Container(struct, fluid="xxl", style={"padding-top": "20px"}))
