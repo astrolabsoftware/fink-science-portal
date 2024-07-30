@@ -407,6 +407,11 @@ args_sso = [
         "description": "`Science`[default], `Template`, or `Difference`",
     },
     {
+        "name": "cutout-format",
+        "required": False,
+        "description": "Output format of the cutouts: 2D array (`array`[default]) or binary gzipped FITS (`raw`).",
+    },
+    {
         "name": "output-format",
         "required": False,
         "description": "Query output format among `json`[default], `csv`, `parquet`, `votable`",

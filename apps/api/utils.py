@@ -567,6 +567,8 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     if "withcutouts" in payload:
         if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
             # Extract cutouts
+            cutout_format = payload.get("cutout-format", "array")
+
             cutout_kind = payload.get("cutout-kind", "Science")
             if cutout_kind not in ["Science", "Template", "Difference"]:
                 rep = {
@@ -586,7 +588,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                         "objectId": result["i:objectId"],
                         "candid": result["i:candid"],
                         "kind": cutout_kind,
-                        "output-format": "array"
+                        "output-format": cutout_format
                     }
                 )
                 if r.status_code == 200:
@@ -841,12 +843,19 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             col="b:cutout{}_stampData".format(payload["kind"]),
             return_type="FITS",
         )
-    else:
+    elif output_format in ["PNG", "array"]:
         pdf = extract_cutouts(
             pdf,
             client,
             col="b:cutout{}_stampData".format(payload["kind"]),
             return_type="array",
+        )
+    elif output_format == "raw":
+        pdf = extract_cutouts(
+            pdf,
+            client,
+            col="b:cutout{}_stampData".format(payload["kind"]),
+            return_type="raw",
         )
     client.close()
 
@@ -861,7 +870,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             download_name=filename,
         )
     # send the array
-    elif output_format == "array":
+    elif output_format in ["array", "raw"]:
         return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
             orient="records"
         )
