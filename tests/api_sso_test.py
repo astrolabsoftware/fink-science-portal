@@ -40,7 +40,7 @@ def ssosearch(
     }
 
     if cutout_kind is not None:
-        payload.update({"cutout_kind": cutout_kind})
+        payload.update({"cutout-kind": cutout_kind})
 
     r = requests.post("{}/api/v1/sso".format(APIURL), json=payload)
 

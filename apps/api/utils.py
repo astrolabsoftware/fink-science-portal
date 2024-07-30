@@ -567,8 +567,6 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     if "withcutouts" in payload:
         if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
             # Extract cutouts
-            cutout_format = payload.get("cutout-format", "array")
-
             cutout_kind = payload.get("cutout-kind", "Science")
             if cutout_kind not in ["Science", "Template", "Difference"]:
                 rep = {
@@ -588,7 +586,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                         "objectId": result["i:objectId"],
                         "candid": result["i:candid"],
                         "kind": cutout_kind,
-                        "output-format": cutout_format,
+                        "output-format": "array",
                     },
                 )
                 if r.status_code == 200:
