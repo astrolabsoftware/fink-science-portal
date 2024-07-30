@@ -590,7 +590,14 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                         "output-format": cutout_format
                     }
                 )
-                results[k].update(out)
+                if r.status_code == 200:
+                    results[k].putAll(r.json()[0])
+                else:
+                    rep = {
+                        "status": "error",
+                        "text": r.content,
+                    }
+                    return Response(str(rep), 400)
 
     pdf = format_hbase_output(
         results,
