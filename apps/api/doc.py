@@ -517,6 +517,7 @@ wget "https://fink-portal.org/api/v1/sso?n_or_d=8467&output-format=json" -O 8467
 In python, you would use
 
 ```python
+import io
 import requests
 import pandas as pd
 

@@ -118,7 +118,17 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
     )
 
     if withcutouts:
-        pdf = extract_cutouts(pdf, client)
+        cutout_format = payload.get("cutout-format", "array")
+        if cutout_format not in ["array", "FITS"]:
+            rep = {
+                "status": "error",
+                "text": "`cutout-format` must be `array` or `FITS`.\n",
+            }
+            return Response(str(rep), 400)
+
+        # Default `None` returns all 3 cutouts
+        cutout_kind = payload.get("cutout-kind", None)
+        pdf = extract_cutouts(pdf, client, col=cutout_kind, return_type=cutout_format)
 
     if withupperlim:
         clientU = connect_to_hbase_table("ztf.upper")
@@ -550,19 +560,9 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     # reset the limit in case it has been changed above
     client.close()
 
-    pdf = format_hbase_output(
-        results,
-        schema_client,
-        group_alerts=False,
-        truncated=truncated,
-        extract_color=False,
-    )
-    
     if "withcutouts" in payload:
         if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
             # Extract cutouts
-            client = connect_to_hbase_table("ztf")
-
             cutout_format = payload.get("cutout-format", "array")
             if cutout_format not in ["array", "FITS"]:
                 rep = {
@@ -575,37 +575,30 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             if cutout_kind not in ["Science", "Template", "Difference"]:
                 rep = {
                     "status": "error",
-                    "text": "`cutout-kind` must be Science, Template, or Difference.\n",
+                    "text": "`cutout-kind` must be `Science`, `Difference`, or `Template`.\n",
                 }
                 return Response(str(rep), 400)
 
+            # in-place replacement
+            for k, result in results.items():
+                r = requests.post(
+                    f"{APIURL}/api/v1/cutouts",
+                    json={
+                        "objectId": result["i:objectId"],
+                        "candid": result["i:candid"],
+                        "kind": cutout_kind,
+                        "output-format": cutout_format
+                    }
+                )
+                results[k].update(out)
 
-            colname = "b:cutout{}_stampData".format(cutout_kind)
-
-            pdf[colname] = (
-                "binary:"
-                + pdf["i:objectId"]
-                + "_"
-                + pdf["i:jd"].astype("str")
-                + colname[1:]
-            )
-
-            from apps.utils import readstamp
-            pdf[colname] = pdf[colname].apply(
-                lambda x: readstamp(client.repository().get(x), return_type=cutout_format),
-            )
-
-
-
-
-            #pdf = extract_cutouts(
-            #    pdf,
-            #    client,
-            #    col="b:cutout{}_stampData".format(cutout_kind),
-            #    return_type=cutout_format,
-            #)
-
-            client.close()
+    pdf = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
+        extract_color=False,
+    )
 
     if "withEphem" in payload:
         if payload["withEphem"] == "True" or payload["withEphem"] is True:

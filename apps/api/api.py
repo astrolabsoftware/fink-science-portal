@@ -266,7 +266,17 @@ args_objects = [
     {
         "name": "withcutouts",
         "required": False,
-        "description": "If True, retrieve also uncompressed FITS cutout data (2D array).",
+        "description": "If True, retrieve also cutout data. See also `cutout-kind` and `cutout-format`.",
+    },
+    {
+        "name": "cutout-kind",
+        "required": False,
+        "description": "`Science`, `Template`, or `Difference`. If not specified, returned all three.",
+    },
+    {
+        "name": "cutout-format",
+        "required": False,
+        "description": "Cutout format among `array`[default] or `FITS`",
     },
     {
         "name": "columns",
