@@ -286,7 +286,7 @@ def readstamp(stamp: str, return_type="array", gzipped=True) -> np.array:
         2D array containing image data (`array`) or FITS file uncompressed as file-object (`FITS`)
     """
     if return_type == 'raw':
-        return stamp
+        return io.BytesIO(stamp)
 
     def extract_stamp(fitsdata):
         with fits.open(fitsdata, ignore_missing_simple=True) as hdul:
