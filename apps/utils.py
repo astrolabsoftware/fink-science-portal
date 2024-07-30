@@ -916,11 +916,15 @@ def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
 
 
 def loading(item):
-    return dmc.LoadingOverlay(
-        item,
-        loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
-        overlayOpacity=0.0,
-        zIndex=100000,
+    return html.Div(
+        [
+            item,
+            dmc.LoadingOverlay(
+                loaderProps={"variant": "dots", "color": "orange", "size": "xl"},
+                overlayProps={"radius": "sm", "blur": 2},
+                zIndex=100000,
+            ),
+        ]
     )
 
 

@@ -525,7 +525,7 @@ def layout():
                 label=None,
                 description="From 0 (most likely) to 1 (least likely)",
                 value=0.2,
-                precision=2,
+                decimalScale=2,
                 min=0.0,
                 max=1.0,
                 step=0.05,
@@ -541,7 +541,9 @@ def layout():
             dmc.Button(
                 "Search for alerts matching",
                 id="gw-loading-button",
-                leftIcon=DashIconify(icon="fluent:database-plug-connected-20-filled"),
+                leftSection=DashIconify(
+                    icon="fluent:database-plug-connected-20-filled"
+                ),
                 loaderProps={"variant": "dots", "color": "orange"},
                 variant="outline",
                 color="indigo",

@@ -86,16 +86,16 @@ curl -H "Content-Type: application/json" -X POST \\
         [
             dmc.TabsList(
                 [
-                    dmc.Tab("Python", value="Python"),
-                    dmc.Tab("Curl", value="Curl"),
+                    dmc.TabsTab("Python", value="Python"),
+                    dmc.TabsTab("Curl", value="Curl"),
                 ],
             ),
             dmc.TabsPanel(
-                children=dmc.Prism(children=python_download, language="python"),
+                children=dmc.CodeHighlight(code=python_download, language="python"),
                 value="Python",
             ),
             dmc.TabsPanel(
-                children=dmc.Prism(children=curl_download, language="bash"),
+                children=dmc.CodeHighlight(code=curl_download, language="bash"),
                 value="Curl",
             ),
         ],
@@ -120,7 +120,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:database-export",
-                                color=dmc.theme.DEFAULT_COLORS["red"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["red"][6],
                                 width=20,
                             ),
                         ],
@@ -135,28 +135,28 @@ curl -H "Content-Type: application/json" -X POST \\
                                             id="download_sso_json",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
-                                            leftIcon=[
-                                                DashIconify(icon="mdi:code-json")
-                                            ],
+                                            size="compact-sm",
+                                            leftSection=DashIconify(
+                                                icon="mdi:code-json"
+                                            ),
                                         ),
                                         dmc.Button(
                                             "CSV",
                                             id="download_sso_csv",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
-                                            leftIcon=[
-                                                DashIconify(icon="mdi:file-csv-outline")
-                                            ],
+                                            size="compact-sm",
+                                            leftSection=DashIconify(
+                                                icon="mdi:file-csv-outline"
+                                            ),
                                         ),
                                         dmc.Button(
                                             "VOTable",
                                             id="download_sso_votable",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
-                                            leftIcon=[DashIconify(icon="mdi:xml")],
+                                            size="compact-sm",
+                                            leftSection=DashIconify(icon="mdi:xml"),
                                         ),
                                         help_popover(
                                             [
@@ -188,8 +188,8 @@ curl -H "Content-Type: application/json" -X POST \\
                                             className="d-none",
                                         ),
                                     ],
-                                    position="center",
-                                    spacing="xs",
+                                    justify="center",
+                                    align="center",
                                 ),
                             ],
                         ),
@@ -204,7 +204,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:external-link",
-                                color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["orange"][6],
                                 width=20,
                             ),
                         ],
@@ -271,8 +271,9 @@ curl -H "Content-Type: application/json" -X POST \\
             ),
         ]
 
-        card = dmc.AccordionMultiple(
+        card = dmc.Accordion(
             disableChevronRotation=True,
+            multiple=True,
             children=[
                 dmc.AccordionItem(
                     [
@@ -281,7 +282,7 @@ curl -H "Content-Type: application/json" -X POST \\
                             icon=[
                                 DashIconify(
                                     icon="majesticons:comet",
-                                    color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                    color=dmc.DEFAULT_THEME["colors"]["dark"][6],
                                     width=20,
                                 ),
                             ],

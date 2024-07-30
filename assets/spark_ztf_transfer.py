@@ -425,6 +425,18 @@ def main(args):
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index('timestamp')] = 'cast(timestamp as string) as timestamp'
+
+        if "brokerEndProcessTimestamp" in cnames:
+            cnames[cnames.index("brokerEndProcessTimestamp")] = (
+                "cast(brokerEndProcessTimestamp as string) as brokerEndProcessTimestamp"
+            )
+            cnames[cnames.index("brokerStartProcessTimestamp")] = (
+                "cast(brokerStartProcessTimestamp as string) as brokerStartProcessTimestamp"
+            )
+            cnames[cnames.index("brokerIngestTimestamp")] = (
+                "cast(brokerIngestTimestamp as string) as brokerIngestTimestamp"
+            )
+
         cnames[cnames.index('cutoutScience')] = 'struct(cutoutScience.*) as cutoutScience'
         cnames[cnames.index('cutoutTemplate')] = 'struct(cutoutTemplate.*) as cutoutTemplate'
         cnames[cnames.index('cutoutDifference')] = 'struct(cutoutDifference.*) as cutoutDifference'

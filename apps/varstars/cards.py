@@ -79,8 +79,9 @@ def card_variable_button(object_data):
     ra0 = pdf["i:ra"].to_numpy()[0]
     dec0 = pdf["i:dec"].to_numpy()[0]
 
-    card1 = dmc.AccordionMultiple(
+    card1 = dmc.Accordion(
         disableChevronRotation=True,
+        multiple=True,
         children=[
             dmc.AccordionItem(
                 [
@@ -89,7 +90,7 @@ def card_variable_button(object_data):
                         icon=[
                             DashIconify(
                                 icon="tabler:atom-2",
-                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["green"][6],
                                 width=20,
                             ),
                         ],

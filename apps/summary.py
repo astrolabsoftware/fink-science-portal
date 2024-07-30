@@ -71,11 +71,11 @@ def tab1_content(pdf):
             dbc.Row(
                 [
                     dbc.Col(
-                        card_lightcurve_summary(),
+                        children=[card_lightcurve_summary()],
                         md=8,
                     ),
                     dbc.Col(
-                        card_id(pdf),
+                        children=[card_id(pdf)],
                         md=4,
                     ),
                 ],
@@ -84,9 +84,7 @@ def tab1_content(pdf):
         ]
     )
 
-    out = tab1_content_
-
-    return out
+    return tab1_content_
 
 
 def tab2_content():
@@ -103,7 +101,7 @@ def tab2_content():
             ),
         ]
     )
-    return tab2_content_
+    return [tab2_content_]
 
 
 def tab3_content():
@@ -210,7 +208,7 @@ def tab3_content():
             ),
         ]
     )
-    return tab3_content_
+    return [tab3_content_]
 
 
 def tab4_content():
@@ -253,7 +251,7 @@ def tab4_content():
             ),
         ]
     )
-    return tab4_content_
+    return [tab4_content_]
 
 
 @app.callback(
@@ -364,49 +362,33 @@ def tab5_content(object_soo):
                     dmc.Space(h=10),
                     html.Div(id="sso_phasecurve"),
                     html.Br(),
-                    dbc.Row(
-                        dbc.Col(
-                            dmc.ChipGroup(
-                                [
-                                    dmc.Chip(
-                                        x,
-                                        value=x,
-                                        variant="outline",
-                                        color="orange",
-                                        radius="xl",
-                                        size="sm",
-                                    )
-                                    for x in ["per-band", "combined"]
-                                ],
+                    dmc.Stack(
+                        [
+                            dmc.RadioGroup(
+                                children=dmc.Group(
+                                    [
+                                        dmc.Radio(k, value=k, color="orange")
+                                        for k in ["per-band", "combined"]
+                                    ]
+                                ),
                                 id="switch-phase-curve-band",
                                 value="per-band",
-                                spacing="xl",
-                                position="center",
-                                multiple=False,
+                                size="sm",
                             ),
-                        ),
-                    ),
-                    dbc.Row(
-                        dbc.Col(
-                            dmc.ChipGroup(
-                                [
-                                    dmc.Chip(
-                                        x,
-                                        value=x,
-                                        variant="outline",
-                                        color="orange",
-                                        radius="xl",
-                                        size="sm",
-                                    )
-                                    for x in ["SHG1G2", "HG1G2", "HG12", "HG"]
-                                ],
+                            dmc.RadioGroup(
+                                children=dmc.Group(
+                                    [
+                                        dmc.Radio(k, value=k, color="orange")
+                                        for k in ["SHG1G2", "HG1G2", "HG12", "HG"]
+                                    ]
+                                ),
                                 id="switch-phase-curve-func",
                                 value="HG1G2",
-                                spacing="xl",
-                                position="center",
-                                multiple=False,
+                                size="sm",
                             ),
-                        ),
+                        ],
+                        align="center",
+                        justify="center",
                     ),
                     dmc.Accordion(
                         children=[
@@ -440,9 +422,9 @@ def tab5_content(object_soo):
             [
                 dmc.TabsList(
                     [
-                        dmc.Tab("Lightcurve", value="Lightcurve"),
-                        dmc.Tab("Astrometry", value="Astrometry"),
-                        dmc.Tab("Phase curve", value="Phase curve"),
+                        dmc.TabsTab("Lightcurve", value="Lightcurve"),
+                        dmc.TabsTab("Astrometry", value="Astrometry"),
+                        dmc.TabsTab("Phase curve", value="Phase curve"),
                     ],
                 ),
                 dmc.TabsPanel(tab1, value="Lightcurve"),
@@ -457,7 +439,7 @@ def tab5_content(object_soo):
         """
         left_side = [
             html.Br(),
-            dbc.Alert(msg, color="danger"),
+            dmc.Alert(children="", title=msg, radius="md", color="red"),
         ]
 
     tab5_content_ = dbc.Row(
@@ -513,36 +495,36 @@ def tabs(pdf):
         [
             dmc.TabsList(
                 [
-                    dmc.Tab("Summary", value="Summary"),
-                    dmc.Tab(
+                    dmc.TabsTab("Summary", value="Summary"),
+                    dmc.TabsTab(
                         "Supernovae", value="Supernovae", disabled=len(pdf.index) == 1
                     ),
-                    dmc.Tab(
+                    dmc.TabsTab(
                         "Variable stars",
                         value="Variable stars",
                         disabled=len(pdf.index) == 1,
                     ),
-                    dmc.Tab(
+                    dmc.TabsTab(
                         "Microlensing",
                         value="Microlensing",
                         disabled=len(pdf.index) == 1,
                     ),
-                    dmc.Tab(
+                    dmc.TabsTab(
                         "Solar System", value="Solar System", disabled=not is_sso(pdf)
                     ),
-                    dmc.Tab(
+                    dmc.TabsTab(
                         "Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)
                     ),
-                    dmc.Tab("GRB", value="GRB", disabled=True),
+                    dmc.TabsTab("GRB", value="GRB", disabled=True),
                 ],
-                position="right",
+                justify="flex-end",
             ),
-            dmc.TabsPanel(tab1_content(pdf), value="Summary"),
+            dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
             dmc.TabsPanel(tab2_content(), value="Supernovae"),
             dmc.TabsPanel(tab3_content(), value="Variable stars"),
             dmc.TabsPanel(tab4_content(), value="Microlensing"),
-            dmc.TabsPanel(id="tab_sso", value="Solar System"),
-            dmc.TabsPanel(id="tab_tracklet", value="Tracklets"),
+            dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
+            dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
         ],
         value="Summary",
     )
@@ -730,79 +712,73 @@ def layout(name):
     )
 
     if pdf.empty:
-        layout_ = html.Div(
-            [
+        inner = html.Div(
+            children=dmc.Container(
                 dmc.Center(
                     style={"height": "100%", "width": "100%"},
                     children=[
-                        dbc.Alert(
-                            f"{name[1:]} not found. Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).",
-                            color="danger",
+                        dmc.Alert(
+                            title=f"{name[1:]} not found",
+                            children="Either the object name does not exist, or it has not yet been injected in our database (nightly data appears at the end of the night).",
+                            color="gray",
+                            radius="md",
                         ),
                     ],
                 ),
-            ],
-            className="bg-opaque-60",
+                fluid=True,
+                className="home",
+            )
         )
+        layout_ = dmc.MantineProvider(
+            [inner],
+        )
+        return layout_
     else:
-        layout_ = html.Div(
+        col1 = dmc.GridCol(
+            dmc.Skeleton(style={"width": "100%", "height": "15pc"}),
+            id="card_id_left",
+            className="p-1",
+            span=12,
+            # lg=12,
+            # md=6,
+            # sm=12,
+        )
+        col2 = dmc.GridCol(
+            html.Div(
+                [
+                    visdcc.Run_js(id="aladin-lite-runner"),
+                    html.Div(
+                        dmc.Skeleton(
+                            style={
+                                "width": "100%",
+                                "height": "100%",
+                            },
+                        ),
+                        id="aladin-lite-div",
+                        style={
+                            "width": "100%",
+                            "height": "27pc",
+                        },
+                    ),
+                ],
+                className="p-1",
+            ),
+            # lg=12,
+            # md=6,
+            # sm=12,
+            span=12,
+        )
+        struct_left = dmc.Grid([col1, col2], gutter=0, className="g-0")
+        struct = dmc.Grid(
             [
-                dbc.Row(
+                dmc.GridCol(struct_left, span=3, className="p-1"),
+                dmc.GridCol(
                     [
-                        dbc.Col(
-                            dbc.Row(
-                                [
-                                    dbc.Col(
-                                        dmc.Skeleton(
-                                            style={"width": "100%", "height": "15pc"}
-                                        ),
-                                        id="card_id_left",
-                                        className="p-1",
-                                        lg=12,
-                                        md=6,
-                                        sm=12,
-                                    ),
-                                    dbc.Col(
-                                        html.Div(
-                                            [
-                                                visdcc.Run_js(id="aladin-lite-runner"),
-                                                html.Div(
-                                                    dmc.Skeleton(
-                                                        style={
-                                                            "width": "100%",
-                                                            "height": "100%",
-                                                        },
-                                                    ),
-                                                    id="aladin-lite-div",
-                                                    style={
-                                                        "width": "100%",
-                                                        "height": "27pc",
-                                                    },
-                                                ),
-                                            ],
-                                            className="p-1",
-                                        ),
-                                        lg=12,
-                                        md=6,
-                                        sm=12,
-                                    ),
-                                ],
-                                className="g-0",
-                            ),
-                            lg=3,
-                            className="p-1",
-                        ),
-                        dbc.Col(
-                            [
-                                dmc.Space(h=10),
-                                tabs(pdf),
-                            ],
-                            lg=9,
-                            className="p-1",
-                        ),
+                        dmc.Space(h=10),
+                        tabs(pdf),
                     ],
-                    justify="around",
-                    className="g-0",
+                    span=9,
+                    className="p-1",
                 ),
                 dcc.Store(id="object-data"),
                 dcc.Store(id="object-upper"),
@@ -811,7 +787,9 @@ def layout(name):
                 dcc.Store(id="object-tracklet"),
                 dcc.Store(id="object-release"),
             ],
-            className="bg-opaque-90",
+            gutter="xl",
         )
-
-    return layout_
+        # I do not know why I have to pad here...
+        return dmc.MantineProvider(
+            dmc.Container(struct, fluid="xxl", style={"padding-top": "20px"})
+        )

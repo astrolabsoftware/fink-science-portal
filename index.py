@@ -46,7 +46,7 @@ from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time
 from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
-from apps.utils import loading, help_popover
+from apps.utils import help_popover
 from apps.utils import request_api
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 from apps.cards import card_search_result
@@ -268,7 +268,7 @@ fink_search_bar = [
                                     variant="transparent",
                                     radius="xl",
                                     size="lg",
-                                    title="Search history",
+                                    # title="Search history",
                                 )
                             ),
                             dmc.MenuDropdown(
@@ -320,10 +320,10 @@ fink_search_bar = [
                         n_clicks=0,
                         id="search_bar_clear",
                         color="gray",
-                        variant="transparent",
+                        variant="subtle",
                         radius="xl",
                         size="lg",
-                        title="Clear the input",
+                        # title="Clear the input",
                     ),
                     # Submit
                     dbc.Spinner(
@@ -336,7 +336,7 @@ fink_search_bar = [
                             radius="xl",
                             size="lg",
                             loaderProps={"variant": "dots", "color": "orange"},
-                            title="Search",
+                            # title="Search",
                         ),
                         size="sm",
                         color="warning",
@@ -353,7 +353,7 @@ fink_search_bar = [
                             radius="xl",
                             size="lg",
                             # className="d-none d-sm-flex"
-                            title="Show some help",
+                            # title="Show some help",
                         ),
                     ),
                 ]
@@ -509,8 +509,8 @@ def update_suggestions(n_intervals, n_submit, n_clicks, s_n_clicks, value):
                     else None,
                     dmc.Badge(query["action"], variant="outline", color="red"),
                 ],
-                noWrap=False,
-                position="left",
+                wrap="wrap",
+                align="left",
             ),
             html.P(query["hint"], className="m-0"),
         ]
@@ -595,18 +595,18 @@ clientside_callback(
 )
 
 # Disable clear button for empty input field
-clientside_callback(
-    """
-    function on_input(value) {
-        if (value)
-            return false;
-        else
-            return true;
-    }
-    """,
-    Output("search_bar_clear", "disabled"),
-    Input("search_bar_input", "value"),
-)
+# clientside_callback(
+#    """
+#    function on_input(value) {
+#        if (value)
+#            return false;
+#        else
+#            return true;
+#    }
+#    """,
+#    Output("search_bar_clear", "disabled"),
+#    Input("search_bar_input", "value"),
+# )
 
 
 def display_table_results(table):
@@ -702,11 +702,10 @@ def display_table_results(table):
                 dbc.Col(
                     dmc.Tooltip(
                         children=switch,
-                        width=220,
+                        w=220,
                         multiline=True,
                         withArrow=True,
-                        transition="fade",
-                        transitionDuration=200,
+                        transitionProps={"transition": "fade", "duration": 200},
                         label=switch_description,
                     ),
                     md="auto",
@@ -714,11 +713,10 @@ def display_table_results(table):
                 dbc.Col(
                     dmc.Tooltip(
                         children=switch_sso,
-                        width=220,
+                        w=220,
                         multiline=True,
                         withArrow=True,
-                        transition="fade",
-                        transitionDuration=200,
+                        transitionProps={"transition": "fade", "duration": 200},
                         label=switch_sso_description,
                     ),
                     md="auto",
@@ -726,11 +724,10 @@ def display_table_results(table):
                 dbc.Col(
                     dmc.Tooltip(
                         children=switch_tracklet,
-                        width=220,
+                        w=220,
                         multiline=True,
                         withArrow=True,
-                        transition="fade",
-                        transitionDuration=200,
+                        transitionProps={"transition": "fade", "duration": 200},
                         label=switch_tracklet_description,
                     ),
                     md="auto",
@@ -876,7 +873,7 @@ def modal_skymap():
         "Sky Map",
         id="open_modal_skymap",
         n_clicks=0,
-        leftIcon=[DashIconify(icon="bi:stars")],
+        leftSection=DashIconify(icon="bi:stars"),
         color="gray",
         fullWidth=True,
         variant="default",
@@ -888,25 +885,25 @@ def modal_skymap():
             button,
             dbc.Modal(
                 [
-                    loading(
-                        dbc.ModalBody(
-                            html.Div(
-                                [
-                                    visdcc.Run_js(
-                                        id="aladin-lite-div-skymap",
-                                        style={"border": "0"},
-                                    ),
-                                    # dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
-                                ],
-                                style={
-                                    "width": "100%",
-                                    "height": "100%",
-                                },
-                            ),
-                            className="p-1",
-                            style={"height": "30pc"},
-                        )
+                    # loading(
+                    dbc.ModalBody(
+                        html.Div(
+                            [
+                                visdcc.Run_js(
+                                    id="aladin-lite-div-skymap",
+                                    style={"border": "0"},
+                                ),
+                                # dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
+                            ],
+                            style={
+                                "width": "100%",
+                                "height": "100%",
+                            },
+                        ),
+                        className="p-1",
+                        style={"height": "30pc"},
                     ),
+                    # ),
                     dbc.ModalFooter(
                         dmc.Button(
                             "Close",
@@ -1456,13 +1453,14 @@ def display_cards_results(pdf, page_size=10):
         dmc.Group(
             dmc.Pagination(
                 id="results_pagination",
-                page=1,
+                value=1,
                 total=npages,
                 siblings=1,
                 withControls=True,
                 withEdges=True,
             ),
-            position="center",
+            align="center",
+            justify="center",
             className="d-none" if npages == 1 else "",
         ),
         dmc.Space(h=20),
@@ -1473,7 +1471,7 @@ def display_cards_results(pdf, page_size=10):
 
 @app.callback(
     Output("results_paginated", "children"),
-    Input("results_pagination", "page"),
+    Input("results_pagination", "value"),
     State("results_store", "data"),
     State("results_page_size_store", "data"),
 )
@@ -1592,10 +1590,8 @@ clientside_callback(
     prevent_initial_call=True,
 )
 
-navbar = dmc.Header(
+navbar = dmc.AppShellHeader(
     id="navbar",
-    height=55,
-    fixed=True,
     zIndex=1000,
     p=0,
     m=0,
@@ -1605,19 +1601,21 @@ navbar = dmc.Header(
         dmc.Container(
             fluid=True,
             children=dmc.Group(
-                position="apart",
-                align="flex-end",
+                # align="stretch",
+                justify="space-between",
                 children=[
                     # Right menu
                     dmc.Group(
-                        position="left",
-                        align="flex-start",
+                        align="start",
+                        justify="flex-start",
                         children=[
                             # Burger
                             dmc.ActionIcon(
                                 DashIconify(icon="dashicons:menu", width=30),
                                 id="drawer-button",
                                 n_clicks=0,
+                                variant="transparent",
+                                style={"color": "gray"},
                             ),
                             dmc.Anchor(
                                 dmc.Group(
@@ -1632,13 +1630,13 @@ navbar = dmc.Header(
                                             variant="outline",
                                             color="gray",
                                         ),
-                                        dmc.MediaQuery(
+                                        dmc.Text(
                                             "Search",
-                                            smallerThan="sm",
-                                            styles={"display": "none"},
+                                            visibleFrom="sm",
+                                            style={"color": "gray"},
                                         ),
                                     ],
-                                    spacing="xs",
+                                    gap="xs",
                                 ),
                                 href="/",
                                 variant="text",
@@ -1646,7 +1644,6 @@ navbar = dmc.Header(
                                     "textTransform": "capitalize",
                                     "textDecoration": "none",
                                 },
-                                color="gray",
                             ),
                             dmc.Anchor(
                                 dmc.Group(
@@ -1661,13 +1658,13 @@ navbar = dmc.Header(
                                             variant="outline",
                                             color="gray",
                                         ),
-                                        dmc.MediaQuery(
+                                        dmc.Text(
                                             "Data Transfer",
-                                            smallerThan="sm",
-                                            styles={"display": "none"},
+                                            visibleFrom="sm",
+                                            style={"color": "gray"},
                                         ),
                                     ],
-                                    spacing="xs",
+                                    gap="xs",
                                 ),
                                 href="/download",
                                 variant="text",
@@ -1675,7 +1672,6 @@ navbar = dmc.Header(
                                     "textTransform": "capitalize",
                                     "textDecoration": "none",
                                 },
-                                color="gray",
                             ),
                             dmc.Anchor(
                                 dmc.Group(
@@ -1690,13 +1686,13 @@ navbar = dmc.Header(
                                             variant="outline",
                                             color="gray",
                                         ),
-                                        dmc.MediaQuery(
+                                        dmc.Text(
                                             "Gravitational Waves",
-                                            smallerThan="sm",
-                                            styles={"display": "none"},
+                                            visibleFrom="sm",
+                                            style={"color": "gray"},
                                         ),
                                     ],
-                                    spacing="xs",
+                                    gap="xs",
                                 ),
                                 href="/gw",
                                 variant="text",
@@ -1704,14 +1700,13 @@ navbar = dmc.Header(
                                     "textTransform": "capitalize",
                                     "textDecoration": "none",
                                 },
-                                color="gray",
                             ),
                         ],
                     ),
                     # Left menu
                     dmc.Group(
-                        position="right",
-                        align="flex-end",
+                        align="end",
+                        justify="flex-end",
                         children=[
                             dmc.Anchor(
                                 dmc.Group(
@@ -1726,13 +1721,13 @@ navbar = dmc.Header(
                                             variant="outline",
                                             color="gray",
                                         ),
-                                        dmc.MediaQuery(
+                                        dmc.Text(
                                             "Statistics",
-                                            smallerThan="sm",
-                                            styles={"display": "none"},
+                                            visibleFrom="sm",
+                                            style={"color": "gray"},
                                         ),
                                     ],
-                                    spacing="xs",
+                                    gap="xs",
                                 ),
                                 href="/stats",
                                 variant="text",
@@ -1740,7 +1735,6 @@ navbar = dmc.Header(
                                     "textTransform": "capitalize",
                                     "textDecoration": "none",
                                 },
-                                color="gray",
                             ),
                         ],
                     ),
@@ -1766,44 +1760,44 @@ navbar = dmc.Header(
                                         style={
                                             "textTransform": "capitalize",
                                             "textDecoration": "none",
+                                            "color": "gray",
                                         },
                                         href="/",
                                         size="sm",
-                                        color="gray",
                                     ),
                                     dmc.Anchor(
                                         "Data Transfer",
                                         style={
                                             "textTransform": "capitalize",
                                             "textDecoration": "none",
+                                            "color": "gray",
                                         },
                                         href="/download",
                                         size="sm",
-                                        color="gray",
                                     ),
                                     dmc.Anchor(
                                         "Gravitational Waves",
                                         style={
                                             "textTransform": "capitalize",
                                             "textDecoration": "none",
+                                            "color": "gray",
                                         },
                                         href="/gw",
                                         size="sm",
-                                        color="gray",
                                     ),
                                     dmc.Anchor(
                                         "Statistics",
                                         style={
                                             "textTransform": "capitalize",
                                             "textDecoration": "none",
+                                            "color": "gray",
                                         },
                                         href="/stats",
                                         size="sm",
-                                        color="gray",
                                     ),
                                 ],
                                 align="left",
-                                spacing="sm",
+                                gap="sm",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                             dmc.Divider(
@@ -1825,24 +1819,24 @@ navbar = dmc.Header(
                                         style={
                                             "textTransform": "capitalize",
                                             "textDecoration": "none",
+                                            "color": "gray",
                                         },
                                         href="/api",
                                         size="sm",
-                                        color="gray",
                                     ),
                                     dmc.Anchor(
                                         "Tutorials",
                                         style={
                                             "textTransform": "capitalize",
                                             "textDecoration": "none",
+                                            "color": "gray",
                                         },
                                         href="https://github.com/astrolabsoftware/fink-tutorials",
                                         size="sm",
-                                        color="gray",
                                     ),
                                 ],
                                 align="left",
-                                spacing="sm",
+                                gap="sm",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                             dmc.Divider(
@@ -1864,24 +1858,25 @@ navbar = dmc.Header(
                                         style={
                                             "textTransform": "capitalize",
                                             "textDecoration": "none",
+                                            "color": "gray",
                                         },
                                         href="https://fink-broker.org",
                                         size="sm",
-                                        color="gray",
+                                        # color="gray",
                                     ),
                                     dmc.Anchor(
                                         "Portal bug tracker",
                                         style={
                                             "textTransform": "capitalize",
                                             "textDecoration": "none",
+                                            "color": "gray",
                                         },
                                         href="https://github.com/astrolabsoftware/fink-science-portal",
                                         size="sm",
-                                        color="gray",
                                     ),
                                 ],
                                 align="left",
-                                spacing="sm",
+                                gap="sm",
                                 style={"paddingLeft": 30, "paddingRight": 20},
                             ),
                         ],
@@ -1889,7 +1884,8 @@ navbar = dmc.Header(
                         id="drawer",
                         padding="md",
                         zIndex=1e7,
-                        transition="pop-top-left",
+                        transitionProps={"transition": "pop-top-left"},
+                        style={"fontColor": "gray"},
                     ),
                     # dmc.ThemeSwitcher(
                     #     id="color-scheme-toggle",
@@ -1902,45 +1898,58 @@ navbar = dmc.Header(
 )
 
 # embedding the navigation bar
-app.layout = html.Div(
+app.layout = dmc.MantineProvider(
     [
         dcc.Location(id="url", refresh=False),
-        navbar,
-        html.Div(id="page-content", className="home", style={"padding-top": "55px"}),
-    ]
+        dmc.AppShell(
+            children=[
+                navbar,
+                dmc.AppShellMain(
+                    children=[],
+                    id="page-content",
+                    style={"padding-top": "55px"},  # header
+                ),
+            ],
+            header={"height": 55},
+        ),
+    ],
+    # forceColorScheme="dark"
 )
 
 
 @app.callback(
-    Output("page-content", "children"),
+    [
+        Output("page-content", "children"),
+        Output("page-content", "className"),
+    ],
     [
         Input("url", "pathname"),
         Input("url", "search"),
     ],
 )
 def display_page(pathname, searchurl):
-    layout = html.Div(
+    layout = dmc.MantineProvider(
         [
             dbc.Container(
                 [
                     # Logo shown by default
                     dbc.Collapse(
-                        dmc.MediaQuery(
-                            dbc.Row(
-                                dbc.Col(
-                                    html.Img(
-                                        src="/assets/Fink_PrimaryLogo_WEB.png",
-                                        height="100%",
-                                        width="40%",
-                                        style={"min-width": "250px"},
-                                    )
-                                ),
-                                style={"textAlign": "center"},
-                                className="mt-3",
+                        # dmc.MediaQuery(
+                        dbc.Row(
+                            dbc.Col(
+                                html.Img(
+                                    src="/assets/Fink_PrimaryLogo_WEB.png",
+                                    height="100%",
+                                    width="40%",
+                                    style={"min-width": "250px"},
+                                )
                             ),
-                            query="(max-height: 400px) or (max-width: 300px)",
-                            styles={"display": "none"},
+                            style={"textAlign": "center"},
+                            className="mt-3",
                         ),
+                        # query="(max-height: 400px) or (max-width: 300px)",
+                        # styles={"display": "none"},
+                        # ),
                         is_open=True,
                         id="logo",
                     ),
@@ -1969,27 +1978,28 @@ def display_page(pathname, searchurl):
                 id="results",
                 fluid="xxl",
             ),
-        ]
+        ],
+        # forceColorScheme="dark"
     )
     if pathname == "/about":
-        return about.layout
+        return about.layout, "home"
     elif pathname == "/api":
-        return api.layout()
+        return api.layout(), "home_light"
     elif pathname == "/stats":
-        return statistics.layout()
+        return statistics.layout(), "home_light"
     elif pathname == "/download":
-        return query_cluster.layout()
+        return query_cluster.layout(), "home_light"
     elif pathname == "/gw":
-        return gw.layout()
+        return gw.layout(), "home_light"
     elif pathname.startswith("/ZTF"):
-        return summary.layout(pathname)
+        return summary.layout(pathname), "home_light"
     else:
         if pathname[1:]:
             # check this is not a name generated by a user
             oid = retrieve_oid_from_metaname(pathname[1:])
             if oid is not None:
-                return summary.layout("/" + oid)
-        return layout
+                return summary.layout("/" + oid), "home_light"
+        return layout, "home"
 
 
 # register the API

@@ -95,70 +95,67 @@ def card_lightcurve_summary():
                     className="mb-2",
                 ),
             ),
-            dbc.Row(
-                dbc.Col(
-                    dmc.ChipGroup(
+            dmc.Stack(
+                [
+                    dmc.Group(
                         [
-                            dmc.Chip(
-                                x,
-                                value=x,
-                                variant="outline",
-                                color="orange",
+                            dmc.RadioGroup(
+                                id="switch-mag-flux",
+                                children=dmc.Group(
+                                    [
+                                        dmc.Radio(k, value=k, color="orange")
+                                        for k in all_radio_options.keys()
+                                    ]
+                                ),
+                                value="Difference magnitude",
+                                size="sm",
+                            ),
+                        ],
+                        justify="center",
+                        align="center",
+                    ),
+                    dmc.Group(
+                        [
+                            dmc.Switch(
+                                "Color",
+                                id="lightcurve_show_color",
+                                color="gray",
                                 radius="xl",
                                 size="sm",
-                            )
-                            for x in all_radio_options.keys()
+                                persistence=True,
+                            ),
+                            dmc.Button(
+                                "Get DR photometry",
+                                id="lightcurve_request_release",
+                                variant="outline",
+                                color="gray",
+                                radius="xl",
+                                size="xs",
+                            ),
+                            help_popover(
+                                dcc.Markdown(
+                                    lc_help,
+                                    mathjax=True,
+                                ),
+                                "help_lc",
+                                trigger=dmc.ActionIcon(
+                                    DashIconify(icon="mdi:help"),
+                                    id="help_lc",
+                                    color="gray",
+                                    variant="outline",
+                                    radius="xl",
+                                    size="md",
+                                ),
+                            ),
                         ],
-                        id="switch-mag-flux",
-                        value="Difference magnitude",
-                        spacing="xl",
-                        position="center",
-                        multiple=False,
+                        justify="center",
+                        align="center",
                     ),
-                ),
-                className="mb-2",
-            ),
-            dmc.Group(
-                [
-                    dmc.Switch(
-                        "Color",
-                        id="lightcurve_show_color",
-                        color="gray",
-                        radius="xl",
-                        size="sm",
-                        persistence=True,
-                    ),
-                    dmc.Button(
-                        "Get DR photometry",
-                        id="lightcurve_request_release",
-                        variant="outline",
-                        color="gray",
-                        radius="xl",
-                        size="xs",
-                        compact=False,
-                    ),
-                    help_popover(
-                        dcc.Markdown(
-                            lc_help,
-                            mathjax=True,
-                        ),
-                        "help_lc",
-                        trigger=dmc.ActionIcon(
-                            DashIconify(icon="mdi:help"),
-                            id="help_lc",
-                            color="gray",
-                            variant="outline",
-                            radius="xl",
-                            size="md",
-                        ),
-                    ),
-                ],
-                position="center",
-                align="center",
+                ]
             ),
         ],
     )
-    return card
+    return card  # dmc.Paper([comp1, comp2, comp3]) #card
 
 
 def card_explanation_xmatch():
@@ -338,7 +335,7 @@ def make_modal_stamps(pdf):
                         dmc.ActionIcon(
                             DashIconify(icon="tabler:chevron-left"),
                             id="stamps_prev",
-                            title="Next alert",
+                            # title="Next alert",
                             n_clicks=0,
                             variant="default",
                             size=36,
@@ -349,19 +346,19 @@ def make_modal_stamps(pdf):
                             label="",
                             placeholder="Select a date",
                             searchable=True,
-                            nothingFound="No options found",
+                            nothingFoundMessage="No options found",
                             id="date_modal_select",
                             value=pdf["v:lastdate"].to_numpy()[0],
                             data=[
                                 {"value": i, "label": i}
                                 for i in pdf["v:lastdate"].to_numpy()
                             ],
-                            zIndex=10000000,
+                            style={"z-index": 10000000},
                         ),
                         dmc.ActionIcon(
                             DashIconify(icon="tabler:chevron-right"),
                             id="stamps_next",
-                            title="Previous alert",
+                            # title="Previous alert",
                             n_clicks=0,
                             variant="default",
                             size=36,
@@ -487,15 +484,16 @@ curl -H "Content-Type: application/json" -X POST \\
         [
             dmc.TabsList(
                 [
-                    dmc.Tab("Python", value="Python"),
-                    dmc.Tab("Curl", value="Curl"),
+                    dmc.TabsTab("Python", value="Python"),
+                    dmc.TabsTab("Curl", value="Curl"),
                 ],
             ),
             dmc.TabsPanel(
-                dmc.Prism(children=python_download, language="python"), value="Python"
+                dmc.CodeHighlight(code=python_download, language="python"),
+                value="Python",
             ),
             dmc.TabsPanel(
-                children=dmc.Prism(children=curl_download, language="bash"),
+                children=dmc.CodeHighlight(code=curl_download, language="bash"),
                 value="Curl",
             ),
         ],
@@ -503,7 +501,8 @@ curl -H "Content-Type: application/json" -X POST \\
         value="Python",
     )
 
-    card = dmc.AccordionMultiple(
+    card = dmc.Accordion(
+        multiple=True,
         children=[
             dmc.AccordionItem(
                 [
@@ -512,7 +511,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:flare",
-                                color=dmc.theme.DEFAULT_COLORS["dark"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["dark"][6],
                                 width=20,
                             ),
                         ],
@@ -535,7 +534,6 @@ curl -H "Content-Type: application/json" -X POST \\
                                         ),
                                     ],
                                     radius="sm",
-                                    p="xs",
                                     shadow="sm",
                                     withBorder=True,
                                     style={"padding": "5px"},
@@ -555,7 +553,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:file-description",
-                                color=dmc.theme.DEFAULT_COLORS["blue"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["blue"][6],
                                 width=20,
                             ),
                         ],
@@ -573,7 +571,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:target",
-                                color=dmc.theme.DEFAULT_COLORS["orange"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["orange"][6],
                                 width=20,
                             ),
                         ],
@@ -581,25 +579,16 @@ curl -H "Content-Type: application/json" -X POST \\
                     dmc.AccordionPanel(
                         [
                             html.Div(id="coordinates"),
-                            dbc.Row(
-                                dbc.Col(
-                                    dmc.ChipGroup(
+                            dmc.Center(
+                                dmc.RadioGroup(
+                                    id="coordinates_chips",
+                                    value="EQU",
+                                    size="sm",
+                                    children=dmc.Group(
                                         [
-                                            dmc.Chip(
-                                                x,
-                                                value=x,
-                                                variant="outline",
-                                                color="orange",
-                                                radius="xl",
-                                                size="sm",
-                                            )
-                                            for x in ["EQU", "GAL"]
-                                        ],
-                                        id="coordinates_chips",
-                                        value="EQU",
-                                        spacing="xl",
-                                        position="center",
-                                        multiple=False,
+                                            dmc.Radio(k, value=k, color="orange")
+                                            for k in ["EQU", "GAL"]
+                                        ]
                                     ),
                                 ),
                             ),
@@ -615,7 +604,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:database-export",
-                                color=dmc.theme.DEFAULT_COLORS["red"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["red"][6],
                                 width=20,
                             ),
                         ],
@@ -630,28 +619,28 @@ curl -H "Content-Type: application/json" -X POST \\
                                             id="download_json",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
-                                            leftIcon=[
-                                                DashIconify(icon="mdi:code-json")
-                                            ],
+                                            size="compact-sm",
+                                            leftSection=DashIconify(
+                                                icon="mdi:code-json"
+                                            ),
                                         ),
                                         dmc.Button(
                                             "CSV",
                                             id="download_csv",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
-                                            leftIcon=[
-                                                DashIconify(icon="mdi:file-csv-outline")
-                                            ],
+                                            size="compact-sm",
+                                            leftSection=DashIconify(
+                                                icon="mdi:file-csv-outline"
+                                            ),
                                         ),
                                         dmc.Button(
                                             "VOTable",
                                             id="download_votable",
                                             variant="outline",
                                             color="indigo",
-                                            compact=True,
-                                            leftIcon=[DashIconify(icon="mdi:xml")],
+                                            size="compact-sm",
+                                            leftSection=DashIconify(icon="mdi:xml"),
                                         ),
                                         help_popover(
                                             [
@@ -682,8 +671,9 @@ curl -H "Content-Type: application/json" -X POST \\
                                             className="d-none",
                                         ),
                                     ],
-                                    position="center",
-                                    spacing="xs",
+                                    align="center",
+                                    justify="center",
+                                    gap="xs",
                                 ),
                             ],
                         ),
@@ -722,7 +712,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:atom-2",
-                                color=dmc.theme.DEFAULT_COLORS["green"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["green"][6],
                                 width=20,
                             ),
                         ],
@@ -745,7 +735,7 @@ curl -H "Content-Type: application/json" -X POST \\
                         icon=[
                             DashIconify(
                                 icon="tabler:share",
-                                color=dmc.theme.DEFAULT_COLORS["gray"][6],
+                                color=dmc.DEFAULT_THEME["colors"]["gray"][6],
                                 width=20,
                             ),
                         ],
@@ -1098,22 +1088,11 @@ def card_id1(object_data, object_uppervalid, object_upper):
         get_first_value(pdf, "i:ra"), get_first_value(pdf, "i:dec"), unit="deg"
     )
 
+    c1 = dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size="lg")
+    c2 = dmc.Title(objectid, order=1, style={"color": "#15284F"})
     card = dmc.Paper(
         [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size="lg"),
-                        width=2,
-                    ),
-                    dbc.Col(
-                        dmc.Title(objectid, order=1, style={"color": "#15284F"}),
-                        width=10,
-                    ),
-                ],
-                justify="start",
-                align="center",
-            ),
+            dmc.Grid([dmc.GridCol(c1, span=2), dmc.GridCol(c2, span=10)], gutter="xl"),
             extra_div,
             html.Div(badges),
             dcc.Markdown(
@@ -1242,11 +1221,13 @@ def card_search_result(row, i):
                     html.A(
                         dmc.Group(
                             [
-                                dmc.Text(f"{name}", weight=700, size=26),
+                                dmc.Text(
+                                    f"{name}", style={"fontWeight": 700, "fontSize": 26}
+                                ),
                                 dmc.Space(w="sm"),
                                 *badges,
                             ],
-                            spacing=3,
+                            gap=3,
                         ),
                         href=f"/{name}",
                         target="_blank",

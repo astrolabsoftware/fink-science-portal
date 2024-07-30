@@ -91,7 +91,7 @@ def timeline_data_transfer(
                         [
                             f"Source: {trans_datasource}",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                 ],
@@ -103,21 +103,21 @@ def timeline_data_transfer(
                         [
                             "Dates: {} - {}".format(*date_range_picker),
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                     dmc.Text(
                         [
                             f"Classe(s): {class_select}",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                     dmc.Text(
                         [
                             f"Conditions: {extra_cond}",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                 ],
@@ -130,7 +130,7 @@ def timeline_data_transfer(
                         [
                             f"Content: {trans_content}",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                 ],
@@ -141,7 +141,7 @@ def timeline_data_transfer(
                         [
                             "Trigger your job!",
                         ],
-                        color="dimmed",
+                        c="dimmed",
                         size="sm",
                     ),
                 ],
@@ -157,12 +157,13 @@ def filter_tab():
     """Section containing filtering options"""
     options = html.Div(
         [
-            dmc.DateRangePicker(
+            dmc.DatePicker(
+                type="range",
                 id="date-range-picker",
                 label="Date Range",
                 description="Pick up start and stop dates (included).",
                 hideOutsideDates=True,
-                amountOfMonths=2,
+                numberOfColumns=2,
                 allowSingleDateInRange=True,
                 required=True,
             ),
@@ -277,10 +278,12 @@ def display_filter_tab(trans_datasource):
                 "Full packet (~55 KB/alert)",
             ]
             values = ["Lightcurve", "Cutouts", "Full packet"]
-            data_content = [
-                dmc.Radio(label=label, value=k, size="sm", color="orange")
-                for label, k in zip(labels, values)
-            ]
+            data_content = dmc.Group(
+                [
+                    dmc.Radio(label=label, value=k, size="sm", color="orange")
+                    for label, k in zip(labels, values)
+                ]
+            )
         elif trans_datasource == "ELASTiCC (v1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -311,10 +314,12 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = [
-                dmc.Radio(label=label, value=k, size="sm", color="orange")
-                for label, k in zip(labels, values)
-            ]
+            data_content = dmc.Group(
+                [
+                    dmc.Radio(label=label, value=k, size="sm", color="orange")
+                    for label, k in zip(labels, values)
+                ]
+            )
         elif trans_datasource == "ELASTiCC (v2.0)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -345,10 +350,12 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = [
-                dmc.Radio(label=label, value=k, size="sm", color="orange")
-                for label, k in zip(labels, values)
-            ]
+            data_content = dmc.Group(
+                [
+                    dmc.Radio(label=label, value=k, size="sm", color="orange")
+                    for label, k in zip(labels, values)
+                ]
+            )
         elif trans_datasource == "ELASTiCC (v2.1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -379,10 +386,12 @@ def display_filter_tab(trans_datasource):
             placeholder = "e.g. diaSource.psFlux > 0.0;"
             labels = ["Full packet (~1.4 KB/alert)"]
             values = ["Full packet"]
-            data_content = [
-                dmc.Radio(label=label, value=k, size="sm", color="orange")
-                for label, k in zip(labels, values)
-            ]
+            data_content = dmc.Group(
+                [
+                    dmc.Radio(label=label, value=k, size="sm", color="orange")
+                    for label, k in zip(labels, values)
+                ]
+            )
 
         return (
             {},
@@ -402,6 +411,7 @@ def content_tab():
             dmc.Space(h=10),
             dmc.Divider(variant="solid", label="Alert content"),
             dmc.RadioGroup(
+                children=[],
                 id="trans_content",
                 label="Choose the content you want to retrieve",
             ),
@@ -630,6 +640,7 @@ def summary_tab(
             [
                 dmc.Space(h=10),
                 dmc.Divider(variant="solid", label="Submit"),
+                dmc.Space(h=10),
                 block,
             ],
         )
@@ -644,7 +655,9 @@ def make_buttons():
                 id="submit_datatransfer",
                 variant="outline",
                 color="indigo",
-                leftIcon=[DashIconify(icon="fluent:database-plug-connected-20-filled")],
+                leftSection=DashIconify(
+                    icon="fluent:database-plug-connected-20-filled"
+                ),
             ),
         ],
     )
@@ -680,13 +693,21 @@ def update_log(n_clicks, batchid):
             )
 
             if "log" in response.json():
+                bad_words = ["Error", "Traceback"]
                 failure_log = [
-                    row for row in response.json()["log"] if "Caused by" in row
+                    row
+                    for row in response.json()["log"]
+                    if np.any([i in row for i in bad_words])
                 ]
                 if len(failure_log) > 0:
+                    initial_traceback = failure_log[0]
+                    log = response.json()["log"]
+                    index = log.index(initial_traceback)
                     failure_msg = [
                         f"Batch ID: {batchid}",
-                        "Failed. Please, contact contact@fink-broker.org with your batch ID.",
+                        "Failed. Please, contact contact@fink-broker.org with your batch ID and the message below.",
+                        "------------- Traceback -------------",
+                        *log[index:],
                     ]
                     output = html.Div(
                         "\n".join(failure_msg), style={"whiteSpace": "pre-wrap"}
@@ -767,7 +788,7 @@ def update_final_accordion1(topic_name):
         out = html.Div(
             [
                 dcc.Markdown(msg, link_target="_blank"),
-                dmc.Prism(children=code_block, language="bash"),
+                dmc.CodeHighlight(code=code_block, language="bash"),
             ],
         )
 
@@ -893,15 +914,17 @@ def query_builder():
         [
             dmc.Divider(variant="solid", label="Data Source"),
             dmc.RadioGroup(
-                [
-                    dmc.Radio(k, value=k, size="sm", color="orange")
-                    for k in [
-                        "ZTF",
-                        "ELASTiCC (v1)",
-                        "ELASTiCC (v2.0)",
-                        "ELASTiCC (v2.1)",
+                children=dmc.Group(
+                    [
+                        dmc.Radio(k, value=k, size="sm", color="orange")
+                        for k in [
+                            "ZTF",
+                            "ELASTiCC (v1)",
+                            "ELASTiCC (v2.0)",
+                            "ELASTiCC (v2.1)",
+                        ]
                     ]
-                ],
+                ),
                 id="trans_datasource",
                 value=None,
                 label="Choose the type of alerts you want to retrieve",
