@@ -560,6 +560,14 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     # reset the limit in case it has been changed above
     client.close()
 
+    pdf = format_hbase_output(
+        results,
+        schema_client,
+        group_alerts=False,
+        truncated=truncated,
+        extract_color=False,
+    )
+
     if "withcutouts" in payload:
         if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
             # Extract cutouts
@@ -579,7 +587,8 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                 }
                 return Response(str(rep), 400)
 
-            # in-place replacement
+            # get all cutouts
+            cutouts = []
             for k, result in results.items():
                 r = requests.post(
                     f"{APIURL}/api/v1/cutouts",
@@ -591,7 +600,8 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                     }
                 )
                 if r.status_code == 200:
-                    results[k].putAll(r.json()[0])
+                    # the result should be unique (based on candid)
+                    cutouts.append(r.json()[0])
                 else:
                     rep = {
                         "status": "error",
@@ -599,13 +609,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                     }
                     return Response(str(rep), 400)
 
-    pdf = format_hbase_output(
-        results,
-        schema_client,
-        group_alerts=False,
-        truncated=truncated,
-        extract_color=False,
-    )
+        pdf["b:cutout{}_stampData".format(cutout_kind)] = cutouts
 
     if "withEphem" in payload:
         if payload["withEphem"] == "True" or payload["withEphem"] is True:
