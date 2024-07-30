@@ -724,7 +724,7 @@ def layout(name):
                     ],
                 ),
             ],
-            # className="bg-opaque-60",
+            className="bg-opaque-60",
         )
         return layout_
     else:
