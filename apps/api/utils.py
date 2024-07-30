@@ -557,6 +557,36 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         truncated=truncated,
         extract_color=False,
     )
+    
+    if "withcutouts" in payload:
+        if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
+            # Extract cutouts
+            client = connect_to_hbase_table("ztf")
+
+            cutout_format = payload.get("cutout-format", "array")
+            if cutout_format not in ["array", "FITS"]:
+                rep = {
+                    "status": "error",
+                    "text": "`cutout-format` must be `array` or `FITS`.\n",
+                }
+                return Response(str(rep), 400) 
+
+            cutout_kind = payload.get("cutout-kind", "Science")
+            if cutout_kind not in ["Science", "Template", "Difference"]:
+                rep = {
+                    "status": "error",
+                    "text": "`cutout-kind` must be Science, Template, or Difference.\n",
+                }
+                return Response(str(rep), 400)
+
+            pdf = extract_cutouts(
+                pdf,
+                client,
+                col="b:cutout{}_stampData".format(cutout_kind),
+                return_type=cutout_format,
+            )
+
+            client.close()
 
     if "withEphem" in payload:
         if payload["withEphem"] == "True" or payload["withEphem"] is True:

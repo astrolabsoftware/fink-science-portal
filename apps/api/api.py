@@ -392,9 +392,24 @@ args_sso = [
         "description": f"Comma-separated data columns to transfer. Default is all columns. See {APIURL}/api/v1/columns for more information.",
     },
     {
+        "name": "withcutouts",
+        "required": False,
+        "description": "If True, retrieve also cutout data. See also `cutout-kind` and `cutout-format`.",
+    },
+    {
+        "name": "cutout-kind",
+        "required": False,
+        "description": "`Science`[default], `Template`, or `Difference`",
+    },
+    {
+        "name": "cutout-format",
+        "required": False,
+        "description": "Cutout format among `array`[default] or `FITS`",
+    },
+    {
         "name": "output-format",
         "required": False,
-        "description": "Output format among json[default], csv, parquet, votable",
+        "description": "Query output format among `json`[default], `csv`, `parquet`, `votable`",
     },
 ]
 
