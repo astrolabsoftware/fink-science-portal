@@ -118,20 +118,13 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
     )
 
     if withcutouts:
-        cutout_format = payload.get("cutout-format", "array")
-        if cutout_format not in ["array", "raw"]:
-            rep = {
-                "status": "error",
-                "text": "`cutout-format` must be `array` or `raw`.\n",
-            }
-            return Response(str(rep), 400)
         # Default `None` returns all 3 cutouts
         cutout_kind = payload.get("cutout-kind", None)
         if cutout_kind is None:
             colname = None
         else:
             colname = "b:cutout{}_stampData".format(cutout_kind)
-        pdf = extract_cutouts(pdf, client, col=colname, return_type=cutout_format)
+        pdf = extract_cutouts(pdf, client, col=colname, return_type="array")
 
     if withupperlim:
         clientU = connect_to_hbase_table("ztf.upper")
@@ -574,14 +567,6 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     if "withcutouts" in payload:
         if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
             # Extract cutouts
-            cutout_format = payload.get("cutout-format", "array")
-            if cutout_format not in ["array", "raw"]:
-                rep = {
-                    "status": "error",
-                    "text": "`cutout-format` must be `array` or `raw`.\n",
-                }
-                return Response(str(rep), 400) 
-
             cutout_kind = payload.get("cutout-kind", "Science")
             if cutout_kind not in ["Science", "Template", "Difference"]:
                 rep = {
@@ -599,7 +584,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                         "objectId": result["i:objectId"],
                         "candid": result["i:candid"],
                         "kind": cutout_kind,
-                        "output-format": cutout_format
+                        "output-format": "array"
                     }
                 )
                 if r.status_code == 200:
