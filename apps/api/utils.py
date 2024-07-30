@@ -119,13 +119,12 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
 
     if withcutouts:
         cutout_format = payload.get("cutout-format", "array")
-        if cutout_format not in ["array", "FITS"]:
+        if cutout_format not in ["array", "raw"]:
             rep = {
                 "status": "error",
-                "text": "`cutout-format` must be `array` or `FITS`.\n",
+                "text": "`cutout-format` must be `array` or `raw`.\n",
             }
             return Response(str(rep), 400)
-
         # Default `None` returns all 3 cutouts
         cutout_kind = payload.get("cutout-kind", None)
         pdf = extract_cutouts(pdf, client, col=cutout_kind, return_type=cutout_format)
@@ -572,10 +571,10 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
             # Extract cutouts
             cutout_format = payload.get("cutout-format", "array")
-            if cutout_format not in ["array", "FITS"]:
+            if cutout_format not in ["array", "raw"]:
                 rep = {
                     "status": "error",
-                    "text": "`cutout-format` must be `array` or `FITS`.\n",
+                    "text": "`cutout-format` must be `array` or `raw`.\n",
                 }
                 return Response(str(rep), 400) 
 
