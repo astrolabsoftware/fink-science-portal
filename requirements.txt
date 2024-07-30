@@ -1,7 +1,7 @@
 about-time==4.2.1
 ads==0.12.3
 aiodns==3.1.1
-aiohttp==3.9.1
+aiohttp==3.9.3
 aiosignal==1.3.1
 alabaster==0.7.16
 alive-progress==3.1.5
@@ -46,7 +46,7 @@ emcee==3.1.4
 faust-cchardet==2.1.19
 fink-filters==3.31
 fink-spins==0.3.7
-fink-utils==0.16.0
+fink-utils==0.17.5
 Flask==3.0.1
 fonttools==4.47.2
 frozenlist==1.4.1
@@ -157,4 +157,4 @@ Werkzeug==3.0.1
 wrapt==1.16.0
 yarl==1.9.4
 zipp==3.17.0
-git+https://github.com/astrolabsoftware/fink-science@5.6.2
+git+https://github.com/astrolabsoftware/fink-science@5.10.0
