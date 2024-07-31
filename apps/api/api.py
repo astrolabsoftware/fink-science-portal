@@ -266,7 +266,12 @@ args_objects = [
     {
         "name": "withcutouts",
         "required": False,
-        "description": "If True, retrieve also uncompressed FITS cutout data (2D array).",
+        "description": "If True, retrieve also cutout data as 2D array. See also `cutout-kind`. More information on the original cutouts at https://irsa.ipac.caltech.edu/data/ZTF/docs/ztf_explanatory_supplement.pdf",
+    },
+    {
+        "name": "cutout-kind",
+        "required": False,
+        "description": "`Science`, `Template`, or `Difference`. If not specified, returned all three.",
     },
     {
         "name": "columns",
@@ -392,9 +397,19 @@ args_sso = [
         "description": f"Comma-separated data columns to transfer. Default is all columns. See {APIURL}/api/v1/columns for more information.",
     },
     {
+        "name": "withcutouts",
+        "required": False,
+        "description": "If True, retrieve also cutout data as 2D array. See also `cutout-kind`. More information on the original cutouts at https://irsa.ipac.caltech.edu/data/ZTF/docs/ztf_explanatory_supplement.pdf",
+    },
+    {
+        "name": "cutout-kind",
+        "required": False,
+        "description": "`Science`[default], `Template`, or `Difference`",
+    },
+    {
         "name": "output-format",
         "required": False,
-        "description": "Output format among json[default], csv, parquet, votable",
+        "description": "Query output format among `json`[default], `csv`, `parquet`, `votable`",
     },
 ]
 
@@ -1285,6 +1300,10 @@ def return_sso(payload=None):
         payload = request.json
 
     pdf = return_sso_pdf(payload)
+
+    # Error propagation
+    if not isinstance(pdf, pd.DataFrame):
+        return pdf
 
     output_format = payload.get("output-format", "json")
     return send_data(pdf, output_format)

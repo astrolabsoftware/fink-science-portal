@@ -118,7 +118,13 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
     )
 
     if withcutouts:
-        pdf = extract_cutouts(pdf, client)
+        # Default `None` returns all 3 cutouts
+        cutout_kind = payload.get("cutout-kind", None)
+        if cutout_kind is None:
+            colname = None
+        else:
+            colname = "b:cutout{}_stampData".format(cutout_kind)
+        pdf = extract_cutouts(pdf, client, col=colname, return_type="array")
 
     if withupperlim:
         clientU = connect_to_hbase_table("ztf.upper")
@@ -558,6 +564,43 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         extract_color=False,
     )
 
+    if "withcutouts" in payload:
+        if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
+            # Extract cutouts
+            cutout_kind = payload.get("cutout-kind", "Science")
+            if cutout_kind not in ["Science", "Template", "Difference"]:
+                rep = {
+                    "status": "error",
+                    "text": "`cutout-kind` must be `Science`, `Difference`, or `Template`.\n",
+                }
+                return Response(str(rep), 400)
+
+            colname = "b:cutout{}_stampData".format(cutout_kind)
+
+            # get all cutouts
+            cutouts = []
+            for result in results.values():
+                r = requests.post(
+                    f"{APIURL}/api/v1/cutouts",
+                    json={
+                        "objectId": result["i:objectId"],
+                        "candid": result["i:candid"],
+                        "kind": cutout_kind,
+                        "output-format": "array",
+                    },
+                )
+                if r.status_code == 200:
+                    # the result should be unique (based on candid)
+                    cutouts.append(r.json()[0][colname])
+                else:
+                    rep = {
+                        "status": "error",
+                        "text": r.content,
+                    }
+                    return Response(str(rep), 400)
+
+            pdf[colname] = cutouts
+
     if "withEphem" in payload:
         if payload["withEphem"] == "True" or payload["withEphem"] is True:
             # We should probably add a timeout
@@ -798,13 +841,14 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             col="b:cutout{}_stampData".format(payload["kind"]),
             return_type="FITS",
         )
-    else:
+    elif output_format in ["PNG", "array"]:
         pdf = extract_cutouts(
             pdf,
             client,
             col="b:cutout{}_stampData".format(payload["kind"]),
             return_type="array",
         )
+
     client.close()
 
     array = pdf["b:cutout{}_stampData".format(payload["kind"])].to_numpy()[0]

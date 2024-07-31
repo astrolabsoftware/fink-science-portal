@@ -22,14 +22,25 @@ import sys
 APIURL = sys.argv[1]
 
 
-def ssosearch(n_or_d="8467", withEphem=False, columns="*", output_format="json"):
+def ssosearch(
+    n_or_d="8467",
+    withEphem=False,
+    withCutouts=False,
+    cutout_kind=None,
+    columns="*",
+    output_format="json",
+):
     """Perform a sso search in the Science Portal using the Fink REST API"""
     payload = {
         "n_or_d": n_or_d,
         "withEphem": withEphem,
+        "withcutouts": withCutouts,
         "columns": columns,
         "output-format": output_format,
     }
+
+    if cutout_kind is not None:
+        payload.update({"cutout-kind": cutout_kind})
 
     r = requests.post("{}/api/v1/sso".format(APIURL), json=payload)
 
@@ -163,6 +174,25 @@ def test_with_ephem_multiple_ssosearch() -> None:
         pdf[m2].to_numpy(),
         pdf2.to_numpy(),
     )
+
+
+def test_withcutouts() -> None:
+    """
+    Examples
+    --------
+    >>> test_withcutouts()
+    """
+    pdf = ssosearch(withCutouts=True)
+
+    assert "b:cutoutScience_stampData" in pdf.columns
+    assert isinstance(pdf["b:cutoutScience_stampData"].to_numpy()[0], list), pdf[
+        "b:cutoutScience_stampData"
+    ]
+
+    pdf = ssosearch(withCutouts=True, cutout_kind="Template")
+
+    assert "b:cutoutTemplate_stampData" in pdf.columns
+    assert isinstance(pdf["b:cutoutTemplate_stampData"].to_numpy()[0], list)
 
 
 if __name__ == "__main__":

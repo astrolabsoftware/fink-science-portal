@@ -517,6 +517,7 @@ wget "https://fink-portal.org/api/v1/sso?n_or_d=8467&output-format=json" -O 8467
 In python, you would use
 
 ```python
+import io
 import requests
 import pandas as pd
 
@@ -630,7 +631,58 @@ r = requests.post(
 )
 ```
 
-Note that the fields should be comma-separated. Unknown field names are ignored.
+Note that the fields should be comma-separated. Unknown field names are ignored. Finally you can query stamps for all alerts using the argument `withcutouts`:
+
+```python
+import requests
+
+# get data for object 8467
+r = requests.post(
+  'https://fink-portal.org/api/v1/sso',
+  json={
+    'n_or_d': '8467',
+    'withcutouts': True,
+    'output-format': 'json'
+  }
+)
+
+# print one cutout
+r.json()[0]["b:cutoutScience_stampData"]
+[[123.70613861, 125.00068665, 129.01676941, ..., 123.77194214,
+  130.44299316, 106.22817993],
+ [121.61331177, 128.18247986, 124.99162292, ..., 115.30529785,
+  129.93824768, 100.24826813],
+ [124.31635284, 134.16503906, 125.13191223, ..., 131.05186462,
+  116.30375671, 102.97401428],
+ ...,
+ [133.20661926, 123.14172363, 121.78632355, ..., 132.95498657,
+  131.95939636, 111.22276306],
+ [129.26271057, 127.34268188, 123.1470108 , ..., 126.02961731,
+  128.23413086, 107.28420258],
+ [126.06323242, 122.42414093, 121.47638702, ..., 129.28106689,
+  131.03790283, 109.95378876]]
+```
+
+![sso_example](https://github.com/user-attachments/assets/ade5fd85-3b75-4281-8933-b2ae62ee53eb)
+
+Note that by default, the `Science` cutouts are downloaded. You can also ask for the `Template` or the `Difference` stamps:
+
+```python
+# get data for object 8467
+r = requests.post(
+  'https://fink-portal.org/api/v1/sso',
+  json={
+    'n_or_d': '8467',
+    'withcutouts': True,
+    'cutout-kind': 'Template',
+    'output-format': 'json'
+  }
+)
+```
+
+Downloading cutouts for SSO is time-consuming, and heavy for the server because (a) data is indexed against `objectId` and not `ssnamenr` and (b) decoding each binary gzipped FITS file has a cost. On average, it takes 0.5 second per alert.
+
+For more information about the ZTF stamps, see https://irsa.ipac.caltech.edu/data/ZTF/docs/ztf_explanatory_supplement.pdf
 """
 
 api_doc_tracklets = """
