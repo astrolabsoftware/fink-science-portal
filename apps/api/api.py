@@ -86,7 +86,7 @@ def layout():
                         children=[
                             dmc.Group(
                                 [
-                                    dmc.Text("API Doc location changed", fw=500),
+                                    dmc.Text("The resource has moved", fw=500),
                                     #dmc.Badge("On Sale", color="pink"),
                                 ],
                                 justify="space-between",
@@ -94,13 +94,13 @@ def layout():
                                 mb="xs",
                             ),
                             dmc.Text(
-                                "The API documentation has moved to be integrated with all the Fink documentation to offer "
+                                "The API documentation has moved and it is now integrated with all the Fink documentation to offer "
                                 "a better experience.",
                                 size="sm",
                                 c="dimmed",
                             ),
                             dmc.Button(
-                                dmc.Anchor("Go to API doc", href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api", c="white"),
+                                dmc.Anchor("Go to API doc", href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api", target="_blank", c="white"),
                                 color="#15284F",
                                 fullWidth=True,
                                 mt="md",
