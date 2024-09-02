@@ -84,30 +84,23 @@ def layout():
                 children=[
                     dmc.Card(
                         children=[
-                            dmc.CardSection(
-                                dmc.Image(
-                                    src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/images/bg-8.png",
-                                    h=160,
-                                    alt="Norway",
-                                )
-                            ),
                             dmc.Group(
                                 [
-                                    dmc.Text("Norway Fjord Adventures", fw=500),
-                                    dmc.Badge("On Sale", color="pink"),
+                                    dmc.Text("API Doc location changed", fw=500),
+                                    #dmc.Badge("On Sale", color="pink"),
                                 ],
                                 justify="space-between",
                                 mt="md",
                                 mb="xs",
                             ),
                             dmc.Text(
-                                "With Fjord Tours you can explore more of the magical fjord landscapes with tours and activities on and "
-                                "around the fjords of Norway",
+                                "The API documentation has moved to be integrated with all the Fink documentation to offer "
+                                "a better experience.",
                                 size="sm",
                                 c="dimmed",
                             ),
                             dmc.Button(
-                                "Book classic tour now",
+                                dmc.Anchor("Go to API doc", href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api"),
                                 color="blue",
                                 fullWidth=True,
                                 mt="md",
