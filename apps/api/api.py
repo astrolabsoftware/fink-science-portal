@@ -1,4 +1,4 @@
-# Copyright 2020-2023 AstroLab Software
+# Copyright 2020-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,7 @@ from apps.api.utils import (
     return_anomalous_objects_pdf,
     return_bayestar_pdf,
     return_explorer_pdf,
+    return_conesearch_pdf,
     return_latests_pdf,
     return_object_pdf,
     return_random_pdf,
@@ -338,6 +339,49 @@ args_explorer = [
         "name": "output-format",
         "required": False,
         "group": None,
+        "description": "Output format among json[default], csv, parquet, votable",
+    },
+]
+
+args_conesearch = [
+    {
+        "name": "ra",
+        "required": True,
+        "description": "Right Ascension",
+    },
+    {
+        "name": "dec",
+        "required": True,
+        "description": "Declination",
+    },
+    {
+        "name": "radius",
+        "required": True,
+        "description": "Conesearch radius in arcsec. Maximum is 36,000 arcseconds (10 degrees).",
+    },
+    {
+        "name": "startdate",
+        "required": False,
+        "description": "[Optional] Starting date in UTC, as either ISO string, JD or MJD.",
+    },
+    {
+        "name": "stopdate",
+        "required": False,
+        "description": "[Optional] Stopping date in UTC, as either ISO string, JD or MJD.",
+    },
+    {
+        "name": "window",
+        "required": False,
+        "description": "[Optional] Time window in days, may be used instead of stopdate",
+    },
+    {
+        "name": "n",
+        "required": False,
+        "description": "Maximal number of alerts to return. Default is 1000.",
+    },
+    {
+        "name": "output-format",
+        "required": False,
         "description": "Output format among json[default], csv, parquet, votable",
     },
 ]
@@ -871,6 +915,43 @@ def query_db(payload=None):
         user_group = None
 
     pdfs = return_explorer_pdf(payload, user_group)
+
+    # Error propagation
+    if isinstance(pdfs, Response):
+        return pdfs
+
+    output_format = payload.get("output-format", "json")
+    return send_data(pdfs, output_format)
+
+
+@api_bp.route("/api/v1/conesearch", methods=["GET"])
+def conesearch_arguments():
+    """Obtain information about performing a conesearch in the Fink database"""
+    if len(request.args) > 0:
+        # POST from query URL
+        return query_db(payload=request.args)
+    else:
+        return jsonify({"args": args_conesearch})
+
+
+@api_bp.route("/api/v1/explorer", methods=["POST"])
+def conesearch(payload=None):
+    """Perform a conesearch in the Fink database"""
+    # get payload from the JSON
+    if payload is None:
+        payload = request.json
+
+    # Check all required args are here
+    required_args = [i["name"] for i in args_conesearch if i["required"] is True]
+    for required_arg in required_args:
+        if required_arg not in payload:
+            rep = {
+                "status": "error",
+                "text": f"A value for `{required_arg}` is required. Use GET to check arguments.\n",
+            }
+            return Response(str(rep), 400)
+
+    pdfs = return_conesearch_pdf(payload)
 
     # Error propagation
     if isinstance(pdfs, Response):
