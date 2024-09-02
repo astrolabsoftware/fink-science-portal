@@ -100,7 +100,7 @@ def layout():
                                 c="dimmed",
                             ),
                             dmc.Button(
-                                dmc.Anchor("Go to API doc", href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api"),
+                                dmc.Anchor("Go to API doc", href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api", color="white"),
                                 color="blue",
                                 fullWidth=True,
                                 mt="md",
