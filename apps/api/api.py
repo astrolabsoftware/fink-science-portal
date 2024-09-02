@@ -803,7 +803,7 @@ def conesearch_arguments():
         return jsonify({"args": args_conesearch})
 
 
-@api_bp.route("/api/v1/explorer", methods=["POST"])
+@api_bp.route("/api/v1/conesearch", methods=["POST"])
 def conesearch(payload=None):
     """Perform a conesearch in the Fink database"""
     # get payload from the JSON
