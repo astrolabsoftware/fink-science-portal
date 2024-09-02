@@ -16,7 +16,6 @@ import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
 import requests
-from dash import dcc
 from fink_spins.ssoft import COLUMNS, COLUMNS_HG, COLUMNS_HG1G2, COLUMNS_SHG1G2
 from fink_utils.xmatch.simbad import get_simbad_labels
 from flask import Blueprint, Response, jsonify, request
