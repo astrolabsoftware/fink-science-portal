@@ -12,33 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
 import requests
-from dash import dcc
 from fink_spins.ssoft import COLUMNS, COLUMNS_HG, COLUMNS_HG1G2, COLUMNS_SHG1G2
 from fink_utils.xmatch.simbad import get_simbad_labels
 from flask import Blueprint, Response, jsonify, request
 
 from app import APIURL
-from apps.api.doc import (
-    api_doc_anomaly,
-    api_doc_bayestar,
-    api_doc_cutout,
-    api_doc_explorer,
-    api_doc_latests,
-    api_doc_object,
-    api_doc_random,
-    api_doc_resolver,
-    api_doc_sso,
-    api_doc_ssocand,
-    api_doc_ssoft,
-    api_doc_stats,
-    api_doc_summary,
-    api_doc_tracklets,
-    api_doc_xmatch,
-)
+
 from apps.api.utils import (
     download_euclid_data,
     format_and_send_cutout,
@@ -76,180 +59,70 @@ def after_request(response):
 
 
 def layout():
-    layout_ = dbc.Container(
-        [
-            dbc.Row(
-                [
-                    dbc.Card(
-                        dbc.CardBody(
-                            dcc.Markdown(api_doc_summary),
-                        ),
-                    ),
-                ],
-                className="mb-4",
-            ),
-            dbc.Tabs(
-                [
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_object),
-                                ),
-                            ),
-                        ],
-                        label="Retrieve object data",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_explorer),
-                                ),
-                            ),
-                        ],
-                        label="Query the database",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_latests),
-                                ),
-                            ),
-                        ],
-                        label="Get latest alerts",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_sso),
-                                ),
-                            ),
-                        ],
-                        label="Solar System objects from MPC",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_ssocand),
-                                ),
-                            ),
-                        ],
-                        label="Candidate Solar System objects",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_ssoft),
-                                ),
-                            ),
-                        ],
-                        label="Solar System object parameters table",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_tracklets),
-                                ),
-                            ),
-                        ],
-                        label="Get Tracklet Objects",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_cutout),
-                                ),
-                            ),
-                        ],
-                        label="Get Image data",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_xmatch),
-                                ),
-                            ),
-                        ],
-                        label="Xmatch",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_bayestar),
-                                ),
-                            ),
-                        ],
-                        label="Gravitational Waves",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_stats),
-                                ),
-                            ),
-                        ],
-                        label="Statistics",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_anomaly),
-                                ),
-                            ),
-                        ],
-                        label="Anomaly detection",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_random),
-                                ),
-                            ),
-                        ],
-                        label="Random objects",
-                        label_style={"color": "#000"},
-                    ),
-                    dbc.Tab(
-                        [
-                            dbc.Card(
-                                dbc.CardBody(
-                                    dcc.Markdown(api_doc_resolver),
-                                ),
-                            ),
-                        ],
-                        label="Name resolver",
-                        label_style={"color": "#000"},
-                    ),
+    layout_ = dmc.MantineProvider(
+        dmc.Container(
+            dmc.Center(
+                style={"height": "100%", "width": "100%"},
+                children=[
+                    dmc.Alert(
+                        "The API documentation moved to https://fink-broker.readthedocs.io. This link will be soon removed.",
+                        title="URL change",
+                        radius="md",
+                    )
                 ],
             ),
-        ],
-        className="api mb-4 mt-4",
-        fluid="lg",
+            fluid=True,
+            className="home",
+        )
     )
+
+    layout_ = dmc.MantineProvider(
+        dmc.Container(
+            dmc.Center(
+                style={"height": "100%", "width": "100%"},
+                children=[
+                    dmc.Card(
+                        children=[
+                            dmc.Group(
+                                [
+                                    dmc.Text("The resource has moved", fw=500),
+                                    # dmc.Badge("On Sale", color="pink"),
+                                ],
+                                justify="space-between",
+                                mt="md",
+                                mb="xs",
+                            ),
+                            dmc.Text(
+                                "The API documentation has moved and it is now integrated with all the Fink documentation to offer "
+                                "a better experience.",
+                                size="sm",
+                                c="dimmed",
+                            ),
+                            dmc.Button(
+                                dmc.Anchor(
+                                    "Go to API doc",
+                                    href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api",
+                                    target="_blank",
+                                    c="white",
+                                ),
+                                color="#15284F",
+                                fullWidth=True,
+                                mt="md",
+                                radius="md",
+                            ),
+                        ],
+                        withBorder=True,
+                        shadow="sm",
+                        radius="md",
+                        w=350,
+                    )
+                ],
+            ),
+            fluid=True,
+            className="home",
+        )
+    )
+
     return layout_
 
 
@@ -929,12 +802,12 @@ def conesearch_arguments():
     """Obtain information about performing a conesearch in the Fink database"""
     if len(request.args) > 0:
         # POST from query URL
-        return query_db(payload=request.args)
+        return conesearch(payload=request.args)
     else:
         return jsonify({"args": args_conesearch})
 
 
-@api_bp.route("/api/v1/explorer", methods=["POST"])
+@api_bp.route("/api/v1/conesearch", methods=["POST"])
 def conesearch(payload=None):
     """Perform a conesearch in the Fink database"""
     # get payload from the JSON
