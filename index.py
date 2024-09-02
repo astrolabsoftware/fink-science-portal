@@ -1984,7 +1984,7 @@ def display_page(pathname, searchurl):
     if pathname == "/about":
         return about.layout, "home"
     elif pathname == "/api":
-        return api.layout(), "home_light"
+        return api.layout(), "home"
     elif pathname == "/stats":
         return statistics.layout(), "home_light"
     elif pathname == "/download":
