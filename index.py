@@ -1821,7 +1821,7 @@ navbar = dmc.AppShellHeader(
                                             "textDecoration": "none",
                                             "color": "gray",
                                         },
-                                        href="/api",
+                                        href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api",
                                         size="sm",
                                     ),
                                     dmc.Anchor(
