@@ -797,7 +797,7 @@ def conesearch_arguments():
     """Obtain information about performing a conesearch in the Fink database"""
     if len(request.args) > 0:
         # POST from query URL
-        return query_db(payload=request.args)
+        return conesearch(payload=request.args)
     else:
         return jsonify({"args": args_conesearch})
 
