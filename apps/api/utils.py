@@ -371,6 +371,7 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
 
     return pdfs
 
+
 def return_conesearch_pdf(payload: dict) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
 

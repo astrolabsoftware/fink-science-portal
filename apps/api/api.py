@@ -86,7 +86,7 @@ def layout():
                             dmc.Group(
                                 [
                                     dmc.Text("The resource has moved", fw=500),
-                                    #dmc.Badge("On Sale", color="pink"),
+                                    # dmc.Badge("On Sale", color="pink"),
                                 ],
                                 justify="space-between",
                                 mt="md",
@@ -99,7 +99,12 @@ def layout():
                                 c="dimmed",
                             ),
                             dmc.Button(
-                                dmc.Anchor("Go to API doc", href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api", target="_blank", c="white"),
+                                dmc.Anchor(
+                                    "Go to API doc",
+                                    href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api",
+                                    target="_blank",
+                                    c="white",
+                                ),
                                 color="#15284F",
                                 fullWidth=True,
                                 mt="md",
