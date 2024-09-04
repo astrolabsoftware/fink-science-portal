@@ -187,19 +187,22 @@ def parse_query(string, timeout=None):
         m = re.match(r"^(\w+)[=:](.*?)$", token)
         if m:
             key = m[1].lower()
-            value = m[2]
-            # Special handling for numbers, possibly ending with d/m/s for degrees etc
-            m = re.match(r'^([+-]?(\d+)(.\d+)?)([dms\'"]?)$', value)
-            if m:
-                value = float(m[1]) if "." in m[1] else int(m[1])
-                if m[4] == "d":
-                    value *= 3600
-                elif m[4] == "m" or m[4] == "'":
-                    value *= 60
-                elif m[4] == "s" or m[4] == '"' or key == "r":
-                    value *= 1
+            if not key.isnumeric():  # avoid the start of a conesearch with HH:MM:SS
+                value = m[2]
+                # Special handling for numbers, possibly ending with d/m/s for degrees etc
+                m = re.match(r'^([+-]?(\d+)(.\d+)?)([dms\'"]?)$', value)
+                if m:
+                    value = float(m[1]) if "." in m[1] else int(m[1])
+                    if m[4] == "d":
+                        value *= 3600
+                    elif m[4] == "m" or m[4] == "'":
+                        value *= 60
+                    elif m[4] == "s" or m[4] == '"' or key == "r":
+                        value *= 1
 
-            query["params"][key] = value
+                query["params"][key] = value
+            else:
+                unparsed.append(token)
 
         else:
             unparsed.append(token)
