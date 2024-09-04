@@ -231,6 +231,9 @@ def parse_query(string, timeout=None):
             ) or re.search(
                 r"^(\d{1,2})[:h](\d{1,2})[:m](\d{1,2}\.?\d*)[s]?\s+([+-])?\s*(\d{1,3})[d:](\d{1,2})[m:](\d{1,2}\.?\d*)[s]?(\s+(\d+\.?\d*))?$",
                 string,
+            ) or re.search(
+                r"^(\d{1,2})[:](\d{1,2})[:](\d{1,2}\.?\d*)?\s+([+-])?\s*(\d{1,3})[:](\d{1,2})[:](\d{1,2}\.?\d*)?(\s+(\d+\.?\d*))?$",
+                string,
             )
             if m:
                 query["params"]["ra"] = (
