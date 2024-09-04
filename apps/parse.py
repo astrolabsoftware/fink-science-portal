@@ -185,7 +185,9 @@ def parse_query(string, timeout=None):
 
         # Try to parse keyword parameters, either as key:value or key=value
         m = re.match(r"^(\w+)[=:](.*?)$", token)
-        if m:
+
+        # avoid the start of a conesearch with HH:MM:SS
+        if m and not m[1].isnumeric():
             key = m[1].lower()
             value = m[2]
             # Special handling for numbers, possibly ending with d/m/s for degrees etc
@@ -200,7 +202,6 @@ def parse_query(string, timeout=None):
                     value *= 1
 
             query["params"][key] = value
-
         else:
             unparsed.append(token)
 
