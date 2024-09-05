@@ -154,12 +154,12 @@ def compare_schema() -> None:
     schema1 = ssoftsearch(schema=True, output_format="json")
 
     # get the schema
-    r = requests.get("https://fink-portal.org/api/v1/ssoft?schema")
+    r = requests.get("{}/api/v1/ssoft?schema".format(APIURL))
     schema2 = r.json()
 
     keys1 = set(schema1["args"].keys())
     keys2 = set(schema2["args"].keys())
-    assert set(keys1) == set(keys2), [set(keys1), set(keys2)]
+    assert keys1 == keys2, [keys1, keys2]
 
 
 if __name__ == "__main__":
