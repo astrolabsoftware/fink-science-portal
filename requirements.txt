@@ -44,7 +44,7 @@ diskcache==5.6.3
 docutils==0.20.1
 emcee==3.1.4
 faust-cchardet==2.1.19
-fink-filters==3.31
+fink-filters==3.35
 fink-spins==0.3.7
 fink-utils==0.23.0
 Flask==3.0.1
