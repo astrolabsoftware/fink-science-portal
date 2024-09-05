@@ -159,7 +159,7 @@ def compare_schema() -> None:
 
     keys1 = set(schema1["args"].keys())
     keys2 = set(schema2["args"].keys())
-    assert keys1 == keys2, [keys1, keys2]
+    assert set(keys1) == set(keys2), [set(keys1), set(keys2)]
 
 
 if __name__ == "__main__":
