@@ -1821,7 +1821,7 @@ navbar = dmc.AppShellHeader(
                                             "textDecoration": "none",
                                             "color": "gray",
                                         },
-                                        href="/api",
+                                        href="https://fink-broker.readthedocs.io/en/latest/services/search/getting_started/#quick-start-api",
                                         size="sm",
                                     ),
                                     dmc.Anchor(
@@ -1984,7 +1984,7 @@ def display_page(pathname, searchurl):
     if pathname == "/about":
         return about.layout, "home"
     elif pathname == "/api":
-        return api.layout(), "home_light"
+        return api.layout(), "home"
     elif pathname == "/stats":
         return statistics.layout(), "home_light"
     elif pathname == "/download":

@@ -140,7 +140,7 @@ def test_schema() -> None:
 
     # check columns
     msg = "Found {} entries in the DataFrame and {} entries in the schema".format(
-        len(pdf), len(schema)
+        len(pdf.columns), len(schema)
     )
     assert set(schema["args"].keys()) == set(pdf.columns), msg
 
@@ -154,7 +154,7 @@ def compare_schema() -> None:
     schema1 = ssoftsearch(schema=True, output_format="json")
 
     # get the schema
-    r = requests.get("https://fink-portal.org/api/v1/ssoft?schema")
+    r = requests.get("{}/api/v1/ssoft?schema".format(APIURL))
     schema2 = r.json()
 
     keys1 = set(schema1["args"].keys())

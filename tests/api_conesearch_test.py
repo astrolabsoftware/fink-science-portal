@@ -1,4 +1,4 @@
-# Copyright 2022 AstroLab Software
+# Copyright 2022-2024 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ def conesearch(
     if startdate is not None:
         payload.update({"startdate": startdate, "window": window})
 
-    r = requests.post("{}/api/v1/explorer".format(APIURL), json=payload)
+    r = requests.post("{}/api/v1/conesearch".format(APIURL), json=payload)
 
     assert r.status_code == 200, r.content
 
@@ -128,7 +128,7 @@ def test_bad_radius_conesearch() -> None:
         "output_format": "json",
     }
 
-    r = requests.post("{}/api/v1/explorer".format(APIURL), json=payload)
+    r = requests.post("{}/api/v1/conesearch".format(APIURL), json=payload)
 
     msg = {
         "status": "error",
@@ -173,7 +173,7 @@ def test_bad_request() -> None:
     """
     payload = {"ra": "kfdlkj", "dec": "lkfdjf", "radius": 5, "output_format": "json"}
 
-    r = requests.post("{}/api/v1/explorer".format(APIURL), json=payload)
+    r = requests.post("{}/api/v1/conesearch".format(APIURL), json=payload)
 
     msg = {
         "status": "error",

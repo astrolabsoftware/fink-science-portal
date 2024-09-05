@@ -372,6 +372,142 @@ def return_explorer_pdf(payload: dict, user_group: int) -> pd.DataFrame:
     return pdfs
 
 
+def return_conesearch_pdf(payload: dict) -> pd.DataFrame:
+    """Extract data returned by HBase and format it in a Pandas dataframe
+
+    Data is from /api/v1/conesearch
+
+    Parameters
+    ----------
+    payload: dict
+        See https://fink-portal.org/api/v1/conesearch
+
+    Return
+    ----------
+    out: pandas dataframe
+    """
+    if "startdate" in payload:
+        jd_start = Time(isoify_time(payload["startdate"])).jd
+    else:
+        jd_start = Time("2019-11-01 00:00:00").jd
+
+    if "stopdate" in payload:
+        jd_stop = Time(isoify_time(payload["stopdate"])).jd
+    elif "window" in payload and "startdate" in payload:
+        window = float(payload["window"])
+        jd_stop = jd_start + window
+    else:
+        jd_stop = Time.now().jd
+
+    n = int(payload.get("n", 1000))
+
+    # Conesearch with optional date range
+    client = connect_to_hbase_table("ztf.pixel128")
+    client.setLimit(n)
+
+    # Interpret user input
+    ra, dec = payload["ra"], payload["dec"]
+    radius = payload["radius"]
+
+    if float(radius) > 18000.0:
+        rep = {
+            "status": "error",
+            "text": "`radius` cannot be bigger than 18,000 arcseconds (5 degrees).\n",
+        }
+        return Response(str(rep), 400)
+
+    try:
+        if "h" in str(ra):
+            coord = SkyCoord(ra, dec, frame="icrs")
+        elif ":" in str(ra) or " " in str(ra):
+            coord = SkyCoord(ra, dec, frame="icrs", unit=(u.hourangle, u.deg))
+        else:
+            coord = SkyCoord(ra, dec, frame="icrs", unit="deg")
+    except ValueError as e:
+        rep = {
+            "status": "error",
+            "text": e,
+        }
+        return Response(str(rep), 400)
+
+    ra = coord.ra.deg
+    dec = coord.dec.deg
+    radius_deg = float(radius) / 3600.0
+
+    # angle to vec conversion
+    vec = hp.ang2vec(np.pi / 2.0 - np.pi / 180.0 * dec, np.pi / 180.0 * ra)
+
+    # Send request
+    nside = 128
+
+    pixs = hp.query_disc(
+        nside,
+        vec,
+        np.pi / 180 * radius_deg,
+        inclusive=True,
+    )
+
+    # Filter by time
+    if "startdate" in payload:
+        client.setRangeScan(True)
+        results = {}
+        for pix in pixs:
+            to_search = f"key:key:{pix}_{jd_start},key:key:{pix}_{jd_stop}"
+            result = client.scan(
+                "",
+                to_search,
+                "*",
+                0,
+                True,
+                True,
+            )
+            results.update(result)
+        client.setRangeScan(False)
+    else:
+        results = {}
+        for pix in pixs:
+            to_search = f"key:key:{pix}_"
+            result = client.scan(
+                "",
+                to_search,
+                "*",
+                0,
+                True,
+                True,
+            )
+            results.update(result)
+
+    schema_client = client.schema()
+
+    client.close()
+
+    pdfs = format_hbase_output(
+        results,
+        schema_client,
+        truncated=True,
+        group_alerts=True,
+        extract_color=False,
+    )
+
+    # For conesearch, sort by distance
+    if len(pdfs) > 0:
+        sep = coord.separation(
+            SkyCoord(
+                pdfs["i:ra"],
+                pdfs["i:dec"],
+                unit="deg",
+            ),
+        ).deg
+
+        pdfs["v:separation_degree"] = sep
+        pdfs = pdfs.sort_values("v:separation_degree", ascending=True)
+
+        mask = pdfs["v:separation_degree"] > radius_deg
+        pdfs = pdfs[~mask]
+
+    return pdfs
+
+
 def return_latests_pdf(payload: dict, return_raw: bool = False) -> pd.DataFrame:
     """Extract data returned by HBase and format it in a Pandas dataframe
 
