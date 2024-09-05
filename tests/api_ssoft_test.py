@@ -140,7 +140,7 @@ def test_schema() -> None:
 
     # check columns
     msg = "Found {} entries in the DataFrame and {} entries in the schema".format(
-        len(pdf), len(schema)
+        len(pdf.columns), len(schema)
     )
     assert set(schema["args"].keys()) == set(pdf.columns), msg
 
