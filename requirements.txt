@@ -46,7 +46,7 @@ emcee==3.1.4
 faust-cchardet==2.1.19
 fink-filters==3.31
 fink-spins==0.3.7
-fink-utils==0.17.5
+fink-utils==0.23.0
 Flask==3.0.1
 fonttools==4.47.2
 frozenlist==1.4.1
