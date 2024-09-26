@@ -998,7 +998,9 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             download_name=filename,
         )
     elif output_format == "ssoFITS":
-        return array
+        return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
+            orient="records"
+        )
     # send the array
     elif output_format == "array":
         return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
