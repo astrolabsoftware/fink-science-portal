@@ -722,7 +722,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                         "objectId": result["i:objectId"],
                         "candid": result["i:candid"],
                         "kind": cutout_kind,
-                        "output-format": "FITS",
+                        "output-format": "ssoFITS",
                     },
                 )
                 if r.status_code == 200:
@@ -997,6 +997,8 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
             as_attachment=True,
             download_name=filename,
         )
+    elif output_format == "ssoFITS":
+        return array
     # send the array
     elif output_format == "array":
         return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
