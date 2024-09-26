@@ -722,7 +722,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                         "objectId": result["i:objectId"],
                         "candid": result["i:candid"],
                         "kind": cutout_kind,
-                        "output-format": "array",
+                        "output-format": "FITS",
                     },
                 )
                 if r.status_code == 200:
