@@ -176,9 +176,8 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 color="indigo",
                                             ),
                                         ),
-                                        # FIXME: is it correct way to get ssnamenr field?..
                                         html.Div(
-                                            str(data.number),
+                                            str(ssnamenr),
                                             id="download_sso_ssnamenr",
                                             className="d-none",
                                         ),
