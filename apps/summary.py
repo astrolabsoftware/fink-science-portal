@@ -17,7 +17,6 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
-import rocks
 import visdcc
 from dash import Input, Output, State, dcc, html, no_update
 from dash.exceptions import PreventUpdate
@@ -613,9 +612,10 @@ def store_query(name):
             pdfsso = pd.DataFrame()
         else:
             # Extract miriade information as well
-            name = rocks.id(payload)[0]
-            if name:
-                pdfsso["i:ssnamenr"] = name
+            # TODO: understand the impact of the two lines below
+            # name = rocks.id(payload)[0]
+            # if name:
+            #    pdfsso["i:ssnamenr"] = name
 
             pdfsso = get_miriade_data(pdfsso, withecl=False)
     else:
