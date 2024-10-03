@@ -22,6 +22,7 @@ from dash_iconify import DashIconify
 
 from app import APIURL, app
 from apps.utils import convert_mpc_type, help_popover, query_mpc
+from astropy.time import Time
 
 AU_TO_M = 149597870700
 
