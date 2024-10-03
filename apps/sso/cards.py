@@ -473,6 +473,8 @@ def card_sso_rocks_params(data):
                     variant="solid",
                     style={"marginTop": 20, "marginBottom": 20},
                 ),
+                "Reference epoch of osculation (JD): None",
+                html.Br(),
                 "a (AU): None",
                 html.Br(),
                 "e: None",
@@ -487,7 +489,7 @@ def card_sso_rocks_params(data):
                 html.Br(),
                 "Orbital period (day): None",
                 html.Br(),
-                "Tisserand parameter: None",
+                "Jupiter Tisserand parameter: None",
                 html.Br(),
             ],
         )
@@ -517,6 +519,7 @@ def card_sso_rocks_params(data):
     Diameter (km): `{data.parameters.physical.diameter.value}`
 
     ###### Dynamical parameters
+    Reference epoch of osculation (JD): `{data.parameters.dynamical.orbital_elements.ref_epoch.value}`
     a (AU): `{semi_major_axis}`
     e: `{data.parameters.dynamical.orbital_elements.eccentricity.value}`
     i (deg): `{data.parameters.dynamical.orbital_elements.inclination.value}`
@@ -524,7 +527,7 @@ def card_sso_rocks_params(data):
     argPeri (deg): `{data.parameters.dynamical.orbital_elements.periapsis_distance.value}`
     Mean motion (deg/day): `{data.parameters.dynamical.orbital_elements.mean_motion.value}`
     Orbital period (day): `{data.parameters.dynamical.orbital_elements.orbital_period.value}`
-    Tisserand parameter: `{data.parameters.dynamical.tisserand_parameters.jupiter.value}`
+    Jupiter Tisserand parameter: `{data.parameters.dynamical.tisserand_parameters.jupiter.value}`
     """
 
     if data.parameters.physical.spin is not None:
