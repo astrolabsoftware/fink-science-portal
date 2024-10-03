@@ -405,6 +405,7 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                 Orbit type: `{}`
 
                 ###### Properties from MPC
+                ref epoch: `{}`
                 number: `{}`
                 period (year): `{}`
                 a (AU): `{}`
@@ -422,6 +423,7 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                 """.format(
                     name,
                     orbit_type,
+                    data["epoch"],
                     data["number"],
                     data["period"],
                     data["semimajor_axis"],
@@ -473,8 +475,6 @@ def card_sso_rocks_params(data):
                     variant="solid",
                     style={"marginTop": 20, "marginBottom": 20},
                 ),
-                "Reference epoch of osculation (JD): None",
-                html.Br(),
                 "a (AU): None",
                 html.Br(),
                 "e: None",
@@ -507,6 +507,12 @@ def card_sso_rocks_params(data):
             data.parameters.dynamical.orbital_elements.semi_major_axis.value
         )
 
+    ref_epoch_jd = data.parameters.dynamical.orbital_elements.ref_epoch.value
+    if ref_epoch_jd is not None:
+        ref_epoch = Time(ref_epoch_jd, format="jd").iso
+    else:
+        ref_epoch = None
+
     text = rf"""
     ##### Name: `{data.name}` / `{data.number}`
     Class: `{data.class_}`
@@ -518,8 +524,7 @@ def card_sso_rocks_params(data):
     Absolute magnitude (mag): `{data.parameters.physical.absolute_magnitude.value}`
     Diameter (km): `{data.parameters.physical.diameter.value}`
 
-    ###### Dynamical parameters
-    Reference epoch of osculation (JD): `{data.parameters.dynamical.orbital_elements.ref_epoch.value}`
+    ###### Dynamical parameters (Reference epoch: `{ref_epoch}`)
     a (AU): `{semi_major_axis}`
     e: `{data.parameters.dynamical.orbital_elements.eccentricity.value}`
     i (deg): `{data.parameters.dynamical.orbital_elements.inclination.value}`
