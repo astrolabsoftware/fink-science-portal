@@ -510,7 +510,7 @@ def card_sso_rocks_params(data):
 
     ref_epoch_jd = data.parameters.dynamical.orbital_elements.ref_epoch.value
     if ref_epoch_jd is not None:
-        ref_epoch = Time(ref_epoch_jd, format="jd").iso
+        ref_epoch = Time(ref_epoch_jd, format="jd").strftime("%Y-%m-%d")
     else:
         ref_epoch = None
 
@@ -525,7 +525,7 @@ def card_sso_rocks_params(data):
     Absolute magnitude (mag): `{data.parameters.physical.absolute_magnitude.value}`
     Diameter (km): `{data.parameters.physical.diameter.value}`
 
-    ###### Dynamical parameters (Reference epoch: `{ref_epoch}`)
+    ###### Dynamical parameters (Reference epoch: {ref_epoch})
     a (AU): `{semi_major_axis}`
     e: `{data.parameters.dynamical.orbital_elements.eccentricity.value}`
     i (deg): `{data.parameters.dynamical.orbital_elements.inclination.value}`
