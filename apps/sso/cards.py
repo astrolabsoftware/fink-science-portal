@@ -525,7 +525,7 @@ def card_sso_rocks_params(data):
     Absolute magnitude (mag): `{data.parameters.physical.absolute_magnitude.value}`
     Diameter (km): `{data.parameters.physical.diameter.value}`
 
-    ###### Dynamical parameters (Reference epoch: {ref_epoch})
+    ###### Dynamical parameters (reference epoch: {ref_epoch})
     a (AU): `{semi_major_axis}`
     e: `{data.parameters.dynamical.orbital_elements.eccentricity.value}`
     i (deg): `{data.parameters.dynamical.orbital_elements.inclination.value}`
