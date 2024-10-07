@@ -26,6 +26,7 @@ def ssosearch(
     n_or_d="8467",
     withEphem=False,
     withCutouts=False,
+    withResiduals=False,
     cutout_kind=None,
     columns="*",
     output_format="json",
@@ -35,6 +36,7 @@ def ssosearch(
         "n_or_d": n_or_d,
         "withEphem": withEphem,
         "withcutouts": withCutouts,
+        "withResiduals": withResiduals,
         "columns": columns,
         "output-format": output_format,
     }
@@ -87,6 +89,19 @@ def test_ephem() -> None:
     assert "Phase" in pdf.columns
 
     assert "SDSS:g" in pdf.columns
+
+
+def test_residuals() -> None:
+    """
+    Examples
+    --------
+    >>> test_residuals()
+    """
+    pdf = ssosearch(withEphem=True, withResiduals=True)
+
+    assert not pdf.empty
+
+    assert "residuals_shg1g2" in pdf.columns, list(pdf.columns)
 
 
 def test_comet() -> None:

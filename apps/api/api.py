@@ -314,6 +314,11 @@ args_sso = [
         "description": "Attach ephemerides provided by the Miriade service (https://ssp.imcce.fr/webservices/miriade/api/ephemcc/), as extra columns in the results.",
     },
     {
+        "name": "withResiduals",
+        "required": False,
+        "description": "Return the residuals `obs - model` using the sHG1G2 phase curve model. The option `withEphem` is required.",
+    },
+    {
         "name": "columns",
         "required": False,
         "description": f"Comma-separated data columns to transfer. Default is all columns. See {APIURL}/api/v1/columns for more information.",

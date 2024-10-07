@@ -49,6 +49,7 @@ from apps.utils import (
     isoify_time,
 )
 from fink_utils.sso.utils import get_miriade_data
+from fink_utils.sso.spins import func_hg1g2_with_spin, estimate_sso_params
 
 
 def return_object_pdf(payload: dict) -> pd.DataFrame:
@@ -733,7 +734,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                         "status": "error",
                         "text": r.content,
                     }
-                    return Response(str(rep), 400)
+                    return Response(str(rep), r.status_code)
 
             pdf[colname] = cutouts
 
@@ -742,6 +743,58 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             # We should probably add a timeout
             # and try/except in case of miriade shutdown
             pdf = get_miriade_data(pdf)
+            if "i:magpsf_red" not in pdf.columns:
+                rep = {
+                    "status": "error",
+                    "text": "We could not obtain the ephemerides information. Check Miriade availabilities.",
+                }
+                return Response(str(rep), 400)
+
+            if "withResiduals" in payload and (payload["withResiduals"] == "True" or payload["withResiduals"] is True):
+                # get phase curve parameters using 
+                # the sHG1G2 model
+                
+                # Phase angle, in radians
+                phase = np.deg2rad(pdf['Phase'].values)
+
+                # Required for sHG1G2
+                ra = np.deg2rad(pdf['i:ra'].values)
+                dec = np.deg2rad(pdf['i:dec'].values)
+                
+                outdic = estimate_sso_params(
+                    magpsf_red=pdf["i:magpsf_red"].to_numpy(),
+                    sigmapsf=pdf["i:sigmapsf"].to_numpy(),
+                    phase=phase,
+                    filters=pdf["i:fid"].to_numpy(),
+                    ra=ra,
+                    dec=dec,
+                    p0=[15.0, 0.15, 0.15, 0.8, np.pi, 0.0],
+                    bounds=(
+                        [0, 0, 0, 3e-1, 0, -np.pi / 2],
+                        [30, 1, 1, 1, 2 * np.pi, np.pi / 2],
+                    ),
+                    model="SHG1G2",
+                    normalise_to_V=False,
+                )
+
+                # per filter construction of the residual
+                pdf["residuals_shg1g2"] = 0.0
+                for filt in np.unique(pdf["i:fid"]):
+                    cond = pdf["i:fid"] == filt
+                    model = func_hg1g2_with_spin(
+                        [
+                            phase[cond], 
+                            ra[cond], 
+                            dec[cond]
+                        ], 
+                        outdic['H_{}'.format(filt)], 
+                        outdic['G1_{}'.format(filt)], 
+                        outdic['G2_{}'.format(filt)],
+                        outdic['R'],
+                        np.deg2rad(outdic['alpha0']),
+                        np.deg2rad(outdic['delta0'])
+                    )
+                    pdf.loc[cond, "residuals_shg1g2"] = pdf.loc[cond, "i:magpsf_red"] - model
 
     return pdf
 
