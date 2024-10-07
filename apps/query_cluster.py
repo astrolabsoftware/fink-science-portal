@@ -492,7 +492,6 @@ def estimate_alert_number_ztf(date_range_picker, class_select):
     if (class_select is not None) and (class_select != []):
         if "allclasses" not in class_select:
             for elem in class_select:
-                elem = int(elem)  # fink-science-portal#650
                 # name correspondance
                 if elem.startswith("(TNS)"):
                     filt = coeffs_per_class["fclass"] == elem
