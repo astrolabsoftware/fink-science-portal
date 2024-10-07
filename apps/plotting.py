@@ -3333,10 +3333,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                 "mode": "markers",
                 "name": "V band",
                 "customdata": list(
-                    zip(
-                        pdf["i:objectId"],
-                        Time(pdf["i:jd"], format="jd").iso
-                    ),
+                    zip(pdf["i:objectId"], Time(pdf["i:jd"], format="jd").iso),
                 ),
                 "hovertemplate": hovertemplate,
                 "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
