@@ -750,17 +750,19 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                 }
                 return Response(str(rep), 400)
 
-            if "withResiduals" in payload and (payload["withResiduals"] == "True" or payload["withResiduals"] is True):
-                # get phase curve parameters using 
+            if "withResiduals" in payload and (
+                payload["withResiduals"] == "True" or payload["withResiduals"] is True
+            ):
+                # get phase curve parameters using
                 # the sHG1G2 model
-                
+
                 # Phase angle, in radians
-                phase = np.deg2rad(pdf['Phase'].values)
+                phase = np.deg2rad(pdf["Phase"].values)
 
                 # Required for sHG1G2
-                ra = np.deg2rad(pdf['i:ra'].values)
-                dec = np.deg2rad(pdf['i:dec'].values)
-                
+                ra = np.deg2rad(pdf["i:ra"].values)
+                dec = np.deg2rad(pdf["i:dec"].values)
+
                 outdic = estimate_sso_params(
                     magpsf_red=pdf["i:magpsf_red"].to_numpy(),
                     sigmapsf=pdf["i:sigmapsf"].to_numpy(),
@@ -782,19 +784,17 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                 for filt in np.unique(pdf["i:fid"]):
                     cond = pdf["i:fid"] == filt
                     model = func_hg1g2_with_spin(
-                        [
-                            phase[cond], 
-                            ra[cond], 
-                            dec[cond]
-                        ], 
-                        outdic['H_{}'.format(filt)], 
-                        outdic['G1_{}'.format(filt)], 
-                        outdic['G2_{}'.format(filt)],
-                        outdic['R'],
-                        np.deg2rad(outdic['alpha0']),
-                        np.deg2rad(outdic['delta0'])
+                        [phase[cond], ra[cond], dec[cond]],
+                        outdic["H_{}".format(filt)],
+                        outdic["G1_{}".format(filt)],
+                        outdic["G2_{}".format(filt)],
+                        outdic["R"],
+                        np.deg2rad(outdic["alpha0"]),
+                        np.deg2rad(outdic["delta0"]),
                     )
-                    pdf.loc[cond, "residuals_shg1g2"] = pdf.loc[cond, "i:magpsf_red"] - model
+                    pdf.loc[cond, "residuals_shg1g2"] = (
+                        pdf.loc[cond, "i:magpsf_red"] - model
+                    )
 
     return pdf
 
