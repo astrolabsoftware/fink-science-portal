@@ -3020,7 +3020,7 @@ def draw_sso_astrometry(pdf) -> dict:
     <b>objectId</b>: %{customdata[0]}<br>
     <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>mjd</b>: %{customdata[1]}
+    <b>Observation date</b>: %{customdata[1]}
     <extra></extra>
     """
     diff_g = {
@@ -3031,7 +3031,7 @@ def draw_sso_astrometry(pdf) -> dict:
         "customdata": list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 1],
-                pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
+                Time(pdf["i:jd"][pdf["i:fid"] == 1], format="jd").iso,
             ),
         ),
         "hovertemplate": hovertemplate,
@@ -3046,7 +3046,7 @@ def draw_sso_astrometry(pdf) -> dict:
         "customdata": list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 2],
-                pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
+                Time(pdf["i:jd"][pdf["i:fid"] == 2], format="jd").iso,
             ),
         ),
         "hovertemplate": hovertemplate,
@@ -3112,7 +3112,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
     <b>objectId</b>: %{customdata[0]}<br>
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>mjd</b>: %{customdata[1]}
+    <b>Observation date</b>: %{customdata[1]}
     <extra></extra>
     """
 
@@ -3224,7 +3224,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                     "customdata": list(
                         zip(
                             pdf.loc[cond, "i:objectId"],
-                            pdf.loc[cond, "i:jd"] - 2400000.5,
+                            Time(pdf.loc[cond, "i:jd"], format="jd").iso,
                         ),
                     ),
                     "hovertemplate": hovertemplate,
@@ -3333,10 +3333,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                 "mode": "markers",
                 "name": "V band",
                 "customdata": list(
-                    zip(
-                        pdf["i:objectId"],
-                        pdf["i:jd"] - 2400000.5,
-                    ),
+                    zip(pdf["i:objectId"], Time(pdf["i:jd"], format="jd").iso),
                 ),
                 "hovertemplate": hovertemplate,
                 "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
@@ -4345,7 +4342,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
     <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>mjd</b>: %{customdata}
+    <b>Observation date</b>: %{customdata}
     <extra></extra>
     """
     diff_g = {
@@ -4353,7 +4350,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         "y": deltaDEC[pdf["i:fid"] == 1],
         "mode": "markers",
         "name": "g band",
-        "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
+        "customdata": Time(pdf["i:jd"][pdf["i:fid"] == 1], format="jd").iso,
         "hovertemplate": hovertemplate,
         "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
     }
@@ -4363,7 +4360,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         "y": deltaDEC[pdf["i:fid"] == 2],
         "mode": "markers",
         "name": "r band",
-        "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
+        "customdata": Time(pdf["i:jd"][pdf["i:fid"] == 2], format="jd").iso,
         "hovertemplate": hovertemplate,
         "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
     }

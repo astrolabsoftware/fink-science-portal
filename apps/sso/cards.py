@@ -22,6 +22,7 @@ from dash_iconify import DashIconify
 
 from app import APIURL, app
 from apps.utils import convert_mpc_type, help_popover, query_mpc
+from astropy.time import Time
 
 AU_TO_M = 149597870700
 
@@ -405,6 +406,7 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                 Orbit type: `{}`
 
                 ###### Properties from MPC
+                ref epoch: `{}`
                 number: `{}`
                 period (year): `{}`
                 a (AU): `{}`
@@ -422,6 +424,7 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                 """.format(
                     name,
                     orbit_type,
+                    data["epoch"],
                     data["number"],
                     data["period"],
                     data["semimajor_axis"],
@@ -487,7 +490,7 @@ def card_sso_rocks_params(data):
                 html.Br(),
                 "Orbital period (day): None",
                 html.Br(),
-                "Tisserand parameter: None",
+                "Jupiter Tisserand parameter: None",
                 html.Br(),
             ],
         )
@@ -505,6 +508,12 @@ def card_sso_rocks_params(data):
             data.parameters.dynamical.orbital_elements.semi_major_axis.value
         )
 
+    ref_epoch_jd = data.parameters.dynamical.orbital_elements.ref_epoch.value
+    if ref_epoch_jd is not None:
+        ref_epoch = Time(ref_epoch_jd, format="jd").strftime("%Y-%m-%d")
+    else:
+        ref_epoch = None
+
     text = rf"""
     ##### Name: `{data.name}` / `{data.number}`
     Class: `{data.class_}`
@@ -516,7 +525,7 @@ def card_sso_rocks_params(data):
     Absolute magnitude (mag): `{data.parameters.physical.absolute_magnitude.value}`
     Diameter (km): `{data.parameters.physical.diameter.value}`
 
-    ###### Dynamical parameters
+    ###### Dynamical parameters (reference epoch: {ref_epoch})
     a (AU): `{semi_major_axis}`
     e: `{data.parameters.dynamical.orbital_elements.eccentricity.value}`
     i (deg): `{data.parameters.dynamical.orbital_elements.inclination.value}`
@@ -524,7 +533,7 @@ def card_sso_rocks_params(data):
     argPeri (deg): `{data.parameters.dynamical.orbital_elements.periapsis_distance.value}`
     Mean motion (deg/day): `{data.parameters.dynamical.orbital_elements.mean_motion.value}`
     Orbital period (day): `{data.parameters.dynamical.orbital_elements.orbital_period.value}`
-    Tisserand parameter: `{data.parameters.dynamical.tisserand_parameters.jupiter.value}`
+    Jupiter Tisserand parameter: `{data.parameters.dynamical.tisserand_parameters.jupiter.value}`
     """
 
     if data.parameters.physical.spin is not None:
