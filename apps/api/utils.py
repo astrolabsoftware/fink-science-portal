@@ -718,17 +718,19 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
 
         # search all ssnamenr corresponding quaero -> ssnamenr
         if isinstance(sso_name, str):
+            new_ssnamenrs = resolve_sso_name_to_ssnamenr(sso_name)
             ssnamenrs = np.concatenate(
-                (ssnamenrs, resolve_sso_name_to_ssnamenr(sso_name))
+                (ssnamenrs, new_ssnamenrs)
             )
         else:
+            new_ssnamenrs = resolve_sso_name_to_ssnamenr(sso_number)
             ssnamenrs = np.concatenate(
-                (ssnamenrs, resolve_sso_name_to_ssnamenr(sso_number))
+                (ssnamenrs, new_ssnamenrs)
             )
 
-        for ssnamenr in ssnamenrs:
-            ssnamenr_to_sso_name[ssnamenr] = sso_name
-            ssnamenr_to_sso_number[ssnamenr] = sso_number
+        for ssnamenr_ in new_ssnamenrs:
+            ssnamenr_to_sso_name[ssnamenr_] = sso_name
+            ssnamenr_to_sso_number[ssnamenr_] = sso_number
 
     # Get data from the main table
     client = connect_to_hbase_table("ztf.ssnamenr")
