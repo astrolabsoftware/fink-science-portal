@@ -908,10 +908,16 @@ def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
             )
 
         if output == "json":
+            if r.status_code != 200:
+                return []
             return r.json()
         elif output == "raw":
+            if r.status_code != 200:
+                return io.BytesIO()
             return io.BytesIO(r.content)
         else:
+            if r.status_code != 200:
+                return pd.DataFrame()
             return pd.read_json(io.BytesIO(r.content), **kwargs)
 
 

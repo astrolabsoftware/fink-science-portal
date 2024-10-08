@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 import requests
 import yaml
+
 from astropy.coordinates import SkyCoord
 from astropy.io import fits, votable
 from astropy.table import Table
@@ -48,7 +49,9 @@ from apps.utils import (
     hbase_type_converter,
     isoify_time,
 )
+from apps.sso.utils import resolve_sso_name, resolve_sso_name_to_ssnamenr
 from fink_utils.sso.utils import get_miriade_data
+from fink_utils.sso.spins import func_hg1g2_with_spin, estimate_sso_params
 
 
 def return_object_pdf(payload: dict) -> pd.DataFrame:
@@ -660,26 +663,78 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     else:
         truncated = True
 
+    with_ephem, with_residuals, with_cutouts = False, False, False
+    if "withResiduals" in payload and (
+        payload["withResiduals"] == "True" or payload["withResiduals"] is True
+    ):
+        with_residuals = True
+        with_ephem = True
+    if "withEphem" in payload and (
+        payload["withEphem"] == "True" or payload["withEphem"] is True
+    ):
+        with_ephem = True
+    if "withcutouts" in payload and (
+        payload["withcutouts"] == "True" or payload["withcutouts"] is True
+    ):
+        with_cutouts = True
+
     n_or_d = str(payload["n_or_d"])
 
     if "," in n_or_d:
-        # multi-objects search
-        splitids = n_or_d.replace(" ", "").split(",")
-
-        # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = [f"key:key:{i.strip()}_" for i in splitids]
+        ids = n_or_d.replace(" ", "").split(",")
+        multiple_objects = True
     else:
-        # single object search
-        # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = ["key:key:{}_".format(n_or_d.replace(" ", ""))]
+        ids = [n_or_d.replace(" ", "")]
+        multiple_objects = False
+
+    # We cannot do multi-object and phase curve computation
+    if multiple_objects and with_residuals:
+        rep = {
+            "status": "error",
+            "text": "You cannot request residuals for a list object names.\n",
+        }
+        return Response(str(rep), 400)
+
+    # Get all ssnamenrs
+    ssnamenrs = []
+    ssnamenr_to_sso_name = {}
+    ssnamenr_to_sso_number = {}
+    for id_ in ids:
+        if id_.startswith("C/") or id_.endswith("P"):
+            sso_name = id_
+            sso_number = None
+        else:
+            # resolve the name of asteroids using rocks
+            sso_name, sso_number = resolve_sso_name(id_)
+
+        if not isinstance(sso_number, int) and not isinstance(sso_name, str):
+            rep = {
+                "status": "error",
+                "text": "{} is not a valid name or number according to quaero.\n".format(
+                    n_or_d
+                ),
+            }
+            return Response(str(rep), 400)
+
+        # search all ssnamenr corresponding quaero -> ssnamenr
+        if isinstance(sso_name, str):
+            new_ssnamenrs = resolve_sso_name_to_ssnamenr(sso_name)
+            ssnamenrs = np.concatenate((ssnamenrs, new_ssnamenrs))
+        else:
+            new_ssnamenrs = resolve_sso_name_to_ssnamenr(sso_number)
+            ssnamenrs = np.concatenate((ssnamenrs, new_ssnamenrs))
+
+        for ssnamenr_ in new_ssnamenrs:
+            ssnamenr_to_sso_name[ssnamenr_] = sso_name
+            ssnamenr_to_sso_number[ssnamenr_] = sso_number
 
     # Get data from the main table
     client = connect_to_hbase_table("ztf.ssnamenr")
     results = {}
-    for to_evaluate in names:
+    for to_evaluate in ssnamenrs:
         result = client.scan(
             "",
-            to_evaluate,
+            f"key:key:{to_evaluate}_",
             cols,
             0,
             True,
@@ -700,48 +755,98 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         extract_color=False,
     )
 
-    if "withcutouts" in payload:
-        if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
-            # Extract cutouts
-            cutout_kind = payload.get("cutout-kind", "Science")
-            if cutout_kind not in ["Science", "Template", "Difference"]:
+    # Propagate name and number
+    pdf["sso_name"] = pdf["i:ssnamenr"].apply(lambda x: ssnamenr_to_sso_name[x])
+    pdf["sso_number"] = pdf["i:ssnamenr"].apply(lambda x: ssnamenr_to_sso_number[x])
+
+    if with_cutouts:
+        # Extract cutouts
+        cutout_kind = payload.get("cutout-kind", "Science")
+        if cutout_kind not in ["Science", "Template", "Difference"]:
+            rep = {
+                "status": "error",
+                "text": "`cutout-kind` must be `Science`, `Difference`, or `Template`.\n",
+            }
+            return Response(str(rep), 400)
+
+        colname = "b:cutout{}_stampData".format(cutout_kind)
+
+        # get all cutouts
+        cutouts = []
+        for result in results.values():
+            r = requests.post(
+                f"{APIURL}/api/v1/cutouts",
+                json={
+                    "objectId": result["i:objectId"],
+                    "candid": result["i:candid"],
+                    "kind": cutout_kind,
+                    "output-format": "array",
+                },
+            )
+            if r.status_code == 200:
+                # the result should be unique (based on candid)
+                cutouts.append(r.json()[0][colname])
+            else:
                 rep = {
                     "status": "error",
-                    "text": "`cutout-kind` must be `Science`, `Difference`, or `Template`.\n",
+                    "text": r.content,
                 }
-                return Response(str(rep), 400)
+                return Response(str(rep), r.status_code)
 
-            colname = "b:cutout{}_stampData".format(cutout_kind)
+        pdf[colname] = cutouts
 
-            # get all cutouts
-            cutouts = []
-            for result in results.values():
-                r = requests.post(
-                    f"{APIURL}/api/v1/cutouts",
-                    json={
-                        "objectId": result["i:objectId"],
-                        "candid": result["i:candid"],
-                        "kind": cutout_kind,
-                        "output-format": "array",
-                    },
-                )
-                if r.status_code == 200:
-                    # the result should be unique (based on candid)
-                    cutouts.append(r.json()[0][colname])
-                else:
-                    rep = {
-                        "status": "error",
-                        "text": r.content,
-                    }
-                    return Response(str(rep), 400)
+    if with_ephem:
+        # We should probably add a timeout
+        # and try/except in case of miriade shutdown
+        pdf = get_miriade_data(pdf, sso_colname="sso_name")
+        if "i:magpsf_red" not in pdf.columns:
+            rep = {
+                "status": "error",
+                "text": "We could not obtain the ephemerides information. Check Miriade availabilities.",
+            }
+            return Response(str(rep), 400)
 
-            pdf[colname] = cutouts
+    if with_residuals:
+        # get phase curve parameters using
+        # the sHG1G2 model
 
-    if "withEphem" in payload:
-        if payload["withEphem"] == "True" or payload["withEphem"] is True:
-            # We should probably add a timeout
-            # and try/except in case of miriade shutdown
-            pdf = get_miriade_data(pdf)
+        # Phase angle, in radians
+        phase = np.deg2rad(pdf["Phase"].values)
+
+        # Required for sHG1G2
+        ra = np.deg2rad(pdf["i:ra"].values)
+        dec = np.deg2rad(pdf["i:dec"].values)
+
+        outdic = estimate_sso_params(
+            magpsf_red=pdf["i:magpsf_red"].to_numpy(),
+            sigmapsf=pdf["i:sigmapsf"].to_numpy(),
+            phase=phase,
+            filters=pdf["i:fid"].to_numpy(),
+            ra=ra,
+            dec=dec,
+            p0=[15.0, 0.15, 0.15, 0.8, np.pi, 0.0],
+            bounds=(
+                [0, 0, 0, 3e-1, 0, -np.pi / 2],
+                [30, 1, 1, 1, 2 * np.pi, np.pi / 2],
+            ),
+            model="SHG1G2",
+            normalise_to_V=False,
+        )
+
+        # per filter construction of the residual
+        pdf["residuals_shg1g2"] = 0.0
+        for filt in np.unique(pdf["i:fid"]):
+            cond = pdf["i:fid"] == filt
+            model = func_hg1g2_with_spin(
+                [phase[cond], ra[cond], dec[cond]],
+                outdic["H_{}".format(filt)],
+                outdic["G1_{}".format(filt)],
+                outdic["G2_{}".format(filt)],
+                outdic["R"],
+                np.deg2rad(outdic["alpha0"]),
+                np.deg2rad(outdic["delta0"]),
+            )
+            pdf.loc[cond, "residuals_shg1g2"] = pdf.loc[cond, "i:magpsf_red"] - model
 
     return pdf
 

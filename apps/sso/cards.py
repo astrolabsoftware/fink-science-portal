@@ -70,6 +70,7 @@ r = requests.post(
     json={{
         'n_or_d': '{ssnamenr}',
         'withEphem': True,
+        'withResiduals': True,
         'output-format': 'json'
     }}
 )
