@@ -50,6 +50,7 @@ from apps.utils import (
     hbase_type_converter,
     isoify_time,
 )
+from apps.sso.utils import resolve_sso_name, resolve_sso_name_to_ssnamenr
 from fink_utils.sso.utils import get_miriade_data
 from fink_utils.sso.spins import func_hg1g2_with_spin, estimate_sso_params
 
@@ -674,9 +675,9 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     ssnamenrs = []
     for id_ in ids:
         # resolve the name using rocks
-        sso_name, sso_number = resolve_sso_name(ids)
+        sso_name, sso_number = resolve_sso_name(id_)
 
-        if np.isnan(number) and np.isnan(name):
+        if not isinstance(sso_number, str) and not isinstance(sso_name, str):
             rep = {
                 "status": "error",
                 "text": "{} is not a valid name or number according to quaero.\n".format(n_or_d),
@@ -684,9 +685,9 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             return Response(str(rep), 400)
 
         # search all ssnamenr corresponding quaero -> ssnamenr
-        if not np.isnan(sso_name):
+        if isinstance(sso_name, str):
             ssnamenrs = np.concatenate((ssnamenrs, resolve_sso_name_to_ssnamenr(sso_name)))
-        elif not np.isnan(sso_number):
+        else:
             ssnamenrs = np.concatenate((ssnamenrs, resolve_sso_name_to_ssnamenr(sso_number)))
 
     # Get data from the main table
