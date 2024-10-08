@@ -22,7 +22,6 @@ import numpy as np
 import pandas as pd
 import requests
 import yaml
-import rocks
 
 from astropy.coordinates import SkyCoord
 from astropy.io import fits, votable
@@ -699,21 +698,30 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     ssnamenr_to_sso_name = {}
     ssnamenr_to_sso_number = {}
     for id_ in ids:
-        # resolve the name using rocks
-        sso_name, sso_number = resolve_sso_name(id_)
+        if not id_.startswith("C/") or not id_.endswith("P"):
+            # resolve the name of asteroids using rocks
+            sso_name, sso_number = resolve_sso_name(id_)
+        else:
+            sso_name = id_
 
         if not isinstance(sso_number, str) and not isinstance(sso_name, str):
             rep = {
                 "status": "error",
-                "text": "{} is not a valid name or number according to quaero.\n".format(n_or_d),
+                "text": "{} is not a valid name or number according to quaero.\n".format(
+                    n_or_d
+                ),
             }
             return Response(str(rep), 400)
 
         # search all ssnamenr corresponding quaero -> ssnamenr
         if isinstance(sso_name, str):
-            ssnamenrs = np.concatenate((ssnamenrs, resolve_sso_name_to_ssnamenr(sso_name)))
+            ssnamenrs = np.concatenate(
+                (ssnamenrs, resolve_sso_name_to_ssnamenr(sso_name))
+            )
         else:
-            ssnamenrs = np.concatenate((ssnamenrs, resolve_sso_name_to_ssnamenr(sso_number)))
+            ssnamenrs = np.concatenate(
+                (ssnamenrs, resolve_sso_name_to_ssnamenr(sso_number))
+            )
 
         for ssnamenr in ssnamenrs:
             ssnamenr_to_sso_name[ssnamenr] = sso_name
@@ -837,9 +845,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                 np.deg2rad(outdic["alpha0"]),
                 np.deg2rad(outdic["delta0"]),
             )
-            pdf.loc[cond, "residuals_shg1g2"] = (
-                pdf.loc[cond, "i:magpsf_red"] - model
-            )
+            pdf.loc[cond, "residuals_shg1g2"] = pdf.loc[cond, "i:magpsf_red"] - model
 
     return pdf
 
