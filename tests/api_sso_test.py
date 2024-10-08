@@ -30,6 +30,7 @@ def ssosearch(
     cutout_kind=None,
     columns="*",
     output_format="json",
+    expected_status=200,
 ):
     """Perform a sso search in the Science Portal using the Fink REST API"""
     payload = {
@@ -46,15 +47,18 @@ def ssosearch(
 
     r = requests.post("{}/api/v1/sso".format(APIURL), json=payload)
 
-    assert r.status_code == 200, r.content
+    assert r.status_code == expected_status, r.content
 
-    if output_format == "json":
-        # Format output in a DataFrame
-        pdf = pd.read_json(io.BytesIO(r.content))
-    elif output_format == "csv":
-        pdf = pd.read_csv(io.BytesIO(r.content))
-    elif output_format == "parquet":
-        pdf = pd.read_parquet(io.BytesIO(r.content))
+    if r.status_code == 200:
+        if output_format == "json":
+            # Format output in a DataFrame
+            pdf = pd.read_json(io.BytesIO(r.content))
+        elif output_format == "csv":
+            pdf = pd.read_csv(io.BytesIO(r.content))
+        elif output_format == "parquet":
+            pdf = pd.read_parquet(io.BytesIO(r.content))
+    else:
+        pdf = pd.DataFrame()
 
     return pdf
 
@@ -82,13 +86,23 @@ def test_ephem() -> None:
     --------
     >>> test_ephem()
     """
-    pdf = ssosearch(withEphem=True)
+    names = [
+        "8467",
+        "BenoitCarry",
+        "JulienPeloton",
+        "Phaethon",
+        3200,
+        "Lucretia",
+        269
+    ]
+    for name in names:
+        pdf = ssosearch(n_or_d=name, withEphem=True)
 
-    assert not pdf.empty
+        assert not pdf.empty
 
-    assert "Phase" in pdf.columns
+        assert "Phase" in pdf.columns
 
-    assert "SDSS:g" in pdf.columns
+        assert "SDSS:g" in pdf.columns
 
 
 def test_residuals() -> None:
@@ -97,11 +111,15 @@ def test_residuals() -> None:
     --------
     >>> test_residuals()
     """
-    pdf = ssosearch(withEphem=True, withResiduals=True)
+    pdf = ssosearch(withResiduals=True)
 
     assert not pdf.empty
 
     assert "residuals_shg1g2" in pdf.columns, list(pdf.columns)
+
+    pdf = ssosearch("33803,8467", withResiduals=True, expected_status=400)
+
+    assert pdf.empty
 
 
 def test_comet() -> None:
@@ -125,15 +143,25 @@ def test_temp_designation() -> None:
     --------
     >>> test_temp_designation()
     """
-    pdf_noephem = ssosearch(n_or_d="2010 JO69", withEphem=False)
     pdf_ephem = ssosearch(n_or_d="2010 JO69", withEphem=True)
 
-    assert not pdf_noephem.empty
     assert not pdf_ephem.empty
 
-    assert "Phase" not in pdf_ephem.columns
+    assert "Phase" in pdf_ephem.columns
 
-    assert "SDSS:g" not in pdf_ephem.columns
+    assert "SDSS:g" in pdf_ephem.columns
+
+
+def test_multiple_sso_names() -> None:
+    """
+    Examples
+    --------
+    >>> test_multiple_sso_names()
+    """
+    pdf = ssosearch(n_or_d="624188")
+
+    assert len(pdf["sso_name"].unique()) == 1, pdf["sso_name"].unique()
+    assert len(pdf["i:ssnamenr"].unique()) == 3, pdf["i:ssnamenr"].unique()
 
 
 def test_bad_request() -> None:
@@ -142,7 +170,7 @@ def test_bad_request() -> None:
     --------
     >>> test_bad_request()
     """
-    pdf = ssosearch(n_or_d="kdflsjffld")
+    pdf = ssosearch(n_or_d="kdflsjffld", expected_status=400)
 
     assert pdf.empty
 
@@ -159,6 +187,8 @@ def test_multiple_ssosearch() -> None:
 
     assert len(pdf.groupby("i:ssnamenr").count()) == 2
 
+    assert len(pdf.groupby("sso_name").count()) == 2
+
 
 def test_with_ephem_multiple_ssosearch() -> None:
     """
@@ -169,6 +199,8 @@ def test_with_ephem_multiple_ssosearch() -> None:
     pdf = ssosearch(n_or_d="8467,1922", withEphem=True)
 
     assert len(pdf.groupby("i:ssnamenr").count()) == 2
+    assert len(pdf.groupby("sso_name").count()) == 2
+    assert len(pdf.groupby("sso_number").count()) == 2
 
     assert 8467 in np.unique(pdf["i:ssnamenr"].to_numpy())
     assert 1922 in np.unique(pdf["i:ssnamenr"].to_numpy())

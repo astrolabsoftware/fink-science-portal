@@ -702,7 +702,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     for id_ in ids:
         if id_.startswith("C/") or id_.endswith("P"):
             sso_name = id_
-            sso_number = None 
+            sso_number = None
         else:
             # resolve the name of asteroids using rocks
             sso_name, sso_number = resolve_sso_name(id_)
@@ -719,14 +719,10 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         # search all ssnamenr corresponding quaero -> ssnamenr
         if isinstance(sso_name, str):
             new_ssnamenrs = resolve_sso_name_to_ssnamenr(sso_name)
-            ssnamenrs = np.concatenate(
-                (ssnamenrs, new_ssnamenrs)
-            )
+            ssnamenrs = np.concatenate((ssnamenrs, new_ssnamenrs))
         else:
             new_ssnamenrs = resolve_sso_name_to_ssnamenr(sso_number)
-            ssnamenrs = np.concatenate(
-                (ssnamenrs, new_ssnamenrs)
-            )
+            ssnamenrs = np.concatenate((ssnamenrs, new_ssnamenrs))
 
         for ssnamenr_ in new_ssnamenrs:
             ssnamenr_to_sso_name[ssnamenr_] = sso_name
