@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 import requests
 import yaml
+import rocks
+
 from astropy.coordinates import SkyCoord
 from astropy.io import fits, votable
 from astropy.table import Table
@@ -664,23 +666,36 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     n_or_d = str(payload["n_or_d"])
 
     if "," in n_or_d:
-        # multi-objects search
-        splitids = n_or_d.replace(" ", "").split(",")
-
-        # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = [f"key:key:{i.strip()}_" for i in splitids]
+        ids = n_or_d.replace(" ", "").split(",")
     else:
-        # single object search
-        # Note the trailing _ to avoid mixing e.g. 91 and 915 in the same query
-        names = ["key:key:{}_".format(n_or_d.replace(" ", ""))]
+        ids = [n_or_d.replace(" ", "")]
+
+    # Get all ssnamenrs
+    ssnamenrs = []
+    for id_ in ids:
+        # resolve the name using rocks
+        sso_name, sso_number = resolve_sso_name(ids)
+
+        if np.isnan(number) and np.isnan(name):
+            rep = {
+                "status": "error",
+                "text": "{} is not a valid name or number according to quaero.\n".format(n_or_d),
+            }
+            return Response(str(rep), 400)
+
+        # search all ssnamenr corresponding quaero -> ssnamenr
+        if not np.isnan(sso_name):
+            ssnamenrs = np.concatenate((ssnamenrs, resolve_sso_name_to_ssnamenr(sso_name)))
+        elif not np.isnan(sso_number):
+            ssnamenrs = np.concatenate((ssnamenrs, resolve_sso_name_to_ssnamenr(sso_number)))
 
     # Get data from the main table
     client = connect_to_hbase_table("ztf.ssnamenr")
     results = {}
-    for to_evaluate in names:
+    for to_evaluate in ssnamenrs:
         result = client.scan(
             "",
-            to_evaluate,
+            f"key:key:{to_evaluate}_",
             cols,
             0,
             True,
@@ -742,7 +757,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         if payload["withEphem"] == "True" or payload["withEphem"] is True:
             # We should probably add a timeout
             # and try/except in case of miriade shutdown
-            pdf = get_miriade_data(pdf)
+            pdf = get_miriade_data(pdf, sso_colname="sso_name")
             if "i:magpsf_red" not in pdf.columns:
                 rep = {
                     "status": "error",

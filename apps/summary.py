@@ -612,12 +612,11 @@ def store_query(name):
             pdfsso = pd.DataFrame()
         else:
             # Extract miriade information as well
-            # TODO: understand the impact of the two lines below
-            # name = rocks.id(payload)[0]
-            # if name:
-            #    pdfsso["i:ssnamenr"] = name
+            name = rocks.id(payload)[0]
+            if name:
+                pdfsso["sso_name"] = name
 
-            pdfsso = get_miriade_data(pdfsso, withecl=False)
+            pdfsso = get_miriade_data(pdfsso, sso_colname="sso_name", withecl=False)
     else:
         pdfsso = pd.DataFrame()
 
