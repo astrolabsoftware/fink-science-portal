@@ -680,18 +680,20 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
 
     n_or_d = str(payload["n_or_d"])
 
-    # We cannot do multi-object and phase curve computation
-    if ("," in n_or_d) and ():
-        rep = {
-            "status": "error",
-            "text": "You can access the residuals only for a single object.\n",
-        }
-        return Response(str(rep), 400)
-
     if "," in n_or_d:
         ids = n_or_d.replace(" ", "").split(",")
+        multiple_objects = True
     else:
         ids = [n_or_d.replace(" ", "")]
+        multiple_objects = False
+
+    # We cannot do multi-object and phase curve computation
+    if multiple_objects and with_residuals:
+        rep = {
+            "status": "error",
+            "text": "You cannot request residuals for a list object names.\n",
+        }
+        return Response(str(rep), 400)
 
     # Get all ssnamenrs
     ssnamenrs = []
