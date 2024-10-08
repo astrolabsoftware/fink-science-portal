@@ -86,15 +86,7 @@ def test_ephem() -> None:
     --------
     >>> test_ephem()
     """
-    names = [
-        "8467",
-        "BenoitCarry",
-        "JulienPeloton",
-        "Phaethon",
-        3200,
-        "Lucretia",
-        269
-    ]
+    names = ["8467", "BenoitCarry", "JulienPeloton", "Phaethon", 3200, "Lucretia", 269]
     for name in names:
         pdf = ssosearch(n_or_d=name, withEphem=True)
 
