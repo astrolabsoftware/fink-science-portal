@@ -666,6 +666,14 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
 
     n_or_d = str(payload["n_or_d"])
 
+    # We cannot do multi-object and phase curve computation
+    if ("," in n_or_d) and ():
+        rep = {
+            "status": "error",
+            "text": "You can access the residuals only for a single object.\n",
+        }
+        return Response(str(rep), 400)
+
     if "," in n_or_d:
         ids = n_or_d.replace(" ", "").split(",")
     else:
@@ -673,6 +681,8 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
 
     # Get all ssnamenrs
     ssnamenrs = []
+    ssnamenr_to_sso_name = {}
+    ssnamenr_to_sso_number = {}
     for id_ in ids:
         # resolve the name using rocks
         sso_name, sso_number = resolve_sso_name(id_)
@@ -689,6 +699,10 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             ssnamenrs = np.concatenate((ssnamenrs, resolve_sso_name_to_ssnamenr(sso_name)))
         else:
             ssnamenrs = np.concatenate((ssnamenrs, resolve_sso_name_to_ssnamenr(sso_number)))
+
+        for ssnamenr in ssnamenrs:
+            ssnamenr_to_sso_name[ssnamenr] = sso_name
+            ssnamenr_to_sso_number[ssnamenr] = sso_number
 
     # Get data from the main table
     client = connect_to_hbase_table("ztf.ssnamenr")
@@ -716,6 +730,10 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
         truncated=truncated,
         extract_color=False,
     )
+
+    # Propagate name and number
+    pdf["sso_name"] = pdf["i:ssnamenr"].apply(lambda x: ssnamenr_to_sso_name[x])
+    pdf["sso_number"] = pdf["i:ssnamenr"].apply(lambda x: ssnamenr_to_sso_number[x])
 
     if "withcutouts" in payload:
         if payload["withcutouts"] == "True" or payload["withcutouts"] is True:
