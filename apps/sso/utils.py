@@ -17,6 +17,7 @@ import requests
 import numpy as np
 import rocks
 
+
 def resolve_sso_name_to_ssnamenr(sso_name):
     """Find corresponding ZTF ssnamenr from user input
 
@@ -26,17 +27,14 @@ def resolve_sso_name_to_ssnamenr(sso_name):
         SSO name or number
 
     Returns
-    ----------
+    -------
     out: list of str
         List of corresponding ZTF ssnamenr
     """
     # search all ssnamenr corresponding quaero -> ssnamenr
     r = requests.post(
-        'https://fink-portal.org/api/v1/resolver',
-        json={
-            'resolver': 'ssodnet',
-            'name': sso_name
-        }
+        "https://fink-portal.org/api/v1/resolver",
+        json={"resolver": "ssodnet", "name": sso_name},
     )
     if r.status_code != 200:
         return []
@@ -44,6 +42,7 @@ def resolve_sso_name_to_ssnamenr(sso_name):
     ssnamenrs = np.unique([i["i:ssnamenr"] for i in r.json()])
 
     return ssnamenrs
+
 
 def resolve_sso_name(sso_name):
     """Find corresponding UAI name and number using quaero
@@ -54,7 +53,7 @@ def resolve_sso_name(sso_name):
         SSO name or number
 
     Returns
-    ----------
+    -------
     name: str
         UAI name. NaN if does not exist.
     number: str
