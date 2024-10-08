@@ -316,7 +316,7 @@ args_sso = [
     {
         "name": "withResiduals",
         "required": False,
-        "description": "Return the residuals `obs - model` using the sHG1G2 phase curve model. The option `withEphem` is required.",
+        "description": "Return the residuals `obs - model` using the sHG1G2 phase curve model. Work only for a single object query (`n_or_d` cannot be a list).",
     },
     {
         "name": "columns",
