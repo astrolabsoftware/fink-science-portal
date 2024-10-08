@@ -698,13 +698,14 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     ssnamenr_to_sso_name = {}
     ssnamenr_to_sso_number = {}
     for id_ in ids:
-        if not id_.startswith("C/") or not id_.endswith("P"):
+        if id_.startswith("C/") or id_.endswith("P"):
+            sso_name = id_
+            sso_number = None 
+        else:
             # resolve the name of asteroids using rocks
             sso_name, sso_number = resolve_sso_name(id_)
-        else:
-            sso_name = id_
 
-        if not isinstance(sso_number, str) and not isinstance(sso_name, str):
+        if not isinstance(sso_number, int) and not isinstance(sso_name, str):
             rep = {
                 "status": "error",
                 "text": "{} is not a valid name or number according to quaero.\n".format(
