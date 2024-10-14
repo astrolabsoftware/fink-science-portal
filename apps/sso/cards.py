@@ -70,7 +70,7 @@ r = requests.post(
     json={{
         'n_or_d': '{ssnamenr}',
         'withEphem': True,
-        'withResiduals': {has_phase_curve_model.capitalize()},
+        'withResiduals': {has_phase_curve_model},
         'output-format': 'json'
     }}
 )

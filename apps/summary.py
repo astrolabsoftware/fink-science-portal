@@ -266,11 +266,11 @@ def tab5_content(object_soo):
     pdf = pd.read_json(object_soo)
     if pdf.empty:
         ssnamenr = "null"
-        has_phase_curve_model = "false"
+        has_phase_curve_model = False
     else:
         ssnamenr = pdf["i:ssnamenr"].to_numpy()[0]
         # for JSON, CSV, VOTable javascript download
-        has_phase_curve_model = str("residuals_shg1g2").lower()
+        has_phase_curve_model = "residuals_shg1g2" in pdf.columns
 
     msg = """
     Alert data from ZTF, with ephemerides provided by the
