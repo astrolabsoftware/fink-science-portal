@@ -833,20 +833,24 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             normalise_to_V=False,
         )
 
-        # per filter construction of the residual
-        pdf["residuals_shg1g2"] = 0.0
-        for filt in np.unique(pdf["i:fid"]):
-            cond = pdf["i:fid"] == filt
-            model = func_hg1g2_with_spin(
-                [phase[cond], ra[cond], dec[cond]],
-                outdic["H_{}".format(filt)],
-                outdic["G1_{}".format(filt)],
-                outdic["G2_{}".format(filt)],
-                outdic["R"],
-                np.deg2rad(outdic["alpha0"]),
-                np.deg2rad(outdic["delta0"]),
-            )
-            pdf.loc[cond, "residuals_shg1g2"] = pdf.loc[cond, "i:magpsf_red"] - model
+        # check if fit converged else return NaN
+        if outdic["fit"] != 0:
+            pdf["residuals_shg1g2"] = np.nan
+        else:
+            # per filter construction of the residual
+            pdf["residuals_shg1g2"] = 0.0
+            for filt in np.unique(pdf["i:fid"]):
+                cond = pdf["i:fid"] == filt
+                model = func_hg1g2_with_spin(
+                    [phase[cond], ra[cond], dec[cond]],
+                    outdic["H_{}".format(filt)],
+                    outdic["G1_{}".format(filt)],
+                    outdic["G2_{}".format(filt)],
+                    outdic["R"],
+                    np.deg2rad(outdic["alpha0"]),
+                    np.deg2rad(outdic["delta0"]),
+                )
+                pdf.loc[cond, "residuals_shg1g2"] = pdf.loc[cond, "i:magpsf_red"] - model
 
     return pdf
 
