@@ -325,6 +325,7 @@ function(n_clicks, name, apiurl){
             body: JSON.stringify({
                  'n_or_d': name,
                  'withEphem': true,
+                 'withResiduals': true,
                  'output-format': '$FORMAT'
             }),
             headers: {
