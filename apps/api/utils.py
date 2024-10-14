@@ -850,7 +850,9 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
                     np.deg2rad(outdic["alpha0"]),
                     np.deg2rad(outdic["delta0"]),
                 )
-                pdf.loc[cond, "residuals_shg1g2"] = pdf.loc[cond, "i:magpsf_red"] - model
+                pdf.loc[cond, "residuals_shg1g2"] = (
+                    pdf.loc[cond, "i:magpsf_red"] - model
+                )
 
     return pdf
 

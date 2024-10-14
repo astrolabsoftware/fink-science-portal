@@ -17,7 +17,6 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
-import rocks
 import visdcc
 from dash import Input, Output, State, dcc, html, no_update
 from dash.exceptions import PreventUpdate
@@ -34,7 +33,6 @@ from apps.plotting import (
 )
 from apps.sso.cards import card_sso_left
 from apps.supernovae.cards import card_sn_scores
-from fink_utils.sso.utils import get_miriade_data
 from apps.utils import (
     generate_qr,
     loading,
@@ -266,11 +264,8 @@ def tab5_content(object_soo):
     pdf = pd.read_json(object_soo)
     if pdf.empty:
         ssnamenr = "null"
-        has_phase_curve_model = False
     else:
         ssnamenr = pdf["i:ssnamenr"].to_numpy()[0]
-        # for JSON, CSV, VOTable javascript download
-        has_phase_curve_model = "residuals_shg1g2" in pdf.columns
 
     msg = """
     Alert data from ZTF, with ephemerides provided by the
@@ -454,7 +449,7 @@ def tab5_content(object_soo):
             ),
             dbc.Col(
                 [
-                    card_sso_left(ssnamenr, has_phase_curve_model),
+                    card_sso_left(ssnamenr),
                 ],
                 md=4,
             ),
@@ -605,11 +600,7 @@ def store_query(name):
     if str(payload) != "null" and is_sso:
         pdfsso = request_api(
             "/api/v1/sso",
-            json={
-                "n_or_d": payload,
-                "withEphem": True,
-                "withResiduals": True
-            },
+            json={"n_or_d": payload, "withEphem": True, "withResiduals": True},
         )
 
     else:

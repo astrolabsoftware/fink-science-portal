@@ -56,7 +56,7 @@ def get_sso_data(ssnamenr):
         return data, None
 
 
-def card_sso_left(ssnamenr, has_phase_curve_model):
+def card_sso_left(ssnamenr):
     """ """
     ssnamenr_ = str(ssnamenr)
 
@@ -70,7 +70,7 @@ r = requests.post(
     json={{
         'n_or_d': '{ssnamenr}',
         'withEphem': True,
-        'withResiduals': {has_phase_curve_model},
+        'withResiduals': True,
         'output-format': 'json'
     }}
 )
@@ -186,11 +186,6 @@ curl -H "Content-Type: application/json" -X POST \\
                                         html.Div(
                                             APIURL,
                                             id="download_sso_apiurl",
-                                            className="d-none",
-                                        ),
-                                        html.Div(
-                                            has_phase_curve_model,
-                                            id="download_sso_phase_curve",
                                             className="d-none",
                                         ),
                                     ],
@@ -323,14 +318,14 @@ curl -H "Content-Type: application/json" -X POST \\
 # TODO: We are mostly using it like this until GET requests properly initiate
 # downloads instead of just opening the file (so, Content-Disposition etc)
 download_js = """
-function(n_clicks, name, apiurl, phase_curve){
+function(n_clicks, name, apiurl){
     if(n_clicks > 0){
         fetch(apiurl + '/api/v1/sso', {
             method: 'POST',
             body: JSON.stringify({
                  'n_or_d': name,
                  'withEphem': true,
-                 'withResiduals': phase_curve,
+                 'withResiduals': true,
                  'output-format': '$FORMAT'
             }),
             headers: {
@@ -352,7 +347,6 @@ app.clientside_callback(
         Input("download_sso_json", "n_clicks"),
         Input("download_sso_ssnamenr", "children"),
         Input("download_sso_apiurl", "children"),
-        Input("download_sso_phase_curve", "children"),
     ],
 )
 app.clientside_callback(
@@ -362,7 +356,6 @@ app.clientside_callback(
         Input("download_sso_csv", "n_clicks"),
         Input("download_sso_ssnamenr", "children"),
         Input("download_sso_apiurl", "children"),
-        Input("download_sso_phase_curve", "children"),
     ],
 )
 app.clientside_callback(
@@ -372,7 +365,6 @@ app.clientside_callback(
         Input("download_sso_votable", "n_clicks"),
         Input("download_sso_ssnamenr", "children"),
         Input("download_sso_apiurl", "children"),
-        Input("download_sso_phase_curve", "children"),
     ],
 )
 
