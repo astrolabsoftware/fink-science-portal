@@ -100,6 +100,15 @@ Examples:
 - `TRCK_20231213_133612_00` - search for all objects associated with specific tracklet
 - `TRCK_20231213` - search for all tracklet events from the night of Dec 13, 2023
 
+##### Search around known astronomical objects
+
+You can run a conesearch around a known astronomical name. Examples:
+- Extended objects: M31
+- Catalog names: TXS 0506+056
+- TNS names: AT 2019qiz, SN 2024aaj
+
+By default, the conesearch radius is 10 arcseconds. You can change the radius by specifying `r=<number>` after the name, e.g. `Crab Nebula r=10m` (see the section Cone Search below).
+
 ##### Cone search
 
 If you specify the position and search radius (using `r` option), all objects inside the given cone will be returned. Position may be specified by either coordinates, in either decimal or sexagesimal form, as exact ZTF object name, or as an object name resolvable through TNS or Simbad.
@@ -139,7 +148,7 @@ So you may e.g. search for:
 - Asteroids by proper name
   - `Vesta`
 - Asteroids by number
-  - Asteroids (Main Belt): `8467`, `1922`
+  - Asteroids (Main Belt): `8467`, `1922`, `33803`
   - Asteroids (Hungarians): `18582`, `77799`
   - Asteroids (Jupiter Trojans): `4501`, `1583`
   - Asteroids (Mars Crossers): `302530`
@@ -153,7 +162,6 @@ So you may e.g. search for:
 ##### Latest objects
 
 To see the latest objects just specify the amount of them you want to get using keyword `last`.
-
 ##### Class-based search
 
 To see the list of latest objects of specific class (as listed in `v:classification` alert field), just specify the `class` keyword. By default it will return 100 latest ones, but you may also directly specify `last` keywords to alter it.

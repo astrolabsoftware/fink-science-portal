@@ -346,7 +346,7 @@ def tab5_content(object_soo):
     We propose two cases, one fitting bands separately, and
     the other combining into a common V band before fitting. We
     also propose different phase curve modeling using the HG, HG12 and HG1G2 models.
-    In addition, you can fit for spin values on top of the HG1G2 model (SHG1G2, paper in prep!).
+    In addition, you can fit for spin values on top of the HG1G2 model (SHG1G2, Carry et al 2024).
     Note that in the spin case, H, $G_1$, and $G_2$ are fitted per band, but the spin parameters
     (R, $\alpha_0$, $\beta_0$) are fitted on all bands simultaneously.
     The title displays the value for the reduced $\chi^2$ of the fit.
