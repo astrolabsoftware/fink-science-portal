@@ -86,7 +86,16 @@ def test_ephem() -> None:
     --------
     >>> test_ephem()
     """
-    names = ["8467", "BenoitCarry", "JulienPeloton", "Phaethon", 3200, "Lucretia", 269]
+    names = [
+        "8467",
+        "BenoitCarry",
+        "JulienPeloton",
+        "Phaethon",
+        3200,
+        "Lucretia",
+        269,
+        323137,
+    ]
     for name in names:
         pdf = ssosearch(n_or_d=name, withEphem=True)
 
@@ -112,6 +121,12 @@ def test_residuals() -> None:
     pdf = ssosearch("33803,8467", withResiduals=True, expected_status=400)
 
     assert pdf.empty
+
+    pdf = ssosearch("323137", withResiduals=True)
+
+    assert not pdf.empty
+
+    assert np.isnan(pdf["residuals_shg1g2"].to_numpy()[0])
 
 
 def test_comet() -> None:

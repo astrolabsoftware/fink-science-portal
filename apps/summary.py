@@ -17,7 +17,6 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
-import rocks
 import visdcc
 from dash import Input, Output, State, dcc, html, no_update
 from dash.exceptions import PreventUpdate
@@ -34,7 +33,6 @@ from apps.plotting import (
 )
 from apps.sso.cards import card_sso_left
 from apps.supernovae.cards import card_sn_scores
-from fink_utils.sso.utils import get_miriade_data
 from apps.utils import (
     generate_qr,
     loading,
@@ -602,22 +600,9 @@ def store_query(name):
     if str(payload) != "null" and is_sso:
         pdfsso = request_api(
             "/api/v1/sso",
-            json={
-                "n_or_d": payload,
-            },
+            json={"n_or_d": payload, "withEphem": True, "withResiduals": True},
         )
 
-        if pdfsso.empty:
-            # This can happen for SSO candidate with a ssnamenr
-            # e.g. ZTF21abatnkh
-            pdfsso = pd.DataFrame()
-        else:
-            # Extract miriade information as well
-            name = rocks.id(payload)[0]
-            if name:
-                pdfsso["sso_name"] = name
-
-            pdfsso = get_miriade_data(pdfsso, sso_colname="sso_name", withecl=False)
     else:
         pdfsso = pd.DataFrame()
 
