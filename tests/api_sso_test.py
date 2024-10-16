@@ -170,6 +170,12 @@ def test_multiple_sso_names() -> None:
     assert len(pdf["sso_name"].unique()) == 1, pdf["sso_name"].unique()
     assert len(pdf["i:ssnamenr"].unique()) == 3, pdf["i:ssnamenr"].unique()
 
+    # however we do not want Rubin & Rubincam
+    pdf = ssosearch(n_or_d="Rubin")
+
+    assert len(pdf["sso_name"].unique()) == 1, pdf["sso_name"].unique()
+    assert len(pdf["i:ssnamenr"].unique()) == 1, pdf["i:ssnamenr"].unique()
+
 
 def test_bad_request() -> None:
     """
