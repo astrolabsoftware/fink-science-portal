@@ -524,7 +524,7 @@ def tabs(pdf):
             dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
             dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
         ],
-        value="Summary",
+        value="Summary" if not is_sso(pdf) else "Solar System",
     )
 
     return tabs_
