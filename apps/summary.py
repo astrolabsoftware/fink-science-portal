@@ -268,8 +268,8 @@ def tab5_content(object_soo):
         ssnamenr = pdf["i:ssnamenr"].to_numpy()[0]
 
     msg = """
-    Alert data from ZTF, with ephemerides provided by the
-    [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/).
+    Alert data from ZTF (filled circle) in g (blue) and r (orange) filters, with ephemerides provided by the
+    [Miriade ephemeride service](https://ssp.imcce.fr/webservices/miriade/api/ephemcc/) (shaded circle).
     """
     tab1 = dbc.Row(
         [
