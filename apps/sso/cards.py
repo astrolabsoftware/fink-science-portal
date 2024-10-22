@@ -524,7 +524,7 @@ def card_sso_rocks_params(data):
 
     ###### Physical parameters
     Taxonomical class: `{data.parameters.physical.taxonomy.class_.value}`
-    Absolute magnitude (mag): `{data.parameters.physical.absolute_magnitude.value}`
+    Absolute magnitude (HV mag): `{data.parameters.physical.absolute_magnitude.value}`
     Diameter (km): `{data.parameters.physical.diameter.value}`
 
     ###### Dynamical parameters (Epoch: {ref_epoch})
@@ -550,10 +550,21 @@ def card_sso_rocks_params(data):
             text += f"DEC0 (deg): `{avail_spin.DEC0.value}`\n"
 
     card = html.Div(
-        dcc.Markdown(
-            text,
-            dangerously_allow_html=True,
-            className="markdown markdown-pre",
+        dmc.HoverCard(
+            position="top",
+            shadow="md",
+            children=[
+                dmc.HoverCardTarget(
+                    dcc.Markdown(
+                        text,
+                        dangerously_allow_html=True,
+                        className="markdown markdown-pre",
+                    ),
+                ),
+                dmc.HoverCardDropdown(
+                    dmc.Text(f"Data retrieved from https://ssp.imcce.fr/forms/ssocard/{data.id_}", size="md")
+                ),
+            ],
         ),
         className="ps-2 pe-2",
     )
