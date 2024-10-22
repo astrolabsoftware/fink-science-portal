@@ -408,7 +408,7 @@ def card_sso_mpc_params(data, ssnamenr, kind):
                 Orbit type: `{}`
 
                 ###### Properties from MPC
-                ref epoch: `{}`
+                epoch: `{}`
                 number: `{}`
                 period (year): `{}`
                 a (AU): `{}`
@@ -524,10 +524,10 @@ def card_sso_rocks_params(data):
 
     ###### Physical parameters
     Taxonomical class: `{data.parameters.physical.taxonomy.class_.value}`
-    Absolute magnitude (mag): `{data.parameters.physical.absolute_magnitude.value}`
+    Absolute magnitude (HV mag): `{data.parameters.physical.absolute_magnitude.value}`
     Diameter (km): `{data.parameters.physical.diameter.value}`
 
-    ###### Dynamical parameters (reference epoch: {ref_epoch})
+    ###### Dynamical parameters (Epoch: {ref_epoch})
     a (AU): `{semi_major_axis}`
     e: `{data.parameters.dynamical.orbital_elements.eccentricity.value}`
     i (deg): `{data.parameters.dynamical.orbital_elements.inclination.value}`
@@ -538,7 +538,9 @@ def card_sso_rocks_params(data):
     Jupiter Tisserand parameter: `{data.parameters.dynamical.tisserand_parameters.jupiter.value}`
     """
 
-    if data.parameters.physical.spin is not None:
+    if (data.parameters.physical.spin is not None) and (
+        data.parameters.physical.spin != []
+    ):
         text = textwrap.dedent(text)  # Remove indentation
         text += "\n"
         text += "###### Spin parameters\n"
@@ -548,6 +550,12 @@ def card_sso_rocks_params(data):
             text += f"""<h6 children="{avail_spin.bibref.shortbib}" class="dashed" style="margin-top: 5px; margin-bottom: 0;"/>\n\n"""
             text += f"RA0 (deg): `{avail_spin.RA0.value}`\n"
             text += f"DEC0 (deg): `{avail_spin.DEC0.value}`\n"
+
+    text += "\n"
+    text += "---\n"
+    text += '<i><small>Best estimates of the dynamical and physical properties of the object from the <a href="https://ssp.imcce.fr/forms/ssocard/{}" target="_blank">ssoCard</a> compiled by the <a href="https://ssp.imcce.fr/webservices/ssodnet/" target="_blank">SsODNet</a> service.</small></i>'.format(
+        data.id_
+    )
 
     card = html.Div(
         dcc.Markdown(
