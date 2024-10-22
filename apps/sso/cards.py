@@ -551,7 +551,7 @@ def card_sso_rocks_params(data):
 
     card = html.Div(
         dmc.HoverCard(
-            position="top",
+            position="bottom",
             shadow="md",
             children=[
                 dmc.HoverCardTarget(
@@ -562,7 +562,7 @@ def card_sso_rocks_params(data):
                     ),
                 ),
                 dmc.HoverCardDropdown(
-                    dmc.Text(f"Data retrieved from https://ssp.imcce.fr/forms/ssocard/{data.id_}", size="md")
+                    dcc.Markdown(f"Best estimates of the dynamical and physical properties of the object from the [ssoCard](https://ssp.imcce.fr/forms/ssocard/{data.id_}) compiled by the [SsODNet service](https://ssp.imcce.fr/webservices/ssodnet/).", size="md")
                 ),
             ],
         ),
