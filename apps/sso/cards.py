@@ -538,7 +538,7 @@ def card_sso_rocks_params(data):
     Jupiter Tisserand parameter: `{data.parameters.dynamical.tisserand_parameters.jupiter.value}`
     """
 
-    if data.parameters.physical.spin is not None:
+    if (data.parameters.physical.spin is not None) and (data.parameters.physical.spin != []):
         text = textwrap.dedent(text)  # Remove indentation
         text += "\n"
         text += "###### Spin parameters\n"
@@ -549,22 +549,15 @@ def card_sso_rocks_params(data):
             text += f"RA0 (deg): `{avail_spin.RA0.value}`\n"
             text += f"DEC0 (deg): `{avail_spin.DEC0.value}`\n"
 
+    text += "\n"
+    text += "---\n"
+    text += '<i><small>Best estimates of the dynamical and physical properties of the object from the <a href="https://ssp.imcce.fr/forms/ssocard/{}" target="_blank">ssoCard</a> compiled by the <a href="https://ssp.imcce.fr/webservices/ssodnet/" target="_blank">SsODNet</a> service.</small></i>'.format(data.id_)
+
     card = html.Div(
-        dmc.HoverCard(
-            position="bottom",
-            shadow="md",
-            children=[
-                dmc.HoverCardTarget(
-                    dcc.Markdown(
-                        text,
-                        dangerously_allow_html=True,
-                        className="markdown markdown-pre",
-                    ),
-                ),
-                dmc.HoverCardDropdown(
-                    dcc.Markdown(f"Best estimates of the dynamical and physical properties of the object from the [ssoCard](https://ssp.imcce.fr/forms/ssocard/{data.id_}) compiled by the [SsODNet service](https://ssp.imcce.fr/webservices/ssodnet/).")
-                ),
-            ],
+        dcc.Markdown(
+            text,
+            dangerously_allow_html=True,
+            className="markdown markdown-pre",
         ),
         className="ps-2 pe-2",
     )
