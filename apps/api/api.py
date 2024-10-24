@@ -21,6 +21,7 @@ from fink_science.ssoft.processor import (
     COLUMNS_HG,
     COLUMNS_HG1G2,
     COLUMNS_SHG1G2,
+    COLUMNS_SSHG1G2,
 )
 from fink_utils.xmatch.simbad import get_simbad_labels
 from flask import Blueprint, Response, jsonify, request
@@ -588,7 +589,7 @@ args_ssoft = [
     {
         "name": "flavor",
         "required": False,
-        "description": "Data model among SHG1G2 (default), HG1G2, HG.",
+        "description": "Data model among SSHG1G2, SHG1G2 (default), HG1G2, HG.",
     },
     {
         "name": "version",
@@ -1529,12 +1530,14 @@ def ssoft_table(payload=None):
     if "schema" in payload:
         if "flavor" in payload:
             flavor = payload["flavor"]
-            if flavor not in ["SHG1G2", "HG1G2", "HG"]:
+            if flavor not in ["SSHG1G2", "SHG1G2", "HG1G2", "HG"]:
                 rep = {
                     "status": "error",
-                    "text": "flavor needs to be in ['SHG1G2', 'HG1G2', 'HG']\n",
+                    "text": "flavor needs to be in ['SSHG1G2', 'SHG1G2', 'HG1G2', 'HG']\n",
                 }
                 return Response(str(rep), 400)
+            elif flavor == "SSHG1G2":
+                ssoft_columns = {**COLUMNS, **COLUMNS_SSHG1G2}
             elif flavor == "SHG1G2":
                 ssoft_columns = {**COLUMNS, **COLUMNS_SHG1G2}
             elif flavor == "HG1G2":
