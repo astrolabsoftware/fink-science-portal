@@ -36,7 +36,7 @@ def get_sso_data(ssnamenr):
     if data.id_ == "":
         if ssnamenr.startswith("C/"):
             kind = "comet"
-            ssnamenr = ssnamenr[:-2] + " " + ssnamenr[-2:]
+            ssnamenr = ssnamenr[0:6] + " " + ssnamenr[6:]
             data = query_mpc(ssnamenr, kind=kind)
         elif ssnamenr[-1] == "P":
             kind = "comet"
@@ -56,7 +56,7 @@ def get_sso_data(ssnamenr):
         return data, None
 
 
-def card_sso_left(ssnamenr):
+def card_sso_left(ssnamenr, sso_name):
     """ """
     ssnamenr_ = str(ssnamenr)
 
@@ -241,7 +241,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 outline=True,
                                                 id="MPC",
                                                 target="_blank",
-                                                href=f"https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={ssnamenr_}",
+                                                href=f"https://minorplanetcenter.net/db_search/show_object?utf8=%E2%9C%93&object_id={sso_name}",
                                             ),
                                             width=4,
                                         ),
@@ -256,7 +256,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 outline=True,
                                                 id="JPL",
                                                 target="_blank",
-                                                href=f"https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={ssnamenr_}",
+                                                href=f"https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr={sso_name}",
                                             ),
                                             width=4,
                                         ),
@@ -537,11 +537,11 @@ def card_sso_rocks_params(data):
     Orbital period (day): `{data.parameters.dynamical.orbital_elements.orbital_period.value}`
     Jupiter Tisserand parameter: `{data.parameters.dynamical.tisserand_parameters.jupiter.value}`
     """
+    text = textwrap.dedent(text)  # Remove indentation
 
     if (data.parameters.physical.spin is not None) and (
         data.parameters.physical.spin != []
     ):
-        text = textwrap.dedent(text)  # Remove indentation
         text += "\n"
         text += "###### Spin parameters\n"
 
