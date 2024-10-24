@@ -264,7 +264,7 @@ def tab5_content(object_soo):
     pdf = pd.read_json(object_soo)
     if pdf.empty:
         ssnamenr = "null"
-        sso_name
+        sso_name = "null"
     else:
         ssnamenr = pdf["i:ssnamenr"].to_numpy()[0]
         sso_name = pdf["sso_name"].to_numpy()[0]
