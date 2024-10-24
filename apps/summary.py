@@ -264,8 +264,10 @@ def tab5_content(object_soo):
     pdf = pd.read_json(object_soo)
     if pdf.empty:
         ssnamenr = "null"
+        sso_name = "null"
     else:
         ssnamenr = pdf["i:ssnamenr"].to_numpy()[0]
+        sso_name = pdf["sso_name"].to_numpy()[0]
 
     msg = """
     Alert data from ZTF (filled circle) in g (blue) and r (orange) filters, with ephemerides provided by the
@@ -449,7 +451,7 @@ def tab5_content(object_soo):
             ),
             dbc.Col(
                 [
-                    card_sso_left(ssnamenr),
+                    card_sso_left(ssnamenr, sso_name),
                 ],
                 md=4,
             ),

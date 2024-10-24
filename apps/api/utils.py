@@ -700,7 +700,20 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
     ssnamenr_to_sso_name = {}
     ssnamenr_to_sso_number = {}
     for id_ in ids:
-        if id_.startswith("C/") or id_.endswith("P"):
+        if id_.startswith("C/"):
+            start = id_[0:6]
+            stop = id_[6:]
+            r = requests.get(
+                "https://api.ssodnet.imcce.fr/quaero/1/sso?q={} {}&type=Comet".format(
+                    start, stop
+                )
+            )
+            if r.status_code == 200 and r.json() != []:
+                sso_name = r.json()["data"][0]["name"]
+            else:
+                sso_name = id_
+            sso_number = None
+        elif id_.endswith("P"):
             sso_name = id_
             sso_number = None
         else:
