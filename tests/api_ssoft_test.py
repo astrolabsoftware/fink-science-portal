@@ -136,7 +136,7 @@ def test_schema() -> None:
     """
     pdf = ssoftsearch()
 
-    schema = ssoftsearch(schema=True, output_format="json")
+    schema = ssoftsearch(schema=True, flavor="SSHG1G2", output_format="json")
 
     # check columns
     msg = "Found {} entries in the DataFrame and {} entries in the schema".format(
@@ -151,7 +151,7 @@ def compare_schema() -> None:
     --------
     >>> compare_schema()
     """
-    schema1 = ssoftsearch(schema=True, output_format="json")
+    schema1 = ssoftsearch(schema=True, flavor="SSHG1G2", output_format="json")
 
     # get the schema
     r = requests.get("{}/api/v1/ssoft?schema".format(APIURL))
