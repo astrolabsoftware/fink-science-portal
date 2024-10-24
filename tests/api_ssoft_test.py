@@ -162,6 +162,18 @@ def compare_schema() -> None:
     assert keys1 == keys2, [keys1, keys2]
 
 
+def check_sshg1g2() -> None:
+    """
+    Examples
+    --------
+    >>> check_sshg1g2()
+    """
+    pdf = ssoftsearch(flavor="SSHG1G2")
+
+    assert "period" in pdf.columns
+    assert "a_b" in pdf.columns
+
+
 if __name__ == "__main__":
     """ Execute the test suite """
     import sys
