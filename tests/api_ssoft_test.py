@@ -134,7 +134,7 @@ def test_schema() -> None:
     --------
     >>> test_schema()
     """
-    pdf = ssoftsearch()
+    pdf = ssoftsearch(flavor="SSHG1G2")
 
     schema = ssoftsearch(schema=True, flavor="SSHG1G2", output_format="json")
 
@@ -154,7 +154,7 @@ def compare_schema() -> None:
     schema1 = ssoftsearch(schema=True, flavor="SSHG1G2", output_format="json")
 
     # get the schema
-    r = requests.get("{}/api/v1/ssoft?schema".format(APIURL))
+    r = requests.get("{}/api/v1/ssoft?schema&flavor=SSHG1G2".format(APIURL))
     schema2 = r.json()
 
     keys1 = set(schema1["args"].keys())
