@@ -1676,10 +1676,10 @@ def return_ssoft_pdf(payload: dict) -> pd.DataFrame:
 
     if "flavor" in payload:
         flavor = payload["flavor"]
-        if flavor not in ["SHG1G2", "HG1G2", "HG"]:
+        if flavor not in ["SSHG1G2", "SHG1G2", "HG1G2", "HG"]:
             rep = {
                 "status": "error",
-                "text": "flavor needs to be in ['SHG1G2', 'HG1G2', 'HG']\n",
+                "text": "flavor needs to be in ['SSHG1G2', 'SHG1G2', 'HG1G2', 'HG']\n",
             }
             return Response(str(rep), 400)
     else:
