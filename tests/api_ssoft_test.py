@@ -134,12 +134,18 @@ def test_schema() -> None:
     --------
     >>> test_schema()
     """
-    pdf = ssoftsearch()
+    pdf = ssoftsearch(flavor="SSHG1G2")
 
-    schema = ssoftsearch(schema=True, output_format="json")
+    schema = ssoftsearch(schema=True, flavor="SSHG1G2", output_format="json")
 
     # check columns
-    msg = "Found {} entries in the DataFrame and {} entries in the schema".format(
+    not_in_pdf = [i for i in set(schema["args"].keys()) if i not in set(pdf.columns)]
+    not_in_schema = [i for i in set(pdf.columns) if i not in set(schema["args"].keys())]
+
+    assert not_in_pdf == [], not_in_pdf
+    assert not_in_schema == [], not_in_schema
+
+    msg = "Found {} entries in the DataFrame and {} entries in the schema.".format(
         len(pdf.columns), len(schema)
     )
     assert set(schema["args"].keys()) == set(pdf.columns), msg
@@ -151,15 +157,27 @@ def compare_schema() -> None:
     --------
     >>> compare_schema()
     """
-    schema1 = ssoftsearch(schema=True, output_format="json")
+    schema1 = ssoftsearch(schema=True, flavor="SSHG1G2", output_format="json")
 
     # get the schema
-    r = requests.get("{}/api/v1/ssoft?schema".format(APIURL))
+    r = requests.get("{}/api/v1/ssoft?schema&flavor=SSHG1G2".format(APIURL))
     schema2 = r.json()
 
     keys1 = set(schema1["args"].keys())
     keys2 = set(schema2["args"].keys())
     assert keys1 == keys2, [keys1, keys2]
+
+
+def check_sshg1g2() -> None:
+    """
+    Examples
+    --------
+    >>> check_sshg1g2()
+    """
+    pdf = ssoftsearch(flavor="SSHG1G2")
+
+    assert "period" in pdf.columns
+    assert "a_b" in pdf.columns
 
 
 if __name__ == "__main__":
