@@ -20,6 +20,9 @@ import io
 import healpy as hp
 import numpy as np
 import pandas as pd
+from pyarrow import fs
+import pyarrow.parquet as pq
+
 import qrcode
 import requests
 from astropy.convolution import Box2DKernel, Gaussian2DKernel
