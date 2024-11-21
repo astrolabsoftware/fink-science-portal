@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
+import json
 import gzip
 import io
 
@@ -44,6 +45,7 @@ from apps.utils import (
     convert_datatype,
     convolve,
     extract_cutouts,
+    extract_cutouts_from_metadata,
     format_hbase_output,
     hbase_to_dict,
     hbase_type_converter,
@@ -123,11 +125,74 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
     if withcutouts:
         # Default `None` returns all 3 cutouts
         cutout_kind = payload.get("cutout-kind", None)
+
+        def download_cutout(objectId, candid, kind):
+            r = requests.post(
+                'https://fink-portal.org/api/v1/cutouts',
+                json={
+                    'objectId': objectId,
+                    'candid': candid,
+                    'kind': kind,
+                    "output-format": "array"
+                }
+            )
+            if r.status_code == 200:
+                data = json.loads(r.content)
+            else:
+                # TODO: different return based on `kind`?
+                return []
+
+            if kind != "All":
+                return data[0]["b:cutout{}_stampData".format(kind)]
+            else:
+                # TODO: to implement
+                pass
+
         if cutout_kind is None:
-            colname = None
+            cutout_kind = "All"
+            # TODO: implement me
         else:
             colname = "b:cutout{}_stampData".format(cutout_kind)
-        pdf = extract_cutouts(pdf, client, col=colname, return_type="array")
+            pdf[colname] = pdf[["i:objectId", "i:candid"]].apply(lambda x: pd.Series([download_cutout]))
+
+
+    #     # Time this!
+    #     In [66]: pdf[["i:objectId", "i:candid"]].apply(lambda x: pd.Series([json.loads(requests.post(
+    # ...:     'https://fink-portal.org/api/v1/cutouts',
+    # ...:     json={
+    # ...:         'objectId': x.iloc[0],
+    # ...:         'candid': str(x.iloc[1]),
+    # ...:         'kind': 'Science', "output-format": "array"
+    # ...:     }
+    # ...: ).content)[0]["b:cutoutScience_stampData"]]), axis=1)
+
+
+    #     pdf[["i:objectId", "i:candid"]].apply(
+    #         lambda x: pd.Series(
+    #             request_api(
+    #                 "/api/v1/cutouts",
+    #                 json={
+    #                     "objectId": x[0],
+    #                     "candid": x[1],
+    #                     "kind": cutout_kind,
+    #                     "output-format": "array",
+    #                 },
+    #                 output="json"
+    #             )
+    #         )
+    #     )
+        # if cutout_kind is None:
+        #     cols = [
+        #         "b:cutoutScience_stampData",
+        #         "b:cutoutTemplate_stampData",
+        #         "b:cutoutDifference_stampData",
+        #     ]
+        #     pdf[cols] =
+        # if cutout_kind is None:
+        #     colname = None
+        # else:
+        #     colname = "b:cutout{}_stampData".format(cutout_kind)
+        # pdf = extract_cutouts(pdf, client, col=colname, return_type="array")
 
     if withupperlim:
         clientU = connect_to_hbase_table("ztf.upper")
@@ -1058,18 +1123,19 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         filename = filename + ".fits"
 
     # Query the Database (object query)
-    client = connect_to_hbase_table("ztf")
+    client = connect_to_hbase_table("ztf.cutouts")
     results = client.scan(
         "",
         "key:key:{}".format(payload["objectId"]),
-        "b:cutout{}_stampData,i:objectId,i:jd,i:candid".format(payload["kind"]),
+        "d:hdfs_path,i:jd,i:candid",
         0,
-        True,
-        True,
+        False,
+        False,
     )
 
     # Format the results
     schema_client = client.schema()
+    client.close()
 
     pdf = format_hbase_output(
         results,
@@ -1095,39 +1161,34 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         )
     # Extract cutouts
     if output_format == "FITS":
-        pdf = extract_cutouts(
-            pdf,
-            client,
-            col="b:cutout{}_stampData".format(payload["kind"]),
+        cutout = extract_cutouts_from_metadata(
+            pdf["d:hdfs_path"].to_numpy()[0],
+            pdf["i:objectId"].to_numpy()[0],
+            col_kind=payload["kind"],
             return_type="FITS",
-        )
+        )[0]
     elif output_format in ["PNG", "array"]:
-        pdf = extract_cutouts(
-            pdf,
-            client,
-            col="b:cutout{}_stampData".format(payload["kind"]),
+        cutout = extract_cutouts_from_metadata(
+            pdf["d:hdfs_path"].to_numpy()[0],
+            pdf["i:objectId"].to_numpy()[0],
+            col_kind=payload["kind"],
             return_type="array",
-        )
-
-    client.close()
-
-    array = pdf["b:cutout{}_stampData".format(payload["kind"])].to_numpy()[0]
+        )[0]
 
     # send the FITS file
     if output_format == "FITS":
         return send_file(
-            array,
+            cutout,
             mimetype="application/octet-stream",
             as_attachment=True,
             download_name=filename,
         )
     # send the array
     elif output_format == "array":
-        return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
-            orient="records"
-        )
+        # TODO: need to understand return type
+        return json.dumps(cutout)
 
-    array = np.nan_to_num(np.array(array, dtype=float))
+    array = np.nan_to_num(np.array(cutout, dtype=float))
     if stretch == "sigmoid":
         array = sigmoid_normalizer(array, 0, 1)
     elif stretch is not None:
