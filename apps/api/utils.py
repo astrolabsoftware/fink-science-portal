@@ -153,7 +153,9 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             # TODO: implement me
         else:
             colname = "b:cutout{}_stampData".format(cutout_kind)
-            pdf[colname] = pdf[["i:objectId", "i:candid"]].apply(lambda x: pd.Series([download_cutout]))
+            pdf[colname] = pdf[["i:objectId", "i:candid"]].apply(
+                lambda x: pd.Series([download_cutout(x.iloc[0], x.iloc[1], cutout_kind)])
+            )
 
 
     #     # Time this!
@@ -1127,7 +1129,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     results = client.scan(
         "",
         "key:key:{}".format(payload["objectId"]),
-        "d:hdfs_path,i:jd,i:candid",
+        "d:hdfs_path,i:jd,i:candid,i:objectId",
         0,
         False,
         False,
