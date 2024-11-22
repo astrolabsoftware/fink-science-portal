@@ -1196,7 +1196,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     # send the array
     elif output_format == "array":
         # TODO: need to understand return type
-        return jsonsify(cutout)
+        return jsonify(cutout)
 
     array = np.nan_to_num(np.array(cutout, dtype=float))
     if stretch == "sigmoid":
