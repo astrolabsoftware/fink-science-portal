@@ -1172,7 +1172,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
                 "return_type": "FITS"
             }
         )
-        cutout = r0.content
+        cutout = io.BytesIO(r0.content)
     elif output_format in ["PNG", "array"]:
         r0 = requests.post(
             "http://localhost:24001/api/v1/cutouts",
@@ -1196,7 +1196,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     # send the array
     elif output_format == "array":
         # TODO: need to understand return type
-        return jsonify(cutout)
+        return jsonify({"b:cutout{}_stampData".format(payload["kind"]): cutout})
 
     array = np.nan_to_num(np.array(cutout, dtype=float))
     if stretch == "sigmoid":
