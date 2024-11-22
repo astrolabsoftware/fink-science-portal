@@ -1151,7 +1151,6 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     # Extract only the alert of interest
     if "candid" in payload:
         mask = pdf["i:candid"].astype(str) == str(payload["candid"])
-        pdf = pdf[mask]
         json_payload.update({"candid": str(payload["candid"])})
         pos_target = np.where(mask)[0][0]
     else:
