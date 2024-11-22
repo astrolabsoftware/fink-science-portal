@@ -28,7 +28,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits, votable
 from astropy.table import Table
 from astropy.time import Time, TimeDelta
-from flask import Response, send_file
+from flask import Response, send_file, jsonify
 from matplotlib import cm
 from PIL import Image
 
@@ -1163,19 +1163,27 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         )
     # Extract cutouts
     if output_format == "FITS":
-        cutout = extract_cutouts_from_metadata(
-            pdf["d:hdfs_path"].to_numpy()[0],
-            pdf["i:objectId"].to_numpy()[0],
-            col_kind=payload["kind"],
-            return_type="FITS",
-        )[0]
+        r0 = requests.post(
+            "http://localhost:24001/api/v1/cutouts",
+            json={
+                "hdfsPath": pdf["d:hdfs_path"].to_numpy()[0].split("8020")[1],
+                "kind": payload["kind"],
+                "objectId": pdf["i:objectId"].to_numpy()[0],
+                "return_type": "FITS"
+            }
+        )
+        cutout = r0.content
     elif output_format in ["PNG", "array"]:
-        cutout = extract_cutouts_from_metadata(
-            pdf["d:hdfs_path"].to_numpy()[0],
-            pdf["i:objectId"].to_numpy()[0],
-            col_kind=payload["kind"],
-            return_type="array",
-        )[0]
+        r0 = requests.post(
+            "http://localhost:24001/api/v1/cutouts",
+            json={
+                "hdfsPath": pdf["d:hdfs_path"].to_numpy()[0].split("8020")[1],
+                "kind": payload["kind"],
+                "objectId": pdf["i:objectId"].to_numpy()[0],
+                "return_type": "array"
+            }
+        )
+        cutout = json.loads(r0.content)[0]
 
     # send the FITS file
     if output_format == "FITS":
@@ -1188,7 +1196,7 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     # send the array
     elif output_format == "array":
         # TODO: need to understand return type
-        return json.dumps(cutout)
+        return jsonsify(cutout)
 
     array = np.nan_to_num(np.array(cutout, dtype=float))
     if stretch == "sigmoid":
