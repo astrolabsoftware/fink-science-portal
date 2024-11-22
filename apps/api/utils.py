@@ -1147,19 +1147,25 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         extract_color=False,
     )
 
-    json_payload = {
-        "hdfsPath": pdf["d:hdfs_path"].to_numpy()[0].split("8020")[1],
-        "kind": payload["kind"],
-        "objectId": pdf["i:objectId"].to_numpy()[0],
-    }
-
+    json_payload = {}
     # Extract only the alert of interest
     if "candid" in payload:
-        pdf = pdf[pdf["i:candid"].astype(str) == str(payload["candid"])]
+        mask = pdf["i:candid"].astype(str) == str(payload["candid"])
+        pdf = pdf[mask]
         json_payload.update({"candid": str(payload["candid"])})
+        pos_target = np.where(mask)[0][0]
     else:
         # pdf has been sorted in `format_hbase_output`
         pdf = pdf.iloc[0:1]
+        pos_target = 0
+
+    json_payload.update(
+        {
+            "hdfsPath": pdf["d:hdfs_path"].to_numpy()[pos_target].split("8020")[1],
+            "kind": payload["kind"],
+            "objectId": pdf["i:objectId"].to_numpy()[pos_target],
+        }
+    )
 
     if pdf.empty:
         return send_file(
