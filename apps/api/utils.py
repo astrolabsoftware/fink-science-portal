@@ -1147,9 +1147,16 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         extract_color=False,
     )
 
+    json_payload = {
+        "hdfsPath": pdf["d:hdfs_path"].to_numpy()[0].split("8020")[1],
+        "kind": payload["kind"],
+        "objectId": pdf["i:objectId"].to_numpy()[0],
+    }
+
     # Extract only the alert of interest
     if "candid" in payload:
         pdf = pdf[pdf["i:candid"].astype(str) == str(payload["candid"])]
+        json_payload.update({"candid": str(payload["candid"])})
     else:
         # pdf has been sorted in `format_hbase_output`
         pdf = pdf.iloc[0:1]
@@ -1163,25 +1170,17 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         )
     # Extract cutouts
     if output_format == "FITS":
+        json_payload.update({"return_type": "FITS"})
         r0 = requests.post(
             "http://localhost:24001/api/v1/cutouts",
-            json={
-                "hdfsPath": pdf["d:hdfs_path"].to_numpy()[0].split("8020")[1],
-                "kind": payload["kind"],
-                "objectId": pdf["i:objectId"].to_numpy()[0],
-                "return_type": "FITS"
-            }
+            json=json_payload
         )
         cutout = io.BytesIO(r0.content)
     elif output_format in ["PNG", "array"]:
+        json_payload.update({"return_type": "array"})
         r0 = requests.post(
             "http://localhost:24001/api/v1/cutouts",
-            json={
-                "hdfsPath": pdf["d:hdfs_path"].to_numpy()[0].split("8020")[1],
-                "kind": payload["kind"],
-                "objectId": pdf["i:objectId"].to_numpy()[0],
-                "return_type": "array"
-            }
+            json=json_payload
         )
         cutout = json.loads(r0.content)[0]
 
