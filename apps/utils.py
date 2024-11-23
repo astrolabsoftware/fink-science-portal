@@ -360,55 +360,6 @@ def extract_cutouts(
     return pdf
 
 
-def extract_cutouts_from_metadata(
-    hdfs_path, objectId, col_kind="Science", return_type="array"
-) -> pd.DataFrame:
-    """Query and uncompress cutout data from a block on HDFS
-
-    Parameters
-    ----------
-    hdfs_path: str
-        Block path in HDFS (table `ztf.cutouts`)
-    objectId: str
-        ZTF objectId
-    col_kind: str
-        Science (default), Template, Difference, or All. If `col_kind=All`, return all 3
-    return_type: str
-        array or original gzipped FITS
-
-    Returns
-    -------
-    out:
-        Cutout data uncompressed (array or original gzipped FITS)
-    """
-    args = yaml.load(open("config.yml"), yaml.Loader)
-
-    hdfs = fs.HadoopFileSystem(args["HDFS"], 8020, user=args["CUTOUTUSER"])
-
-    if col_kind == "All":
-        columns = ["objectId", "cutoutScience", "cutoutTemplate", "cutoutDifference"]
-    elif col_kind in ["Science", "Template", "Difference"]:
-        columns = ["objectId", "cutout{}".format(col_kind)]
-    else:
-        raise AssertionError("`col_kind` must be one of Science, Template, Difference, or All.")
-
-    # Fetch the relevant block
-    table = pq.read_table(
-        "/user/{}/{}".format(args["CUTOUTUSER"], hdfs_path),
-        columns=columns,
-        filters=[["objectId", "=", objectId]],
-        filesystem=hdfs,
-    )
-    # TODO: check the table is not empty
-
-    dic = table.to_pydict()
-    cutouts = []
-    for col in columns[1:]:
-        cutouts.append(readstamp(dic[col][0]["stampData"]))
-
-    return cutouts
-
-
 def extract_properties(data: str, fieldnames: list):
     """ """
     pdfs = pd.DataFrame.from_dict(hbase_to_dict(data), orient="index")

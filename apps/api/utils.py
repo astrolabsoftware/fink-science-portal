@@ -44,8 +44,6 @@ from apps.plotting import legacy_normalizer, sigmoid_normalizer
 from apps.utils import (
     convert_datatype,
     convolve,
-    extract_cutouts,
-    extract_cutouts_from_metadata,
     format_hbase_output,
     hbase_to_dict,
     hbase_type_converter,
@@ -124,17 +122,17 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
 
     if withcutouts:
         # Default `None` returns all 3 cutouts
-        cutout_kind = payload.get("cutout-kind", None)
+        cutout_kind = payload.get("cutout-kind", "All")
 
         def download_cutout(objectId, candid, kind):
             r = requests.post(
-                'https://fink-portal.org/api/v1/cutouts',
+                "https://fink-portal.org/api/v1/cutouts",
                 json={
-                    'objectId': objectId,
-                    'candid': candid,
-                    'kind': kind,
-                    "output-format": "array"
-                }
+                    "objectId": objectId,
+                    "candid": candid,
+                    "kind": kind,
+                    "output-format": "array",
+                },
             )
             if r.status_code == 200:
                 data = json.loads(r.content)
@@ -143,58 +141,21 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 return []
 
             if kind != "All":
-                return data[0]["b:cutout{}_stampData".format(kind)]
+                return data["b:cutout{}_stampData".format(kind)]
             else:
                 # TODO: to implement
                 pass
 
-        if cutout_kind is None:
-            cutout_kind = "All"
+        if cutout_kind == "All":
             # TODO: implement me
+            pass
         else:
             colname = "b:cutout{}_stampData".format(cutout_kind)
             pdf[colname] = pdf[["i:objectId", "i:candid"]].apply(
-                lambda x: pd.Series([download_cutout(x.iloc[0], x.iloc[1], cutout_kind)])
+                lambda x: pd.Series(
+                    [download_cutout(x.iloc[0], x.iloc[1], cutout_kind)]
+                )
             )
-
-
-    #     # Time this!
-    #     In [66]: pdf[["i:objectId", "i:candid"]].apply(lambda x: pd.Series([json.loads(requests.post(
-    # ...:     'https://fink-portal.org/api/v1/cutouts',
-    # ...:     json={
-    # ...:         'objectId': x.iloc[0],
-    # ...:         'candid': str(x.iloc[1]),
-    # ...:         'kind': 'Science', "output-format": "array"
-    # ...:     }
-    # ...: ).content)[0]["b:cutoutScience_stampData"]]), axis=1)
-
-
-    #     pdf[["i:objectId", "i:candid"]].apply(
-    #         lambda x: pd.Series(
-    #             request_api(
-    #                 "/api/v1/cutouts",
-    #                 json={
-    #                     "objectId": x[0],
-    #                     "candid": x[1],
-    #                     "kind": cutout_kind,
-    #                     "output-format": "array",
-    #                 },
-    #                 output="json"
-    #             )
-    #         )
-    #     )
-        # if cutout_kind is None:
-        #     cols = [
-        #         "b:cutoutScience_stampData",
-        #         "b:cutoutTemplate_stampData",
-        #         "b:cutoutDifference_stampData",
-        #     ]
-        #     pdf[cols] =
-        # if cutout_kind is None:
-        #     colname = None
-        # else:
-        #     colname = "b:cutout{}_stampData".format(cutout_kind)
-        # pdf = extract_cutouts(pdf, client, col=colname, return_type="array")
 
     if withupperlim:
         clientU = connect_to_hbase_table("ztf.upper")
@@ -1111,6 +1072,10 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     else:
         stretch = "sigmoid"
 
+    if payload["kind"] == "All" and payload["output-format"] != "array":
+        # TODO: error 400
+        pass
+
     # default name based on parameters
     filename = "{}_{}".format(
         payload["objectId"],
@@ -1176,18 +1141,12 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     # Extract cutouts
     if output_format == "FITS":
         json_payload.update({"return_type": "FITS"})
-        r0 = requests.post(
-            "http://localhost:24001/api/v1/cutouts",
-            json=json_payload
-        )
+        r0 = requests.post("http://localhost:24001/api/v1/cutouts", json=json_payload)
         cutout = io.BytesIO(r0.content)
     elif output_format in ["PNG", "array"]:
         json_payload.update({"return_type": "array"})
-        r0 = requests.post(
-            "http://localhost:24001/api/v1/cutouts",
-            json=json_payload
-        )
-        cutout = json.loads(r0.content)[0]
+        r0 = requests.post("http://localhost:24001/api/v1/cutouts", json=json_payload)
+        cutout = json.loads(r0.content)
 
     # send the FITS file
     if output_format == "FITS":
@@ -1199,10 +1158,17 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         )
     # send the array
     elif output_format == "array":
-        # TODO: need to understand return type
-        return jsonify({"b:cutout{}_stampData".format(payload["kind"]): cutout})
+        if payload["kind"] != "All":
+            return jsonify({"b:cutout{}_stampData".format(payload["kind"]): cutout[0]})
+        else:
+            out = {
+                "b:cutoutScience_stampData": cutout[0],
+                "b:cutoutTemplate_stampData": cutout[1],
+                "b:cutoutDifference_stampData": cutout[2],
+            }
+            return jsonify(out)
 
-    array = np.nan_to_num(np.array(cutout, dtype=float))
+    array = np.nan_to_num(np.array(cutout[0], dtype=float))
     if stretch == "sigmoid":
         array = sigmoid_normalizer(array, 0, 1)
     elif stretch is not None:
