@@ -141,7 +141,7 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 return []
 
             if kind != "All":
-                return data["b:cutout{}_stampData".format(kind)]
+                return data[0]["b:cutout{}_stampData".format(kind)]
             else:
                 # TODO: to implement
                 pass
@@ -154,7 +154,8 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             pdf[colname] = pdf[["i:objectId", "i:candid"]].apply(
                 lambda x: pd.Series(
                     [download_cutout(x.iloc[0], x.iloc[1], cutout_kind)]
-                )
+                ),
+                axis=1,
             )
 
     if withupperlim:
