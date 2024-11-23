@@ -1356,7 +1356,7 @@ def return_cutouts(payload=None):
     if payload is None:
         payload = request.json
 
-    assert payload["kind"] in ["Science", "Template", "Difference"]
+    assert payload["kind"] in ["Science", "Template", "Difference", "All"]
 
     return format_and_send_cutout(payload)
 

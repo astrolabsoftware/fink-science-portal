@@ -126,7 +126,7 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
 
         def download_cutout(objectId, candid, kind):
             r = requests.post(
-                "https://fink-portal.org/api/v1/cutouts",
+                "{}/api/v1/cutouts".format(APIURL),
                 json={
                     "objectId": objectId,
                     "candid": candid,
@@ -141,15 +141,15 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
                 return []
 
             if kind != "All":
-                return data[0]["b:cutout{}_stampData".format(kind)]
+                return data["b:cutout{}_stampData".format(kind)]
             else:
-                return data
+                return [data["b:cutout{}_stampData".format(k)] for k in ["Science", "Template", "Difference"]]
 
         if cutout_kind == "All":
             cols = ["b:cutoutScience_stampData", "b:cutoutTemplate_stampData", "b:cutoutTemplate_stampData"]
             pdf[cols] = pdf[["i:objectId", "i:candid"]].apply(
                 lambda x: pd.Series(
-                    [download_cutout(x.iloc[0], x.iloc[1], cutout_kind)]
+                    download_cutout(x.iloc[0], x.iloc[1], cutout_kind)
                 ),
                 axis=1,
             )
