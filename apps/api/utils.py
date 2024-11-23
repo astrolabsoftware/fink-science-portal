@@ -143,12 +143,16 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             if kind != "All":
                 return data[0]["b:cutout{}_stampData".format(kind)]
             else:
-                # TODO: to implement
-                pass
+                return data
 
         if cutout_kind == "All":
-            # TODO: implement me
-            pass
+            cols = ["b:cutoutScience_stampData", "b:cutoutTemplate_stampData", "b:cutoutTemplate_stampData"]
+            pdf[cols] = pdf[["i:objectId", "i:candid"]].apply(
+                lambda x: pd.Series(
+                    [download_cutout(x.iloc[0], x.iloc[1], cutout_kind)]
+                ),
+                axis=1,
+            )
         else:
             colname = "b:cutout{}_stampData".format(cutout_kind)
             pdf[colname] = pdf[["i:objectId", "i:candid"]].apply(
