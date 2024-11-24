@@ -836,7 +836,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             )
             if r.status_code == 200:
                 # the result should be unique (based on candid)
-                cutouts.append(r.json()[0][colname])
+                cutouts.append(json.loads(r.content)[colname])
             else:
                 rep = {
                     "status": "error",
