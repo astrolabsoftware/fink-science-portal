@@ -134,9 +134,9 @@ def test_schema() -> None:
     --------
     >>> test_schema()
     """
-    pdf = ssoftsearch(flavor="SSHG1G2")
+    pdf = ssoftsearch(flavor="SHG1G2")
 
-    schema = ssoftsearch(schema=True, flavor="SSHG1G2", output_format="json")
+    schema = ssoftsearch(schema=True, flavor="SHG1G2", output_format="json")
 
     # check columns
     not_in_pdf = [i for i in set(schema["args"].keys()) if i not in set(pdf.columns)]
@@ -177,7 +177,7 @@ def check_sshg1g2() -> None:
     pdf = ssoftsearch(flavor="SSHG1G2")
 
     assert "period" in pdf.columns
-    assert "a_b" in pdf.columns
+    assert "a_b_00" in pdf.columns
 
 
 if __name__ == "__main__":

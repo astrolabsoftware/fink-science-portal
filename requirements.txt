@@ -44,9 +44,9 @@ diskcache==5.6.3
 docutils==0.20.1
 emcee==3.1.4
 faust-cchardet==2.1.19
-fink-filters==3.35
-fink-spins==0.3.7
-fink-utils==0.29.5
+fink-filters==3.38
+fink-spins==0.3.8
+fink-utils==0.29.14
 Flask==3.0.1
 fonttools==4.47.2
 frozenlist==1.4.1
@@ -159,4 +159,4 @@ Werkzeug==3.0.1
 wrapt==1.16.0
 yarl==1.9.4
 zipp==3.17.0
-git+https://github.com/astrolabsoftware/fink-science@5.21.3
+git+https://github.com/astrolabsoftware/fink-science@5.21.14
