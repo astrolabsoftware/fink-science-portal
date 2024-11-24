@@ -14,14 +14,11 @@
 # limitations under the License.
 import base64
 import gzip
-import yaml
 import io
 
 import healpy as hp
 import numpy as np
 import pandas as pd
-from pyarrow import fs
-import pyarrow.parquet as pq
 
 import qrcode
 import requests
@@ -128,6 +125,9 @@ def format_hbase_output(
     # and so HBase won't transfer data -- ignoring the column
     if "d:tracklet" not in pdfs.columns and not truncated:
         pdfs["d:tracklet"] = np.zeros(len(pdfs), dtype="U20")
+
+    if "d:tns" not in pdfs.columns and not truncated:
+        pdfs["d:tns"] = ""
 
     # Remove hbase specific fields
     for _ in ["key:key", "key:time"]:
