@@ -143,14 +143,19 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
             if kind != "All":
                 return data["b:cutout{}_stampData".format(kind)]
             else:
-                return [data["b:cutout{}_stampData".format(k)] for k in ["Science", "Template", "Difference"]]
+                return [
+                    data["b:cutout{}_stampData".format(k)]
+                    for k in ["Science", "Template", "Difference"]
+                ]
 
         if cutout_kind == "All":
-            cols = ["b:cutoutScience_stampData", "b:cutoutTemplate_stampData", "b:cutoutDifference_stampData"]
+            cols = [
+                "b:cutoutScience_stampData",
+                "b:cutoutTemplate_stampData",
+                "b:cutoutDifference_stampData",
+            ]
             pdf[cols] = pdf[["i:objectId", "i:candid"]].apply(
-                lambda x: pd.Series(
-                    download_cutout(x.iloc[0], x.iloc[1], cutout_kind)
-                ),
+                lambda x: pd.Series(download_cutout(x.iloc[0], x.iloc[1], cutout_kind)),
                 axis=1,
             )
         else:
