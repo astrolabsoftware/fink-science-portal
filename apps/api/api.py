@@ -373,7 +373,7 @@ args_cutouts = [
     {
         "name": "kind",
         "required": True,
-        "description": "Science, Template, or Difference",
+        "description": "Science, Template, or Difference. For output-format=array, you can also specify kind=All to get the 3 cutouts.",
     },
     {
         "name": "output-format",
@@ -1155,6 +1155,11 @@ def columns_arguments():
                 "type": "string",
                 "doc": "Quality tag among `valid`, `badquality` (does not satisfy quality cuts), and `upper` (upper limit measurement). Only available if `withupperlim` is set to True.",
             },
+            {
+                "name": "tns",
+                "type": "string",
+                "doc": "TNS label, if it exists.",
+            },
         ],
     )
 
@@ -1351,7 +1356,7 @@ def return_cutouts(payload=None):
     if payload is None:
         payload = request.json
 
-    assert payload["kind"] in ["Science", "Template", "Difference"]
+    assert payload["kind"] in ["Science", "Template", "Difference", "All"]
 
     return format_and_send_cutout(payload)
 

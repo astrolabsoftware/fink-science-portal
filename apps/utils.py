@@ -19,6 +19,7 @@ import io
 import healpy as hp
 import numpy as np
 import pandas as pd
+
 import qrcode
 import requests
 from astropy.convolution import Box2DKernel, Gaussian2DKernel
@@ -124,6 +125,9 @@ def format_hbase_output(
     # and so HBase won't transfer data -- ignoring the column
     if "d:tracklet" not in pdfs.columns and not truncated:
         pdfs["d:tracklet"] = np.zeros(len(pdfs), dtype="U20")
+
+    if "d:tns" not in pdfs.columns and not truncated:
+        pdfs["d:tns"] = ""
 
     # Remove hbase specific fields
     for _ in ["key:key", "key:time"]:

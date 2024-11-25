@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
+import json
 import gzip
 import io
 
@@ -27,7 +28,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits, votable
 from astropy.table import Table
 from astropy.time import Time, TimeDelta
-from flask import Response, send_file
+from flask import Response, send_file, jsonify
 from matplotlib import cm
 from PIL import Image
 
@@ -43,7 +44,6 @@ from apps.plotting import legacy_normalizer, sigmoid_normalizer
 from apps.utils import (
     convert_datatype,
     convolve,
-    extract_cutouts,
     format_hbase_output,
     hbase_to_dict,
     hbase_type_converter,
@@ -122,12 +122,50 @@ def return_object_pdf(payload: dict) -> pd.DataFrame:
 
     if withcutouts:
         # Default `None` returns all 3 cutouts
-        cutout_kind = payload.get("cutout-kind", None)
-        if cutout_kind is None:
-            colname = None
+        cutout_kind = payload.get("cutout-kind", "All")
+
+        def download_cutout(objectId, candid, kind):
+            r = requests.post(
+                "{}/api/v1/cutouts".format(APIURL),
+                json={
+                    "objectId": objectId,
+                    "candid": candid,
+                    "kind": kind,
+                    "output-format": "array",
+                },
+            )
+            if r.status_code == 200:
+                data = json.loads(r.content)
+            else:
+                # TODO: different return based on `kind`?
+                return []
+
+            if kind != "All":
+                return data["b:cutout{}_stampData".format(kind)]
+            else:
+                return [
+                    data["b:cutout{}_stampData".format(k)]
+                    for k in ["Science", "Template", "Difference"]
+                ]
+
+        if cutout_kind == "All":
+            cols = [
+                "b:cutoutScience_stampData",
+                "b:cutoutTemplate_stampData",
+                "b:cutoutDifference_stampData",
+            ]
+            pdf[cols] = pdf[["i:objectId", "i:candid"]].apply(
+                lambda x: pd.Series(download_cutout(x.iloc[0], x.iloc[1], cutout_kind)),
+                axis=1,
+            )
         else:
             colname = "b:cutout{}_stampData".format(cutout_kind)
-        pdf = extract_cutouts(pdf, client, col=colname, return_type="array")
+            pdf[colname] = pdf[["i:objectId", "i:candid"]].apply(
+                lambda x: pd.Series(
+                    [download_cutout(x.iloc[0], x.iloc[1], cutout_kind)]
+                ),
+                axis=1,
+            )
 
     if withupperlim:
         clientU = connect_to_hbase_table("ztf.upper")
@@ -798,7 +836,7 @@ def return_sso_pdf(payload: dict) -> pd.DataFrame:
             )
             if r.status_code == 200:
                 # the result should be unique (based on candid)
-                cutouts.append(r.json()[0][colname])
+                cutouts.append(json.loads(r.content)[colname])
             else:
                 rep = {
                     "status": "error",
@@ -1044,6 +1082,10 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
     else:
         stretch = "sigmoid"
 
+    if payload["kind"] == "All" and payload["output-format"] != "array":
+        # TODO: error 400
+        pass
+
     # default name based on parameters
     filename = "{}_{}".format(
         payload["objectId"],
@@ -1058,18 +1100,19 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         filename = filename + ".fits"
 
     # Query the Database (object query)
-    client = connect_to_hbase_table("ztf")
+    client = connect_to_hbase_table("ztf.cutouts")
     results = client.scan(
         "",
         "key:key:{}".format(payload["objectId"]),
-        "b:cutout{}_stampData,i:objectId,i:jd,i:candid".format(payload["kind"]),
+        "d:hdfs_path,i:jd,i:candid,i:objectId",
         0,
-        True,
-        True,
+        False,
+        False,
     )
 
     # Format the results
     schema_client = client.schema()
+    client.close()
 
     pdf = format_hbase_output(
         results,
@@ -1079,12 +1122,24 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         extract_color=False,
     )
 
+    json_payload = {}
     # Extract only the alert of interest
     if "candid" in payload:
-        pdf = pdf[pdf["i:candid"].astype(str) == str(payload["candid"])]
+        mask = pdf["i:candid"].astype(str) == str(payload["candid"])
+        json_payload.update({"candid": str(payload["candid"])})
+        pos_target = np.where(mask)[0][0]
     else:
         # pdf has been sorted in `format_hbase_output`
         pdf = pdf.iloc[0:1]
+        pos_target = 0
+
+    json_payload.update(
+        {
+            "hdfsPath": pdf["d:hdfs_path"].to_numpy()[pos_target].split("8020")[1],
+            "kind": payload["kind"],
+            "objectId": pdf["i:objectId"].to_numpy()[pos_target],
+        }
+    )
 
     if pdf.empty:
         return send_file(
@@ -1095,39 +1150,35 @@ def format_and_send_cutout(payload: dict) -> pd.DataFrame:
         )
     # Extract cutouts
     if output_format == "FITS":
-        pdf = extract_cutouts(
-            pdf,
-            client,
-            col="b:cutout{}_stampData".format(payload["kind"]),
-            return_type="FITS",
-        )
+        json_payload.update({"return_type": "FITS"})
+        r0 = requests.post("http://localhost:24001/api/v1/cutouts", json=json_payload)
+        cutout = io.BytesIO(r0.content)
     elif output_format in ["PNG", "array"]:
-        pdf = extract_cutouts(
-            pdf,
-            client,
-            col="b:cutout{}_stampData".format(payload["kind"]),
-            return_type="array",
-        )
-
-    client.close()
-
-    array = pdf["b:cutout{}_stampData".format(payload["kind"])].to_numpy()[0]
+        json_payload.update({"return_type": "array"})
+        r0 = requests.post("http://localhost:24001/api/v1/cutouts", json=json_payload)
+        cutout = json.loads(r0.content)
 
     # send the FITS file
     if output_format == "FITS":
         return send_file(
-            array,
+            cutout,
             mimetype="application/octet-stream",
             as_attachment=True,
             download_name=filename,
         )
     # send the array
     elif output_format == "array":
-        return pdf[["b:cutout{}_stampData".format(payload["kind"])]].to_json(
-            orient="records"
-        )
+        if payload["kind"] != "All":
+            return jsonify({"b:cutout{}_stampData".format(payload["kind"]): cutout[0]})
+        else:
+            out = {
+                "b:cutoutScience_stampData": cutout[0],
+                "b:cutoutTemplate_stampData": cutout[1],
+                "b:cutoutDifference_stampData": cutout[2],
+            }
+            return jsonify(out)
 
-    array = np.nan_to_num(np.array(array, dtype=float))
+    array = np.nan_to_num(np.array(cutout[0], dtype=float))
     if stretch == "sigmoid":
         array = sigmoid_normalizer(array, 0, 1)
     elif stretch is not None:

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import requests
-import pandas as pd
 import numpy as np
 
 from astropy.io import fits
@@ -65,8 +64,7 @@ def cutouttest(
     elif output_format == "FITS":
         data = fits.open(io.BytesIO(r.content), ignore_missing_simple=True)
     elif output_format == "array":
-        pdf = pd.read_json(io.BytesIO(r.content))
-        data = pdf["b:cutout{}_stampData".format(kind)].to_numpy()[0]
+        data = r.json()["b:cutout{}_stampData".format(kind)]
 
     return data
 
@@ -103,7 +101,7 @@ def test_array_cutout() -> None:
     """
     data = cutouttest(output_format="array")
 
-    assert np.shape(data) == (63, 63)
+    assert np.shape(data) == (63, 63), data
     assert isinstance(data, list)
 
 
