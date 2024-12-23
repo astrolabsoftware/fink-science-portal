@@ -30,7 +30,7 @@ from dash import (
 from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
-import visdcc
+# import visdcc
 
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
@@ -40,7 +40,7 @@ from dash_autocomplete_input import AutocompleteInput
 from app import server
 from app import app
 
-from apps import summary, about, statistics, query_cluster, gw
+# from apps import summary, about, statistics, query_cluster, gw
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time
@@ -882,6 +882,8 @@ def display_skymap(data, columns, is_open):
 
 
 def modal_skymap():
+    import visdcc
+
     button = dmc.Button(
         "Sky Map",
         id="open_modal_skymap",
@@ -1940,6 +1942,8 @@ app.layout = dmc.MantineProvider(
     ],
 )
 def display_page(pathname, searchurl):
+    from apps import summary, about, statistics, query_cluster, gw
+
     layout = dmc.MantineProvider(
         [
             dbc.Container(

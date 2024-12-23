@@ -2308,7 +2308,7 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True, id_type="s
         linecolor="black",
         showticklabels=False,
         ticks="",
-        range=[0, 60]
+        range=[0, 60],
     )
 
     fig.update_layout(
