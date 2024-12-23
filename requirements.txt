@@ -36,7 +36,7 @@ dash-bootstrap-components==1.5.0
 dash-core-components==2.0.0
 dash-html-components==2.0.0
 dash-iconify==0.1.2
-dash-mantine-components==0.14.3
+dash-mantine-components==0.15.1
 dash-table==5.0.0
 Deprecated==1.2.14
 dill==0.3.7
