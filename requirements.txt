@@ -48,6 +48,7 @@ fink-filters==3.38
 fink-spins==0.3.8
 fink-utils==0.29.14
 Flask==3.0.1
+Flask-Compress==1.17
 fonttools==4.47.2
 frozenlist==1.4.1
 future==0.18.3

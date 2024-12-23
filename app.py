@@ -66,6 +66,7 @@ app = factory(
     background_callback_manager=background_callback_manager,
     update_title=None,
     title="Fink Science Portal",
+    compress=True
 )
 
 nlimit = 10000
