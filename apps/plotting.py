@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import copy
 import datetime
 from copy import deepcopy
@@ -50,8 +51,8 @@ from fink_utils.sso.spins import (
 )
 from gatspy import periodic
 from plotly.subplots import make_subplots
-from pyLIMA import event, microlmodels, microltoolbox, telescopes
-from pyLIMA.microloutputs import create_the_fake_telescopes
+#from pyLIMA import event, microlmodels, microltoolbox, telescopes
+#from pyLIMA.microloutputs import create_the_fake_telescopes
 from scipy.optimize import curve_fit
 
 from app import app
@@ -1366,7 +1367,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     -------
     figure: dict
     """
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
     cols = [
         "i:jd",
         "i:magpsf",

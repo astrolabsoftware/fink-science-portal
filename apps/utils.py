@@ -118,12 +118,6 @@ def markdownify_objectid(objectid):
     return objectid_markdown
 
 
-def extract_row(key: str, clientresult) -> dict:
-    """Extract one row from the client result, and return result as dict"""
-    data = clientresult[key]
-    return dict(data)
-
-
 def readstamp(stamp: str, return_type="array", gzipped=True) -> np.array:
     """Read the stamp data inside an alert.
 
