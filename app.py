@@ -60,10 +60,8 @@ app = factory(
     background_callback_manager=background_callback_manager,
     update_title=None,
     title="Fink Science Portal",
-    compress=True
+    compress=True,
 )
-
-nlimit = 10000
 
 app.server.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 server = app.server
