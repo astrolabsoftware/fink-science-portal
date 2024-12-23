@@ -904,7 +904,6 @@ def modal_skymap():
                                     id="aladin-lite-div-skymap",
                                     style={"border": "0"},
                                 ),
-                                # dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
                             ],
                             style={
                                 "width": "100%",
