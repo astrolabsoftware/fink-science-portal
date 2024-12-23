@@ -24,7 +24,6 @@ from dash_iconify import DashIconify
 
 from app import app
 from apps.cards import card_id, card_lightcurve_summary
-from apps.mulens.cards import card_explanation_mulens
 from apps.plotting import (
     draw_sso_astrometry,
     draw_sso_lightcurve,
@@ -207,49 +206,6 @@ def tab3_content():
         ]
     )
     return [tab3_content_]
-
-
-def tab4_content():
-    """Microlensing tab"""
-    submit_mulens_button = dmc.Button(
-        "Fit data",
-        id="submit_mulens",
-        color="dark",
-        variant="outline",
-        fullWidth=True,
-        radius="xl",
-    )
-
-    tab4_content_ = html.Div(
-        [
-            dmc.Space(h=10),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading(
-                            dmc.Paper(
-                                [
-                                    html.Div(id="mulens_plot"),
-                                    card_explanation_mulens(),
-                                ],
-                            ),
-                        ),
-                        md=8,
-                    ),
-                    dbc.Col(
-                        [
-                            html.Div(id="card_mulens"),
-                            html.Br(),
-                            submit_mulens_button,
-                        ],
-                        md=4,
-                    ),
-                ],
-                className="g-1",
-            ),
-        ]
-    )
-    return [tab4_content_]
 
 
 @app.callback(
@@ -505,11 +461,6 @@ def tabs(pdf):
                         disabled=len(pdf.index) == 1,
                     ),
                     dmc.TabsTab(
-                        "Microlensing",
-                        value="Microlensing",
-                        disabled=len(pdf.index) == 1,
-                    ),
-                    dmc.TabsTab(
                         "Solar System", value="Solar System", disabled=not is_sso(pdf)
                     ),
                     dmc.TabsTab(
@@ -522,7 +473,6 @@ def tabs(pdf):
             dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
             dmc.TabsPanel(tab2_content(), value="Supernovae"),
             dmc.TabsPanel(tab3_content(), value="Variable stars"),
-            dmc.TabsPanel(tab4_content(), value="Microlensing"),
             dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
             dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
         ],
@@ -740,7 +690,9 @@ def layout(name):
                             "height": "100%",
                         },
                     ),
-                    html.Div(id="aladin-lite-div", style={"width": "100%", "height": "27pc"} )
+                    html.Div(
+                        id="aladin-lite-div", style={"width": "100%", "height": "27pc"}
+                    ),
                 ],
                 className="p-1",
             ),

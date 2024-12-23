@@ -17,7 +17,6 @@ import yaml
 import gzip
 import io
 
-import healpy as hp
 import numpy as np
 import pandas as pd
 
@@ -25,12 +24,10 @@ import qrcode
 import requests
 from astropy.convolution import Box2DKernel, Gaussian2DKernel
 from astropy.convolution import convolve as astropy_convolve
-from astropy.coordinates import SkyCoord, get_constellation
 from astropy.io import fits
 from astropy.time import Time
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astroquery.mpc import MPC
-from fink_filters.classification import extract_fink_classification_
 from fink_utils.xmatch.simbad import get_simbad_labels
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
@@ -58,6 +55,18 @@ class_colors = {
     "Unknown": "gray",
     "Simbad": "blue",
 }
+
+
+def isoify_time(t):
+    try:
+        tt = Time(t)
+    except ValueError:
+        ft = float(t)
+        if ft // 2400000:
+            tt = Time(ft, format="jd")
+        else:
+            tt = Time(ft, format="mjd")
+    return tt.iso
 
 
 def query_and_order_statistics(date="", columns="*", index_by="key:key", drop=True):
@@ -98,18 +107,6 @@ def query_and_order_statistics(date="", columns="*", index_by="key:key", drop=Tr
         pdf = pdf.drop(columns=["key:time"])
 
     return pdf
-
-
-def isoify_time(t):
-    try:
-        tt = Time(t)
-    except ValueError:
-        ft = float(t)
-        if ft // 2400000:
-            tt = Time(ft, format="jd")
-        else:
-            tt = Time(ft, format="mjd")
-    return tt.iso
 
 
 def markdownify_objectid(objectid):
@@ -153,15 +150,6 @@ def readstamp(stamp: str, return_type="array", gzipped=True) -> np.array:
             return extract_stamp(io.BytesIO(f.read()))
     else:
         return extract_stamp(stamp)
-
-
-def extract_properties(data: str, fieldnames: list):
-    """ """
-    pdfs = pd.DataFrame.from_dict(hbase_to_dict(data), orient="index")
-    if fieldnames is not None:
-        return pdfs[fieldnames]
-    else:
-        return pdfs
 
 
 def convert_jd(jd, to="iso", format="jd"):
@@ -247,127 +235,6 @@ def _data_stretch(
     # data = np.clip(data * 255., 0., 255.)
 
     return data  # .astype(np.uint8)
-
-
-def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
-    """Conversion from magnitude to Fluxcal from SNANA manual
-
-    Parameters
-    ----------
-    magpsf: float
-        PSF-fit magnitude from ZTF
-    sigmapsf: float
-
-    Returns
-    -------
-    fluxcal: float
-        Flux cal as used by SNANA
-    fluxcal_err: float
-        Absolute error on fluxcal (the derivative has a minus sign)
-
-    """
-    if magpsf is None:
-        return None, None
-    fluxcal = 10 ** (-0.4 * magpsf) * 10 ** (11)
-    fluxcal_err = 9.21034 * 10**10 * np.exp(-0.921034 * magpsf) * sigmapsf
-
-    return fluxcal, fluxcal_err
-
-
-def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
-    """Extract magnitude rates in different filters, color, and color change rate.
-
-    Notes
-    -----
-    It fills the following fields:
-    - v:rate - magnitude change rate for this filter, defined as magnitude difference since previous measurement, divided by time difference
-    - v:sigma(rate) - error of previous value, estimated from per-point errors
-    - v:g-r - color, defined by subtracting the measurements in g and r filter closer than `tolerance` days. Is assigned to both g and r data points with the same value
-    - v:sigma(g-r) - error of previous value, estimated from per-point errors
-    - v:rate(g-r) - color change rate, computed using time differences of g band points
-    - v:sigma(rate(g-r)) - error of previous value, estimated from per-point errors
-
-    Parameters
-    ----------
-    pdf: Pandas DataFrame
-        DataFrame returned by `format_hbase_output` (see api/api.py)
-    tolerance: float
-        Maximum delay between g and r data points to be considered for color computation, in days
-
-    Returns
-    -------
-    pdf: Pandas DataFrame
-        Modified original DataFrame with added columns. Original order is not preserved
-    """
-    pdfs = pdf.sort_values("i:jd")
-
-    def fn(sub):
-        """Extract everything relevant on the sub-group corresponding to single object.
-
-        Notes
-        -----
-        Assumes it is already sorted by time.
-        """
-        sidx = []
-
-        # Extract magnitude rates separately in different filters
-        for fid in [1, 2]:
-            idx = sub["i:fid"] == fid
-
-            dmag = sub["i:magpsf"][idx].diff()
-            dmagerr = np.hypot(sub["i:sigmapsf"][idx], sub["i:sigmapsf"][idx].shift())
-            djd = sub["i:jd"][idx].diff()
-            sub.loc[idx, "v:rate"] = dmag / djd
-            sub.loc[idx, "v:sigma(rate)"] = dmagerr / djd
-
-            sidx.append(idx)
-
-        if len(sidx) == 2:
-            # We have both filters, let's try to also get the color!
-            colnames_gr = ["i:jd", "i:magpsf", "i:sigmapsf"]
-            gr = pd.merge_asof(
-                sub[sidx[0]][colnames_gr],
-                sub[sidx[1]][colnames_gr],
-                on="i:jd",
-                suffixes=("_g", "_r"),
-                direction="nearest",
-                tolerance=tolerance,
-            )
-            # It is organized around g band points, r columns are null when unmatched
-            gr = gr.loc[~gr.isna()["i:magpsf_r"]]  # Keep only matched rows
-
-            gr["v:g-r"] = gr["i:magpsf_g"] - gr["i:magpsf_r"]
-            gr["v:sigma(g-r)"] = np.hypot(gr["i:sigmapsf_g"], gr["i:sigmapsf_r"])
-
-            djd = gr["i:jd"].diff()
-            dgr = gr["v:g-r"].diff()
-            dgrerr = np.hypot(gr["v:sigma(g-r)"], gr["v:sigma(g-r)"].shift())
-
-            gr["v:rate(g-r)"] = dgr / djd
-            gr["v:sigma(rate(g-r))"] = dgrerr / djd
-
-            # Now we may assign these color values also to corresponding r band points
-            sub = pd.merge_asof(
-                sub,
-                gr[
-                    [
-                        "i:jd",
-                        "v:g-r",
-                        "v:sigma(g-r)",
-                        "v:rate(g-r)",
-                        "v:sigma(rate(g-r))",
-                    ]
-                ],
-                direction="nearest",
-                tolerance=tolerance,
-            )
-
-        return sub
-
-    # Apply the subroutine defined above to individual objects, and merge the table back
-    pdfs = pdfs.groupby("i:objectId").apply(fn).droplevel(0)
-
-    return pdfs
 
 
 def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
@@ -468,35 +335,6 @@ def convert_mpc_type(index):
         10: "Distant Objects",
     }
     return dic[index]
-
-
-def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
-    """Compute the indices of superpixels that contain a subpixel.
-
-    Note that nside_subpix > nside_superpix
-    """
-    idx = np.array(idx)
-    nside_superpix = np.asarray(nside_superpix)
-    nside_subpix = np.asarray(nside_subpix)
-
-    if not nest:
-        idx = hp.ring2nest(nside_subpix, idx)
-
-    ratio = np.array((nside_subpix // nside_superpix) ** 2, ndmin=1)
-    idx //= ratio
-
-    if not nest:
-        m = idx == -1
-        idx[m] = 0
-        idx = hp.nest2ring(nside_superpix, idx)
-        idx[m] = -1
-
-    return idx
-
-
-def return_empty_query():
-    """Wrapper for malformed query from URL"""
-    return "", "", None
 
 
 def extract_parameter_value_from_url(param_dic, key, default):
