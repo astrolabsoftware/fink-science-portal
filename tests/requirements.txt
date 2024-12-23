@@ -1,6 +1,0 @@
-pillow
-requests
-pandas
-pyarrow
-numpy
-astropy

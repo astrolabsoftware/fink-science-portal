@@ -33,7 +33,7 @@ def resolve_sso_name_to_ssnamenr(sso_name):
     """
     # search all ssnamenr corresponding quaero -> ssnamenr
     r = requests.post(
-        "https://fink-portal.org/api/v1/resolver",
+        "https://api.fink-portal.org/api/v1/resolver",
         json={"resolver": "ssodnet", "name": sso_name, "nmax": 1},
     )
     if r.status_code != 200:

@@ -24,7 +24,7 @@ from dash import Input, Output, State, clientside_callback, dcc, html
 from dash_iconify import DashIconify
 from fink_utils.photometry.utils import is_source_behind
 
-from app import APIURL, app
+from app import app
 from apps.plotting import all_radio_options
 from apps.utils import (
     class_colors,
@@ -35,6 +35,11 @@ from apps.utils import (
     request_api,
     simbad_types,
 )
+
+from apps.utils import extract_configuration
+
+args = extract_configuration("config.yml")
+APIURL = args["APIURL"]
 
 lc_help = r"""
 ##### Difference magnitude

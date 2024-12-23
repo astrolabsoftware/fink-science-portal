@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import base64
+import yaml
 import gzip
 import io
 
@@ -34,18 +35,13 @@ from fink_utils.xmatch.simbad import get_simbad_labels
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 
-import apps.api
-from app import APIURL, LOCALAPI, server
-
 # TODO: split these UI snippets into separate file?..
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash import html
 
 # Access local or remove API endpoint
-from json import loads as json_loads
 
-from flask import Response
 
 simbad_types = get_simbad_labels("old_and_new")
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
@@ -871,58 +867,31 @@ def get_first_value(pdf, colname, default=None):
 
 def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
     """Output is one of 'pandas' (default), 'raw' or 'json'"""
-    if LOCALAPI:
-        # Use local API
-        urls = server.url_map.bind("")
-        func_name = urls.match(endpoint, method)
-        if len(func_name) == 2 and func_name[0].startswith("api."):
-            func = getattr(apps.api.api, func_name[0].split(".")[1])
+    args = extract_configuration("config.yml")
+    APIURL = args["APIURL"]
+    if method == "POST":
+        r = requests.post(
+            f"{APIURL}{endpoint}",
+            json=json,
+        )
+    elif method == "GET":
+        # No args?..
+        r = requests.get(
+            f"{APIURL}{endpoint}",
+        )
 
-            if method == "GET":
-                # No args?..
-                res = func()
-            else:
-                res = func(json)
-            if isinstance(res, Response):
-                if res.direct_passthrough:
-                    res.make_sequence()
-                result = res.get_data()
-            else:
-                result = res
-
-            if output == "json":
-                return json_loads(result)
-            elif output == "raw":
-                return result
-            else:
-                return pd.read_json(result, **kwargs)
-        else:
-            return None
+    if output == "json":
+        if r.status_code != 200:
+            return []
+        return r.json()
+    elif output == "raw":
+        if r.status_code != 200:
+            return io.BytesIO()
+        return io.BytesIO(r.content)
     else:
-        # Use remote API
-        if method == "POST":
-            r = requests.post(
-                f"{APIURL}{endpoint}",
-                json=json,
-            )
-        elif method == "GET":
-            # No args?..
-            r = requests.get(
-                f"{APIURL}{endpoint}",
-            )
-
-        if output == "json":
-            if r.status_code != 200:
-                return []
-            return r.json()
-        elif output == "raw":
-            if r.status_code != 200:
-                return io.BytesIO()
-            return io.BytesIO(r.content)
-        else:
-            if r.status_code != 200:
-                return pd.DataFrame()
-            return pd.read_json(io.BytesIO(r.content), **kwargs)
+        if r.status_code != 200:
+            return pd.DataFrame()
+        return pd.read_json(io.BytesIO(r.content), **kwargs)
 
 
 def loading(item):
@@ -1146,3 +1115,24 @@ def create_button_for_external_conesearch(
         )
 
     return button
+
+
+def extract_configuration(filename):
+    """Extract user defined configuration
+
+    Parameters
+    ----------
+    filename: str
+        Full path to the `config.yml` file.
+
+    Returns
+    -------
+    out: dict
+        Dictionary with user defined values.
+    """
+    config = yaml.load(open("config.yml"), yaml.Loader)
+    if config["HOST"].endswith(".org"):
+        config["SITEURL"] = "https://" + config["HOST"]
+    else:
+        config["SITEURL"] = "http://" + config["HOST"] + ":" + str(config["PORT"])
+    return config

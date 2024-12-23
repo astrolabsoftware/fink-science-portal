@@ -37,10 +37,8 @@ from dash_autocomplete_input import AutocompleteInput
 
 from app import server
 from app import app
-from app import APIURL
 
 from apps import summary, about, statistics, query_cluster, gw
-from apps.api import api
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time
@@ -48,6 +46,7 @@ from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
 from apps.utils import help_popover
 from apps.utils import request_api
+from apps.utils import extract_configuration
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 from apps.cards import card_search_result
 from apps.parse import parse_query
@@ -56,6 +55,8 @@ import pandas as pd
 import numpy as np
 
 import urllib
+
+config_args = extract_configuration("config.yml")
 
 tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
 tns_types = sorted(tns_types, key=lambda s: s.lower())
@@ -196,10 +197,10 @@ By default, the `Table view` shows the following fields:
 - i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
 - v:lapse: number of days between the first and last spatially coincident detections.
 
-You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at {}/api/v1/columns.
+You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at {}/api/v1/schema.
 
 The button `Sky Map` will open a popup with embedded Aladin sky map showing the positions of the search results on the sky.
-""".format(APIURL)
+""".format(config_args["APIURL"])
 
 # Smart search field
 quick_fields = [
@@ -636,7 +637,7 @@ def display_table_results(table):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    pdf = request_api("/api/v1/columns", method="GET")
+    pdf = request_api("/api/v1/schema", method="GET")
 
     fink_fields = [
         "d:" + i for i in pdf.loc["Fink science module outputs (d:)"]["fields"].keys()
@@ -825,7 +826,9 @@ def display_skymap(data, columns, is_open):
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [
             link.format(
-                APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
+                config_args["SITEURL"],
+                i.split("]")[0].split("[")[1],
+                i.split("]")[0].split("[")[1],
             )
             for i in pdf["i:objectId"].to_numpy()
         ]
@@ -1991,8 +1994,6 @@ def display_page(pathname, searchurl):
     )
     if pathname == "/about":
         return about.layout, "home"
-    elif pathname == "/api":
-        return api.layout(), "home"
     elif pathname == "/stats":
         return statistics.layout(), "home_light"
     elif pathname == "/download":
@@ -2010,18 +2011,8 @@ def display_page(pathname, searchurl):
         return layout, "home"
 
 
-# register the API
-try:
-    from apps.api.api import api_bp
-
-    server.register_blueprint(api_bp, url_prefix="/")
-    server.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
-    server.config["JSON_SORT_KEYS"] = False
-except ImportError:
-    print("API not yet registered")
+server.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
+server.config["JSON_SORT_KEYS"] = False
 
 if __name__ == "__main__":
-    import yaml
-
-    input_args = yaml.load(open("config.yml"), yaml.Loader)
-    app.run_server(input_args["IP"], debug=True, port=input_args["PORT"])
+    app.run_server(config_args["HOST"], debug=True, port=config_args["PORT"])

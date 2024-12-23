@@ -20,19 +20,14 @@ from dash import DiskcacheManager
 # import jpype
 
 import os
-import yaml
 import diskcache
+
 
 dash._dash_renderer._set_react_version("18.2.0")
 
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
 background_callback_manager = DiskcacheManager(cache)
-
-args = yaml.load(open("config.yml"), yaml.Loader)
-
-APIURL = args["APIURL"]
-LOCALAPI = args.get("LOCALAPI", False)
 
 # bootstrap theme
 external_stylesheets = [

@@ -20,9 +20,14 @@ import rocks
 from dash import Input, Output, dcc, html
 from dash_iconify import DashIconify
 
-from app import APIURL, app
+from app import app
 from apps.utils import convert_mpc_type, help_popover, query_mpc
 from astropy.time import Time
+
+from apps.utils import extract_configuration
+
+args = extract_configuration("config.yml")
+APIURL = args["APIURL"]
 
 AU_TO_M = 149597870700
 

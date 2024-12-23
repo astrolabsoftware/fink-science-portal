@@ -683,7 +683,7 @@ def store_release_photometry(n_clicks, object_data):
     ],
 )
 def make_qrcode(path):
-    qrdata = f"https://fink-portal.org/{path[1:]}"
+    qrdata = f"https://api.fink-portal.org/{path[1:]}"
     qrimg = generate_qr(qrdata)
 
     return html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg))

@@ -32,7 +32,7 @@ from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 from mocpy import MOC
 
-from app import APIURL, app
+from app import app
 from apps.utils import (
     class_colors,
     convert_jd,
@@ -40,7 +40,12 @@ from apps.utils import (
     markdownify_objectid,
     request_api,
     simbad_types,
+    extract_configuration,
 )
+
+
+args = extract_configuration("config.yml")
+APIURL = args["APIURL"]
 
 
 def extract_moc(fn, credible_level):
@@ -125,7 +130,7 @@ def query_bayestar(submit, credible_level, superevent_name, searchurl):
         return "error"
 
     pdf = request_api(
-        "/api/v1/bayestar",
+        "/api/v1/skymap",
         json={
             "bayestar": str(data),
             "credible_level": float(credible_level),

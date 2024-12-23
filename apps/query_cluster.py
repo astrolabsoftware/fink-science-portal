@@ -26,7 +26,7 @@ from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 from fink_utils.xmatch.simbad import get_simbad_labels
 
-from app import APIURL, app
+from app import app
 from apps.mining.utils import (
     estimate_size_gb_elasticc,
     estimate_size_gb_ztf,
@@ -34,6 +34,10 @@ from apps.mining.utils import (
     upload_file_hdfs,
 )
 from apps.utils import request_api
+from apps.utils import extract_configuration
+
+args = extract_configuration("config.yml")
+APIURL = args["APIURL"]
 
 simbad_types = get_simbad_labels("old_and_new")
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
@@ -253,7 +257,7 @@ def display_filter_tab(trans_datasource):
             description = [
                 "One condition per line (SQL syntax), ending with semi-colon. See ",
                 dmc.Anchor(
-                    "here", href=f"{APIURL}/api/v1/columns", size="xs", target="_blank"
+                    "here", href=f"{APIURL}/api/v1/schema", size="xs", target="_blank"
                 ),
                 " (and also ",
                 dmc.Anchor(
