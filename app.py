@@ -36,7 +36,7 @@ external_stylesheets = [
     "//use.fontawesome.com/releases/v5.7.2/css/all.css",
 ]
 
-external_stylesheets += dmc.styles.ALL
+external_stylesheets = external_stylesheets + dmc.styles.ALL
 
 external_scripts = [
     "//aladin.u-strasbg.fr/AladinLite/api/v3/3.2.0/aladin.js",
@@ -60,6 +60,7 @@ app = factory(
     background_callback_manager=background_callback_manager,
     update_title=None,
     title="Fink Science Portal",
+    compress=True
 )
 
 nlimit = 10000
