@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
+
 import dash
 from dash import (
     html,
@@ -1486,7 +1488,7 @@ def display_cards_results(pdf, page_size=10):
     State("results_page_size_store", "data"),
 )
 def on_paginate(page, data, page_size):
-    pdf = pd.read_json(data)
+    pdf = pd.read_json(io.StringIO(data))
     page_size = int(page_size)
 
     if not page:
