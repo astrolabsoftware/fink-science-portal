@@ -734,19 +734,13 @@ def layout(name):
             html.Div(
                 [
                     visdcc.Run_js(id="aladin-lite-runner"),
-                    html.Div(
-                        dmc.Skeleton(
-                            style={
-                                "width": "100%",
-                                "height": "100%",
-                            },
-                        ),
-                        id="aladin-lite-div",
+                    dmc.Skeleton(
                         style={
                             "width": "100%",
-                            "height": "27pc",
+                            "height": "100%",
                         },
                     ),
+                    html.Div(id="aladin-lite-div", style={"width": "100%", "height": "27pc"} )
                 ],
                 className="p-1",
             ),

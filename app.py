@@ -14,6 +14,7 @@
 # limitations under the License.
 import dash
 import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 from dash.long_callback import DiskcacheLongCallbackManager
 from dash import DiskcacheManager
 
@@ -33,16 +34,11 @@ background_callback_manager = DiskcacheManager(cache)
 external_stylesheets = [
     dbc.themes.SPACELAB,
     "//use.fontawesome.com/releases/v5.7.2/css/all.css",
-    "https://unpkg.com/@mantine/dates@7/styles.css",
-    "https://unpkg.com/@mantine/code-highlight@7/styles.css",
-    "https://unpkg.com/@mantine/charts@7/styles.css",
-    "https://unpkg.com/@mantine/carousel@7/styles.css",
-    "https://unpkg.com/@mantine/notifications@7/styles.css",
-    "https://unpkg.com/@mantine/nprogress@7/styles.css",
 ]
 
+external_stylesheets += dmc.styles.ALL
+
 external_scripts = [
-    "//code.jquery.com/jquery-1.12.1.min.js",
     "//aladin.u-strasbg.fr/AladinLite/api/v3/3.2.0/aladin.js",
     "//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
 ]
