@@ -2342,6 +2342,10 @@ def draw_cutout(data, title, lower_bound=0, upper_bound=1, zoom=True, id_type="s
 
 zoom_cutouts_js = """
 function zoom_cutouts(relayout_data, figure_states) {
+    if (relayout_data.includes(undefined)) {
+        return [dash_clientside.no_update, dash_clientside.no_update];
+    }
+
     let unique_data = null;
     for (i in relayout_data)
         if (relayout_data.reduce((v,x) => v + (JSON.stringify(x) == JSON.stringify(relayout_data[i]) ? 1 : 0), 0) == 1)
