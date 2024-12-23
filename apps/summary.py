@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 from urllib.error import URLError
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
@@ -217,7 +218,7 @@ def tab3_content():
 )
 def tab5_content(object_soo):
     """SSO tab"""
-    pdf = pd.read_json(object_soo)
+    pdf = pd.read_json(io.StringIO(object_soo))
     if pdf.empty:
         ssnamenr = "null"
         sso_name = "null"
@@ -426,7 +427,7 @@ def tab5_content(object_soo):
 )
 def tab6_content(object_tracklet):
     """Tracklet tab"""
-    pdf = pd.read_json(object_tracklet)
+    pdf = pd.read_json(io.StringIO(object_tracklet))
     tab6_content_ = html.Div(
         [
             dmc.Space(h=10),
@@ -599,7 +600,7 @@ def store_release_photometry(n_clicks, object_data):
     if not n_clicks or not object_data:
         raise PreventUpdate
 
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     mean_ra = np.mean(pdf["i:ra"])
     mean_dec = np.mean(pdf["i:dec"])

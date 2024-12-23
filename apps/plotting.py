@@ -471,7 +471,7 @@ def plot_variable_star(
         return None, "info"
 
     # Prepare the data
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
     cols = [
         "i:jd",
         "i:magpsf",
@@ -489,7 +489,7 @@ def plot_variable_star(
 
     # Data release?..
     if object_release:
-        pdf_release = pd.read_json(object_release)
+        pdf_release = pd.read_json(io.StringIO(object_release))
         pdf_release = pdf_release.sort_values("mjd", ascending=False)
         dates_release = convert_jd(pdf_release["mjd"], format="mjd")
     else:
@@ -827,7 +827,7 @@ def plot_classbar(object_data):
     object_data: json data
         cached alert data
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
     grouped = pdf.groupby("v:classification").count()
     alert_per_class = grouped["i:objectId"].to_dict()
 
@@ -951,7 +951,7 @@ def draw_lightcurve(
     figure: dict
     """
     # Primary high-quality data points
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
     cols = [
         "i:jd",
         "i:magpsf",
@@ -967,10 +967,10 @@ def draw_lightcurve(
     pdf = pdf_.loc[:, cols]
 
     # Upper limits
-    pdf_upper = pd.read_json(object_upper)
+    pdf_upper = pd.read_json(io.StringIO(object_upper))
 
     # Lower-quality data points
-    pdf_upperv = pd.read_json(object_uppervalid)
+    pdf_upperv = pd.read_json(io.StringIO(object_uppervalid))
 
     # type conversion
     dates = convert_jd(pdf["i:jd"])
@@ -979,7 +979,7 @@ def draw_lightcurve(
 
     if object_release:
         # Data release photometry
-        pdf_release = pd.read_json(object_release)
+        pdf_release = pd.read_json(io.StringIO(object_release))
         dates_release = convert_jd(pdf_release["mjd"], format="mjd")
     else:
         pdf_release = pd.DataFrame()
@@ -1585,7 +1585,7 @@ def draw_scores(object_data) -> dict:
 
     TODO: memoise me
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     # type conversion
     dates = convert_jd(pdf["i:jd"])
@@ -1701,7 +1701,7 @@ def draw_t2(object_data) -> dict:
 
     TODO: memoise me
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     df = extract_max_t2(pdf)
 
@@ -1790,7 +1790,7 @@ def draw_color(object_data) -> dict:
     -------
     figure: dict
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     # type conversion
     dates = convert_jd(pdf["i:jd"])
@@ -1850,7 +1850,7 @@ def draw_color_rate(object_data) -> dict:
 
     TODO: memoise me
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     # type conversion
     dates = convert_jd(pdf["i:jd"])
@@ -2038,7 +2038,7 @@ def extract_cutout(object_data, time0, kind):
     data: np.array
         2D array containing cutout data
     """
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
 
     if time0 is None:
         position = 0
@@ -2421,7 +2421,7 @@ def integrate_aladin_lite(object_data):
     alert_id: str
         ID of the alert
     """
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
     cols = [
         "i:jd",
         "i:ra",
@@ -2836,7 +2836,7 @@ def draw_sso_astrometry(pdf) -> dict:
 )
 def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
     """Draw SSO object phase curve"""
-    pdf = pd.read_json(object_sso)
+    pdf = pd.read_json(io.StringIO(object_sso))
     if pdf.empty:
         msg = """
         Object not referenced in the Minor Planet Center, or name not found in Fink.
@@ -3367,7 +3367,7 @@ def draw_tracklet_radec(pdf) -> dict:
     prevent_initial_call=True,
 )
 def alert_properties(object_data, clickData):
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
 
     if clickData is not None:
         time0 = clickData["points"][0]["x"]
@@ -3460,7 +3460,7 @@ def alert_properties(object_data, clickData):
 )
 def plot_heatmap(object_stats):
     """Plot heatmap"""
-    pdf = pd.read_json(object_stats)
+    pdf = pd.read_json(io.StringIO(object_stats))
     pdf["date"] = [
         Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime
         for x in pdf.index.to_numpy()
@@ -4085,7 +4085,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     -------
     figure: dict
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     mean_ra = np.mean(pdf["i:ra"])
     mean_dec = np.mean(pdf["i:dec"])
