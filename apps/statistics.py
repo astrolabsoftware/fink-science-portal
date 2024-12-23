@@ -83,12 +83,13 @@ If you want to explore more statistics, or create your own dashboard based on Fi
 you can do all of these yourself using the REST API. Here is an example using Python:
 
 ```python
+import io
 import requests
 import pandas as pd
 
 # get stats for all the year 2021
 r = requests.post(
-  'https://fink-portal.org/api/v1/statistics',
+  'https://api.fink-portal.org/api/v1/statistics',
   json={{
     'date': '2021',
     'output-format': 'json'
@@ -96,7 +97,7 @@ r = requests.post(
 )
 
 # Format output in a DataFrame
-pdf = pd.read_json(r.content)
+pdf = pd.read_json(io.BytesIO(r.content))
 ```
 
 Note `date` can be either a given night (YYYYMMDD), month (YYYYMM), year (YYYY), or eveything (empty string).
@@ -365,6 +366,7 @@ def generate_col_list():
         "/api/v1/statistics",
         json={
             "output-format": "json",
+            "date": "",
             "schema": True,
         },
     )

@@ -294,7 +294,7 @@ def check_path_exist(dateToCheck):
     out: bool
     """
     r = requests.post(
-        'https://fink-portal.org/api/v1/statistics',
+        'https://api.fink-portal.org/api/v1/statistics',
         json={
             'date': '{}{}{}'.format(*dateToCheck.split('-')),
             'columns': 'basic:sci',

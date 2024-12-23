@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
@@ -164,7 +165,7 @@ def card_sn_properties(clickData1, clickData2, clickData3, clickData4, object_da
         """,
     )
 
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
     pdf = pdf.sort_values("i:jd", ascending=False)
 
     # Which graph was clicked, if any?

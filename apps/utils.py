@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import base64
+import yaml
 import gzip
 import io
 
-import healpy as hp
 import numpy as np
 import pandas as pd
 
@@ -24,18 +24,13 @@ import qrcode
 import requests
 from astropy.convolution import Box2DKernel, Gaussian2DKernel
 from astropy.convolution import convolve as astropy_convolve
-from astropy.coordinates import SkyCoord, get_constellation
 from astropy.io import fits
 from astropy.time import Time
 from astropy.visualization import AsymmetricPercentileInterval, simple_norm
 from astroquery.mpc import MPC
-from fink_filters.classification import extract_fink_classification_
 from fink_utils.xmatch.simbad import get_simbad_labels
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
-
-import apps.api
-from app import APIURL, LOCALAPI, server
 
 # TODO: split these UI snippets into separate file?..
 import dash_bootstrap_components as dbc
@@ -43,24 +38,10 @@ import dash_mantine_components as dmc
 from dash import html
 
 # Access local or remove API endpoint
-from json import loads as json_loads
 
-from flask import Response
 
 simbad_types = get_simbad_labels("old_and_new")
 simbad_types = sorted(simbad_types, key=lambda s: s.lower())
-
-# For int we use `Int64` due to the presence of NaN
-# See https://pandas.pydata.org/pandas-docs/version/1.3/user_guide/integer_na.html
-hbase_type_converter = {
-    "integer": "Int64",
-    "long": int,
-    "float": float,
-    "double": float,
-    "string": str,
-    "fits/image": str,
-    "boolean": bool,
-}
 
 class_colors = {
     "Early SN Ia candidate": "red",
@@ -76,137 +57,16 @@ class_colors = {
 }
 
 
-def hbase_to_dict(hbase_output):
-    """Optimize hbase output TreeMap for faster conversion to DataFrame"""
-    # Naive Python implementation
-    # optimized = {i: dict(j) for i, j in hbase_output.items()}
-
-    # Here we assume JPype is already initialized
-    import json
-
-    from org.json import JSONObject
-
-    # We do bulk export to JSON on Java side to avoid overheads of iterative access
-    # and then parse it back to Dict in Python
-    optimized = json.loads(JSONObject(hbase_output).toString())
-
-    return optimized
-
-
-def convert_datatype(series: pd.Series, type_: type) -> pd.Series:
-    """Convert Series from HBase data with proper type
-
-    Parameters
-    ----------
-    series: pd.Series
-        a column of the DataFrame
-    type_: type
-        Python built-in type (Int64, int, str, float, bool)
-    """
-    return series.astype(type_)
-
-
-def format_hbase_output(
-    hbase_output,
-    schema_client,
-    group_alerts: bool,
-    truncated: bool = False,
-    extract_color: bool = True,
-    with_constellation: bool = True,
-):
-    """ """
-    if len(hbase_output) == 0:
-        return pd.DataFrame({})
-
-    # Construct the dataframe
-    pdfs = pd.DataFrame.from_dict(hbase_to_dict(hbase_output), orient="index")
-
-    # Tracklet cell contains null if there is nothing
-    # and so HBase won't transfer data -- ignoring the column
-    if "d:tracklet" not in pdfs.columns and not truncated:
-        pdfs["d:tracklet"] = np.zeros(len(pdfs), dtype="U20")
-
-    if "d:tns" not in pdfs.columns and not truncated:
-        pdfs["d:tns"] = ""
-
-    # Remove hbase specific fields
-    for _ in ["key:key", "key:time"]:
-        if _ in pdfs.columns:
-            pdfs = pdfs.drop(columns=_)
-
-    if "d:spicy_name" in pdfs.columns:
-        pdfs = pdfs.drop(columns="d:spicy_name")
-
-    # Remove cutouts if their fields are here but empty
-    for _ in ["Difference", "Science", "Template"]:
-        colname = f"b:cutout{_}_stampData"
-        if colname in pdfs.columns and pdfs[colname].to_numpy()[0].startswith(
-            "binary:ZTF"
-        ):
-            pdfs = pdfs.drop(columns=colname)
-
-    # Type conversion
-    for col in pdfs.columns:
-        pdfs[col] = convert_datatype(
-            pdfs[col],
-            hbase_type_converter[schema_client.type(col)],
-        )
-
-    # cast 'nan' into `[]` for easier json decoding
-    for col in ["d:lc_features_g", "d:lc_features_r"]:
-        if col in pdfs.columns:
-            pdfs[col] = pdfs[col].replace("nan", "[]")
-
-    pdfs = pdfs.copy()  # Fix Pandas' "DataFrame is highly fragmented" warning
-
-    if not truncated:
-        # Fink final classification
-        classifications = extract_fink_classification_(
-            pdfs["d:cdsxmatch"],
-            pdfs["d:roid"],
-            pdfs["d:mulens"],
-            pdfs["d:snn_snia_vs_nonia"],
-            pdfs["d:snn_sn_vs_all"],
-            pdfs["d:rf_snia_vs_nonia"],
-            pdfs["i:ndethist"],
-            pdfs["i:drb"],
-            pdfs["i:classtar"],
-            pdfs["i:jd"],
-            pdfs["i:jdstarthist"],
-            pdfs["d:rf_kn_vs_nonkn"],
-            pdfs["d:tracklet"],
-        )
-
-        pdfs["v:classification"] = classifications.to_numpy()
-
-        if extract_color:
-            # Extract color evolution
-            pdfs = extract_rate_and_color(pdfs)
-
-        # Human readable time
-        pdfs["v:lastdate"] = convert_jd(pdfs["i:jd"])
-        pdfs["v:firstdate"] = convert_jd(pdfs["i:jdstarthist"])
-        pdfs["v:lapse"] = pdfs["i:jd"] - pdfs["i:jdstarthist"]
-
-        if with_constellation:
-            coords = SkyCoord(
-                pdfs["i:ra"],
-                pdfs["i:dec"],
-                unit="deg",
-            )
-            constellations = get_constellation(coords)
-            pdfs["v:constellation"] = constellations
-
-    # Display only the last alert
-    if group_alerts and ("i:jd" in pdfs.columns) and ("i:objectId" in pdfs.columns):
-        pdfs["i:jd"] = pdfs["i:jd"].astype(float)
-        pdfs = pdfs.loc[pdfs.groupby("i:objectId")["i:jd"].idxmax()]
-
-    # sort values by time
-    if "i:jd" in pdfs.columns:
-        pdfs = pdfs.sort_values("i:jd", ascending=False)
-
-    return pdfs
+def isoify_time(t):
+    try:
+        tt = Time(t)
+    except ValueError:
+        ft = float(t)
+        if ft // 2400000:
+            tt = Time(ft, format="jd")
+        else:
+            tt = Time(ft, format="mjd")
+    return tt.iso
 
 
 def query_and_order_statistics(date="", columns="*", index_by="key:key", drop=True):
@@ -249,28 +109,10 @@ def query_and_order_statistics(date="", columns="*", index_by="key:key", drop=Tr
     return pdf
 
 
-def isoify_time(t):
-    try:
-        tt = Time(t)
-    except ValueError:
-        ft = float(t)
-        if ft // 2400000:
-            tt = Time(ft, format="jd")
-        else:
-            tt = Time(ft, format="mjd")
-    return tt.iso
-
-
 def markdownify_objectid(objectid):
     """ """
     objectid_markdown = f"[{objectid}](/{objectid})"
     return objectid_markdown
-
-
-def extract_row(key: str, clientresult) -> dict:
-    """Extract one row from the client result, and return result as dict"""
-    data = clientresult[key]
-    return dict(data)
 
 
 def readstamp(stamp: str, return_type="array", gzipped=True) -> np.array:
@@ -308,65 +150,6 @@ def readstamp(stamp: str, return_type="array", gzipped=True) -> np.array:
             return extract_stamp(io.BytesIO(f.read()))
     else:
         return extract_stamp(stamp)
-
-
-def extract_cutouts(
-    pdf: pd.DataFrame, client, col=None, return_type="array"
-) -> pd.DataFrame:
-    """Query and uncompress cutout data from the HBase table
-
-    Inplace modifications
-
-    Parameters
-    ----------
-    pdf: Pandas DataFrame
-        DataFrame returned by `format_hbase_output` (see api/api.py)
-    client: com.Lomikel.HBaser.HBaseClient
-        HBase client used to query the database
-    col: str
-        Name of the cutouts to be downloaded (e.g. b:cutoutScience_stampData). If None, return all 3
-    return_type: str
-        array or original gzipped FITS
-
-    Returns
-    -------
-    pdf: Pandas DataFrame
-        Modified original DataFrame with cutout data uncompressed (2D array)
-    """
-    cols = [
-        "b:cutoutScience_stampData",
-        "b:cutoutTemplate_stampData",
-        "b:cutoutDifference_stampData",
-    ]
-
-    for colname in cols:
-        # Skip unneeded columns, if only one is requested
-        if col is not None and col != colname:
-            continue
-
-        if colname not in pdf.columns:
-            pdf[colname] = (
-                "binary:"
-                + pdf["i:objectId"]
-                + "_"
-                + pdf["i:jd"].astype("str")
-                + colname[1:]
-            )
-
-        pdf[colname] = pdf[colname].apply(
-            lambda x: readstamp(client.repository().get(x), return_type=return_type),
-        )
-
-    return pdf
-
-
-def extract_properties(data: str, fieldnames: list):
-    """ """
-    pdfs = pd.DataFrame.from_dict(hbase_to_dict(data), orient="index")
-    if fieldnames is not None:
-        return pdfs[fieldnames]
-    else:
-        return pdfs
 
 
 def convert_jd(jd, to="iso", format="jd"):
@@ -442,8 +225,8 @@ def _data_stretch(
         stretch=stretch,
         power=exponent,
         asinh_a=vmid,
-        min_cut=vmin,
-        max_cut=vmax,
+        vmin=vmin,
+        vmax=vmax,
         clip=False,
     )
 
@@ -452,127 +235,6 @@ def _data_stretch(
     # data = np.clip(data * 255., 0., 255.)
 
     return data  # .astype(np.uint8)
-
-
-def mag2fluxcal_snana(magpsf: float, sigmapsf: float):
-    """Conversion from magnitude to Fluxcal from SNANA manual
-
-    Parameters
-    ----------
-    magpsf: float
-        PSF-fit magnitude from ZTF
-    sigmapsf: float
-
-    Returns
-    -------
-    fluxcal: float
-        Flux cal as used by SNANA
-    fluxcal_err: float
-        Absolute error on fluxcal (the derivative has a minus sign)
-
-    """
-    if magpsf is None:
-        return None, None
-    fluxcal = 10 ** (-0.4 * magpsf) * 10 ** (11)
-    fluxcal_err = 9.21034 * 10**10 * np.exp(-0.921034 * magpsf) * sigmapsf
-
-    return fluxcal, fluxcal_err
-
-
-def extract_rate_and_color(pdf: pd.DataFrame, tolerance: float = 0.3):
-    """Extract magnitude rates in different filters, color, and color change rate.
-
-    Notes
-    -----
-    It fills the following fields:
-    - v:rate - magnitude change rate for this filter, defined as magnitude difference since previous measurement, divided by time difference
-    - v:sigma(rate) - error of previous value, estimated from per-point errors
-    - v:g-r - color, defined by subtracting the measurements in g and r filter closer than `tolerance` days. Is assigned to both g and r data points with the same value
-    - v:sigma(g-r) - error of previous value, estimated from per-point errors
-    - v:rate(g-r) - color change rate, computed using time differences of g band points
-    - v:sigma(rate(g-r)) - error of previous value, estimated from per-point errors
-
-    Parameters
-    ----------
-    pdf: Pandas DataFrame
-        DataFrame returned by `format_hbase_output` (see api/api.py)
-    tolerance: float
-        Maximum delay between g and r data points to be considered for color computation, in days
-
-    Returns
-    -------
-    pdf: Pandas DataFrame
-        Modified original DataFrame with added columns. Original order is not preserved
-    """
-    pdfs = pdf.sort_values("i:jd")
-
-    def fn(sub):
-        """Extract everything relevant on the sub-group corresponding to single object.
-
-        Notes
-        -----
-        Assumes it is already sorted by time.
-        """
-        sidx = []
-
-        # Extract magnitude rates separately in different filters
-        for fid in [1, 2]:
-            idx = sub["i:fid"] == fid
-
-            dmag = sub["i:magpsf"][idx].diff()
-            dmagerr = np.hypot(sub["i:sigmapsf"][idx], sub["i:sigmapsf"][idx].shift())
-            djd = sub["i:jd"][idx].diff()
-            sub.loc[idx, "v:rate"] = dmag / djd
-            sub.loc[idx, "v:sigma(rate)"] = dmagerr / djd
-
-            sidx.append(idx)
-
-        if len(sidx) == 2:
-            # We have both filters, let's try to also get the color!
-            colnames_gr = ["i:jd", "i:magpsf", "i:sigmapsf"]
-            gr = pd.merge_asof(
-                sub[sidx[0]][colnames_gr],
-                sub[sidx[1]][colnames_gr],
-                on="i:jd",
-                suffixes=("_g", "_r"),
-                direction="nearest",
-                tolerance=tolerance,
-            )
-            # It is organized around g band points, r columns are null when unmatched
-            gr = gr.loc[~gr.isna()["i:magpsf_r"]]  # Keep only matched rows
-
-            gr["v:g-r"] = gr["i:magpsf_g"] - gr["i:magpsf_r"]
-            gr["v:sigma(g-r)"] = np.hypot(gr["i:sigmapsf_g"], gr["i:sigmapsf_r"])
-
-            djd = gr["i:jd"].diff()
-            dgr = gr["v:g-r"].diff()
-            dgrerr = np.hypot(gr["v:sigma(g-r)"], gr["v:sigma(g-r)"].shift())
-
-            gr["v:rate(g-r)"] = dgr / djd
-            gr["v:sigma(rate(g-r))"] = dgrerr / djd
-
-            # Now we may assign these color values also to corresponding r band points
-            sub = pd.merge_asof(
-                sub,
-                gr[
-                    [
-                        "i:jd",
-                        "v:g-r",
-                        "v:sigma(g-r)",
-                        "v:rate(g-r)",
-                        "v:sigma(rate(g-r))",
-                    ]
-                ],
-                direction="nearest",
-                tolerance=tolerance,
-            )
-
-        return sub
-
-    # Apply the subroutine defined above to individual objects, and merge the table back
-    pdfs = pdfs.groupby("i:objectId").apply(fn).droplevel(0)
-
-    return pdfs
 
 
 def extract_color(pdf: pd.DataFrame, tolerance: float = 0.3, colnames=None):
@@ -673,35 +335,6 @@ def convert_mpc_type(index):
         10: "Distant Objects",
     }
     return dic[index]
-
-
-def get_superpixels(idx, nside_subpix, nside_superpix, nest=False):
-    """Compute the indices of superpixels that contain a subpixel.
-
-    Note that nside_subpix > nside_superpix
-    """
-    idx = np.array(idx)
-    nside_superpix = np.asarray(nside_superpix)
-    nside_subpix = np.asarray(nside_subpix)
-
-    if not nest:
-        idx = hp.ring2nest(nside_subpix, idx)
-
-    ratio = np.array((nside_subpix // nside_superpix) ** 2, ndmin=1)
-    idx //= ratio
-
-    if not nest:
-        m = idx == -1
-        idx[m] = 0
-        idx = hp.nest2ring(nside_superpix, idx)
-        idx[m] = -1
-
-    return idx
-
-
-def return_empty_query():
-    """Wrapper for malformed query from URL"""
-    return "", "", None
 
 
 def extract_parameter_value_from_url(param_dic, key, default):
@@ -871,58 +504,31 @@ def get_first_value(pdf, colname, default=None):
 
 def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
     """Output is one of 'pandas' (default), 'raw' or 'json'"""
-    if LOCALAPI:
-        # Use local API
-        urls = server.url_map.bind("")
-        func_name = urls.match(endpoint, method)
-        if len(func_name) == 2 and func_name[0].startswith("api."):
-            func = getattr(apps.api.api, func_name[0].split(".")[1])
+    args = extract_configuration("config.yml")
+    APIURL = args["APIURL"]
+    if method == "POST":
+        r = requests.post(
+            f"{APIURL}{endpoint}",
+            json=json,
+        )
+    elif method == "GET":
+        # No args?..
+        r = requests.get(
+            f"{APIURL}{endpoint}",
+        )
 
-            if method == "GET":
-                # No args?..
-                res = func()
-            else:
-                res = func(json)
-            if isinstance(res, Response):
-                if res.direct_passthrough:
-                    res.make_sequence()
-                result = res.get_data()
-            else:
-                result = res
-
-            if output == "json":
-                return json_loads(result)
-            elif output == "raw":
-                return result
-            else:
-                return pd.read_json(result, **kwargs)
-        else:
-            return None
+    if output == "json":
+        if r.status_code != 200:
+            return []
+        return r.json()
+    elif output == "raw":
+        if r.status_code != 200:
+            return io.BytesIO()
+        return io.BytesIO(r.content)
     else:
-        # Use remote API
-        if method == "POST":
-            r = requests.post(
-                f"{APIURL}{endpoint}",
-                json=json,
-            )
-        elif method == "GET":
-            # No args?..
-            r = requests.get(
-                f"{APIURL}{endpoint}",
-            )
-
-        if output == "json":
-            if r.status_code != 200:
-                return []
-            return r.json()
-        elif output == "raw":
-            if r.status_code != 200:
-                return io.BytesIO()
-            return io.BytesIO(r.content)
-        else:
-            if r.status_code != 200:
-                return pd.DataFrame()
-            return pd.read_json(io.BytesIO(r.content), **kwargs)
+        if r.status_code != 200:
+            return pd.DataFrame()
+        return pd.read_json(io.BytesIO(r.content), **kwargs)
 
 
 def loading(item):
@@ -1146,3 +752,24 @@ def create_button_for_external_conesearch(
         )
 
     return button
+
+
+def extract_configuration(filename):
+    """Extract user defined configuration
+
+    Parameters
+    ----------
+    filename: str
+        Full path to the `config.yml` file.
+
+    Returns
+    -------
+    out: dict
+        Dictionary with user defined values.
+    """
+    config = yaml.load(open("config.yml"), yaml.Loader)
+    if config["HOST"].endswith(".org"):
+        config["SITEURL"] = "https://" + config["HOST"]
+    else:
+        config["SITEURL"] = "http://" + config["HOST"] + ":" + str(config["PORT"])
+    return config

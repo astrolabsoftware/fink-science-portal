@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import pandas as pd
@@ -74,7 +75,7 @@ def card_explanation_variable():
 )
 def card_variable_button(object_data):
     """Add a card containing button to fit for variable stars"""
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     ra0 = pdf["i:ra"].to_numpy()[0]
     dec0 = pdf["i:dec"].to_numpy()[0]

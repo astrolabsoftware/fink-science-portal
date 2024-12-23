@@ -28,9 +28,7 @@ jobs:
       run: |
         ruff check --statistics *.py 
         ruff check --statistics apps/
-        ruff check --ignore D205 tests/
     - name: Format
       run: |
         ruff format --check *.py
         ruff format --check apps/
-        ruff format --check tests/

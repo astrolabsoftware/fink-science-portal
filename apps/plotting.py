@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import copy
 import datetime
 from copy import deepcopy
@@ -50,8 +51,7 @@ from fink_utils.sso.spins import (
 )
 from gatspy import periodic
 from plotly.subplots import make_subplots
-from pyLIMA import event, microlmodels, microltoolbox, telescopes
-from pyLIMA.microloutputs import create_the_fake_telescopes
+
 from scipy.optimize import curve_fit
 
 from app import app
@@ -167,34 +167,6 @@ layout_phase = dict(
         "autorange": "reversed",
         "title": "Apparent DC Magnitude",
         "zeroline": False,
-    },
-)
-
-layout_mulens = dict(
-    autosize=True,
-    automargin=True,
-    margin=dict(l=50, r=30, b=40, t=25),
-    hovermode="closest",
-    legend=dict(
-        font=dict(size=10),
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="right",
-        x=1,
-        bgcolor="rgba(218, 223, 225, 0.3)",
-    ),
-    xaxis={
-        "title": "Observation date",
-    },
-    yaxis={
-        "autorange": "reversed",
-        "title": "DC magnitude",
-    },
-    title={
-        "text": "pyLIMA Fit (PSPL model)",
-        "y": 1.01,
-        "yanchor": "bottom",
     },
 )
 
@@ -499,7 +471,7 @@ def plot_variable_star(
         return None, "info"
 
     # Prepare the data
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
     cols = [
         "i:jd",
         "i:magpsf",
@@ -517,7 +489,7 @@ def plot_variable_star(
 
     # Data release?..
     if object_release:
-        pdf_release = pd.read_json(object_release)
+        pdf_release = pd.read_json(io.StringIO(object_release))
         pdf_release = pdf_release.sort_values("mjd", ascending=False)
         dates_release = convert_jd(pdf_release["mjd"], format="mjd")
     else:
@@ -855,7 +827,7 @@ def plot_classbar(object_data):
     object_data: json data
         cached alert data
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
     grouped = pdf.groupby("v:classification").count()
     alert_per_class = grouped["i:objectId"].to_dict()
 
@@ -979,7 +951,7 @@ def draw_lightcurve(
     figure: dict
     """
     # Primary high-quality data points
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
     cols = [
         "i:jd",
         "i:magpsf",
@@ -995,10 +967,10 @@ def draw_lightcurve(
     pdf = pdf_.loc[:, cols]
 
     # Upper limits
-    pdf_upper = pd.read_json(object_upper)
+    pdf_upper = pd.read_json(io.StringIO(object_upper))
 
     # Lower-quality data points
-    pdf_upperv = pd.read_json(object_uppervalid)
+    pdf_upperv = pd.read_json(io.StringIO(object_uppervalid))
 
     # type conversion
     dates = convert_jd(pdf["i:jd"])
@@ -1007,7 +979,7 @@ def draw_lightcurve(
 
     if object_release:
         # Data release photometry
-        pdf_release = pd.read_json(object_release)
+        pdf_release = pd.read_json(io.StringIO(object_release))
         dates_release = convert_jd(pdf_release["mjd"], format="mjd")
     else:
         pdf_release = pd.DataFrame()
@@ -1366,7 +1338,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     -------
     figure: dict
     """
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
     cols = [
         "i:jd",
         "i:magpsf",
@@ -1613,7 +1585,7 @@ def draw_scores(object_data) -> dict:
 
     TODO: memoise me
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     # type conversion
     dates = convert_jd(pdf["i:jd"])
@@ -1729,7 +1701,7 @@ def draw_t2(object_data) -> dict:
 
     TODO: memoise me
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     df = extract_max_t2(pdf)
 
@@ -1818,7 +1790,7 @@ def draw_color(object_data) -> dict:
     -------
     figure: dict
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     # type conversion
     dates = convert_jd(pdf["i:jd"])
@@ -1878,7 +1850,7 @@ def draw_color_rate(object_data) -> dict:
 
     TODO: memoise me
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     # type conversion
     dates = convert_jd(pdf["i:jd"])
@@ -2066,7 +2038,7 @@ def extract_cutout(object_data, time0, kind):
     data: np.array
         2D array containing cutout data
     """
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
 
     if time0 is None:
         position = 0
@@ -2432,224 +2404,6 @@ clientside_callback(
 
 
 @app.callback(
-    [
-        Output("mulens_plot", "children"),
-        Output("card_explanation_mulens", "value"),
-    ],
-    Input("submit_mulens", "n_clicks"),
-    [
-        State("object-data", "data"),
-    ],
-    prevent_initial_call=True,
-    background=True,
-    running=[
-        (Output("submit_mulens", "disabled"), True, False),
-        (Output("submit_mulens", "loading"), True, False),
-    ],
-)
-def plot_mulens(n_clicks, object_data):
-    """Fit for microlensing event
-
-    TODO: implement a fit using pyLIMA
-    """
-    if not n_clicks:
-        raise PreventUpdate
-
-    pdf_ = pd.read_json(object_data)
-    cols = [
-        "i:jd",
-        "i:magpsf",
-        "i:sigmapsf",
-        "i:fid",
-        "i:ra",
-        "i:dec",
-        "i:distnr",
-        "i:magnr",
-        "i:sigmagnr",
-        "i:magzpsci",
-        "i:isdiffpos",
-        "i:objectId",
-    ]
-    pdf = pdf_.loc[:, cols]
-    pdf["i:fid"] = pdf["i:fid"]
-    pdf = pdf.sort_values("i:jd", ascending=False)
-
-    # Should we correct DC magnitudes for the nearby source?..
-    is_dc_corrected = is_source_behind(pdf["i:distnr"].to_numpy()[0])
-
-    if is_dc_corrected:
-        mag, err = np.transpose(
-            [
-                dc_mag(*args)
-                for args in zip(
-                    pdf["i:magpsf"].astype(float).to_numpy(),
-                    pdf["i:sigmapsf"].astype(float).to_numpy(),
-                    pdf["i:magnr"].astype(float).to_numpy(),
-                    pdf["i:sigmagnr"].astype(float).to_numpy(),
-                    pdf["i:isdiffpos"].to_numpy(),
-                )
-            ],
-        )
-        # Keep only "good" measurements
-        idx = err < 1
-        pdf, mag, err = (_[idx] for _ in [pdf, mag, err])
-    else:
-        mag, err = pdf["i:magpsf"], pdf["i:sigmapsf"]
-
-    current_event = event.Event()
-    current_event.name = pdf["i:objectId"].to_numpy()[0]
-
-    current_event.ra = pdf["i:ra"].to_numpy()[0]
-    current_event.dec = pdf["i:dec"].to_numpy()[0]
-
-    filts = {1: "g", 2: "r"}
-    for fid in np.unique(pdf["i:fid"].to_numpy()):
-        mask = pdf["i:fid"].to_numpy() == fid
-        telescope = telescopes.Telescope(
-            name=f"ztf_{filts[fid]}",
-            camera_filter=format(filts[fid]),
-            light_curve_magnitude=np.transpose(
-                [
-                    pdf["i:jd"].to_numpy()[mask],
-                    mag[mask],
-                    err[mask],
-                ],
-            ),
-            light_curve_magnitude_dictionnary={
-                "time": 0,
-                "mag": 1,
-                "err_mag": 2,
-            },
-        )
-
-        current_event.telescopes.append(telescope)
-
-    # Le modele le plus simple
-    mulens_model = microlmodels.create_model("PSPL", current_event)
-
-    current_event.fit(mulens_model, "DE")
-
-    # 4 parameters
-    dof = len(pdf) - 4 - 1
-
-    results = current_event.fits[0]
-
-    normalised_lightcurves = microltoolbox.align_the_data_to_the_reference_telescope(
-        results, 0, results.fit_results
-    )
-
-    # Model
-    create_the_fake_telescopes(results, results.fit_results)
-
-    telescope_ = results.event.fake_telescopes[0]
-
-    flux_model = mulens_model.compute_the_microlensing_model(
-        telescope_, results.model.compute_pyLIMA_parameters(results.fit_results)
-    )[0]
-
-    time = telescope_.lightcurve_flux[:, 0]
-    magnitude = microltoolbox.flux_to_magnitude(flux_model)
-
-    figure = {
-        "data": [],
-        "layout": copy.deepcopy(layout_mulens),
-    }
-
-    index = 0
-
-    for fid, fname, color in (
-        (1, "g", COLORS_ZTF[0]),
-        (2, "r", COLORS_ZTF[1]),
-    ):
-        dates = convert_jd(normalised_lightcurves[index][:, 0])
-        if fid in np.unique(pdf["i:fid"].to_numpy()):
-            figure["data"].append(
-                {
-                    "x": dates,
-                    "y": normalised_lightcurves[index][:, 1],
-                    "error_y": {
-                        "type": "data",
-                        "array": normalised_lightcurves[index][:, 2],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "text": dates,
-                    "marker": {"size": 12, "color": color, "symbol": "o"},
-                },
-            )
-            index += 1
-
-    figure["data"].append(
-        {
-            "x": convert_jd(time),
-            "y": magnitude,
-            "mode": "lines",
-            "name": "fit",
-            "showlegend": False,
-            "line": {
-                "color": "#7f7f7f",
-            },
-        },
-    )
-
-    if len(figure["data"]):
-        graph = dcc.Graph(
-            figure=figure,
-            style={
-                "width": "100%",
-                "height": "25pc",
-            },
-            config={"displayModeBar": False},
-        )
-    else:
-        graph = ""
-
-    # fitted parameters
-    names = results.model.model_dictionnary
-    params = results.fit_results
-    err = np.diag(np.sqrt(results.fit_covariance))
-
-    mulens_params = """
-    t0: `{}` +/- `{}` (jd)
-    tE: `{}` +/- `{}` (days)
-    u0: `{}` +/- `{}`
-    chi2/dof: `{}`
-    """.format(
-        params[names["to"]],
-        err[names["to"]],
-        params[names["tE"]],
-        err[names["tE"]],
-        params[names["uo"]],
-        err[names["uo"]],
-        params[-1] / dof,
-    )
-
-    mulens_params = dmc.Paper(
-        [
-            dcc.Markdown(
-                mulens_params,
-                className="markdown markdown-pre",
-            ),
-        ],
-    )
-
-    # Layout
-    results = dmc.Stack(
-        [
-            graph,
-            mulens_params,
-        ],
-        align="center",
-    )
-
-    return results, None
-
-
-@app.callback(
     Output("aladin-lite-runner", "run"),
     Input("object-data", "data"),
     prevent_initial_call=True,
@@ -2672,7 +2426,7 @@ def integrate_aladin_lite(object_data):
     alert_id: str
         ID of the alert
     """
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
     cols = [
         "i:jd",
         "i:ra",
@@ -3087,7 +2841,7 @@ def draw_sso_astrometry(pdf) -> dict:
 )
 def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
     """Draw SSO object phase curve"""
-    pdf = pd.read_json(object_sso)
+    pdf = pd.read_json(io.StringIO(object_sso))
     if pdf.empty:
         msg = """
         Object not referenced in the Minor Planet Center, or name not found in Fink.
@@ -3618,7 +3372,7 @@ def draw_tracklet_radec(pdf) -> dict:
     prevent_initial_call=True,
 )
 def alert_properties(object_data, clickData):
-    pdf_ = pd.read_json(object_data)
+    pdf_ = pd.read_json(io.StringIO(object_data))
 
     if clickData is not None:
         time0 = clickData["points"][0]["x"]
@@ -3711,7 +3465,7 @@ def alert_properties(object_data, clickData):
 )
 def plot_heatmap(object_stats):
     """Plot heatmap"""
-    pdf = pd.read_json(object_stats)
+    pdf = pd.read_json(io.StringIO(object_stats))
     pdf["date"] = [
         Time(x[4:8] + "-" + x[8:10] + "-" + x[10:12]).datetime
         for x in pdf.index.to_numpy()
@@ -4336,7 +4090,7 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     -------
     figure: dict
     """
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     mean_ra = np.mean(pdf["i:ra"])
     mean_dec = np.mean(pdf["i:dec"])
