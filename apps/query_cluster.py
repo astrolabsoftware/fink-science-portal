@@ -157,7 +157,7 @@ def filter_tab():
     """Section containing filtering options"""
     options = html.Div(
         [
-            dmc.DatePicker(
+            dmc.DatePickerInput(
                 type="range",
                 id="date-range-picker",
                 label="Date Range",
