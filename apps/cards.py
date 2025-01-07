@@ -654,7 +654,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 ),
                                                 download_tab,
                                                 dcc.Markdown(
-                                                    f"See {APIURL}/api for more options"
+                                                    f"See {APIURL} for more options"
                                                 ),
                                             ],
                                             "help_download",
