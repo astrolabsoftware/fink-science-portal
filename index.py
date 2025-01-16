@@ -64,7 +64,6 @@ tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
 tns_types = sorted(tns_types, key=lambda s: s.lower())
 
 fink_classes = [
-    "All classes",
     "Anomaly",
     "Unknown",
     # Fink derived classes
@@ -172,7 +171,7 @@ To see the list of latest objects of specific class (as listed in `v:classificat
 You may also specify the time interval to refine the search, using the self-explanatory keywords `before` and `after`. The limits may be specified with either time string, JD or MJD values. You may either set both limiting values, or just one of them. The results will be sorted in descending order by time, and limited to specified number of entries.
 
 Examples:
-- `last=100` or `class=allclasses` - return 100 latest objects of any class
+- `last=100` - return 100 latest objects of any class
 - `class=Unknown` - return 100 latest objects with class `Unknown`
 - `last=10 class="Early SN Ia candidate"` - return 10 latest arly SN Ia candidates
 - `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-15 04:00:00"` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023
@@ -1231,8 +1230,6 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
     elif query["action"] == "class":
         # Class-based search
         alert_class = query["params"].get("class")
-        if not alert_class or alert_class == "All classes":
-            alert_class = "allclasses"
 
         n_last = int(query["params"].get("last", 100))
 
