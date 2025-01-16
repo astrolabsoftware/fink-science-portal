@@ -607,7 +607,7 @@ def store_release_photometry(n_clicks, object_data):
 
     try:
         pdf_release = pd.read_csv(
-            f"https://irsa.ipac.caltech.edu/cgi-bin/ZTF/nph_light_curves?POS=CIRCLE%20{mean_ra}%20{mean_dec}%20{2.0/3600}&BAD_CATFLAGS_MASK=32768&FORMAT=CSV",
+            f"https://irsa.ipac.caltech.edu/cgi-bin/ZTF/nph_light_curves?POS=CIRCLE%20{mean_ra}%20{mean_dec}%20{2.0 / 3600}&BAD_CATFLAGS_MASK=32768&FORMAT=CSV",
         )
 
         if not pdf_release.empty:
