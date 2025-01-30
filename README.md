@@ -1,6 +1,6 @@
 # Fink Science Portal
 
-[![Sentinel](https://github.com/astrolabsoftware/fink-science-portal/workflows/Sentinel/badge.svg)](https://github.com/astrolabsoftware/fink-science-portal/actions?query=workflow%3ASentinel)
+[![Sentinel](https://github.com/astrolabsoftware/fink-science-portal/workflows/PEP8/badge.svg)](https://github.com/astrolabsoftware/fink-science-portal/actions?query=workflow%3APEP8)
 
 ![fronted](assets/frontend.png)
 
