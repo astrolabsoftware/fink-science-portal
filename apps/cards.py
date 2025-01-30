@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import textwrap
 
 import dash_bootstrap_components as dbc
@@ -24,7 +25,7 @@ from dash import Input, Output, State, clientside_callback, dcc, html
 from dash_iconify import DashIconify
 from fink_utils.photometry.utils import is_source_behind
 
-from app import APIURL, app
+from app import app
 from apps.plotting import all_radio_options
 from apps.utils import (
     class_colors,
@@ -35,6 +36,11 @@ from apps.utils import (
     request_api,
     simbad_types,
 )
+
+from apps.utils import extract_configuration
+
+args = extract_configuration("config.yml")
+APIURL = args["APIURL"]
 
 lc_help = r"""
 ##### Difference magnitude
@@ -452,7 +458,6 @@ clientside_callback(
 
 def card_id(pdf):
     """Add a card containing basic alert data"""
-    # pdf = pd.read_json(object_data)
     objectid = pdf["i:objectId"].to_numpy()[0]
     ra0 = pdf["i:ra"].to_numpy()[0]
     dec0 = pdf["i:dec"].to_numpy()[0]
@@ -649,7 +654,7 @@ curl -H "Content-Type: application/json" -X POST \\
                                                 ),
                                                 download_tab,
                                                 dcc.Markdown(
-                                                    f"See {APIURL}/api for more options"
+                                                    f"See {APIURL} for more options"
                                                 ),
                                             ],
                                             "help_download",
@@ -1025,7 +1030,7 @@ def generate_metadata_name(oid):
 )
 def card_id1(object_data, object_uppervalid, object_upper):
     """Add a card containing basic alert data"""
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     objectid = pdf["i:objectId"].to_numpy()[0]
     date_end = pdf["v:lastdate"].to_numpy()[0]
@@ -1033,14 +1038,14 @@ def card_id1(object_data, object_uppervalid, object_upper):
     jds = pdf["i:jd"].to_numpy()
     ndet = len(pdf)
 
-    pdf_upper_valid = pd.read_json(object_uppervalid)
+    pdf_upper_valid = pd.read_json(io.StringIO(object_uppervalid))
     if not pdf_upper_valid.empty:
         mask = pdf_upper_valid["i:jd"].apply(lambda x: x not in jds)
         nupper_valid = len(pdf_upper_valid[mask])
     else:
         nupper_valid = 0
 
-    pdf_upper = pd.read_json(object_upper)
+    pdf_upper = pd.read_json(io.StringIO(object_upper))
     if not pdf_upper.empty:
         nupper = len(pdf_upper)
     else:

@@ -1,4 +1,4 @@
-# Copyright 2021-2024 AstroLab Software
+# Copyright 2021-2025 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,19 +21,14 @@ from dash import DiskcacheManager
 # import jpype
 
 import os
-import yaml
 import diskcache
+
 
 dash._dash_renderer._set_react_version("18.2.0")
 
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
 background_callback_manager = DiskcacheManager(cache)
-
-args = yaml.load(open("config.yml"), yaml.Loader)
-
-APIURL = args["APIURL"]
-LOCALAPI = args.get("LOCALAPI", False)
 
 # bootstrap theme
 external_stylesheets = [
@@ -44,7 +39,6 @@ external_stylesheets = [
 external_stylesheets = external_stylesheets + dmc.styles.ALL
 
 external_scripts = [
-    "//code.jquery.com/jquery-1.12.1.min.js",
     "//aladin.u-strasbg.fr/AladinLite/api/v3/3.2.0/aladin.js",
     "//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
 ]
@@ -68,8 +62,6 @@ app = factory(
     title="Fink Science Portal",
     compress=True,
 )
-
-nlimit = 10000
 
 app.server.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 server = app.server

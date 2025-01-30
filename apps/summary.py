@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 from urllib.error import URLError
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
@@ -24,7 +25,6 @@ from dash_iconify import DashIconify
 
 from app import app
 from apps.cards import card_id, card_lightcurve_summary
-from apps.mulens.cards import card_explanation_mulens
 from apps.plotting import (
     draw_sso_astrometry,
     draw_sso_lightcurve,
@@ -209,49 +209,6 @@ def tab3_content():
     return [tab3_content_]
 
 
-def tab4_content():
-    """Microlensing tab"""
-    submit_mulens_button = dmc.Button(
-        "Fit data",
-        id="submit_mulens",
-        color="dark",
-        variant="outline",
-        fullWidth=True,
-        radius="xl",
-    )
-
-    tab4_content_ = html.Div(
-        [
-            dmc.Space(h=10),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading(
-                            dmc.Paper(
-                                [
-                                    html.Div(id="mulens_plot"),
-                                    card_explanation_mulens(),
-                                ],
-                            ),
-                        ),
-                        md=8,
-                    ),
-                    dbc.Col(
-                        [
-                            html.Div(id="card_mulens"),
-                            html.Br(),
-                            submit_mulens_button,
-                        ],
-                        md=4,
-                    ),
-                ],
-                className="g-1",
-            ),
-        ]
-    )
-    return [tab4_content_]
-
-
 @app.callback(
     Output("tab_sso", "children"),
     [
@@ -261,7 +218,7 @@ def tab4_content():
 )
 def tab5_content(object_soo):
     """SSO tab"""
-    pdf = pd.read_json(object_soo)
+    pdf = pd.read_json(io.StringIO(object_soo))
     if pdf.empty:
         ssnamenr = "null"
         sso_name = "null"
@@ -470,7 +427,7 @@ def tab5_content(object_soo):
 )
 def tab6_content(object_tracklet):
     """Tracklet tab"""
-    pdf = pd.read_json(object_tracklet)
+    pdf = pd.read_json(io.StringIO(object_tracklet))
     tab6_content_ = html.Div(
         [
             dmc.Space(h=10),
@@ -505,11 +462,6 @@ def tabs(pdf):
                         disabled=len(pdf.index) == 1,
                     ),
                     dmc.TabsTab(
-                        "Microlensing",
-                        value="Microlensing",
-                        disabled=len(pdf.index) == 1,
-                    ),
-                    dmc.TabsTab(
                         "Solar System", value="Solar System", disabled=not is_sso(pdf)
                     ),
                     dmc.TabsTab(
@@ -522,7 +474,6 @@ def tabs(pdf):
             dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
             dmc.TabsPanel(tab2_content(), value="Supernovae"),
             dmc.TabsPanel(tab3_content(), value="Variable stars"),
-            dmc.TabsPanel(tab4_content(), value="Microlensing"),
             dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
             dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
         ],
@@ -649,7 +600,7 @@ def store_release_photometry(n_clicks, object_data):
     if not n_clicks or not object_data:
         raise PreventUpdate
 
-    pdf = pd.read_json(object_data)
+    pdf = pd.read_json(io.StringIO(object_data))
 
     mean_ra = np.mean(pdf["i:ra"])
     mean_dec = np.mean(pdf["i:dec"])
@@ -683,7 +634,7 @@ def store_release_photometry(n_clicks, object_data):
     ],
 )
 def make_qrcode(path):
-    qrdata = f"https://fink-portal.org/{path[1:]}"
+    qrdata = f"https://api.fink-portal.org/{path[1:]}"
     qrimg = generate_qr(qrdata)
 
     return html.Img(src="data:image/png;base64, " + pil_to_b64(qrimg))
@@ -734,18 +685,14 @@ def layout(name):
             html.Div(
                 [
                     visdcc.Run_js(id="aladin-lite-runner"),
-                    html.Div(
-                        dmc.Skeleton(
-                            style={
-                                "width": "100%",
-                                "height": "100%",
-                            },
-                        ),
-                        id="aladin-lite-div",
+                    dmc.Skeleton(
                         style={
                             "width": "100%",
-                            "height": "27pc",
+                            "height": "100%",
                         },
+                    ),
+                    html.Div(
+                        id="aladin-lite-div", style={"width": "100%", "height": "27pc"}
                     ),
                 ],
                 className="p-1",

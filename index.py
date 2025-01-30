@@ -1,4 +1,4 @@
-# Copyright 2020-2022 AstroLab Software
+# Copyright 2020-2025 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
+
 import dash
 from dash import (
     html,
@@ -28,7 +30,7 @@ from dash import (
 from dash.exceptions import PreventUpdate
 
 import dash_bootstrap_components as dbc
-import visdcc
+# import visdcc
 
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
@@ -37,10 +39,8 @@ from dash_autocomplete_input import AutocompleteInput
 
 from app import server
 from app import app
-from app import APIURL
 
 from apps import summary, about, statistics, query_cluster, gw
-from apps.api import api
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time
@@ -48,6 +48,7 @@ from apps.utils import convert_jd
 from apps.utils import retrieve_oid_from_metaname
 from apps.utils import help_popover
 from apps.utils import request_api
+from apps.utils import extract_configuration
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
 from apps.cards import card_search_result
 from apps.parse import parse_query
@@ -57,11 +58,12 @@ import numpy as np
 
 import urllib
 
+config_args = extract_configuration("config.yml")
+
 tns_types = pd.read_csv("assets/tns_types.csv", header=None)[0].to_numpy()
 tns_types = sorted(tns_types, key=lambda s: s.lower())
 
 fink_classes = [
-    "All classes",
     "Anomaly",
     "Unknown",
     # Fink derived classes
@@ -169,7 +171,7 @@ To see the list of latest objects of specific class (as listed in `v:classificat
 You may also specify the time interval to refine the search, using the self-explanatory keywords `before` and `after`. The limits may be specified with either time string, JD or MJD values. You may either set both limiting values, or just one of them. The results will be sorted in descending order by time, and limited to specified number of entries.
 
 Examples:
-- `last=100` or `class=allclasses` - return 100 latest objects of any class
+- `last=100` - return 100 latest objects of any class
 - `class=Unknown` - return 100 latest objects with class `Unknown`
 - `last=10 class="Early SN Ia candidate"` - return 10 latest arly SN Ia candidates
 - `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-15 04:00:00"` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023
@@ -196,10 +198,10 @@ By default, the `Table view` shows the following fields:
 - i:ndethist: Number of spatially coincident detections falling within 1.5 arcsec going back to the beginning of the survey; only detections that fell on the same field and readout-channel ID where the input candidate was observed are counted. All raw detections down to a photometric S/N of ~ 3 are included.
 - v:lapse: number of days between the first and last spatially coincident detections.
 
-You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at {}/api/v1/columns.
+You can also add more columns using the dropdown button above the result table. Full documentation of all available fields can be found at {}/api/v1/schema.
 
 The button `Sky Map` will open a popup with embedded Aladin sky map showing the positions of the search results on the sky.
-""".format(APIURL)
+""".format(config_args["APIURL"])
 
 # Smart search field
 quick_fields = [
@@ -636,7 +638,7 @@ def display_table_results(table):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    pdf = request_api("/api/v1/columns", method="GET")
+    pdf = request_api("/api/v1/schema", method="GET")
 
     fink_fields = [
         "d:" + i for i in pdf.loc["Fink science module outputs (d:)"]["fields"].keys()
@@ -825,7 +827,9 @@ def display_skymap(data, columns, is_open):
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [
             link.format(
-                APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
+                config_args["SITEURL"],
+                i.split("]")[0].split("[")[1],
+                i.split("]")[0].split("[")[1],
             )
             for i in pdf["i:objectId"].to_numpy()
         ]
@@ -877,6 +881,8 @@ def display_skymap(data, columns, is_open):
 
 
 def modal_skymap():
+    import visdcc
+
     button = dmc.Button(
         "Sky Map",
         id="open_modal_skymap",
@@ -901,7 +907,6 @@ def modal_skymap():
                                     id="aladin-lite-div-skymap",
                                     style={"border": "0"},
                                 ),
-                                # dcc.Markdown('_Hit the Aladin Lite fullscreen button if the image is not displayed (we are working on it...)_'),
                             ],
                             style={
                                 "width": "100%",
@@ -1225,8 +1230,6 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
     elif query["action"] == "class":
         # Class-based search
         alert_class = query["params"].get("class")
-        if not alert_class or alert_class == "All classes":
-            alert_class = "allclasses"
 
         n_last = int(query["params"].get("last", 100))
 
@@ -1484,7 +1487,7 @@ def display_cards_results(pdf, page_size=10):
     State("results_page_size_store", "data"),
 )
 def on_paginate(page, data, page_size):
-    pdf = pd.read_json(data)
+    pdf = pd.read_json(io.StringIO(data))
     page_size = int(page_size)
 
     if not page:
@@ -1991,8 +1994,6 @@ def display_page(pathname, searchurl):
     )
     if pathname == "/about":
         return about.layout, "home"
-    elif pathname == "/api":
-        return api.layout(), "home"
     elif pathname == "/stats":
         return statistics.layout(), "home_light"
     elif pathname == "/download":
@@ -2010,18 +2011,8 @@ def display_page(pathname, searchurl):
         return layout, "home"
 
 
-# register the API
-try:
-    from apps.api.api import api_bp
-
-    server.register_blueprint(api_bp, url_prefix="/")
-    server.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
-    server.config["JSON_SORT_KEYS"] = False
-except ImportError:
-    print("API not yet registered")
+server.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
+server.config["JSON_SORT_KEYS"] = False
 
 if __name__ == "__main__":
-    import yaml
-
-    input_args = yaml.load(open("config.yml"), yaml.Loader)
-    app.run_server(input_args["IP"], debug=True, port=input_args["PORT"])
+    app.run_server(config_args["HOST"], debug=True, port=config_args["PORT"])
