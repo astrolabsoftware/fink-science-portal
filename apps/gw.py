@@ -45,7 +45,7 @@ from apps.utils import (
 
 
 args = extract_configuration("config.yml")
-APIURL = args["APIURL"]
+SITEURL = args["SITEURL"]
 
 
 def extract_moc(fn, credible_level):
@@ -372,7 +372,7 @@ def display_skymap_gw_callback(
         link = '<a target="_blank" href="{}/{}">{}</a>'
         titles = [
             link.format(
-                APIURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
+                SITEURL, i.split("]")[0].split("[")[1], i.split("]")[0].split("[")[1]
             )
             for i in pdf["i:objectId"].to_numpy()
         ]

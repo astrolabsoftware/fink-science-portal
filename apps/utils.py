@@ -225,8 +225,8 @@ def _data_stretch(
         stretch=stretch,
         power=exponent,
         asinh_a=vmid,
-        vmin=vmin,
-        vmax=vmax,
+        min_cut=vmin,
+        max_cut=vmax,
         clip=False,
     )
 
