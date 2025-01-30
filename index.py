@@ -40,7 +40,7 @@ from dash_autocomplete_input import AutocompleteInput
 from app import server
 from app import app
 
-# from apps import summary, about, statistics, query_cluster, gw
+from apps import summary, about, statistics, query_cluster, gw
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time
@@ -1939,8 +1939,6 @@ app.layout = dmc.MantineProvider(
     ],
 )
 def display_page(pathname, searchurl):
-    from apps import summary, about, statistics, query_cluster, gw
-
     layout = dmc.MantineProvider(
         [
             dbc.Container(
