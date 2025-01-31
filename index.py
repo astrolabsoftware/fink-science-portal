@@ -424,7 +424,7 @@ def update_search_history_menu(timestamp, history):
         ] + [
             dmc.MenuItem(
                 item,
-                id={"type": "search_bar_completion", "index": 1000 + i, "text": item},
+                id={"type": "search_bar_completion", "index": 1000 + i, "text": str(item)},
             )
             for i, item in enumerate(history[::-1])
         ]
@@ -1155,7 +1155,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             "partial" if query.get("partial") else "exact", query["object"]
         )
         pdf = request_api(
-            "/api/v1/explorer",
+            "/api/v1/objects",
             json={
                 "objectId": query["object"],
             },
@@ -1217,7 +1217,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
             payload["window"] = window
 
-        pdf = request_api("/api/v1/explorer", json=payload)
+        pdf = request_api("/api/v1/conesearch", json=payload)
 
         colnames_to_display = {
             "i:objectId": "objectId",
@@ -1252,35 +1252,6 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             payload["stopdate"] = stopdate
 
         pdf = request_api("/api/v1/latests", json=payload)
-
-    elif query["action"] == "daterange":
-        # Date range search
-        msg = "Objects in date range"
-
-        payload = {}
-
-        if "after" in query["params"]:
-            startdate = isoify_time(query["params"]["after"])
-
-            msg += " after {}".format(startdate)
-
-            payload["startdate"] = startdate
-
-        if "before" in query["params"]:
-            stopdate = isoify_time(query["params"]["before"])
-
-            msg += " before {}".format(stopdate)
-
-            payload["stopdate"] = stopdate
-
-        elif "window" in query["params"]:
-            window = query["params"]["window"]
-
-            msg += " window {} days".format(window)
-
-            payload["window"] = window
-
-        pdf = request_api("/api/v1/explorer", json=payload)
 
     elif query["action"] == "anomaly":
         # Anomaly search
