@@ -424,7 +424,11 @@ def update_search_history_menu(timestamp, history):
         ] + [
             dmc.MenuItem(
                 item,
-                id={"type": "search_bar_completion", "index": 1000 + i, "text": str(item)},
+                id={
+                    "type": "search_bar_completion",
+                    "index": 1000 + i,
+                    "text": str(item),
+                },
             )
             for i, item in enumerate(history[::-1])
         ]
