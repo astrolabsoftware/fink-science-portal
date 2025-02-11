@@ -642,13 +642,13 @@ def display_table_results(table):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
-    pdf = request_api("/api/v1/schema", method="GET")
+    data = request_api("/api/v1/schema", method="GET", output="json")
 
     fink_fields = [
-        "d:" + i for i in pdf.loc["Fink science module outputs (d:)"]["fields"].keys()
+        "d:" + i for i in data["Fink science module outputs (d:)"].keys()
     ]
     ztf_fields = [
-        "i:" + i for i in pdf.loc["ZTF original fields (i:)"]["fields"].keys()
+        "i:" + i for i in data["ZTF original fields (i:)"].keys()
     ]
     fink_additional_fields = [
         "v:constellation",
