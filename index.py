@@ -644,12 +644,8 @@ def display_table_results(table):
     """
     data = request_api("/api/v1/schema", method="GET", output="json")
 
-    fink_fields = [
-        "d:" + i for i in data["Fink science module outputs (d:)"].keys()
-    ]
-    ztf_fields = [
-        "i:" + i for i in data["ZTF original fields (i:)"].keys()
-    ]
+    fink_fields = ["d:" + i for i in data["Fink science module outputs (d:)"].keys()]
+    ztf_fields = ["i:" + i for i in data["ZTF original fields (i:)"].keys()]
     fink_additional_fields = [
         "v:constellation",
         "v:g-r",
