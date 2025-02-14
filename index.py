@@ -75,6 +75,7 @@ fink_classes = [
     "Solar System candidate",
     "Tracklet",
     "Ambiguous",
+    "(CTA) Blazar",
     # TNS classified data
     *["(TNS) " + t for t in tns_types],
     # Simbad crossmatch
@@ -206,7 +207,10 @@ The button `Sky Map` will open a popup with embedded Aladin sky map showing the 
 # Smart search field
 quick_fields = [
     ["class", "Alert class\nSelect one of Fink supported classes from the menu"],
-    ["trend", "Lightcurve trends: rising, fading.\nExperimental feature, only available in combination with class search."],
+    [
+        "trend",
+        "Lightcurve trends: rising, fading.\nExperimental feature, only available in combination with class search.",
+    ],
     ["last", "Number of latest alerts to show"],
     [
         "radius",
@@ -318,7 +322,12 @@ fink_search_bar = [
                             "radius=": ["10", "60", "10m", "30m"],
                             "r:": ["10", "60", "10m", "30m"],
                             "r=": ["10", "60", "10m", "30m"],
-                            "trend=": ["rising", "fading", "low_state", "new_low_state"],
+                            "trend=": [
+                                "rising",
+                                "fading",
+                                "low_state",
+                                "new_low_state",
+                            ],
                         },
                         maxOptions=0,
                         className="inputbar form-control border-0",
