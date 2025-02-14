@@ -206,6 +206,7 @@ The button `Sky Map` will open a popup with embedded Aladin sky map showing the 
 # Smart search field
 quick_fields = [
     ["class", "Alert class\nSelect one of Fink supported classes from the menu"],
+    ["trend", "Lightcurve trends: rising, fading.\nExperimental feature, only available in combination with class search."],
     ["last", "Number of latest alerts to show"],
     [
         "radius",
@@ -305,6 +306,8 @@ fink_search_bar = [
                             "radius=",
                             "r:",
                             "r=",
+                            "trend=",
+                            "trend:",
                         ],
                         options={
                             "class:": fink_classes,
@@ -315,6 +318,7 @@ fink_search_bar = [
                             "radius=": ["10", "60", "10m", "30m"],
                             "r:": ["10", "60", "10m", "30m"],
                             "r=": ["10", "60", "10m", "30m"],
+                            "trend=": ["rising", "fading", "low_state", "new_low_state"],
                         },
                         maxOptions=0,
                         className="inputbar form-control border-0",
@@ -1250,6 +1254,10 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             msg += " before {}".format(stopdate)
 
             payload["stopdate"] = stopdate
+
+        if "trend" in query["params"]:
+            msg += " trend is {}".format(query["params"]["trend"])
+            payload["trend"] = query["params"]["trend"]
 
         pdf = request_api("/api/v1/latests", json=payload)
 
