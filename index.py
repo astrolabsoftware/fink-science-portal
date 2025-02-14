@@ -75,6 +75,7 @@ fink_classes = [
     "Solar System candidate",
     "Tracklet",
     "Ambiguous",
+    "(CTA) Blazar",
     # TNS classified data
     *["(TNS) " + t for t in tns_types],
     # Simbad crossmatch
@@ -124,23 +125,15 @@ The coordinates may be specified as:
 
 If the radius is not specified, but the coordinates or resolvable object names are given, the default search radius is 10 arcseconds.
 
-You may also restrict the alert time by specifying `after` and `before` keywords. They may be given as UTC timestamps in either ISO string format, as Julian date, or MJD. Alternatively, you may use `window` keyword to define the duration of time window in days.
+You may also restrict the alert variation time by specifying `after` and `before` keywords. They may be given as UTC timestamps in either ISO string format, as Julian date, or MJD. Alternatively, you may use `window` keyword to define the duration of time window in days.
 
 Examples:
-- `10 20 30` - search within 30 arcseconds around `RA=10 deg` `Dec=20 deg`
-- `10 20 30 after="2023-03-29 13:36:52" window=10` - the same but also within 10 days since specified time moment
-- `10 22 31 40 50 55.5` - search within 10 arcseconds around `RA=10:22:31` `Dec=+40:50:55.5`
+- `246.0422 25.669 30` - search within 30 arcseconds around `RA=246.0422 deg` `Dec=25.669 deg`
+- `246.0422 25.669 30 after="2023-03-29 13:36:52" window=10` - the same but also within 10 days since specified time moment
+- `16 24 10.12 +25 40 09.3` - search within 10 arcseconds around `RA=10:22:31` `Dec=+40:50:55.5`
 - `Vega r=10m` - search within 600 arcseconds (10 arcminutes) from Vega
 - `ZTF21abfmbix r=20` - search within 20 arcseconds around the position of ZTF21abfmbix
 - `AT2021co` or `AT 2021co` - search within 10 arcseconds around the position of AT2021co
-
-##### Date range search
-
-The search of all objects within specified time range may be done by specifying just the `after`, `before` and/or `window` keywords. As the amount of objects is huge, it is not practical to use time window larger than 3 hours, and it is currently capped at this value. Moreover, the number of returned objects is limited to 1000.
-
-Examples:
-- `after="2023-12-29 13:36:52" before="2023-12-29 13:46:52"` - search all objects within 10 minutes long time window
-- `after="2023-12-29 13:36:52" window=0.007` - the same
 
 ##### Solar System objects
 
@@ -161,20 +154,20 @@ So you may e.g. search for:
 - Comets by designation
   - `C/2020V2`, `C/2020R2`
 
-##### Latest objects
-
-To see the latest objects just specify the amount of them you want to get using keyword `last`.
 ##### Class-based search
 
 To see the list of latest objects of specific class (as listed in `v:classification` alert field), just specify the `class` keyword. By default it will return 100 latest ones, but you may also directly specify `last` keywords to alter it.
 
 You may also specify the time interval to refine the search, using the self-explanatory keywords `before` and `after`. The limits may be specified with either time string, JD or MJD values. You may either set both limiting values, or just one of them. The results will be sorted in descending order by time, and limited to specified number of entries.
 
+Finally, you can specify a trend to your search, such as rising or fading. Use the keyword `trend` to see the list of available trends. This is an experimental feature that is expected to evolve.
+
 Examples:
-- `last=100` - return 100 latest objects of any class
 - `class=Unknown` - return 100 latest objects with class `Unknown`
 - `last=10 class="Early SN Ia candidate"` - return 10 latest arly SN Ia candidates
-- `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-15 04:00:00"` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023
+- `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-07 04:00:00"` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023
+- `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-07 04:00:00" trend=rising` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023, that were rising (becoming brighter).
+- `class="(CTA) Blazar" trend=low_state after=2025-02-01 before=2025-02-13` - Blazars selected by CTA which were in a low state between the 1st February and 13th February 2025.
 
 ##### Random objects
 
@@ -206,6 +199,10 @@ The button `Sky Map` will open a popup with embedded Aladin sky map showing the 
 # Smart search field
 quick_fields = [
     ["class", "Alert class\nSelect one of Fink supported classes from the menu"],
+    [
+        "trend",
+        "Lightcurve trends: rising, fading.\nExperimental feature, only available in combination with class search.\nFor the class (CTA) Blazar, the tags low_state and new_low_State are also available.",
+    ],
     ["last", "Number of latest alerts to show"],
     [
         "radius",
@@ -305,6 +302,8 @@ fink_search_bar = [
                             "radius=",
                             "r:",
                             "r=",
+                            "trend=",
+                            "trend:",
                         ],
                         options={
                             "class:": fink_classes,
@@ -315,6 +314,12 @@ fink_search_bar = [
                             "radius=": ["10", "60", "10m", "30m"],
                             "r:": ["10", "60", "10m", "30m"],
                             "r=": ["10", "60", "10m", "30m"],
+                            "trend=": [
+                                "rising",
+                                "fading",
+                                "low_state",
+                                "new_low_state",
+                            ],
                         },
                         maxOptions=0,
                         className="inputbar form-control border-0",
@@ -1137,6 +1142,15 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
     if not query or not query["action"]:
         return None, no_update, no_update, no_update
 
+    if query["action"] != "class" and "trend" in query["params"]:
+        msg = "trend is experimental and can only be used with class search."
+        return (
+            dbc.Alert(msg, color="warning", className="shadow-sm"),
+            no_update,
+            no_update,
+            history,
+        )
+
     if query["action"] == "unknown":
         return (
             dbc.Alert(
@@ -1250,6 +1264,10 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             msg += " before {}".format(stopdate)
 
             payload["stopdate"] = stopdate
+
+        if "trend" in query["params"]:
+            msg += " and {} trend".format(query["params"]["trend"])
+            payload["trend"] = query["params"]["trend"]
 
         pdf = request_api("/api/v1/latests", json=payload)
 
