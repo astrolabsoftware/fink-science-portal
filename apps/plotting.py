@@ -1567,7 +1567,7 @@ def draw_lightcurve_preview(name, jd_alert, search_type) -> dict:
             )
 
     # Alert box only for class search
-    if search_type == "class":
+    if search_type in ["class", "anomaly"]:
         figure["layout"]["shapes"].append(
             {
                 "type": "vrect",
