@@ -27,10 +27,10 @@ h2 {
 
 /* Styling of various elements, moved from inline */
 
-.home {
-  background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png);
+/*.home {
+  background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/fink_banner9.jpg);
   background-size: cover;
-}
+}*/
 
 .home_light {
   background: var(--bgColor);
@@ -68,10 +68,10 @@ h2 {
   background-color: rgba(var(--bgColorTriplet), 0.3)
 }
 
-#navbar {
-  background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/background.png);
+/*#navbar {
+  background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/fink_banner9.jpg);
   background-size: cover;
-}
+}*/
 
 /* Main search bar */
 #search_bar {
