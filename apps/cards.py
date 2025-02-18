@@ -1132,7 +1132,7 @@ def card_id1(object_data, object_uppervalid, object_upper):
     return card
 
 
-def card_search_result(row, i):
+def card_search_result(row, i, search_type):
     """Display single item for search results"""
     badges = []
 
@@ -1271,6 +1271,8 @@ def card_search_result(row, i):
                                 id={
                                     "type": "search_results_lightcurve",
                                     "objectId": name,
+                                    "jd": row["i:jd"],
+                                    "search_type": search_type,
                                     "index": i,
                                 },
                                 xs=12,

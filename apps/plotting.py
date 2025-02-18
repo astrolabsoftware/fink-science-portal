@@ -1409,7 +1409,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     return figure
 
 
-def draw_lightcurve_preview(name) -> dict:
+def draw_lightcurve_preview(name, jd_alert, search_type) -> dict:
     """Draw object lightcurve with errorbars (SM view - DC mag fixed)
 
     Returns
@@ -1459,7 +1459,7 @@ def draw_lightcurve_preview(name) -> dict:
     layout["yaxis"]["autorange"] = "reversed"
     layout["paper_bgcolor"] = "rgba(0,0,0,0.0)"
     layout["plot_bgcolor"] = "rgba(0,0,0,0.2)"
-    layout["showlegend"] = False
+    layout["showlegend"] = True
     layout["shapes"] = []
 
     if is_dc_corrected:
@@ -1565,6 +1565,29 @@ def draw_lightcurve_preview(name) -> dict:
                     "opacity": 0.3,
                 },
             )
+
+    # Alert box only for class search
+    if search_type == "class":
+        figure["layout"]["shapes"].append(
+            {
+                "type": "vrect",
+                "x0": convert_jd(jd_alert - 30),
+                "x1": convert_jd(jd_alert),
+                "y0": 0,
+                "y1": 40,
+                "xref": "x",
+                "yref": "y domain",
+                "layer": "below",
+                "fillcolor": "white",
+                "opacity": 0.3,
+                "name": "alert data",
+                "showlegend": True,
+            },
+        )
+
+    figure["layout"]["legend"].update(
+        {"yanchor": "top", "y": 0.99, "xanchor": "left", "x": 0.01}
+    )
 
     return figure
 

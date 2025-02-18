@@ -389,6 +389,10 @@ fink_search_bar = [
                 id="search_history_store",
                 storage_type="local",
             ),
+            dcc.Store(
+                id="search_type",
+                storage_type="local",
+            ),
         ],
     )
 ]
@@ -1078,6 +1082,7 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
         Output("logo", "is_open"),
         Output("search_bar_submit", "children", allow_duplicate=True),
         Output("search_history_store", "data"),
+        Output("search_type", "data"),
     ],
     [
         Input("search_bar_input", "n_submit"),
@@ -1114,7 +1119,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
     if not value and not searchurl:
         # TODO: show back the logo?..
-        return None, no_update, no_update, no_update
+        return None, no_update, no_update, no_update, no_update
 
     colnames_to_display = {
         "i:objectId": "objectId",
@@ -1140,7 +1145,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
         query = parse_query(value)
 
     if not query or not query["action"]:
-        return None, no_update, no_update, no_update
+        return None, no_update, no_update, no_update, no_update
 
     if query["action"] != "class" and "trend" in query["params"]:
         msg = "trend is experimental and can only be used with class search."
@@ -1149,6 +1154,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             no_update,
             no_update,
             history,
+            no_update,
         )
 
     if query["action"] == "unknown":
@@ -1158,6 +1164,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
                 color="danger",
                 className="shadow-sm",
             ),
+            no_update,
             no_update,
             no_update,
             no_update,
@@ -1328,6 +1335,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             no_update,
             no_update,
             no_update,
+            no_update,
         )
 
     # Add to history
@@ -1353,6 +1361,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             no_update,
             no_update,
             history,
+            no_update,
         )
     else:
         # Make clickable objectId
@@ -1421,7 +1430,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             ),
         ] + results_
 
-        return results, False, no_update, history
+        return results, False, no_update, history, query["action"]
 
 
 def display_cards_results(pdf, page_size=10):
@@ -1472,10 +1481,11 @@ def display_cards_results(pdf, page_size=10):
 @app.callback(
     Output("results_paginated", "children"),
     Input("results_pagination", "value"),
+    Input("search_type", "data"),
     State("results_store", "data"),
     State("results_page_size_store", "data"),
 )
-def on_paginate(page, data, page_size):
+def on_paginate(page, search_type, data, page_size):
     pdf = pd.read_json(io.StringIO(data))
     page_size = int(page_size)
 
@@ -1488,7 +1498,7 @@ def on_paginate(page, data, page_size):
     pdf_ = pdf.iloc[(page - 1) * page_size : min(page * page_size, len(pdf.index))]
 
     for i, row in pdf_.iterrows():
-        results.append(card_search_result(row, i))
+        results.append(card_search_result(row, i, search_type))
 
     return results
 
@@ -1509,17 +1519,32 @@ clientside_callback(
 
 @app.callback(
     Output(
-        {"type": "search_results_lightcurve", "objectId": MATCH, "index": MATCH},
+        {
+            "type": "search_results_lightcurve",
+            "objectId": MATCH,
+            "jd": MATCH,
+            "index": MATCH,
+            "search_type": MATCH,
+        },
         "children",
     ),
     Input(
-        {"type": "search_results_lightcurve", "objectId": MATCH, "index": MATCH}, "id"
+        {
+            "type": "search_results_lightcurve",
+            "objectId": MATCH,
+            "jd": MATCH,
+            "index": MATCH,
+            "search_type": MATCH,
+        },
+        "id",
     ),
 )
 def on_load_lightcurve(lc_id):
     if lc_id:
         # print(lc_id['objectId'])
-        fig = draw_lightcurve_preview(lc_id["objectId"])
+        fig = draw_lightcurve_preview(
+            lc_id["objectId"], lc_id["jd"], lc_id["search_type"]
+        )
         return dcc.Graph(
             figure=fig,
             config={"displayModeBar": False},
