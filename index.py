@@ -50,7 +50,7 @@ from apps.utils import help_popover
 from apps.utils import request_api
 from apps.utils import extract_configuration
 from apps.plotting import draw_cutouts_quickview, draw_lightcurve_preview
-from apps.cards import card_search_result
+from apps.cards import card_search_result, card_sso_result
 from apps.parse import parse_query
 
 import pandas as pd
@@ -1080,6 +1080,7 @@ def update_table(field_dropdown, groupby1, groupby2, groupby3, data, columns):
     [
         Output("results", "children"),
         Output("logo", "is_open"),
+        Output("stack-style", "style"),
         Output("search_bar_submit", "children", allow_duplicate=True),
         Output("search_history_store", "data"),
         Output("search_type", "data"),
@@ -1119,7 +1120,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
     if not value and not searchurl:
         # TODO: show back the logo?..
-        return None, no_update, no_update, no_update, no_update
+        return None, no_update, no_update, no_update, no_update, no_update
 
     colnames_to_display = {
         "i:objectId": "objectId",
@@ -1145,7 +1146,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
         query = parse_query(value)
 
     if not query or not query["action"]:
-        return None, no_update, no_update, no_update, no_update
+        return None, no_update, no_update, no_update, no_update, no_update
 
     if query["action"] != "class" and "trend" in query["params"]:
         msg = "trend is experimental and can only be used with class search."
@@ -1164,6 +1165,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
                 color="danger",
                 className="shadow-sm",
             ),
+            no_update,
             no_update,
             no_update,
             no_update,
@@ -1336,6 +1338,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             no_update,
             no_update,
             no_update,
+            no_update,
         )
 
     # Add to history
@@ -1358,6 +1361,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
         # text, header = text_noresults(query, query_type, dropdown_option, searchurl)
         return (
             dbc.Alert(msg, color="warning", className="shadow-sm"),
+            no_update,
             no_update,
             no_update,
             history,
@@ -1430,7 +1434,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             ),
         ] + results_
 
-        return results, False, no_update, history, query["action"]
+        return results, False, {}, no_update, history, query["action"]
 
 
 def display_cards_results(pdf, page_size=10):
@@ -1494,11 +1498,14 @@ def on_paginate(page, search_type, data, page_size):
 
     results = []
 
-    # Slice to selected page
-    pdf_ = pdf.iloc[(page - 1) * page_size : min(page * page_size, len(pdf.index))]
-
-    for i, row in pdf_.iterrows():
-        results.append(card_search_result(row, i, search_type))
+    if search_type == "sso":
+        # redefine card_search_result for SSO -> 1 card only
+        results.append(card_sso_result(pdf))
+    else:
+        # Slice to selected page
+        pdf_ = pdf.iloc[(page - 1) * page_size : min(page * page_size, len(pdf.index))]
+        for i, row in pdf_.iterrows():
+            results.append(card_search_result(row, i, search_type))
 
     return results
 
@@ -1541,7 +1548,6 @@ clientside_callback(
 )
 def on_load_lightcurve(lc_id):
     if lc_id:
-        # print(lc_id['objectId'])
         fig = draw_lightcurve_preview(
             lc_id["objectId"], lc_id["jd"], lc_id["search_type"]
         )
@@ -1578,6 +1584,27 @@ def on_load_cutouts(lc_id):
         # )
 
     return no_update
+
+theme_toggle = dmc.ActionIcon(
+    [
+        dmc.Paper(DashIconify(icon="radix-icons:sun", width=25), darkHidden=True),
+        dmc.Paper(DashIconify(icon="radix-icons:moon", width=25), lightHidden=True),
+    ],
+    variant="transparent",
+    color="yellow",
+    id="color-scheme-toggle",
+    size="lg",
+    ms="auto",
+)
+
+@app.callback(
+    Output("mantine-provider", "forceColorScheme"),
+    Input("color-scheme-toggle", "n_clicks"),
+    State("mantine-provider", "forceColorScheme"),
+    prevent_initial_call=True,
+)
+def switch_theme(_, theme):
+    return "dark" if theme == "light" else "light"
 
 
 clientside_callback(
@@ -1912,10 +1939,7 @@ navbar = dmc.AppShellHeader(
                         transitionProps={"transition": "pop-top-left"},
                         style={"fontColor": "gray"},
                     ),
-                    # dmc.ThemeSwitcher(
-                    #     id="color-scheme-toggle",
-                    #     style={"cursor": "pointer"},
-                    # ),
+                    theme_toggle,
                 ],
             ),
         ),
@@ -1956,37 +1980,27 @@ def display_page(pathname, searchurl):
     layout = dmc.MantineProvider(
         [
             dbc.Container(
-                [
-                    # Logo shown by default
-                    dbc.Collapse(
-                        # dmc.MediaQuery(
-                        dbc.Row(
-                            dbc.Col(
+                 dmc.Center(
+                    dmc.Stack(
+                        [
+                            # Logo shown by default
+                            dbc.Collapse(
                                 html.Img(
                                     src="/assets/Fink_PrimaryLogo_WEB.png",
-                                    height="100%",
-                                    width="40%",
-                                    style={"min-width": "250px"},
-                                )
+                                    height="auto",
+                                    width="205px",
+                                    style={"min-width": "150px"},
+                                ),
+                                is_open=True,
+                                id="logo",
                             ),
-                            style={"textAlign": "center"},
-                            className="mt-3",
-                        ),
-                        # query="(max-height: 400px) or (max-width: 300px)",
-                        # styles={"display": "none"},
-                        # ),
-                        is_open=True,
-                        id="logo",
+                            html.Div(fink_search_bar),
+                        ],
+                        align="center"
                     ),
-                    dbc.Row(
-                        dbc.Col(
-                            fink_search_bar,
-                            lg={"size": 8, "offset": 2},
-                            md={"size": 10, "offset": 1},
-                        ),
-                        className="mt-3 mb-3",
-                    ),
-                ],
+                    id="stack-style",
+                    style={"height": 650, "width": "100%"},
+                ),
                 fluid="lg",
             ),
             dbc.Container(
@@ -2004,7 +2018,8 @@ def display_page(pathname, searchurl):
                 fluid="xxl",
             ),
         ],
-        # forceColorScheme="dark"
+        #forceColorScheme="dark",
+        id="mantine-provider",
     )
     if pathname == "/about":
         return about.layout, "home"

@@ -1,20 +1,24 @@
+
 :root {
-    --bgColor: #fff;
+    --bgColor: #fafafa;
     --bgColorTriplet: 255, 255, 255;
+    --barColor: rgba(248, 248, 248, 1);
     --textDefault: #000;
     --primary: #0B4CFF;
     --secondary: #FF0B70;
     --terciary: #00BA5B;
 }
 
-:root[data-theme='dark'] {
-    --bgColor: #000;
+html[data-mantine-color-scheme='dark'] {
+    --bgColor: #111;
     --bgColorTriplet: 0, 0, 0;
+    --barColor: #333;
     --textDefault: #000;
     --primary: #ACC2FF;
     --secondary: #FFAFD0;
     --terciary: #86E1B3;
 }
+
 
 body {
   background: var(--bgColor);
@@ -26,13 +30,17 @@ h2 {
 }
 
 /* Styling of various elements, moved from inline */
-
-/*.home {
-  background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/fink_banner9.jpg);
-  background-size: cover;
-}*/
+.home {
+  background: var(--bgColor);
+  color: var(--textDefault);
+}
 
 .home_light {
+  background: var(--bgColor);
+  color: var(--textDefault);
+}
+
+.navbar {
   background: var(--bgColor);
   color: var(--textDefault);
 }
@@ -68,32 +76,28 @@ h2 {
   background-color: rgba(var(--bgColorTriplet), 0.3)
 }
 
-/*#navbar {
-  background-image: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url(/assets/fink_banner9.jpg);
-  background-size: cover;
-}*/
-
 /* Main search bar */
 #search_bar {
   border: 0.5px grey solid;
-  background: rgba(255, 255, 255, 1.0);
+  background: var(--barColor);
   padding-left: 10px;
   padding-right: 10px;
 }
 
 #search_bar_input {
   /* margin-left: 25px; */
+  background: var(--barColor);
   padding: 0;
 }
 
 #search_bar_suggestions .list-group-item {
-  background: rgba(248, 248, 248, 1);
+  background: var(--barColor);
   margin: 0;
   border: 0;
 }
 
 #search_bar_suggestions .list-group-item:last-child {
-  background: rgba(248, 248, 248, 1);
+  background: var(--barColor);
   margin: 0;
   border-radius: 0 0 25px 25px;
   border-bottom: 2px solid black;
@@ -101,7 +105,8 @@ h2 {
 
 /* Cards */
 .card {
-  background-color: rgb(248, 248, 248, 1.0);
+  background-color: #333
+  /*rgb(248, 248, 248, 1.0);*/
 }
 
 /* Results table and other tabs there */

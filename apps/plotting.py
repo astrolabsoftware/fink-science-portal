@@ -1,4 +1,4 @@
-# Copyright 2020-2023 AstroLab Software
+# Copyright 2020-2025 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -1408,6 +1408,169 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     }
     return figure
 
+def construct_preview_lightcurve(figure, pdf, dates, mag, err, is_dc_corrected=False):
+    """Construct the JSON containing the lightcurve for preview cards
+
+    Parameters
+    ----------
+    figure: dict
+        Dictionary with figure entries (data, layout)
+    pdf: pandas DataFrame
+        Pandas DataFrame with Fink data
+    dates: array of str
+        ISO dates
+    mag: array of float
+        Magnitudes
+    err: array of float
+        Error estimates on magnitudes
+    is_dc_corrected: boolean
+        If provided, specify if the magnitudes are DC corrected or not.
+        Default is False.
+
+    Returns
+    -------
+    figure: dict
+    """
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+    <b>mjd</b>: %{customdata[0]}
+    <extra></extra>
+    """
+    if not "d:tag" in pdf.columns:
+        pdf["d:tag"] = "valid"
+
+    if not "i:isdiffpos" in pdf.columns:
+        pdf["i:isdiffpos"] = "t"
+
+    for fid, fname, color, color_negative in (
+        (1, "g", COLORS_ZTF[0], COLORS_ZTF_NEGATIVE[0]),
+        (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1]),
+    ):
+        idx = pdf["i:fid"] == fid
+
+        if not np.sum(idx):
+            continue
+
+        figure["data"].append(
+            {
+                "x": dates[idx],
+                "y": mag[idx],
+                "error_y": {
+                    "type": "data",
+                    "array": err[idx],
+                    "visible": True,
+                    "width": 0,
+                    "color": color,  # It does not support arrays of colors so let's use positive one for all points
+                    "opacity": 0.5,
+                },
+                "mode": "markers",
+                "name": f"{fname} band",
+                "customdata": np.stack(
+                    (
+                        pdf["i:jd"][idx] - 2400000.5,
+                        pdf["i:isdiffpos"].apply(lambda x: "(-) " if x == "f" else "")[
+                            idx
+                        ],
+                        pdf["d:tag"].apply(
+                            lambda x: "" if x == "valid" else " (low quality)"
+                        )[idx],
+                    ),
+                    axis=-1,
+                ),
+                "hovertemplate": hovertemplate,
+                "marker": {
+                    "size": pdf["d:tag"].apply(lambda x: 12 if x == "valid" else 6)[
+                        idx
+                    ],
+                    "color": pdf["i:isdiffpos"].apply(
+                        lambda x,
+                        color_negative=color_negative,
+                        color=color: color_negative if x == "f" else color
+                    )[idx],
+                    "symbol": pdf["d:tag"].apply(
+                        lambda x: "o" if x == "valid" else "triangle-up"
+                    )[idx],
+                    "line": {"width": 0},
+                    "opacity": 1,
+                },
+            },
+        )
+
+        if is_dc_corrected:
+            # Overplot the levels of nearby source magnitudes
+            ref = np.mean(pdf["i:magnr"][idx])
+
+            figure["layout"]["shapes"].append(
+                {
+                    "type": "line",
+                    "yref": "y",
+                    "y0": ref,
+                    "y1": ref,  # adding a horizontal line
+                    "xref": "paper",
+                    "x0": 0,
+                    "x1": 1,
+                    "line": {"color": color, "dash": "dash", "width": 1},
+                    "legendgroup": f"{fname} band",
+                    "opacity": 0.3,
+                },
+            )
+
+    return figure
+
+def draw_sso_preview(pdf) -> dict:
+    """Draw full SSO lightcurve
+
+    Parameters
+    ----------
+    ssnamenr: str
+        Object ssnamenr
+
+    Returns
+    -------
+    figure: dict
+    """
+    # cols = []
+    # pdf = request_api(
+    #     "/api/v1/sso",
+    #     json={
+    #         "n_or_d": ssnamenr,
+    #         "columns": ",".join(cols),
+    #         "output-format": "json",
+    #     },
+    # )
+
+    # type conversion
+    dates = convert_jd(pdf["i:jd"])
+
+    # shortcuts
+    mag = pdf["i:magpsf"]
+    err = pdf["i:sigmapsf"]
+
+    # We should never modify global variables!!!
+    layout = deepcopy(layout_lightcurve_preview)
+
+    layout["yaxis"]["title"] = "Difference magnitude"
+    layout["yaxis"]["autorange"] = "reversed"
+    layout["paper_bgcolor"] = "rgba(0,0,0,0.0)"
+    layout["plot_bgcolor"] = "rgba(0,0,0,0.2)"
+    layout["showlegend"] = True
+    layout["shapes"] = []
+
+    figure = {
+        "data": [],
+        "layout": layout,
+    }
+
+    figure = construct_preview_lightcurve(
+        figure, pdf, dates, mag, err, is_dc_corrected=False)
+
+    figure["layout"]["legend"].update(
+        {"yanchor": "top", "y": 0.99, "xanchor": "left", "x": 0.01}
+    )
+
+    return figure
+
 
 def draw_lightcurve_preview(name, jd_alert, search_type) -> dict:
     """Draw object lightcurve with errorbars (SM view - DC mag fixed)
@@ -1482,89 +1645,13 @@ def draw_lightcurve_preview(name, jd_alert, search_type) -> dict:
 
         layout["yaxis"]["title"] = "Apparent DC magnitude"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata[0]}
-    <extra></extra>
-    """
     figure = {
         "data": [],
         "layout": layout,
     }
 
-    for fid, fname, color, color_negative in (
-        (1, "g", COLORS_ZTF[0], COLORS_ZTF_NEGATIVE[0]),
-        (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1]),
-    ):
-        idx = pdf["i:fid"] == fid
-
-        if not np.sum(idx):
-            continue
-
-        figure["data"].append(
-            {
-                "x": dates[idx],
-                "y": mag[idx],
-                "error_y": {
-                    "type": "data",
-                    "array": err[idx],
-                    "visible": True,
-                    "width": 0,
-                    "color": color,  # It does not support arrays of colors so let's use positive one for all points
-                    "opacity": 0.5,
-                },
-                "mode": "markers",
-                "name": f"{fname} band",
-                "customdata": np.stack(
-                    (
-                        pdf["i:jd"][idx] - 2400000.5,
-                        pdf["i:isdiffpos"].apply(lambda x: "(-) " if x == "f" else "")[
-                            idx
-                        ],
-                        pdf["d:tag"].apply(
-                            lambda x: "" if x == "valid" else " (low quality)"
-                        )[idx],
-                    ),
-                    axis=-1,
-                ),
-                "hovertemplate": hovertemplate,
-                "marker": {
-                    "size": pdf["d:tag"].apply(lambda x: 12 if x == "valid" else 6)[
-                        idx
-                    ],
-                    "color": pdf["i:isdiffpos"].apply(
-                        lambda x,
-                        color_negative=color_negative,
-                        color=color: color_negative if x == "f" else color
-                    )[idx],
-                    "symbol": pdf["d:tag"].apply(
-                        lambda x: "o" if x == "valid" else "triangle-up"
-                    )[idx],
-                    "line": {"width": 0},
-                    "opacity": 1,
-                },
-            },
-        )
-
-        if is_dc_corrected:
-            # Overplot the levels of nearby source magnitudes
-            ref = np.mean(pdf["i:magnr"][idx])
-
-            figure["layout"]["shapes"].append(
-                {
-                    "type": "line",
-                    "yref": "y",
-                    "y0": ref,
-                    "y1": ref,  # adding a horizontal line
-                    "xref": "paper",
-                    "x0": 0,
-                    "x1": 1,
-                    "line": {"color": color, "dash": "dash", "width": 1},
-                    "legendgroup": f"{fname} band",
-                    "opacity": 0.3,
-                },
-            )
+    figure = construct_preview_lightcurve(
+        figure, pdf, dates, mag, err, is_dc_corrected=is_dc_corrected)
 
     # Alert box only for class search
     if search_type in ["class", "anomaly"]:

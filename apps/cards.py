@@ -26,7 +26,7 @@ from dash_iconify import DashIconify
 from fink_utils.photometry.utils import is_source_behind
 
 from app import app
-from apps.plotting import all_radio_options
+from apps.plotting import all_radio_options, draw_sso_preview
 from apps.utils import (
     class_colors,
     create_button_for_external_conesearch,
@@ -35,7 +35,9 @@ from apps.utils import (
     loading,
     request_api,
     simbad_types,
+    convert_mpc_type,
 )
+from apps.sso.cards import get_sso_data
 
 from apps.utils import extract_configuration
 
@@ -1285,6 +1287,114 @@ def card_search_result(row, i, search_type):
                     # Upper right corner badge
                     dbc.Badge(
                         corner_str,
+                        color="light",
+                        pill=True,
+                        text_color="dark",
+                        className="position-absolute top-0 start-100 translate-middle border",
+                    ),
+                ],
+            ),
+        ],
+        color="white",
+        className="mb-2 shadow border-1",
+    )
+
+    return item
+
+def card_sso_result(pdf):
+    """Display single item for sso results"""
+    badges = []
+
+    ssnamenr = pdf["i:ssnamenr"].to_numpy()[0]
+    objectId = pdf["i:objectId"].to_numpy()[0]
+    if objectId[0] == "[":  # Markdownified
+        objectId = objectId.split("[")[1].split("]")[0]
+
+    jdend = np.max(pdf["i:jd"])
+    jdstart = np.min(pdf["i:jd"])
+
+    data, kind = get_sso_data(str(ssnamenr))
+    if data is None:
+        sso_class = "sso"
+    if kind is None:
+        sso_class = data.class_
+        displayed_name = "({}) {}".format(data.name, data.number)
+    else:
+        sso_class = kind
+        if kind == "comet":
+            sso_class = "Comet"
+            displayed_name = data["n_or_d"]
+        elif kind == "asteroid":
+            sso_class = convert_mpc_type(int(data["orbit_type"]))
+            if data["name"] is None:
+                displayed_name = ssnamenr
+            else:
+                displayed_name = "({}) {}".format(data["name"], data["number"])
+
+
+    text = """
+    `{}` detection(s) in `{:.1f}` days
+    First: `{}`
+    Last: `{}`
+    """.format(
+        len(pdf),
+        jdend - jdstart,
+        Time(jdstart, format="jd").iso[:19],
+        Time(jdend, format="jd").iso[:19],
+    )
+    item = dbc.Card(
+        [
+            # dbc.CardHeader(
+            dbc.CardBody(
+                [
+                    html.A(
+                        dmc.Group(
+                            [
+                                dmc.Text(
+                                    f"{displayed_name}", style={"fontWeight": 700, "fontSize": 26}
+                                ),
+                                dmc.Space(w="sm"),
+                                # *badges,
+                            ],
+                            gap=3,
+                        ),
+                        href=f"/{objectId}",
+                        target="_blank",
+                        className="text-decoration-none",
+                    ),
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                dmc.Skeleton(
+                                    style={
+                                        "width": "100%",
+                                        "height": "15pc",
+                                    },
+                                ),
+                                id={
+                                    "type": "search_results_cutouts",
+                                    "objectId": objectId,
+                                    "index": 0,
+                                },
+                                width="auto",
+                            ),
+                            dbc.Col(
+                                children=dcc.Graph(
+                                    figure=draw_sso_preview(pdf),
+                                    config={"displayModeBar": False},
+                                    style={"width": "100%", "height": "15pc"},
+                                    responsive=True,
+                                ),
+                                xs=12,
+                                md=True,
+                            ),
+                        ],
+                        justify="start",
+                        className="g-2",
+                    ),
+                    # Upper right corner badge
+                    dbc.Badge(
+                        sso_class,
                         color="light",
                         pill=True,
                         text_color="dark",
