@@ -1585,27 +1585,48 @@ def on_load_cutouts(lc_id):
 
     return no_update
 
-theme_toggle = dmc.ActionIcon(
-    [
-        dmc.Paper(DashIconify(icon="radix-icons:sun", width=25), darkHidden=True),
-        dmc.Paper(DashIconify(icon="radix-icons:moon", width=25), lightHidden=True),
-    ],
-    variant="transparent",
-    color="yellow",
-    id="color-scheme-toggle",
-    size="lg",
-    ms="auto",
+
+#theme_toggle = dmc.ActionIcon(
+#     [
+#         dmc.Paper(DashIconify(icon="radix-icons:sun", width=25), darkHidden=True),
+#         dmc.Paper(DashIconify(icon="radix-icons:moon", width=25), lightHidden=True),
+#     ],
+#     variant="transparent",
+#     color="yellow",
+#     id="color-scheme-toggle",
+#     size="lg",
+#     ms="auto",
+#)
+
+
+#@app.callback(
+#    Output("mantine-provider", "forceColorScheme"),
+#    Input("color-scheme-toggle", "n_clicks"),
+#    State("mantine-provider", "forceColorScheme"),
+#    prevent_initial_call=True,
+#)
+#def switch_theme(_, theme):
+#    return "dark" if theme == "light" else "light"
+
+theme_toggle = dmc.Switch(
+    offLabel=DashIconify(icon="radix-icons:sun", width=15, color=dmc.DEFAULT_THEME["colors"]["yellow"][8]),
+    onLabel=DashIconify(icon="radix-icons:moon", width=15, color=dmc.DEFAULT_THEME["colors"]["yellow"][6]),
+    id="color-scheme-switch",
+    persistence=True,
+    persistence_type="session",
+    color="grey",
 )
 
-@app.callback(
-    Output("mantine-provider", "forceColorScheme"),
-    Input("color-scheme-toggle", "n_clicks"),
-    State("mantine-provider", "forceColorScheme"),
-    prevent_initial_call=True,
+clientside_callback(
+    """
+    (switchOn) => {
+       document.documentElement.setAttribute('data-mantine-color-scheme', switchOn ? 'dark' : 'light');
+       return window.dash_clientside.no_update
+    }
+    """,
+    Output("color-scheme-switch", "id"),
+    Input("color-scheme-switch", "checked"),
 )
-def switch_theme(_, theme):
-    return "dark" if theme == "light" else "light"
-
 
 clientside_callback(
     """
@@ -1939,7 +1960,7 @@ navbar = dmc.AppShellHeader(
                         transitionProps={"transition": "pop-top-left"},
                         style={"fontColor": "gray"},
                     ),
-                    theme_toggle,
+                    # theme_toggle,
                 ],
             ),
         ),
@@ -1980,7 +2001,7 @@ def display_page(pathname, searchurl):
     layout = dmc.MantineProvider(
         [
             dbc.Container(
-                 dmc.Center(
+                dmc.Center(
                     dmc.Stack(
                         [
                             # Logo shown by default
@@ -1996,7 +2017,7 @@ def display_page(pathname, searchurl):
                             ),
                             html.Div(fink_search_bar),
                         ],
-                        align="center"
+                        align="center",
                     ),
                     id="stack-style",
                     style={"height": 650, "width": "100%"},
@@ -2018,7 +2039,7 @@ def display_page(pathname, searchurl):
                 fluid="xxl",
             ),
         ],
-        #forceColorScheme="dark",
+        forceColorScheme="light",
         id="mantine-provider",
     )
     if pathname == "/about":

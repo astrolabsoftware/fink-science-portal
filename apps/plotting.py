@@ -1408,6 +1408,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     }
     return figure
 
+
 def construct_preview_lightcurve(figure, pdf, dates, mag, err, is_dc_corrected=False):
     """Construct the JSON containing the lightcurve for preview cards
 
@@ -1437,10 +1438,10 @@ def construct_preview_lightcurve(figure, pdf, dates, mag, err, is_dc_corrected=F
     <b>mjd</b>: %{customdata[0]}
     <extra></extra>
     """
-    if not "d:tag" in pdf.columns:
+    if "d:tag" not in pdf.columns:
         pdf["d:tag"] = "valid"
 
-    if not "i:isdiffpos" in pdf.columns:
+    if "i:isdiffpos" not in pdf.columns:
         pdf["i:isdiffpos"] = "t"
 
     for fid, fname, color, color_negative in (
@@ -1518,6 +1519,7 @@ def construct_preview_lightcurve(figure, pdf, dates, mag, err, is_dc_corrected=F
 
     return figure
 
+
 def draw_sso_preview(pdf) -> dict:
     """Draw full SSO lightcurve
 
@@ -1563,7 +1565,8 @@ def draw_sso_preview(pdf) -> dict:
     }
 
     figure = construct_preview_lightcurve(
-        figure, pdf, dates, mag, err, is_dc_corrected=False)
+        figure, pdf, dates, mag, err, is_dc_corrected=False
+    )
 
     figure["layout"]["legend"].update(
         {"yanchor": "top", "y": 0.99, "xanchor": "left", "x": 0.01}
@@ -1651,7 +1654,8 @@ def draw_lightcurve_preview(name, jd_alert, search_type) -> dict:
     }
 
     figure = construct_preview_lightcurve(
-        figure, pdf, dates, mag, err, is_dc_corrected=is_dc_corrected)
+        figure, pdf, dates, mag, err, is_dc_corrected=is_dc_corrected
+    )
 
     # Alert box only for class search
     if search_type in ["class", "anomaly"]:

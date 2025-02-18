@@ -1301,10 +1301,9 @@ def card_search_result(row, i, search_type):
 
     return item
 
+
 def card_sso_result(pdf):
     """Display single item for sso results"""
-    badges = []
-
     ssnamenr = pdf["i:ssnamenr"].to_numpy()[0]
     objectId = pdf["i:objectId"].to_numpy()[0]
     if objectId[0] == "[":  # Markdownified
@@ -1331,7 +1330,6 @@ def card_sso_result(pdf):
             else:
                 displayed_name = "({}) {}".format(data["name"], data["number"])
 
-
     text = """
     `{}` detection(s) in `{:.1f}` days
     First: `{}`
@@ -1351,7 +1349,8 @@ def card_sso_result(pdf):
                         dmc.Group(
                             [
                                 dmc.Text(
-                                    f"{displayed_name}", style={"fontWeight": 700, "fontSize": 26}
+                                    f"{displayed_name}",
+                                    style={"fontWeight": 700, "fontSize": 26},
                                 ),
                                 dmc.Space(w="sm"),
                                 # *badges,
