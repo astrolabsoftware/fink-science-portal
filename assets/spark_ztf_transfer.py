@@ -25,7 +25,7 @@ from fink_filters.classification import extract_fink_classification
 from fink_utils.spark import schema_converter
 from fink_utils.spark.utils import concat_col
 from pyspark.sql import functions as F
-from fink_science.ad_features.processor import extract_features_ad
+from fink_science.ztf.ad_features.processor import extract_features_ad
 
 from time import time
 import pandas as pd
