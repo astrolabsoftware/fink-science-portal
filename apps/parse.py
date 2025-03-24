@@ -360,10 +360,6 @@ def parse_query(string, timeout=None):
         query["action"] = "anomaly"
         query["hint"] = "Anomaly search"
 
-    elif "random" in query["params"]:
-        query["action"] = "random"
-        query["hint"] = "Random search / {} objects".format(query["params"]["random"])
-
     elif "class" in query["params"]:
         query["action"] = "class"
         query["hint"] = "Class based search / {}".format(query["params"]["class"])

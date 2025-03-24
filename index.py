@@ -168,14 +168,6 @@ Examples:
 - `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-07 04:00:00"` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023
 - `class="Early SN Ia candidate" before="2023-12-01" after="2023-11-07 04:00:00" trend=rising` - objects of the same class between 4am on Nov 15, 2023 and Dec 1, 2023, that were rising (becoming brighter).
 - `class="(CTA) Blazar" trend=low_state after=2025-02-01 before=2025-02-13` - Blazars selected by CTA which were in a low state between the 1st February and 13th February 2025.
-
-##### Random objects
-
-To get random subset of objects just specify the amount of them you want to get using keyword `random`. You may also refine it by adding the class using `class` keyword.
-
-Examples:
-- `random=10 class=Unknown` - return 10 random objects of class `Unknown`
-
 """
 
 msg_info = """
@@ -211,7 +203,6 @@ quick_fields = [
     ["after", "Lower timit on alert time\nISO time, MJD or JD"],
     ["before", "Upper timit on alert time\nISO time, MJD or JD"],
     ["window", "Time window length\nDays"],
-    ["random", "Number of random objects to show"],
 ]
 
 fink_search_bar = [
@@ -291,7 +282,8 @@ fink_search_bar = [
                     # Main input
                     AutocompleteInput(
                         id="search_bar_input",
-                        placeholder="Search, and you will find",
+                        #placeholder="Search, and you will find",
+                        placeholder="",
                         component="input",
                         trigger=[
                             "class:",
@@ -1304,29 +1296,6 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
 
         pdf = request_api("/api/v1/anomaly", json=payload)
 
-    elif query["action"] == "random":
-        n_random = int(query["params"].get("random", 10))
-
-        msg = "Random {} objects".format(n_random)
-
-        payload = {"n": n_random}
-
-        if "class" in query["params"]:
-            alert_class = query["params"]["class"]
-
-            msg += " with class {}".format(alert_class)
-
-            payload["class"] = alert_class
-
-        if "seed" in query["params"]:
-            seed = query["params"]["seed"]
-
-            msg += " seed {}".format(seed)
-
-            payload["seed"] = seed
-
-        pdf = request_api("/api/v1/random", json=payload)
-
     else:
         return (
             dbc.Alert(
@@ -1348,10 +1317,6 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
         history.remove(value)  # Remove duplicates
     history.append(value)
     history = history[-10:]  # Limit it to 10 latest entries
-
-    if query["action"] == "random":
-        # Keep only latest alert from all objects
-        pdf = pdf.loc[pdf.groupby("i:objectId")["i:jd"].idxmax()]
 
     msg = "{} - {} found".format(
         msg, "nothing" if pdf.empty else str(len(pdf.index)) + " objects"
@@ -1608,25 +1573,25 @@ def on_load_cutouts(lc_id):
 #def switch_theme(_, theme):
 #    return "dark" if theme == "light" else "light"
 
-theme_toggle = dmc.Switch(
-    offLabel=DashIconify(icon="radix-icons:sun", width=15, color=dmc.DEFAULT_THEME["colors"]["yellow"][8]),
-    onLabel=DashIconify(icon="radix-icons:moon", width=15, color=dmc.DEFAULT_THEME["colors"]["yellow"][6]),
-    id="color-scheme-switch",
-    persistence=True,
-    persistence_type="session",
-    color="grey",
-)
-
-clientside_callback(
-    """
-    (switchOn) => {
-       document.documentElement.setAttribute('data-mantine-color-scheme', switchOn ? 'dark' : 'light');
-       return window.dash_clientside.no_update
-    }
-    """,
-    Output("color-scheme-switch", "id"),
-    Input("color-scheme-switch", "checked"),
-)
+#theme_toggle = dmc.Switch(
+#    offLabel=DashIconify(icon="radix-icons:sun", width=15, color=dmc.DEFAULT_THEME["colors"]["yellow"][8]),
+#    onLabel=DashIconify(icon="radix-icons:moon", width=15, color=dmc.DEFAULT_THEME["colors"]["yellow"][6]),
+#    id="color-scheme-switch",
+#    persistence=True,
+#    persistence_type="session",
+#    color="grey",
+#)
+#
+#clientside_callback(
+#    """
+#    (switchOn) => {
+#       document.documentElement.setAttribute('data-mantine-color-scheme', switchOn ? 'dark' : 'light');
+#       return window.dash_clientside.no_update
+#    }
+#    """,
+#    Output("color-scheme-switch", "id"),
+#    Input("color-scheme-switch", "checked"),
+#)
 
 clientside_callback(
     """
@@ -2017,7 +1982,7 @@ def display_page(pathname, searchurl):
                             ),
                             html.Div(fink_search_bar),
                         ],
-                        align="center",
+                        align="center", justify="space-between", gap="xl"
                     ),
                     id="stack-style",
                     style={"height": 650, "width": "100%"},
@@ -2045,13 +2010,13 @@ def display_page(pathname, searchurl):
     if pathname == "/about":
         return about.layout, "home"
     elif pathname == "/stats":
-        return statistics.layout(), "home_light"
+        return statistics.layout(), "home"
     elif pathname == "/download":
-        return query_cluster.layout(), "home_light"
+        return query_cluster.layout(), "home"
     elif pathname == "/gw":
-        return gw.layout(), "home_light"
+        return gw.layout(), "home"
     elif pathname.startswith("/ZTF"):
-        return summary.layout(pathname), "home_light"
+        return summary.layout(pathname), "home"
     else:
         if pathname[1:]:
             # check this is not a name generated by a user
