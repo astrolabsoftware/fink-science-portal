@@ -42,7 +42,7 @@ dash-html-components==2.0.0
 dash-iconify==0.1.2
 dash-table==5.0.0
 dash_autocomplete_input==0.0.7
-dash_mantine_components==0.15.1
+dash_mantine_components==0.15.3
 decorator==5.1.1
 Deprecated==1.2.15
 dill==0.3.9
@@ -98,6 +98,7 @@ more-itertools==10.5.0
 multidict==6.1.0
 multiprocess==0.70.17
 nest-asyncio==1.6.0
+networkx==3.4.2
 nifty-ls==1.0.1
 numpy==1.26.4
 numpydoc==1.8.0
@@ -143,6 +144,7 @@ sbpy==0.5.0
 scikit-learn==1.6.0
 scipy==1.14.1
 SecretStorage==3.3.3
+setuptools==76.0.0
 six==1.17.0
 snowballstemmer==2.2.0
 soupsieve==2.6
