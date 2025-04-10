@@ -692,9 +692,7 @@ def update_make_buttons(trans_content):
 def update_log(n_clicks, batchid):
     if n_clicks:
         if batchid != "":
-            response = requests.get(
-                f"http://vdmaster1:21111/batches/{batchid}/log"
-            )
+            response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
 
             if "log" in response.json():
                 bad_words = ["Error", "Traceback"]
@@ -837,11 +835,15 @@ def submit_job(
         elif trans_datasource == "ELASTiCC (v1)":
             topic_name = f"ftransfer_elasticc_v1_{d.date().isoformat()}_{d.microsecond}"
             fn = "assets/spark_elasticc_transfer.py"
-            basepath = "hdfs://vdmaster1:8020/user/julien.peloton/elasticc_curated_truth_int"
+            basepath = (
+                "hdfs://vdmaster1:8020/user/julien.peloton/elasticc_curated_truth_int"
+            )
         elif trans_datasource == "ELASTiCC (v2.0)":
             topic_name = f"ftransfer_elasticc_v2_{d.date().isoformat()}_{d.microsecond}"
             fn = "assets/spark_elasticc_transfer.py"
-            basepath = "hdfs://vdmaster1:8020/user/julien.peloton/elasticc-2023-training_v2"
+            basepath = (
+                "hdfs://vdmaster1:8020/user/julien.peloton/elasticc-2023-training_v2"
+            )
         elif trans_datasource == "ELASTiCC (v2.1)":
             topic_name = (
                 f"ftransfer_elasticc_v2p1_{d.date().isoformat()}_{d.microsecond}"
@@ -887,7 +889,9 @@ def submit_job(
             [job_args.append(f"-extraCond={elem.strip()}") for elem in extra_cond_list]
 
         # submit the job
-        filepath = "hdfs://vdmaster1:8020/user/{}/{}".format(input_args["USER"], filename)
+        filepath = "hdfs://vdmaster1:8020/user/{}/{}".format(
+            input_args["USER"], filename
+        )
         batchid, status_code, spark_log = submit_spark_job(
             input_args["LIVYHOST"],
             filepath,
