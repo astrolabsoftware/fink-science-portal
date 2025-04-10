@@ -21,7 +21,7 @@ from pyspark.sql.functions import struct, lit
 from pyspark.sql.functions import pandas_udf, PandasUDFType
 from pyspark.sql.types import StringType
 
-from fink_filters.classification import extract_fink_classification
+from fink_filters.ztf.classification import extract_fink_classification
 from fink_utils.spark import schema_converter
 from fink_utils.spark.utils import concat_col
 from pyspark.sql import functions as F
