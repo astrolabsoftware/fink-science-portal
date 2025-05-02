@@ -449,9 +449,9 @@ def tab6_content(object_tracklet):
     )
     return tab6_content_
 
-def tab7_content():
-    """Blazar tab"""
-    # There are duplicates...
+def tab_observability(pdf):
+    """TBD
+    """
     observatories = np.unique(EarthLocation.get_site_names())
     nterms_base = dmc.Container(
         [
@@ -470,6 +470,62 @@ def tab7_content():
                 label="Pick a date for the follow-up",
             ),
             dmc.Space(h=20),
+        ],
+        className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
+    )
+
+    card2 = dmc.Paper(
+        [
+            nterms_base,
+        ],
+        radius="sm",
+        p="xs",
+        shadow="sm",
+        withBorder=True,
+    )
+
+    tab_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading(
+                            dmc.Paper(
+                                [
+                                    #html.Div(id="observability_plot"),
+                                    dmc.Space(h=20),
+                                    #card_explanation_observability(),
+                                ],
+                            ),
+                        ),
+                        md=8,
+                    ),
+                    dbc.Col(
+                        [
+                            #html.Div(id="card_observability_button"),
+                            html.Br(),
+                            card2,
+                            html.Br(),
+                            #submit_observability_button,
+                        ],
+                        md=4,
+                    ),
+                ],
+                className="g-1",
+            ),
+        ]
+    )
+    return tab_content_
+
+
+
+
+def tab7_content():
+    """Blazar tab"""
+    # There are duplicates...
+    nterms_base = dmc.Container(
+        [
             dmc.Divider(variant="solid", label="Extreme states threshold"),
             dmc.Text("Select your quantile", size="sm"),
             dmc.Slider(
@@ -552,6 +608,7 @@ def tabs(pdf):
             dmc.TabsList(
                 [
                     dmc.TabsTab("Summary", value="Summary"),
+                    dmc.TabsTab("Observability", value="Observability"),
                     dmc.TabsTab(
                         "Supernovae", value="Supernovae", disabled=len(pdf.index) == 1
                     ),
@@ -574,6 +631,7 @@ def tabs(pdf):
                 justify="flex-end",
             ),
             dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
+            dmc.TabsPanel(children=[tab_observability(pdf)], value="Observability"),
             dmc.TabsPanel(tab2_content(), value="Supernovae"),
             dmc.TabsPanel(tab3_content(), value="Variable stars"),
             dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),

@@ -452,8 +452,6 @@ layout_blazar = dict(
         Input("object-release", "data"),
     ],
     [
-        State("observatory_blazar", "value"),
-        State("dateobs_blazar", "value"),
         State("quantile_blazar", "value"),
         State("object-data", "data"),
         State("object-release", "data"),
@@ -469,8 +467,6 @@ def plot_blazar(
     summary_tab,
     nclick,
     object_release_in,
-    observatory_blazar,
-    dateobs_blazar,
     quantile_blazar,
     object_data,
     object_release,
@@ -547,17 +543,14 @@ def plot_blazar(
         pdf_release.loc[maskFilt, 'std_sigma_flux_dc'] = pdf_release.loc[maskFilt, 'sigma_flux_dc'] / medians[conv_dict[filt] - 1]
 
     # Initialize figures
-    figure, figure_follow_up = (
-        {
-            "data": [],
-            "layout": copy.deepcopy(layout_blazar),
-        }
-        for _ in range(2)
-    )
+    figure = {
+        "data": [],
+        "layout": copy.deepcopy(layout_blazar),
+    }
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}
+    <b>%{xaxis.title.text}</b>: %{x}
     <extra></extra>
     """
 
@@ -664,47 +657,17 @@ def plot_blazar(
     ]
 
     # Graphs
-    graph, graph_follow_up = (
-        dcc.Graph(
-            figure=fig,
-            style={
-                "width": "100%",
-                "height": "25pc",
-            },
-            config={"displayModeBar": False},
-            responsive=True,
-        )
-        for fig in [figure, figure_follow_up]
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            "width": "100%",
+            "height": "25pc",
+        },
+        config={"displayModeBar": False},
+        responsive=True,
     )
 
-    # Layout
-    results = dmc.Stack(
-        [
-            dmc.Tabs(
-                [
-                    dmc.TabsList(
-                        [
-                            dmc.TabsTab("Extreme states", value="lightcurve"),
-                            dmc.TabsTab("Follow-up", value="follow_up"),
-                        ],
-                    ),
-                    dmc.TabsPanel(
-                        graph,
-                        value="lightcurve",
-                    ),
-                    dmc.TabsPanel(
-                        graph_follow_up,
-                        value="follow_up",
-                    ),
-                ],
-                value="lightcurve",
-                style={"width": "100%"},
-            ),
-        ],
-        align="center",
-    )
-
-    return results
+    return graph
 
 
 @app.callback(
