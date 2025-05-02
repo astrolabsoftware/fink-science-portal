@@ -499,9 +499,12 @@ def plot_blazar(
         pdf_release = pdf_release.sort_values("mjd", ascending=False)
         dates_release = convert_jd(pdf_release["mjd"], format="mjd")
         pdf_release["flux_dc"], pdf_release["sigma_flux_dc"] = apparent_flux_dr(pdf_release["mag"], pdf_release["magerr"])
+        #pdf_release["flux_dc"] *= 1000
+        #pdf_release["sigma_flux_dc"] *= 1000
     else:
         pdf_release = pd.DataFrame({"mag": [], "magerr": [], "filtercode": [], "mjd": [], "flux_dc": [], "sigma_flux_dc": [], "std_flux_dc": [], "std_sigma_flux_dc": []})
-    
+        dates_release = np.array([])
+
     pdf["flux_dc"], pdf["sigma_flux_dc"] = np.transpose(
         [
             apparent_flux(*args)
@@ -513,7 +516,7 @@ def plot_blazar(
                 pdf["i:isdiffpos"].to_numpy(),
             )
         ],
-    )
+    ) #* 1000
 
     jd = pdf["i:jd"].astype(float)
     dates = convert_jd(jd)
@@ -523,25 +526,64 @@ def plot_blazar(
     # hence the quantile 50 is probably not aligning with 1
     # with new alert data coming in. 
     # TODO: compute median on-the-fly
-    path = os.path.join(os.path.dirname(__file__), "blazars")
-    filename = "CTAO_blazars_ztf_dr22.parquet"
-    CTAO_data = pd.read_parquet(os.path.join(path, filename))
-    CTAO_data = CTAO_data[CTAO_data['ZTF Name'] == pdf["i:objectId"].to_numpy()[0]]
-    medians = CTAO_data['Array of Medians'].iloc[0]
+    
+    # Avoid covering of alerts and DR
+    maskTime = np.ones(len(pdf), dtype=bool)
+    if len(dates_release) > 0:
+        maskTime = pdf["i:jd"].to_numpy() - 2400000.5 > pdf_release["mjd"].iloc[0]
+    
+    # Merge bands from alerts and DR
+    flux = np.concatenate((pdf["flux_dc"].to_numpy()[maskTime], pdf_release["flux_dc"].to_numpy()))[::-1]
+    filts_release = np.ones(len(pdf_release))
+    filts_release[pdf_release["filtercode"].to_numpy() == "zr"] = 2
+    filts = np.concatenate((pdf["i:fid"].to_numpy()[maskTime], filts_release))[::-1]
+    mjds = np.concatenate((pdf["i:jd"].to_numpy()[maskTime] - 2400000.5, pdf_release["mjd"].to_numpy()))[::-1]
 
-    # Scale medians to mJy
-    medians /= 1000
+    # Compute meaningful median
+    delta_max_time = .5
+    possible_filts = np.unique(filts)
+    medians = {filt: np.nan for filt in possible_filts}
+    if len(possible_filts) == 1:
+        medians[possible_filts[0]] = np.median(flux)
+    else:
+        other_filt = {1:2, 2:1}
+        concomitant_measurements = {filt: [] for filt in possible_filts}
+        start = -np.inf
+        for index_flux in range(len(flux)):
+            if mjds[index_flux] > start + delta_max_time:
+                start = mjds[index_flux]
+                maskTime = (mjds >= start) & (mjds <= start + delta_max_time)
+                filt = filts[index_flux]
+                maskFilt = filts == filt
+                if np.any(maskTime & (~maskFilt)):
+                    concomitant_measurements[filt].append(np.mean(flux[maskTime & maskFilt]))
+                    concomitant_measurements[other_filt[filt]].append(np.mean(flux[maskTime & (~maskFilt)]))
+        for filt in possible_filts:
+            medians[filt] = np.median(concomitant_measurements[filt])
+    # Useless now
+    # path = os.path.join(os.path.dirname(__file__), "blazars")
+    # filename = "CTAO_blazars_ztf_dr22.parquet"
+    # CTAO_data = pd.read_parquet(os.path.join(path, filename))
+    # CTAO_data = CTAO_data[CTAO_data['ZTF Name'] == pdf["i:objectId"].to_numpy()[0]]
+    # medians = CTAO_data['Array of Medians'].iloc[0]
 
     conv_dict = {"zg": 1, "zr": 2}
-    for filt in pdf['i:fid'].unique():
-        maskFilt = pdf['i:fid'] == filt
-        pdf.loc[maskFilt, 'std_flux_dc'] = pdf.loc[maskFilt, 'flux_dc'] / medians[filt - 1]
-        pdf.loc[maskFilt, 'std_sigma_flux_dc'] = pdf.loc[maskFilt, 'sigma_flux_dc'] / medians[filt - 1]
+    for filt in pdf["i:fid"].unique():
+        maskFilt = pdf["i:fid"] == filt
+        pdf.loc[maskFilt, "std_flux_dc"] = pdf.loc[maskFilt, "flux_dc"] / medians[filt]
+        pdf.loc[maskFilt, "std_sigma_flux_dc"] = pdf.loc[maskFilt, "sigma_flux_dc"] / medians[filt]
 
-    for filt in np.intersect1d(pdf_release['filtercode'].unique(), ['zr', 'zg']):
-        maskFilt = pdf_release['filtercode'] == filt
-        pdf_release.loc[maskFilt, 'std_flux_dc'] = pdf_release.loc[maskFilt, 'flux_dc'] / medians[conv_dict[filt] - 1]
-        pdf_release.loc[maskFilt, 'std_sigma_flux_dc'] = pdf_release.loc[maskFilt, 'sigma_flux_dc'] / medians[conv_dict[filt] - 1]
+    for filt in pdf_release["filtercode"].unique():
+        maskFilt = pdf_release["filtercode"] == filt
+        pdf_release.loc[maskFilt, "std_flux_dc"] = pdf_release.loc[maskFilt, "flux_dc"] / medians[conv_dict[filt]]
+        pdf_release.loc[maskFilt, "std_sigma_flux_dc"] = pdf_release.loc[maskFilt, "sigma_flux_dc"] / medians[conv_dict[filt]]
+
+    # Divive by the median of the whole LC to equal it to 1
+    tot_median = np.median(np.concatenate((pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())))
+    pdf["std_flux_dc"] /= tot_median
+    pdf["std_sigma_flux_dc"] /= tot_median
+    pdf_release["std_flux_dc"] /= tot_median
+    pdf_release["std_sigma_flux_dc"] /= tot_median
 
     # Initialize figures
     figure = {
@@ -598,14 +640,14 @@ def plot_blazar(
                         "array": pdf_release["std_sigma_flux_dc"][idx],
                         "visible": True,
                         "width": 0,
-                        "opacity": 0.5,
+                        "opacity": 0.3,
                         "color": color,
                     },
                     "mode": "markers",
                     "name": f"{fname} band",
                     "legendgroup": f"{fname} band",
                     "hovertemplate": hovertemplate,
-                    "marker": {"size": 5, "color": color, "symbol": "o", "opacity": 0.5},
+                    "marker": {"size": 7, "color": color, "symbol": "o", "opacity": 0.3},
                 }
             )
 
