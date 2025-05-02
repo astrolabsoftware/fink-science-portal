@@ -505,6 +505,18 @@ def plot_blazar(
         pdf_release = pd.DataFrame({"mag": [], "magerr": [], "filtercode": [], "mjd": [], "flux_dc": [], "sigma_flux_dc": [], "std_flux_dc": [], "std_sigma_flux_dc": []})
         dates_release = np.array([])
 
+    pdf["mag"], pdf["magerr"] = np.transpose(
+        [
+            dc_mag(*args)
+            for args in zip(
+                pdf["i:magpsf"].astype(float).to_numpy(),
+                pdf["i:sigmapsf"].astype(float).to_numpy(),
+                pdf["i:magnr"].astype(float).to_numpy(),
+                pdf["i:sigmagnr"].astype(float).to_numpy(),
+                pdf["i:isdiffpos"].to_numpy(),
+            )
+        ],
+    )
     pdf["flux_dc"], pdf["sigma_flux_dc"] = np.transpose(
         [
             apparent_flux(*args)
@@ -516,7 +528,7 @@ def plot_blazar(
                 pdf["i:isdiffpos"].to_numpy(),
             )
         ],
-    ) #* 1000
+    )
 
     jd = pdf["i:jd"].astype(float)
     dates = convert_jd(jd)
@@ -560,12 +572,6 @@ def plot_blazar(
                     concomitant_measurements[other_filt[filt]].append(np.mean(flux[maskTime & (~maskFilt)]))
         for filt in possible_filts:
             medians[filt] = np.median(concomitant_measurements[filt])
-    # Useless now
-    # path = os.path.join(os.path.dirname(__file__), "blazars")
-    # filename = "CTAO_blazars_ztf_dr22.parquet"
-    # CTAO_data = pd.read_parquet(os.path.join(path, filename))
-    # CTAO_data = CTAO_data[CTAO_data['ZTF Name'] == pdf["i:objectId"].to_numpy()[0]]
-    # medians = CTAO_data['Array of Medians'].iloc[0]
 
     conv_dict = {"zg": 1, "zr": 2}
     for filt in pdf["i:fid"].unique():
@@ -585,6 +591,26 @@ def plot_blazar(
     pdf_release["std_flux_dc"] /= tot_median
     pdf_release["std_sigma_flux_dc"] /= tot_median
 
+    # Quantiles
+    low_quantile = np.percentile(
+        np.concatenate(
+            (
+                pdf["std_flux_dc"].to_numpy(),
+                pdf_release["std_flux_dc"].to_numpy()
+            )
+        ),
+        quantile_blazar
+    )
+    high_quantile = np.percentile(
+        np.concatenate(
+            (
+                pdf["std_flux_dc"].to_numpy(),
+                pdf_release["std_flux_dc"].to_numpy()
+            )
+        ),
+        100 - quantile_blazar
+    )
+
     # Initialize figures
     figure = {
         "data": [],
@@ -593,10 +619,13 @@ def plot_blazar(
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x}
+    <b>%{xaxis.title.text}</b>: %{x}<br>
+    <b>Apparent magnitude</b>: %{customdata[0]:.2f} &plusmn; %{customdata[1]:.2f}<br>
+    <b>Brightness level &#981;/&#981;<sub>%{customdata[2]}</sub></b>: %{customdata[3]:.2f}
     <extra></extra>
     """
 
+    # Light curve display
     for fid, fname, color in (
         (1, "g", COLORS_ZTF[0]),
         (2, "r", COLORS_ZTF[1]),
@@ -619,6 +648,15 @@ def plot_blazar(
                     "mode": "markers",
                     "name": f"{fname} band",
                     "legendgroup": f"{fname} band",
+                    "customdata": np.stack(
+                        [
+                            pdf["mag"].to_numpy()[idx],
+                            pdf["magerr"].to_numpy()[idx],
+                            quantile_blazar * np.ones(len(pdf))[idx],
+                            pdf["std_flux_dc"].to_numpy()[idx] / low_quantile
+                        ],
+                        axis=-1
+                    ),
                     "hovertemplate": hovertemplate,
                     "marker": {"size": 10, "color": color, "symbol": "o"},
                 }
@@ -646,32 +684,22 @@ def plot_blazar(
                     "mode": "markers",
                     "name": f"{fname} band",
                     "legendgroup": f"{fname} band",
+                    "customdata": np.stack(
+                        [
+                            pdf_release["mag"].to_numpy()[idx],
+                            pdf_release["magerr"].to_numpy()[idx],
+                            quantile_blazar * np.ones(len(pdf_release)[idx]),
+                            pdf_release["std_flux_dc"].to_numpy()[idx] / low_quantile
+                        ],
+                        axis=-1
+                    ),
+
                     "hovertemplate": hovertemplate,
                     "marker": {"size": 7, "color": color, "symbol": "o", "opacity": 0.3},
                 }
             )
 
-
-    # Quantiles
-    low_quantile = np.percentile(
-        np.concatenate(
-            (
-                pdf["std_flux_dc"].to_numpy(), 
-                pdf_release["std_flux_dc"].to_numpy()
-            )
-        ), 
-        quantile_blazar
-    )
-    high_quantile = np.percentile(
-        np.concatenate(
-            (
-                pdf["std_flux_dc"].to_numpy(),
-                pdf_release["std_flux_dc"].to_numpy()
-            )
-        ),
-        100 - quantile_blazar
-    )
-
+    # Quantile display
     if object_release:
         start = dates_release[-1]
     else:
