@@ -495,12 +495,13 @@ def plot_blazar(
     # Data release?..
     if object_release_in or object_release:
         pdf_release = pd.read_json(io.StringIO(object_release))
+        pdf_release = pdf_release[pdf_release["filtercode"].isin(['zr', 'zg'])].copy()
         pdf_release = pdf_release.sort_values("mjd", ascending=False)
         dates_release = convert_jd(pdf_release["mjd"], format="mjd")
         pdf_release["flux_dc"], pdf_release["sigma_flux_dc"] = apparent_flux_dr(pdf_release["mag"], pdf_release["magerr"])
     else:
         pdf_release = pd.DataFrame({"mag": [], "magerr": [], "filtercode": [], "mjd": [], "flux_dc": [], "sigma_flux_dc": [], "std_flux_dc": [], "std_sigma_flux_dc": []})
-
+    
     pdf["flux_dc"], pdf["sigma_flux_dc"] = np.transpose(
         [
             apparent_flux(*args)
@@ -537,7 +538,7 @@ def plot_blazar(
         pdf.loc[maskFilt, 'std_flux_dc'] = pdf.loc[maskFilt, 'flux_dc'] / medians[filt - 1]
         pdf.loc[maskFilt, 'std_sigma_flux_dc'] = pdf.loc[maskFilt, 'sigma_flux_dc'] / medians[filt - 1]
 
-    for filt in pdf_release['filtercode'].unique():
+    for filt in np.intersect1d(pdf_release['filtercode'].unique(), ['zr', 'zg']):
         maskFilt = pdf_release['filtercode'] == filt
         pdf_release.loc[maskFilt, 'std_flux_dc'] = pdf_release.loc[maskFilt, 'flux_dc'] / medians[conv_dict[filt] - 1]
         pdf_release.loc[maskFilt, 'std_sigma_flux_dc'] = pdf_release.loc[maskFilt, 'sigma_flux_dc'] / medians[conv_dict[filt] - 1]
