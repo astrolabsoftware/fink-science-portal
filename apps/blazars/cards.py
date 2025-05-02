@@ -27,14 +27,22 @@ from apps.utils import create_button_for_external_conesearch
 def card_explanation_blazar():
     """Explain what is used to fit for Blazars"""
     msg = """
-    TBD Explanation
+    This light curve is obtained by dividing each band by a meaningful calculation of its median.
+    Each median is calculated by selecting measurements in one band if and only if there is at least one other measurement in the other band less than 12 hours after the first.
+    The sub-selections of measurements are then used to calculate the respective medians.
+
+    Once these medians have been calculated, the entire light curve is divided by its overall median to make it equal to 1.
+
+    The slider allows you to drag the lowest and highest percentile of your choice. When you are happy with the value for that percentile, click Update Plot.
+
+    You can also add measurements from the Data Release by loading them using the Get DR Photometry button.
     """
     card = dmc.Accordion(
         children=[
             dmc.AccordionItem(
                 [
                     dmc.AccordionControl(
-                        "TBD Title",
+                        "How to use this panel?",
                         icon=[
                             DashIconify(
                                 icon="tabler:help-hexagon",
