@@ -513,6 +513,15 @@ def tab7_content():
                             dmc.Paper(
                                 [
                                     html.Div(id="blazar_plot"),
+                                    dmc.Space(h=20),
+                                    dmc.Center(dmc.Button(
+                                        "Get DR photometry",
+                                        id="lightcurve_request_release_from_blazar",
+                                        variant="outline",
+                                        color="gray",
+                                        radius="xl",
+                                        size="xs",
+                                    )),
                                     card_explanation_blazar(),
                                 ],
                             ),
@@ -689,17 +698,22 @@ def store_query(name):
         Output("lightcurve_request_release", "children"),
         Output("switch-mag-flux", "value"),
     ],
-    Input("lightcurve_request_release", "n_clicks"),
+    [
+        Input("lightcurve_request_release", "n_clicks"),
+        Input("lightcurve_request_release_from_blazar", "n_clicks"),
+    ],
     State("object-data", "data"),
     prevent_initial_call=True,
     background=True,
     running=[
         (Output("lightcurve_request_release", "disabled"), True, True),
         (Output("lightcurve_request_release", "loading"), True, False),
+        (Output("lightcurve_request_release_from_blazar", "disabled"), True, True),
+        (Output("lightcurve_request_release_from_blazar", "loading"), True, False),
     ],
 )
-def store_release_photometry(n_clicks, object_data):
-    if not n_clicks or not object_data:
+def store_release_photometry(n_clicks, n_clicks2, object_data):
+    if (not n_clicks and not n_clicks2) or not object_data:
         raise PreventUpdate
 
     pdf = pd.read_json(io.StringIO(object_data))

@@ -67,6 +67,7 @@ from apps.utils import (
     readstamp,
     request_api,
     sine_fit,
+    apparent_flux_dr,
 )
 
 COLORS_ZTF = ["#15284F", "#F5622E"]
@@ -447,7 +448,8 @@ layout_blazar = dict(
     Output("blazar_plot", "children"),
     [
         Input("summary_tabs", "value"),
-        Input("submit_blazar", "nclick")
+        Input("submit_blazar", "n_clicks"),
+        Input("object-release", "data"),
     ],
     [
         State("observatory_blazar", "value"),
@@ -466,6 +468,7 @@ layout_blazar = dict(
 def plot_blazar(
     summary_tab,
     nclick,
+    object_release_in,
     observatory_blazar,
     dateobs_blazar,
     quantile_blazar,
@@ -494,12 +497,13 @@ def plot_blazar(
     pdf = pdf.sort_values("i:jd", ascending=False)
 
     # Data release?..
-    if object_release:
+    if object_release_in or object_release:
         pdf_release = pd.read_json(io.StringIO(object_release))
         pdf_release = pdf_release.sort_values("mjd", ascending=False)
         dates_release = convert_jd(pdf_release["mjd"], format="mjd")
+        pdf_release["flux_dc"], pdf_release["sigma_flux_dc"] = apparent_flux_dr(pdf_release["mag"], pdf_release["magerr"])
     else:
-        pdf_release = pd.DataFrame()
+        pdf_release = pd.DataFrame({"mag": [], "magerr": [], "filtercode": [], "mjd": [], "flux_dc": [], "sigma_flux_dc": [], "std_flux_dc": [], "std_sigma_flux_dc": []})
 
     pdf["flux_dc"], pdf["sigma_flux_dc"] = np.transpose(
         [
@@ -517,7 +521,11 @@ def plot_blazar(
     jd = pdf["i:jd"].astype(float)
     dates = convert_jd(jd)
 
-    # TODO: Normalise flux
+    # Normalise flux
+    # Median is computed on historical data
+    # hence the quantile 50 is probably not aligning with 1
+    # with new alert data coming in. 
+    # TODO: compute median on-the-fly
     path = os.path.join(os.path.dirname(__file__), "blazars")
     filename = "CTAO_blazars_ztf_dr22.parquet"
     CTAO_data = pd.read_parquet(os.path.join(path, filename))
@@ -527,10 +535,16 @@ def plot_blazar(
     # Scale medians to mJy
     medians /= 1000
 
+    conv_dict = {"zg": 1, "zr": 2}
     for filt in pdf['i:fid'].unique():
         maskFilt = pdf['i:fid'] == filt
         pdf.loc[maskFilt, 'std_flux_dc'] = pdf.loc[maskFilt, 'flux_dc'] / medians[filt - 1]
         pdf.loc[maskFilt, 'std_sigma_flux_dc'] = pdf.loc[maskFilt, 'sigma_flux_dc'] / medians[filt - 1]
+
+    for filt in pdf_release['filtercode'].unique():
+        maskFilt = pdf_release['filtercode'] == filt
+        pdf_release.loc[maskFilt, 'std_flux_dc'] = pdf_release.loc[maskFilt, 'flux_dc'] / medians[conv_dict[filt] - 1]
+        pdf_release.loc[maskFilt, 'std_sigma_flux_dc'] = pdf_release.loc[maskFilt, 'sigma_flux_dc'] / medians[conv_dict[filt] - 1]
 
     # Initialize figures
     figure, figure_follow_up = (
@@ -574,16 +588,64 @@ def plot_blazar(
                 }
             )
 
-    # Quantiles
-    low_quantile = np.percentile(pdf["std_flux_dc"].to_numpy(), quantile_blazar)
-    high_quantile = np.percentile(pdf["std_flux_dc"].to_numpy(), 100 - quantile_blazar)
+    for fid, fname, color in (
+        ("zg", "g (DR)", COLORS_ZTF[0]),
+        ("zr", "r (DR)", COLORS_ZTF[1]),
+    ):
+        if fid in np.unique(pdf_release["filtercode"].to_numpy()):
+            # Original data
+            idx = pdf_release["filtercode"] == fid
+            figure["data"].append(
+                {
+                    "x": dates_release[idx],
+                    "y": pdf_release["std_flux_dc"].to_numpy()[idx],
+                    "error_y": {
+                        "type": "data",
+                        "array": pdf_release["std_sigma_flux_dc"][idx],
+                        "visible": True,
+                        "width": 0,
+                        "opacity": 0.5,
+                        "color": color,
+                    },
+                    "mode": "markers",
+                    "name": f"{fname} band",
+                    "legendgroup": f"{fname} band",
+                    "hovertemplate": hovertemplate,
+                    "marker": {"size": 5, "color": color, "symbol": "o", "opacity": 0.5},
+                }
+            )
 
+
+    # Quantiles
+    low_quantile = np.percentile(
+        np.concatenate(
+            (
+                pdf["std_flux_dc"].to_numpy(), 
+                pdf_release["std_flux_dc"].to_numpy()
+            )
+        ), 
+        quantile_blazar
+    )
+    high_quantile = np.percentile(
+        np.concatenate(
+            (
+                pdf["std_flux_dc"].to_numpy(),
+                pdf_release["std_flux_dc"].to_numpy()
+            )
+        ),
+        100 - quantile_blazar
+    )
+
+    if object_release:
+        start = dates_release[-1]
+    else:
+        start = dates[-1]
     figure["layout"]["shapes"] = [
         {
             "type": "line",
             "xref": "x",
-            "x0": dates[0],
-            "x1": dates[-1],
+            "x0": start,
+            "x1": dates[0],
             "yref": "y",
             "y0": low_quantile,
             "y1": low_quantile,
@@ -592,8 +654,8 @@ def plot_blazar(
         {
             "type": "line",
             "xref": "x",
-            "x0": dates[0],
-            "x1": dates[-1],
+            "x0": start,
+            "x1": dates[0],
             "yref": "y",
             "y0": high_quantile,
             "y1": high_quantile,
