@@ -18,6 +18,8 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
+from astropy.coordinates import EarthLocation
+
 import visdcc
 from dash import Input, Output, State, dcc, html, no_update
 from dash.exceptions import PreventUpdate
@@ -41,6 +43,7 @@ from apps.utils import (
     retrieve_oid_from_metaname,
 )
 from apps.varstars.cards import card_explanation_variable
+from apps.blazars.cards import card_explanation_blazar
 
 dcc.Location(id="url", refresh=False)
 
@@ -446,6 +449,98 @@ def tab6_content(object_tracklet):
     )
     return tab6_content_
 
+@app.callback(
+    Output("tab_blazar", "children"),
+    [
+        Input("object-data", "data"),
+    ],
+    prevent_initial_call=True,
+)
+def tab7_content(object_data):
+    """Blazar tab"""
+    pdf = pd.read_json(io.StringIO(object_data))
+    # There are duplicates...
+    observatories = np.unique(EarthLocation.get_site_names())
+    nterms_base = dmc.Container(
+        [
+            dmc.Divider(variant="solid", label="Follow-up"),
+            dmc.Select(
+                label="Select your Observatory",
+                placeholder="Select an observatory from the list",
+                id="observatory_blazar",
+                data=[{"value": obs, "label": obs} for obs in observatories],
+                value="Palomar",
+                searchable=True,
+                clearable=True,
+            ),
+            dmc.DateInput(
+                id="dateobs_blazar",
+                label="Pick a date for the follow-up",
+            ),
+            dmc.Space(h=20),
+            dmc.Divider(variant="solid", label="Extreme states threshold"),
+            dmc.Text("Select your quantile", size="sm"),
+            dmc.Slider(
+                id="quantile_blazar",
+                marks=[{"value": i, "label": "{}%".format(i)} for i in range(0, 101, 20)],
+                value=10
+            ),
+        ],
+        className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
+    )
+
+    submit_blazar_button = dmc.Button(
+        "Update plot",
+        id="submit_blazar",
+        color="dark",
+        variant="outline",
+        fullWidth=True,
+        radius="xl",
+    )
+
+    card2 = dmc.Paper(
+        [
+            nterms_base,
+        ],
+        radius="sm",
+        p="xs",
+        shadow="sm",
+        withBorder=True,
+    )
+
+    tab_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading(
+                            dmc.Paper(
+                                [
+                                    html.Div(id="blazar_plot"),
+                                    card_explanation_blazar(),
+                                ],
+                            ),
+                        ),
+                        md=8,
+                    ),
+                    dbc.Col(
+                        [
+                            html.Div(id="card_blazar_button"),
+                            html.Br(),
+                            card2,
+                            html.Br(),
+                            submit_blazar_button,
+                        ],
+                        md=4,
+                    ),
+                ],
+                className="g-1",
+            ),
+        ]
+    )
+    return [tab_content_]
+
 
 def tabs(pdf):
     tabs_ = dmc.Tabs(
@@ -467,6 +562,9 @@ def tabs(pdf):
                     dmc.TabsTab(
                         "Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)
                     ),
+                    dmc.TabsTab(
+                        "Blazars", value="Blazars", disabled=not is_blazar(pdf)
+                    ),
                     dmc.TabsTab("GRB", value="GRB", disabled=True),
                 ],
                 justify="flex-end",
@@ -476,6 +574,7 @@ def tabs(pdf):
             dmc.TabsPanel(tab3_content(), value="Variable stars"),
             dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
             dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
+            dmc.TabsPanel(children=[], id="tab_blazar", value="Blazars"),
         ],
         value="Summary" if not is_sso(pdf) else "Solar System",
     )
@@ -502,6 +601,13 @@ def is_tracklet(pdfs):
     if str(payload).startswith("TRCK"):
         return True
 
+    return False
+
+def is_blazar(pdfs):
+    """Auxiliary function to check whether the object is a blazar"""
+    payload = pdfs["d:blazar_stats_m0"].to_numpy()
+    if np.any(payload != -1):
+        return True
     return False
 
 
