@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import io
 import copy
 import datetime
@@ -55,6 +56,7 @@ from plotly.subplots import make_subplots
 from scipy.optimize import curve_fit
 
 from app import app
+from apps import __file__
 from apps.statistics import dic_names
 from apps.utils import (
     _data_stretch,
@@ -414,6 +416,233 @@ layout_tracklet_lightcurve = dict(
         "automargin": True,
     },
 )
+
+layout_blazar = dict(
+    autosize=True,
+    automargin=True,
+    margin=dict(l=50, r=30, b=40, t=25),
+    hovermode="closest",
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="right",
+        x=1,
+        bgcolor="rgba(218, 223, 225, 0.3)",
+    ),
+    xaxis={
+        "title": "Observation date",
+        "zeroline": False,
+    },
+    yaxis={
+        "title": r"Standardized flux &#981;/&#981;<sub>median</sub>",
+        "zeroline": False,
+    },
+)
+
+
+
+@app.callback(
+    Output("blazar_plot", "children"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_blazar", "nclick")
+    ],
+    [
+        State("observatory_blazar", "value"),
+        State("dateobs_blazar", "value"),
+        State("quantile_blazar", "value"),
+        State("object-data", "data"),
+        State("object-release", "data"),
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_blazar", "disabled"), True, False),
+        (Output("submit_blazar", "loading"), True, False),
+    ],
+)
+def plot_blazar(
+    summary_tab,
+    nclick,
+    observatory_blazar,
+    dateobs_blazar,
+    quantile_blazar,
+    object_data,
+    object_release,
+):
+    if summary_tab != "Blazars":
+        raise PreventUpdate
+
+    """TBD"""
+    # Prepare the data
+    pdf_ = pd.read_json(io.StringIO(object_data))
+    cols = [
+        "i:jd",
+        "i:magpsf",
+        "i:sigmapsf",
+        "i:fid",
+        "i:distnr",
+        "i:magnr",
+        "i:sigmagnr",
+        "i:magzpsci",
+        "i:isdiffpos",
+        "i:objectId",
+    ]
+    pdf = pdf_.loc[:, cols]
+    pdf = pdf.sort_values("i:jd", ascending=False)
+
+    # Data release?..
+    if object_release:
+        pdf_release = pd.read_json(io.StringIO(object_release))
+        pdf_release = pdf_release.sort_values("mjd", ascending=False)
+        dates_release = convert_jd(pdf_release["mjd"], format="mjd")
+    else:
+        pdf_release = pd.DataFrame()
+
+    pdf["flux_dc"], pdf["sigma_flux_dc"] = np.transpose(
+        [
+            apparent_flux(*args)
+            for args in zip(
+                pdf["i:magpsf"].astype(float).to_numpy(),
+                pdf["i:sigmapsf"].astype(float).to_numpy(),
+                pdf["i:magnr"].astype(float).to_numpy(),
+                pdf["i:sigmagnr"].astype(float).to_numpy(),
+                pdf["i:isdiffpos"].to_numpy(),
+            )
+        ],
+    )
+
+    jd = pdf["i:jd"].astype(float)
+    dates = convert_jd(jd)
+
+    # TODO: Normalise flux
+    path = os.path.join(os.path.dirname(__file__), "blazars")
+    filename = "CTAO_blazars_ztf_dr22.parquet"
+    CTAO_data = pd.read_parquet(os.path.join(path, filename))
+    CTAO_data = CTAO_data[CTAO_data['ZTF Name'] == pdf["i:objectId"].to_numpy()[0]]
+    medians = CTAO_data['Array of Medians'].iloc[0]
+
+    # Scale medians to mJy
+    medians /= 1000
+
+    for filt in pdf['i:fid'].unique():
+        maskFilt = pdf['i:fid'] == filt
+        pdf.loc[maskFilt, 'std_flux_dc'] = pdf.loc[maskFilt, 'flux_dc'] / medians[filt - 1]
+        pdf.loc[maskFilt, 'std_sigma_flux_dc'] = pdf.loc[maskFilt, 'sigma_flux_dc'] / medians[filt - 1]
+
+    # Initialize figures
+    figure, figure_follow_up = (
+        {
+            "data": [],
+            "layout": copy.deepcopy(layout_blazar),
+        }
+        for _ in range(2)
+    )
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}
+    <extra></extra>
+    """
+
+    for fid, fname, color in (
+        (1, "g", COLORS_ZTF[0]),
+        (2, "r", COLORS_ZTF[1]),
+    ):
+        if fid in np.unique(pdf["i:fid"].to_numpy()):
+            # Original data
+            idx = pdf["i:fid"] == fid
+            figure["data"].append(
+                {
+                    "x": dates[idx],
+                    "y": pdf["std_flux_dc"].to_numpy()[idx],
+                    "error_y": {
+                        "type": "data",
+                        "array": pdf["std_sigma_flux_dc"][idx],
+                        "visible": True,
+                        "width": 0,
+                        "opacity": 0.5,
+                        "color": color,
+                    },
+                    "mode": "markers",
+                    "name": f"{fname} band",
+                    "legendgroup": f"{fname} band",
+                    "hovertemplate": hovertemplate,
+                    "marker": {"size": 10, "color": color, "symbol": "o"},
+                }
+            )
+
+    # Quantiles
+    low_quantile = np.percentile(pdf["std_flux_dc"].to_numpy(), quantile_blazar)
+    high_quantile = np.percentile(pdf["std_flux_dc"].to_numpy(), 100 - quantile_blazar)
+
+    figure["layout"]["shapes"] = [
+        {
+            "type": "line",
+            "xref": "x",
+            "x0": dates[0],
+            "x1": dates[-1],
+            "yref": "y",
+            "y0": low_quantile,
+            "y1": low_quantile,
+            "line": {"color": "black", "dash": "dash", "width": 1},
+        },
+        {
+            "type": "line",
+            "xref": "x",
+            "x0": dates[0],
+            "x1": dates[-1],
+            "yref": "y",
+            "y0": high_quantile,
+            "y1": high_quantile,
+            "line": {"color": "black", "dash": "dash", "width": 1},
+        },
+    ]
+
+    # Graphs
+    graph, graph_follow_up = (
+        dcc.Graph(
+            figure=fig,
+            style={
+                "width": "100%",
+                "height": "25pc",
+            },
+            config={"displayModeBar": False},
+            responsive=True,
+        )
+        for fig in [figure, figure_follow_up]
+    )
+
+    # Layout
+    results = dmc.Stack(
+        [
+            dmc.Tabs(
+                [
+                    dmc.TabsList(
+                        [
+                            dmc.TabsTab("Extreme states", value="lightcurve"),
+                            dmc.TabsTab("Follow-up", value="follow_up"),
+                        ],
+                    ),
+                    dmc.TabsPanel(
+                        graph,
+                        value="lightcurve",
+                    ),
+                    dmc.TabsPanel(
+                        graph_follow_up,
+                        value="follow_up",
+                    ),
+                ],
+                value="lightcurve",
+                style={"width": "100%"},
+            ),
+        ],
+        align="center",
+    )
+
+    return results
 
 
 @app.callback(

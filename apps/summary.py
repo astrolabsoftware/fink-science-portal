@@ -449,16 +449,8 @@ def tab6_content(object_tracklet):
     )
     return tab6_content_
 
-@app.callback(
-    Output("tab_blazar", "children"),
-    [
-        Input("object-data", "data"),
-    ],
-    prevent_initial_call=True,
-)
-def tab7_content(object_data):
+def tab7_content():
     """Blazar tab"""
-    pdf = pd.read_json(io.StringIO(object_data))
     # There are duplicates...
     observatories = np.unique(EarthLocation.get_site_names())
     nterms_base = dmc.Container(
@@ -482,8 +474,10 @@ def tab7_content(object_data):
             dmc.Text("Select your quantile", size="sm"),
             dmc.Slider(
                 id="quantile_blazar",
-                marks=[{"value": i, "label": "{}%".format(i)} for i in range(0, 101, 20)],
-                value=10
+                marks=[{"value": i, "label": "{}%".format(i)} for i in range(0, 51, 10)],
+                value=10,
+                max=50,
+                min=0,
             ),
         ],
         className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
@@ -507,6 +501,7 @@ def tab7_content(object_data):
         shadow="sm",
         withBorder=True,
     )
+
 
     tab_content_ = html.Div(
         [
@@ -574,9 +569,10 @@ def tabs(pdf):
             dmc.TabsPanel(tab3_content(), value="Variable stars"),
             dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
             dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
-            dmc.TabsPanel(children=[], id="tab_blazar", value="Blazars"),
+            dmc.TabsPanel(tab7_content(), id="tab_blazar", value="Blazars"),
         ],
         value="Summary" if not is_sso(pdf) else "Solar System",
+        id="summary_tabs",
     )
 
     return tabs_
