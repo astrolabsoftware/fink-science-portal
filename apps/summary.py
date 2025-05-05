@@ -450,7 +450,10 @@ def tab6_content(object_tracklet):
     return tab6_content_
 
 def tab_observability(pdf):
-    """TBD
+    """
+    Displays the observation plot (altitude and airmass) of the source after selecting an observatory and a date.
+
+    Also displays the observation plot of the Moon as well as its illumination, and the various definition of night. Bottom axis shows UTC time and top axis shows Local time.
     """
     observatories = np.unique(EarthLocation.get_site_names())
     nterms_base = dmc.Container(

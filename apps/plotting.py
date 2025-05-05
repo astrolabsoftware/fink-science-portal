@@ -536,14 +536,14 @@ def plot_blazar(
     # Normalise flux
     # Median is computed on historical data
     # hence the quantile 50 is probably not aligning with 1
-    # with new alert data coming in. 
+    # with new alert data coming in.
     # TODO: compute median on-the-fly
-    
+
     # Avoid covering of alerts and DR
     maskTime = np.ones(len(pdf), dtype=bool)
     if len(dates_release) > 0:
         maskTime = pdf["i:jd"].to_numpy() - 2400000.5 > pdf_release["mjd"].iloc[0]
-    
+
     # Merge bands from alerts and DR
     flux = np.concatenate((pdf["flux_dc"].to_numpy()[maskTime], pdf_release["flux_dc"].to_numpy()))[::-1]
     filts_release = np.ones(len(pdf_release))
@@ -688,7 +688,7 @@ def plot_blazar(
                         [
                             pdf_release["mag"].to_numpy()[idx],
                             pdf_release["magerr"].to_numpy()[idx],
-                            quantile_blazar * np.ones(len(pdf_release)[idx]),
+                            quantile_blazar * np.ones(len(pdf_release[idx])),
                             pdf_release["std_flux_dc"].to_numpy()[idx] / low_quantile
                         ],
                         axis=-1
