@@ -554,7 +554,7 @@ def plot_blazar(
     # Compute meaningful median
     delta_max_time = .5
     possible_filts = np.unique(filts)
-    medians = {filt: np.nan for filt in possible_filts}
+    medians = dict.fromkeys(possible_filts)
     if len(possible_filts) == 1:
         medians[possible_filts[0]] = np.median(flux)
     else:
