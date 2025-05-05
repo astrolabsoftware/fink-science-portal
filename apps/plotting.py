@@ -56,6 +56,7 @@ from plotly.subplots import make_subplots
 from scipy.optimize import curve_fit
 
 from app import app
+
 # from apps import __file__
 from apps.statistics import dic_names
 from apps.utils import (
@@ -443,7 +444,6 @@ layout_blazar = dict(
 )
 
 
-
 @app.callback(
     Output("blazar_plot", "children"),
     [
@@ -495,14 +495,27 @@ def plot_blazar(
     # Data release?..
     if object_release_in or object_release:
         pdf_release = pd.read_json(io.StringIO(object_release))
-        pdf_release = pdf_release[pdf_release["filtercode"].isin(['zr', 'zg'])].copy()
+        pdf_release = pdf_release[pdf_release["filtercode"].isin(["zr", "zg"])].copy()
         pdf_release = pdf_release.sort_values("mjd", ascending=False)
         dates_release = convert_jd(pdf_release["mjd"], format="mjd")
-        pdf_release["flux_dc"], pdf_release["sigma_flux_dc"] = apparent_flux_dr(pdf_release["mag"], pdf_release["magerr"])
-        #pdf_release["flux_dc"] *= 1000
-        #pdf_release["sigma_flux_dc"] *= 1000
+        pdf_release["flux_dc"], pdf_release["sigma_flux_dc"] = apparent_flux_dr(
+            pdf_release["mag"], pdf_release["magerr"]
+        )
+        # pdf_release["flux_dc"] *= 1000
+        # pdf_release["sigma_flux_dc"] *= 1000
     else:
-        pdf_release = pd.DataFrame({"mag": [], "magerr": [], "filtercode": [], "mjd": [], "flux_dc": [], "sigma_flux_dc": [], "std_flux_dc": [], "std_sigma_flux_dc": []})
+        pdf_release = pd.DataFrame(
+            {
+                "mag": [],
+                "magerr": [],
+                "filtercode": [],
+                "mjd": [],
+                "flux_dc": [],
+                "sigma_flux_dc": [],
+                "std_flux_dc": [],
+                "std_sigma_flux_dc": [],
+            }
+        )
         dates_release = np.array([])
 
     pdf["mag"], pdf["magerr"] = np.transpose(
@@ -545,20 +558,24 @@ def plot_blazar(
         maskTime = pdf["i:jd"].to_numpy() - 2400000.5 > pdf_release["mjd"].iloc[0]
 
     # Merge bands from alerts and DR
-    flux = np.concatenate((pdf["flux_dc"].to_numpy()[maskTime], pdf_release["flux_dc"].to_numpy()))[::-1]
+    flux = np.concatenate(
+        (pdf["flux_dc"].to_numpy()[maskTime], pdf_release["flux_dc"].to_numpy())
+    )[::-1]
     filts_release = np.ones(len(pdf_release))
     filts_release[pdf_release["filtercode"].to_numpy() == "zr"] = 2
     filts = np.concatenate((pdf["i:fid"].to_numpy()[maskTime], filts_release))[::-1]
-    mjds = np.concatenate((pdf["i:jd"].to_numpy()[maskTime] - 2400000.5, pdf_release["mjd"].to_numpy()))[::-1]
+    mjds = np.concatenate(
+        (pdf["i:jd"].to_numpy()[maskTime] - 2400000.5, pdf_release["mjd"].to_numpy())
+    )[::-1]
 
     # Compute meaningful median
-    delta_max_time = .5
+    delta_max_time = 0.5
     possible_filts = np.unique(filts)
     medians = dict.fromkeys(possible_filts)
     if len(possible_filts) == 1:
         medians[possible_filts[0]] = np.median(flux)
     else:
-        other_filt = {1:2, 2:1}
+        other_filt = {1: 2, 2: 1}
         concomitant_measurements = {filt: [] for filt in possible_filts}
         start = -np.inf
         for index_flux in range(len(flux)):
@@ -568,8 +585,12 @@ def plot_blazar(
                 filt = filts[index_flux]
                 maskFilt = filts == filt
                 if np.any(maskTime & (~maskFilt)):
-                    concomitant_measurements[filt].append(np.mean(flux[maskTime & maskFilt]))
-                    concomitant_measurements[other_filt[filt]].append(np.mean(flux[maskTime & (~maskFilt)]))
+                    concomitant_measurements[filt].append(
+                        np.mean(flux[maskTime & maskFilt])
+                    )
+                    concomitant_measurements[other_filt[filt]].append(
+                        np.mean(flux[maskTime & (~maskFilt)])
+                    )
         for filt in possible_filts:
             medians[filt] = np.median(concomitant_measurements[filt])
 
@@ -577,15 +598,25 @@ def plot_blazar(
     for filt in pdf["i:fid"].unique():
         maskFilt = pdf["i:fid"] == filt
         pdf.loc[maskFilt, "std_flux_dc"] = pdf.loc[maskFilt, "flux_dc"] / medians[filt]
-        pdf.loc[maskFilt, "std_sigma_flux_dc"] = pdf.loc[maskFilt, "sigma_flux_dc"] / medians[filt]
+        pdf.loc[maskFilt, "std_sigma_flux_dc"] = (
+            pdf.loc[maskFilt, "sigma_flux_dc"] / medians[filt]
+        )
 
     for filt in pdf_release["filtercode"].unique():
         maskFilt = pdf_release["filtercode"] == filt
-        pdf_release.loc[maskFilt, "std_flux_dc"] = pdf_release.loc[maskFilt, "flux_dc"] / medians[conv_dict[filt]]
-        pdf_release.loc[maskFilt, "std_sigma_flux_dc"] = pdf_release.loc[maskFilt, "sigma_flux_dc"] / medians[conv_dict[filt]]
+        pdf_release.loc[maskFilt, "std_flux_dc"] = (
+            pdf_release.loc[maskFilt, "flux_dc"] / medians[conv_dict[filt]]
+        )
+        pdf_release.loc[maskFilt, "std_sigma_flux_dc"] = (
+            pdf_release.loc[maskFilt, "sigma_flux_dc"] / medians[conv_dict[filt]]
+        )
 
     # Divive by the median of the whole LC to equal it to 1
-    tot_median = np.median(np.concatenate((pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())))
+    tot_median = np.median(
+        np.concatenate(
+            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
+        )
+    )
     pdf["std_flux_dc"] /= tot_median
     pdf["std_sigma_flux_dc"] /= tot_median
     pdf_release["std_flux_dc"] /= tot_median
@@ -594,21 +625,15 @@ def plot_blazar(
     # Quantiles
     low_quantile = np.percentile(
         np.concatenate(
-            (
-                pdf["std_flux_dc"].to_numpy(),
-                pdf_release["std_flux_dc"].to_numpy()
-            )
+            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
         ),
-        quantile_blazar
+        quantile_blazar,
     )
     high_quantile = np.percentile(
         np.concatenate(
-            (
-                pdf["std_flux_dc"].to_numpy(),
-                pdf_release["std_flux_dc"].to_numpy()
-            )
+            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
         ),
-        100 - quantile_blazar
+        100 - quantile_blazar,
     )
 
     # Initialize figures
@@ -653,9 +678,9 @@ def plot_blazar(
                             pdf["mag"].to_numpy()[idx],
                             pdf["magerr"].to_numpy()[idx],
                             quantile_blazar * np.ones(len(pdf))[idx],
-                            pdf["std_flux_dc"].to_numpy()[idx] / low_quantile
+                            pdf["std_flux_dc"].to_numpy()[idx] / low_quantile,
                         ],
-                        axis=-1
+                        axis=-1,
                     ),
                     "hovertemplate": hovertemplate,
                     "marker": {"size": 10, "color": color, "symbol": "o"},
@@ -689,13 +714,17 @@ def plot_blazar(
                             pdf_release["mag"].to_numpy()[idx],
                             pdf_release["magerr"].to_numpy()[idx],
                             quantile_blazar * np.ones(len(pdf_release[idx])),
-                            pdf_release["std_flux_dc"].to_numpy()[idx] / low_quantile
+                            pdf_release["std_flux_dc"].to_numpy()[idx] / low_quantile,
                         ],
-                        axis=-1
+                        axis=-1,
                     ),
-
                     "hovertemplate": hovertemplate,
-                    "marker": {"size": 7, "color": color, "symbol": "o", "opacity": 0.3},
+                    "marker": {
+                        "size": 7,
+                        "color": color,
+                        "symbol": "o",
+                        "opacity": 0.3,
+                    },
                 }
             )
 

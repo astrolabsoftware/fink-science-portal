@@ -449,6 +449,7 @@ def tab6_content(object_tracklet):
     )
     return tab6_content_
 
+
 def tab_observability(pdf):
     """
     Displays the observation plot (altitude and airmass) of the source after selecting an observatory and a date.
@@ -496,9 +497,9 @@ def tab_observability(pdf):
                         loading(
                             dmc.Paper(
                                 [
-                                    #html.Div(id="observability_plot"),
+                                    # html.Div(id="observability_plot"),
                                     dmc.Space(h=20),
-                                    #card_explanation_observability(),
+                                    # card_explanation_observability(),
                                 ],
                             ),
                         ),
@@ -506,11 +507,11 @@ def tab_observability(pdf):
                     ),
                     dbc.Col(
                         [
-                            #html.Div(id="card_observability_button"),
+                            # html.Div(id="card_observability_button"),
                             html.Br(),
                             card2,
                             html.Br(),
-                            #submit_observability_button,
+                            # submit_observability_button,
                         ],
                         md=4,
                     ),
@@ -522,8 +523,6 @@ def tab_observability(pdf):
     return tab_content_
 
 
-
-
 def tab7_content():
     """Blazar tab"""
     # There are duplicates...
@@ -533,7 +532,9 @@ def tab7_content():
             dmc.Text("Select your quantile", size="sm"),
             dmc.Slider(
                 id="quantile_blazar",
-                marks=[{"value": i, "label": "{}%".format(i)} for i in range(0, 51, 10)],
+                marks=[
+                    {"value": i, "label": "{}%".format(i)} for i in range(0, 51, 10)
+                ],
                 value=10,
                 max=50,
                 min=0,
@@ -561,7 +562,6 @@ def tab7_content():
         withBorder=True,
     )
 
-
     tab_content_ = html.Div(
         [
             dmc.Space(h=10),
@@ -573,14 +573,16 @@ def tab7_content():
                                 [
                                     html.Div(id="blazar_plot"),
                                     dmc.Space(h=20),
-                                    dmc.Center(dmc.Button(
-                                        "Get DR photometry",
-                                        id="lightcurve_request_release_from_blazar",
-                                        variant="outline",
-                                        color="gray",
-                                        radius="xl",
-                                        size="xs",
-                                    )),
+                                    dmc.Center(
+                                        dmc.Button(
+                                            "Get DR photometry",
+                                            id="lightcurve_request_release_from_blazar",
+                                            variant="outline",
+                                            color="gray",
+                                            radius="xl",
+                                            size="xs",
+                                        )
+                                    ),
                                     card_explanation_blazar(),
                                 ],
                             ),
@@ -668,6 +670,7 @@ def is_tracklet(pdfs):
         return True
 
     return False
+
 
 def is_blazar(pdfs):
     """Auxiliary function to check whether the object is a blazar"""
