@@ -443,7 +443,7 @@ def tab6_content(object_tracklet):
                             draw_tracklet_radec(pdf),
                         ],
                     ),
-                ],
+                    ],
             ),
         ]
     )
@@ -488,6 +488,15 @@ def tab_observability(pdf):
         withBorder=True,
     )
 
+    submit_button = dmc.Button(
+        "Update plot",
+        id="submit_observability",
+        color="dark",
+        variant="outline",
+        fullWidth=True,
+        radius="xl",
+    )
+
     tab_content_ = html.Div(
         [
             dmc.Space(h=10),
@@ -497,7 +506,7 @@ def tab_observability(pdf):
                         loading(
                             dmc.Paper(
                                 [
-                                    # html.Div(id="observability_plot"),
+                                    dmc.Center(html.Img(id="observability_plot")),
                                     dmc.Space(h=20),
                                     # card_explanation_observability(),
                                 ],
@@ -507,11 +516,10 @@ def tab_observability(pdf):
                     ),
                     dbc.Col(
                         [
-                            # html.Div(id="card_observability_button"),
                             html.Br(),
                             card2,
                             html.Br(),
-                            # submit_observability_button,
+                            submit_button,
                         ],
                         md=4,
                     ),
