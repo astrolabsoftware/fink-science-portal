@@ -18,10 +18,11 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
+from datetime import datetime
 from astropy.coordinates import EarthLocation
 
 import visdcc
-from dash import Input, Output, State, dcc, html, no_update
+from dash import Dash, Input, Output, State, dcc, html, no_update
 from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 
@@ -46,7 +47,6 @@ from apps.varstars.cards import card_explanation_variable
 from apps.blazars.cards import card_explanation_blazar
 
 dcc.Location(id="url", refresh=False)
-
 
 def tab1_content(pdf):
     """Summary tab"""
@@ -463,17 +463,38 @@ def tab_observability(pdf):
             dmc.Select(
                 label="Select your Observatory",
                 placeholder="Select an observatory from the list",
-                id="observatory_blazar",
+                id="observatory",
                 data=[{"value": obs, "label": obs} for obs in observatories],
                 value="Palomar",
                 searchable=True,
                 clearable=True,
             ),
             dmc.DateInput(
-                id="dateobs_blazar",
+                id="dateobs",
                 label="Pick a date for the follow-up",
+                value=datetime.now().date(),
             ),
-            dmc.Space(h=20),
+            dmc.Space(h=10),
+            dmc.Switch(
+                id="moon_elevation",
+                size="sm",
+                radius="xl",
+                label="Show moon elevation"
+            ),
+            dmc.Space(h=5),
+            dmc.Switch(
+                id="moon_phase",
+                size="sm",
+                radius="xl",
+                label="Show moon phase"
+            ),
+            dmc.Space(h=5),
+            dmc.Switch(
+                id="moon_illumination",
+                size="sm",
+                radius="xl",
+                label="Show moon illumination"
+            ),
         ],
         className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
     )

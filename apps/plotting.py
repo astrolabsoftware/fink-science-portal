@@ -445,7 +445,7 @@ layout_blazar = dict(
     },
 )
 
-def plot_altitude(target, observatory, astro_time, UTC=0, ax=None):
+def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_elevation=False):
     import matplotlib.pyplot as plt
     from matplotlib import dates
     from astroplan import Observer
@@ -460,10 +460,11 @@ def plot_altitude(target, observatory, astro_time, UTC=0, ax=None):
     time = Time(astro_time) + np.linspace(0, 24, 100)*u.hour
     altitude = observer.altaz(time, target).alt
 
-    moon_altitude = observer.moon_altaz(time).alt
+    if show_moon_elevation:
+        moon_altitude = observer.moon_altaz(time).alt
+        ax.plot(time.plot_date, moon_altitude, color='black', label='Moon')
 
     ax.plot(time.plot_date, altitude, color='r', label='Target')
-    ax.plot(time.plot_date, moon_altitude, color='black', label='Moon')
     #num_ticks = 9
 
     # Format the time axis (UTC time)
@@ -564,8 +565,11 @@ def plot_altitude(target, observatory, astro_time, UTC=0, ax=None):
         Input("object-data", "data"),
     ],
     [
-        State("observatory_blazar", "value"),
-        State("dateobs_blazar", "value"),
+        State("observatory", "value"),
+        State("dateobs", "value"),
+        State("moon_elevation", "checked"),
+        State("moon_phase", "checked"),
+        State("moon_illumination", "checked")
     ],
     prevent_initial_call=True,
     background=True,
@@ -578,14 +582,25 @@ def plot_observability(
     summary_tab,
     nclick,
     object_data,
-    observatory_blazar,
-    dateobs_blazar,
+    observatory,
+    dateobs,
+    moon_elevation,
+    moon_phase,
+    moon_illumination
 ):
+    print(moon_elevation)
     pdf = pd.read_json(io.StringIO(object_data))
     ra0 = np.mean(pdf["i:ra"].to_numpy())
     dec0 = np.mean(pdf["i:dec"].to_numpy())
     target = SkyCoord(ra=ra0, dec=dec0, unit=(u.deg, u.deg))
-    fig = plot_altitude(target, observatory_blazar, "2024-12-06", UTC=0, ax=None)
+    fig = plot_altitude(
+        target, 
+        observatory, 
+        dateobs, 
+        UTC=0, 
+        ax=None,
+        show_moon_elevation=moon_elevation
+    )
     buf = io.BytesIO()
     fig.savefig(buf, format="png")
     # Embed the result in the html output.
