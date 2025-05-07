@@ -588,7 +588,6 @@ def plot_observability(
     moon_phase,
     moon_illumination
 ):
-    print(moon_elevation)
     pdf = pd.read_json(io.StringIO(object_data))
     ra0 = np.mean(pdf["i:ra"].to_numpy())
     dec0 = np.mean(pdf["i:dec"].to_numpy())

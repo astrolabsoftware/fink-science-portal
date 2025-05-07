@@ -29,7 +29,7 @@ def card_explanation_observability():
     msg = """
     This plot is calculated using the Astropy library. It shows the altitude and corresponding airmass of a source along the night. The UTC time is given on the lower axis while the local time is given on the upper axis.
 
-    The right panel allows you to select an observation date and an observatory. You can also choose to display the altitude of the moon during the night, as well as its phase. Once you have selected a date and an observatory, click on Update Plot.
+    The right panel allows you to select an observation date and an observatory. You can also choose to display the altitude of the moon during the night, as well as its phase and illumination. Once you have selected a date and an observatory, click on Update Plot.
     """
     card = dmc.Accordion(
         children=[

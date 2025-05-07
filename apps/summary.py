@@ -45,6 +45,7 @@ from apps.utils import (
 )
 from apps.varstars.cards import card_explanation_variable
 from apps.blazars.cards import card_explanation_blazar
+from apps.observability.cards import card_explanation_observability
 
 dcc.Location(id="url", refresh=False)
 
@@ -529,7 +530,7 @@ def tab_observability(pdf):
                                 [
                                     dmc.Center(html.Img(id="observability_plot")),
                                     dmc.Space(h=20),
-                                    # card_explanation_observability(),
+                                    card_explanation_observability(),
                                 ],
                             ),
                         ),
@@ -554,7 +555,6 @@ def tab_observability(pdf):
 
 def tab7_content():
     """Blazar tab"""
-    # There are duplicates...
     nterms_base = dmc.Container(
         [
             dmc.Divider(variant="solid", label="Extreme states threshold"),
