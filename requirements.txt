@@ -8,6 +8,7 @@ alabaster==1.0.0
 alive-progress==3.2.0
 annotated-types==0.7.0
 ansi2html==1.9.2
+astroplan==0.10.1
 astropy==6.1.7
 astropy-iers-data==0.2024.12.23.0.33.24
 astropy-sphinx-theme==1.1

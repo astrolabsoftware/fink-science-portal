@@ -773,3 +773,16 @@ def extract_configuration(filename):
     else:
         config["SITEURL"] = "http://" + config["HOST"] + ":" + str(config["PORT"])
     return config
+
+
+def apparent_flux_dr(mag_dc, err_dc, mjy=False):
+    """ """
+    if mjy:
+        scale = 1000
+    else:
+        scale = 1
+
+    flux = 3631 * 10 ** (-0.4 * mag_dc) * scale
+    sigma_flux = flux * 0.4 * np.log(10) * err_dc
+
+    return flux, sigma_flux
