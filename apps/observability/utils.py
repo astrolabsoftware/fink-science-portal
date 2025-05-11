@@ -18,7 +18,7 @@ night_colors = [
     "rgba(204, 229, 255, 0.5)",
 ]
 
-moon_color = "#b386ff"
+moon_color = "#9900cc"
 
 def observation_time_to_UTC_offset(observatory):
     """

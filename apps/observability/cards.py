@@ -27,9 +27,11 @@ from apps.utils import create_button_for_external_conesearch
 def card_explanation_observability():
     """Explain what is used to fit for Observability"""
     msg = """
-    This plot is calculated using the Astropy library. It shows the altitude and corresponding airmass of a source along the night. The UTC time is given on the lower axis while the local time is given on the upper axis.
+    This plot is calculated using the [Astropy](http://www.astropy.org/) library. It shows the altitude and corresponding airmass of a source along the night. The UTC time is given on the lower axis while the local time is given on the upper axis.
 
-    The right panel allows you to select an observation date and an observatory. You can also choose to display the altitude of the moon during the night, as well as its phase and illumination. Once you have selected a date and an observatory, click on Update Plot.
+    The right panel allows you to select an observation date and an observatory. You can also choose to display the altitude of the moon during the night, as well as its phase and illumination. Once you have selected a date and an observatory, click on `Update Plot`.
+
+    The plot also shows the different definitions of nights, which can be useful, from lighter to darker shades of blue. These are no-sun night (sun below the horizon), civil night (sun 6° below the horizon), nautical night (sun 12° below the horizon) and astronomical night (sun 18° below the horizon).
     """
     card = dmc.Accordion(
         children=[

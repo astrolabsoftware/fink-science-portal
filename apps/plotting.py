@@ -827,7 +827,7 @@ def show_moon_data(
     elif not moon_phase and moon_illumination:
         msg = f"Moon illumination: {int(100 * observability.get_moon_illumination(date_time))}%"
     elif moon_phase and moon_illumination:
-        msg = f"Moon phase: {observability.get_moon_phase(date_time)}, Moon illumination: {int(100 * observability.get_moon_illumination(date_time))}%"
+        msg = f"moon phase: `{observability.get_moon_phase(date_time)}`, moon illumination: `{int(100 * observability.get_moon_illumination(date_time))}%`"
     return msg
 
 
