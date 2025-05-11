@@ -476,10 +476,6 @@ layout_observability = dict(
         "showgrid": False,
         "showticklabels": True
     },
-    xaxis={
-        "title": "UTC time",
-        "automargin": True,
-    },
 )
 
 
@@ -689,7 +685,10 @@ def plot_observability_test(
     dec0 = np.mean(pdf["i:dec"].to_numpy())
     local_time = observability.observation_time(dateobs, delta_points=1/60)
     UTC_time = local_time - observability.observation_time_to_UTC_offset(observatory) * u.hour
-    axis = observability.from_time_to_axis(UTC_time)
+    UTC_axis = observability.from_time_to_axis(UTC_time)
+    local_axis = observability.from_time_to_axis(local_time)
+    mask_axis = [True if t[-2:] == "00" and int(t[:2]) % 2 == 0 else False for t in UTC_axis]
+    idx_axis = np.where(mask_axis)[0]
     target_coordinates = observability.target_coordinates(ra0, dec0, observatory, UTC_time)
     airmass = observability.from_elevation_to_airmass(target_coordinates.alt.value)
     twilights = observability.UTC_night_hours(
@@ -705,7 +704,15 @@ def plot_observability_test(
         "data": [],
         "layout": copy.deepcopy(layout_observability)
     }
-
+    
+    # Add UTC time in the layout
+    figure["layout"]["xaxis"] = {
+        "title": "UTC time",
+        "automargin": True,
+        "tickvals": UTC_axis[idx_axis],
+        "showgrid": True
+    }
+    
     # Target plot
     hovertemplate_elevation = r"""
     <b>UTC time</b>:%{x}<br>
@@ -717,7 +724,7 @@ def plot_observability_test(
 
     figure["data"].append(
             {
-                "x": axis,
+                "x": UTC_axis,
                 "y": target_coordinates.alt.value,
                 "mode": "lines",
                 "name": "Target elevation",
@@ -749,7 +756,7 @@ def plot_observability_test(
 
         figure["data"].append(
             {
-                "x": axis,
+                "x": UTC_axis,
                 "y": moon_coordinates.alt.value,
                 "mode": "lines",
                 "name": "Moon elevation",
@@ -775,10 +782,37 @@ def plot_observability_test(
             "mode": "markers",
             "marker": {"opacity":0},
             "showlegend": False,
-            "hoverinfo":"skip"
+            "hoverinfo": "skip"
         }
     )
-
+    
+    print(UTC_axis[idx_axis])
+    print()
+    print(local_axis[idx_axis])
+    # Layout modification for local time
+    figure["layout"]["xaxis2"] = {
+        "title": "Local time",
+        "overlaying": "x",
+        "side": "top",
+        "tickvals": UTC_axis[idx_axis],
+        "ticktext": local_axis[idx_axis],
+        "showgrid": False,
+        "showticklabels": True
+    }
+    
+    # For local time
+    figure["data"].append(
+        {
+            "x": local_axis,
+            "y": 45 * np.ones(len(local_axis)),
+            "xaxis": "x2",
+            "mode": "markers",
+            "marker": {"opacity":0},
+            "showlegend": False,
+            "hoverinfo": "skip"
+        }
+    )
+    
     # Twilights
     figure["layout"]["shapes"] = []
     for dummy in range(len(twilights_list)-1):

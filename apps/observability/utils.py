@@ -250,7 +250,7 @@ def from_time_to_axis(times):
 
     Returns:
     --------
-    axis: list
+    axis: np.array
         List of hours starting at -12h
     """
-    return [time.to_value('iso', subfmt='date_hm')[-5:] for time in times]
+    return np.array([time.to_value('iso', subfmt='date_hm')[-5:] for time in times])
