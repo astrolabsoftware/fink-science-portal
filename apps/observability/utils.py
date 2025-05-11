@@ -9,13 +9,13 @@ from zoneinfo import ZoneInfo
 import datetime
 
 night_colors = [
-    "#cce5ff",
-    "#99ccff",
-    "#4d88ff",
-    "#1a1aff",
-    "#4d88ff",
-    "#99ccff",
-    "#cce5ff",
+    "rgba(204, 229, 255, 0.5)",
+    "rgba(153, 204, 255, 0.5)",
+    "rgba(77, 136, 255, 0.5)",
+    "rgba(26, 26, 255, 0.5)",
+    "rgba(77, 136, 255, 0.5)",
+    "rgba(153, 204, 255, 0.5)",
+    "rgba(204, 229, 255, 0.5)",
 ]
 
 moon_color = "#b386ff"
@@ -194,7 +194,7 @@ def get_moon_illumination(time):
     """
     return apl.moon_illumination(time)
 
-def UTC_night_hours(observatory, date, offset):
+def UTC_night_hours(observatory, date, offset, UTC=False):
     """
     Time of the different definitions of twilight and dawn from an observatory at a given date.
 
@@ -206,6 +206,8 @@ def UTC_night_hours(observatory, date, offset):
         Considered date for observation. Format in YYYY-MM-DD.
     offset: float
         Time difference between observatory local time zone and UTC (in hour).
+    UTC: bool (optional, default=False)
+        If UTC, the twilights are computed in the UTC scale.
 
     Returns:
     --------
@@ -220,16 +222,20 @@ def UTC_night_hours(observatory, date, offset):
         - Civil morning
         - Sunrise
     """
+    offset_UTC = offset
+    if UTC:
+        offset_UTC = 0
     observer = apl.Observer.at_site(observatory)
+
     twilights = {
-        'Sunset': observer.sun_set_time(Time(date) - offset * u.hour, which='previous') + offset * u.hour,
-        'Civil twilight': observer.twilight_evening_civil(Time(date) - offset * u.hour, which='previous') + offset * u.hour,
-        'Nautical twilight': observer.twilight_evening_nautical(Time(date) - offset * u.hour, which='previous') + offset * u.hour,
-        'Astronomical twilight': observer.twilight_evening_astronomical(Time(date) - offset * u.hour, which='previous') + offset * u.hour,
-        'Astronomical morning': observer.twilight_morning_astronomical(Time(date) - offset * u.hour, which='next') + offset * u.hour,
-        'Nautical morning': observer.twilight_morning_nautical(Time(date) - offset * u.hour, which='next') + offset * u.hour,
-        'Civil morning': observer.twilight_morning_civil(Time(date) - offset * u.hour, which='next') + offset * u.hour,
-        'Sunrise': observer.sun_rise_time(Time(date) - offset * u.hour, which='next') + offset * u.hour,
+        'Sunset': observer.sun_set_time(Time(date) - offset * u.hour, which='previous') + offset_UTC * u.hour,
+        'Civil twilight': observer.twilight_evening_civil(Time(date) - offset * u.hour, which='previous') + offset_UTC * u.hour,
+        'Nautical twilight': observer.twilight_evening_nautical(Time(date) - offset * u.hour, which='previous') + offset_UTC * u.hour,
+        'Astronomical twilight': observer.twilight_evening_astronomical(Time(date) - offset * u.hour, which='previous') + offset_UTC * u.hour,
+        'Astronomical morning': observer.twilight_morning_astronomical(Time(date) - offset * u.hour, which='next') + offset_UTC * u.hour,
+        'Nautical morning': observer.twilight_morning_nautical(Time(date) - offset * u.hour, which='next') + offset_UTC * u.hour,
+        'Civil morning': observer.twilight_morning_civil(Time(date) - offset * u.hour, which='next') + offset_UTC * u.hour,
+        'Sunrise': observer.sun_rise_time(Time(date) - offset * u.hour, which='next') + offset_UTC * u.hour,
     }
     return twilights
 

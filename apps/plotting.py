@@ -463,6 +463,7 @@ layout_observability = dict(
         bgcolor="rgba(218, 223, 225, 0.3)",
     ),
     yaxis={
+        "range":[0,90],
         "title": "Elevation (&deg;)",
         "automargin": True,
     },
@@ -677,7 +678,7 @@ def plot_observability_test(
     pdf = pd.read_json(io.StringIO(object_data))
     ra0 = np.mean(pdf["i:ra"].to_numpy())
     dec0 = np.mean(pdf["i:dec"].to_numpy())
-    local_time = observability.observation_time(dateobs)
+    local_time = observability.observation_time(dateobs, delta_points=1/60)
     UTC_time = local_time - observability.observation_time_to_UTC_offset(observatory) * u.hour
     axis = observability.from_time_to_axis(UTC_time)
     target_coordinates = observability.target_coordinates(ra0, dec0, observatory, UTC_time)
@@ -685,8 +686,10 @@ def plot_observability_test(
     twilights = observability.UTC_night_hours(
         observatory, 
         dateobs,
-        observability.observation_time_to_UTC_offset(observatory)
+        observability.observation_time_to_UTC_offset(observatory),
+        UTC=True
     )
+    twilights_list = observability.from_time_to_axis(list(twilights.values()))
 
     # Initialize figure
     figure = {
@@ -754,6 +757,24 @@ def plot_observability_test(
             }   
         )
 
+    # Twilights
+    figure["layout"]["shapes"] = []
+    for dummy in range(len(twilights_list)-1):
+        figure["layout"]["shapes"].append(
+            {
+                "type":"rect",
+                "xref":"x",
+                "yref":"paper",
+                "x0":twilights_list[dummy],
+                "x1":twilights_list[dummy+1],
+                "y0":0,
+                "y1":1,
+                "fillcolor":observability.night_colors[dummy],
+                "layer":"below",
+                "line_width":0,
+                "line":dict(width=0)
+            }
+        )
 
     # Graphs
     graph = dcc.Graph(
