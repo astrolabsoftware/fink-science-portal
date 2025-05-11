@@ -298,18 +298,22 @@ def tab5_content(object_soo):
     )
 
     msg_phase = r"""
-    By default, the data is modeled after the three-parameter H, G1, G2 magnitude phase function for asteroids
-    from [Muinonen et al. 2010](https://doi.org/10.1016/j.icarus.2010.04.003).
+    We propose different phase curve modeling using the traditional `HG`, `HG12` and
+    `HG1G2` models. By default, the data is modeled after the three-parameter $H$,
+    $G_1$, $G_2$ magnitude phase function for asteroids from
+    [Muinonen et al. 2010](https://doi.org/10.1016/j.icarus.2010.04.003).
     We use the implementation in [sbpy](https://sbpy.readthedocs.io/en/latest/sbpy/photometry.html#disk-integrated-phase-function-models) to fit the data.
-
-    We propose two cases, one fitting bands separately, and
-    the other combining into a common V band before fitting. We
-    also propose different phase curve modeling using the HG, HG12 and HG1G2 models.
-    In addition, you can fit for spin values on top of the HG1G2 model (SHG1G2, Carry et al 2024).
-    Note that in the spin case, H, $G_1$, and $G_2$ are fitted per band, but the spin parameters
-    (R, $\alpha_0$, $\beta_0$) are fitted on all bands simultaneously.
-    The title displays the value for the reduced $\chi^2$ of the fit.
+    In addition, two recent models are available: `SHG1G2` and `sfHG1G2` described below. The title displays the value for the reduced $\chi^2$ of the fit.
     Hit buttons to see the fitted values!
+
+    **SHG1G2**: The model `SHG1G2` - spinned `HG1G2` - adds spin parameters on top of the `HG1G2` model ([Carry et al 2024](https://doi.org/10.1051/0004-6361/202449789)).
+    Note that $H$, $G_1$, and $G_2$ are fitted per band, but the spin parameters
+    (R, $\alpha_0$, $\beta_0$) are fitted on all bands simultaneously.
+
+    **sfHG1G2**: The model `sfHG1G2` - simultaneous fit `HG1G2` - is a single fit across all
+    apparitions/oppositions using the `HG1G2` model, where the fitted $H$ values can vary for each opposition,
+    but $G_1$ and $G_2$ remain the same for all ([Colazo et al 2025](https://arxiv.org/abs/2503.05412)).
+    This means we fit $N+2$ parameters, where $N$ is the number of oppositions.
     """
 
     tab3 = dbc.Row(
@@ -336,7 +340,13 @@ def tab5_content(object_soo):
                                 children=dmc.Group(
                                     [
                                         dmc.Radio(k, value=k, color="orange")
-                                        for k in ["SHG1G2", "HG1G2", "HG12", "HG"]
+                                        for k in [
+                                            "SHG1G2",
+                                            "sfHG1G2",
+                                            "HG1G2",
+                                            "HG12",
+                                            "HG",
+                                        ]
                                     ]
                                 ),
                                 id="switch-phase-curve-func",
@@ -347,6 +357,7 @@ def tab5_content(object_soo):
                         align="center",
                         justify="center",
                     ),
+                    dmc.Space(h=10),
                     dmc.Accordion(
                         children=[
                             dmc.AccordionItem(
