@@ -467,6 +467,15 @@ layout_observability = dict(
         "title": "Elevation (&deg;)",
         "automargin": True,
     },
+    yaxis2={
+        "title": "Relative airmass",
+        "overlaying": "y",
+        "side": "right",
+        "tickvals": 90 - np.degrees(np.arccos(1/np.array([1,2,3]))),
+        "ticktext": [1,2,3],
+        "showgrid": False,
+        "showticklabels": True
+    },
     xaxis={
         "title": "UTC time",
         "automargin": True,
@@ -757,6 +766,19 @@ def plot_observability_test(
             }   
         )
 
+    # For relative airmass
+    figure["data"].append(
+        {
+            "x": ["00:00", "00:00", "00:00"],
+            "y": list(90 - np.degrees(np.arccos(1/np.array([1, 2, 3])))),
+            "yaxis": "y2",
+            "mode": "markers",
+            "marker": {"opacity":0},
+            "showlegend": False,
+            "hoverinfo":"skip"
+        }
+    )
+
     # Twilights
     figure["layout"]["shapes"] = []
     for dummy in range(len(twilights_list)-1):
@@ -780,7 +802,7 @@ def plot_observability_test(
     graph = dcc.Graph(
         figure=figure,
         style={
-            "width": "100%",
+            "width": "90%",
             "height": "25pc",
         },
         config={"displayModeBar": False},
