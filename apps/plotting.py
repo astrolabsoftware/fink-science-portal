@@ -72,10 +72,7 @@ from apps.utils import (
     sine_fit,
     apparent_flux_dr,
 )
-from apps.observability.utils import (
-    get_moon_phase,
-    get_moon_illumination
-)
+import apps.observability.utils as observability
 
 COLORS_ZTF = ["#15284F", "#F5622E"]
 COLORS_ZTF_NEGATIVE = ["#274667", "#F57A2E"]
@@ -449,6 +446,33 @@ layout_blazar = dict(
     },
 )
 
+layout_observability = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        yanchor="bottom",
+        y=1.02,
+        bgcolor="rgba(218, 223, 225, 0.3)",
+    ),
+    yaxis={
+        "title": "Elevation (&deg;)",
+        "automargin": True,
+    },
+    xaxis={
+        "title": "UTC time",
+        "automargin": True,
+    },
+)
+
+
 def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_elevation=False):
     import matplotlib.pyplot as plt
     from matplotlib import dates
@@ -617,6 +641,135 @@ def plot_observability(
 
 
 @app.callback(
+    Output("observability_plot_test", "children"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_observability", "n_clicks"),
+        Input("object-data", "data"),
+    ],
+    [
+        State("observatory", "value"),
+        State("dateobs", "value"),
+        State("moon_elevation", "checked"),
+        State("moon_phase", "checked"),
+        State("moon_illumination", "checked")
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_observability", "disabled"), True, False),
+        (Output("submit_observability", "loading"), True, False),
+    ],
+)
+def plot_observability_test(
+    summary_tab,
+    nclick,
+    object_data,
+    observatory,
+    dateobs,
+    moon_elevation,
+    moon_phase,
+    moon_illumination
+):
+    if summary_tab != "Observability":
+        raise PreventUpdate
+
+    pdf = pd.read_json(io.StringIO(object_data))
+    ra0 = np.mean(pdf["i:ra"].to_numpy())
+    dec0 = np.mean(pdf["i:dec"].to_numpy())
+    local_time = observability.observation_time(dateobs)
+    UTC_time = local_time - observability.observation_time_to_UTC_offset(observatory) * u.hour
+    axis = observability.from_time_to_axis(UTC_time)
+    target_coordinates = observability.target_coordinates(ra0, dec0, observatory, UTC_time)
+    airmass = observability.from_elevation_to_airmass(target_coordinates.alt.value)
+    twilights = observability.UTC_night_hours(
+        observatory, 
+        dateobs,
+        observability.observation_time_to_UTC_offset(observatory)
+    )
+
+    # Initialize figure
+    figure = {
+        "data": [],
+        "layout": copy.deepcopy(layout_observability)
+    }
+
+    # Target plot
+    hovertemplate_elevation = r"""
+    <b>UTC time</b>:%{x}<br>
+    <b>Elevation</b>: %{y:.0f} &deg;<br>
+    <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
+    <b>Relative airmass</b>: %{customdata[1]:.2f}
+    <extra></extra>
+    """
+
+    figure["data"].append(
+            {
+                "x": axis,
+                "y": target_coordinates.alt.value,
+                "mode": "lines",
+                "name": "Target elevation",
+                "legendgroup": "Elevation",
+                "customdata": np.stack(
+                    [
+                        target_coordinates.az.value,
+                        airmass,
+                    ],
+                    axis=-1,
+                ),
+                "hovertemplate": hovertemplate_elevation,
+                "line": {"color": "black"},
+            }
+        )
+
+    # Moon target
+    if moon_elevation:
+        moon_coordinates = observability.moon_coordinates(observatory, UTC_time)
+        moon_airmass = observability.from_elevation_to_airmass(moon_coordinates.alt.value)
+
+        hovertemplate_moon = r"""
+        <b>UTC time</b>:%{x}<br>
+        <b>Elevation</b>: %{y:.0f} &deg;<br>
+        <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
+        <b>Relative airmass</b>: %{customdata[1]:.2f}
+        <extra></extra>
+        """
+
+        figure["data"].append(
+            {
+                "x": axis,
+                "y": moon_coordinates.alt.value,
+                "mode": "lines",
+                "name": "Moon elevation",
+                "legendgroup": "Elevation",
+                "customdata": np.stack(
+                    [   
+                        moon_coordinates.az.value,
+                        moon_airmass,
+                    ],
+                    axis=-1,
+                ),
+                "hovertemplate": hovertemplate_moon,
+                "line": {"color": observability.moon_color},
+            }   
+        )
+
+
+    # Graphs
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            "width": "100%",
+            "height": "25pc",
+        },
+        config={"displayModeBar": False},
+        responsive=True,
+    )
+
+    return graph
+ 
+
+@app.callback(
     Output("moon_data", "children"),
     [
         Input("summary_tabs", "value"),
@@ -649,11 +802,11 @@ def show_moon_data(
     date_time = Time(dateobs, scale="utc")
     msg = None
     if moon_phase and not moon_illumination:
-        msg = f"Moon phase: {get_moon_phase(date_time)}"
+        msg = f"Moon phase: {observability.get_moon_phase(date_time)}"
     elif not moon_phase and moon_illumination:
-        msg = f"Moon illumination: {int(100*get_moon_illumination(date_time))}%"
+        msg = f"Moon illumination: {int(100 * observability.get_moon_illumination(date_time))}%"
     elif moon_phase and moon_illumination:
-        msg = f"Moon phase: {get_moon_phase(date_time)}, Moon illumination: {int(100*get_moon_illumination(date_time))}%"
+        msg = f"Moon phase: {observability.get_moon_phase(date_time)}, Moon illumination: {int(100 * observability.get_moon_illumination(date_time))}%"
     return msg
 
 
@@ -1422,28 +1575,28 @@ def plot_classbar(object_data):
                 showlegend = False
             else:
                 showlegend = True
-            is_seen.append(top_labels[i])
+        is_seen.append(top_labels[i])
 
-            percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(
-                int
-            )
-            name_legend = top_labels[i] + f": {percent}%"
-            fig.add_trace(
-                go.Bar(
-                    x=[xd[i]],
-                    y=[yd],
-                    orientation="h",
-                    width=0.3,
-                    showlegend=showlegend,
-                    legendgroup=top_labels[i],
-                    name=name_legend,
-                    marker=dict(
-                        color=colors[i],
-                    ),
-                    customdata=[customdata[i]],
-                    hovertemplate="<b>Date</b>: %{customdata}",
+        percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(
+            int
+        )
+        name_legend = top_labels[i] + f": {percent}%"
+        fig.add_trace(
+            go.Bar(
+                x=[xd[i]],
+                y=[yd],
+                orientation="h",
+                width=0.3,
+                showlegend=showlegend,
+                legendgroup=top_labels[i],
+                name=name_legend,
+                marker=dict(
+                    color=colors[i],
                 ),
-            )
+                customdata=[customdata[i]],
+                hovertemplate="<b>Date</b>: %{customdata}",
+            ),
+        )
 
     legend_shift = 0.2
     fig.update_layout(

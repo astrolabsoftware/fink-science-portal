@@ -56,7 +56,7 @@ def observation_time(date, delta_points=0.25):
     obs_time: np.array[astropy.time.Time]
         Array of time points starting from -12h to +12h.
     """
-    obs_time = Time(date, scale='utc') + np.linspace(-12, 12, int(24 / delta_points)) * u.hour
+    obs_time = Time(date, scale='utc') + np.linspace(-12, 12 - delta_points, int(24 / delta_points)) * u.hour
 
     return obs_time
 
@@ -232,3 +232,19 @@ def UTC_night_hours(observatory, date, offset):
         'Sunrise': observer.sun_rise_time(Time(date) - offset * u.hour, which='next') + offset * u.hour,
     }
     return twilights
+
+def from_time_to_axis(times):
+    """
+    Tranform an astropy.time.Time array into an array of hours starting at -12h.
+
+    Parameters:
+    -----------
+    times: np.array[astropy.time.Time]
+        Array of time for observation
+
+    Returns:
+    --------
+    axis: list
+        List of hours starting at -12h
+    """
+    return [time.to_value('iso', subfmt='date_hm')[-5:] for time in times]

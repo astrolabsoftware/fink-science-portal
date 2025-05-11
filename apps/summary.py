@@ -528,7 +528,8 @@ def tab_observability(pdf):
                         loading(
                             dmc.Paper(
                                 [
-                                    dmc.Center(html.Img(id="observability_plot")),
+                                    #dmc.Center(html.Img(id="observability_plot")),
+                                    html.Div(id="observability_plot_test"),
                                     dmc.Center(dcc.Markdown(id="moon_data")),
                                     dmc.Space(h=20),
                                     card_explanation_observability(),
