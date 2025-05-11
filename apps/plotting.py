@@ -72,6 +72,10 @@ from apps.utils import (
     sine_fit,
     apparent_flux_dr,
 )
+from apps.observability.utils import (
+    get_moon_phase,
+    get_moon_illumination
+)
 
 COLORS_ZTF = ["#15284F", "#F5622E"]
 COLORS_ZTF_NEGATIVE = ["#274667", "#F57A2E"]
@@ -588,6 +592,9 @@ def plot_observability(
     moon_phase,
     moon_illumination
 ):
+    if summary_tab != "Observability":
+        raise PreventUpdate
+
     pdf = pd.read_json(io.StringIO(object_data))
     ra0 = np.mean(pdf["i:ra"].to_numpy())
     dec0 = np.mean(pdf["i:dec"].to_numpy())
@@ -607,6 +614,47 @@ def plot_observability(
     fig_bar_matplotlib = f'data:image/png;base64,{fig_data}'
 
     return fig_bar_matplotlib
+
+
+@app.callback(
+    Output("moon_data", "children"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_observability", "n_clicks"),
+        Input("object-data", "data"),
+    ],
+    [
+        State("dateobs", "value"),
+        State("moon_phase", "checked"),
+        State("moon_illumination", "checked")
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_observability", "disabled"), True, False),
+        (Output("submit_observability", "loading"), True, False),
+    ],
+)
+def show_moon_data(
+    summary_tab,
+    nclick,
+    object_data,
+    dateobs,
+    moon_phase,
+    moon_illumination
+):
+    if summary_tab != "Observability":
+        raise PreventUpdate
+
+    date_time = Time(dateobs, scale="utc")
+    msg = None
+    if moon_phase and not moon_illumination:
+        msg = f"Moon phase: {get_moon_phase(date_time)}"
+    elif not moon_phase and moon_illumination:
+        msg = f"Moon illumination: {int(100*get_moon_illumination(date_time))}%"
+    elif moon_phase and moon_illumination:
+        msg = f"Moon phase: {get_moon_phase(date_time)}, Moon illumination: {int(100*get_moon_illumination(date_time))}%"
+    return msg
 
 
 @app.callback(
