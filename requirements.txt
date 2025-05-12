@@ -51,9 +51,9 @@ docopt==0.6.2
 docutils==0.21.2
 executing==2.1.0
 faust-cchardet==2.1.19
-fink-filters==6.0
+fink-filters==6.4
 fink-spins==0.3.8
-fink-utils==0.29.16
+fink-utils==0.39.2
 finufft==2.3.1
 Flask==3.0.3
 Flask-Compress==1.17
@@ -165,6 +165,7 @@ synphot==1.5.0
 tabulate==0.9.0
 tenacity==9.0.0
 threadpoolctl==3.5.0
+timezonefinder==6.5.9
 tomli==2.2.1
 tornado==6.4.2
 tqdm==4.67.1

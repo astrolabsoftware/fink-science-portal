@@ -2915,16 +2915,16 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             np.deg2rad(pdf["i:ra"].to_numpy()),
             np.deg2rad(pdf["i:dec"].to_numpy()),
         ]
+    elif switch_func == "sfHG1G2":
+        fitfunc = func_hg1g2
+        # Use HG1G2 under the hood, with H = mean(H)
+        params = ["<H>", "G1", "G2"]
+        bounds = None
+        p0 = None
+        x = np.deg2rad(pdf["Phase"].to_numpy())
 
     layout_sso_phasecurve["title"]["text"] = "Reduced &#967;<sup>2</sup>: "
     if switch_band == "per-band":
-        dd = {"": [filters[f] + " band" for f in filts]}
-        dd.update({i: [""] * len(filts) for i in params})
-        df_table = pd.DataFrame(
-            dd,
-            index=[filters[f] for f in filts],
-        )
-
         # Multi-band fit
         outdic = estimate_sso_params(
             magpsf_red=pdf["i:magpsf_red"].to_numpy(),
@@ -2933,15 +2933,53 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             filters=pdf["i:fid"].to_numpy(),
             ra=np.deg2rad(pdf["i:ra"].to_numpy()),
             dec=np.deg2rad(pdf["i:dec"].to_numpy()),
+            jd=pdf["i:jd"].to_numpy(),
             p0=p0,
             bounds=bounds,
             model=switch_func,
             normalise_to_V=False,
+            ssnamenr=pdf["i:ssnamenr"].to_numpy()[0],
         )
         if outdic["fit"] != 0:
             return dbc.Alert(
                 "The fitting procedure could not converge.", color="danger"
             )
+
+        if switch_func == "sfHG1G2":
+            # H mean for each filter
+            for f in filts:
+                outdic["<H>_{}".format(f)] = np.mean(
+                    [
+                        outdic["H{}_{}".format(a, f)]
+                        for a in range(outdic["n_app_{}".format(f)])
+                    ]
+                )
+
+                # assuming uncorrelated and random, which is obviously wrong
+                outdic["err_<H>_{}".format(f)] = np.sqrt(
+                    np.sum(
+                        [
+                            outdic["err_H{}_{}".format(a, f)] ** 2
+                            for a in range(outdic["n_app_{}".format(f)])
+                        ]
+                    )
+                )
+
+        if switch_func == "sfHG1G2":
+            dd = {
+                "": [
+                    filters[f]
+                    + " band ({} apparitions)".format(int(outdic["n_app_{}".format(f)]))
+                    for f in filts
+                ]
+            }
+        else:
+            dd = {"": [filters[f] + " band" for f in filts]}
+        dd.update({i: [""] * len(filts) for i in params})
+        df_table = pd.DataFrame(
+            dd,
+            index=[filters[f] for f in filts],
+        )
 
         for i, f in enumerate(filts):
             cond = pdf["i:fid"] == f
@@ -2954,7 +2992,7 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                     suffix = f"_{f}"
 
                 loc = df_table[param].index == filters[f]
-                df_table[param][loc] = "{:.2f} &plusmn; {:.2f}".format(
+                df_table.loc[loc, param] = "{:.2f} &plusmn; {:.2f}".format(
                     outdic[param + suffix],
                     outdic["err_" + param + suffix],
                 )
@@ -3134,7 +3172,14 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
                 },
             },
         )
-    layout_sso_phasecurve["title"]["text"] += "  {:.2f}  ".format(outdic["chi2red"])
+
+    if switch_func == "sfHG1G2":
+        for f in filts:
+            layout_sso_phasecurve["title"]["text"] += "  {}:{:.2f}  ".format(
+                filters[f], outdic["chi2red_{}".format(f)]
+            )
+    else:
+        layout_sso_phasecurve["title"]["text"] += "  {:.2f}  ".format(outdic["chi2red"])
 
     residual_figure = {
         "data": residual_figs,

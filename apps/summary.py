@@ -313,7 +313,8 @@ def tab5_content(object_soo):
     **sfHG1G2**: The model `sfHG1G2` - simultaneous fit `HG1G2` - is a single fit across all
     apparitions/oppositions using the `HG1G2` model, where the fitted $H$ values can vary for each opposition,
     but $G_1$ and $G_2$ remain the same for all ([Colazo et al 2025](https://arxiv.org/abs/2503.05412)).
-    This means we fit $N+2$ parameters, where $N$ is the number of oppositions.
+    This means we fit $N+2$ parameters, where $N$ is the number of oppositions. Here we display the
+    mean value for $H$ per band.
     """
 
     tab3 = dbc.Row(
