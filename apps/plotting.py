@@ -44,7 +44,6 @@ from dash_iconify import DashIconify
 from fink_utils.photometry.conversion import apparent_flux, dc_mag
 from fink_utils.photometry.utils import is_source_behind
 from fink_utils.sso.spins import (
-    compute_color_correction,
     estimate_sso_params,
     func_hg,
     func_hg1g2,
@@ -3668,12 +3667,11 @@ def draw_sso_astrometry(pdf) -> dict:
 @app.callback(
     Output("sso_phasecurve", "children"),
     [
-        Input("switch-phase-curve-band", "value"),
         Input("switch-phase-curve-func", "value"),
     ],
     State("object-sso", "data"),
 )
-def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
+def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
     """Draw SSO object phase curve"""
     pdf = pd.read_json(io.StringIO(object_sso))
     if pdf.empty:
@@ -3758,185 +3756,73 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
         x = np.deg2rad(pdf["Phase"].to_numpy())
 
     layout_sso_phasecurve["title"]["text"] = "Reduced &#967;<sup>2</sup>: "
-    if switch_band == "per-band":
-        # Multi-band fit
-        outdic = estimate_sso_params(
-            magpsf_red=pdf["i:magpsf_red"].to_numpy(),
-            sigmapsf=pdf["i:sigmapsf"].to_numpy(),
-            phase=np.deg2rad(pdf["Phase"].to_numpy()),
-            filters=pdf["i:fid"].to_numpy(),
-            ra=np.deg2rad(pdf["i:ra"].to_numpy()),
-            dec=np.deg2rad(pdf["i:dec"].to_numpy()),
-            jd=pdf["i:jd"].to_numpy(),
-            p0=p0,
-            bounds=bounds,
-            model=switch_func,
-            normalise_to_V=False,
-            ssnamenr=pdf["i:ssnamenr"].to_numpy()[0],
-        )
-        if outdic["fit"] != 0:
-            return dbc.Alert(
-                "The fitting procedure could not converge.", color="danger"
+
+    # Multi-band fit
+    outdic = estimate_sso_params(
+        magpsf_red=pdf["i:magpsf_red"].to_numpy(),
+        sigmapsf=pdf["i:sigmapsf"].to_numpy(),
+        phase=np.deg2rad(pdf["Phase"].to_numpy()),
+        filters=pdf["i:fid"].to_numpy(),
+        ra=np.deg2rad(pdf["i:ra"].to_numpy()),
+        dec=np.deg2rad(pdf["i:dec"].to_numpy()),
+        jd=pdf["i:jd"].to_numpy(),
+        p0=p0,
+        bounds=bounds,
+        model=switch_func,
+        normalise_to_V=False,
+        ssnamenr=pdf["i:ssnamenr"].to_numpy()[0],
+    )
+    if outdic["fit"] != 0:
+        return dbc.Alert("The fitting procedure could not converge.", color="danger")
+
+    if switch_func == "sfHG1G2":
+        # H mean for each filter
+        for f in filts:
+            outdic["<H>_{}".format(f)] = np.mean(
+                [
+                    outdic["H{}_{}".format(a, f)]
+                    for a in range(outdic["n_app_{}".format(f)])
+                ]
             )
 
-        if switch_func == "sfHG1G2":
-            # H mean for each filter
-            for f in filts:
-                outdic["<H>_{}".format(f)] = np.mean(
+            # assuming uncorrelated and random, which is obviously wrong
+            outdic["err_<H>_{}".format(f)] = np.sqrt(
+                np.sum(
                     [
-                        outdic["H{}_{}".format(a, f)]
+                        outdic["err_H{}_{}".format(a, f)] ** 2
                         for a in range(outdic["n_app_{}".format(f)])
                     ]
                 )
-
-                # assuming uncorrelated and random, which is obviously wrong
-                outdic["err_<H>_{}".format(f)] = np.sqrt(
-                    np.sum(
-                        [
-                            outdic["err_H{}_{}".format(a, f)] ** 2
-                            for a in range(outdic["n_app_{}".format(f)])
-                        ]
-                    )
-                )
-
-        if switch_func == "sfHG1G2":
-            dd = {
-                "": [
-                    filters[f]
-                    + " band ({} apparitions)".format(int(outdic["n_app_{}".format(f)]))
-                    for f in filts
-                ]
-            }
-        else:
-            dd = {"": [filters[f] + " band" for f in filts]}
-        dd.update({i: [""] * len(filts) for i in params})
-        df_table = pd.DataFrame(
-            dd,
-            index=[filters[f] for f in filts],
-        )
-
-        for i, f in enumerate(filts):
-            cond = pdf["i:fid"] == f
-            popt = []
-            for pindex, param in enumerate(params):
-                # rad2deg
-                if pindex >= 3:
-                    suffix = ""
-                else:
-                    suffix = f"_{f}"
-
-                loc = df_table[param].index == filters[f]
-                df_table.loc[loc, param] = "{:.2f} &plusmn; {:.2f}".format(
-                    outdic[param + suffix],
-                    outdic["err_" + param + suffix],
-                )
-
-                if pindex <= 3:
-                    popt.append(outdic[param + suffix])
-                else:
-                    popt.append(np.deg2rad(outdic[param + suffix]))
-
-            ydata = pdf.loc[cond, "i:magpsf_red"]
-
-            figs.append(
-                {
-                    "x": pdf.loc[cond, "Phase"].to_numpy(),
-                    "y": ydata.to_numpy(),
-                    "error_y": {
-                        "type": "data",
-                        "array": pdf.loc[cond, "i:sigmapsf"].to_numpy(),
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": COLORS_ZTF[i],
-                    },
-                    "mode": "markers",
-                    "name": f"{filters[f]}",
-                    "customdata": list(
-                        zip(
-                            pdf.loc[cond, "i:objectId"],
-                            Time(pdf.loc[cond, "i:jd"], format="jd").iso,
-                        ),
-                    ),
-                    "hovertemplate": hovertemplate,
-                    "marker": {"size": 6, "color": COLORS_ZTF[i], "symbol": "o"},
-                },
             )
 
-            if switch_func == "SHG1G2":
-                xx = np.array(x)[:, cond]
-            else:
-                xx = x[cond]
+    if switch_func == "sfHG1G2":
+        dd = {
+            "": [
+                filters[f]
+                + " band ({} apparitions)".format(int(outdic["n_app_{}".format(f)]))
+                for f in filts
+            ]
+        }
+    else:
+        dd = {"": [filters[f] + " band" for f in filts]}
+    dd.update({i: [""] * len(filts) for i in params})
+    df_table = pd.DataFrame(
+        dd,
+        index=[filters[f] for f in filts],
+    )
 
-            figs.append(
-                {
-                    "x": pdf.loc[cond, "Phase"].to_numpy(),
-                    "y": fitfunc(xx, *popt),
-                    "mode": "markers",
-                    "name": f"fit {filters[f]}",
-                    "marker": {
-                        "size": 6,
-                        "color": COLORS_ZTF[i],
-                        "symbol": "x",
-                        "opacity": 0.5,
-                    },
-                },
-            )
-
-            residual_figs.append(
-                {
-                    "x": pdf.loc[cond, "Phase"].to_numpy(),
-                    "y": ydata.to_numpy() - fitfunc(xx, *popt),
-                    "error_y": {
-                        "type": "data",
-                        "array": pdf.loc[cond, "i:sigmapsf"].to_numpy(),
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": COLORS_ZTF[i],
-                    },
-                    "mode": "markers",
-                    "name": f"Residual {filters[f]}",
-                    "showlegend": False,
-                    "marker": {
-                        "color": COLORS_ZTF[i],
-                    },
-                },
-            )
-    elif switch_band == "combined":
-        dd = {"": ["V band"]}
-        dd.update({i: [""] for i in params})
-        df_table = pd.DataFrame(
-            dd,
-            index=["V band"],
-        )
-
-        outdic = estimate_sso_params(
-            magpsf_red=pdf["i:magpsf_red"].to_numpy(),
-            sigmapsf=pdf["i:sigmapsf"].to_numpy(),
-            phase=np.deg2rad(pdf["Phase"].to_numpy()),
-            filters=pdf["i:fid"].to_numpy(),
-            ra=np.deg2rad(pdf["i:ra"].to_numpy()),
-            dec=np.deg2rad(pdf["i:dec"].to_numpy()),
-            p0=p0,
-            bounds=bounds,
-            model=switch_func,
-            normalise_to_V=True,
-        )
-        if outdic["fit"] != 0:
-            return dbc.Alert(
-                "The fitting procedure could not converge.", color="danger"
-            )
-
+    for i, f in enumerate(filts):
+        cond = pdf["i:fid"] == f
         popt = []
         for pindex, param in enumerate(params):
             # rad2deg
             if pindex >= 3:
                 suffix = ""
             else:
-                suffix = "_V"
+                suffix = f"_{f}"
 
-            df_table[param] = "{:.2f} &plusmn; {:.2f}".format(
+            loc = df_table[param].index == filters[f]
+            df_table.loc[loc, param] = "{:.2f} &plusmn; {:.2f}".format(
                 outdic[param + suffix],
                 outdic["err_" + param + suffix],
             )
@@ -3946,40 +3832,47 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
             else:
                 popt.append(np.deg2rad(outdic[param + suffix]))
 
-        color = compute_color_correction(pdf["i:fid"].to_numpy())
-        ydata = pdf["i:magpsf_red"].to_numpy() + color
+        ydata = pdf.loc[cond, "i:magpsf_red"]
 
         figs.append(
             {
-                "x": pdf["Phase"].to_numpy(),
-                "y": ydata,
+                "x": pdf.loc[cond, "Phase"].to_numpy(),
+                "y": ydata.to_numpy(),
                 "error_y": {
                     "type": "data",
-                    "array": pdf["i:sigmapsf"].to_numpy(),
+                    "array": pdf.loc[cond, "i:sigmapsf"].to_numpy(),
                     "visible": True,
                     "width": 0,
                     "opacity": 0.5,
-                    "color": COLORS_ZTF[0],
+                    "color": COLORS_ZTF[i],
                 },
                 "mode": "markers",
-                "name": "V band",
+                "name": f"{filters[f]}",
                 "customdata": list(
-                    zip(pdf["i:objectId"], Time(pdf["i:jd"], format="jd").iso),
+                    zip(
+                        pdf.loc[cond, "i:objectId"],
+                        Time(pdf.loc[cond, "i:jd"], format="jd").iso,
+                    ),
                 ),
                 "hovertemplate": hovertemplate,
-                "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
+                "marker": {"size": 6, "color": COLORS_ZTF[i], "symbol": "o"},
             },
         )
 
+        if switch_func == "SHG1G2":
+            xx = np.array(x)[:, cond]
+        else:
+            xx = x[cond]
+
         figs.append(
             {
-                "x": pdf["Phase"].to_numpy(),
-                "y": fitfunc(x, *popt),
+                "x": pdf.loc[cond, "Phase"].to_numpy(),
+                "y": fitfunc(xx, *popt),
                 "mode": "markers",
-                "name": "fit combined",
+                "name": f"fit {filters[f]}",
                 "marker": {
                     "size": 6,
-                    "color": COLORS_ZTF[0],
+                    "color": COLORS_ZTF[i],
                     "symbol": "x",
                     "opacity": 0.5,
                 },
@@ -3988,21 +3881,21 @@ def draw_sso_phasecurve(switch_band: str, switch_func: str, object_sso) -> dict:
 
         residual_figs.append(
             {
-                "x": pdf["Phase"].to_numpy(),
-                "y": ydata - fitfunc(x, *popt),
+                "x": pdf.loc[cond, "Phase"].to_numpy(),
+                "y": ydata.to_numpy() - fitfunc(xx, *popt),
                 "error_y": {
                     "type": "data",
-                    "array": pdf["i:sigmapsf"].to_numpy(),
+                    "array": pdf.loc[cond, "i:sigmapsf"].to_numpy(),
                     "visible": True,
                     "width": 0,
                     "opacity": 0.5,
-                    "color": COLORS_ZTF[0],
+                    "color": COLORS_ZTF[i],
                 },
                 "mode": "markers",
-                "name": "Residual",
+                "name": f"Residual {filters[f]}",
                 "showlegend": False,
                 "marker": {
-                    "color": COLORS_ZTF[0],
+                    "color": COLORS_ZTF[i],
                 },
             },
         )
