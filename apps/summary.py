@@ -335,17 +335,6 @@ def tab5_content(object_soo):
                                 children=dmc.Group(
                                     [
                                         dmc.Radio(k, value=k, color="orange")
-                                        for k in ["per-band", "combined"]
-                                    ]
-                                ),
-                                id="switch-phase-curve-band",
-                                value="per-band",
-                                size="sm",
-                            ),
-                            dmc.RadioGroup(
-                                children=dmc.Group(
-                                    [
-                                        dmc.Radio(k, value=k, color="orange")
                                         for k in [
                                             "SHG1G2",
                                             "sfHG1G2",
