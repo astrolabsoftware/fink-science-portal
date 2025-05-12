@@ -22,7 +22,7 @@ from datetime import datetime
 from astropy.coordinates import EarthLocation
 
 import visdcc
-from dash import Dash, Input, Output, State, dcc, html, no_update
+from dash import Input, Output, State, dcc, html, no_update
 from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 
@@ -48,6 +48,7 @@ from apps.blazars.cards import card_explanation_blazar
 from apps.observability.cards import card_explanation_observability
 
 dcc.Location(id="url", refresh=False)
+
 
 def tab1_content(pdf):
     """Summary tab"""
@@ -444,7 +445,7 @@ def tab6_content(object_tracklet):
                             draw_tracklet_radec(pdf),
                         ],
                     ),
-                    ],
+                ],
             ),
         ]
     )
@@ -477,24 +478,18 @@ def tab_observability(pdf):
             ),
             dmc.Space(h=10),
             dmc.Switch(
-                id="moon_elevation",
-                size="sm",
-                radius="xl",
-                label="Show moon elevation"
+                id="moon_elevation", size="sm", radius="xl", label="Show moon elevation"
             ),
             dmc.Space(h=5),
             dmc.Switch(
-                id="moon_phase",
-                size="sm",
-                radius="xl",
-                label="Show moon phase"
+                id="moon_phase", size="sm", radius="xl", label="Show moon phase"
             ),
             dmc.Space(h=5),
             dmc.Switch(
                 id="moon_illumination",
                 size="sm",
                 radius="xl",
-                label="Show moon illumination"
+                label="Show moon illumination",
             ),
         ],
         className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
@@ -528,7 +523,7 @@ def tab_observability(pdf):
                         loading(
                             dmc.Paper(
                                 [
-                                    #dmc.Center(html.Img(id="observability_plot")),
+                                    # dmc.Center(html.Img(id="observability_plot")),
                                     dmc.Space(h=10),
                                     dmc.Center(dcc.Markdown(id="observability_title")),
                                     html.Div(id="observability_plot_test"),

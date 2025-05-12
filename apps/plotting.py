@@ -15,7 +15,6 @@
 # import os
 import io
 import copy
-import base64
 import datetime
 from copy import deepcopy
 
@@ -464,7 +463,7 @@ layout_observability = dict(
         bgcolor="rgba(218, 223, 225, 0.3)",
     ),
     yaxis={
-        "range":[0,90],
+        "range": [0, 90],
         "title": "Elevation (&deg;)",
         "automargin": True,
     },
@@ -472,12 +471,12 @@ layout_observability = dict(
         "title": "Relative airmass",
         "overlaying": "y",
         "side": "right",
-        "tickvals": 90 - np.degrees(np.arccos(1/np.array([1,2,3]))),
-        "ticktext": [1,2,3],
+        "tickvals": 90 - np.degrees(np.arccos(1 / np.array([1, 2, 3]))),
+        "ticktext": [1, 2, 3],
         "showgrid": False,
         "showticklabels": True,
         "matches": "y",
-        "anchor": "x"
+        "anchor": "x",
     },
 )
 
@@ -557,10 +556,10 @@ def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_ele
         )
 
     # unicde_Moon_phases = [
-    #     '\U0001F311', '\U0001F312',
-    #     '\U0001F313', '\U0001F314',
-    #     '\U0001F315', '\U0001F316',
-    #     '\U0001F317', '\U0001F318'
+    #     '\U0001f311', '\U0001f312',
+    #     '\U0001f313', '\U0001f314',
+    #     '\U0001f315', '\U0001f316',
+    #     '\U0001f317', '\U0001f318'
     # ]
     # unicode_Moon = unicde_Moon_phases[moon_phase(observer, time[0]) - 1]
     # ax.text(
@@ -649,6 +648,7 @@ def plot_observability(
     return fig_bar_matplotlib
 """
 
+
 @app.callback(
     Output("observability_plot_test", "children"),
     [
@@ -661,7 +661,7 @@ def plot_observability(
         State("dateobs", "value"),
         State("moon_elevation", "checked"),
         State("moon_phase", "checked"),
-        State("moon_illumination", "checked")
+        State("moon_illumination", "checked"),
     ],
     prevent_initial_call=True,
     background=True,
@@ -678,7 +678,7 @@ def plot_observability_test(
     dateobs,
     moon_elevation,
     moon_phase,
-    moon_illumination
+    moon_illumination,
 ):
     if summary_tab != "Observability":
         raise PreventUpdate
@@ -686,34 +686,37 @@ def plot_observability_test(
     pdf = pd.read_json(io.StringIO(object_data))
     ra0 = np.mean(pdf["i:ra"].to_numpy())
     dec0 = np.mean(pdf["i:dec"].to_numpy())
-    local_time = observability.observation_time(dateobs, delta_points=1/60)
-    UTC_time = local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
+    local_time = observability.observation_time(dateobs, delta_points=1 / 60)
+    UTC_time = (
+        local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
+    )
     UTC_axis = observability.from_time_to_axis(UTC_time)
     local_axis = observability.from_time_to_axis(local_time)
-    mask_axis = [True if t[-2:] == "00" and int(t[:2]) % 2 == 0 else False for t in UTC_axis]
+    mask_axis = [
+        True if t[-2:] == "00" and int(t[:2]) % 2 == 0 else False for t in UTC_axis
+    ]
     idx_axis = np.where(mask_axis)[0]
-    target_coordinates = observability.target_coordinates(ra0, dec0, observatory, UTC_time)
+    target_coordinates = observability.target_coordinates(
+        ra0, dec0, observatory, UTC_time
+    )
     airmass = observability.from_elevation_to_airmass(target_coordinates.alt.value)
     twilights = observability.utc_night_hours(
-        observatory, 
+        observatory,
         dateobs,
         observability.observation_time_to_utc_offset(observatory),
-        UTC=True
+        UTC=True,
     )
     twilights_list = observability.from_time_to_axis(list(twilights.values()))
 
     # Initialize figure
-    figure = {
-        "data": [],
-        "layout": copy.deepcopy(layout_observability)
-    }
- 
+    figure = {"data": [], "layout": copy.deepcopy(layout_observability)}
+
     # Add UTC time in the layout
     figure["layout"]["xaxis"] = {
         "title": "UTC time",
         "automargin": True,
         "tickvals": UTC_axis[idx_axis],
-        "showgrid": True
+        "showgrid": True,
     }
 
     # Target plot
@@ -726,28 +729,30 @@ def plot_observability_test(
     """
 
     figure["data"].append(
-            {
-                "x": UTC_axis,
-                "y": target_coordinates.alt.value,
-                "mode": "lines",
-                "name": "Target elevation",
-                "legendgroup": "Elevation",
-                "customdata": np.stack(
-                    [
-                        target_coordinates.az.value,
-                        airmass,
-                    ],
-                    axis=-1,
-                ),
-                "hovertemplate": hovertemplate_elevation,
-                "line": {"color": "black"},
-            }
-        )
+        {
+            "x": UTC_axis,
+            "y": target_coordinates.alt.value,
+            "mode": "lines",
+            "name": "Target elevation",
+            "legendgroup": "Elevation",
+            "customdata": np.stack(
+                [
+                    target_coordinates.az.value,
+                    airmass,
+                ],
+                axis=-1,
+            ),
+            "hovertemplate": hovertemplate_elevation,
+            "line": {"color": "black"},
+        }
+    )
 
     # Moon target
     if moon_elevation:
         moon_coordinates = observability.moon_coordinates(observatory, UTC_time)
-        moon_airmass = observability.from_elevation_to_airmass(moon_coordinates.alt.value)
+        moon_airmass = observability.from_elevation_to_airmass(
+            moon_coordinates.alt.value
+        )
 
         hovertemplate_moon = r"""
         <b>UTC time</b>:%{x}<br>
@@ -780,12 +785,12 @@ def plot_observability_test(
     figure["data"].append(
         {
             "x": ["00:00", "00:00", "00:00"],
-            "y": list(90 - np.degrees(np.arccos(1/np.array([1, 2, 3])))),
+            "y": list(90 - np.degrees(np.arccos(1 / np.array([1, 2, 3])))),
             "yaxis": "y2",
             "mode": "markers",
-            "marker": {"opacity":0},
+            "marker": {"opacity": 0},
             "showlegend": False,
-            "hoverinfo": "skip"
+            "hoverinfo": "skip",
         }
     )
 
@@ -799,7 +804,7 @@ def plot_observability_test(
         "showgrid": False,
         "showticklabels": True,
         "matches": "x",
-        "anchor": "y"
+        "anchor": "y",
     }
 
     # For local time
@@ -809,28 +814,28 @@ def plot_observability_test(
             "y": 45 * np.ones(len(local_axis)),
             "xaxis": "x2",
             "mode": "markers",
-            "marker": {"opacity":0},
+            "marker": {"opacity": 0},
             "showlegend": False,
-            "hoverinfo": "skip"
+            "hoverinfo": "skip",
         }
     )
 
     # Twilights
     figure["layout"]["shapes"] = []
-    for dummy in range(len(twilights_list)-1):
+    for dummy in range(len(twilights_list) - 1):
         figure["layout"]["shapes"].append(
             {
-                "type":"rect",
-                "xref":"x",
-                "yref":"paper",
-                "x0":twilights_list[dummy],
-                "x1":twilights_list[dummy+1],
-                "y0":0,
-                "y1":1,
-                "fillcolor":observability.night_colors[dummy],
-                "layer":"below",
-                "line_width":0,
-                "line":dict(width=0)
+                "type": "rect",
+                "xref": "x",
+                "yref": "paper",
+                "x0": twilights_list[dummy],
+                "x1": twilights_list[dummy + 1],
+                "y0": 0,
+                "y1": 1,
+                "fillcolor": observability.night_colors[dummy],
+                "layer": "below",
+                "line_width": 0,
+                "line": dict(width=0),
             }
         )
 
@@ -841,7 +846,7 @@ def plot_observability_test(
             "width": "90%",
             "height": "25pc",
             "marginLeft": "auto",
-            "marginRight": "auto"
+            "marginRight": "auto",
         },
         config={"displayModeBar": False},
         responsive=True,
@@ -860,7 +865,7 @@ def plot_observability_test(
     [
         State("dateobs", "value"),
         State("moon_phase", "checked"),
-        State("moon_illumination", "checked")
+        State("moon_illumination", "checked"),
     ],
     prevent_initial_call=True,
     background=True,
@@ -870,12 +875,7 @@ def plot_observability_test(
     ],
 )
 def show_moon_data(
-    summary_tab,
-    nclick,
-    object_data,
-    dateobs,
-    moon_phase,
-    moon_illumination
+    summary_tab, nclick, object_data, dateobs, moon_phase, moon_illumination
 ):
     if summary_tab != "Observability":
         raise PreventUpdate
@@ -1689,28 +1689,28 @@ def plot_classbar(object_data):
                 showlegend = False
             else:
                 showlegend = True
-        is_seen.append(top_labels[i])
+            is_seen.append(top_labels[i])
 
-        percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(
-            int
-        )
-        name_legend = top_labels[i] + f": {percent}%"
-        fig.add_trace(
-            go.Bar(
-                x=[xd[i]],
-                y=[yd],
-                orientation="h",
-                width=0.3,
-                showlegend=showlegend,
-                legendgroup=top_labels[i],
-                name=name_legend,
-                marker=dict(
-                    color=colors[i],
+            percent = np.round(alert_per_class[top_labels[i]] / len(pdf) * 100).astype(
+                int
+            )
+            name_legend = top_labels[i] + f": {percent}%"
+            fig.add_trace(
+                go.Bar(
+                    x=[xd[i]],
+                    y=[yd],
+                    orientation="h",
+                    width=0.3,
+                    showlegend=showlegend,
+                    legendgroup=top_labels[i],
+                    name=name_legend,
+                    marker=dict(
+                        color=colors[i],
+                    ),
+                    customdata=[customdata[i]],
+                    hovertemplate="<b>Date</b>: %{customdata}",
                 ),
-                customdata=[customdata[i]],
-                hovertemplate="<b>Date</b>: %{customdata}",
-            ),
-        )
+            )
 
     legend_shift = 0.2
     fig.update_layout(
