@@ -1,6 +1,5 @@
 from astropy.coordinates import SkyCoord, EarthLocation, get_body
 import numpy as np
-import matplotlib.pyplot as plt
 import astroplan as apl
 import astropy.units as u
 from astropy.time import Time
@@ -20,39 +19,39 @@ night_colors = [
 
 moon_color = "#9900cc"
 
-def observation_time_to_UTC_offset(observatory):
+def observation_time_to_utc_offset(observatory):
     """
     Compute the timezone offset from the observatory location to UTC.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     observatory: str
         Name of the considered observatory. Must be in astropy.coordinates.EarthLocation.get_site_names() result.
 
-    Returns:
-    --------
+    Returns
+    -------
     offset: float
         Time difference between observatory local time zone and UTC (in hour).
     """
     lat, lon = EarthLocation.of_site(observatory).lat.deg, EarthLocation.of_site(observatory).lon.deg
     tz = TimezoneFinder().timezone_at(lat=lat, lng=lon)
     offset = datetime.datetime.now().replace(tzinfo=ZoneInfo('UTC')).astimezone(ZoneInfo(tz)).utcoffset().total_seconds() // 3600
-    
+ 
     return offset
 
 def observation_time(date, delta_points=0.25):
     """
     Return an astropy.time.Time array of time starting from -12h to +12h around the date. Points are separated by delta_time.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     date: str
         Considered date for observation. Format in YYYY-MM-DD.
     delta_points: float, optional (default=0.25)
         Time elapsed between two points
 
-    Returns:
-    --------
+    Returns
+    -------
     obs_time: np.array[astropy.time.Time]
         Array of time points starting from -12h to +12h.
     """
@@ -64,8 +63,8 @@ def target_coordinates(ra, dec, observatory, obs_time):
     """
     Compute the coordinates (astropy.coordinates.SkyCoord) of a source from an observatory at each time of obs_time.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     ra: float
         Right ascension of the source, in degree
     dec: float
@@ -75,8 +74,8 @@ def target_coordinates(ra, dec, observatory, obs_time):
     obs_time: np.array[astropy.time.Time]
         Array of times for each point
 
-    Returns:
-    --------
+    Returns
+    -------
     coordinates: np.array[astropy.coordinates.SkyCoord]
         Coordinates of the source (with elevation and azimut) from the observatory at every point in obs_time
     """
@@ -90,15 +89,15 @@ def moon_coordinates(observatory, obs_time):
     """
     Compute the coordinates (astropy.coordinates.SkyCoord) of the Moon from an observatory at each time of obs_time.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     observatory: str
         Name of the considered observatory. Must be in astropy.coordinates.EarthLocation.get_site_names() result.
     obs_time: np.array[astropy.time.Time]
         Array of times for each point
 
-    Returns:
-    --------
+    Returns
+    -------
     coordinates: np.array[astropy.coordinates.SkyCoord]
         Coordinates of the Moon (with elevation and azimut) from the observatory at every point in obs_time
     """
@@ -111,13 +110,13 @@ def from_elevation_to_airmass(elevation):
     """
     Compute the relative airmass (1 relative airmass is the airmass at a 90 degree angle of elevation) from the elevation.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     elevation: np.array[astropy.units.Angle]
         Array of elevations in degrees
 
-    Returns:
-    --------
+    Returns
+    -------
     out: np.array
         Array of relative airmass
     """
@@ -127,12 +126,13 @@ def get_moon_phase(time):
     """
     Retrieve the unicode symbol for the Moon phase.
 
-    Parameters:
+    Parameters
+    ----------
     time: str
         Considered date for observation. Format in YYYY-MM-DD.
 
-    Returns:
-    --------
+    Returns
+    -------
     out: str
         Unicode symbol representing the phase of the Moon at the considered date.
     """
@@ -174,7 +174,7 @@ def get_moon_phase(time):
             # Last Quarter
             elif phase_angle < 100:
                 return '\U0001F317'
-                
+
             # Waning Crescent
             else:
                 return '\U0001F318'
@@ -183,23 +183,24 @@ def get_moon_illumination(time):
     """
     Compute Moon illumination at the considered time.
 
-    Parameters:
+    Parameters
+    ----------
     time: str
         Considered date for observation. Format in YYYY-MM-DD.
 
-    Returns:
-    --------
+    Returns
+    -------
     out: float
         Moon illumination fraction (0 is new Moon and 1 is full Moon) at the considered date.
     """
     return apl.moon_illumination(time)
 
-def UTC_night_hours(observatory, date, offset, UTC=False):
+def utc_night_hours(observatory, date, offset, UTC=False):
     """
     Time of the different definitions of twilight and dawn from an observatory at a given date.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     observatory: str
         Name of the considered observatory. Must be in astropy.coordinates.EarthLocation.get_site_names() result.
     date: str
@@ -209,8 +210,8 @@ def UTC_night_hours(observatory, date, offset, UTC=False):
     UTC: bool (optional, default=False)
         If UTC, the twilights are computed in the UTC scale.
 
-    Returns:
-    --------
+    Returns
+    -------
     twilights: dict[astropy.time.Time]
         Dictionary with:
         - Sunset time
@@ -243,13 +244,13 @@ def from_time_to_axis(times):
     """
     Tranform an astropy.time.Time array into an array of hours starting at -12h.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     times: np.array[astropy.time.Time]
         Array of time for observation
 
-    Returns:
-    --------
+    Returns
+    -------
     axis: np.array
         List of hours starting at -12h
     """

@@ -481,7 +481,7 @@ layout_observability = dict(
     },
 )
 
-
+"""
 def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_elevation=False):
     import matplotlib.pyplot as plt
     from matplotlib import dates
@@ -633,10 +633,10 @@ def plot_observability(
     dec0 = np.mean(pdf["i:dec"].to_numpy())
     target = SkyCoord(ra=ra0, dec=dec0, unit=(u.deg, u.deg))
     fig = plot_altitude(
-        target, 
-        observatory, 
-        dateobs, 
-        UTC=0, 
+        target,
+        observatory,
+        dateobs,
+        UTC=0,
         ax=None,
         show_moon_elevation=moon_elevation
     )
@@ -647,7 +647,7 @@ def plot_observability(
     fig_bar_matplotlib = f'data:image/png;base64,{fig_data}'
 
     return fig_bar_matplotlib
-
+"""
 
 @app.callback(
     Output("observability_plot_test", "children"),
@@ -687,17 +687,17 @@ def plot_observability_test(
     ra0 = np.mean(pdf["i:ra"].to_numpy())
     dec0 = np.mean(pdf["i:dec"].to_numpy())
     local_time = observability.observation_time(dateobs, delta_points=1/60)
-    UTC_time = local_time - observability.observation_time_to_UTC_offset(observatory) * u.hour
+    UTC_time = local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
     UTC_axis = observability.from_time_to_axis(UTC_time)
     local_axis = observability.from_time_to_axis(local_time)
     mask_axis = [True if t[-2:] == "00" and int(t[:2]) % 2 == 0 else False for t in UTC_axis]
     idx_axis = np.where(mask_axis)[0]
     target_coordinates = observability.target_coordinates(ra0, dec0, observatory, UTC_time)
     airmass = observability.from_elevation_to_airmass(target_coordinates.alt.value)
-    twilights = observability.UTC_night_hours(
+    twilights = observability.utc_night_hours(
         observatory, 
         dateobs,
-        observability.observation_time_to_UTC_offset(observatory),
+        observability.observation_time_to_utc_offset(observatory),
         UTC=True
     )
     twilights_list = observability.from_time_to_axis(list(twilights.values()))
@@ -707,7 +707,7 @@ def plot_observability_test(
         "data": [],
         "layout": copy.deepcopy(layout_observability)
     }
-    
+ 
     # Add UTC time in the layout
     figure["layout"]["xaxis"] = {
         "title": "UTC time",
@@ -715,7 +715,7 @@ def plot_observability_test(
         "tickvals": UTC_axis[idx_axis],
         "showgrid": True
     }
-    
+
     # Target plot
     hovertemplate_elevation = r"""
     <b>UTC time</b>:%{x}<br>
@@ -765,7 +765,7 @@ def plot_observability_test(
                 "name": "Moon elevation",
                 "legendgroup": "Elevation",
                 "customdata": np.stack(
-                    [   
+                    [
                         moon_coordinates.az.value,
                         moon_airmass,
                     ],
@@ -773,7 +773,7 @@ def plot_observability_test(
                 ),
                 "hovertemplate": hovertemplate_moon,
                 "line": {"color": observability.moon_color},
-            }   
+            }
         )
 
     # For relative airmass
@@ -788,7 +788,7 @@ def plot_observability_test(
             "hoverinfo": "skip"
         }
     )
-    
+
     # Layout modification for local time
     figure["layout"]["xaxis2"] = {
         "title": "Local time",
@@ -801,7 +801,7 @@ def plot_observability_test(
         "matches": "x",
         "anchor": "y"
     }
-    
+
     # For local time
     figure["data"].append(
         {
@@ -814,7 +814,7 @@ def plot_observability_test(
             "hoverinfo": "skip"
         }
     )
-    
+
     # Twilights
     figure["layout"]["shapes"] = []
     for dummy in range(len(twilights_list)-1):
@@ -848,7 +848,7 @@ def plot_observability_test(
     )
 
     return graph
- 
+
 
 @app.callback(
     Output("moon_data", "children"),
@@ -918,8 +918,8 @@ def show_observability_title(
         raise PreventUpdate
 
     msg = "Observability for the night between "
-    msg += (Time(dateobs) - 1 * u.day).to_value("iso", subfmt="date") 
-    msg += " and " 
+    msg += (Time(dateobs) - 1 * u.day).to_value("iso", subfmt="date")
+    msg += " and "
     msg += Time(dateobs).to_value("iso", subfmt="date")
     return msg
 
