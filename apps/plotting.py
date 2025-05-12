@@ -452,6 +452,7 @@ layout_observability = dict(
     hovermode="closest",
     hoverlabel={
         "align": "left",
+        "namelength": -1,
     },
     legend=dict(
         font=dict(size=10),
@@ -474,7 +475,9 @@ layout_observability = dict(
         "tickvals": 90 - np.degrees(np.arccos(1/np.array([1,2,3]))),
         "ticktext": [1,2,3],
         "showgrid": False,
-        "showticklabels": True
+        "showticklabels": True,
+        "matches": "y",
+        "anchor": "x"
     },
 )
 
@@ -786,9 +789,6 @@ def plot_observability_test(
         }
     )
     
-    print(UTC_axis[idx_axis])
-    print()
-    print(local_axis[idx_axis])
     # Layout modification for local time
     figure["layout"]["xaxis2"] = {
         "title": "Local time",
@@ -797,7 +797,9 @@ def plot_observability_test(
         "tickvals": UTC_axis[idx_axis],
         "ticktext": local_axis[idx_axis],
         "showgrid": False,
-        "showticklabels": True
+        "showticklabels": True,
+        "matches": "x",
+        "anchor": "y"
     }
     
     # For local time
@@ -838,6 +840,8 @@ def plot_observability_test(
         style={
             "width": "90%",
             "height": "25pc",
+            "marginLeft": "auto",
+            "marginRight": "auto"
         },
         config={"displayModeBar": False},
         responsive=True,
@@ -884,6 +888,39 @@ def show_moon_data(
         msg = f"Moon illumination: {int(100 * observability.get_moon_illumination(date_time))}%"
     elif moon_phase and moon_illumination:
         msg = f"moon phase: `{observability.get_moon_phase(date_time)}`, moon illumination: `{int(100 * observability.get_moon_illumination(date_time))}%`"
+    return msg
+
+
+@app.callback(
+    Output("observability_title", "children"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_observability", "n_clicks"),
+        Input("object-data", "data"),
+    ],
+    [
+        State("dateobs", "value"),
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_observability", "disabled"), True, False),
+        (Output("submit_observability", "loading"), True, False),
+    ],
+)
+def show_observability_title(
+    summary_tab,
+    nclick,
+    object_data,
+    dateobs,
+):
+    if summary_tab != "Observability":
+        raise PreventUpdate
+
+    msg = "Observability for the night between "
+    msg += (Time(dateobs) - 1 * u.day).to_value("iso", subfmt="date") 
+    msg += " and " 
+    msg += Time(dateobs).to_value("iso", subfmt="date")
     return msg
 
 

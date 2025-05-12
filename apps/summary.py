@@ -529,6 +529,8 @@ def tab_observability(pdf):
                             dmc.Paper(
                                 [
                                     #dmc.Center(html.Img(id="observability_plot")),
+                                    dmc.Space(h=10),
+                                    dmc.Center(dcc.Markdown(id="observability_title")),
                                     html.Div(id="observability_plot_test"),
                                     dmc.Center(dcc.Markdown(id="moon_data")),
                                     dmc.Space(h=20),
