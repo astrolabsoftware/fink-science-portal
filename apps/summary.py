@@ -757,7 +757,7 @@ def store_query(name):
     if str(payload) != "null" and is_sso:
         pdfsso = request_api(
             "/api/v1/sso",
-            json={"n_or_d": payload, "withEphem": True, "withResiduals": True},
+            json={"n_or_d": payload, "withEphem": True, "withResiduals": False},
         )
 
     else:

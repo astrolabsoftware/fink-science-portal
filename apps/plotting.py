@@ -3606,7 +3606,7 @@ def draw_sso_astrometry(pdf) -> dict:
     pdf["i:fid"] = pdf["i:fid"].astype(int)
 
     deltaRAcosDEC = (pdf["i:ra"] - pdf.RA) * np.cos(np.radians(pdf["i:dec"])) * 3600
-    deltaDEC = (pdf["i:dec"] - pdf.Dec) * 3600
+    deltaDEC = (pdf["i:dec"] - pdf.DEC) * 3600
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
