@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import io
-from urllib.error import URLError
+import requests
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
@@ -813,25 +813,29 @@ def store_release_photometry(n_clicks, n_clicks2, object_data):
 
     mean_ra = np.mean(pdf["i:ra"])
     mean_dec = np.mean(pdf["i:dec"])
+    sr_arcsec = 2.0
 
-    try:
-        pdf_release = pd.read_csv(
-            f"https://irsa.ipac.caltech.edu/cgi-bin/ZTF/nph_light_curves?POS=CIRCLE%20{mean_ra}%20{mean_dec}%20{2.0 / 3600}&BAD_CATFLAGS_MASK=32768&FORMAT=CSV",
+    r = requests.get(
+        "https://db.ztf.snad.space/api/v3/data/latest/circle/full/json",
+        params={"ra": mean_ra, "dec": mean_dec, "radius_arcsec": sr_arcsec},
+    )
+
+    if r.status_code != 200:
+        return no_update, "No DR photometry (error {})".format(r.status_code), no_update
+
+    lc = []
+    for v in r.json().values():
+        lc1 = pd.DataFrame(v["lc"])
+        lc1["filtercode"] = v["meta"]["filter"]
+        lc.append(lc1)
+
+    if len(lc):
+        pdf_release = pd.concat(lc, ignore_index=True)
+        return (
+            pdf_release.to_json(),
+            f"DR photometry: {len(pdf_release.index)} points",
+            "DC magnitude",
         )
-
-        if not pdf_release.empty:
-            pdf_release = pdf_release[["mjd", "mag", "magerr", "filtercode"]]
-
-            return (
-                pdf_release.to_json(),
-                f"DR photometry: {len(pdf_release.index)} points",
-                "DC magnitude",
-            )
-
-    except URLError:
-        import traceback
-
-        traceback.print_exc()
 
     return no_update, "No DR photometry", no_update
 
