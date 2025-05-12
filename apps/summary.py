@@ -18,6 +18,9 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
+from datetime import datetime
+from astropy.coordinates import EarthLocation
+
 import visdcc
 from dash import Input, Output, State, dcc, html, no_update
 from dash.exceptions import PreventUpdate
@@ -41,6 +44,8 @@ from apps.utils import (
     retrieve_oid_from_metaname,
 )
 from apps.varstars.cards import card_explanation_variable
+from apps.blazars.cards import card_explanation_blazar
+from apps.observability.cards import card_explanation_observability
 
 dcc.Location(id="url", refresh=False)
 
@@ -459,12 +464,196 @@ def tab6_content(object_tracklet):
     return tab6_content_
 
 
+def tab_observability(pdf):
+    """
+    Displays the observation plot (altitude and airmass) of the source after selecting an observatory and a date.
+
+    Also displays the observation plot of the Moon as well as its illumination, and the various definition of night. Bottom axis shows UTC time and top axis shows Local time.
+    """
+    observatories = np.unique(EarthLocation.get_site_names())
+    nterms_base = dmc.Container(
+        [
+            dmc.Divider(variant="solid", label="Follow-up"),
+            dmc.Select(
+                label="Select your Observatory",
+                placeholder="Select an observatory from the list",
+                id="observatory",
+                data=[{"value": obs, "label": obs} for obs in observatories],
+                value="Palomar",
+                searchable=True,
+                clearable=True,
+            ),
+            dmc.DateInput(
+                id="dateobs",
+                label="Pick a date for the follow-up",
+                value=datetime.now().date(),
+            ),
+            dmc.Space(h=10),
+            dmc.Switch(
+                id="moon_elevation", size="sm", radius="xl", label="Show moon elevation"
+            ),
+            dmc.Space(h=5),
+            dmc.Switch(
+                id="moon_phase", size="sm", radius="xl", label="Show moon phase"
+            ),
+            dmc.Space(h=5),
+            dmc.Switch(
+                id="moon_illumination",
+                size="sm",
+                radius="xl",
+                label="Show moon illumination",
+            ),
+        ],
+        className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
+    )
+
+    card2 = dmc.Paper(
+        [
+            nterms_base,
+        ],
+        radius="sm",
+        p="xs",
+        shadow="sm",
+        withBorder=True,
+    )
+
+    submit_button = dmc.Button(
+        "Update plot",
+        id="submit_observability",
+        color="dark",
+        variant="outline",
+        fullWidth=True,
+        radius="xl",
+    )
+
+    tab_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading(
+                            dmc.Paper(
+                                [
+                                    # dmc.Center(html.Img(id="observability_plot")),
+                                    dmc.Space(h=10),
+                                    dmc.Center(dcc.Markdown(id="observability_title")),
+                                    html.Div(id="observability_plot_test"),
+                                    dmc.Center(dcc.Markdown(id="moon_data")),
+                                    dmc.Space(h=20),
+                                    card_explanation_observability(),
+                                ],
+                            ),
+                        ),
+                        md=8,
+                    ),
+                    dbc.Col(
+                        [
+                            html.Br(),
+                            card2,
+                            html.Br(),
+                            submit_button,
+                        ],
+                        md=4,
+                    ),
+                ],
+                className="g-1",
+            ),
+        ]
+    )
+    return tab_content_
+
+
+def tab7_content():
+    """Blazar tab"""
+    nterms_base = dmc.Container(
+        [
+            dmc.Divider(variant="solid", label="Extreme states threshold"),
+            dmc.Text("Select your quantile", size="sm"),
+            dmc.Slider(
+                id="quantile_blazar",
+                marks=[
+                    {"value": i, "label": "{}%".format(i)} for i in range(0, 51, 10)
+                ],
+                value=10,
+                max=50,
+                min=0,
+            ),
+        ],
+        className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
+    )
+
+    submit_blazar_button = dmc.Button(
+        "Update plot",
+        id="submit_blazar",
+        color="dark",
+        variant="outline",
+        fullWidth=True,
+        radius="xl",
+    )
+
+    card2 = dmc.Paper(
+        [
+            nterms_base,
+        ],
+        radius="sm",
+        p="xs",
+        shadow="sm",
+        withBorder=True,
+    )
+
+    tab_content_ = html.Div(
+        [
+            dmc.Space(h=10),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading(
+                            dmc.Paper(
+                                [
+                                    html.Div(id="blazar_plot"),
+                                    dmc.Space(h=20),
+                                    dmc.Center(
+                                        dmc.Button(
+                                            "Get DR photometry",
+                                            id="lightcurve_request_release_from_blazar",
+                                            variant="outline",
+                                            color="gray",
+                                            radius="xl",
+                                            size="xs",
+                                        )
+                                    ),
+                                    card_explanation_blazar(),
+                                ],
+                            ),
+                        ),
+                        md=8,
+                    ),
+                    dbc.Col(
+                        [
+                            html.Div(id="card_blazar_button"),
+                            html.Br(),
+                            card2,
+                            html.Br(),
+                            submit_blazar_button,
+                        ],
+                        md=4,
+                    ),
+                ],
+                className="g-1",
+            ),
+        ]
+    )
+    return [tab_content_]
+
+
 def tabs(pdf):
     tabs_ = dmc.Tabs(
         [
             dmc.TabsList(
                 [
                     dmc.TabsTab("Summary", value="Summary"),
+                    dmc.TabsTab("Observability", value="Observability"),
                     dmc.TabsTab(
                         "Supernovae", value="Supernovae", disabled=len(pdf.index) == 1
                     ),
@@ -479,17 +668,23 @@ def tabs(pdf):
                     dmc.TabsTab(
                         "Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)
                     ),
+                    dmc.TabsTab(
+                        "Blazars", value="Blazars", disabled=not is_blazar(pdf)
+                    ),
                     dmc.TabsTab("GRB", value="GRB", disabled=True),
                 ],
                 justify="flex-end",
             ),
             dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
+            dmc.TabsPanel(children=[tab_observability(pdf)], value="Observability"),
             dmc.TabsPanel(tab2_content(), value="Supernovae"),
             dmc.TabsPanel(tab3_content(), value="Variable stars"),
             dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
             dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
+            dmc.TabsPanel(tab7_content(), id="tab_blazar", value="Blazars"),
         ],
         value="Summary" if not is_sso(pdf) else "Solar System",
+        id="summary_tabs",
     )
 
     return tabs_
@@ -514,6 +709,14 @@ def is_tracklet(pdfs):
     if str(payload).startswith("TRCK"):
         return True
 
+    return False
+
+
+def is_blazar(pdfs):
+    """Auxiliary function to check whether the object is a blazar"""
+    payload = pdfs["d:blazar_stats_m0"].to_numpy()
+    if np.any(payload != -1):
+        return True
     return False
 
 
@@ -599,17 +802,22 @@ def store_query(name):
         Output("lightcurve_request_release", "children"),
         Output("switch-mag-flux", "value"),
     ],
-    Input("lightcurve_request_release", "n_clicks"),
+    [
+        Input("lightcurve_request_release", "n_clicks"),
+        Input("lightcurve_request_release_from_blazar", "n_clicks"),
+    ],
     State("object-data", "data"),
     prevent_initial_call=True,
     background=True,
     running=[
         (Output("lightcurve_request_release", "disabled"), True, True),
         (Output("lightcurve_request_release", "loading"), True, False),
+        (Output("lightcurve_request_release_from_blazar", "disabled"), True, True),
+        (Output("lightcurve_request_release_from_blazar", "loading"), True, False),
     ],
 )
-def store_release_photometry(n_clicks, object_data):
-    if not n_clicks or not object_data:
+def store_release_photometry(n_clicks, n_clicks2, object_data):
+    if (not n_clicks and not n_clicks2) or not object_data:
         raise PreventUpdate
 
     pdf = pd.read_json(io.StringIO(object_data))

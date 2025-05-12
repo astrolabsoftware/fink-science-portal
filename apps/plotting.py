@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# import os
 import io
 import copy
 import datetime
@@ -25,6 +26,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from astropy.coordinates import SkyCoord
+import astropy.units as u
 from astropy.time import Time
 from dash import (
     ALL,
@@ -55,6 +57,8 @@ from plotly.subplots import make_subplots
 from scipy.optimize import curve_fit
 
 from app import app
+
+# from apps import __file__
 from apps.statistics import dic_names
 from apps.utils import (
     _data_stretch,
@@ -65,7 +69,9 @@ from apps.utils import (
     readstamp,
     request_api,
     sine_fit,
+    apparent_flux_dr,
 )
+import apps.observability.utils as observability
 
 COLORS_ZTF = ["#15284F", "#F5622E"]
 COLORS_ZTF_NEGATIVE = ["#274667", "#F57A2E"]
@@ -414,6 +420,834 @@ layout_tracklet_lightcurve = dict(
         "automargin": True,
     },
 )
+
+layout_blazar = dict(
+    autosize=True,
+    automargin=True,
+    margin=dict(l=50, r=30, b=40, t=25),
+    hovermode="closest",
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="right",
+        x=1,
+        bgcolor="rgba(218, 223, 225, 0.3)",
+    ),
+    xaxis={
+        "title": "Observation date",
+        "zeroline": False,
+    },
+    yaxis={
+        "title": r"Standardized flux &#981;/&#981;<sub>median</sub>",
+        "zeroline": False,
+    },
+)
+
+layout_observability = dict(
+    automargin=True,
+    margin=dict(l=50, r=30, b=0, t=0),
+    hovermode="closest",
+    hoverlabel={
+        "align": "left",
+        "namelength": -1,
+    },
+    legend=dict(
+        font=dict(size=10),
+        orientation="h",
+        xanchor="right",
+        x=1,
+        yanchor="bottom",
+        y=1.02,
+        bgcolor="rgba(218, 223, 225, 0.3)",
+    ),
+    yaxis={
+        "range": [0, 90],
+        "title": "Elevation (&deg;)",
+        "automargin": True,
+    },
+    yaxis2={
+        "title": "Relative airmass",
+        "overlaying": "y",
+        "side": "right",
+        "tickvals": 90 - np.degrees(np.arccos(1 / np.array([1, 2, 3]))),
+        "ticktext": [1, 2, 3],
+        "showgrid": False,
+        "showticklabels": True,
+        "matches": "y",
+        "anchor": "x",
+    },
+)
+
+"""
+def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_elevation=False):
+    import matplotlib.pyplot as plt
+    from matplotlib import dates
+    from astroplan import Observer
+
+    observer = Observer.at_site(observatory)
+
+    fig = plt.figure()
+
+    if ax is None:
+        ax = plt.gca()
+
+    time = Time(astro_time) + np.linspace(0, 24, 100)*u.hour
+    altitude = observer.altaz(time, target).alt
+
+    if show_moon_elevation:
+        moon_altitude = observer.moon_altaz(time).alt
+        ax.plot(time.plot_date, moon_altitude, color='black', label='Moon')
+
+    ax.plot(time.plot_date, altitude, color='r', label='Target')
+    #num_ticks = 9
+
+    # Format the time axis (UTC time)
+    ax.set_xlim([time[0].plot_date, time[-1].plot_date])
+    ax.set_xticks(np.linspace(time[0].plot_date, time[-1].plot_date, 9))
+    date_formatter = dates.DateFormatter('%H:%M')
+    ax.xaxis.set_major_formatter(date_formatter)
+    plt.setp(ax.get_xticklabels(), rotation=30, ha='right')
+
+    # Format of the secondary time axis (local time)
+    def UTC_to_local(x, UTC=UTC):
+        return x + UTC / 24
+
+    def local_to_UTC(x, UTC=UTC):
+        return x - UTC / 24
+
+    secax = ax.secondary_xaxis('top', functions=(UTC_to_local, local_to_UTC))
+    secax.set_xlim([time[0].plot_date, time[-1].plot_date])
+    secax.set_xticks(np.linspace(UTC_to_local(time[0].plot_date), UTC_to_local(time[-1].plot_date), 9))
+    secax.set_xlabel('Local Time [hours]')
+    date_formatter = dates.DateFormatter('%H:%M')
+    secax.xaxis.set_major_formatter(date_formatter)
+    plt.setp(secax.get_xticklabels(), rotation=-30, ha='right')
+
+    # Shade background during night time
+    start = time[0].datetime
+
+        # Calculate and order twilights and set plotting alpha for each
+    twilights = [
+        (observer.sun_set_time(Time(start), which='next').datetime, 'white', 'Day'),
+        (observer.twilight_evening_civil(Time(start), which='next').datetime, 'lightsteelblue', 'No Sun'),
+        (observer.twilight_evening_nautical(Time(start), which='next').datetime, 'royalblue', 'Civil night'),
+        (observer.twilight_evening_astronomical(Time(start), which='next').datetime, 'blue', 'Nautical night'),
+        (observer.twilight_morning_astronomical(Time(start), which='next').datetime, 'midnightblue', 'Astronomical night'),
+        (observer.twilight_morning_nautical(Time(start), which='next').datetime, 'blue', 'Astronomical morning'),
+        (observer.twilight_morning_civil(Time(start), which='next').datetime, 'royalblue', 'Nautical morning'),
+        (observer.sun_rise_time(Time(start), which='next').datetime, 'lightsteelblue', 'Civil morning'),
+    ]
+
+    #twilights.sort(key=operator.itemgetter(0))
+    for i in range(1, 5):
+        ax.axvspan(
+            twilights[i - 1][0], twilights[i][0],
+            ymin=0, ymax=1,
+            facecolor=twilights[i][1], edgecolor='none', alpha=0.5,
+            label=twilights[i][2]
+        )
+    for i in range(5, len(twilights)):
+        ax.axvspan(
+            twilights[i - 1][0], twilights[i][0],
+            ymin=0, ymax=1,
+            facecolor=twilights[i][1], edgecolor='none', alpha=0.5,
+        )
+
+    # unicde_Moon_phases = [
+    #     '\U0001f311', '\U0001f312',
+    #     '\U0001f313', '\U0001f314',
+    #     '\U0001f315', '\U0001f316',
+    #     '\U0001f317', '\U0001f318'
+    # ]
+    # unicode_Moon = unicde_Moon_phases[moon_phase(observer, time[0]) - 1]
+    # ax.text(
+    #     time[0].plot_date + 0.01 * (time[-1].plot_date - time[0].plot_date),
+    #     0.01 * 90,
+    #     unicode_Moon,
+    #     fontsize=15, fontname='Segoe UI Emoji',
+    #     ha='left', va='bottom'
+    # )
+
+    ax.set_ylim(0, 90)
+    ax.tick_params(right=True)
+
+    airmass_ticks = np.array([1, 2, 3])
+    #ax.set_yticks([20, 30, 40, 50, 60, 90])
+    altitude_ticks = 90 - np.degrees(np.arccos(1/airmass_ticks))
+
+    ax2 = ax.twinx()
+    # ax2.invert_yaxis()
+    ax2.set_yticks(altitude_ticks)
+    ax2.set_yticklabels(airmass_ticks)
+    ax2.set_ylim(ax.get_ylim())
+    ax2.set_ylabel('Relative airmass')
+
+    # Set labels.
+    ax.set_ylabel("Elevation [degrees]")
+    ax.set_xlabel("UTC Time [hours]")
+    ax.set_title(time[0].value[:10] + ' / MJD' + str(int(time[0].mjd)) + ' at ' + observer.name)
+    ax.legend(ncol=2, loc='best')
+    plt.tight_layout()
+
+    return fig
+
+@app.callback(
+    Output("observability_plot", "src"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_observability", "n_clicks"),
+        Input("object-data", "data"),
+    ],
+    [
+        State("observatory", "value"),
+        State("dateobs", "value"),
+        State("moon_elevation", "checked"),
+        State("moon_phase", "checked"),
+        State("moon_illumination", "checked")
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_observability", "disabled"), True, False),
+        (Output("submit_observability", "loading"), True, False),
+    ],
+)
+def plot_observability(
+    summary_tab,
+    nclick,
+    object_data,
+    observatory,
+    dateobs,
+    moon_elevation,
+    moon_phase,
+    moon_illumination
+):
+    if summary_tab != "Observability":
+        raise PreventUpdate
+
+    pdf = pd.read_json(io.StringIO(object_data))
+    ra0 = np.mean(pdf["i:ra"].to_numpy())
+    dec0 = np.mean(pdf["i:dec"].to_numpy())
+    target = SkyCoord(ra=ra0, dec=dec0, unit=(u.deg, u.deg))
+    fig = plot_altitude(
+        target,
+        observatory,
+        dateobs,
+        UTC=0,
+        ax=None,
+        show_moon_elevation=moon_elevation
+    )
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png")
+    # Embed the result in the html output.
+    fig_data = base64.b64encode(buf.getbuffer()).decode("ascii")
+    fig_bar_matplotlib = f'data:image/png;base64,{fig_data}'
+
+    return fig_bar_matplotlib
+"""
+
+
+@app.callback(
+    Output("observability_plot_test", "children"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_observability", "n_clicks"),
+        Input("object-data", "data"),
+    ],
+    [
+        State("observatory", "value"),
+        State("dateobs", "value"),
+        State("moon_elevation", "checked"),
+        State("moon_phase", "checked"),
+        State("moon_illumination", "checked"),
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_observability", "disabled"), True, False),
+        (Output("submit_observability", "loading"), True, False),
+    ],
+)
+def plot_observability_test(
+    summary_tab,
+    nclick,
+    object_data,
+    observatory,
+    dateobs,
+    moon_elevation,
+    moon_phase,
+    moon_illumination,
+):
+    if summary_tab != "Observability":
+        raise PreventUpdate
+
+    pdf = pd.read_json(io.StringIO(object_data))
+    ra0 = np.mean(pdf["i:ra"].to_numpy())
+    dec0 = np.mean(pdf["i:dec"].to_numpy())
+    local_time = observability.observation_time(dateobs, delta_points=1 / 60)
+    UTC_time = (
+        local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
+    )
+    UTC_axis = observability.from_time_to_axis(UTC_time)
+    local_axis = observability.from_time_to_axis(local_time)
+    mask_axis = [
+        True if t[-2:] == "00" and int(t[:2]) % 2 == 0 else False for t in UTC_axis
+    ]
+    idx_axis = np.where(mask_axis)[0]
+    target_coordinates = observability.target_coordinates(
+        ra0, dec0, observatory, UTC_time
+    )
+    airmass = observability.from_elevation_to_airmass(target_coordinates.alt.value)
+    twilights = observability.utc_night_hours(
+        observatory,
+        dateobs,
+        observability.observation_time_to_utc_offset(observatory),
+        UTC=True,
+    )
+    twilights_list = observability.from_time_to_axis(list(twilights.values()))
+
+    # Initialize figure
+    figure = {"data": [], "layout": copy.deepcopy(layout_observability)}
+
+    # Add UTC time in the layout
+    figure["layout"]["xaxis"] = {
+        "title": "UTC time",
+        "automargin": True,
+        "tickvals": UTC_axis[idx_axis],
+        "showgrid": True,
+    }
+
+    # Target plot
+    hovertemplate_elevation = r"""
+    <b>UTC time</b>:%{x}<br>
+    <b>Elevation</b>: %{y:.0f} &deg;<br>
+    <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
+    <b>Relative airmass</b>: %{customdata[1]:.2f}
+    <extra></extra>
+    """
+
+    figure["data"].append(
+        {
+            "x": UTC_axis,
+            "y": target_coordinates.alt.value,
+            "mode": "lines",
+            "name": "Target elevation",
+            "legendgroup": "Elevation",
+            "customdata": np.stack(
+                [
+                    target_coordinates.az.value,
+                    airmass,
+                ],
+                axis=-1,
+            ),
+            "hovertemplate": hovertemplate_elevation,
+            "line": {"color": "black"},
+        }
+    )
+
+    # Moon target
+    if moon_elevation:
+        moon_coordinates = observability.moon_coordinates(observatory, UTC_time)
+        moon_airmass = observability.from_elevation_to_airmass(
+            moon_coordinates.alt.value
+        )
+
+        hovertemplate_moon = r"""
+        <b>UTC time</b>:%{x}<br>
+        <b>Elevation</b>: %{y:.0f} &deg;<br>
+        <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
+        <b>Relative airmass</b>: %{customdata[1]:.2f}
+        <extra></extra>
+        """
+
+        figure["data"].append(
+            {
+                "x": UTC_axis,
+                "y": moon_coordinates.alt.value,
+                "mode": "lines",
+                "name": "Moon elevation",
+                "legendgroup": "Elevation",
+                "customdata": np.stack(
+                    [
+                        moon_coordinates.az.value,
+                        moon_airmass,
+                    ],
+                    axis=-1,
+                ),
+                "hovertemplate": hovertemplate_moon,
+                "line": {"color": observability.moon_color},
+            }
+        )
+
+    # For relative airmass
+    figure["data"].append(
+        {
+            "x": ["00:00", "00:00", "00:00"],
+            "y": list(90 - np.degrees(np.arccos(1 / np.array([1, 2, 3])))),
+            "yaxis": "y2",
+            "mode": "markers",
+            "marker": {"opacity": 0},
+            "showlegend": False,
+            "hoverinfo": "skip",
+        }
+    )
+
+    # Layout modification for local time
+    figure["layout"]["xaxis2"] = {
+        "title": "Local time",
+        "overlaying": "x",
+        "side": "top",
+        "tickvals": UTC_axis[idx_axis],
+        "ticktext": local_axis[idx_axis],
+        "showgrid": False,
+        "showticklabels": True,
+        "matches": "x",
+        "anchor": "y",
+    }
+
+    # For local time
+    figure["data"].append(
+        {
+            "x": local_axis,
+            "y": 45 * np.ones(len(local_axis)),
+            "xaxis": "x2",
+            "mode": "markers",
+            "marker": {"opacity": 0},
+            "showlegend": False,
+            "hoverinfo": "skip",
+        }
+    )
+
+    # Twilights
+    figure["layout"]["shapes"] = []
+    for dummy in range(len(twilights_list) - 1):
+        figure["layout"]["shapes"].append(
+            {
+                "type": "rect",
+                "xref": "x",
+                "yref": "paper",
+                "x0": twilights_list[dummy],
+                "x1": twilights_list[dummy + 1],
+                "y0": 0,
+                "y1": 1,
+                "fillcolor": observability.night_colors[dummy],
+                "layer": "below",
+                "line_width": 0,
+                "line": dict(width=0),
+            }
+        )
+
+    # Graphs
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            "width": "90%",
+            "height": "25pc",
+            "marginLeft": "auto",
+            "marginRight": "auto",
+        },
+        config={"displayModeBar": False},
+        responsive=True,
+    )
+
+    return graph
+
+
+@app.callback(
+    Output("moon_data", "children"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_observability", "n_clicks"),
+        Input("object-data", "data"),
+    ],
+    [
+        State("dateobs", "value"),
+        State("moon_phase", "checked"),
+        State("moon_illumination", "checked"),
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_observability", "disabled"), True, False),
+        (Output("submit_observability", "loading"), True, False),
+    ],
+)
+def show_moon_data(
+    summary_tab, nclick, object_data, dateobs, moon_phase, moon_illumination
+):
+    if summary_tab != "Observability":
+        raise PreventUpdate
+
+    date_time = Time(dateobs, scale="utc")
+    msg = None
+    if moon_phase and not moon_illumination:
+        msg = f"Moon phase: {observability.get_moon_phase(date_time)}"
+    elif not moon_phase and moon_illumination:
+        msg = f"Moon illumination: {int(100 * observability.get_moon_illumination(date_time))}%"
+    elif moon_phase and moon_illumination:
+        msg = f"moon phase: `{observability.get_moon_phase(date_time)}`, moon illumination: `{int(100 * observability.get_moon_illumination(date_time))}%`"
+    return msg
+
+
+@app.callback(
+    Output("observability_title", "children"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_observability", "n_clicks"),
+        Input("object-data", "data"),
+    ],
+    [
+        State("dateobs", "value"),
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_observability", "disabled"), True, False),
+        (Output("submit_observability", "loading"), True, False),
+    ],
+)
+def show_observability_title(
+    summary_tab,
+    nclick,
+    object_data,
+    dateobs,
+):
+    if summary_tab != "Observability":
+        raise PreventUpdate
+
+    msg = "Observability for the night between "
+    msg += (Time(dateobs) - 1 * u.day).to_value("iso", subfmt="date")
+    msg += " and "
+    msg += Time(dateobs).to_value("iso", subfmt="date")
+    return msg
+
+
+@app.callback(
+    Output("blazar_plot", "children"),
+    [
+        Input("summary_tabs", "value"),
+        Input("submit_blazar", "n_clicks"),
+        Input("object-release", "data"),
+    ],
+    [
+        State("quantile_blazar", "value"),
+        State("object-data", "data"),
+        State("object-release", "data"),
+    ],
+    prevent_initial_call=True,
+    background=True,
+    running=[
+        (Output("submit_blazar", "disabled"), True, False),
+        (Output("submit_blazar", "loading"), True, False),
+    ],
+)
+def plot_blazar(
+    summary_tab,
+    nclick,
+    object_release_in,
+    quantile_blazar,
+    object_data,
+    object_release,
+):
+    if summary_tab != "Blazars":
+        raise PreventUpdate
+
+    """TBD"""
+    # Prepare the data
+    pdf_ = pd.read_json(io.StringIO(object_data))
+    cols = [
+        "i:jd",
+        "i:magpsf",
+        "i:sigmapsf",
+        "i:fid",
+        "i:distnr",
+        "i:magnr",
+        "i:sigmagnr",
+        "i:magzpsci",
+        "i:isdiffpos",
+        "i:objectId",
+    ]
+    pdf = pdf_.loc[:, cols]
+    pdf = pdf.sort_values("i:jd", ascending=False)
+
+    # Data release?..
+    if object_release_in or object_release:
+        pdf_release = pd.read_json(io.StringIO(object_release))
+        pdf_release = pdf_release[pdf_release["filtercode"].isin(["zr", "zg"])].copy()
+        pdf_release = pdf_release.sort_values("mjd", ascending=False)
+        dates_release = convert_jd(pdf_release["mjd"], format="mjd")
+        pdf_release["flux_dc"], pdf_release["sigma_flux_dc"] = apparent_flux_dr(
+            pdf_release["mag"], pdf_release["magerr"]
+        )
+        # pdf_release["flux_dc"] *= 1000
+        # pdf_release["sigma_flux_dc"] *= 1000
+    else:
+        pdf_release = pd.DataFrame(
+            {
+                "mag": [],
+                "magerr": [],
+                "filtercode": [],
+                "mjd": [],
+                "flux_dc": [],
+                "sigma_flux_dc": [],
+                "std_flux_dc": [],
+                "std_sigma_flux_dc": [],
+            }
+        )
+        dates_release = np.array([])
+
+    pdf["mag"], pdf["magerr"] = np.transpose(
+        [
+            dc_mag(*args)
+            for args in zip(
+                pdf["i:magpsf"].astype(float).to_numpy(),
+                pdf["i:sigmapsf"].astype(float).to_numpy(),
+                pdf["i:magnr"].astype(float).to_numpy(),
+                pdf["i:sigmagnr"].astype(float).to_numpy(),
+                pdf["i:isdiffpos"].to_numpy(),
+            )
+        ],
+    )
+    pdf["flux_dc"], pdf["sigma_flux_dc"] = np.transpose(
+        [
+            apparent_flux(*args)
+            for args in zip(
+                pdf["i:magpsf"].astype(float).to_numpy(),
+                pdf["i:sigmapsf"].astype(float).to_numpy(),
+                pdf["i:magnr"].astype(float).to_numpy(),
+                pdf["i:sigmagnr"].astype(float).to_numpy(),
+                pdf["i:isdiffpos"].to_numpy(),
+            )
+        ],
+    )
+
+    jd = pdf["i:jd"].astype(float)
+    dates = convert_jd(jd)
+
+    # Normalise flux
+    # Median is computed on historical data
+    # hence the quantile 50 is probably not aligning with 1
+    # with new alert data coming in.
+    # TODO: compute median on-the-fly
+
+    # Avoid covering of alerts and DR
+    maskTime = np.ones(len(pdf), dtype=bool)
+    if len(dates_release) > 0:
+        maskTime = pdf["i:jd"].to_numpy() - 2400000.5 > pdf_release["mjd"].iloc[0]
+
+    # Merge bands from alerts and DR
+    flux = np.concatenate(
+        (pdf["flux_dc"].to_numpy()[maskTime], pdf_release["flux_dc"].to_numpy())
+    )[::-1]
+    filts_release = np.ones(len(pdf_release))
+    filts_release[pdf_release["filtercode"].to_numpy() == "zr"] = 2
+    filts = np.concatenate((pdf["i:fid"].to_numpy()[maskTime], filts_release))[::-1]
+    mjds = np.concatenate(
+        (pdf["i:jd"].to_numpy()[maskTime] - 2400000.5, pdf_release["mjd"].to_numpy())
+    )[::-1]
+
+    # Compute meaningful median
+    delta_max_time = 0.5
+    possible_filts = np.unique(filts)
+    medians = dict.fromkeys(possible_filts)
+    if len(possible_filts) == 1:
+        medians[possible_filts[0]] = np.median(flux)
+    else:
+        other_filt = {1: 2, 2: 1}
+        concomitant_measurements = {filt: [] for filt in possible_filts}
+        start = -np.inf
+        for index_flux in range(len(flux)):
+            if mjds[index_flux] > start + delta_max_time:
+                start = mjds[index_flux]
+                maskTime = (mjds >= start) & (mjds <= start + delta_max_time)
+                filt = filts[index_flux]
+                maskFilt = filts == filt
+                if np.any(maskTime & (~maskFilt)):
+                    concomitant_measurements[filt].append(
+                        np.mean(flux[maskTime & maskFilt])
+                    )
+                    concomitant_measurements[other_filt[filt]].append(
+                        np.mean(flux[maskTime & (~maskFilt)])
+                    )
+        for filt in possible_filts:
+            medians[filt] = np.median(concomitant_measurements[filt])
+
+    conv_dict = {"zg": 1, "zr": 2}
+    for filt in pdf["i:fid"].unique():
+        maskFilt = pdf["i:fid"] == filt
+        pdf.loc[maskFilt, "std_flux_dc"] = pdf.loc[maskFilt, "flux_dc"] / medians[filt]
+        pdf.loc[maskFilt, "std_sigma_flux_dc"] = (
+            pdf.loc[maskFilt, "sigma_flux_dc"] / medians[filt]
+        )
+
+    for filt in pdf_release["filtercode"].unique():
+        maskFilt = pdf_release["filtercode"] == filt
+        pdf_release.loc[maskFilt, "std_flux_dc"] = (
+            pdf_release.loc[maskFilt, "flux_dc"] / medians[conv_dict[filt]]
+        )
+        pdf_release.loc[maskFilt, "std_sigma_flux_dc"] = (
+            pdf_release.loc[maskFilt, "sigma_flux_dc"] / medians[conv_dict[filt]]
+        )
+
+    # Divive by the median of the whole LC to equal it to 1
+    tot_median = np.median(
+        np.concatenate(
+            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
+        )
+    )
+    pdf["std_flux_dc"] /= tot_median
+    pdf["std_sigma_flux_dc"] /= tot_median
+    pdf_release["std_flux_dc"] /= tot_median
+    pdf_release["std_sigma_flux_dc"] /= tot_median
+
+    # Quantiles
+    low_quantile = np.percentile(
+        np.concatenate(
+            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
+        ),
+        quantile_blazar,
+    )
+    high_quantile = np.percentile(
+        np.concatenate(
+            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
+        ),
+        100 - quantile_blazar,
+    )
+
+    # Initialize figures
+    figure = {
+        "data": [],
+        "layout": copy.deepcopy(layout_blazar),
+    }
+
+    hovertemplate = r"""
+    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x}<br>
+    <b>Apparent magnitude</b>: %{customdata[0]:.2f} &plusmn; %{customdata[1]:.2f}<br>
+    <b>Brightness level &#981;/&#981;<sub>%{customdata[2]}</sub></b>: %{customdata[3]:.2f}
+    <extra></extra>
+    """
+
+    # Light curve display
+    for fid, fname, color in (
+        (1, "g", COLORS_ZTF[0]),
+        (2, "r", COLORS_ZTF[1]),
+    ):
+        if fid in np.unique(pdf["i:fid"].to_numpy()):
+            # Original data
+            idx = pdf["i:fid"] == fid
+            figure["data"].append(
+                {
+                    "x": dates[idx],
+                    "y": pdf["std_flux_dc"].to_numpy()[idx],
+                    "error_y": {
+                        "type": "data",
+                        "array": pdf["std_sigma_flux_dc"][idx],
+                        "visible": True,
+                        "width": 0,
+                        "opacity": 0.5,
+                        "color": color,
+                    },
+                    "mode": "markers",
+                    "name": f"{fname} band",
+                    "legendgroup": f"{fname} band",
+                    "customdata": np.stack(
+                        [
+                            pdf["mag"].to_numpy()[idx],
+                            pdf["magerr"].to_numpy()[idx],
+                            quantile_blazar * np.ones(len(pdf))[idx],
+                            pdf["std_flux_dc"].to_numpy()[idx] / low_quantile,
+                        ],
+                        axis=-1,
+                    ),
+                    "hovertemplate": hovertemplate,
+                    "marker": {"size": 10, "color": color, "symbol": "o"},
+                }
+            )
+
+    for fid, fname, color in (
+        ("zg", "g (DR)", COLORS_ZTF[0]),
+        ("zr", "r (DR)", COLORS_ZTF[1]),
+    ):
+        if fid in np.unique(pdf_release["filtercode"].to_numpy()):
+            # Original data
+            idx = pdf_release["filtercode"] == fid
+            figure["data"].append(
+                {
+                    "x": dates_release[idx],
+                    "y": pdf_release["std_flux_dc"].to_numpy()[idx],
+                    "error_y": {
+                        "type": "data",
+                        "array": pdf_release["std_sigma_flux_dc"][idx],
+                        "visible": True,
+                        "width": 0,
+                        "opacity": 0.3,
+                        "color": color,
+                    },
+                    "mode": "markers",
+                    "name": f"{fname} band",
+                    "legendgroup": f"{fname} band",
+                    "customdata": np.stack(
+                        [
+                            pdf_release["mag"].to_numpy()[idx],
+                            pdf_release["magerr"].to_numpy()[idx],
+                            quantile_blazar * np.ones(len(pdf_release[idx])),
+                            pdf_release["std_flux_dc"].to_numpy()[idx] / low_quantile,
+                        ],
+                        axis=-1,
+                    ),
+                    "hovertemplate": hovertemplate,
+                    "marker": {
+                        "size": 7,
+                        "color": color,
+                        "symbol": "o",
+                        "opacity": 0.3,
+                    },
+                }
+            )
+
+    # Quantile display
+    if object_release:
+        start = dates_release[-1]
+    else:
+        start = dates[-1]
+    figure["layout"]["shapes"] = [
+        {
+            "type": "line",
+            "xref": "x",
+            "x0": start,
+            "x1": dates[0],
+            "yref": "y",
+            "y0": low_quantile,
+            "y1": low_quantile,
+            "line": {"color": "black", "dash": "dash", "width": 1},
+        },
+        {
+            "type": "line",
+            "xref": "x",
+            "x0": start,
+            "x1": dates[0],
+            "yref": "y",
+            "y0": high_quantile,
+            "y1": high_quantile,
+            "line": {"color": "black", "dash": "dash", "width": 1},
+        },
+    ]
+
+    # Graphs
+    graph = dcc.Graph(
+        figure=figure,
+        style={
+            "width": "100%",
+            "height": "25pc",
+        },
+        config={"displayModeBar": False},
+        responsive=True,
+    )
+
+    return graph
 
 
 @app.callback(
