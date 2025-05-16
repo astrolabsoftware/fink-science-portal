@@ -50,7 +50,8 @@ from fink_utils.sso.spins import (
     func_hg1g2_with_spin,
     func_hg12,
 )
-from gatspy import periodic
+from astropy.timeseries import LombScargleMultiband
+import nifty_ls  # noqa: F401
 from plotly.subplots import make_subplots
 
 from scipy.optimize import curve_fit
@@ -1281,11 +1282,7 @@ def plot_variable_star(
     object_data,
     object_release,
 ):
-    """Fit for the period of a star using gatspy
-
-    See https://zenodo.org/record/47887
-    See https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
-    """
+    """Fit for the period of a star using multiband Lombscargle"""
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if triggered_id != "submit_variable":
@@ -1354,27 +1351,33 @@ def plot_variable_star(
     dates = convert_jd(jd)
 
     fit_period = False if manual_period is not None else True
-    model = periodic.LombScargleMultiband(
-        Nterms_base=int(nterms_base),
-        Nterms_band=int(nterms_band),
-        fit_period=fit_period,
-    )
-
-    # Not sure about that...
-    model.optimizer.period_range = (period_min, period_max)
-    model.optimizer.quiet = True
-
-    model.fit(
+    model = LombScargleMultiband(
         jd,
         mag,
-        err,
         pdf["i:fid"],
+        err,
+        nterms_base=int(nterms_base),
+        nterms_band=int(nterms_band),
+    )
+
+    if int(nterms_base) == 1 and int(nterms_band) == 1:
+        sb_method = "fastnifty"
+    else:
+        sb_method = "auto"
+
+    frequency, power = model.autopower(
+        method="fast",
+        sb_method=sb_method,
+        minimum_frequency=1 / period_max,
+        maximum_frequency=1 / period_min,
     )
 
     if fit_period:
-        period = model.best_period
+        freq_maxpower = frequency[np.argmax(power)]
+        period = 1 / freq_maxpower
     else:
         period = manual_period
+        freq_maxpower = 1 / period
 
     phase = jd % period
     tfit = np.linspace(0, period, 100)
@@ -1385,6 +1388,26 @@ def plot_variable_star(
         min(10000, max(100, int(10 * (np.max(jd) - np.min(jd)) / period))),
     )
     dates_unfolded = convert_jd(tfit_unfolded)
+
+    # unfolded
+    out_unfolded = model.model(jd, freq_maxpower, bands_fit=pdf["i:fid"].unique())
+    prediction_unfolded = np.zeros_like(jd)
+    for index, filt in enumerate(pdf["i:fid"].unique()):
+        if filt == 3:
+            continue
+        cond = pdf["i:fid"] == filt
+        prediction_unfolded[cond] = out_unfolded[index][cond]
+
+    chi2 = np.sum(((mag - prediction_unfolded) / err) ** 2)
+    reduced_chi2 = chi2 / len(jd - 1)
+
+    # for plot -- oversample lightcurv
+    out_unfolded = model.model(
+        tfit_unfolded, freq_maxpower, bands_fit=pdf["i:fid"].unique()
+    )
+
+    # folded
+    prediction = model.model(tfit, freq_maxpower, bands_fit=pdf["i:fid"].unique())
 
     # Initialize figures
     figure, figure_unfolded, figure_periodogram = (
@@ -1516,11 +1539,10 @@ def plot_variable_star(
             )
 
             # Model
-            magfit = model.predict(tfit, period=period, filts=fid)
             figure["data"].append(
                 {
                     "x": tfit / period,
-                    "y": magfit,
+                    "y": prediction[fid - 1],
                     "mode": "lines",
                     "name": f"fit {fname} band",
                     "legendgroup": f"{fname} band",
@@ -1535,11 +1557,10 @@ def plot_variable_star(
             )
 
             # Model, unfolded
-            magfit = model.predict(tfit_unfolded, period=period, filts=fid)
             figure_unfolded["data"].append(
                 {
                     "x": dates_unfolded,
-                    "y": magfit,
+                    "y": out_unfolded[fid - 1],
                     "mode": "lines",
                     "name": f"fit {fname} band",
                     "legendgroup": f"{fname} band",
@@ -1553,11 +1574,6 @@ def plot_variable_star(
                 }
             )
 
-    # Periodogram
-    # periods,powers = model.periodogram_auto()
-    periods = 1 / np.linspace(1 / period_max, 1 / period_min, 10000)
-    powers = model.periodogram(periods)
-
     figure_periodogram["layout"]["xaxis"]["title"] = "Period, days"
     figure_periodogram["layout"]["xaxis"]["type"] = "log"
     figure_periodogram["layout"]["yaxis"]["title"] = "Periodogram"
@@ -1565,8 +1581,8 @@ def plot_variable_star(
 
     figure_periodogram["data"] = [
         {
-            "x": periods,
-            "y": powers,
+            "x": 1.0 / frequency,
+            "y": power,
             "mode": "lines",
             "name": "Multiband LS periodogram",
             "legendgroup": "periodogram",
@@ -1634,9 +1650,10 @@ def plot_variable_star(
                 style={"width": "100%"},
             ),
             dcc.Markdown(
-                f"""
-                Period = `{period}` days, score = `{model.score(period):.2f}`
+                rf"""
+                Period = `{period:.6f}` days, Reduced $\chi^2$ = `{reduced_chi2:.2f}`
                 """,
+                mathjax=True,
             ),
         ],
         align="center",
