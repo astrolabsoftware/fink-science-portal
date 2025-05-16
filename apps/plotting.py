@@ -1282,11 +1282,7 @@ def plot_variable_star(
     object_data,
     object_release,
 ):
-    """Fit for the period of a star using gatspy
-
-    See https://zenodo.org/record/47887
-    See https://ui.adsabs.harvard.edu/abs/2015ApJ...812...18V/abstract
-    """
+    """Fit for the period of a star using multiband Lombscargle"""
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if triggered_id != "submit_variable":
@@ -1377,7 +1373,6 @@ def plot_variable_star(
     )
 
     if fit_period:
-        # Rotation in days (2* LS value: double-peaked lightcurve)
         freq_maxpower = frequency[np.argmax(power)]
         period = 1 / freq_maxpower
     else:
@@ -1578,11 +1573,6 @@ def plot_variable_star(
                     },
                 }
             )
-
-    # Periodogram
-    # periods,powers = model.periodogram_auto()
-    # periods = 1 / np.linspace(1 / period_max, 1 / period_min, 10000)
-    # powers = model.periodogram(periods)
 
     figure_periodogram["layout"]["xaxis"]["title"] = "Period, days"
     figure_periodogram["layout"]["xaxis"]["type"] = "log"
