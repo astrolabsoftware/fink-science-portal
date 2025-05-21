@@ -369,11 +369,7 @@ def parse_query(string, timeout=None):
         query["hint"] = "Class based search / {}".format(query["params"]["class"])
 
     elif "last" in query["params"]:
-        query["action"] = "class"
-        query["params"]["class"] = "All classes"
-        query["hint"] = "Latest objects / {}, {} objects".format(
-            query["params"]["class"], query["params"]["last"]
-        )
+        query["action"] = "unknown"
 
     elif "after" in query["params"]:
         query["action"] = "daterange"
