@@ -453,13 +453,13 @@ def main(args):
             'candidate.fid',
             'candidate.jd',
             'candidate.ra',
-            'candidate.dec'
+            'candidate.dec',
+            'candidate.ssnamenr',
         ]
 
-        for col in COLS_FINK:
-            # added values are at the root level
-            if col in df.columns:
-                cnames.append(col)
+        # add other values from the root level
+        to_avoid = ["cutoutScience", "cutoutTemplate", "cutoutDifference", "candidate", "prv_candidates", "day", "month", "year"]
+        [cnames.append(col) for col in df.columns if col not in to_avoid]
 
         cnames[cnames.index('lc_features_g')] = 'struct(lc_features_g.*) as lc_features_g'
         cnames[cnames.index('lc_features_r')] = 'struct(lc_features_r.*) as lc_features_r'
@@ -472,15 +472,15 @@ def main(args):
             'candidate.ra',
             'candidate.dec',
             'candidate.jd',
+            'candidate.ssnamenr',
             'cutoutScience',
             'cutoutTemplate',
             'cutoutDifference'
         ]
 
-        for col in COLS_FINK:
-            # added values are at the root level
-            if col in df.columns:
-                cnames.append(col)
+        # add other values from the root level
+        to_avoid = ["cutoutScience", "cutoutTemplate", "cutoutDifference", "candidate", "prv_candidates", "day", "month", "year"]
+        [cnames.append(col) for col in df.columns if col not in to_avoid]
 
         cnames[cnames.index('cutoutScience')] = 'struct(cutoutScience.*) as cutoutScience'
         cnames[cnames.index('cutoutTemplate')] = 'struct(cutoutTemplate.*) as cutoutTemplate'
