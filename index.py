@@ -196,7 +196,7 @@ quick_fields = [
         "trend",
         "Lightcurve trends: rising, fading.\nExperimental feature, only available in combination with class search.\nFor the class (CTA) Blazar, the tags low_state and new_low_State are also available.",
     ],
-    ["last", "Number of latest alerts to show"],
+    ["last", "Number of latest alerts to show. Must be used with the `class` keyword."],
     [
         "radius",
         "Radius for cone search\nMay be used as either `r` or `radius`\nIn arcseconds by default, use `r=1m` or `r=2d` for arcminutes or degrees, correspondingly",
@@ -1135,7 +1135,16 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
         return None, no_update, no_update, no_update
 
     if query["action"] != "class" and "trend" in query["params"]:
-        msg = "trend is experimental and can only be used with class search."
+        msg = "trend is experimental and can only be used with class search. Add the keyword `class=` to your search."
+        return (
+            dbc.Alert(msg, color="warning", className="shadow-sm"),
+            no_update,
+            no_update,
+            history,
+        )
+
+    if "last" in query["params"] and query["action"] == "unknown":
+        msg = "last must be used with class search. Add the keyword `class=` to your search."
         return (
             dbc.Alert(msg, color="warning", className="shadow-sm"),
             no_update,
