@@ -459,7 +459,7 @@ def main(args):
         ]
 
         # add other values from the root level
-        to_avoid = ["cutoutScience", "cutoutTemplate", "cutoutDifference", "candidate", "prv_candidates", "day", "month", "year"]
+        to_avoid = ["candidate", "prv_candidates", "day", "month", "year"]
         [cnames.append(col) for col in df.columns if col not in to_avoid]
 
         # Add extra classification
