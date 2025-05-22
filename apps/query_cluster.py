@@ -243,9 +243,8 @@ candidate.distnr > 2;
 -- Example 3: Filtering on ML scores
 rf_snia_vs_nonia > 0.5;
 snn_snia_vs_nonia > 0.5;
-```"""
-                                ),
-                            )
+```"""),
+                            ),
                         ],
                         value="info",
                     ),
@@ -323,7 +322,9 @@ def display_filter_tab(trans_datasource):
 
             # Available fields
             data_content_select = format_field_for_data_transfer()
-            description = ["One condition per line (SQL syntax), ending with semi-colon. See above for the alert schema."]
+            description = [
+                "One condition per line (SQL syntax), ending with semi-colon. See above for the alert schema."
+            ]
             placeholder = "e.g. candidate.magpsf > 19.5;"
             labels = [
                 "Lightcurve (~1.4 KB/alert)",
