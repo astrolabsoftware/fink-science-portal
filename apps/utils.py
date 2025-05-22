@@ -786,3 +786,119 @@ def apparent_flux_dr(mag_dc, err_dc, mjy=False):
     sigma_flux = flux * 0.4 * np.log(10) * err_dc
 
     return flux, sigma_flux
+
+def select_struct(k, prefix=""):
+    """Select struct field
+    """
+    if k.startswith("mangrove"):
+        return "{}.{}".format(*k.split("_", maxsplit=1))
+    elif k.startswith("blazar"):
+        return "{}.{}".format(*k.split("_", maxsplit=1))
+    elif k.startswith("cutout"):
+        return "{}".format(k.split("_")[0])
+    else:
+        return "{}{}".format(prefix, k)
+
+
+def format_field_for_data_transfer():
+    """Get schema from API, and make it suitable for Data Transfer
+    """
+    schema = request_api("/api/v1/schema", method="GET", output="json")
+
+    data = []
+
+    # objectId
+    objectid = {
+        "group": "ZTF unique object identifier", 
+        "items": [{"value": "objectId", "label": "objectId"}]
+    }
+    data.append(objectid)
+
+    # Fink added values
+    labels = ["{}".format(select_struct(k)) for k in schema["Fink science module outputs (d:)"].keys()] 
+    fink = {
+        "group": "Fink science module outputs",
+        "items": [{"value": l, "label": l} for l in labels]
+    }
+    data.append(fink)
+
+    # candidate
+    labels = ["{}".format(select_struct(k, "candidate.")) for k in schema["ZTF original fields (i:)"].keys() if k != "objectId"]
+    candidate = {
+        "group": "ZTF original fields",
+        "items": [{"value": l, "label": l} for l in labels]
+    }
+    data.append(candidate)
+
+    # Cutouts
+    labels = ["{}".format(select_struct(k)) for k in schema["ZTF original cutouts (b:)"].keys()] 
+    cutout = {
+        "group": "ZTF original cutouts",
+        "items": [{"value": l, "label": l} for l in labels]
+    }
+    data.append(cutout)
+
+    return data
+
+def create_datatransfer_schema_table():
+    """
+    """
+    schema = request_api("/api/v1/schema", method="GET", output="json")
+
+    def format_type(t):
+        if isinstance(t, list):
+            return t[-1]
+        else:
+            return t
+
+    rows = []
+    rows.append(
+        dmc.TableTr(
+            [dmc.TableTd("objectId"), dmc.TableTd("ZTF"), dmc.TableTd("string"), dmc.TableTd("Unique identifier for an object")]
+        )
+    )
+    for prov, prefix in zip(
+            ["Fink science module outputs (d:)", "ZTF original fields (i:)", "ZTF original cutouts (b:)"],
+            ["", "candidate.", ""]
+        ):
+        # Table candidates
+        labels = [select_struct(k, prefix) for k in schema[prov].keys() if k != "objectId"]
+        types = [format_type(v["type"]) for k, v in schema[prov].items() if k != "objectId"]
+        docs = [v["doc"] for k, v in schema[prov].items() if k != "objectId"]
+
+        [
+            rows.append(dmc.TableTr(
+                [
+                    dmc.TableTd(label),
+                    dmc.TableTd(prov.split(" ")[0]),
+                    dmc.TableTd(type_),
+                    dmc.TableTd(doc),
+                ]
+            ))
+            for label, type_, doc in zip(labels, types, docs)
+        ]
+
+    head = dmc.TableThead(
+        dmc.TableTr(
+            [
+                dmc.TableTh("Name", w="25%"),
+                dmc.TableTh("From", w="15%"),
+                dmc.TableTh("Type", w="15%"),
+                dmc.TableTh("Documentation"),
+            ]
+        )
+    )
+    body = dmc.TableTbody(rows)
+    caption = dmc.TableCaption("Alert schema")
+
+    table_candidate = dmc.TableScrollContainer(
+        dmc.Table(
+            [head, body, caption], 
+            horizontalSpacing="xl",
+            highlightOnHover=True,
+        ),
+        maxHeight=300,
+        minWidth=0,
+        type="scrollarea",
+    )
+    return table_candidate

@@ -35,6 +35,8 @@ from apps.mining.utils import (
 )
 from apps.utils import request_api
 from apps.utils import extract_configuration
+from apps.utils import format_field_for_data_transfer
+from apps.utils import create_datatransfer_schema_table
 
 args = extract_configuration("config.yml")
 APIURL = args["APIURL"]
@@ -180,11 +182,74 @@ def filter_tab():
                 searchable=True,
             ),
             dmc.Space(h=10),
+            dmc.MultiSelect(
+                label="Alert fields",
+                description="Select all fields you like (only available for ZTF data source)! Default is all fields.",
+                placeholder="start typing...",
+                id="field_select",
+                searchable=True,
+            ),
+            dmc.Accordion(
+                children=[
+                    dmc.AccordionItem(
+                        [
+                            dmc.AccordionControl(
+                                "Alert schema",
+                                icon=DashIconify(
+                                    icon="tabler:book",
+                                    color=dmc.DEFAULT_THEME["colors"]["blue"][6],
+                                    width=20,
+                                ),
+                            ),
+                            dmc.AccordionPanel(create_datatransfer_schema_table()),
+                        ],
+                        value="info",
+                    ),
+                ],
+            ),
+            dmc.Space(h=10),
             dmc.Textarea(
                 id="extra_cond",
                 label="Extra conditions",
                 autosize=True,
                 minRows=2,
+            ),  # TODO: make the content of this accordion depends on the input survey
+            dmc.Accordion(
+                children=[
+                    dmc.AccordionItem(
+                        [
+                            dmc.AccordionControl(
+                                "Examples",
+                                icon=DashIconify(
+                                    icon="tabler:help",
+                                    color=dmc.DEFAULT_THEME["colors"]["blue"][6],
+                                    width=20,
+                                ),
+                            ),
+                            dmc.AccordionPanel(
+                                dcc.Markdown("""You can impose extra conditions on the alerts you want to retrieve based on their content. You will simply specify the name of the parameter with the condition (SQL syntax). If you have several conditions, put one condition per line, ending with semi-colon. Example of valid conditions:
+
+```sql
+-- Example 1
+-- Alerts with magnitude above 19.5 and
+-- at least 2'' distance away to nearest
+-- source in ZTF reference images:
+candidate.magpsf > 19.5;
+candidate.distnr > 2;
+
+-- Example 2: Using a combination of fields
+(candidate.magnr - candidate.magpsf) < -4 * (LOG10(candidate.distnr) + 0.2);
+
+-- Example 3: Filtering on ML scores
+rf_snia_vs_nonia > 0.5;
+snn_snia_vs_nonia > 0.5;
+```"""
+                                ),
+                            )
+                        ],
+                        value="info",
+                    ),
+                ],
             ),
         ],
     )
@@ -206,6 +271,7 @@ def filter_tab():
         Output("date-range-picker", "minDate"),
         Output("date-range-picker", "maxDate"),
         Output("class_select", "data"),
+        Output("field_select", "data"),
         Output("extra_cond", "description"),
         Output("extra_cond", "placeholder"),
         Output("trans_content", "children"),
@@ -254,27 +320,10 @@ def display_filter_tab(trans_datasource):
                     for simtype in simbad_types
                 ],
             ]
-            description = [
-                "One condition per line (SQL syntax), ending with semi-colon. See ",
-                dmc.Anchor(
-                    "here", href=f"{APIURL}/api/v1/schema", size="xs", target="_blank"
-                ),
-                " (and also ",
-                dmc.Anchor(
-                    "here",
-                    href="https://fink-broker.readthedocs.io/en/latest/science/added_values/",
-                    size="xs",
-                    target="_blank",
-                ),
-                ") for fields description and ",
-                dmc.Anchor(
-                    "here",
-                    href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/",
-                    size="xs",
-                    target="_blank",
-                ),
-                " for examples.",
-            ]
+
+            # Available fields
+            data_content_select = format_field_for_data_transfer()
+            description = ["One condition per line (SQL syntax), ending with semi-colon. See above for the alert schema."]
             placeholder = "e.g. candidate.magpsf > 19.5;"
             labels = [
                 "Lightcurve (~1.4 KB/alert)",
@@ -324,6 +373,7 @@ def display_filter_tab(trans_datasource):
                     for label, k in zip(labels, values)
                 ]
             )
+            data_content_select = None
         elif trans_datasource == "ELASTiCC (v2.0)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -360,6 +410,7 @@ def display_filter_tab(trans_datasource):
                     for label, k in zip(labels, values)
                 ]
             )
+            data_content_select = None
         elif trans_datasource == "ELASTiCC (v2.1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -396,12 +447,14 @@ def display_filter_tab(trans_datasource):
                     for label, k in zip(labels, values)
                 ]
             )
+            data_content_select = None
 
         return (
             {},
             minDate,
             maxDate,
             data_class_select,
+            data_content_select,
             description,
             placeholder,
             data_content,
@@ -811,6 +864,7 @@ def update_final_accordion1(topic_name):
         State("trans_datasource", "value"),
         State("date-range-picker", "value"),
         State("class_select", "value"),
+        State("field_select", "value"),
         State("extra_cond", "value"),
     ],
     prevent_initial_call=True,
@@ -821,6 +875,7 @@ def submit_job(
     trans_datasource,
     date_range_picker,
     class_select,
+    field_select,
     extra_cond,
 ):
     """Submit a job to the Apache Spark cluster via Livy"""
@@ -883,6 +938,8 @@ def submit_job(
         ]
         if class_select is not None:
             [job_args.append(f"-fclass={elem}") for elem in class_select]
+        if field_select is not None:
+            [job_args.append(f"-ffield={elem}") for elem in field_select]
 
         if extra_cond is not None:
             extra_cond_list = extra_cond.split(";")
