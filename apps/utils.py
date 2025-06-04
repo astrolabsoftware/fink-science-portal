@@ -502,6 +502,51 @@ def get_first_value(pdf, colname, default=None):
         return default
 
 
+def get_multi_labels(pdf, colname, default=None, to_avoid=None):
+    """Get aggregation of unique labels from given column of a DataFrame, or default value if not exists.
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Fink Pandas DataFrame
+    colname: str
+        Column name
+    default: NoneType, optional
+        Default value to assign if the
+        column is not defined in the DataFrame schema
+    to_avoid: NoneType or list, optional
+        If provided, list of labels to avoid
+
+    Returns
+    -------
+    out: str
+
+    Examples
+    --------
+    >>> pdf = pd.DataFrame({"a": ["nan", "AM", "AM", "toto"]})
+    >>> get_multi_labels(pdf, "a", to_avoid=["nan"])
+    'AM/toto'
+    """
+    if colname in pdf.columns:
+        if to_avoid is None:
+            to_avoid = []
+
+        if len(np.unique(pdf[colname])) == 1:
+            return pdf.loc[0, colname]
+
+        # Case for multilabels
+        out = "/".join(
+            [
+                i
+                for i in np.unique(pdf[colname].values)
+                if not i.startswith("Fail") and i not in to_avoid
+            ]
+        )
+        return out
+    else:
+        return default
+
+
 def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
     """Output is one of 'pandas' (default), 'raw' or 'json'"""
     args = extract_configuration("config.yml")
