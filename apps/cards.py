@@ -307,11 +307,11 @@ def card_neighbourhood(pdf):
     gcvs = get_first_value(pdf, "d:gcvs")
 
     # Sanitize empty values
-    if ssnamenr == 'null':
-        ssnamenr = ''
+    if ssnamenr == "null":
+        ssnamenr = ""
 
-    if not vsx or vsx == 'nan':
-        vsx = 'Unknown'
+    if not vsx or vsx == "nan":
+        vsx = "Unknown"
 
     card = dmc.Paper(
         [
@@ -945,7 +945,13 @@ def generate_generic_badges(row, variant="dot"):
         )
 
     vsx = row.get("d:vsx")
-    if vsx and vsx != "Unknown" and vsx != 'nan' and vsx == vsx and (type(vsx) == str and not vsx.startswith('Fail')):
+    if (
+        vsx
+        and vsx != "Unknown"
+        and vsx != "nan"
+        and vsx == vsx
+        and (type(vsx) == str and not vsx.startswith("Fail"))
+    ):
         badges.append(
             make_badge(
                 f"VSX: {vsx}",

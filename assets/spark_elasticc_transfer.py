@@ -69,8 +69,7 @@ def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
 
 
 def to_avro(dfcol: Column) -> Column:
-    """Serialize the structured data of a DataFrame column into
-    avro data (binary).
+    """Serialize the structured data of a DataFrame column into avro data (binary).
 
     Note:
     Since Pyspark does not have a function to convert a column to and from
@@ -148,7 +147,7 @@ def write_to_kafka(
     df_kafka = df_kafka.withColumn("partition", (F.rand(seed=0) * npart).astype("int"))
 
     # Send schema
-    disquery = (
+    _ = (
         df_kafka.write.format("kafka")
         .option("kafka.bootstrap.servers", kafka_bootstrap_servers)
         .option("kafka.sasl.username", kafka_sasl_username)
@@ -207,7 +206,9 @@ def generate_spark_paths(spark, startDate, stopDate, basePath):
             paths = [path]
     else:
         # more than one night
-        dateRange = pd.date_range(start=startDate, end=stopDate).astype("str").values
+        dateRange = (
+            pd.date_range(start=startDate, end=stopDate).astype("str").to_numpy()
+        )
 
         for aDate in dateRange:
             year, month, day = aDate.split("-")

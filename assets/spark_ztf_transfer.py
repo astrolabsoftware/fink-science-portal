@@ -164,9 +164,9 @@ def add_classification(spark, df, path_to_tns):
 
         sub_pdf = pd.DataFrame(
             {
-                "objectId": objectid.values,
-                "ra": ra.values,
-                "dec": dec.values,
+                "objectId": objectid.to_numpy(),
+                "ra": ra.to_numpy(),
+                "dec": dec.to_numpy(),
             }
         )
 
@@ -177,12 +177,12 @@ def add_classification(spark, df, path_to_tns):
         sep_constraint2 = d2d2.degree < 1.5 / 3600
 
         sub_pdf["TNS"] = ["Unknown"] * len(sub_pdf)
-        sub_pdf["TNS"][sep_constraint2] = type2.values[idx2[sep_constraint2]]
+        sub_pdf["TNS"][sep_constraint2] = type2.to_numpy()[idx2[sep_constraint2]]
 
         to_return = objectid.apply(
             lambda x: "Unknown"
-            if x not in sub_pdf["objectId"].values
-            else sub_pdf["TNS"][sub_pdf["objectId"] == x].values[0]
+            if x not in sub_pdf["objectId"].to_numpy()
+            else sub_pdf["TNS"][sub_pdf["objectId"] == x].to_numpy()[0]
         )
 
         return to_return
@@ -196,8 +196,7 @@ def add_classification(spark, df, path_to_tns):
 
 
 def to_avro(dfcol: Column) -> Column:
-    """Serialize the structured data of a DataFrame column into
-    avro data (binary).
+    """Serialize the structured data of a DataFrame column into avro data (binary).
 
     Note:
     Since Pyspark does not have a function to convert a column to and from
@@ -275,7 +274,7 @@ def write_to_kafka(
     df_kafka = df_kafka.withColumn("partition", (F.rand(seed=0) * npart).astype("int"))
 
     # Send schema
-    disquery = (
+    _ = (
         df_kafka.write.format("kafka")
         .option("kafka.bootstrap.servers", kafka_bootstrap_servers)
         .option("kafka.sasl.username", kafka_sasl_username)
@@ -338,7 +337,9 @@ def generate_spark_paths(startDate, stopDate, basePath):
             paths = []
     else:
         # more than one night
-        dateRange = pd.date_range(start=startDate, end=stopDate).astype("str").values
+        dateRange = (
+            pd.date_range(start=startDate, end=stopDate).astype("str").to_numpy()
+        )
 
         paths = []
         for aDate in dateRange:
