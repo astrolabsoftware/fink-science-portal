@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2023 AstroLab Software
+# Copyright 2023-2025 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,31 +38,6 @@ import requests
 
 import logging
 from logging import Logger
-
-COLS_FINK = [
-    "finkclass",
-    "tnsclass",
-    "cdsxmatch",
-    "roid",
-    "mulens",
-    "DR3Name",
-    "Plx",
-    "e_Plx",
-    "gcvs",
-    "vsx",
-    "snn_snia_vs_nonia",
-    "snn_sn_vs_all",
-    "rf_snia_vs_nonia",
-    "rf_kn_vs_nonkn",
-    "tracklet",
-    "x4lac",
-    "x3hsp",
-    "mangrove",
-    "t2",
-    "anomaly_score",
-    "lc_features_g",
-    "lc_features_r",
-]
 
 
 def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
@@ -493,12 +468,25 @@ def main(args):
             "candidate.jd",
             "candidate.ra",
             "candidate.dec",
+            "candidate.ssnamenr",
         ]
 
-        for col in COLS_FINK:
-            # added values are at the root level
-            if col in df.columns:
-                cnames.append(col)
+        # add other values from the root level
+        to_avoid = [
+            "cutoutScience",
+            "cutoutTemplate",
+            "cutoutDifference",
+            "candidate",
+            "prv_candidates",
+            "day",
+            "month",
+            "year",
+        ]
+        [cnames.append(col) for col in df.columns if col not in to_avoid]
+
+        # Add extra classification
+        cnames.append("finkclass")
+        cnames.append("tnsclass")
 
         cnames[cnames.index("lc_features_g")] = (
             "struct(lc_features_g.*) as lc_features_g"
@@ -515,15 +503,19 @@ def main(args):
             "candidate.ra",
             "candidate.dec",
             "candidate.jd",
+            "candidate.ssnamenr",
             "cutoutScience",
             "cutoutTemplate",
             "cutoutDifference",
         ]
 
-        for col in COLS_FINK:
-            # added values are at the root level
-            if col in df.columns:
-                cnames.append(col)
+        # add other values from the root level
+        to_avoid = ["candidate", "prv_candidates", "day", "month", "year"]
+        [cnames.append(col) for col in df.columns if col not in to_avoid]
+
+        # Add extra classification
+        cnames.append("finkclass")
+        cnames.append("tnsclass")
 
         cnames[cnames.index("cutoutScience")] = (
             "struct(cutoutScience.*) as cutoutScience"
