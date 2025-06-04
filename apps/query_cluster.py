@@ -350,7 +350,12 @@ def display_filter_tab(trans_datasource):
             # filters
             import pkgutil
             import fink_filters.ztf as ffz
-            filter_list = ["fink_filters.ztf.{}.filter".format(mod) for _, mod, _ in pkgutil.iter_modules(ffz.__path__) if mod.startswith("filter")]
+
+            filter_list = [
+                "fink_filters.ztf.{}.filter".format(mod)
+                for _, mod, _ in pkgutil.iter_modules(ffz.__path__)
+                if mod.startswith("filter")
+            ]
         elif trans_datasource == "ELASTiCC (v1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
