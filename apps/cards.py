@@ -320,7 +320,8 @@ def card_neighbourhood(pdf):
                 f"""
                 Constellation: `{constellation}`
                 Class (SIMBAD): `{cdsxmatch}`
-                Class (VSX/GCVS): `{vsx}` / `{gcvs}`
+                Class (VSX): `{vsx}`
+                Class (GCVS): `{gcvs}`
                 Name (MPC): `{ssnamenr}`
                 Name (Gaia): `{gaianame}`
                 Distance (Gaia): `{float(neargaia):.2f}` arcsec
