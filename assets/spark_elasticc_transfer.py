@@ -13,37 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyspark import SparkContext
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import SparkSession
 from pyspark.sql.column import Column, _to_java_column
 import pyspark.sql.functions as F
 from pyspark.sql.functions import struct, lit
-from pyspark.sql.functions import pandas_udf, PandasUDFType
-from pyspark.sql.types import StringType
 
 from fink_utils.spark import schema_converter
 
 from time import time
 import pandas as pd
-import numpy as np
-from astropy.coordinates import SkyCoord
-from astropy import units as u
 
-import io
-import os
-import glob
-import shutil
-import json
-import fastavro
 import sys
-import subprocess
 import argparse
-import requests
 
 import logging
 from logging import Logger
 
+
 def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
-    """ Initialise python logger. Suitable for both driver and executors.
+    """Initialise python logger. Suitable for both driver and executors.
 
     Parameters
     ----------
@@ -54,12 +42,12 @@ def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
         Minimum level of log wanted: DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF
 
     Returns
-    ----------
+    -------
     logger : logging.Logger
         Python Logger
 
     Examples
-    ----------
+    --------
     >>> log = get_fink_logger(__name__, "INFO")
     >>> log.info("Hi!")
     """
@@ -79,6 +67,7 @@ def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
 
     return logger
 
+
 def to_avro(dfcol: Column) -> Column:
     """Serialize the structured data of a DataFrame column into
     avro data (binary).
@@ -95,13 +84,13 @@ def to_avro(dfcol: Column) -> Column:
         A DataFrame Column with Structured data
 
     Returns
-    ----------
+    -------
     out: Column
         DataFrame Column encoded into avro data (binary).
         This is what is required to publish to Kafka Server for distribution.
 
     Examples
-    ----------
+    --------
     >>> from pyspark.sql.functions import col, struct
     >>> avro_example_schema = '''
     ... {
@@ -123,8 +112,17 @@ def to_avro(dfcol: Column) -> Column:
     f = getattr(getattr(avro, "package$"), "MODULE$").to_avro
     return Column(f(_to_java_column(dfcol)))
 
-def write_to_kafka(sdf, key, kafka_bootstrap_servers, kafka_sasl_username, kafka_sasl_password, topic_name, npart=10):
-    """ Send data to a Kafka cluster using Apache Spark
+
+def write_to_kafka(
+    sdf,
+    key,
+    kafka_bootstrap_servers,
+    kafka_sasl_username,
+    kafka_sasl_password,
+    topic_name,
+    npart=10,
+):
+    """Send data to a Kafka cluster using Apache Spark
 
     Parameters
     ----------
@@ -146,21 +144,22 @@ def write_to_kafka(sdf, key, kafka_bootstrap_servers, kafka_sasl_username, kafka
     # Create a StructType column in the df for distribution.
     df_struct = sdf.select(struct(sdf.columns).alias("struct"))
     df_kafka = df_struct.select(to_avro("struct").alias("value"))
-    df_kafka = df_kafka.withColumn('key', key)
-    df_kafka = df_kafka.withColumn('partition', (F.rand(seed=0) * npart).astype('int'))
+    df_kafka = df_kafka.withColumn("key", key)
+    df_kafka = df_kafka.withColumn("partition", (F.rand(seed=0) * npart).astype("int"))
 
     # Send schema
-    disquery = df_kafka\
-        .write\
-        .format("kafka")\
-        .option("kafka.bootstrap.servers", kafka_bootstrap_servers)\
-        .option("kafka.sasl.username", kafka_sasl_username)\
-        .option("kafka.sasl.password", kafka_sasl_password)\
-        .option("topic", topic_name)\
+    disquery = (
+        df_kafka.write.format("kafka")
+        .option("kafka.bootstrap.servers", kafka_bootstrap_servers)
+        .option("kafka.sasl.username", kafka_sasl_username)
+        .option("kafka.sasl.password", kafka_sasl_password)
+        .option("topic", topic_name)
         .save()
+    )
+
 
 def check_path_exist(spark, path):
-    """ Check we have data for the given night on HDFS
+    """Check we have data for the given night on HDFS
 
     Parameters
     ----------
@@ -168,7 +167,7 @@ def check_path_exist(spark, path):
         Path on HDFS (file or folder)
 
     Returns
-    ----------
+    -------
     out: bool
     """
     # check on hdfs
@@ -180,8 +179,9 @@ def check_path_exist(spark, path):
     else:
         return False
 
+
 def generate_spark_paths(spark, startDate, stopDate, basePath):
-    """ Generate individual data paths
+    """Generate individual data paths
 
     Parameters
     ----------
@@ -193,32 +193,30 @@ def generate_spark_paths(spark, startDate, stopDate, basePath):
         HDFS basepath for the data
 
     Returns
-    ----------
+    -------
     paths: list of str
         List of paths
     """
-    endPath = '/year={}/month={}/day={}'
+    endPath = "/year={}/month={}/day={}"
 
     paths = []
     if startDate == stopDate:
-        year, month, day = startDate.split('-')
+        year, month, day = startDate.split("-")
         path = basePath + endPath.format(year, month, day)
         if check_path_exist(spark, path):
             paths = [path]
     else:
         # more than one night
-        dateRange = pd.date_range(
-            start=startDate,
-            end=stopDate
-        ).astype('str').values
+        dateRange = pd.date_range(start=startDate, end=stopDate).astype("str").values
 
         for aDate in dateRange:
-            year, month, day = aDate.split('-')
+            year, month, day = aDate.split("-")
             path = basePath + endPath.format(year, month, day)
             if check_path_exist(spark, path):
                 paths.append(path)
 
     return paths
+
 
 def main(args):
     spark = SparkSession.builder.getOrCreate()
@@ -231,32 +229,38 @@ def main(args):
     log.info("Generating data paths...")
     paths = generate_spark_paths(spark, args.startDate, args.stopDate, args.basePath)
     if paths == []:
-        log.info('No alert data found in between {} and {}'.format(args.startDate, args.stopDate))
+        log.info(
+            "No alert data found in between {} and {}".format(
+                args.startDate, args.stopDate
+            )
+        )
         spark.stop()
         sys.exit(1)
 
-    df = spark.read.format('parquet').option('basePath', args.basePath).load(paths)
+    df = spark.read.format("parquet").option("basePath", args.basePath).load(paths)
 
     # need fclass and extra conditions
     if args.fclass is not None:
         if args.fclass != []:
-            if 'allclasses' not in args.fclass:
-                df = df.filter(df['classId'].isin(args.fclass))
+            if "allclasses" not in args.fclass:
+                df = df.filter(df["classId"].isin(args.fclass))
 
     if args.extraCond is not None:
         for cond in args.extraCond:
-            if cond == '':
+            if cond == "":
                 continue
             df = df.filter(cond)
 
-    if args.content == 'Full packet':
+    if args.content == "Full packet":
         # Cast fields to ease the distribution
         cnames = df.columns
-        cnames[cnames.index('timestamp')] = 'cast(timestamp as string) as timestamp'
-        cnames[cnames.index('brokerIngestTimestamp')] = 'cast(brokerIngestTimestamp as string) as brokerIngestTimestamp'
-        cnames[cnames.index('classId')] = 'cast(classId as integer) as classId'
-        cnames[cnames.index('diaSource')] = 'struct(diaSource.*) as diaSource'
-        cnames[cnames.index('diaObject')] = 'struct(diaObject.*) as diaObject'
+        cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
+        cnames[cnames.index("brokerIngestTimestamp")] = (
+            "cast(brokerIngestTimestamp as string) as brokerIngestTimestamp"
+        )
+        cnames[cnames.index("classId")] = "cast(classId as integer) as classId"
+        cnames[cnames.index("diaSource")] = "struct(diaSource.*) as diaSource"
+        cnames[cnames.index("diaObject")] = "struct(diaObject.*) as diaObject"
 
     # Wrap alert data
     df = df.selectExpr(cnames)
@@ -269,11 +273,7 @@ def main(args):
 
     # create a fake dataframe with 100 entries
     df_schema = spark.createDataFrame(
-        pd.DataFrame(
-            {
-                'schema': ['new_schema_{}.avsc'.format(time())] * 1000
-            }
-        )
+        pd.DataFrame({"schema": ["new_schema_{}.avsc".format(time())] * 1000})
     )
 
     log.info("Sending the schema to Kafka...")
@@ -285,10 +285,10 @@ def main(args):
         args.kafka_bootstrap_servers,
         args.kafka_sasl_username,
         args.kafka_sasl_password,
-        args.topic_name + '_schema'
+        args.topic_name + "_schema",
     )
 
-    log.info('Starting to send data to topic {}'.format(args.topic_name))
+    log.info("Starting to send data to topic {}".format(args.topic_name))
 
     write_to_kafka(
         df,
@@ -296,28 +296,28 @@ def main(args):
         args.kafka_bootstrap_servers,
         args.kafka_sasl_username,
         args.kafka_sasl_password,
-        args.topic_name
+        args.topic_name,
     )
 
-    log.info('Data ({}) available at topic: {}'.format(args.content, args.topic_name))
-    log.info('End.')
+    log.info("Data ({}) available at topic: {}".format(args.content, args.topic_name))
+    log.info("End.")
 
 
 if __name__ == "__main__":
     """ Execute the test suite """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-startDate')
-    parser.add_argument('-stopDate')
-    parser.add_argument('-fclass', action='append')
-    parser.add_argument('-extraCond', action='append')
-    parser.add_argument('-content')
-    parser.add_argument('-basePath')
-    parser.add_argument('-topic_name')
-    parser.add_argument('-kafka_bootstrap_servers')
-    parser.add_argument('-kafka_sasl_username')
-    parser.add_argument('-kafka_sasl_password')
-    parser.add_argument('-path_to_tns')
+    parser.add_argument("-startDate")
+    parser.add_argument("-stopDate")
+    parser.add_argument("-fclass", action="append")
+    parser.add_argument("-extraCond", action="append")
+    parser.add_argument("-content")
+    parser.add_argument("-basePath")
+    parser.add_argument("-topic_name")
+    parser.add_argument("-kafka_bootstrap_servers")
+    parser.add_argument("-kafka_sasl_username")
+    parser.add_argument("-kafka_sasl_password")
+    parser.add_argument("-path_to_tns")
 
     args = parser.parse_args()
     main(args)
