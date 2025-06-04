@@ -906,6 +906,11 @@ def generate_tns_badge(oid):
 def generate_generic_badges(row, variant="dot"):
     """Operates on first row of a DataFrame, or directly on Series from pdf.iterrow()"""
     if isinstance(row, pd.DataFrame):
+        # for VSX, aggregate values
+        vsx_label = get_multi_labels(row, "d:vsx", default="Unknown", to_avoid=["nan"])
+        if vsx_label != row.loc[0].get("d:vsx"):
+            row["d:vsx"] = vsx_label
+
         # Get first row from DataFrame
         row = row.loc[0]
 
