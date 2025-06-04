@@ -950,7 +950,7 @@ def generate_generic_badges(row, variant="dot"):
         and vsx != "Unknown"
         and vsx != "nan"
         and vsx == vsx
-        and (type(vsx) == str and not vsx.startswith("Fail"))
+        and (isinstance(vsx, str) and not vsx.startswith("Fail"))
     ):
         badges.append(
             make_badge(
