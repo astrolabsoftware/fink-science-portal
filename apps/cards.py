@@ -31,6 +31,7 @@ from apps.utils import (
     class_colors,
     create_button_for_external_conesearch,
     get_first_value,
+    get_multi_labels,
     help_popover,
     loading,
     request_api,
@@ -301,14 +302,14 @@ def card_neighbourhood(pdf):
     distpsnr1 = get_first_value(pdf, "i:distpsnr1")
     neargaia = get_first_value(pdf, "i:neargaia")
     constellation = get_first_value(pdf, "v:constellation")
-    gaianame = get_first_value(pdf, "d:DR3Name")
-    cdsxmatch = get_first_value(pdf, "d:cdsxmatch")
-    vsx = get_first_value(pdf, "d:vsx")
-    gcvs = get_first_value(pdf, "d:gcvs")
+    gaianame = get_multi_labels(pdf, "d:DR3Name", to_avoid=["nan"])
+    cdsxmatch = get_multi_labels(pdf, "d:cdsxmatch", to_avoid=["nan"])
+    vsx = get_multi_labels(pdf, "d:vsx", to_avoid=["nan"])
+    gcvs = get_multi_labels(pdf, "d:gcvs", to_avoid=["nan"])
 
     # Sanitize empty values
     if ssnamenr == "null":
-        ssnamenr = ""
+        ssnamenr = "N/A"
 
     if not vsx or vsx == "nan":
         vsx = "Unknown"
