@@ -32,6 +32,8 @@ def card_explanation_observability():
     The right panel allows you to select an observation date and an observatory. You can also choose to display the altitude of the moon during the night, as well as its phase and illumination. Once you have selected a date and an observatory, click on `Update Plot`.
 
     The plot also shows the different definitions of nights, which can be useful, from lighter to darker shades of blue. These are no-sun night (sun below the horizon), civil night (sun 6° below the horizon), nautical night (sun 12° below the horizon) and astronomical night (sun 18° below the horizon).
+
+    In case your observatory is not listed here, open a [ticket](https://github.com/astrolabsoftware/fink-science-portal/issues) with the coordinates.
     """
     card = dmc.Accordion(
         children=[
