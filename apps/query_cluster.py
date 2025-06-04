@@ -160,7 +160,6 @@ def timeline_data_transfer(
 
 
 def filter_tab():
-    """Section containing filtering options"""
     options = html.Div(
         [
             dmc.DatePickerInput(
@@ -206,6 +205,14 @@ def filter_tab():
                         value="info",
                     ),
                 ],
+            ),
+            dmc.Space(h=10),
+            dmc.Select(
+                label="Connect with Livestream",
+                description="You can apply a Fink filter used in the Livestream service to the processing. See filters in this [list](https://fink-broker.readthedocs.io/en/latest/broker/filters/#real-time-filters). No filter is applied by default.",
+                placeholder="start typing...",
+                id="filter_select",
+                searchable=True,
             ),
             dmc.Space(h=10),
             dmc.Textarea(
@@ -271,6 +278,7 @@ snn_snia_vs_nonia > 0.5;
         Output("date-range-picker", "maxDate"),
         Output("class_select", "data"),
         Output("field_select", "data"),
+        Output("filter_select", "data"),
         Output("extra_cond", "description"),
         Output("extra_cond", "placeholder"),
         Output("trans_content", "children"),
@@ -323,7 +331,7 @@ def display_filter_tab(trans_datasource):
             # Available fields
             data_content_select = format_field_for_data_transfer()
             description = [
-                "One condition per line (SQL syntax), ending with semi-colon. See above for the alert schema."
+                "One condition per line (SQL syntax), ending with semi-colon. See below for the alert schema."
             ]
             placeholder = "e.g. candidate.magpsf > 19.5;"
             labels = [
@@ -338,6 +346,11 @@ def display_filter_tab(trans_datasource):
                     for label, k in zip(labels, values)
                 ]
             )
+
+            # filters
+            import pkgutil
+            import fink_filters.ztf as ffz
+            filter_list = ["fink_filters.ztf.{}.filter".format(mod) for _, mod, _ in pkgutil.iter_modules(ffz.__path__) if mod.startswith("filter")]
         elif trans_datasource == "ELASTiCC (v1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -375,6 +388,7 @@ def display_filter_tab(trans_datasource):
                 ]
             )
             data_content_select = None
+            filter_list = []
         elif trans_datasource == "ELASTiCC (v2.0)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -412,6 +426,7 @@ def display_filter_tab(trans_datasource):
                 ]
             )
             data_content_select = None
+            filter_list = []
         elif trans_datasource == "ELASTiCC (v2.1)":
             minDate = date(2023, 11, 27)
             maxDate = date(2026, 12, 5)
@@ -449,6 +464,7 @@ def display_filter_tab(trans_datasource):
                 ]
             )
             data_content_select = None
+            filter_list = []
 
         return (
             {},
@@ -456,6 +472,7 @@ def display_filter_tab(trans_datasource):
             maxDate,
             data_class_select,
             data_content_select,
+            filter_list,
             description,
             placeholder,
             data_content,
