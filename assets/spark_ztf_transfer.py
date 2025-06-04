@@ -39,7 +39,6 @@ import requests
 import logging
 from logging import Logger
 
-
 def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
     """Initialise python logger. Suitable for both driver and executors.
 

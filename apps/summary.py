@@ -46,6 +46,7 @@ from apps.utils import (
 from apps.varstars.cards import card_explanation_variable
 from apps.blazars.cards import card_explanation_blazar
 from apps.observability.cards import card_explanation_observability
+from apps.observability.utils import additional_observatories
 
 dcc.Location(id="url", refresh=False)
 
@@ -454,12 +455,18 @@ def tab6_content(object_tracklet):
 
 
 def tab_observability(pdf):
-    """
-    Displays the observation plot (altitude and airmass) of the source after selecting an observatory and a date.
+    """Displays the observation plot (altitude and airmass) of the source after selecting an observatory and a date.
 
     Also displays the observation plot of the Moon as well as its illumination, and the various definition of night. Bottom axis shows UTC time and top axis shows Local time.
     """
-    observatories = np.unique(EarthLocation.get_site_names())
+    observatories = np.sort(
+        np.concatenate(
+            (
+                np.unique(EarthLocation.get_site_names()),
+                list(additional_observatories.keys()),
+            )
+        )
+    )
     nterms_base = dmc.Container(
         [
             dmc.Divider(variant="solid", label="Follow-up"),
