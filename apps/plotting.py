@@ -25,7 +25,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, EarthLocation, Latitude, Longitude
 import astropy.units as u
 from astropy.time import Time
 from dash import (
@@ -480,6 +480,7 @@ layout_observability = dict(
     },
 )
 
+<<<<<<< Updated upstream
 """
 def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_elevation=False):
     import matplotlib.pyplot as plt
@@ -593,8 +594,10 @@ def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_ele
 
     return fig
 
+=======
+>>>>>>> Stashed changes
 @app.callback(
-    Output("observability_plot", "src"),
+    Output("observability_plot", "children"),
     [
         Input("summary_tabs", "value"),
         Input("submit_observability", "n_clicks"),
@@ -605,7 +608,9 @@ def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_ele
         State("dateobs", "value"),
         State("moon_elevation", "checked"),
         State("moon_phase", "checked"),
-        State("moon_illumination", "checked")
+        State("moon_illumination", "checked"),
+        State("longitude", "value"),
+        State("latitude", "value"),
     ],
     prevent_initial_call=True,
     background=True,
@@ -618,11 +623,13 @@ def plot_observability(
     summary_tab,
     nclick,
     object_data,
-    observatory,
+    observatory_name,
     dateobs,
     moon_elevation,
     moon_phase,
-    moon_illumination
+    moon_illumination,
+    longitude,
+    latitude,
 ):
     if summary_tab != "Observability":
         raise PreventUpdate
@@ -630,24 +637,15 @@ def plot_observability(
     pdf = pd.read_json(io.StringIO(object_data))
     ra0 = np.mean(pdf["i:ra"].to_numpy())
     dec0 = np.mean(pdf["i:dec"].to_numpy())
-    target = SkyCoord(ra=ra0, dec=dec0, unit=(u.deg, u.deg))
-    fig = plot_altitude(
-        target,
-        observatory,
-        dateobs,
-        UTC=0,
-        ax=None,
-        show_moon_elevation=moon_elevation
-    )
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png")
-    # Embed the result in the html output.
-    fig_data = base64.b64encode(buf.getbuffer()).decode("ascii")
-    fig_bar_matplotlib = f'data:image/png;base64,{fig_data}'
 
-    return fig_bar_matplotlib
-"""
+    if longitude and latitude:
+        lat = Latitude(latitude, unit=u.deg).deg
+        lon = Longitude(longitude, unit=u.deg).deg
+        observatory = EarthLocation.from_geodetic(lon=lon, lat=lat) 
+    else:
+        observatory = EarthLocation.of_site(observatory_name)
 
+<<<<<<< Updated upstream
 
 @app.callback(
     Output("observability_plot_test", "children"),
@@ -690,15 +688,24 @@ def plot_observability_test(
     UTC_time = (
         local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
     )
+=======
+    local_time = observability.observation_time(dateobs, delta_points=1/60)
+    UTC_time = local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
+>>>>>>> Stashed changes
     UTC_axis = observability.from_time_to_axis(UTC_time)
     local_axis = observability.from_time_to_axis(local_time)
     mask_axis = [
         True if t[-2:] == "00" and int(t[:2]) % 2 == 0 else False for t in UTC_axis
     ]
     idx_axis = np.where(mask_axis)[0]
+<<<<<<< Updated upstream
     target_coordinates = observability.target_coordinates(
         ra0, dec0, observatory, UTC_time
     )
+=======
+
+    target_coordinates = observability.target_coordinates(ra0, dec0, observatory, UTC_time)
+>>>>>>> Stashed changes
     airmass = observability.from_elevation_to_airmass(target_coordinates.alt.value)
     twilights = observability.utc_night_hours(
         observatory,
@@ -923,6 +930,16 @@ def show_observability_title(
     msg += Time(dateobs).to_value("iso", subfmt="date")
     return msg
 
+@app.callback(
+    Output('latitude', 'value'),
+    Output('longitude', 'value'),
+    Input('clear_button', 'n_clicks'),
+    prevent_initial_call=True  # So callback only triggers on clicks
+)
+def clear_input(n_clicks):
+    if n_clicks:
+        return '', ''  # Clear the input field
+    return dash.no_update, dash.no_update
 
 @app.callback(
     Output("blazar_plot", "children"),
