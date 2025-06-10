@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import io
-import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import pandas as pd
 from dash import Input, Output, dcc
@@ -21,7 +20,6 @@ from dash_iconify import DashIconify
 
 from app import app
 from apps.cards import card_neighbourhood
-from apps.utils import create_button_for_external_conesearch
 
 
 def card_explanation_observability():
@@ -72,9 +70,6 @@ def card_explanation_observability():
 def card_observability_button(object_data):
     """Add a card containing button to fit for observability of the source"""
     pdf = pd.read_json(io.StringIO(object_data))
-
-    ra0 = pdf["i:ra"].to_numpy()[0]
-    dec0 = pdf["i:dec"].to_numpy()[0]
 
     card1 = dmc.Accordion(
         disableChevronRotation=True,

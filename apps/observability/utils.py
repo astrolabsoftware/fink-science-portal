@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from astropy.coordinates import SkyCoord, EarthLocation, get_body, Latitude, Longitude
+from astropy.coordinates import SkyCoord, get_body
 import numpy as np
 import astroplan as apl
 import astropy.units as u

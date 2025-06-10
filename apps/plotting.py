@@ -525,7 +525,7 @@ def plot_observability(
     if longitude and latitude:
         lat = Latitude(latitude, unit=u.deg).deg
         lon = Longitude(longitude, unit=u.deg).deg
-        observatory = EarthLocation.from_geodetic(lon=lon, lat=lat) 
+        observatory = EarthLocation.from_geodetic(lon=lon, lat=lat)
     else:
         observatory = EarthLocation.of_site(observatory_name)
 
