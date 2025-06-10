@@ -480,122 +480,6 @@ layout_observability = dict(
     },
 )
 
-<<<<<<< Updated upstream
-"""
-def plot_altitude(target, observatory, astro_time, UTC=0, ax=None, show_moon_elevation=False):
-    import matplotlib.pyplot as plt
-    from matplotlib import dates
-    from astroplan import Observer
-
-    observer = Observer.at_site(observatory)
-
-    fig = plt.figure()
-
-    if ax is None:
-        ax = plt.gca()
-
-    time = Time(astro_time) + np.linspace(0, 24, 100)*u.hour
-    altitude = observer.altaz(time, target).alt
-
-    if show_moon_elevation:
-        moon_altitude = observer.moon_altaz(time).alt
-        ax.plot(time.plot_date, moon_altitude, color='black', label='Moon')
-
-    ax.plot(time.plot_date, altitude, color='r', label='Target')
-    #num_ticks = 9
-
-    # Format the time axis (UTC time)
-    ax.set_xlim([time[0].plot_date, time[-1].plot_date])
-    ax.set_xticks(np.linspace(time[0].plot_date, time[-1].plot_date, 9))
-    date_formatter = dates.DateFormatter('%H:%M')
-    ax.xaxis.set_major_formatter(date_formatter)
-    plt.setp(ax.get_xticklabels(), rotation=30, ha='right')
-
-    # Format of the secondary time axis (local time)
-    def UTC_to_local(x, UTC=UTC):
-        return x + UTC / 24
-
-    def local_to_UTC(x, UTC=UTC):
-        return x - UTC / 24
-
-    secax = ax.secondary_xaxis('top', functions=(UTC_to_local, local_to_UTC))
-    secax.set_xlim([time[0].plot_date, time[-1].plot_date])
-    secax.set_xticks(np.linspace(UTC_to_local(time[0].plot_date), UTC_to_local(time[-1].plot_date), 9))
-    secax.set_xlabel('Local Time [hours]')
-    date_formatter = dates.DateFormatter('%H:%M')
-    secax.xaxis.set_major_formatter(date_formatter)
-    plt.setp(secax.get_xticklabels(), rotation=-30, ha='right')
-
-    # Shade background during night time
-    start = time[0].datetime
-
-        # Calculate and order twilights and set plotting alpha for each
-    twilights = [
-        (observer.sun_set_time(Time(start), which='next').datetime, 'white', 'Day'),
-        (observer.twilight_evening_civil(Time(start), which='next').datetime, 'lightsteelblue', 'No Sun'),
-        (observer.twilight_evening_nautical(Time(start), which='next').datetime, 'royalblue', 'Civil night'),
-        (observer.twilight_evening_astronomical(Time(start), which='next').datetime, 'blue', 'Nautical night'),
-        (observer.twilight_morning_astronomical(Time(start), which='next').datetime, 'midnightblue', 'Astronomical night'),
-        (observer.twilight_morning_nautical(Time(start), which='next').datetime, 'blue', 'Astronomical morning'),
-        (observer.twilight_morning_civil(Time(start), which='next').datetime, 'royalblue', 'Nautical morning'),
-        (observer.sun_rise_time(Time(start), which='next').datetime, 'lightsteelblue', 'Civil morning'),
-    ]
-
-    #twilights.sort(key=operator.itemgetter(0))
-    for i in range(1, 5):
-        ax.axvspan(
-            twilights[i - 1][0], twilights[i][0],
-            ymin=0, ymax=1,
-            facecolor=twilights[i][1], edgecolor='none', alpha=0.5,
-            label=twilights[i][2]
-        )
-    for i in range(5, len(twilights)):
-        ax.axvspan(
-            twilights[i - 1][0], twilights[i][0],
-            ymin=0, ymax=1,
-            facecolor=twilights[i][1], edgecolor='none', alpha=0.5,
-        )
-
-    # unicde_Moon_phases = [
-    #     '\U0001f311', '\U0001f312',
-    #     '\U0001f313', '\U0001f314',
-    #     '\U0001f315', '\U0001f316',
-    #     '\U0001f317', '\U0001f318'
-    # ]
-    # unicode_Moon = unicde_Moon_phases[moon_phase(observer, time[0]) - 1]
-    # ax.text(
-    #     time[0].plot_date + 0.01 * (time[-1].plot_date - time[0].plot_date),
-    #     0.01 * 90,
-    #     unicode_Moon,
-    #     fontsize=15, fontname='Segoe UI Emoji',
-    #     ha='left', va='bottom'
-    # )
-
-    ax.set_ylim(0, 90)
-    ax.tick_params(right=True)
-
-    airmass_ticks = np.array([1, 2, 3])
-    #ax.set_yticks([20, 30, 40, 50, 60, 90])
-    altitude_ticks = 90 - np.degrees(np.arccos(1/airmass_ticks))
-
-    ax2 = ax.twinx()
-    # ax2.invert_yaxis()
-    ax2.set_yticks(altitude_ticks)
-    ax2.set_yticklabels(airmass_ticks)
-    ax2.set_ylim(ax.get_ylim())
-    ax2.set_ylabel('Relative airmass')
-
-    # Set labels.
-    ax.set_ylabel("Elevation [degrees]")
-    ax.set_xlabel("UTC Time [hours]")
-    ax.set_title(time[0].value[:10] + ' / MJD' + str(int(time[0].mjd)) + ' at ' + observer.name)
-    ax.legend(ncol=2, loc='best')
-    plt.tight_layout()
-
-    return fig
-
-=======
->>>>>>> Stashed changes
 @app.callback(
     Output("observability_plot", "children"),
     [
@@ -645,67 +529,15 @@ def plot_observability(
     else:
         observatory = EarthLocation.of_site(observatory_name)
 
-<<<<<<< Updated upstream
-
-@app.callback(
-    Output("observability_plot_test", "children"),
-    [
-        Input("summary_tabs", "value"),
-        Input("submit_observability", "n_clicks"),
-        Input("object-data", "data"),
-    ],
-    [
-        State("observatory", "value"),
-        State("dateobs", "value"),
-        State("moon_elevation", "checked"),
-        State("moon_phase", "checked"),
-        State("moon_illumination", "checked"),
-    ],
-    prevent_initial_call=True,
-    background=True,
-    running=[
-        (Output("submit_observability", "disabled"), True, False),
-        (Output("submit_observability", "loading"), True, False),
-    ],
-)
-def plot_observability_test(
-    summary_tab,
-    nclick,
-    object_data,
-    observatory,
-    dateobs,
-    moon_elevation,
-    moon_phase,
-    moon_illumination,
-):
-    if summary_tab != "Observability":
-        raise PreventUpdate
-
-    pdf = pd.read_json(io.StringIO(object_data))
-    ra0 = np.mean(pdf["i:ra"].to_numpy())
-    dec0 = np.mean(pdf["i:dec"].to_numpy())
-    local_time = observability.observation_time(dateobs, delta_points=1 / 60)
-    UTC_time = (
-        local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
-    )
-=======
     local_time = observability.observation_time(dateobs, delta_points=1/60)
     UTC_time = local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
->>>>>>> Stashed changes
     UTC_axis = observability.from_time_to_axis(UTC_time)
     local_axis = observability.from_time_to_axis(local_time)
     mask_axis = [
         True if t[-2:] == "00" and int(t[:2]) % 2 == 0 else False for t in UTC_axis
     ]
     idx_axis = np.where(mask_axis)[0]
-<<<<<<< Updated upstream
-    target_coordinates = observability.target_coordinates(
-        ra0, dec0, observatory, UTC_time
-    )
-=======
-
     target_coordinates = observability.target_coordinates(ra0, dec0, observatory, UTC_time)
->>>>>>> Stashed changes
     airmass = observability.from_elevation_to_airmass(target_coordinates.alt.value)
     twilights = observability.utc_night_hours(
         observatory,

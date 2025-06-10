@@ -33,13 +33,9 @@ def card_explanation_observability():
 
     The plot also shows the different definitions of nights, which can be useful, from lighter to darker shades of blue. These are no-sun night (sun below the horizon), civil night (sun 6° below the horizon), nautical night (sun 12° below the horizon) and astronomical night (sun 18° below the horizon).
 
-<<<<<<< Updated upstream
-    In case your observatory is not listed here, open a [ticket](https://github.com/astrolabsoftware/fink-science-portal/issues) with the coordinates.
-=======
     If you cannot find your observatory of choice, you can enter its coordinates in the `Custom Observatory` field. Remember that both longitude and latitude must be written in decimal degrees. Note that longitudes are negative towards the west. You can omit the positive sign of the longitude and latitude. To use the existing list of observatories again, clear the `Longitude` and `Latitude` fields in the `Custom Observatory` section.
 
     In case your observatory is not listed here, you can also open a [ticket](https://github.com/astrolabsoftware/fink-science-portal/issues) with the coordinates.
->>>>>>> Stashed changes
     """
     card = dmc.Accordion(
         children=[
