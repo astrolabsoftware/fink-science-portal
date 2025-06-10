@@ -524,7 +524,7 @@ def tab_observability(pdf):
                 radius="sm",
                 required=False,
                 persistence=True,
-                persistence_type='session'
+                persistence_type="session",
             ),
             dmc.TextInput(
                 id="latitude",
@@ -534,19 +534,19 @@ def tab_observability(pdf):
                 radius="sm",
                 required=False,
                 persistence=True,
-                persistence_type='session'
+                persistence_type="session",
             ),
             dmc.Space(h=5),
             html.Button(
-                'Clear',
-                id='clear_button',
+                "Clear",
+                id="clear_button",
                 style={
                     "border": "none",
                     "border-radius": "10px",
                     "font-size": "15px",
                     "float": "right",
-                }
-            )
+                },
+            ),
         ],
         className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
     )

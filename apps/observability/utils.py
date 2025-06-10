@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from astropy.coordinates import SkyCoord, get_body
+from astropy.coordinates import SkyCoord, EarthLocation, get_body, Latitude, Longitude
 import numpy as np
 import astroplan as apl
 import astropy.units as u
@@ -33,12 +33,21 @@ night_colors = [
 
 moon_color = "#9900cc"
 
-additional_observatories = {
+additional_observatories_data = {
     "Caucasian Mountain Observatory": {
         "lon_deg": "43:44:10",
         "lat_deg": "+42:40:03",
         "height_meter": 2112,
     }
+}
+
+additional_observatories = {
+    name: EarthLocation.from_geodetic(
+        lat=Latitude(additional_observatories_data[name]["lat_deg"], unit=u.deg).deg,
+        lon=Longitude(additional_observatories_data[name]["lon_deg"], unit=u.deg).deg,
+        height=additional_observatories_data[name]["height_meter"] * u.m,
+    )
+    for name in additional_observatories_data.keys()
 }
 
 
@@ -112,7 +121,7 @@ def target_coordinates(ra, dec, observatory, obs_time):
         Coordinates of the source (with elevation and azimut)
         from the observatory at every point in obs_time
     """
-    target = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, frame='icrs')
+    target = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame="icrs")
     observer = apl.Observer(location=observatory)
     coordinates = observer.altaz(obs_time, target=target)
 

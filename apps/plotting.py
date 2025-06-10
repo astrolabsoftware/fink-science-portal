@@ -480,6 +480,7 @@ layout_observability = dict(
     },
 )
 
+
 @app.callback(
     Output("observability_plot", "children"),
     [
@@ -526,18 +527,24 @@ def plot_observability(
         lat = Latitude(latitude, unit=u.deg).deg
         lon = Longitude(longitude, unit=u.deg).deg
         observatory = EarthLocation.from_geodetic(lon=lon, lat=lat)
+    elif observatory_name in observability.additional_observatories:
+        observatory = observability.additional_observatories[observatory_name]
     else:
         observatory = EarthLocation.of_site(observatory_name)
 
-    local_time = observability.observation_time(dateobs, delta_points=1/60)
-    UTC_time = local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
+    local_time = observability.observation_time(dateobs, delta_points=1 / 60)
+    UTC_time = (
+        local_time - observability.observation_time_to_utc_offset(observatory) * u.hour
+    )
     UTC_axis = observability.from_time_to_axis(UTC_time)
     local_axis = observability.from_time_to_axis(local_time)
     mask_axis = [
         True if t[-2:] == "00" and int(t[:2]) % 2 == 0 else False for t in UTC_axis
     ]
     idx_axis = np.where(mask_axis)[0]
-    target_coordinates = observability.target_coordinates(ra0, dec0, observatory, UTC_time)
+    target_coordinates = observability.target_coordinates(
+        ra0, dec0, observatory, UTC_time
+    )
     airmass = observability.from_elevation_to_airmass(target_coordinates.alt.value)
     twilights = observability.utc_night_hours(
         observatory,
@@ -567,24 +574,22 @@ def plot_observability(
     <extra></extra>
     """
 
-    figure["data"].append(
-        {
-            "x": UTC_axis,
-            "y": target_coordinates.alt.value,
-            "mode": "lines",
-            "name": "Target elevation",
-            "legendgroup": "Elevation",
-            "customdata": np.stack(
-                [
-                    target_coordinates.az.value,
-                    airmass,
-                ],
-                axis=-1,
-            ),
-            "hovertemplate": hovertemplate_elevation,
-            "line": {"color": "black"},
-        }
-    )
+    figure["data"].append({
+        "x": UTC_axis,
+        "y": target_coordinates.alt.value,
+        "mode": "lines",
+        "name": "Target elevation",
+        "legendgroup": "Elevation",
+        "customdata": np.stack(
+            [
+                target_coordinates.az.value,
+                airmass,
+            ],
+            axis=-1,
+        ),
+        "hovertemplate": hovertemplate_elevation,
+        "line": {"color": "black"},
+    })
 
     # Moon target
     if moon_elevation:
@@ -601,37 +606,33 @@ def plot_observability(
         <extra></extra>
         """
 
-        figure["data"].append(
-            {
-                "x": UTC_axis,
-                "y": moon_coordinates.alt.value,
-                "mode": "lines",
-                "name": "Moon elevation",
-                "legendgroup": "Elevation",
-                "customdata": np.stack(
-                    [
-                        moon_coordinates.az.value,
-                        moon_airmass,
-                    ],
-                    axis=-1,
-                ),
-                "hovertemplate": hovertemplate_moon,
-                "line": {"color": observability.moon_color},
-            }
-        )
+        figure["data"].append({
+            "x": UTC_axis,
+            "y": moon_coordinates.alt.value,
+            "mode": "lines",
+            "name": "Moon elevation",
+            "legendgroup": "Elevation",
+            "customdata": np.stack(
+                [
+                    moon_coordinates.az.value,
+                    moon_airmass,
+                ],
+                axis=-1,
+            ),
+            "hovertemplate": hovertemplate_moon,
+            "line": {"color": observability.moon_color},
+        })
 
     # For relative airmass
-    figure["data"].append(
-        {
-            "x": ["00:00", "00:00", "00:00"],
-            "y": list(90 - np.degrees(np.arccos(1 / np.array([1, 2, 3])))),
-            "yaxis": "y2",
-            "mode": "markers",
-            "marker": {"opacity": 0},
-            "showlegend": False,
-            "hoverinfo": "skip",
-        }
-    )
+    figure["data"].append({
+        "x": ["00:00", "00:00", "00:00"],
+        "y": list(90 - np.degrees(np.arccos(1 / np.array([1, 2, 3])))),
+        "yaxis": "y2",
+        "mode": "markers",
+        "marker": {"opacity": 0},
+        "showlegend": False,
+        "hoverinfo": "skip",
+    })
 
     # Layout modification for local time
     figure["layout"]["xaxis2"] = {
@@ -647,36 +648,32 @@ def plot_observability(
     }
 
     # For local time
-    figure["data"].append(
-        {
-            "x": local_axis,
-            "y": 45 * np.ones(len(local_axis)),
-            "xaxis": "x2",
-            "mode": "markers",
-            "marker": {"opacity": 0},
-            "showlegend": False,
-            "hoverinfo": "skip",
-        }
-    )
+    figure["data"].append({
+        "x": local_axis,
+        "y": 45 * np.ones(len(local_axis)),
+        "xaxis": "x2",
+        "mode": "markers",
+        "marker": {"opacity": 0},
+        "showlegend": False,
+        "hoverinfo": "skip",
+    })
 
     # Twilights
     figure["layout"]["shapes"] = []
     for dummy in range(len(twilights_list) - 1):
-        figure["layout"]["shapes"].append(
-            {
-                "type": "rect",
-                "xref": "x",
-                "yref": "paper",
-                "x0": twilights_list[dummy],
-                "x1": twilights_list[dummy + 1],
-                "y0": 0,
-                "y1": 1,
-                "fillcolor": observability.night_colors[dummy],
-                "layer": "below",
-                "line_width": 0,
-                "line": dict(width=0),
-            }
-        )
+        figure["layout"]["shapes"].append({
+            "type": "rect",
+            "xref": "x",
+            "yref": "paper",
+            "x0": twilights_list[dummy],
+            "x1": twilights_list[dummy + 1],
+            "y0": 0,
+            "y1": 1,
+            "fillcolor": observability.night_colors[dummy],
+            "layer": "below",
+            "line_width": 0,
+            "line": dict(width=0),
+        })
 
     # Graphs
     graph = dcc.Graph(
@@ -762,16 +759,18 @@ def show_observability_title(
     msg += Time(dateobs).to_value("iso", subfmt="date")
     return msg
 
+
 @app.callback(
-    Output('latitude', 'value'),
-    Output('longitude', 'value'),
-    Input('clear_button', 'n_clicks'),
-    prevent_initial_call=True  # So callback only triggers on clicks
+    Output("latitude", "value"),
+    Output("longitude", "value"),
+    Input("clear_button", "n_clicks"),
+    prevent_initial_call=True,  # So callback only triggers on clicks
 )
 def clear_input(n_clicks):
     if n_clicks:
-        return '', ''  # Clear the input field
+        return "", ""  # Clear the input field
     return dash.no_update, dash.no_update
+
 
 @app.callback(
     Output("blazar_plot", "children"),
@@ -833,18 +832,16 @@ def plot_blazar(
         # pdf_release["flux_dc"] *= 1000
         # pdf_release["sigma_flux_dc"] *= 1000
     else:
-        pdf_release = pd.DataFrame(
-            {
-                "mag": [],
-                "magerr": [],
-                "filtercode": [],
-                "mjd": [],
-                "flux_dc": [],
-                "sigma_flux_dc": [],
-                "std_flux_dc": [],
-                "std_sigma_flux_dc": [],
-            }
-        )
+        pdf_release = pd.DataFrame({
+            "mag": [],
+            "magerr": [],
+            "filtercode": [],
+            "mjd": [],
+            "flux_dc": [],
+            "sigma_flux_dc": [],
+            "std_flux_dc": [],
+            "std_sigma_flux_dc": [],
+        })
         dates_release = np.array([])
 
     pdf["mag"], pdf["magerr"] = np.transpose(
@@ -887,15 +884,17 @@ def plot_blazar(
         maskTime = pdf["i:jd"].to_numpy() - 2400000.5 > pdf_release["mjd"].iloc[0]
 
     # Merge bands from alerts and DR
-    flux = np.concatenate(
-        (pdf["flux_dc"].to_numpy()[maskTime], pdf_release["flux_dc"].to_numpy())
-    )[::-1]
+    flux = np.concatenate((
+        pdf["flux_dc"].to_numpy()[maskTime],
+        pdf_release["flux_dc"].to_numpy(),
+    ))[::-1]
     filts_release = np.ones(len(pdf_release))
     filts_release[pdf_release["filtercode"].to_numpy() == "zr"] = 2
     filts = np.concatenate((pdf["i:fid"].to_numpy()[maskTime], filts_release))[::-1]
-    mjds = np.concatenate(
-        (pdf["i:jd"].to_numpy()[maskTime] - 2400000.5, pdf_release["mjd"].to_numpy())
-    )[::-1]
+    mjds = np.concatenate((
+        pdf["i:jd"].to_numpy()[maskTime] - 2400000.5,
+        pdf_release["mjd"].to_numpy(),
+    ))[::-1]
 
     # Compute meaningful median
     delta_max_time = 0.5
@@ -942,9 +941,10 @@ def plot_blazar(
 
     # Divive by the median of the whole LC to equal it to 1
     tot_median = np.median(
-        np.concatenate(
-            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
-        )
+        np.concatenate((
+            pdf["std_flux_dc"].to_numpy(),
+            pdf_release["std_flux_dc"].to_numpy(),
+        ))
     )
     pdf["std_flux_dc"] /= tot_median
     pdf["std_sigma_flux_dc"] /= tot_median
@@ -953,15 +953,17 @@ def plot_blazar(
 
     # Quantiles
     low_quantile = np.percentile(
-        np.concatenate(
-            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
-        ),
+        np.concatenate((
+            pdf["std_flux_dc"].to_numpy(),
+            pdf_release["std_flux_dc"].to_numpy(),
+        )),
         quantile_blazar,
     )
     high_quantile = np.percentile(
-        np.concatenate(
-            (pdf["std_flux_dc"].to_numpy(), pdf_release["std_flux_dc"].to_numpy())
-        ),
+        np.concatenate((
+            pdf["std_flux_dc"].to_numpy(),
+            pdf_release["std_flux_dc"].to_numpy(),
+        )),
         100 - quantile_blazar,
     )
 
@@ -987,34 +989,32 @@ def plot_blazar(
         if fid in np.unique(pdf["i:fid"].to_numpy()):
             # Original data
             idx = pdf["i:fid"] == fid
-            figure["data"].append(
-                {
-                    "x": dates[idx],
-                    "y": pdf["std_flux_dc"].to_numpy()[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": pdf["std_sigma_flux_dc"][idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "customdata": np.stack(
-                        [
-                            pdf["mag"].to_numpy()[idx],
-                            pdf["magerr"].to_numpy()[idx],
-                            quantile_blazar * np.ones(len(pdf))[idx],
-                            pdf["std_flux_dc"].to_numpy()[idx] / low_quantile,
-                        ],
-                        axis=-1,
-                    ),
-                    "hovertemplate": hovertemplate,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
-            )
+            figure["data"].append({
+                "x": dates[idx],
+                "y": pdf["std_flux_dc"].to_numpy()[idx],
+                "error_y": {
+                    "type": "data",
+                    "array": pdf["std_sigma_flux_dc"][idx],
+                    "visible": True,
+                    "width": 0,
+                    "opacity": 0.5,
+                    "color": color,
+                },
+                "mode": "markers",
+                "name": f"{fname} band",
+                "legendgroup": f"{fname} band",
+                "customdata": np.stack(
+                    [
+                        pdf["mag"].to_numpy()[idx],
+                        pdf["magerr"].to_numpy()[idx],
+                        quantile_blazar * np.ones(len(pdf))[idx],
+                        pdf["std_flux_dc"].to_numpy()[idx] / low_quantile,
+                    ],
+                    axis=-1,
+                ),
+                "hovertemplate": hovertemplate,
+                "marker": {"size": 10, "color": color, "symbol": "o"},
+            })
 
     for fid, fname, color in (
         ("zg", "g (DR)", COLORS_ZTF[0]),
@@ -1023,39 +1023,37 @@ def plot_blazar(
         if fid in np.unique(pdf_release["filtercode"].to_numpy()):
             # Original data
             idx = pdf_release["filtercode"] == fid
-            figure["data"].append(
-                {
-                    "x": dates_release[idx],
-                    "y": pdf_release["std_flux_dc"].to_numpy()[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": pdf_release["std_sigma_flux_dc"][idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.3,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "customdata": np.stack(
-                        [
-                            pdf_release["mag"].to_numpy()[idx],
-                            pdf_release["magerr"].to_numpy()[idx],
-                            quantile_blazar * np.ones(len(pdf_release[idx])),
-                            pdf_release["std_flux_dc"].to_numpy()[idx] / low_quantile,
-                        ],
-                        axis=-1,
-                    ),
-                    "hovertemplate": hovertemplate,
-                    "marker": {
-                        "size": 7,
-                        "color": color,
-                        "symbol": "o",
-                        "opacity": 0.3,
-                    },
-                }
-            )
+            figure["data"].append({
+                "x": dates_release[idx],
+                "y": pdf_release["std_flux_dc"].to_numpy()[idx],
+                "error_y": {
+                    "type": "data",
+                    "array": pdf_release["std_sigma_flux_dc"][idx],
+                    "visible": True,
+                    "width": 0,
+                    "opacity": 0.3,
+                    "color": color,
+                },
+                "mode": "markers",
+                "name": f"{fname} band",
+                "legendgroup": f"{fname} band",
+                "customdata": np.stack(
+                    [
+                        pdf_release["mag"].to_numpy()[idx],
+                        pdf_release["magerr"].to_numpy()[idx],
+                        quantile_blazar * np.ones(len(pdf_release[idx])),
+                        pdf_release["std_flux_dc"].to_numpy()[idx] / low_quantile,
+                    ],
+                    axis=-1,
+                ),
+                "hovertemplate": hovertemplate,
+                "marker": {
+                    "size": 7,
+                    "color": color,
+                    "symbol": "o",
+                    "opacity": 0.3,
+                },
+            })
 
     # Quantile display
     if object_release:
@@ -1293,25 +1291,23 @@ def plot_variable_star(
         if fid in np.unique(pdf["i:fid"].to_numpy()):
             # Original data
             idx = pdf["i:fid"] == fid
-            figure["data"].append(
-                {
-                    "x": phase[idx] / period,
-                    "y": mag[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": err[idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "hovertemplate": hovertemplate,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
-            )
+            figure["data"].append({
+                "x": phase[idx] / period,
+                "y": mag[idx],
+                "error_y": {
+                    "type": "data",
+                    "array": err[idx],
+                    "visible": True,
+                    "width": 0,
+                    "opacity": 0.5,
+                    "color": color,
+                },
+                "mode": "markers",
+                "name": f"{fname} band",
+                "legendgroup": f"{fname} band",
+                "hovertemplate": hovertemplate,
+                "marker": {"size": 10, "color": color, "symbol": "o"},
+            })
 
             # Release data
             if not pdf_release.empty:
@@ -1367,61 +1363,55 @@ def plot_variable_star(
                 )
 
             # Original data, unfolded
-            figure_unfolded["data"].append(
-                {
-                    "x": dates[idx],
-                    "y": mag[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": err[idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "hovertemplate": hovertemplate_unfolded,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
-            )
+            figure_unfolded["data"].append({
+                "x": dates[idx],
+                "y": mag[idx],
+                "error_y": {
+                    "type": "data",
+                    "array": err[idx],
+                    "visible": True,
+                    "width": 0,
+                    "opacity": 0.5,
+                    "color": color,
+                },
+                "mode": "markers",
+                "name": f"{fname} band",
+                "legendgroup": f"{fname} band",
+                "hovertemplate": hovertemplate_unfolded,
+                "marker": {"size": 10, "color": color, "symbol": "o"},
+            })
 
             # Model
-            figure["data"].append(
-                {
-                    "x": tfit / period,
-                    "y": prediction[fid - 1],
-                    "mode": "lines",
-                    "name": f"fit {fname} band",
-                    "legendgroup": f"{fname} band",
-                    "hovertemplate": hovertemplate_model,
-                    "showlegend": False,
-                    "line": {
-                        "color": color,
-                        "opacity": 0.5,
-                        "width": 2,
-                    },
-                }
-            )
+            figure["data"].append({
+                "x": tfit / period,
+                "y": prediction[fid - 1],
+                "mode": "lines",
+                "name": f"fit {fname} band",
+                "legendgroup": f"{fname} band",
+                "hovertemplate": hovertemplate_model,
+                "showlegend": False,
+                "line": {
+                    "color": color,
+                    "opacity": 0.5,
+                    "width": 2,
+                },
+            })
 
             # Model, unfolded
-            figure_unfolded["data"].append(
-                {
-                    "x": dates_unfolded,
-                    "y": out_unfolded[fid - 1],
-                    "mode": "lines",
-                    "name": f"fit {fname} band",
-                    "legendgroup": f"{fname} band",
-                    "hovertemplate": hovertemplate_model,
-                    "showlegend": False,
-                    "line": {
-                        "color": color,
-                        "opacity": 0.5,
-                        "width": 0.5,
-                    },
-                }
-            )
+            figure_unfolded["data"].append({
+                "x": dates_unfolded,
+                "y": out_unfolded[fid - 1],
+                "mode": "lines",
+                "name": f"fit {fname} band",
+                "legendgroup": f"{fname} band",
+                "hovertemplate": hovertemplate_model,
+                "showlegend": False,
+                "line": {
+                    "color": color,
+                    "opacity": 0.5,
+                    "width": 0.5,
+                },
+            })
 
     figure_periodogram["layout"]["xaxis"]["title"] = "Period, days"
     figure_periodogram["layout"]["xaxis"]["type"] = "log"
@@ -1952,9 +1942,10 @@ def draw_lightcurve(
                         pd.DataFrame(
                             {
                                 "i:jd": pdf_release["mjd"] + 2400000.5,
-                                "i:fid": pdf_release["filtercode"].map(
-                                    {"zg": 1, "zr": 2}
-                                ),
+                                "i:fid": pdf_release["filtercode"].map({
+                                    "zg": 1,
+                                    "zr": 2,
+                                }),
                                 "i:magpsf": pdf_release["mag"],
                                 "i:sigmapsf": pdf_release["magerr"],
                             },
@@ -3644,21 +3635,17 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
     if switch_func == "sfHG1G2":
         # H mean for each filter
         for f in filts:
-            outdic["<H>_{}".format(f)] = np.mean(
-                [
-                    outdic["H{}_{}".format(a, f)]
-                    for a in range(outdic["n_app_{}".format(f)])
-                ]
-            )
+            outdic["<H>_{}".format(f)] = np.mean([
+                outdic["H{}_{}".format(a, f)]
+                for a in range(outdic["n_app_{}".format(f)])
+            ])
 
             # assuming uncorrelated and random, which is obviously wrong
             outdic["err_<H>_{}".format(f)] = np.sqrt(
-                np.sum(
-                    [
-                        outdic["err_H{}_{}".format(a, f)] ** 2
-                        for a in range(outdic["n_app_{}".format(f)])
-                    ]
-                )
+                np.sum([
+                    outdic["err_H{}_{}".format(a, f)] ** 2
+                    for a in range(outdic["n_app_{}".format(f)])
+                ])
             )
 
     if switch_func == "sfHG1G2":
