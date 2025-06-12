@@ -513,6 +513,82 @@ def tab_observability(pdf):
         withBorder=True,
     )
 
+    nterms_base_custom_observatory = dmc.Container(
+        [
+            dmc.Divider(variant="solid", label="Coordinates"),
+            dmc.TextInput(
+                id="longitude",
+                label="Longitude",
+                placeholder="in decimal degrees",
+                size="sm",
+                radius="sm",
+                required=False,
+                persistence=True,
+                persistence_type="session",
+            ),
+            dmc.TextInput(
+                id="latitude",
+                label="Latitude",
+                placeholder="in decimal degrees",
+                size="sm",
+                radius="sm",
+                required=False,
+                persistence=True,
+                persistence_type="session",
+            ),
+            dmc.Space(h=5),
+            html.Button(
+                "Clear",
+                id="clear_button",
+                style={
+                    "border": "none",
+                    "border-radius": "10px",
+                    "font-size": "15px",
+                    "float": "right",
+                },
+            ),
+        ],
+        className="mb-3",  # , style={'width': '100%', 'display': 'inline-block'}
+    )
+
+    card_custom_observatory = dmc.Paper(
+        [
+            nterms_base_custom_observatory,
+        ],
+        radius="sm",
+        p="xs",
+        shadow="sm",
+        withBorder=True,
+    )
+
+    card3 = dmc.Accordion(
+        disableChevronRotation=True,
+        multiple=True,
+        children=[
+            dmc.AccordionItem(
+                [
+                    dmc.AccordionControl(
+                        "Custom Observatory",
+                        icon=[
+                            DashIconify(
+                                icon="tabler:atom-2",
+                                color=dmc.DEFAULT_THEME["colors"]["green"][6],
+                                width=20,
+                            ),
+                        ],
+                    ),
+                    dmc.AccordionPanel(
+                        dmc.Stack(
+                            card_custom_observatory,
+                        ),
+                    ),
+                ],
+                value="external",
+            ),
+        ],
+        styles={"content": {"padding": "5px"}},
+    )
+
     submit_button = dmc.Button(
         "Update plot",
         id="submit_observability",
@@ -534,7 +610,7 @@ def tab_observability(pdf):
                                     # dmc.Center(html.Img(id="observability_plot")),
                                     dmc.Space(h=10),
                                     dmc.Center(dcc.Markdown(id="observability_title")),
-                                    html.Div(id="observability_plot_test"),
+                                    html.Div(id="observability_plot"),
                                     dmc.Center(dcc.Markdown(id="moon_data")),
                                     dmc.Space(h=20),
                                     card_explanation_observability(),
@@ -547,6 +623,9 @@ def tab_observability(pdf):
                         [
                             html.Br(),
                             card2,
+                            html.Br(),
+                            dmc.Divider(variant="solid"),
+                            card3,
                             html.Br(),
                             submit_button,
                         ],
