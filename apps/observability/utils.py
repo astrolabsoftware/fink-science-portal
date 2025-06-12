@@ -33,12 +33,21 @@ night_colors = [
 
 moon_color = "#9900cc"
 
-additional_observatories = {
+additional_observatories_data = {
     "Caucasian Mountain Observatory": {
         "lon_deg": "43:44:10",
         "lat_deg": "+42:40:03",
         "height_meter": 2112,
     }
+}
+
+additional_observatories = {
+    name: EarthLocation.from_geodetic(
+        lat=Latitude(additional_observatories_data[name]["lat_deg"], unit=u.deg).deg,
+        lon=Longitude(additional_observatories_data[name]["lon_deg"], unit=u.deg).deg,
+        height=additional_observatories_data[name]["height_meter"] * u.m,
+    )
+    for name in additional_observatories_data.keys()
 }
 
 
@@ -47,26 +56,15 @@ def observation_time_to_utc_offset(observatory):
 
     Parameters
     ----------
-    observatory: str
-        Name of the considered observatory.
-        Must be in astropy.coordinates.EarthLocation.get_site_names(),
-        or defined in additional_observatories above.
+    observatory: astropy.coordinates.EarthLocation
+        Astropy EarthLocation object representing the observatory
 
     Returns
     -------
     offset: float
         Time difference between observatory local time zone and UTC (in hour).
     """
-    if observatory in additional_observatories:
-        lat = Latitude(additional_observatories[observatory]["lat_deg"], unit=u.deg).deg
-        lon = Longitude(
-            additional_observatories[observatory]["lon_deg"], unit=u.deg
-        ).deg
-    else:
-        lat, lon = (
-            EarthLocation.of_site(observatory).lat.deg,
-            EarthLocation.of_site(observatory).lon.deg,
-        )
+    lat, lon = observatory.lat.deg, observatory.lon.deg
     tz = TimezoneFinder().timezone_at(lat=lat, lng=lon)
     offset = (
         datetime.datetime.now()
@@ -112,10 +110,8 @@ def target_coordinates(ra, dec, observatory, obs_time):
         Right ascension of the source, in degree
     dec: float
         Declination of the source, in degree
-    observatory: str
-        Name of the considered observatory.
-        Must be in astropy.coordinates.EarthLocation.get_site_names(),
-        or defined in additional_observatories above.
+    observatory: astropy.coordinates.EarthLocation
+        Astropy EarthLocation object representing the observatory
     obs_time: np.array[astropy.time.Time]
         Array of times for each point
 
@@ -126,18 +122,7 @@ def target_coordinates(ra, dec, observatory, obs_time):
         from the observatory at every point in obs_time
     """
     target = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame="icrs")
-    if observatory in additional_observatories:
-        lat = Latitude(additional_observatories[observatory]["lat_deg"], unit=u.deg).deg
-        lon = Longitude(
-            additional_observatories[observatory]["lon_deg"], unit=u.deg
-        ).deg
-        observer = apl.Observer(
-            longitude=lon,
-            latitude=lat,
-            elevation=additional_observatories[observatory]["height_meter"] * u.m,
-        )
-    else:
-        observer = apl.Observer.at_site(observatory)
+    observer = apl.Observer(location=observatory)
     coordinates = observer.altaz(obs_time, target=target)
 
     return coordinates
@@ -148,10 +133,8 @@ def moon_coordinates(observatory, obs_time):
 
     Parameters
     ----------
-    observatory: str
-        Name of the considered observatory.
-        Must be in astropy.coordinates.EarthLocation.get_site_names(),
-        or defined in additional_observatories above.
+    observatory: astropy.coordinates.EarthLocation
+        Astropy EarthLocation object representing the observatory
     obs_time: np.array[astropy.time.Time]
         Array of times for each point
 
@@ -161,18 +144,7 @@ def moon_coordinates(observatory, obs_time):
         Coordinates of the Moon (with elevation and azimut) from
         the observatory at every point in obs_time
     """
-    if observatory in additional_observatories:
-        lat = Latitude(additional_observatories[observatory]["lat_deg"], unit=u.deg).deg
-        lon = Longitude(
-            additional_observatories[observatory]["lon_deg"], unit=u.deg
-        ).deg
-        observer = apl.Observer(
-            longitude=lon,
-            latitude=lat,
-            elevation=additional_observatories[observatory]["height_meter"] * u.m,
-        )
-    else:
-        observer = apl.Observer.at_site(observatory)
+    observer = apl.Observer(location=observatory)
     coordinates = observer.moon_altaz(obs_time)
 
     return coordinates
@@ -277,10 +249,8 @@ def utc_night_hours(observatory, date, offset, UTC=False):
 
     Parameters
     ----------
-    observatory: str
-        Name of the considered observatory.
-        Must be in astropy.coordinates.EarthLocation.get_site_names(),
-        or defined in additional_observatories above.
+    observatory: astropy.coordinates.EarthLocation
+        Astropy EarthLocation object representing the observatory
     date: str
         Considered date for observation. Format in YYYY-MM-DD.
     offset: float
@@ -304,19 +274,7 @@ def utc_night_hours(observatory, date, offset, UTC=False):
     offset_UTC = offset
     if UTC:
         offset_UTC = 0
-
-    if observatory in additional_observatories:
-        lat = Latitude(additional_observatories[observatory]["lat_deg"], unit=u.deg).deg
-        lon = Longitude(
-            additional_observatories[observatory]["lon_deg"], unit=u.deg
-        ).deg
-        observer = apl.Observer(
-            longitude=lon,
-            latitude=lat,
-            elevation=additional_observatories[observatory]["height_meter"] * u.m,
-        )
-    else:
-        observer = apl.Observer.at_site(observatory)
+    observer = apl.Observer(location=observatory)
 
     twilights = {
         "Sunset": observer.sun_set_time(Time(date) - offset * u.hour, which="previous")
