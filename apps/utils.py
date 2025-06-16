@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import importlib
+import pkgutil
 import base64
 import yaml
 import gzip
@@ -36,6 +38,8 @@ from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash import html
+
+import fink_filters.ztf.livestream as ffz
 
 # Access local or remove API endpoint
 
@@ -893,6 +897,56 @@ def format_field_for_data_transfer():
     data.append(cutout)
 
     return data
+
+
+def create_datatransfer_livestream_table():
+    """ """
+    # Get list of filters
+    modules = [
+        "fink_filters.ztf.livestream.{}.filter".format(mod)
+        for _, mod, _ in pkgutil.iter_modules(ffz.__path__)
+        if mod.startswith("filter")
+    ]
+
+    # header
+    rows = []
+    for module in modules:
+        name = module.split(".")[-2]
+        doc = importlib.import_module(module).__doc__
+        rows.append(
+            dmc.TableTr(
+                [
+                    dmc.TableTd(name),
+                    dmc.TableTd(doc),
+                ]
+            )
+        )
+
+    head = dmc.TableThead(
+        dmc.TableTr(
+            [
+                dmc.TableTh("Name", w="35%"),
+                dmc.TableTh("Description", w="65%"),
+            ]
+        )
+    )
+    body = dmc.TableTbody(rows)
+    caption = dmc.TableCaption("Filters description")
+
+    table_candidate = dmc.TableScrollContainer(
+        dmc.Table(
+            [head, body, caption],
+            horizontalSpacing="xl",
+            highlightOnHover=True,
+        ),
+        maxHeight=300,
+        minWidth=0,
+        type="scrollarea",
+    )
+    return table_candidate
+
+
+
 
 
 def create_datatransfer_schema_table():

@@ -37,6 +37,10 @@ from apps.utils import request_api
 from apps.utils import extract_configuration
 from apps.utils import format_field_for_data_transfer
 from apps.utils import create_datatransfer_schema_table
+from apps.utils import create_datatransfer_livestream_table
+
+import pkgutil
+import fink_filters.ztf.livestream as ffz
 
 args = extract_configuration("config.yml")
 APIURL = args["APIURL"]
@@ -62,104 +66,103 @@ elasticc_v2p1_dates["date"] = elasticc_v2p1_dates["date"].astype("str")
 coeffs_per_class = pd.read_parquet("assets/fclass_2022_060708_coeffs.parquet")
 
 
-@app.callback(
-    Output("timeline_data_transfer", "children"),
-    [
-        Input("trans_datasource", "value"),
-        Input("date-range-picker", "value"),
-        Input("class_select", "value"),
-        Input("extra_cond", "value"),
-        Input("trans_content", "value"),
-    ],
-)
-def timeline_data_transfer(
-    trans_datasource, date_range_picker, class_select, extra_cond, trans_content
-):
-    """ """
-    steps = [trans_datasource, date_range_picker, trans_content]
+# @app.callback(
+#     Output("timeline_data_transfer", "children"),
+#     [
+#         Input("trans_datasource", "value"),
+#         Input("date-range-picker", "value"),
+#         Input("class_select", "value"),
+#         Input("extra_cond", "value"),
+#         Input("trans_content", "value"),
+#     ],
+# )
+# def timeline_data_transfer(
+#     trans_datasource, date_range_picker, class_select, extra_cond, trans_content
+# ):
+#     """ """
+#     steps = [trans_datasource, date_range_picker, trans_content]
+#
+#     active_ = np.where(np.array([i is not None for i in steps]))[0]
+#     tmp = len(active_)
+#     nsteps = 0 if tmp < 0 else tmp
+#
+#     if date_range_picker is None:
+#         date_range_picker = [None, None]
+#
+#     timeline = dmc.Timeline(
+#         active=nsteps,
+#         bulletSize=15,
+#         lineWidth=2,
+#         children=[
+#             dmc.TimelineItem(
+#                 title="Select data source",
+#                 children=[
+#                     dmc.Text(
+#                         [
+#                             f"Source: {trans_datasource}",
+#                         ],
+#                         c="dimmed",
+#                         size="sm",
+#                     ),
+#                 ],
+#             ),
+#             dmc.TimelineItem(
+#                 title="Filter alerts",
+#                 children=[
+#                     dmc.Text(
+#                         [
+#                             "Dates: {} - {}".format(*date_range_picker),
+#                         ],
+#                         c="dimmed",
+#                         size="sm",
+#                     ),
+#                     dmc.Text(
+#                         [
+#                             f"Classe(s): {class_select}",
+#                         ],
+#                         c="dimmed",
+#                         size="sm",
+#                     ),
+#                     dmc.Text(
+#                         [
+#                             f"Conditions: {extra_cond}",
+#                         ],
+#                         c="dimmed",
+#                         size="sm",
+#                     ),
+#                 ],
+#             ),
+#             dmc.TimelineItem(
+#                 title="Select content",
+#                 lineVariant="dashed",
+#                 children=[
+#                     dmc.Text(
+#                         [
+#                             f"Content: {trans_content}",
+#                         ],
+#                         c="dimmed",
+#                         size="sm",
+#                     ),
+#                 ],
+#             ),
+#             dmc.TimelineItem(
+#                 [
+#                     dmc.Text(
+#                         [
+#                             "Trigger your job!",
+#                         ],
+#                         c="dimmed",
+#                         size="sm",
+#                     ),
+#                 ],
+#                 title="Submit",
+#             ),
+#         ],
+#     )
+#
+#     return timeline
 
-    active_ = np.where(np.array([i is not None for i in steps]))[0]
-    tmp = len(active_)
-    nsteps = 0 if tmp < 0 else tmp
-
-    if date_range_picker is None:
-        date_range_picker = [None, None]
-
-    timeline = dmc.Timeline(
-        active=nsteps,
-        bulletSize=15,
-        lineWidth=2,
-        children=[
-            dmc.TimelineItem(
-                title="Select data source",
-                children=[
-                    dmc.Text(
-                        [
-                            f"Source: {trans_datasource}",
-                        ],
-                        c="dimmed",
-                        size="sm",
-                    ),
-                ],
-            ),
-            dmc.TimelineItem(
-                title="Filter alerts",
-                children=[
-                    dmc.Text(
-                        [
-                            "Dates: {} - {}".format(*date_range_picker),
-                        ],
-                        c="dimmed",
-                        size="sm",
-                    ),
-                    dmc.Text(
-                        [
-                            f"Classe(s): {class_select}",
-                        ],
-                        c="dimmed",
-                        size="sm",
-                    ),
-                    dmc.Text(
-                        [
-                            f"Conditions: {extra_cond}",
-                        ],
-                        c="dimmed",
-                        size="sm",
-                    ),
-                ],
-            ),
-            dmc.TimelineItem(
-                title="Select content",
-                lineVariant="dashed",
-                children=[
-                    dmc.Text(
-                        [
-                            f"Content: {trans_content}",
-                        ],
-                        c="dimmed",
-                        size="sm",
-                    ),
-                ],
-            ),
-            dmc.TimelineItem(
-                [
-                    dmc.Text(
-                        [
-                            "Trigger your job!",
-                        ],
-                        c="dimmed",
-                        size="sm",
-                    ),
-                ],
-                title="Submit",
-            ),
-        ],
-    )
-
-    return timeline
-
-
-def filter_tab():
+def date_tab():
     options = html.Div(
         [
             dmc.DatePickerInput(
@@ -172,20 +175,43 @@ def filter_tab():
                 allowSingleDateInRange=True,
                 required=True,
             ),
-            dmc.Space(h=10),
+        ]
+    )
+    tab = html.Div(
+        [
+            dmc.Space(h=50),
+            dmc.Divider(variant="solid", label="Restrict dates",),
+            options,
+        ],
+        id="date_tab",
+        style={"display": "none"},
+    )
+    return tab
+
+
+def filter_number_tab():
+    options = html.Div(
+        [
             dmc.MultiSelect(
                 label="Alert class",
-                description="Select all classes you like! Default is all classes.",
+                description="The simplest filter to start with is to select the classes of objects you like! If no class is selected, all classes are considered.",
                 placeholder="start typing...",
                 id="class_select",
                 searchable=True,
             ),
             dmc.Space(h=10),
-            dmc.MultiSelect(
-                label="Alert fields",
-                description="Select all fields you like (only available for ZTF data source)! Default is all fields.",
+            dmc.Select(
+                label="Connect with Livestream",
+                description=html.Div(
+                    [
+                        "You can apply a Fink filter used in the Livestream service to further reduce the number of alerts. ",
+                        "Filters are provided by the Fink community of users. More information at ",
+                        html.A("filters/#real-time-filters", href="https://fink-broker.readthedocs.io/en/latest/broker/filters/#real-time-filters", target="_blank"),
+                        ". No filter is applied by default."
+                    ]
+                ),
                 placeholder="start typing...",
-                id="field_select",
+                id="filter_select",
                 searchable=True,
             ),
             dmc.Accordion(
@@ -193,26 +219,18 @@ def filter_tab():
                     dmc.AccordionItem(
                         [
                             dmc.AccordionControl(
-                                "Alert schema",
+                                "Filters description",
                                 icon=DashIconify(
-                                    icon="tabler:book",
+                                    icon="tabler:help",
                                     color=dmc.DEFAULT_THEME["colors"]["blue"][6],
                                     width=20,
                                 ),
                             ),
-                            dmc.AccordionPanel(create_datatransfer_schema_table()),
+                            dmc.AccordionPanel(create_datatransfer_livestream_table()),
                         ],
                         value="info",
                     ),
                 ],
-            ),
-            dmc.Space(h=10),
-            dmc.Select(
-                label="Connect with Livestream",
-                description="You can apply a Fink filter used in the Livestream service to the processing. See filters in this [list](https://fink-broker.readthedocs.io/en/latest/broker/filters/#real-time-filters). No filter is applied by default.",
-                placeholder="start typing...",
-                id="filter_select",
-                searchable=True,
             ),
             dmc.Space(h=10),
             dmc.Textarea(
@@ -234,7 +252,7 @@ def filter_tab():
                                 ),
                             ),
                             dmc.AccordionPanel(
-                                dcc.Markdown("""You can impose extra conditions on the alerts you want to retrieve based on their content. You will simply specify the name of the parameter with the condition (SQL syntax). If you have several conditions, put one condition per line, ending with semi-colon. Example of valid conditions:
+                                dcc.Markdown("""Finally, you can impose extra conditions on the alerts you want to retrieve based on their content. You will simply specify the name of the parameter with the condition (SQL syntax). See below for the alert schema. If you have several conditions, put one condition per line, ending with semi-colon. Example of valid conditions:
 
 ```sql
 -- Example 1
@@ -261,11 +279,53 @@ snn_snia_vs_nonia > 0.5;
     )
     tab = html.Div(
         [
-            dmc.Space(h=10),
-            dmc.Divider(variant="solid", label="Filters"),
+            dmc.Space(h=50),
+            dmc.Divider(variant="solid", label="Reduce the number of incoming alerts"),
             options,
         ],
-        id="filter_tab",
+        id="filter_number_tab",
+        style={"display": "none"},
+    )
+    return tab
+
+def filter_content_tab():
+    options = html.Div(
+        [
+            dmc.MultiSelect(
+                label="Alert fields",
+                description="Select all fields you like (only available for ZTF data source)! Default is all fields.",
+                placeholder="start typing...",
+                id="field_select",
+                searchable=True,
+            ),
+            dmc.Accordion(
+                children=[
+                    dmc.AccordionItem(
+                        [
+                            dmc.AccordionControl(
+                                "Alert schema",
+                                icon=DashIconify(
+                                    icon="tabler:help",
+                                    color=dmc.DEFAULT_THEME["colors"]["blue"][6],
+                                    width=20,
+                                ),
+                            ),
+                            dmc.AccordionPanel(create_datatransfer_schema_table()),
+                        ],
+                        value="info",
+                    ),
+                ],
+            ),
+            dmc.Space(h=10),
+        ],
+    )
+    tab = html.Div(
+        [
+            dmc.Space(h=50),
+            dmc.Divider(variant="solid", label="Filter alert content"),
+            options,
+        ],
+        id="filter_content_tab",
         style={"display": "none"},
     )
     return tab
@@ -273,7 +333,9 @@ snn_snia_vs_nonia > 0.5;
 
 @app.callback(
     [
-        Output("filter_tab", "style"),
+        Output("date_tab", "style"),
+        Output("filter_number_tab", "style"),
+        Output("filter_content_tab", "style"),
         Output("date-range-picker", "minDate"),
         Output("date-range-picker", "maxDate"),
         Output("class_select", "data"),
@@ -347,12 +409,8 @@ def display_filter_tab(trans_datasource):
                 ]
             )
 
-            # filters
-            import pkgutil
-            import fink_filters.ztf as ffz
-
             filter_list = [
-                "fink_filters.ztf.{}.filter".format(mod)
+                {"value": "fink_filters.ztf.{}.filter".format(mod), "label": mod}
                 for _, mod, _ in pkgutil.iter_modules(ffz.__path__)
                 if mod.startswith("filter")
             ]
@@ -472,6 +530,8 @@ def display_filter_tab(trans_datasource):
             filter_list = []
 
         return (
+            {},
+            {},
             {},
             minDate,
             maxDate,
@@ -1081,56 +1141,101 @@ def mining_helper():
 def layout():
     """Layout for the data transfer service"""
     qb = query_builder()
-    ft = filter_tab()
+    dt = date_tab()
+    ft = filter_number_tab()
+    fc = filter_content_tab()
     ct = content_tab()
     btns = make_buttons()
 
-    title = dbc.Row(
-        children=[
-            dmc.Space(h=20),
-            dmc.Stack(
-                children=[
-                    dmc.Title(
-                        children="Fink Data Transfer",
-                        style={"color": "#15284F"},
-                    ),
-                    dmc.Anchor(
-                        dmc.ActionIcon(
-                            DashIconify(icon="fluent:question-16-regular", width=20),
-                            size=30,
-                            radius="xl",
-                            variant="light",
-                            color="orange",
-                        ),
-                        href="https://fink-broker.org/2023-01-17-data-transfer",
-                        target="_blank",
-                        className="d-block d-md-none",
-                    ),
-                ],
-                align="center",
-                justify="center",
-            ),
-        ],
-    )
+    # title = dbc.Row(
+    #     children=[
+    #         dmc.Space(h=20),
+    #         dmc.Stack(
+    #             children=[
+    #                 dmc.Title(
+    #                     children="Fink Data Transfer",
+    #                     style={"color": "#15284F"},
+    #                 ),
+    #                 dmc.Anchor(
+    #                     dmc.ActionIcon(
+    #                         DashIconify(icon="fluent:question-16-regular", width=20),
+    #                         size=30,
+    #                         radius="xl",
+    #                         variant="light",
+    #                         color="orange",
+    #                     ),
+    #                     href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer",
+    #                     target="_blank",
+    #                     className="d-block d-md-none",
+    #                 ),
+    #             ],
+    #             align="center",
+    #             justify="center",
+    #         ),
+    #     ],
+    # )
 
-    layout_ = dbc.Container(
-        [
-            title,
-            dbc.Row(
-                [
-                    dbc.Col(
+    layout_ = dmc.Container(
+        size="90%",
+        children=[
+            dmc.Grid(
+                justify="center",
+                gutter={ "base": 5, "xs": "md", "md": "xl", "xl": 50 },
+                grow=True,
+                children=[
+                    dmc.GridCol(
+                        children=[
+                            dmc.Space(h=20),
+                            dmc.Center(
+                                dmc.Stack(
+                                    children=[
+                                        dmc.Title(
+                                            children="Fink Data Transfer",
+                                            style={"color": "#15284F"},
+                                        ),
+                                        dmc.Anchor(
+                                            dmc.ActionIcon(
+                                                DashIconify(icon="fluent:question-16-regular", width=20),
+                                                size=30,
+                                                radius="xl",
+                                                variant="light",
+                                                color="orange",
+                                            ),
+                                            href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer",
+                                            target="_blank",
+                                            className="d-block d-md-none",
+                                        ),
+                                    ],
+                                    align="center",
+                                ),
+                            ),
+                        ], span={'base': 12, 'md': 8, "lg": 8, "xl": 8}, offset={"base": 0, "md": 3, "lg": 3, "xl": 3}
+                    ),
+                    dmc.GridCol(
                         [
-                            html.Div(id="timeline_data_transfer"),
+                            dmc.Center(
+                                dmc.SemiCircleProgress(
+                                    fillDirection="left-to-right",
+                                    orientation="up",
+                                    filledSegmentColor="#ff6b6b",
+                                    size=300,
+                                    thickness=20,
+                                    value=69,
+                                    label="350k alerts",
+                                ),
+                            ),
                             html.Br(),
                             mining_helper(),
-                        ],
-                        md=3,
-                        className="d-none d-md-block",
+                        ]
+                        ,
+                        span=3
                     ),
-                    dbc.Col(
+                    dmc.GridCol(
                         [
                             qb,
+                            dt,
                             ft,
+                            fc,
                             ct,
                             html.Div(id="summary_tab"),
                             dmc.Space(h=10),
@@ -1143,16 +1248,63 @@ def layout():
                             make_final_helper(),
                             html.Br(),
                             html.Br(),
-                        ],
-                        md=9,
-                    ),
-                ],
-                justify="around",
-                className="g-2 mt-2",
+                        ], span=8
+                    )
+                ]
             ),
-        ],
-        fluid="lg",
+        ]
     )
+
+    # layout_ = dbc.Container(
+    #     [
+    #         title,
+    #         dbc.Row(
+    #             [
+    #                 dbc.Col(
+    #                     [
+    #                         #html.Div(id="timeline_data_transfer"),
+    #                         dmc.SemiCircleProgress(
+    #                             fillDirection="left-to-right",
+    #                             orientation="up",
+    #                             filledSegmentColor="#ff6b6b",
+    #                             size=300,
+    #                             thickness=20,
+    #                             value=69,
+    #                             label="350k alerts",
+    #                         ),
+    #                         html.Br(),
+    #                         mining_helper(),
+    #                     ],
+    #                     md=3,
+    #                     className="d-none d-md-block",
+    #                 ),
+    #                 dbc.Col(
+    #                     [
+    #                         qb,
+    #                         dt,
+    #                         ft,
+    #                         ct,
+    #                         html.Div(id="summary_tab"),
+    #                         dmc.Space(h=10),
+    #                         html.Div(
+    #                             btns, id="transfer_buttons", style={"display": "none"}
+    #                         ),
+    #                         html.Div(id="streaming_info"),
+    #                         html.Div("", id="batch_id", style={"display": "none"}),
+    #                         html.Div("", id="topic_name", style={"display": "none"}),
+    #                         make_final_helper(),
+    #                         html.Br(),
+    #                         html.Br(),
+    #                     ],
+    #                     md=9,
+    #                 ),
+    #             ],
+    #             justify="around",
+    #             className="g-2 mt-2",
+    #         ),
+    #     ],
+    #     fluid="lg",
+    # )
 
     # Wrap it to re-define the background
     layout_ = html.Div(
