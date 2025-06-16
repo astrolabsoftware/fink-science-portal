@@ -15,7 +15,6 @@
 import textwrap
 from datetime import date, datetime, timedelta
 
-import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
@@ -162,6 +161,7 @@ coeffs_per_class = pd.read_parquet("assets/fclass_2022_060708_coeffs.parquet")
 #
 #     return timeline
 
+
 def date_tab():
     options = html.Div(
         [
@@ -180,7 +180,10 @@ def date_tab():
     tab = html.Div(
         [
             dmc.Space(h=50),
-            dmc.Divider(variant="solid", label="Restrict dates",),
+            dmc.Divider(
+                variant="solid",
+                label="Restrict dates",
+            ),
             options,
         ],
         id="date_tab",
@@ -206,8 +209,12 @@ def filter_number_tab():
                     [
                         "You can apply a Fink filter used in the Livestream service to further reduce the number of alerts. ",
                         "Filters are provided by the Fink community of users. More information at ",
-                        html.A("filters/#real-time-filters", href="https://fink-broker.readthedocs.io/en/latest/broker/filters/#real-time-filters", target="_blank"),
-                        ". No filter is applied by default."
+                        html.A(
+                            "filters/#real-time-filters",
+                            href="https://fink-broker.readthedocs.io/en/latest/broker/filters/#real-time-filters",
+                            target="_blank",
+                        ),
+                        ". No filter is applied by default.",
                     ]
                 ),
                 placeholder="start typing...",
@@ -287,6 +294,7 @@ snn_snia_vs_nonia > 0.5;
         style={"display": "none"},
     )
     return tab
+
 
 def filter_content_tab():
     options = html.Div(
@@ -1180,7 +1188,7 @@ def layout():
         children=[
             dmc.Grid(
                 justify="center",
-                gutter={ "base": 5, "xs": "md", "md": "xl", "xl": 50 },
+                gutter={"base": 5, "xs": "md", "md": "xl", "xl": 50},
                 grow=True,
                 children=[
                     dmc.GridCol(
@@ -1195,7 +1203,10 @@ def layout():
                                         ),
                                         dmc.Anchor(
                                             dmc.ActionIcon(
-                                                DashIconify(icon="fluent:question-16-regular", width=20),
+                                                DashIconify(
+                                                    icon="fluent:question-16-regular",
+                                                    width=20,
+                                                ),
                                                 size=30,
                                                 radius="xl",
                                                 variant="light",
@@ -1209,7 +1220,9 @@ def layout():
                                     align="center",
                                 ),
                             ),
-                        ], span={'base': 12, 'md': 8, "lg": 8, "xl": 8}, offset={"base": 0, "md": 3, "lg": 3, "xl": 3}
+                        ],
+                        span={"base": 12, "md": 8, "lg": 8, "xl": 8},
+                        offset={"base": 0, "md": 3, "lg": 3, "xl": 3},
                     ),
                     dmc.GridCol(
                         [
@@ -1226,9 +1239,8 @@ def layout():
                             ),
                             html.Br(),
                             mining_helper(),
-                        ]
-                        ,
-                        span=3
+                        ],
+                        span=3,
                     ),
                     dmc.GridCol(
                         [
@@ -1248,11 +1260,12 @@ def layout():
                             make_final_helper(),
                             html.Br(),
                             html.Br(),
-                        ], span=8
-                    )
-                ]
+                        ],
+                        span=8,
+                    ),
+                ],
             ),
-        ]
+        ],
     )
 
     # layout_ = dbc.Container(

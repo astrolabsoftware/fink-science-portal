@@ -946,9 +946,6 @@ def create_datatransfer_livestream_table():
     return table_candidate
 
 
-
-
-
 def create_datatransfer_schema_table():
     """ """
     schema = request_api("/api/v1/schema", method="GET", output="json")
