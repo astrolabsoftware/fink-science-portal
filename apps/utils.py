@@ -842,59 +842,85 @@ def select_struct(k, prefix=""):
     if k.startswith("mangrove"):
         return "{}.{}".format(*k.split("_", maxsplit=1))
     elif k.startswith("blazar"):
-        return "{}.{}".format(*k.split("_", maxsplit=1))
+        return "{}.{}".format(*k.rsplit("_", maxsplit=1))
     elif k.startswith("cutout"):
         return "{}".format(k.split("_")[0])
     else:
         return "{}{}".format(prefix, k)
 
 
-def format_field_for_data_transfer():
+def format_field_for_data_transfer(datasource):
     """Get schema from API, and make it suitable for Data Transfer"""
-    schema = request_api("/api/v1/schema", method="GET", output="json")
-
     data = []
+    if datasource != "ZTF":
+        # high level
+        packet = {
+            "group": "Pre-defined schema",
+            "items": [
+                {"value": "Full packet", "label": "Full packet"},
+            ],
+        }
+        data.append(packet)
+    else:
+        schema = request_api("/api/v1/schema", method="GET", output="json")
+        # high level
+        packet = {
+            "group": "Pre-defined schema",
+            "items": [
+                {"value": "Full packet", "label": "Full packet"},
+                {"value": "Light packet", "label": "Light packet"},
+            ],
+        }
+        data.append(packet)
 
-    # objectId
-    objectid = {
-        "group": "ZTF unique object identifier",
-        "items": [{"value": "objectId", "label": "objectId"}],
-    }
-    data.append(objectid)
+        # objectId
+        objectid = {
+            "group": "ZTF unique object identifier",
+            "items": [{"value": "objectId", "label": "objectId"}],
+        }
+        data.append(objectid)
 
-    # Fink added values
-    labels = [
-        "{}".format(select_struct(k))
-        for k in schema["Fink science module outputs (d:)"].keys()
-    ]
-    fink = {
-        "group": "Fink science module outputs",
-        "items": [{"value": label, "label": label} for label in labels],
-    }
-    data.append(fink)
+        # classification
+        objectid = {
+            "group": "Fink derived classification",
+            "items": [{"value": "finkclass", "label": "finkclass"}],
+        }
+        data.append(objectid)
 
-    # candidate
-    labels = [
-        "{}".format(select_struct(k, "candidate."))
-        for k in schema["ZTF original fields (i:)"].keys()
-        if k != "objectId"
-    ]
-    candidate = {
-        "group": "ZTF original fields",
-        "items": [{"value": label, "label": label} for label in labels],
-    }
-    data.append(candidate)
+        # Fink added values
+        labels = [
+            "{}".format(select_struct(k))
+            for k in schema["Fink science module outputs (d:)"].keys()
+            if k not in ["tag"]
+        ]
+        fink = {
+            "group": "Fink science module outputs",
+            "items": [{"value": label, "label": label} for label in labels],
+        }
+        data.append(fink)
 
-    # Cutouts
-    labels = [
-        "{}".format(select_struct(k))
-        for k in schema["ZTF original cutouts (b:)"].keys()
-    ]
-    cutout = {
-        "group": "ZTF original cutouts",
-        "items": [{"value": label, "label": label} for label in labels],
-    }
-    data.append(cutout)
+        # candidate
+        labels = [
+            "{}".format(select_struct(k, "candidate."))
+            for k in schema["ZTF original fields (i:)"].keys()
+            if k != "objectId"
+        ]
+        candidate = {
+            "group": "ZTF original fields",
+            "items": [{"value": label, "label": label} for label in labels],
+        }
+        data.append(candidate)
+
+        # Cutouts
+        labels = [
+            "{}".format(select_struct(k))
+            for k in schema["ZTF original cutouts (b:)"].keys()
+        ]
+        cutout = {
+            "group": "ZTF original cutouts",
+            "items": [{"value": label, "label": label} for label in labels],
+        }
+        data.append(cutout)
 
     return data
 
@@ -967,6 +993,16 @@ def create_datatransfer_schema_table():
             ]
         )
     )
+    rows.append(
+        dmc.TableTr(
+            [
+                dmc.TableTd("finkclass"),
+                dmc.TableTd("Fink"),
+                dmc.TableTd("string"),
+                dmc.TableTd("Fink derived classification"),
+            ]
+        )
+    )
     for prov, prefix in zip(
         [
             "Fink science module outputs (d:)",
@@ -977,12 +1013,18 @@ def create_datatransfer_schema_table():
     ):
         # Table candidates
         labels = [
-            select_struct(k, prefix) for k in schema[prov].keys() if k != "objectId"
+            select_struct(k, prefix)
+            for k in schema[prov].keys()
+            if k not in ["objectId", "tag"]
         ]
         types = [
-            format_type(v["type"]) for k, v in schema[prov].items() if k != "objectId"
+            format_type(v["type"])
+            for k, v in schema[prov].items()
+            if k not in ["objectId", "tag"]
         ]
-        docs = [v["doc"] for k, v in schema[prov].items() if k != "objectId"]
+        docs = [
+            v["doc"] for k, v in schema[prov].items() if k not in ["objectId", "tag"]
+        ]
 
         [
             rows.append(
@@ -1021,4 +1063,11 @@ def create_datatransfer_schema_table():
         minWidth=0,
         type="scrollarea",
     )
-    return table_candidate
+    return dmc.Stack(
+        [
+            dmc.Text(
+                "Full packet will give you all ZTF + Fink content. Light packet will give you all ZTF but cutouts, and all Fink."
+            ),
+            table_candidate,
+        ]
+    )

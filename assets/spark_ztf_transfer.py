@@ -24,6 +24,8 @@ from pyspark.sql.types import StringType
 from fink_filters.ztf.classification import extract_fink_classification
 from fink_utils.spark import schema_converter
 from fink_utils.spark.utils import concat_col
+from fink_utils.spark.utils import apply_user_defined_filter
+
 from fink_science.ztf.ad_features.processor import extract_features_ad
 
 from time import time
@@ -374,6 +376,36 @@ def main(args):
                 continue
             df = df.filter(cond)
 
+    if args.ffilter is not None:
+        for cond in args.ffilter:
+            if cond == "":
+                continue
+            to_expand = [
+                "jd",
+                "fid",
+                "magpsf",
+                "sigmapsf",
+                "magnr",
+                "sigmagnr",
+                "magzpsci",
+                "isdiffpos",
+                "diffmaglim",
+            ]
+
+            prefix = "c"
+            for colname in to_expand:
+                df = concat_col(df, colname, prefix=prefix)
+
+            # quick fix for https://github.com/astrolabsoftware/fink-broker/issues/457
+            for colname in to_expand:
+                df = df.withColumnRenamed("c" + colname, "c" + colname + "c")
+            # apply filter
+            df = apply_user_defined_filter(df, cond, log)
+
+            # Drop temp columns
+            what_prefix = ["c" + colname + "c" for colname in to_expand]
+            df = df.drop(*what_prefix)
+
     # Features
     if "lc_features_g" not in df.columns:
         what = [
@@ -423,7 +455,7 @@ def main(args):
         # Drop temp columns
         df = df.drop(*what_prefix)
 
-    if args.content == "Full packet":
+    if "Full packet" in args.content:
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
@@ -458,7 +490,7 @@ def main(args):
         cnames[cnames.index("lc_features_r")] = (
             "struct(lc_features_r.*) as lc_features_r"
         )
-    elif args.content == "Lightcurve":
+    elif "Light packet" in args.content:
         cnames = [
             "objectId",
             "candidate.candid",
@@ -495,43 +527,22 @@ def main(args):
             "struct(lc_features_r.*) as lc_features_r"
         )
 
-    elif args.content == "Cutouts":
-        cnames = [
-            "objectId",
-            "candidate.candid",
-            "candidate.magpsf",
-            "candidate.ra",
-            "candidate.dec",
-            "candidate.jd",
-            "candidate.ssnamenr",
-            "cutoutScience",
-            "cutoutTemplate",
-            "cutoutDifference",
-        ]
-
-        # add other values from the root level
-        to_avoid = ["candidate", "prv_candidates", "day", "month", "year"]
-        [cnames.append(col) for col in df.columns if col not in to_avoid]
+    elif isinstance(args.content, list):
+        # other cases
+        cnames = args.content
 
         # Add extra classification
         cnames.append("finkclass")
         cnames.append("tnsclass")
 
-        cnames[cnames.index("cutoutScience")] = (
-            "struct(cutoutScience.*) as cutoutScience"
-        )
-        cnames[cnames.index("cutoutTemplate")] = (
-            "struct(cutoutTemplate.*) as cutoutTemplate"
-        )
-        cnames[cnames.index("cutoutDifference")] = (
-            "struct(cutoutDifference.*) as cutoutDifference"
-        )
-        cnames[cnames.index("lc_features_g")] = (
-            "struct(lc_features_g.*) as lc_features_g"
-        )
-        cnames[cnames.index("lc_features_r")] = (
-            "struct(lc_features_r.*) as lc_features_r"
-        )
+        if "lc_features_g" in cnames:
+            cnames[cnames.index("lc_features_g")] = (
+                "struct(lc_features_g.*) as lc_features_g"
+            )
+        if "lc_features_r" in cnames:
+            cnames[cnames.index("lc_features_r")] = (
+                "struct(lc_features_r.*) as lc_features_r"
+            )
 
     # Wrap alert data
     df = df.selectExpr(cnames)
@@ -581,7 +592,9 @@ if __name__ == "__main__":
     parser.add_argument("-startDate")
     parser.add_argument("-stopDate")
     parser.add_argument("-fclass", action="append")
+    parser.add_argument("-ffilter", action="append")
     parser.add_argument("-extraCond", action="append")
+    parser.add_argument("-ffield", action="append")
     parser.add_argument("-content")
     parser.add_argument("-basePath")
     parser.add_argument("-topic_name")
