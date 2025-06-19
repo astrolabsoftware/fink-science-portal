@@ -352,7 +352,7 @@ def display_filter_tab(trans_datasource):
 
             # Livestream filters
             filter_list = [
-                {"value": "fink_filters.ztf.{}.filter".format(mod), "label": mod}
+                {"value": "fink_filters.ztf.livestream.{}.filter.{}".format(mod, mod.split("filter_")[1]), "label": mod}
                 for _, mod, _ in pkgutil.iter_modules(ffz.__path__)
                 if mod.startswith("filter")
             ]
@@ -475,6 +475,7 @@ def display_filter_tab(trans_datasource):
         Input("date-range-picker", "value"),
         Input("class_select", "value"),
         Input("field_select", "value"),
+        Input("filter_select", "value"),
         Input("extra_cond", "value"),
     ],
 )
@@ -484,6 +485,7 @@ def gauge_meter(
     date_range_picker,
     class_select,
     field_select,
+    filter_select,
     extra_cond,
 ):
     """ """
@@ -506,7 +508,7 @@ def gauge_meter(
             field_select = ["Full packet"]
 
         if trans_datasource == "ZTF":
-            total, count = estimate_alert_number_ztf(date_range_picker, class_select)
+            total, count = estimate_alert_number_ztf(date_range_picker, class_select, filter_select)
             sizeGb = estimate_size_gb_ztf(field_select)
             defaultGb = 55 / 1024 / 1024
         elif trans_datasource == "ELASTiCC (v1)":
@@ -875,16 +877,7 @@ def layout():
                         children=[
                             dmc.Stack(
                                 [
-                                    dmc.Space(h=40),
-                                    dmc.RingProgress(
-                                        roundCaps=True,
-                                        sections=[{"value": 0, "color": "grey"}],
-                                        size=250,
-                                        thickness=20,
-                                        label="",
-                                        id="gauge_alert_number",
-                                    ),
-                                    dmc.Space(h=20),
+                                    dmc.Space(h=65),
                                     dmc.SegmentedControl(
                                         id="trans_datasource",
                                         value="ZTF",
@@ -901,6 +894,16 @@ def layout():
                                             },
                                         ],
                                         radius="md",
+                                        size="lg",
+                                    ),
+                                    dmc.Space(h=20),
+                                    dmc.RingProgress(
+                                        roundCaps=True,
+                                        sections=[{"value": 0, "color": "grey"}],
+                                        size=250,
+                                        thickness=20,
+                                        label="",
+                                        id="gauge_alert_number",
                                     ),
                                     dmc.Space(h=20),
                                     dmc.RingProgress(
