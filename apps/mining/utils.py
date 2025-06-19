@@ -214,9 +214,9 @@ def initialise_classes(class_select):
 
     return columns, column_names
 
+
 def get_statistics(column_names, dstart, dstop, with_class=True):
-    """
-    """
+    """ """
     dic = {"basic:sci": 0}
 
     # Get total number of alerts for the period
@@ -261,11 +261,11 @@ def add_tns_estimation(dic, class_select):
                     dic[elem] = 0
                 else:
                     dic[elem.replace("(TNS) ", "class:")] = int(
-                        dic["basic:sci"]
-                        * coeffs_per_class[filt]["coeff"].to_numpy()[0]
+                        dic["basic:sci"] * coeffs_per_class[filt]["coeff"].to_numpy()[0]
                     )
 
     return dic
+
 
 def get_filter_statistics(dic, filter_select):
     """Get stastitics based on a user-defined filter
@@ -279,9 +279,12 @@ def get_filter_statistics(dic, filter_select):
     """
     id_ = coeffs_per_filters["filter"] == filter_select
     if np.sum(id_) == 1:
-        dic[filter_select] = coeffs_per_filters[id_]["coeff"].to_numpy()[0] * dic["basic:sci"]
+        dic[filter_select] = (
+            coeffs_per_filters[id_]["coeff"].to_numpy()[0] * dic["basic:sci"]
+        )
 
     return dic
+
 
 def estimate_alert_number_ztf(date_range_picker, class_select, filter_select):
     """Callback to estimate the number of alerts to be transfered
@@ -294,8 +297,12 @@ def estimate_alert_number_ztf(date_range_picker, class_select, filter_select):
 
     columns, column_names = initialise_classes(class_select)
 
-    with_filter = (filter_select is not None) and (filter_select != "") and (filter_select != [])
-    with_class = (class_select is not None) and (class_select != "") and (class_select != [])
+    with_filter = (
+        (filter_select is not None) and (filter_select != "") and (filter_select != [])
+    )
+    with_class = (
+        (class_select is not None) and (class_select != "") and (class_select != [])
+    )
     dic = get_statistics(column_names, dstart, dstop, with_class=not with_filter)
 
     # we check first filter, and then class
