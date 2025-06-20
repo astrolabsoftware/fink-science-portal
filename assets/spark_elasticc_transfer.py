@@ -260,6 +260,8 @@ def main(args):
         log.warning("Exiting.")
         spark.stop()
         sys.exit(1)
+    else:
+        content = args.ffield
 
     if "Full packet" in content:
         # Cast fields to ease the distribution
