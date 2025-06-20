@@ -541,6 +541,10 @@ def main(args):
                 "struct(lc_features_r.*) as lc_features_r"
             )
 
+        if "candidate.jd" not in cnames:
+            # required for the Kafka client partitionment
+            cnames.append("candidate.jd")
+
     if "timestamp" in cnames:
         cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
 

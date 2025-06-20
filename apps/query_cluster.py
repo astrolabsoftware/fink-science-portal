@@ -153,10 +153,10 @@ def filter_number_tab():
             ),
             dmc.Space(h=10),
             dmc.Select(
-                label="Connect with Livestream",
+                label="Apply a Fink filter",
                 description=html.Div(
                     [
-                        "You can apply a Fink filter used in the Livestream service to further reduce the number of alerts. ",
+                        "You can apply one Fink filter used in the Livestream service to further reduce the number of alerts. ",
                         "Filters are provided by the Fink community of users. More information at ",
                         html.A(
                             "filters/#real-time-filters",
