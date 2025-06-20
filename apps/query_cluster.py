@@ -840,9 +840,11 @@ def update_log(batchid, log_progress):
             output = html.Div("\n".join(livy_log), style={"whiteSpace": "pre-wrap"})
         elif "msg" in response.json():
             output = html.Div(response.text), "progress"
+        # import time
+        # time.sleep(5)
         return output, "progress"
     else:
-        return no_update
+        return no_update, no_update
         # return html.Div("batch ID is empty")
 
 
