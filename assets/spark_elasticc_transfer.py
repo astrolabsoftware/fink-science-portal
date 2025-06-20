@@ -252,7 +252,7 @@ def main(args):
                 continue
             df = df.filter(cond)
 
-    if args.content == "Full packet":
+    if args.ffield == "Full packet":
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
@@ -300,7 +300,7 @@ def main(args):
         args.topic_name,
     )
 
-    log.info("Data ({}) available at topic: {}".format(args.content, args.topic_name))
+    log.info("Data ({}) available at topic: {}".format(args.ffield, args.topic_name))
     log.info("End.")
 
 
@@ -314,7 +314,6 @@ if __name__ == "__main__":
     parser.add_argument("-ffilter", action="append")
     parser.add_argument("-extraCond", action="append")
     parser.add_argument("-ffield", action="append")
-    parser.add_argument("-content")
     parser.add_argument("-basePath")
     parser.add_argument("-topic_name")
     parser.add_argument("-kafka_bootstrap_servers")

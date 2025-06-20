@@ -455,7 +455,7 @@ def main(args):
         # Drop temp columns
         df = df.drop(*what_prefix)
 
-    if "Full packet" in args.content:
+    if "Full packet" in args.ffield:
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
@@ -490,7 +490,7 @@ def main(args):
         cnames[cnames.index("lc_features_r")] = (
             "struct(lc_features_r.*) as lc_features_r"
         )
-    elif "Light packet" in args.content:
+    elif "Light packet" in args.ffield:
         cnames = [
             "objectId",
             "candidate.candid",
@@ -527,9 +527,9 @@ def main(args):
             "struct(lc_features_r.*) as lc_features_r"
         )
 
-    elif isinstance(args.content, list):
+    elif isinstance(args.ffield, list):
         # other cases
-        cnames = args.content
+        cnames = args.ffield
 
         # Add extra classification
         cnames.append("finkclass")
@@ -581,7 +581,7 @@ def main(args):
         args.topic_name,
     )
 
-    log.info("Data ({}) available at topic: {}".format(args.content, args.topic_name))
+    log.info("Data ({}) available at topic: {}".format(args.ffield, args.topic_name))
     log.info("End.")
 
 
@@ -595,7 +595,6 @@ if __name__ == "__main__":
     parser.add_argument("-ffilter", action="append")
     parser.add_argument("-extraCond", action="append")
     parser.add_argument("-ffield", action="append")
-    parser.add_argument("-content")
     parser.add_argument("-basePath")
     parser.add_argument("-topic_name")
     parser.add_argument("-kafka_bootstrap_servers")
