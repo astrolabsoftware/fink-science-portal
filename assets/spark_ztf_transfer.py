@@ -353,6 +353,7 @@ def main(args):
     if args.fclass is not None:
         if args.fclass != []:
             if "allclasses" not in args.fclass:
+                log.info("Filtering for classes {}...".format(args.fclass))
                 tns_class = [i for i in args.fclass if i.startswith("(TNS)")]
                 other_class = [i for i in args.fclass if i not in tns_class]
                 sanitized_other_class = [
@@ -378,6 +379,7 @@ def main(args):
 
     if args.ffilter is not None and isinstance(args.ffilter, str):
         if args.ffilter != "":
+            log.info("Applying user-defined filter {}...".format(args.ffilter))
             to_expand = [
                 "jd",
                 "fid",
@@ -463,6 +465,8 @@ def main(args):
         sys.exit(1)
     else:
         content = args.ffield
+
+    log.info("Selecting content {}...".format(content))
 
     if "Full packet" in content:
         # Cast fields to ease the distribution
@@ -590,7 +594,7 @@ def main(args):
         args.topic_name,
     )
 
-    log.info("Data ({}) available at topic: {}".format(content, args.topic_name))
+    log.info("Data available at topic: {}".format(args.topic_name))
     log.info("End.")
 
 
