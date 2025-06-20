@@ -455,7 +455,16 @@ def main(args):
         # Drop temp columns
         df = df.drop(*what_prefix)
 
-    if "Full packet" in args.ffield:
+    # Define content
+    if args.ffield is None:
+        content = ["Full packet"]
+    elif not isinstance(args.ffield, list):
+        log.warning("Content has not been defined: {}".format(args.ffield))
+        log.warning("Exiting.")
+        spark.stop()
+        sys.exit(1)
+
+    if "Full packet" in content:
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
@@ -490,7 +499,7 @@ def main(args):
         cnames[cnames.index("lc_features_r")] = (
             "struct(lc_features_r.*) as lc_features_r"
         )
-    elif "Light packet" in args.ffield:
+    elif "Light packet" in content:
         cnames = [
             "objectId",
             "candidate.candid",
@@ -527,9 +536,9 @@ def main(args):
             "struct(lc_features_r.*) as lc_features_r"
         )
 
-    elif isinstance(args.ffield, list):
+    elif isinstance(content, list):
         # other cases
-        cnames = args.ffield
+        cnames = content
 
         # Add extra classification
         cnames.append("finkclass")
@@ -581,7 +590,7 @@ def main(args):
         args.topic_name,
     )
 
-    log.info("Data ({}) available at topic: {}".format(args.ffield, args.topic_name))
+    log.info("Data ({}) available at topic: {}".format(content, args.topic_name))
     log.info("End.")
 
 

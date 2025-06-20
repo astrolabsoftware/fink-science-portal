@@ -252,7 +252,16 @@ def main(args):
                 continue
             df = df.filter(cond)
 
-    if args.ffield == "Full packet":
+    # Define content
+    if args.ffield is None:
+        content = ["Full packet"]
+    elif not isinstance(args.ffield, list):
+        log.warning("Content has not been defined: {}".format(args.ffield))
+        log.warning("Exiting.")
+        spark.stop()
+        sys.exit(1)
+
+    if "Full packet" in content:
         # Cast fields to ease the distribution
         cnames = df.columns
         cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
@@ -300,7 +309,7 @@ def main(args):
         args.topic_name,
     )
 
-    log.info("Data ({}) available at topic: {}".format(args.ffield, args.topic_name))
+    log.info("Data ({}) available at topic: {}".format(content, args.topic_name))
     log.info("End.")
 
 
