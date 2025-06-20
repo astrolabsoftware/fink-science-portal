@@ -752,8 +752,8 @@ def submit_job(
             [job_args.append(f"-fclass={elem}") for elem in class_select]
         if field_select is not None:
             [job_args.append(f"-ffield={elem}") for elem in field_select]
-        if filter_select is not None:
-            [job_args.append(f"-ffilter={elem}") for elem in filter_select]
+        if isinstance(filter_select, str):
+            job_args.append(f"-ffilter={filter_select}")
 
         if extra_cond is not None:
             extra_cond_list = extra_cond.split(";")
