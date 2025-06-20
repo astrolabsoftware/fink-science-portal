@@ -1016,27 +1016,16 @@ def layout():
                                                         dmc.Stack(
                                                             children=[
                                                                 dmc.Space(h=20),
-                                                                dmc.Button(
-                                                                    "Submit job",
-                                                                    id="submit_datatransfer",
-                                                                    variant="outline",
-                                                                    color=COLORS_ZTF[0],
-                                                                    leftSection=DashIconify(
-                                                                        icon="fluent:database-plug-connected-20-filled"
-                                                                    ),
-                                                                ),
-                                                                html.Div(
-                                                                    id="notification-container"
-                                                                ),
                                                                 dmc.Group(
                                                                     children=[
                                                                         dmc.Button(
-                                                                            "Update log",
-                                                                            id="update_batch_log",
-                                                                            color=COLORS_ZTF[
-                                                                                0
-                                                                            ],
+                                                                            "Submit job",
+                                                                            id="submit_datatransfer",
                                                                             variant="outline",
+                                                                            color=COLORS_ZTF[0],
+                                                                            leftSection=DashIconify(
+                                                                                icon="fluent:database-plug-connected-20-filled"
+                                                                            ),
                                                                         ),
                                                                         html.A(
                                                                             dmc.Button(
@@ -1046,6 +1035,14 @@ def layout():
                                                                             ),
                                                                             href="/download",
                                                                         ),
+                                                                    ]
+                                                                ),
+                                                                html.Div(
+                                                                    id="notification-container"
+                                                                ),
+                                                                dmc.Group(
+                                                                    children=[
+
                                                                     ]
                                                                 ),
                                                                 dcc.Interval(
