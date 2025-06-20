@@ -810,6 +810,8 @@ def submit_job(
     State("log_progress", "data")
 )
 def update_log(batchid, log_progress):
+    """Update log from the Spark cluster
+    """
     if batchid != "" and log_progress != "error":
         response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
 

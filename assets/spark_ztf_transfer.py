@@ -476,18 +476,6 @@ def main(args):
     if "Full packet" in content:
         # Cast fields to ease the distribution
         cnames = df.columns
-        cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
-
-        if "brokerEndProcessTimestamp" in cnames:
-            cnames[cnames.index("brokerEndProcessTimestamp")] = (
-                "cast(brokerEndProcessTimestamp as string) as brokerEndProcessTimestamp"
-            )
-            cnames[cnames.index("brokerStartProcessTimestamp")] = (
-                "cast(brokerStartProcessTimestamp as string) as brokerStartProcessTimestamp"
-            )
-            cnames[cnames.index("brokerIngestTimestamp")] = (
-                "cast(brokerIngestTimestamp as string) as brokerIngestTimestamp"
-            )
 
         cnames[cnames.index("cutoutScience")] = (
             "struct(cutoutScience.*) as cutoutScience"
@@ -552,6 +540,20 @@ def main(args):
             cnames[cnames.index("lc_features_r")] = (
                 "struct(lc_features_r.*) as lc_features_r"
             )
+
+    if "timestamp" in cnames:
+        cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
+
+    if "brokerEndProcessTimestamp" in cnames:
+        cnames[cnames.index("brokerEndProcessTimestamp")] = (
+            "cast(brokerEndProcessTimestamp as string) as brokerEndProcessTimestamp"
+        )
+        cnames[cnames.index("brokerStartProcessTimestamp")] = (
+            "cast(brokerStartProcessTimestamp as string) as brokerStartProcessTimestamp"
+        )
+        cnames[cnames.index("brokerIngestTimestamp")] = (
+            "cast(brokerIngestTimestamp as string) as brokerIngestTimestamp"
+        )
 
     # Wrap alert data
     df = df.selectExpr(cnames)
