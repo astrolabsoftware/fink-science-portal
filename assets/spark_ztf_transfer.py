@@ -399,12 +399,17 @@ def main(args):
             # quick fix for https://github.com/astrolabsoftware/fink-broker/issues/457
             for colname in to_expand:
                 df = df.withColumnRenamed("c" + colname, "c" + colname + "c")
+
+            # For SN
+            df = df.withColumn("cstampDatac", df["cutoutScience.stampData"])
+
             # apply filter
             df = apply_user_defined_filter(df, args.ffilter, log)
 
             # Drop temp columns
             what_prefix = ["c" + colname + "c" for colname in to_expand]
             df = df.drop(*what_prefix)
+            df = df.drop("cstampDatac")
 
     # Features
     if "lc_features_g" not in df.columns:
