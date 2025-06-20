@@ -783,7 +783,7 @@ def submit_job(
                 title=f"[Batch ID {batchid}][Status code {status_code}]",
                 color="red",
             )
-            return True, text, no_update, no_update
+            return True, alert, no_update, no_update
 
         alert = dmc.Alert(
             children=f"Your topic name is: {topic_name}",
@@ -799,47 +799,51 @@ def submit_job(
 
 
 @app.callback(
-    Output("batch_log", "children"),
     [
-        Input("update_batch_log", "n_clicks"),
+        Output("batch_log", "children"),
+        Output("log_progress", "data"),
+    ],
+    [
+        # Input("update_batch_log", "n_clicks"),
         Input("batch_id", "children"),
     ],
+    State("log_progress", "data")
 )
-def update_log(n_clicks, batchid):
-    if n_clicks:
-        if batchid != "":
-            response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
+def update_log(batchid, log_progress):
+    if batchid != "" and log_progress != "error":
+        response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
 
-            if "log" in response.json():
-                bad_words = ["Error", "Traceback"]
-                failure_log = [
-                    row
-                    for row in response.json()["log"]
-                    if np.any([i in row for i in bad_words])
+        if "log" in response.json():
+            bad_words = ["Error", "Traceback"]
+            failure_log = [
+                row
+                for row in response.json()["log"]
+                if np.any([i in row for i in bad_words])
+            ]
+            if len(failure_log) > 0:
+                initial_traceback = failure_log[0]
+                log = response.json()["log"]
+                index = log.index(initial_traceback)
+                failure_msg = [
+                    f"Batch ID: {batchid}",
+                    "Failed. Please, contact contact@fink-broker.org with your batch ID and the message below.",
+                    "------------- Traceback -------------",
+                    *log[index:],
                 ]
-                if len(failure_log) > 0:
-                    initial_traceback = failure_log[0]
-                    log = response.json()["log"]
-                    index = log.index(initial_traceback)
-                    failure_msg = [
-                        f"Batch ID: {batchid}",
-                        "Failed. Please, contact contact@fink-broker.org with your batch ID and the message below.",
-                        "------------- Traceback -------------",
-                        *log[index:],
-                    ]
-                    output = html.Div(
-                        "\n".join(failure_msg), style={"whiteSpace": "pre-wrap"}
-                    )
-                    return output
-                # catch and return tailored error msg if fail (with batchid and contact@fink-broker.org)
-                livy_log = [row for row in response.json()["log"] if "-Livy-" in row]
-                livy_log = [f"Batch ID: {batchid}", "Starting..."] + livy_log
-                output = html.Div("\n".join(livy_log), style={"whiteSpace": "pre-wrap"})
-            elif "msg" in response.json():
-                output = html.Div(response.text)
-            return output
-        else:
-            return html.Div("batch ID is empty")
+                output = html.Div(
+                    "\n".join(failure_msg), style={"whiteSpace": "pre-wrap"}
+                )
+                return output, "error"
+            # catch and return tailored error msg if fail (with batchid and contact@fink-broker.org)
+            livy_log = [row for row in response.json()["log"] if "-Livy-" in row]
+            livy_log = [f"Batch ID: {batchid}", "Starting..."] + livy_log
+            output = html.Div("\n".join(livy_log), style={"whiteSpace": "pre-wrap"})
+        elif "msg" in response.json():
+            output = html.Div(response.text), "progress"
+        return output, "progress"
+    else:
+        return no_update
+        # return html.Div("batch ID is empty")
 
 
 instructions = """
@@ -871,6 +875,20 @@ def layout():
     n_alert_total = np.sum(pdf["basic:sci"].to_numpy())
     active = 0
 
+    helper = """
+    The Fink data transfer service allows you to select and transfer Fink-processed alert data at scale.
+    We provide access to alert data from ZTF (over 200 million alerts as of 2025), from the DESC/ELASTiCC data
+    challenge (over 50 million alerts), and soon from the Rubin Observatory.
+
+    Follow these steps: (1) select observing nights, (2) apply filters to focus on relevant alerts and reduce the
+    volume of data, and (3) select only the relevant alert fields for your analysis. Note that we provide estimates on
+    the number of alerts to transfer and the data volume.
+
+    Once ready, submit your job on the Fink Apache Spark and Kafka clusters to retrieve your data wherever you like.
+    To access the data, you need to create an account. See the [fink-client](https://github.com/astrolabsoftware/fink-client) and
+    the [documentation](https://fink-broker.readthedocs.io/en/latest/services/data_transfer) for more information.
+    """
+
     layout = dmc.Container(
         size="90%",
         children=[
@@ -884,26 +902,32 @@ def layout():
                         children=[
                             dmc.Stack(
                                 [
-                                    dmc.Space(h=65),
+                                    dmc.Space(h=20),
+                                    dmc.Center(
+                                        dmc.Title(
+                                            children="Fink Data Transfer",
+                                            style={"color": "#15284F"},
+                                        ),
+                                    ),
+                                    dmc.Space(h=20),
                                     dmc.SegmentedControl(
                                         id="trans_datasource",
                                         value="ZTF",
                                         data=[
-                                            {"value": "ZTF", "label": "ZTF"},
-                                            {
-                                                "value": "ELASTiCC (v1)",
-                                                "label": "Elasticc",
-                                            },
                                             {
                                                 "value": "Rubin",
                                                 "label": "Rubin",
                                                 "disabled": True,
                                             },
+                                            {"value": "ZTF", "label": "ZTF"},
+                                            {
+                                                "value": "ELASTiCC (v1)",
+                                                "label": "Elasticc",
+                                            },
                                         ],
-                                        radius="md",
+                                        radius="lg",
                                         size="lg",
                                     ),
-                                    dmc.Space(h=20),
                                     dmc.RingProgress(
                                         roundCaps=True,
                                         sections=[{"value": 0, "color": "grey"}],
@@ -912,7 +936,6 @@ def layout():
                                         label="",
                                         id="gauge_alert_number",
                                     ),
-                                    dmc.Space(h=20),
                                     dmc.RingProgress(
                                         roundCaps=True,
                                         sections=[{"value": 0, "color": "grey"}],
@@ -920,6 +943,28 @@ def layout():
                                         thickness=20,
                                         label="",
                                         id="gauge_alert_size",
+                                    ),
+                                    dmc.Accordion(
+                                        variant="separated",
+                                        radius="xl",
+                                        children=[
+                                            dmc.AccordionItem(
+                                                [
+                                                    dmc.AccordionControl(
+                                                        "Help",
+                                                        icon=DashIconify(
+                                                            icon="material-symbols:info-outline",
+                                                            # color=dmc.DEFAULT_THEME["colors"]["blue"][6],
+                                                            color="black",
+                                                            width=30,
+                                                        ),
+                                                    ),
+                                                    dmc.AccordionPanel(dcc.Markdown(helper, link_target="_blank"),),
+                                                ],
+                                                value="description"
+                                            ),
+                                        ],
+                                        value=None,
                                     ),
                                 ],
                                 align="center",
@@ -929,14 +974,9 @@ def layout():
                     ),
                     dmc.GridCol(
                         children=[
-                            dmc.Center(
-                                dmc.Title(
-                                    children="Fink Data Transfer",
-                                    style={"color": "#15284F"},
-                                ),
-                            ),
                             dmc.Space(h=40),
                             dmc.Stepper(
+                                color="#15284F",
                                 id="stepper-basic-usage",
                                 active=active,
                                 children=[
@@ -974,29 +1014,33 @@ def layout():
                                                         dmc.Stack(
                                                             children=[
                                                                 dmc.Space(h=20),
+                                                                dmc.Button(
+                                                                    "Submit job",
+                                                                    id="submit_datatransfer",
+                                                                    variant="outline",
+                                                                    color=COLORS_ZTF[
+                                                                        0
+                                                                    ],
+                                                                    leftSection=DashIconify(
+                                                                        icon="fluent:database-plug-connected-20-filled"
+                                                                    ),
+                                                                ),
+                                                                html.Div(
+                                                                    id="notification-container"
+                                                                ),
                                                                 dmc.Group(
                                                                     children=[
                                                                         dmc.Button(
-                                                                            "Submit job",
-                                                                            id="submit_datatransfer",
-                                                                            variant="outline",
-                                                                            color=COLORS_ZTF[
-                                                                                0
-                                                                            ],
-                                                                            leftSection=DashIconify(
-                                                                                icon="fluent:database-plug-connected-20-filled"
-                                                                            ),
-                                                                        ),
-                                                                        dmc.Button(
                                                                             "Update log",
                                                                             id="update_batch_log",
-                                                                            color="orange",
+                                                                            color=COLORS_ZTF[0],
+                                                                            variant="outline",
                                                                         ),
                                                                         html.A(
                                                                             dmc.Button(
                                                                                 "Clear and restart",
                                                                                 id="refresh",
-                                                                                color="green",
+                                                                                color="red",
                                                                             ),
                                                                             href="/download",
                                                                         ),
@@ -1004,10 +1048,6 @@ def layout():
                                                                 ),
                                                                 html.Div(
                                                                     id="batch_log"
-                                                                ),
-                                                                dmc.Space(h=10),
-                                                                html.Div(
-                                                                    id="notification-container"
                                                                 ),
                                                             ],
                                                             align="center",
@@ -1046,6 +1086,7 @@ def layout():
                                 ],
                             ),
                             dcc.Store(data=n_alert_total, id="alert-stats"),
+                            dcc.Store(data="", id="log_progress"),
                             html.Div("", id="batch_id", style={"display": "none"}),
                             html.Div("", id="topic_name", style={"display": "none"}),
                         ],
@@ -1110,5 +1151,5 @@ def update_icon_date(date, back_, next_):
     if button_id in ["back-basic-usage", "next-basic-usage"]:
         if date is None or date == "":
             return "red"
-        return "blue"
-    return "blue"
+        return "#15284F"
+    return "#15284F"
