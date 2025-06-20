@@ -804,13 +804,12 @@ def submit_job(
     ],
     [
         Input("batch_id", "children"),
-        Input("log_progress", "data"),
         Input('interval-component', 'n_intervals'),
     ],
 )
-def update_log(batchid, log_progress, interval):
+def update_log(batchid, interval):
     """Update log from the Spark cluster"""
-    if batchid != "" and log_progress != "error":
+    if batchid != "":
         response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
 
         current_date = datetime.datetime.now().strftime("%d/%m/%yT%H:%M:%S")
@@ -1053,7 +1052,7 @@ def layout():
                                                                 ),
                                                                 dcc.Interval(
                                                                     id='interval-component',
-                                                                    interval=1 * 1000,
+                                                                    interval=1 * 3000,
                                                                     n_intervals=0
                                                                 ),
                                                                 html.Div(
