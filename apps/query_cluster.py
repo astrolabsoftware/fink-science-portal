@@ -799,9 +799,7 @@ def submit_job(
 
 
 @app.callback(
-    [
-        Output("batch_log", "children"),
-    ],
+    Output("batch_log", "children"),
     [
         Input("batch_id", "children"),
         Input('interval-component', 'n_intervals'),
