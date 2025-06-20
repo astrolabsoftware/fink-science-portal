@@ -804,14 +804,12 @@ def submit_job(
         Output("log_progress", "data"),
     ],
     [
-        # Input("update_batch_log", "n_clicks"),
         Input("batch_id", "children"),
+        Input("log_progress", "data"),
     ],
-    State("log_progress", "data")
 )
 def update_log(batchid, log_progress):
-    """Update log from the Spark cluster
-    """
+    """Update log from the Spark cluster"""
     if batchid != "" and log_progress != "error":
         response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
 
@@ -961,9 +959,13 @@ def layout():
                                                             width=30,
                                                         ),
                                                     ),
-                                                    dmc.AccordionPanel(dcc.Markdown(helper, link_target="_blank"),),
+                                                    dmc.AccordionPanel(
+                                                        dcc.Markdown(
+                                                            helper, link_target="_blank"
+                                                        ),
+                                                    ),
                                                 ],
-                                                value="description"
+                                                value="description",
                                             ),
                                         ],
                                         value=None,
@@ -1020,9 +1022,7 @@ def layout():
                                                                     "Submit job",
                                                                     id="submit_datatransfer",
                                                                     variant="outline",
-                                                                    color=COLORS_ZTF[
-                                                                        0
-                                                                    ],
+                                                                    color=COLORS_ZTF[0],
                                                                     leftSection=DashIconify(
                                                                         icon="fluent:database-plug-connected-20-filled"
                                                                     ),
@@ -1035,7 +1035,9 @@ def layout():
                                                                         dmc.Button(
                                                                             "Update log",
                                                                             id="update_batch_log",
-                                                                            color=COLORS_ZTF[0],
+                                                                            color=COLORS_ZTF[
+                                                                                0
+                                                                            ],
                                                                             variant="outline",
                                                                         ),
                                                                         html.A(
