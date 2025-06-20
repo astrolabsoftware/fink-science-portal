@@ -605,7 +605,7 @@ if __name__ == "__main__":
     parser.add_argument("-startDate")
     parser.add_argument("-stopDate")
     parser.add_argument("-fclass", action="append")
-    parser.add_argument("-ffilter", action="append")
+    parser.add_argument("-ffilter")
     parser.add_argument("-extraCond", action="append")
     parser.add_argument("-ffield", action="append")
     parser.add_argument("-basePath")
