@@ -377,33 +377,32 @@ def main(args):
             df = df.filter(cond)
 
     if args.ffilter is not None and isinstance(args.ffilter, str):
-        if args.ffilter == "":
-            continue
-        to_expand = [
-            "jd",
-            "fid",
-            "magpsf",
-            "sigmapsf",
-            "magnr",
-            "sigmagnr",
-            "magzpsci",
-            "isdiffpos",
-            "diffmaglim",
-        ]
+        if args.ffilter != "":
+            to_expand = [
+                "jd",
+                "fid",
+                "magpsf",
+                "sigmapsf",
+                "magnr",
+                "sigmagnr",
+                "magzpsci",
+                "isdiffpos",
+                "diffmaglim",
+            ]
 
-        prefix = "c"
-        for colname in to_expand:
-            df = concat_col(df, colname, prefix=prefix)
+            prefix = "c"
+            for colname in to_expand:
+                df = concat_col(df, colname, prefix=prefix)
 
-        # quick fix for https://github.com/astrolabsoftware/fink-broker/issues/457
-        for colname in to_expand:
-            df = df.withColumnRenamed("c" + colname, "c" + colname + "c")
-        # apply filter
-        df = apply_user_defined_filter(df, args.ffilter, log)
+            # quick fix for https://github.com/astrolabsoftware/fink-broker/issues/457
+            for colname in to_expand:
+                df = df.withColumnRenamed("c" + colname, "c" + colname + "c")
+            # apply filter
+            df = apply_user_defined_filter(df, args.ffilter, log)
 
-        # Drop temp columns
-        what_prefix = ["c" + colname + "c" for colname in to_expand]
-        df = df.drop(*what_prefix)
+            # Drop temp columns
+            what_prefix = ["c" + colname + "c" for colname in to_expand]
+            df = df.drop(*what_prefix)
 
     # Features
     if "lc_features_g" not in df.columns:
