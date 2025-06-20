@@ -813,6 +813,8 @@ def update_log(batchid, log_progress):
     if batchid != "" and log_progress != "error":
         response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
 
+        current_date = datetime.datetime.now().strftime("%d/%m/%yT%H:%M:%S")
+
         if "log" in response.json():
             bad_words = ["Error", "Traceback"]
             failure_log = [
@@ -839,10 +841,10 @@ def update_log(batchid, log_progress):
             livy_log = [f"Batch ID: {batchid}", "Starting..."] + livy_log
             output = html.Div("\n".join(livy_log), style={"whiteSpace": "pre-wrap"})
         elif "msg" in response.json():
-            output = html.Div(response.text), "progress"
+            output = html.Div(response.text), current_date
         # import time
         # time.sleep(5)
-        return output, "progress"
+        return output, current_date
     else:
         return no_update, no_update
         # return html.Div("batch ID is empty")
