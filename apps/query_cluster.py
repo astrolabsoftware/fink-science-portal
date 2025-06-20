@@ -1052,7 +1052,7 @@ def layout():
                                                                     ]
                                                                 ),
                                                                 dcc.Interval(
-                                                                    id='interval',
+                                                                    id='interval-component',
                                                                     interval=1 * 1000,
                                                                     n_intervals=0
                                                                 ),
