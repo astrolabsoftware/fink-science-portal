@@ -509,9 +509,8 @@ def main(args):
             "struct(lc_features_r.*) as lc_features_r"
         )
     elif "Light packet" in content:
+        # Wanted content from candidates
         cnames = [
-            "objectId",
-            "candidate.candid",
             "candidate.magpsf",
             "candidate.sigmapsf",
             "candidate.fid",
@@ -521,7 +520,7 @@ def main(args):
             "candidate.ssnamenr",
         ]
 
-        # add other values from the root level
+        # add other values from the root level (including finkclass & tnsclass)
         to_avoid = [
             "cutoutScience",
             "cutoutTemplate",
@@ -534,10 +533,6 @@ def main(args):
         ]
         [cnames.append(col) for col in df.columns if col not in to_avoid]
 
-        # Add extra classification
-        cnames.append("finkclass")
-        cnames.append("tnsclass")
-
         cnames[cnames.index("lc_features_g")] = (
             "struct(lc_features_g.*) as lc_features_g"
         )
@@ -548,10 +543,6 @@ def main(args):
     elif isinstance(content, list):
         # other cases
         cnames = content
-
-        # Add extra classification
-        cnames.append("finkclass")
-        cnames.append("tnsclass")
 
         if "lc_features_g" in cnames:
             cnames[cnames.index("lc_features_g")] = (
