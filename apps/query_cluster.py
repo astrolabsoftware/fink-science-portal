@@ -801,14 +801,14 @@ def submit_job(
 @app.callback(
     [
         Output("batch_log", "children"),
-        Output("log_progress", "data"),
     ],
     [
         Input("batch_id", "children"),
         Input("log_progress", "data"),
+        Input('interval-component', 'n_intervals'),
     ],
 )
-def update_log(batchid, log_progress):
+def update_log(batchid, log_progress, interval):
     """Update log from the Spark cluster"""
     if batchid != "" and log_progress != "error":
         response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
@@ -835,19 +835,16 @@ def update_log(batchid, log_progress):
                 output = html.Div(
                     "\n".join(failure_msg), style={"whiteSpace": "pre-wrap"}
                 )
-                return output, "error"
+                return output
             # catch and return tailored error msg if fail (with batchid and contact@fink-broker.org)
             livy_log = [row for row in response.json()["log"] if "-Livy-" in row]
             livy_log = [f"Batch ID: {batchid}", "Starting..."] + livy_log
             output = html.Div("\n".join(livy_log), style={"whiteSpace": "pre-wrap"})
         elif "msg" in response.json():
-            output = html.Div(response.text), current_date
-        # import time
-        # time.sleep(5)
-        return output, current_date
+            output = html.Div(response.text)
+        return output
     else:
-        return no_update, no_update
-        # return html.Div("batch ID is empty")
+        return no_update
 
 
 instructions = """
@@ -1053,6 +1050,11 @@ def layout():
                                                                             href="/download",
                                                                         ),
                                                                     ]
+                                                                ),
+                                                                dcc.Interval(
+                                                                    id='interval',
+                                                                    interval=1 * 1000,
+                                                                    n_intervals=0
                                                                 ),
                                                                 html.Div(
                                                                     id="batch_log"
