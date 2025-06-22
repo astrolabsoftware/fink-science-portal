@@ -802,15 +802,13 @@ def submit_job(
     Output("batch_log", "children"),
     [
         Input("batch_id", "children"),
-        Input('interval-component', 'n_intervals'),
+        Input("interval-component", "n_intervals"),
     ],
 )
 def update_log(batchid, interval):
     """Update log from the Spark cluster"""
     if batchid != "":
         response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
-
-        current_date = datetime.datetime.now().strftime("%d/%m/%yT%H:%M:%S")
 
         if "log" in response.json():
             bad_words = ["Error", "Traceback"]
@@ -1022,7 +1020,9 @@ def layout():
                                                                             "Submit job",
                                                                             id="submit_datatransfer",
                                                                             variant="outline",
-                                                                            color=COLORS_ZTF[0],
+                                                                            color=COLORS_ZTF[
+                                                                                0
+                                                                            ],
                                                                             leftSection=DashIconify(
                                                                                 icon="fluent:database-plug-connected-20-filled"
                                                                             ),
@@ -1040,15 +1040,11 @@ def layout():
                                                                 html.Div(
                                                                     id="notification-container"
                                                                 ),
-                                                                dmc.Group(
-                                                                    children=[
-
-                                                                    ]
-                                                                ),
+                                                                dmc.Group(children=[]),
                                                                 dcc.Interval(
-                                                                    id='interval-component',
+                                                                    id="interval-component",
                                                                     interval=1 * 3000,
-                                                                    n_intervals=0
+                                                                    n_intervals=0,
                                                                 ),
                                                                 html.Div(
                                                                     id="batch_log"
