@@ -582,7 +582,7 @@ def gauge_meter(
                     position="bottom",
                     multiline=True,
                     w=220,
-                    label="Estimated number of alerts for the selected dates, including the class filter(s), but not a livestream filter (if any), nor custom filters (if any). The percentage is given with respect to the total for the selected dates ({} to {})".format(
+                    label="Estimated number of alerts for the selected dates, including the class filter(s) and the livestream filter (if any), but not the custom filters (if any). The percentage is given with respect to the total for the selected dates ({} to {})".format(
                         *date_range_picker
                     ),
                 ),
