@@ -6,7 +6,7 @@
 
 The Fink Science Portal allows users to browse and display alert data collected and processed by Fink from a web browser: [https://fink-portal.org](https://fink-portal.org).
 
-The backend is using [Apache HBase](https://hbase.apache.org/), a distributed non-relational database. The frontend is based on [Dash](https://plotly.com/dash/), a Python web framework built on top of Flask, Plotly and React. The frontend has also integrated components to perform fit on the data, such as [gatspy](https://www.astroml.org/gatspy/) for variable stars, or the [imcce](https://ssp.imcce.fr/webservices/miriade/) tools for Solar System objects.
+The backend is using [Apache HBase](https://hbase.apache.org/), a distributed non-relational database. The frontend is based on [Dash](https://plotly.com/dash/), a Python web framework built on top of Flask, Plotly and React. The frontend has also integrated components to perform fit on the data, such as [nifty-ls](https://github.com/flatironinstitute/nifty-ls) for variable stars, or the [imcce](https://ssp.imcce.fr/webservices/miriade/) tools for Solar System objects.
 
 ## Backend structure
 
