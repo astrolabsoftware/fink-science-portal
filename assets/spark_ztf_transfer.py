@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2023 AstroLab Software
+# Copyright 2023-2025 AstroLab Software
 # Author: Julien Peloton
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,8 @@ from pyspark.sql.types import StringType
 from fink_filters.ztf.classification import extract_fink_classification
 from fink_utils.spark import schema_converter
 from fink_utils.spark.utils import concat_col
+from fink_utils.spark.utils import apply_user_defined_filter
+
 from fink_science.ztf.ad_features.processor import extract_features_ad
 
 from time import time
@@ -38,31 +40,6 @@ import requests
 
 import logging
 from logging import Logger
-
-COLS_FINK = [
-    "finkclass",
-    "tnsclass",
-    "cdsxmatch",
-    "roid",
-    "mulens",
-    "DR3Name",
-    "Plx",
-    "e_Plx",
-    "gcvs",
-    "vsx",
-    "snn_snia_vs_nonia",
-    "snn_sn_vs_all",
-    "rf_snia_vs_nonia",
-    "rf_kn_vs_nonkn",
-    "tracklet",
-    "x4lac",
-    "x3hsp",
-    "mangrove",
-    "t2",
-    "anomaly_score",
-    "lc_features_g",
-    "lc_features_r",
-]
 
 
 def get_fink_logger(name: str = "test", log_level: str = "INFO") -> Logger:
@@ -376,6 +353,7 @@ def main(args):
     if args.fclass is not None:
         if args.fclass != []:
             if "allclasses" not in args.fclass:
+                log.info("Filtering for classes {}...".format(args.fclass))
                 tns_class = [i for i in args.fclass if i.startswith("(TNS)")]
                 other_class = [i for i in args.fclass if i not in tns_class]
                 sanitized_other_class = [
@@ -398,6 +376,40 @@ def main(args):
             if cond == "":
                 continue
             df = df.filter(cond)
+
+    if args.ffilter is not None and isinstance(args.ffilter, str):
+        if args.ffilter != "":
+            log.info("Applying user-defined filter {}...".format(args.ffilter))
+            to_expand = [
+                "jd",
+                "fid",
+                "magpsf",
+                "sigmapsf",
+                "magnr",
+                "sigmagnr",
+                "magzpsci",
+                "isdiffpos",
+                "diffmaglim",
+            ]
+
+            prefix = "c"
+            for colname in to_expand:
+                df = concat_col(df, colname, prefix=prefix)
+
+            # quick fix for https://github.com/astrolabsoftware/fink-broker/issues/457
+            for colname in to_expand:
+                df = df.withColumnRenamed("c" + colname, "c" + colname + "c")
+
+            # For SN
+            df = df.withColumn("cstampDatac", df["cutoutScience.stampData"])
+
+            # apply filter
+            df = apply_user_defined_filter(df, args.ffilter, log)
+
+            # Drop temp columns
+            what_prefix = ["c" + colname + "c" for colname in to_expand]
+            df = df.drop(*what_prefix)
+            df = df.drop("cstampDatac")
 
     # Features
     if "lc_features_g" not in df.columns:
@@ -448,21 +460,22 @@ def main(args):
         # Drop temp columns
         df = df.drop(*what_prefix)
 
-    if args.content == "Full packet":
+    # Define content
+    if args.ffield is None:
+        content = ["Full packet"]
+    elif not isinstance(args.ffield, list):
+        log.warning("Content has not been defined: {}".format(args.ffield))
+        log.warning("Exiting.")
+        spark.stop()
+        sys.exit(1)
+    else:
+        content = args.ffield
+
+    log.info("Selecting content {}...".format(content))
+
+    if "Full packet" in content:
         # Cast fields to ease the distribution
         cnames = df.columns
-        cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
-
-        if "brokerEndProcessTimestamp" in cnames:
-            cnames[cnames.index("brokerEndProcessTimestamp")] = (
-                "cast(brokerEndProcessTimestamp as string) as brokerEndProcessTimestamp"
-            )
-            cnames[cnames.index("brokerStartProcessTimestamp")] = (
-                "cast(brokerStartProcessTimestamp as string) as brokerStartProcessTimestamp"
-            )
-            cnames[cnames.index("brokerIngestTimestamp")] = (
-                "cast(brokerIngestTimestamp as string) as brokerIngestTimestamp"
-            )
 
         cnames[cnames.index("cutoutScience")] = (
             "struct(cutoutScience.*) as cutoutScience"
@@ -483,62 +496,67 @@ def main(args):
         cnames[cnames.index("lc_features_r")] = (
             "struct(lc_features_r.*) as lc_features_r"
         )
-    elif args.content == "Lightcurve":
+    elif "Light packet" in content:
+        # Wanted content from candidates
         cnames = [
-            "objectId",
-            "candidate.candid",
             "candidate.magpsf",
             "candidate.sigmapsf",
             "candidate.fid",
             "candidate.jd",
             "candidate.ra",
             "candidate.dec",
+            "candidate.ssnamenr",
         ]
 
-        for col in COLS_FINK:
-            # added values are at the root level
-            if col in df.columns:
-                cnames.append(col)
-
-        cnames[cnames.index("lc_features_g")] = (
-            "struct(lc_features_g.*) as lc_features_g"
-        )
-        cnames[cnames.index("lc_features_r")] = (
-            "struct(lc_features_r.*) as lc_features_r"
-        )
-
-    elif args.content == "Cutouts":
-        cnames = [
-            "objectId",
-            "candidate.candid",
-            "candidate.magpsf",
-            "candidate.ra",
-            "candidate.dec",
-            "candidate.jd",
+        # add other values from the root level (including finkclass & tnsclass)
+        to_avoid = [
             "cutoutScience",
             "cutoutTemplate",
             "cutoutDifference",
+            "candidate",
+            "prv_candidates",
+            "day",
+            "month",
+            "year",
         ]
+        [cnames.append(col) for col in df.columns if col not in to_avoid]
 
-        for col in COLS_FINK:
-            # added values are at the root level
-            if col in df.columns:
-                cnames.append(col)
-
-        cnames[cnames.index("cutoutScience")] = (
-            "struct(cutoutScience.*) as cutoutScience"
-        )
-        cnames[cnames.index("cutoutTemplate")] = (
-            "struct(cutoutTemplate.*) as cutoutTemplate"
-        )
-        cnames[cnames.index("cutoutDifference")] = (
-            "struct(cutoutDifference.*) as cutoutDifference"
-        )
         cnames[cnames.index("lc_features_g")] = (
             "struct(lc_features_g.*) as lc_features_g"
         )
         cnames[cnames.index("lc_features_r")] = (
             "struct(lc_features_r.*) as lc_features_r"
+        )
+
+    elif isinstance(content, list):
+        # other cases
+        cnames = content
+
+        if "lc_features_g" in cnames:
+            cnames[cnames.index("lc_features_g")] = (
+                "struct(lc_features_g.*) as lc_features_g"
+            )
+        if "lc_features_r" in cnames:
+            cnames[cnames.index("lc_features_r")] = (
+                "struct(lc_features_r.*) as lc_features_r"
+            )
+
+        if "candidate.jd" not in cnames:
+            # required for the Kafka client partitionment
+            cnames.append("candidate.jd")
+
+    if "timestamp" in cnames:
+        cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
+
+    if "brokerEndProcessTimestamp" in cnames:
+        cnames[cnames.index("brokerEndProcessTimestamp")] = (
+            "cast(brokerEndProcessTimestamp as string) as brokerEndProcessTimestamp"
+        )
+        cnames[cnames.index("brokerStartProcessTimestamp")] = (
+            "cast(brokerStartProcessTimestamp as string) as brokerStartProcessTimestamp"
+        )
+        cnames[cnames.index("brokerIngestTimestamp")] = (
+            "cast(brokerIngestTimestamp as string) as brokerIngestTimestamp"
         )
 
     # Wrap alert data
@@ -578,7 +596,7 @@ def main(args):
         args.topic_name,
     )
 
-    log.info("Data ({}) available at topic: {}".format(args.content, args.topic_name))
+    log.info("Data available at topic: {}".format(args.topic_name))
     log.info("End.")
 
 
@@ -589,8 +607,9 @@ if __name__ == "__main__":
     parser.add_argument("-startDate")
     parser.add_argument("-stopDate")
     parser.add_argument("-fclass", action="append")
+    parser.add_argument("-ffilter")
     parser.add_argument("-extraCond", action="append")
-    parser.add_argument("-content")
+    parser.add_argument("-ffield", action="append")
     parser.add_argument("-basePath")
     parser.add_argument("-topic_name")
     parser.add_argument("-kafka_bootstrap_servers")

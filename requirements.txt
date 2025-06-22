@@ -43,7 +43,7 @@ dash-html-components==2.0.0
 dash-iconify==0.1.2
 dash-table==5.0.0
 dash_autocomplete_input==0.0.7
-dash_mantine_components==0.15.3
+dash_mantine_components==2.0.0
 decorator==5.1.1
 Deprecated==1.2.15
 dill==0.3.9
@@ -52,9 +52,9 @@ docopt==0.6.2
 docutils==0.21.2
 executing==2.1.0
 faust-cchardet==2.1.19
-fink-filters==6.4
+fink-filters==7.0
 fink-spins==0.3.8
-fink-utils==0.39.2
+fink-utils==0.41.2
 finufft==2.3.1
 Flask==3.0.3
 Flask-Compress==1.17
@@ -183,3 +183,4 @@ xyzservices==2024.9.0
 yarl==1.18.3
 zipp==3.21.0
 zstandard==0.23.0
+git+https://github.com/astrolabsoftware/fink-science@8.7.0

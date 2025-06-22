@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import importlib
+import pkgutil
 import base64
 import yaml
 import gzip
@@ -36,6 +38,8 @@ from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash import html
+
+import fink_filters.ztf.livestream as ffz
 
 # Access local or remove API endpoint
 
@@ -831,3 +835,239 @@ def apparent_flux_dr(mag_dc, err_dc, mjy=False):
     sigma_flux = flux * 0.4 * np.log(10) * err_dc
 
     return flux, sigma_flux
+
+
+def select_struct(k, prefix=""):
+    """Select struct field"""
+    if k.startswith("mangrove"):
+        return "{}.{}".format(*k.split("_", maxsplit=1))
+    elif k.startswith("blazar"):
+        return "{}.{}".format(*k.rsplit("_", maxsplit=1))
+    elif k.startswith("cutout"):
+        return "{}".format(k.split("_")[0])
+    else:
+        return "{}{}".format(prefix, k)
+
+
+def format_field_for_data_transfer(datasource):
+    """Get schema from API, and make it suitable for Data Transfer"""
+    data = []
+    if datasource != "ZTF":
+        # high level
+        packet = {
+            "group": "Pre-defined schema",
+            "items": [
+                {"value": "Full packet", "label": "Full packet"},
+            ],
+        }
+        data.append(packet)
+    else:
+        schema = request_api("/api/v1/schema", method="GET", output="json")
+        # high level
+        packet = {
+            "group": "Pre-defined schema",
+            "items": [
+                {"value": "Full packet", "label": "Full packet"},
+                {"value": "Light packet", "label": "Light packet"},
+            ],
+        }
+        data.append(packet)
+
+        # objectId
+        objectid = {
+            "group": "ZTF unique object identifier",
+            "items": [{"value": "objectId", "label": "objectId"}],
+        }
+        data.append(objectid)
+
+        # classification
+        objectid = {
+            "group": "Fink derived classification",
+            "items": [{"value": "finkclass", "label": "finkclass"}],
+        }
+        data.append(objectid)
+
+        # Fink added values
+        labels = [
+            "{}".format(select_struct(k))
+            for k in schema["Fink science module outputs (d:)"].keys()
+            if k not in ["tag"]
+        ]
+        fink = {
+            "group": "Fink science module outputs",
+            "items": [{"value": label, "label": label} for label in labels],
+        }
+        data.append(fink)
+
+        # candidate
+        labels = [
+            "{}".format(select_struct(k, "candidate."))
+            for k in schema["ZTF original fields (i:)"].keys()
+            if k != "objectId"
+        ]
+        candidate = {
+            "group": "ZTF original fields",
+            "items": [{"value": label, "label": label} for label in labels],
+        }
+        data.append(candidate)
+
+        # Cutouts
+        labels = [
+            "{}".format(select_struct(k))
+            for k in schema["ZTF original cutouts (b:)"].keys()
+        ]
+        cutout = {
+            "group": "ZTF original cutouts",
+            "items": [{"value": label, "label": label} for label in labels],
+        }
+        data.append(cutout)
+
+    return data
+
+
+def create_datatransfer_livestream_table():
+    """ """
+    # Get list of filters
+    modules = [
+        "fink_filters.ztf.livestream.{}.filter".format(mod)
+        for _, mod, _ in pkgutil.iter_modules(ffz.__path__)
+        if mod.startswith("filter")
+    ]
+
+    # header
+    rows = []
+    for module in modules:
+        name = module.split(".")[-2]
+        doc = importlib.import_module(module).__doc__
+        rows.append(
+            dmc.TableTr(
+                [
+                    dmc.TableTd(name),
+                    dmc.TableTd(doc),
+                ]
+            )
+        )
+
+    head = dmc.TableThead(
+        dmc.TableTr(
+            [
+                dmc.TableTh("Name", w="35%"),
+                dmc.TableTh("Description", w="65%"),
+            ]
+        )
+    )
+    body = dmc.TableTbody(rows)
+    caption = dmc.TableCaption("Filters description")
+
+    table_candidate = dmc.TableScrollContainer(
+        dmc.Table(
+            [head, body, caption],
+            horizontalSpacing="xl",
+            highlightOnHover=True,
+        ),
+        maxHeight=300,
+        minWidth=0,
+        type="scrollarea",
+    )
+    return table_candidate
+
+
+def create_datatransfer_schema_table():
+    """ """
+    schema = request_api("/api/v1/schema", method="GET", output="json")
+
+    def format_type(t):
+        if isinstance(t, list):
+            return t[-1]
+        else:
+            return t
+
+    rows = []
+    rows.append(
+        dmc.TableTr(
+            [
+                dmc.TableTd("objectId"),
+                dmc.TableTd("ZTF"),
+                dmc.TableTd("string"),
+                dmc.TableTd("Unique identifier for an object"),
+            ]
+        )
+    )
+    rows.append(
+        dmc.TableTr(
+            [
+                dmc.TableTd("finkclass"),
+                dmc.TableTd("Fink"),
+                dmc.TableTd("string"),
+                dmc.TableTd("Fink derived classification"),
+            ]
+        )
+    )
+    for prov, prefix in zip(
+        [
+            "Fink science module outputs (d:)",
+            "ZTF original fields (i:)",
+            "ZTF original cutouts (b:)",
+        ],
+        ["", "candidate.", ""],
+    ):
+        # Table candidates
+        labels = [
+            select_struct(k, prefix)
+            for k in schema[prov].keys()
+            if k not in ["objectId", "tag"]
+        ]
+        types = [
+            format_type(v["type"])
+            for k, v in schema[prov].items()
+            if k not in ["objectId", "tag"]
+        ]
+        docs = [
+            v["doc"] for k, v in schema[prov].items() if k not in ["objectId", "tag"]
+        ]
+
+        [
+            rows.append(
+                dmc.TableTr(
+                    [
+                        dmc.TableTd(label),
+                        dmc.TableTd(prov.split(" ")[0]),
+                        dmc.TableTd(type_),
+                        dmc.TableTd(doc),
+                    ]
+                )
+            )
+            for label, type_, doc in zip(labels, types, docs)
+        ]
+
+    head = dmc.TableThead(
+        dmc.TableTr(
+            [
+                dmc.TableTh("Name", w="25%"),
+                dmc.TableTh("From", w="15%"),
+                dmc.TableTh("Type", w="15%"),
+                dmc.TableTh("Documentation"),
+            ]
+        )
+    )
+    body = dmc.TableTbody(rows)
+    caption = dmc.TableCaption("Alert schema")
+
+    table_candidate = dmc.TableScrollContainer(
+        dmc.Table(
+            [head, body, caption],
+            horizontalSpacing="xl",
+            highlightOnHover=True,
+        ),
+        maxHeight=300,
+        minWidth=0,
+        type="scrollarea",
+    )
+    return dmc.Stack(
+        [
+            dmc.Text(
+                "Full packet will give you all ZTF + Fink content. Light packet will give you all ZTF but cutouts, and all Fink."
+            ),
+            table_candidate,
+        ]
+    )
