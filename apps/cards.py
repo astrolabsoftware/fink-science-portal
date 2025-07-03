@@ -1028,6 +1028,7 @@ def generate_metadata_name(oid):
         json={
             "objectId": oid,
         },
+        method="GET",
         output="json",
     )
 
