@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import urllib.parse
 import importlib
 import pkgutil
 import base64
@@ -465,6 +466,7 @@ def retrieve_oid_from_metaname(name):
         json={
             "internal_name_encoded": name,
         },
+        method="GET",
         output="json",
     )
 
@@ -561,10 +563,16 @@ def request_api(endpoint, json=None, output="pandas", method="POST", **kwargs):
             json=json,
         )
     elif method == "GET":
-        # No args?..
-        r = requests.get(
-            f"{APIURL}{endpoint}",
-        )
+        URL = f"{APIURL}{endpoint}"
+        ARGS = ""
+        if json is not None and isinstance(json, dict):
+            URL += "?"
+            for k, v in json.items():
+                # encode reserved characters
+                ARGS += "{}={}&".format(
+                    urllib.parse.quote_plus(k), urllib.parse.quote_plus(v)
+                )
+        r = requests.get(URL + ARGS)
 
     if output == "json":
         if r.status_code != 200:
