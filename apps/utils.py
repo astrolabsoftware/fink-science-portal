@@ -471,7 +471,7 @@ def retrieve_oid_from_metaname(name):
     )
 
     if r != []:
-        return r[0]["key:key"]
+        return r[0]["i:objectId"]
     return None
 
 
