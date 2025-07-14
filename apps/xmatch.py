@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash_mantine_components as dmc
+import dash_bootstrap_components as dbc
+
 import textwrap
 import base64
 import datetime
@@ -22,33 +24,36 @@ import numpy as np
 import pandas as pd
 import requests
 import yaml
-from dash import Input, Output, State, html, dcc, ctx, callback, no_update, dash_table
+from dash import (
+    Input,
+    Output,
+    State,
+    html,
+    dcc,
+    ctx,
+    callback,
+    no_update,
+    dash_table,
+    clientside_callback,
+)
 from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 
 from astropy.io import votable
+import astropy.units as u
+from mocpy import MOC
 
-from fink_utils.xmatch.simbad import get_simbad_labels
 
 from app import app
 from apps.mining.utils import (
-    estimate_size_gb_elasticc,
-    estimate_size_gb_ztf,
     submit_spark_job,
     upload_file_hdfs,
-    estimate_alert_number_ztf,
-    estimate_alert_number_elasticc,
 )
 from apps.utils import extract_configuration
 from apps.utils import format_field_for_data_transfer
 from apps.utils import create_datatransfer_schema_table
-from apps.utils import create_datatransfer_livestream_table
-from apps.utils import query_and_order_statistics
 from apps.plotting import COLORS_ZTF
 
-import pkgutil
-
-import fink_filters.ztf.livestream as ffz
 
 args = extract_configuration("config.yml")
 APIURL = args["APIURL"]
@@ -58,34 +63,77 @@ max_step = 4
 
 MAX_ROW = 100000
 
+
 def upload_catalog():
-    """
-    """
+    """ """
+    radius = dmc.NumberInput(
+        placeholder="type value...",
+        label="Crossmatch radius in arcsecond",
+        variant="default",
+        # size="sm",
+        # radius="sm",
+        hideControls=True,
+        w=250,
+        mb=10,
+        id="radius_xmatch",
+        disabled=True,
+    )
+
+    ra = dmc.Select(
+        label="Select column for Right Ascension",
+        placeholder="Select one",
+        id="ra-column",
+        w=250,
+        mb=10,
+        disabled=True,
+    )
+    dec = dmc.Select(
+        label="Select column for Declination",
+        placeholder="Select one",
+        id="dec-column",
+        w=250,
+        mb=10,
+        disabled=True,
+    )
+    identifier = dmc.Select(
+        label="Select column for the identifier",
+        placeholder="Select one",
+        id="id-column",
+        w=250,
+        mb=10,
+        disabled=True,
+    )
+
     return html.Div(
         children=[
             dcc.Upload(
-                id='upload-data',
-                children=html.Div([
-                    'Drag and Drop or ',
-                    html.A('Select Files '),
-                    "(csv, parquet, or votable)"
-                ]),
+                id="upload-data",
+                children=html.Div(
+                    [
+                        "Drag and Drop or ",
+                        html.A("Select Files "),
+                        "(csv, parquet, or votable)",
+                    ]
+                ),
                 style={
-                    'width': '100%',
-                    'height': '60px',
-                    'lineHeight': '60px',
-                    'borderWidth': '1px',
-                    'borderStyle': 'dashed',
-                    'borderRadius': '5px',
-                    'textAlign': 'center',
-                    'margin': '10px'
+                    "width": "100%",
+                    "height": "60px",
+                    "lineHeight": "60px",
+                    "borderWidth": "1px",
+                    "borderStyle": "dashed",
+                    "borderRadius": "5px",
+                    "textAlign": "center",
+                    "margin": "10px",
                 },
             ),
-            html.Div(id='output-data-upload'),
+            html.Div(id="output-data-upload"),
             dmc.Space(h=10),
-            html.Div(id="column-selector"),
+            dmc.Group([ra, dec, identifier, radius], justify="center"),
+            dmc.Space(h=10),
+            dmc.Center(modal_skymap()),
         ]
     )
+
 
 def date_tab():
     options = html.Div(
@@ -116,6 +164,7 @@ def date_tab():
     )
     return tab
 
+
 def filter_content_tab():
     options = html.Div(
         [
@@ -140,7 +189,9 @@ def filter_content_tab():
                                     width=20,
                                 ),
                             ),
-                            dmc.AccordionPanel(create_datatransfer_schema_table(cutouts_allowed=False)),
+                            dmc.AccordionPanel(
+                                create_datatransfer_schema_table(cutouts_allowed=False)
+                            ),
                         ],
                         value="info",
                     ),
@@ -158,6 +209,193 @@ def filter_content_tab():
         id="filter_content_tab_xmatch",
     )
     return tab
+
+
+@app.callback(
+    Output("code_block_xmatch", "code"),
+    Input("topic_name_xmatch", "children"),
+    prevent_initial_call=True,
+)
+def update_code_block(topic_name):
+    if topic_name is not None and topic_name != "":
+        code_block = f"""
+fink_datatransfer \\
+    -topic {topic_name} \\
+    -outdir {topic_name} \\
+    --verbose
+        """
+        return code_block
+
+
+@app.callback(
+    Output("submit_xmatch", "disabled", allow_duplicate=True),
+    Output("notification-container-xmatch", "children"),
+    Output("batch_id_xmatch", "children"),
+    Output("topic_name_xmatch", "children"),
+    [
+        Input("submit_xmatch", "n_clicks"),
+    ],
+    [
+        State("trans_datasource_xmatch", "value"),
+        State("catalog", "data"),
+        State("ra-column", "value"),
+        State("dec-column", "value"),
+        State("radius_xmatch", "value"),
+        State("id-column", "value"),
+        State("date-range-picker-xmatch", "value"),
+        State("field_select_xmatch", "value"),
+    ],
+    prevent_initial_call=True,
+)
+def submit_job(
+    n_clicks,
+    trans_datasource,
+    catalog,
+    ra,
+    dec,
+    radius,
+    identifier,
+    date_range_picker,
+    field_select,
+):
+    """Submit a job to the Apache Spark cluster via Livy"""
+    if n_clicks:
+        # define unique topic name
+        d = datetime.datetime.utcnow()
+
+        if trans_datasource == "ZTF":
+            topic_name = f"fxmatch_ztf_{d.date().isoformat()}_{d.microsecond}"
+            fn = "assets/spark_ztf_xmatch.py"
+            basepath = "hdfs://vdmaster1:8020/user/julien.peloton/archive/science"
+
+        filename = f"stream_{topic_name}.py"
+
+        with open(fn) as f:
+            data = f.read()
+        code = textwrap.dedent(data)
+
+        input_args = yaml.load(open("config_datatransfer.yml"), yaml.Loader)
+        status_code, hdfs_log = upload_file_hdfs(
+            code,
+            input_args["WEBHDFS"],
+            input_args["NAMENODE"],
+            input_args["USER"],
+            filename,
+        )
+
+        if status_code != 201:
+            text = dmc.Stack(
+                children=[
+                    "Unable to upload resources on HDFS, with error: ",
+                    dmc.CodeHighlight(code=f"{hdfs_log}", language="html"),
+                    "Contact an administrator at contact@fink-broker.org.",
+                ]
+            )
+            alert = dmc.Alert(
+                children=text, title=f"[Status code {status_code}]", color="red"
+            )
+            return True, alert, no_update, no_update
+
+        # get the job args
+        job_args = [
+            f"-startDate={date_range_picker[0]}",
+            f"-stopDate={date_range_picker[1]}",
+            f"-basePath={basepath}",
+            f"-topic_name={topic_name}",
+            f"-ra_col={ra}",
+            f"-dec_col={dec}",
+            f"-radius_arcsec={radius}",
+            f"-id_col={identifier}",
+            "-catalog={}".format(catalog),
+            "-kafka_bootstrap_servers={}".format(input_args["KAFKA_BOOTSTRAP_SERVERS"]),
+            "-kafka_sasl_username={}".format(input_args["KAFKA_SASL_USERNAME"]),
+            "-kafka_sasl_password={}".format(input_args["KAFKA_SASL_PASSWORD"]),
+            "-path_to_tns=/spark_mongo_tmp/julien.peloton/tns.parquet",
+        ]
+        if field_select is not None:
+            [job_args.append(f"-ffield={elem}") for elem in field_select]
+
+        # submit the job
+        filepath = "hdfs://vdmaster1:8020/user/{}/{}".format(
+            input_args["USER"], filename
+        )
+        batchid, status_code, spark_log = submit_spark_job(
+            input_args["LIVYHOST"],
+            filepath,
+            input_args["SPARKCONF"],
+            job_args,
+        )
+
+        if status_code != 201:
+            text = dmc.Stack(
+                children=[
+                    "Unable to upload resources on HDFS, with error: ",
+                    dmc.CodeHighlight(code=f"{spark_log}", language="html"),
+                    "Contact an administrator at contact@fink-broker.org.",
+                ]
+            )
+            alert = dmc.Alert(
+                children=text,
+                title=f"[Batch ID {batchid}][Status code {status_code}]",
+                color="red",
+            )
+            return True, alert, no_update, no_update
+
+        alert = dmc.Alert(
+            children=f"Your topic name is: {topic_name}",
+            title="Submitted successfully",
+            color="green",
+        )
+        if n_clicks:
+            return True, alert, batchid, topic_name
+        else:
+            return False, alert, batchid, topic_name
+    else:
+        return no_update, no_update, no_update, no_update
+
+
+@app.callback(
+    Output("batch_log_xmatch", "children"),
+    [
+        Input("batch_id_xmatch", "children"),
+        Input("interval-component-xmatch", "n_intervals"),
+    ],
+)
+def update_log(batchid, interval):
+    """Update log from the Spark cluster"""
+    if batchid != "":
+        response = requests.get(f"http://vdmaster1:21111/batches/{batchid}/log")
+
+        if "log" in response.json():
+            bad_words = ["Error", "Traceback"]
+            failure_log = [
+                row
+                for row in response.json()["log"]
+                if np.any([i in row for i in bad_words])
+            ]
+            if len(failure_log) > 0:
+                initial_traceback = failure_log[0]
+                log = response.json()["log"]
+                index = log.index(initial_traceback)
+                failure_msg = [
+                    f"Batch ID: {batchid}",
+                    "Failed. Please, contact contact@fink-broker.org with your batch ID and the message below.",
+                    "------------- Traceback -------------",
+                    *log[index:],
+                ]
+                output = html.Div(
+                    "\n".join(failure_msg), style={"whiteSpace": "pre-wrap"}
+                )
+                return output
+            # catch and return tailored error msg if fail (with batchid and contact@fink-broker.org)
+            livy_log = [row for row in response.json()["log"] if "-Livy-" in row]
+            livy_log = [f"Batch ID: {batchid}", "Starting..."] + livy_log
+            output = html.Div("\n".join(livy_log), style={"whiteSpace": "pre-wrap"})
+        elif "msg" in response.json():
+            output = html.Div(response.text)
+        return output
+    else:
+        return no_update
 
 
 instructions = """
@@ -216,7 +454,7 @@ def layout():
                                     ),
                                     dmc.Space(h=20),
                                     dmc.SegmentedControl(
-                                        id="trans_datasource-xmatch",
+                                        id="trans_datasource_xmatch",
                                         value="ZTF",
                                         data=[
                                             {
@@ -271,7 +509,7 @@ def layout():
                     dmc.GridCol(
                         children=[
                             dmc.Space(h=40),
-                            dmc.Space(h=40),
+                            # dmc.Space(h=10),
                             dmc.Stepper(
                                 color="#15284F",
                                 id="stepper-xmatch-usage",
@@ -336,7 +574,7 @@ def layout():
                                                                     ]
                                                                 ),
                                                                 html.Div(
-                                                                    id="notification-container"
+                                                                    id="notification-container-xmatch"
                                                                 ),
                                                                 dmc.Group(children=[]),
                                                                 dcc.Interval(
@@ -372,21 +610,26 @@ def layout():
                                     ),
                                 ],
                             ),
-                            dmc.Space(h=40),
+                            dmc.Space(h=10),
                             dmc.Group(
                                 justify="center",
                                 mt="xl",
                                 children=[
                                     dmc.Button(
-                                        "Back", id="back-xmatch-usage", variant="default"
+                                        "Back",
+                                        id="back-xmatch-usage",
+                                        variant="default",
                                     ),
                                     dmc.Button("Next step", id="next-xmatch-usage"),
                                 ],
                             ),
                             dcc.Store(id="object-catalog"),
-                            # dcc.Store(data="", id="log_progress"),
-                            # html.Div("", id="batch_id", style={"display": "none"}),
-                            # html.Div("", id="topic_name", style={"display": "none"}),
+                            html.Div(
+                                "", id="batch_id_xmatch", style={"display": "none"}
+                            ),
+                            html.Div(
+                                "", id="topic_name_xmatch", style={"display": "none"}
+                            ),
                         ],
                         span=9,
                     ),
@@ -397,57 +640,194 @@ def layout():
 
     return layout
 
+
 @app.callback(
-    Output("column-selector", "children"),
+    [
+        Output("ra-column", "disabled"),
+        Output("dec-column", "disabled"),
+        Output("id-column", "disabled"),
+        Output("radius_xmatch", "disabled"),
+        Output("ra-column", "data"),
+        Output("dec-column", "data"),
+        Output("id-column", "data"),
+    ],
     Input("object-catalog", "data"),
     prevent_initial_call=True,
 )
 def select_columns(catalog):
-    """
-    """
-    pdf = pd.read_json(io.StringIO(catalog))
+    """ """
+    if catalog is None or catalog == {}:
+        PreventUpdate()
 
+    pdf = pd.read_json(io.StringIO(catalog))
     if pdf.empty:
+        PreventUpdate()
+
+    ra_data = [{"value": c, "label": c} for c in pdf.columns]
+    dec_data = [{"value": c, "label": c} for c in pdf.columns]
+    identifier = [{"value": c, "label": c} for c in pdf.columns]
+
+    return False, False, False, False, ra_data, dec_data, identifier
+
+
+@app.callback(
+    Output("aladin-lite-div-skymap-xmatch", "run"),
+    [
+        Input("ra-column", "value"),
+        Input("dec-column", "value"),
+        Input("object-catalog", "data"),
+        Input("modal_skymap_xmatch", "is_open"),
+    ],
+    # prevent_initial_call=True,
+)
+def display_skymap(ra_label, dec_label, catalog, is_open):
+    """Display explorer result on a sky map (Aladin lite). Limited to 1000 sources total.
+
+    Callbacks
+    ----------
+    Output: Display a sky image with MOCs
+    """
+    if not is_open:
         return no_update
 
-    radius = dmc.NumberInput(
-        placeholder="type value...",
-        label="Crossmatch radius in arcsecond",
+    if catalog is None or catalog == {}:
+        return no_update
+
+    pdf = pd.read_json(io.StringIO(catalog))
+    ra0 = pdf[ra_label].to_numpy()[0]
+    dec0 = pdf[dec_label].to_numpy()[0]
+
+    # Javascript. Note the use {{}} for dictionary
+    # Force redraw of the Aladin lite window
+    img = """var container = document.getElementById('aladin-lite-div-skymap-xmatch');var txt = ''; container.innerHTML = txt;"""
+
+    # Aladin lite
+    img += """
+    var a = A.aladin('#aladin-lite-div-skymap-xmatch',
+    {{
+        target: '{} {}',
+        survey: 'https://alasky.cds.unistra.fr/Pan-STARRS/DR1/color-z-zg-g/',
+        showReticle: true,
+        allowFullZoomout: true,
+        showContextMenu: true,
+        showCooGridControl: true,
+        fov: 360
+        }}
+    );
+    """.format(ra0, dec0)
+
+    try:
+        # MOC
+        m1 = MOC.from_lonlat(
+            pdf[ra_label].to_numpy() * u.deg,
+            pdf[dec_label].to_numpy() * u.deg,
+            max_norder=6,
+        )
+        img += """var json = {};""".format(m1.to_string(format="json"))
+        img += """var moc = A.MOCFromJSON(json, {opacity: 0.25, color: 'white', lineWidth: 1}); a.addMOC(moc);"""
+
+        # img cannot be executed directly because of formatting
+        # We split line-by-line and remove comments
+        img_to_show = [i for i in img.split("\n") if "// " not in i]
+
+        return " ".join(img_to_show)
+    except Exception as e:
+        print(e)
+        return ""
+
+
+def modal_skymap():
+    import visdcc
+
+    skymap_button = dmc.Button(
+        "Sky Map",
+        id="open_modal_skymap_xmatch",
+        n_clicks=0,
+        leftSection=DashIconify(icon="bi:stars"),
+        color="gray",
         variant="default",
-        # size="sm",
-        # radius="sm",
-        hideControls=True,
+        radius="xl",
+        disabled=True,
         w=250,
-        mb=10,
-        id="radius_xmatch",
     )
 
-    ra = dmc.Select(
-        label="Select column for Right Ascension",
-        placeholder="Select one",
-        id="ra-column",
-        data=[{"value": c, "label": c} for c in pdf.columns],
-        w=250,
-        mb=10,
-    )
-    dec = dmc.Select(
-        label="Select column for Declination",
-        placeholder="Select one",
-        id="dec-column",
-        data=[{"value": c, "label": c} for c in pdf.columns],
-        w=250,
-        mb=10,
-    )
-    identifier = dmc.Select(
-        label="Select column for the identifier",
-        placeholder="Select one",
-        id="id-column",
-        data=[{"value": c, "label": c} for c in pdf.columns],
-        w=250,
-        mb=10,
+    modal = html.Div(
+        [
+            skymap_button,
+            dbc.Modal(
+                [
+                    # loading(
+                    dbc.ModalBody(
+                        html.Div(
+                            [
+                                visdcc.Run_js(
+                                    id="aladin-lite-div-skymap-xmatch",
+                                    style={"border": "0"},
+                                ),
+                            ],
+                            style={
+                                "width": "100%",
+                                "height": "100%",
+                            },
+                        ),
+                        className="p-1",
+                        style={"height": "30pc"},
+                    ),
+                    # ),
+                    dbc.ModalFooter(
+                        dmc.Button(
+                            "Close",
+                            id="close_modal_skymap_xmatch",
+                            className="ml-auto",
+                            color="gray",
+                            # fullWidth=True,
+                            variant="default",
+                            radius="xl",
+                        ),
+                    ),
+                ],
+                id="modal_skymap_xmatch",
+                is_open=False,
+                size="lg",
+                # fullscreen="lg-down",
+            ),
+        ]
     )
 
-    return dmc.Group([ra, dec, identifier, radius], justify="center")
+    return modal
+
+
+clientside_callback(
+    """
+    function toggle_modal_skymap_xmatch(n1, n2, is_open) {
+        if (n1 || n2)
+            return ~is_open;
+        else
+            return is_open;
+    }
+    """,
+    Output("modal_skymap_xmatch", "is_open"),
+    [
+        Input("open_modal_skymap_xmatch", "n_clicks"),
+        Input("close_modal_skymap_xmatch", "n_clicks"),
+    ],
+    [State("modal_skymap_xmatch", "is_open")],
+    prevent_initial_call=True,
+)
+
+
+@app.callback(
+    Output("open_modal_skymap_xmatch", "disabled", allow_duplicate=True),
+    [
+        Input("ra-column", "value"),
+        Input("dec-column", "value"),
+    ],
+    prevent_initial_call=True,
+)
+def update_modal(ra_label, dec_label):
+    if ra_label is not None and dec_label is not None:
+        return False
+    return True
 
 
 @app.callback(
@@ -457,7 +837,7 @@ def select_columns(catalog):
         Output("field_select_xmatch", "data"),
     ],
     [
-        Input("trans_datasource-xmatch", "value"),
+        Input("trans_datasource_xmatch", "value"),
     ],
     # prevent_initial_call=True,
 )
@@ -466,7 +846,9 @@ def display_filter_tab(trans_datasource):
         PreventUpdate  # noqa: B018
     else:
         # Available fields
-        data_content_select = format_field_for_data_transfer(trans_datasource, with_predefined_options=False, cutouts_allowed=False)
+        data_content_select = format_field_for_data_transfer(
+            trans_datasource, with_predefined_options=False, cutouts_allowed=False
+        )
 
         if trans_datasource == "ZTF":
             minDate = datetime.date(2019, 11, 1)
@@ -477,6 +859,7 @@ def display_filter_tab(trans_datasource):
             maxDate,
             data_content_select,
         )
+
 
 @callback(
     Output("stepper-xmatch-usage", "active"),
@@ -517,6 +900,7 @@ def first_step(back, current):
         return {"display": "none"}
     return {}
 
+
 @callback(
     Output("stepper-catalog", "color"),
     Input("object-catalog", "data"),
@@ -531,6 +915,7 @@ def update_icon_date(catalog, back_, next_):
         return "#15284F"
     return "#15284F"
 
+
 @callback(
     Output("submit_xmatch", "disabled"),
     Input("object-catalog", "data"),
@@ -543,41 +928,35 @@ def disable_button(catalog, date):
         return True
     return False
 
+
 def parse_contents(catalog, filename, date):
     pdf = pd.read_json(io.StringIO(catalog))
 
     # Check header? Or ask the user to provide what is RA, DEC, OID?
 
-    return html.Div([
-        html.H5("{}".format(filename)),
-        html.H6("Preview of the 10 first rows"),
+    return html.Div(
+        [
+            html.H5("{}".format(filename)),
+            html.H6("Preview of the 10 first rows"),
+            dash_table.DataTable(
+                pdf.head(10).to_dict("records"),
+                [{"name": i, "id": i} for i in pdf.columns],
+            ),
+        ]
+    )
 
-        dash_table.DataTable(
-            pdf.head(10).to_dict('records'),
-            [{'name': i, 'id': i} for i in pdf.columns]
-        ),
-        # dmc.Space(h=10),
-        # dmc.Text(
-        #     [
-        #         "Assuming Right Ascension is ",
-        #         dmc.Text(pdf.columns[0], fw=700, span=True, c=COLORS_ZTF[1]),
-        #         ", Declination is ",
-        #         dmc.Text(pdf.columns[1], fw=700, span=True, c=COLORS_ZTF[1]),
-        #         ", and Identifier is ",
-        #         dmc.Text(pdf.columns[2], fw=700, span=True, c=COLORS_ZTF[1]),
-        #         ". If this is not correct, re-order your columns and upload again."
-        #     ]
-        # )
-    ])
 
-@callback(Output('output-data-upload', 'children'),
-              Input('object-catalog', 'data'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'))
+@callback(
+    Output("output-data-upload", "children"),
+    Input("object-catalog", "data"),
+    State("upload-data", "filename"),
+    State("upload-data", "last_modified"),
+)
 def update_output(catalog, filename, date):
     if catalog is not None:
         children = parse_contents(catalog, filename, date)
         return children
+
 
 @callback(
     [
@@ -586,24 +965,22 @@ def update_output(catalog, filename, date):
         Output("gauge_entry_number", "label"),
     ],
     [
-        Input('upload-data', 'contents'),
-        State('upload-data', 'filename'),
+        Input("upload-data", "contents"),
+        State("upload-data", "filename"),
     ],
     prevent_initial_call=True,
 )
 def store_catalog(content, filename):
-    """Store data from user
-    """
+    """Store data from user"""
     if content is None:
         return no_update, no_update, no_update
-    content_type, content_string = content.split(',')
+    content_type, content_string = content.split(",")
     decoded = base64.b64decode(content_string)
 
     try:
-        if '.csv' in filename:
+        if ".csv" in filename:
             # Assume that the user uploaded a CSV file
-            pdf = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')))
+            pdf = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
         elif ".parquet" in filename:
             # Assume that the user uploaded a parquet file
             pdf = pd.read_parquet(io.BytesIO(decoded))
@@ -612,17 +989,25 @@ def store_catalog(content, filename):
             table = votable.parse(io.BytesIO(decoded))
             pdf = table.get_first_table().to_table(use_names_over_ids=True).to_pandas()
     except Exception as e:
-        return "{}", [{"value": 0, "color": "grey", "tooltip": "0%"}], dmc.Text(e, c="red", ta="center")
+        return (
+            "{}",
+            [{"value": 0, "color": "grey", "tooltip": "0%"}],
+            dmc.Text(e, c="red", ta="center"),
+        )
 
     if len(pdf) > MAX_ROW:
         msg = "{:,} is too many rows! Maximum is 100,000".format(len(pdf))
-        return "{}", [{"value": 100, "color": "red", "tooltip": "100%"}], dmc.Text(msg, c="red", ta="center")
+        return (
+            "{}",
+            [{"value": 100, "color": "red", "tooltip": "100%"}],
+            dmc.Text(msg, c="red", ta="center"),
+        )
 
-
-    sections = {"value": len(pdf) / MAX_ROW * 100, "color": "green", "tooltip": "{:.2f}%".format(len(pdf) / MAX_ROW * 100)}
-    label = dmc.Text(
-        "{:,} rows".format(len(pdf)), c=COLORS_ZTF[0], ta="center"
-    )
+    sections = {
+        "value": len(pdf) / MAX_ROW * 100,
+        "color": "green",
+        "tooltip": "{:.2f}%".format(len(pdf) / MAX_ROW * 100),
+    }
+    label = dmc.Text("{:,} rows".format(len(pdf)), c=COLORS_ZTF[0], ta="center")
 
     return pdf.to_json(), [sections], label
-
