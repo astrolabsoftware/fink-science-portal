@@ -857,7 +857,9 @@ def select_struct(k, prefix=""):
         return "{}{}".format(prefix, k)
 
 
-def format_field_for_data_transfer(datasource, with_predefined_options=True, cutouts_allowed=True):
+def format_field_for_data_transfer(
+    datasource, with_predefined_options=True, cutouts_allowed=True
+):
     """Get schema from API, and make it suitable for Data Transfer"""
     data = []
     if datasource != "ZTF":
@@ -1021,9 +1023,7 @@ def create_datatransfer_schema_table(cutouts_allowed=True):
     if cutouts_allowed:
         provenances.append("ZTF original cutouts (b:)")
         prefixes.append("")
-    for prov, prefix in zip(
-        provenances, prefixes
-    ):
+    for prov, prefix in zip(provenances, prefixes):
         # Table candidates
         labels = [
             select_struct(k, prefix)
