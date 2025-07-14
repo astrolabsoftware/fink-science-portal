@@ -1647,7 +1647,7 @@ navbar = dmc.AppShellHeader(
                                     "textDecoration": "none",
                                 },
                             ),
-                             dmc.Anchor(
+                            dmc.Anchor(
                                 dmc.Group(
                                     [
                                         dmc.ThemeIcon(
