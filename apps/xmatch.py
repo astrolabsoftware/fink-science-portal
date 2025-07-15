@@ -453,7 +453,22 @@ def layout():
 
     Follow these steps: (1) upload your catalog (100,000 rows maximum), (2) choose one or several years of alert data from Fink, and (3) select only the relevant alert fields to be added.
 
-    The accepted formats for catalog are: csv, parquet, and votable. Coordinates are expected to be J2000. You can easily visualise the overlap between your catalog and the ZTF footprint by using the button `Crossmatch Sky Map` below your table. For information, crossmatching a catalog of 75k rows with 2 years of data (about 70M alerts) should take less than 5 minutes.
+    The accepted formats for catalog are: csv, parquet, and votable. Coordinates are expected to be J2000.
+    You can easily visualise the overlap between your catalog and the ZTF footprint by using the button `Crossmatch Sky Map` below your table.
+    For information, here are some expected performances for an input catalog of 75k rows (the size of the input catalog does not matter much):
+
+    ---
+
+    | Years spanned | Input number of alerts (in millions) | Execution time (in seconds) |
+    |---------|-----------------------------------|-----------------------|
+    | 2025 | 20 | 221 |
+    | 24-25 | 58 | 342 |
+    | 23-25| 93 | 638 |
+    | 22-25| 128 | 953 |
+    | 21-25| 168 | 1320 |
+    | 20-25| 199 | 1840 |
+
+    ---
 
     Once ready, submit your job on the Fink Apache Spark and Kafka clusters to retrieve your data wherever you like.
     To access the data, you need to create an account. See the [fink-client](https://github.com/astrolabsoftware/fink-client) and
@@ -533,7 +548,7 @@ def layout():
                                 align="center",
                             )
                         ],
-                        span=2,
+                        span=3,
                     ),
                     dmc.GridCol(
                         children=[
