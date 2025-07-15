@@ -143,7 +143,7 @@ def date_tab():
             dmc.YearPickerInput(
                 type="range",
                 id="date-range-picker-xmatch",
-                label="Date Range",
+                label="Fink/ZTF alert date range",
                 description="Pick up one or several years of Fink/ZTF data to crossmatch against",
                 hideOutsideDates=True,
                 numberOfColumns=2,
@@ -451,9 +451,9 @@ def layout():
     The Fink xmatch service allows you to upload a catalog of sources and crossmatch again Fink-processed alert data at scale.
     We provide access to alert data from ZTF (over 200 million alerts as of 2025), and soon from the Rubin Observatory.
 
-    Follow these steps: (1) upload your catalog (100,000 rows maximum), (2) choose one or several years of data, and (3) select only the relevant alert fields to be added.
+    Follow these steps: (1) upload your catalog (100,000 rows maximum), (2) choose one or several years of alert data from Fink, and (3) select only the relevant alert fields to be added.
 
-    The accepted formats for catalog are: csv, parquet, and votable.
+    The accepted formats for catalog are: csv, parquet, and votable. Coordinates are expected to be J2000. You can easily visualise the overlap between your catalog and the ZTF footprint by using the button `Crossmatch Sky Map` below your table. For information, crossmatching a catalog of 75k rows with 2 years of data (about 70M alerts) should take less than 5 minutes.
 
     Once ready, submit your job on the Fink Apache Spark and Kafka clusters to retrieve your data wherever you like.
     To access the data, you need to create an account. See the [fink-client](https://github.com/astrolabsoftware/fink-client) and
