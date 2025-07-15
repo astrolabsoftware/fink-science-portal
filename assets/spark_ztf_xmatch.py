@@ -32,7 +32,6 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
-import io
 import sys
 import argparse
 
@@ -284,7 +283,7 @@ def generate_spark_paths(startDate, stopDate, basePath):
     else:
         # more than one year
         dateRange = (
-            pd.date_range(start=startDate, end=stopDate, freq="YE")
+            pd.date_range(start=startDate, end=stopDate, freq="Y")
             .astype("str")
             .to_numpy()
         )
@@ -297,16 +296,25 @@ def generate_spark_paths(startDate, stopDate, basePath):
     return paths
 
 
-def perform_xmatch(spark, df, catalog, ra_col, dec_col, id_col, radius_arcsec):
+def perform_xmatch(spark, df, catalog_filename, ra_col, dec_col, id_col, radius_arcsec):
     """ """
-    pdf = pd.read_json(io.StringIO(catalog))
-    pdf_b = spark.sparkContext.broadcast(pdf)
+    df_other = spark.read.format("parquet").load(catalog_filename)
+    pdf_other = df_other.toPandas()
+    pdf_b = spark.sparkContext.broadcast(pdf_other)
 
     @pandas_udf(StringType(), PandasUDFType.SCALAR)
-    def crossmatch(objectid, ra, dec):
+    def crossmatch(ra, dec):
         """Spark UDF for simple crossmatch"""
-        pdf = pdf_b.value
-        ra2, dec2, id2 = pdf[ra_col], pdf[dec_col], pdf[id_col]
+        pdf_cat = pdf_b.value
+        ra2, dec2, id2 = pdf_cat[ra_col], pdf_cat[dec_col], pdf_cat[id_col]
+
+        pdf = pd.DataFrame(
+            {
+                "ra": ra.to_numpy(),
+                "dec": dec.to_numpy(),
+                "candid": range(len(ra)),
+            }
+        )
 
         # create catalogs
         catalog_ztf = SkyCoord(
@@ -319,7 +327,7 @@ def perform_xmatch(spark, df, catalog, ra_col, dec_col, id_col, radius_arcsec):
         )
 
         pdf_merge, mask, idx2 = cross_match_astropy(
-            pdf, catalog_ztf, catalog_other, radius_arcsec=radius_arcsec
+            pdf, catalog_ztf, catalog_other, radius_arcsec=pd.Series([radius_arcsec])
         )
 
         pdf_merge["Type"] = "Unknown"
@@ -329,15 +337,17 @@ def perform_xmatch(spark, df, catalog, ra_col, dec_col, id_col, radius_arcsec):
 
         return pdf_merge["Type"]
 
+    # Keep only matches
     df = df.withColumn(
         id_col,
-        crossmatch(df["objectId"], df["candidate.ra"], df["candidate.dec"]),
-    )
+        crossmatch(df["candidate.ra"], df["candidate.dec"]),
+    ).filter(F.col(id_col) != "Unknown")
 
     return df
 
 
 def main(args):
+    t0 = time()
     spark = SparkSession.builder.getOrCreate()
 
     # reduce Java verbosity
@@ -364,7 +374,7 @@ def main(args):
     df = perform_xmatch(
         spark,
         df,
-        args.catalog,
+        args.catalog_filename,
         args.ra_col,
         args.dec_col,
         args.id_col,
@@ -373,7 +383,7 @@ def main(args):
 
     # Define content
     if args.ffield is None:
-        cnames = ["objectId"]
+        cnames = ["objectId", "candid", args.id_col]
     elif not isinstance(args.ffield, list):
         log.warning("Content has not been defined: {}".format(args.ffield))
         log.warning("Exiting.")
@@ -381,6 +391,7 @@ def main(args):
         sys.exit(1)
     else:
         cnames = args.ffield
+        cnames.append(args.id_col)
 
     log.info("Selecting Fink/ZTF content {}...".format(cnames))
     if "lc_features_g" in cnames:
@@ -444,6 +455,7 @@ def main(args):
     )
 
     log.info("Data available at topic: {}".format(args.topic_name))
+    log.info("It took {:.2f} seconds".format(time() - t0))
     log.info("End.")
 
 
@@ -457,7 +469,7 @@ if __name__ == "__main__":
     parser.add_argument("-dec_col")
     parser.add_argument("-radius_arcsec")
     parser.add_argument("-id_col")
-    parser.add_argument("-catalog")
+    parser.add_argument("-catalog_filename")
     parser.add_argument("-ffield", action="append")
     parser.add_argument("-basePath")
     parser.add_argument("-topic_name")

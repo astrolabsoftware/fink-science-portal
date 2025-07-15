@@ -19,6 +19,8 @@ import textwrap
 import base64
 import datetime
 import io
+import json
+import os
 
 import numpy as np
 import pandas as pd
@@ -237,7 +239,8 @@ fink_datatransfer \\
     ],
     [
         State("trans_datasource_xmatch", "value"),
-        State("catalog", "data"),
+        State("object-catalog", "data"),
+        State("upload-data", "filename"),
         State("ra-column", "value"),
         State("dec-column", "value"),
         State("radius_xmatch", "value"),
@@ -251,6 +254,7 @@ def submit_job(
     n_clicks,
     trans_datasource,
     catalog,
+    catalog_filename,
     ra,
     dec,
     radius,
@@ -286,7 +290,32 @@ def submit_job(
         if status_code != 201:
             text = dmc.Stack(
                 children=[
-                    "Unable to upload resources on HDFS, with error: ",
+                    "Unable to upload {} on HDFS, with error: ".format(filename),
+                    dmc.CodeHighlight(code=f"{hdfs_log}", language="html"),
+                    "Contact an administrator at contact@fink-broker.org.",
+                ]
+            )
+            alert = dmc.Alert(
+                children=text, title=f"[Status code {status_code}]", color="red"
+            )
+            return True, alert, no_update, no_update
+
+        # Send the data to HDFS as parquet file
+        catalog_filename_parquet = os.path.splitext(catalog_filename)[0] + ".parquet"
+        status_code, hdfs_log = upload_file_hdfs(
+            pd.read_json(io.StringIO(catalog)).to_parquet(),
+            input_args["WEBHDFS"],
+            input_args["NAMENODE"],
+            input_args["USER"],
+            catalog_filename_parquet,
+        )
+
+        if status_code != 201:
+            text = dmc.Stack(
+                children=[
+                    "Unable to upload {} on HDFS, with error: ".format(
+                        catalog_filename_parquet
+                    ),
                     dmc.CodeHighlight(code=f"{hdfs_log}", language="html"),
                     "Contact an administrator at contact@fink-broker.org.",
                 ]
@@ -306,7 +335,7 @@ def submit_job(
             f"-dec_col={dec}",
             f"-radius_arcsec={radius}",
             f"-id_col={identifier}",
-            "-catalog={}".format(catalog),
+            "-catalog_filename={}".format(catalog_filename_parquet),
             "-kafka_bootstrap_servers={}".format(input_args["KAFKA_BOOTSTRAP_SERVERS"]),
             "-kafka_sasl_username={}".format(input_args["KAFKA_SASL_USERNAME"]),
             "-kafka_sasl_password={}".format(input_args["KAFKA_SASL_PASSWORD"]),
@@ -717,14 +746,20 @@ def display_skymap(ra_label, dec_label, catalog, is_open):
     """.format(ra0, dec0)
 
     try:
-        # MOC
+        # Catalog MOC
         m1 = MOC.from_lonlat(
             pdf[ra_label].to_numpy() * u.deg,
             pdf[dec_label].to_numpy() * u.deg,
             max_norder=6,
         )
         img += """var json = {};""".format(m1.to_string(format="json"))
-        img += """var moc = A.MOCFromJSON(json, {opacity: 0.25, color: 'white', lineWidth: 1}); a.addMOC(moc);"""
+        img += """var moc = A.MOCFromJSON(json, {opacity: 0.25, color: 'white', lineWidth: 1, name: "user catalog"}); a.addMOC(moc);"""
+
+        # ZTF MOC
+        with open("assets/MOC.json", "r") as f:
+            data = json.loads(f.read())
+        img += """var json2 = {};""".format(str(data))
+        img += """var moc2 = A.MOCFromJSON(json2, {opacity: 0.25, color: 'red', lineWidth: 1, name: "ZTF DR7"}); a.addMOC(moc2);"""
 
         # img cannot be executed directly because of formatting
         # We split line-by-line and remove comments
