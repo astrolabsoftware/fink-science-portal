@@ -279,7 +279,7 @@ def generate_spark_paths(startDate, stopDate, basePath):
 
     if startDate == stopDate:
         # easy case -- one year
-        paths = [basePath + endPath.format(startDate)]
+        paths = [basePath + endPath.format(startDate.split("-")[0])]
     else:
         # more than one year
         dateRange = (
