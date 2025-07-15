@@ -82,7 +82,7 @@ def upload_catalog():
     )
 
     ra = dmc.Select(
-        label="Select column for Right Ascension",
+        label="Column for Right Ascension (J2000)",
         placeholder="Select one",
         id="ra-column",
         w=250,
@@ -90,7 +90,7 @@ def upload_catalog():
         disabled=True,
     )
     dec = dmc.Select(
-        label="Select column for Declination",
+        label="Column for Declination (J2000)",
         placeholder="Select one",
         id="dec-column",
         w=250,
