@@ -775,7 +775,7 @@ def modal_skymap():
     import visdcc
 
     skymap_button = dmc.Button(
-        "Sky Map",
+        "Crossmatch Sky Map",
         id="open_modal_skymap_xmatch",
         n_clicks=0,
         leftSection=DashIconify(icon="bi:stars"),
