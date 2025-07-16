@@ -40,7 +40,7 @@ from dash_autocomplete_input import AutocompleteInput
 from app import server
 from app import app
 
-from apps import summary, about, statistics, query_cluster, gw
+from apps import summary, about, statistics, query_cluster, gw, xmatch
 
 from apps.utils import markdownify_objectid, class_colors, simbad_types
 from apps.utils import isoify_time
@@ -1652,6 +1652,34 @@ navbar = dmc.AppShellHeader(
                                     [
                                         dmc.ThemeIcon(
                                             DashIconify(
+                                                icon="material-symbols:join-right",
+                                                width=22,
+                                            ),
+                                            radius=30,
+                                            size=32,
+                                            variant="outline",
+                                            color="gray",
+                                        ),
+                                        dmc.Text(
+                                            "Xmatch",
+                                            visibleFrom="sm",
+                                            style={"color": "gray"},
+                                        ),
+                                    ],
+                                    gap="xs",
+                                ),
+                                href="/xmatch",
+                                variant="text",
+                                style={
+                                    "textTransform": "capitalize",
+                                    "textDecoration": "none",
+                                },
+                            ),
+                            dmc.Anchor(
+                                dmc.Group(
+                                    [
+                                        dmc.ThemeIcon(
+                                            DashIconify(
                                                 icon="ion:infinite-outline",
                                                 width=22,
                                             ),
@@ -1963,6 +1991,8 @@ def display_page(pathname, searchurl):
         return query_cluster.layout(), "home_light"
     elif pathname == "/gw":
         return gw.layout(), "home_light"
+    elif pathname == "/xmatch":
+        return xmatch.layout(), "home_light"
     elif pathname.startswith("/ZTF"):
         return summary.layout(pathname), "home_light"
     else:

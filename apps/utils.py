@@ -857,7 +857,9 @@ def select_struct(k, prefix=""):
         return "{}{}".format(prefix, k)
 
 
-def format_field_for_data_transfer(datasource):
+def format_field_for_data_transfer(
+    datasource, with_predefined_options=True, cutouts_allowed=True
+):
     """Get schema from API, and make it suitable for Data Transfer"""
     data = []
     if datasource != "ZTF":
@@ -871,15 +873,17 @@ def format_field_for_data_transfer(datasource):
         data.append(packet)
     else:
         schema = request_api("/api/v1/schema", method="GET", output="json")
-        # high level
-        packet = {
-            "group": "Pre-defined schema",
-            "items": [
-                {"value": "Full packet", "label": "Full packet"},
-                {"value": "Light packet", "label": "Light packet"},
-            ],
-        }
-        data.append(packet)
+
+        if with_predefined_options:
+            # high level
+            packet = {
+                "group": "Pre-defined schema",
+                "items": [
+                    {"value": "Full packet", "label": "Full packet"},
+                    {"value": "Light packet", "label": "Light packet"},
+                ],
+            }
+            data.append(packet)
 
         # objectId
         objectid = {
@@ -919,16 +923,17 @@ def format_field_for_data_transfer(datasource):
         }
         data.append(candidate)
 
-        # Cutouts
-        labels = [
-            "{}".format(select_struct(k))
-            for k in schema["ZTF original cutouts (b:)"].keys()
-        ]
-        cutout = {
-            "group": "ZTF original cutouts",
-            "items": [{"value": label, "label": label} for label in labels],
-        }
-        data.append(cutout)
+        if cutouts_allowed:
+            # Cutouts
+            labels = [
+                "{}".format(select_struct(k))
+                for k in schema["ZTF original cutouts (b:)"].keys()
+            ]
+            cutout = {
+                "group": "ZTF original cutouts",
+                "items": [{"value": label, "label": label} for label in labels],
+            }
+            data.append(cutout)
 
     return data
 
@@ -980,7 +985,7 @@ def create_datatransfer_livestream_table():
     return table_candidate
 
 
-def create_datatransfer_schema_table():
+def create_datatransfer_schema_table(cutouts_allowed=True):
     """ """
     schema = request_api("/api/v1/schema", method="GET", output="json")
 
@@ -1011,14 +1016,14 @@ def create_datatransfer_schema_table():
             ]
         )
     )
-    for prov, prefix in zip(
-        [
-            "Fink science module outputs (d:)",
-            "ZTF original fields (i:)",
-            "ZTF original cutouts (b:)",
-        ],
-        ["", "candidate.", ""],
-    ):
+
+    provenances = ["Fink science module outputs (d:)", "ZTF original fields (i:)"]
+    prefixes = ["", "candidate."]
+
+    if cutouts_allowed:
+        provenances.append("ZTF original cutouts (b:)")
+        prefixes.append("")
+    for prov, prefix in zip(provenances, prefixes):
         # Table candidates
         labels = [
             select_struct(k, prefix)
