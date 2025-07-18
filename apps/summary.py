@@ -1005,16 +1005,14 @@ def layout(name):
         struct = dmc.Grid(
             [
                 dmc.GridCol(
-                    struct_left,
-                    span={'base': 12, 'md': 3, 'lg': 3},
-                    className="p-1"
+                    struct_left, span={"base": 12, "md": 3, "lg": 3}, className="p-1"
                 ),
                 dmc.GridCol(
                     [
                         dmc.Space(h=10),
                         tabs(pdf),
                     ],
-                    span={'base': 12, 'md': 9, 'lg': 9},
+                    span={"base": 12, "md": 9, "lg": 9},
                     className="p-1",
                 ),
                 dcc.Store(id="object-data"),

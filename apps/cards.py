@@ -1115,10 +1115,15 @@ def card_id1(object_data, object_uppervalid, object_upper):
     )
 
     c1 = dmc.Avatar(src="/assets/Fink_SecondaryLogo_WEB.png", size="lg")
-    c2 = dmc.Title(objectid, order=1, style={"color": "#15284F", "wordWrap": "break-word"})
+    c2 = dmc.Title(
+        objectid, order=1, style={"color": "#15284F", "wordWrap": "break-word"}
+    )
     card = dmc.Paper(
         [
-            dmc.Grid([dmc.GridCol(c1, span="content"), dmc.GridCol(c2, span="auto")], gutter="xs"),
+            dmc.Grid(
+                [dmc.GridCol(c1, span="content"), dmc.GridCol(c2, span="auto")],
+                gutter="xs",
+            ),
             extra_div,
             html.Div(badges),
             dcc.Markdown(
