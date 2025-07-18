@@ -1606,7 +1606,7 @@ navbar = dmc.AppShellHeader(
                                         ),
                                         dmc.Text(
                                             "Search",
-                                            visibleFrom="sm",
+                                            visibleFrom="md",
                                             style={"color": "gray"},
                                         ),
                                     ],
@@ -1634,7 +1634,7 @@ navbar = dmc.AppShellHeader(
                                         ),
                                         dmc.Text(
                                             "Data Transfer",
-                                            visibleFrom="sm",
+                                            visibleFrom="md",
                                             style={"color": "gray"},
                                         ),
                                     ],
@@ -1662,7 +1662,7 @@ navbar = dmc.AppShellHeader(
                                         ),
                                         dmc.Text(
                                             "Xmatch",
-                                            visibleFrom="sm",
+                                            visibleFrom="md",
                                             style={"color": "gray"},
                                         ),
                                     ],
@@ -1690,7 +1690,7 @@ navbar = dmc.AppShellHeader(
                                         ),
                                         dmc.Text(
                                             "Gravitational Waves",
-                                            visibleFrom="sm",
+                                            visibleFrom="md",
                                             style={"color": "gray"},
                                         ),
                                     ],
@@ -1725,7 +1725,7 @@ navbar = dmc.AppShellHeader(
                                         ),
                                         dmc.Text(
                                             "Statistics",
-                                            visibleFrom="sm",
+                                            visibleFrom="md",
                                             style={"color": "gray"},
                                         ),
                                     ],
