@@ -725,12 +725,14 @@ def tab7_content():
 def tabs(pdf):
     tabs_list = [
         dmc.TabsTab("Summary", value="Summary"),
-        dmc.TabsTab("Observability", value="Observability")
     ]
     tabs_panels = [
         dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
-        dmc.TabsPanel(children=[tab_observability(pdf)], value="Observability")
     ]
+
+    if not is_tracklet(pdf):
+        tabs_list.append(dmc.TabsTab("Observability", value="Observability"))
+        tabs_panels.append(dmc.TabsPanel(children=[tab_observability(pdf)], value="Observability"))
 
     if len(pdf.index) > 1:
         tabs_list.append(dmc.TabsTab("Supernovae", value="Supernovae"))
@@ -752,11 +754,13 @@ def tabs(pdf):
         tabs_list.append(dmc.TabsTab("Blazars", value="Blazars"))
         tabs_panels.append(dmc.TabsPanel(tab7_content(), id="tab_blazar", value="Blazars"))
 
-    default = "Summary"
+    # Default view
     if is_sso(pdf):
         default = "Solar System"
     elif is_tracklet(pdf):
         default = "Tracklets"
+    else:
+        default = "Summary"
 
     tabs_ = dmc.Tabs(
         [
