@@ -732,7 +732,9 @@ def tabs(pdf):
 
     if not is_tracklet(pdf):
         tabs_list.append(dmc.TabsTab("Observability", value="Observability"))
-        tabs_panels.append(dmc.TabsPanel(children=[tab_observability(pdf)], value="Observability"))
+        tabs_panels.append(
+            dmc.TabsPanel(children=[tab_observability(pdf)], value="Observability")
+        )
 
     if len(pdf.index) > 1:
         tabs_list.append(dmc.TabsTab("Supernovae", value="Supernovae"))
@@ -743,16 +745,22 @@ def tabs(pdf):
 
     if is_sso(pdf):
         tabs_list.append(dmc.TabsTab("Solar System", value="Solar System"))
-        tabs_panels.append(dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"))
+        tabs_panels.append(
+            dmc.TabsPanel(children=[], id="tab_sso", value="Solar System")
+        )
 
     if is_tracklet(pdf):
         tabs_list.append(dmc.TabsTab("Tracklets", value="Tracklets"))
 
-        tabs_panels.append(dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"))
+        tabs_panels.append(
+            dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets")
+        )
 
     if is_blazar(pdf):
         tabs_list.append(dmc.TabsTab("Blazars", value="Blazars"))
-        tabs_panels.append(dmc.TabsPanel(tab7_content(), id="tab_blazar", value="Blazars"))
+        tabs_panels.append(
+            dmc.TabsPanel(tab7_content(), id="tab_blazar", value="Blazars")
+        )
 
     # Default view
     if is_sso(pdf):
