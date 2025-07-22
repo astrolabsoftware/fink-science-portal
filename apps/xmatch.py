@@ -21,6 +21,7 @@ import datetime
 import io
 import json
 import os
+import re
 
 import numpy as np
 import pandas as pd
@@ -302,8 +303,13 @@ def submit_job(
 
         # Send the data to HDFS as parquet file
         catalog_filename_parquet = os.path.splitext(catalog_filename)[0] + ".parquet"
+
+        # Conversion in decimal degree as xmatch expects it
+        pdf = pd.read_json(io.StringIO(catalog))
+        pdf[ra], pdf[dec] = enforce_decimal(pdf, ra, dec)
+
         status_code, hdfs_log = upload_file_hdfs(
-            pd.read_json(io.StringIO(catalog)).to_parquet(),
+            pdf.to_parquet(),
             input_args["WEBHDFS"],
             input_args["NAMENODE"],
             input_args["USER"],
@@ -453,7 +459,7 @@ def layout():
 
     Follow these steps: (1) upload your catalog (100,000 rows maximum), (2) choose one or several years of alert data from Fink, and (3) select only the relevant alert fields to be added.
 
-    The accepted formats for catalog are: csv, parquet, and votable. Coordinates are expected to be J2000.
+    The accepted formats for catalog are: csv, parquet, and votable. Coordinates are expected to be J2000 and in decimal degrees or hourangle.
     You can easily visualise the overlap between your catalog and the ZTF footprint by using the button `Crossmatch Sky Map` below your table.
     For information, here are some expected performances for an input catalog of 75k rows (the size of the input catalog does not matter much):
 
@@ -714,6 +720,52 @@ def select_columns(catalog):
     return False, False, False, False, ra_data, dec_data, identifier
 
 
+def enforce_decimal(pdf, ra_label, dec_label):
+    """Convert RA and Dec to decimal degree if need be
+
+    Parameters
+    ----------
+    pdf: pd.DataFrame
+        Pandas DataFrame
+    ra_label: str
+        RA column name
+    dec_label: str
+        Dec column name
+
+    Returns
+    -------
+    out: np.array, np.array
+        RA, Dec in decimal degrees
+    """
+    ra = pdf[ra_label].to_numpy()
+    dec = pdf[dec_label].to_numpy()
+
+    # conversion if not degree
+    if isinstance(ra[0], str) and not ra[0].isnumeric():
+        out = []
+        for ra_, dec_ in zip(ra, dec):
+            string = "{} {}".format(ra_, dec_)
+            m = re.search(
+                r"^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}\.?\d*)\s+([+-])?\s*(\d{1,3})\s+(\d{1,2})\s+(\d{1,2}\.?\d*)(\s+(\d+\.?\d*))?$",
+                string,
+            ) or re.search(
+                r"^(\d{1,2})[:h](\d{1,2})[:m](\d{1,2}\.?\d*)[s]?\s+([+-])?\s*(\d{1,3})[d:](\d{1,2})[m:](\d{1,2}\.?\d*)[s]?(\s+(\d+\.?\d*))?$",
+                string,
+            )
+            if m:
+                ra_deg = (float(m[1]) + float(m[2]) / 60 + float(m[3]) / 3600) * 15
+                dec_deg = float(m[5]) + float(m[6]) / 60 + float(m[7]) / 3600
+
+                if m[4] == "-":
+                    dec_deg *= -1
+
+                out.append([ra_deg, dec_deg])
+        if len(out) > 0:
+            ra, dec = np.transpose(out)
+
+    return ra, dec
+
+
 @app.callback(
     Output("aladin-lite-div-skymap-xmatch", "run"),
     [
@@ -738,6 +790,10 @@ def display_skymap(ra_label, dec_label, catalog, is_open):
         return no_update
 
     pdf = pd.read_json(io.StringIO(catalog))
+
+    # Conversion if need be
+    pdf[ra_label], pdf[dec_label] = enforce_decimal(pdf, ra_label, dec_label)
+
     ra0 = pdf[ra_label].to_numpy()[0]
     dec0 = pdf[dec_label].to_numpy()[0]
 
