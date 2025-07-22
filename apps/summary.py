@@ -723,42 +723,54 @@ def tab7_content():
 
 
 def tabs(pdf):
+    tabs_list = [
+        dmc.TabsTab("Summary", value="Summary"),
+    ]
+    tabs_panels = [
+        dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
+    ]
+
+    if not is_tracklet(pdf):
+        tabs_list.append(dmc.TabsTab("Observability", value="Observability"))
+        tabs_panels.append(dmc.TabsPanel(children=[tab_observability(pdf)], value="Observability"))
+
+    if len(pdf.index) > 1:
+        tabs_list.append(dmc.TabsTab("Supernovae", value="Supernovae"))
+        tabs_panels.append(dmc.TabsPanel(tab2_content(), value="Supernovae"))
+
+        tabs_list.append(dmc.TabsTab("Variable stars", value="Variable stars"))
+        tabs_panels.append(dmc.TabsPanel(tab3_content(), value="Variable stars"))
+
+    if is_sso(pdf):
+        tabs_list.append(dmc.TabsTab("Solar System", value="Solar System"))
+        tabs_panels.append(dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"))
+
+    if is_tracklet(pdf):
+        tabs_list.append(dmc.TabsTab("Tracklets", value="Tracklets"))
+
+        tabs_panels.append(dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"))
+
+    if is_blazar(pdf):
+        tabs_list.append(dmc.TabsTab("Blazars", value="Blazars"))
+        tabs_panels.append(dmc.TabsPanel(tab7_content(), id="tab_blazar", value="Blazars"))
+
+    # Default view
+    if is_sso(pdf):
+        default = "Solar System"
+    elif is_tracklet(pdf):
+        default = "Tracklets"
+    else:
+        default = "Summary"
+
     tabs_ = dmc.Tabs(
         [
             dmc.TabsList(
-                [
-                    dmc.TabsTab("Summary", value="Summary"),
-                    dmc.TabsTab("Observability", value="Observability"),
-                    dmc.TabsTab(
-                        "Supernovae", value="Supernovae", disabled=len(pdf.index) == 1
-                    ),
-                    dmc.TabsTab(
-                        "Variable stars",
-                        value="Variable stars",
-                        disabled=len(pdf.index) == 1,
-                    ),
-                    dmc.TabsTab(
-                        "Solar System", value="Solar System", disabled=not is_sso(pdf)
-                    ),
-                    dmc.TabsTab(
-                        "Tracklets", value="Tracklets", disabled=not is_tracklet(pdf)
-                    ),
-                    dmc.TabsTab(
-                        "Blazars", value="Blazars", disabled=not is_blazar(pdf)
-                    ),
-                    dmc.TabsTab("GRB", value="GRB", disabled=True),
-                ],
+                tabs_list,
                 justify="flex-end",
             ),
-            dmc.TabsPanel(children=[tab1_content(pdf)], value="Summary"),
-            dmc.TabsPanel(children=[tab_observability(pdf)], value="Observability"),
-            dmc.TabsPanel(tab2_content(), value="Supernovae"),
-            dmc.TabsPanel(tab3_content(), value="Variable stars"),
-            dmc.TabsPanel(children=[], id="tab_sso", value="Solar System"),
-            dmc.TabsPanel(children=[], id="tab_tracklet", value="Tracklets"),
-            dmc.TabsPanel(tab7_content(), id="tab_blazar", value="Blazars"),
+            *tabs_panels,
         ],
-        value="Summary" if not is_sso(pdf) else "Solar System",
+        value=default,
         id="summary_tabs",
     )
 
