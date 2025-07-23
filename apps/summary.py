@@ -691,7 +691,10 @@ def tab7_content():
                                     dmc.Center(
                                         dmc.Button(
                                             "Get DR photometry",
-                                            id={"type":"lightcurve_request_release", "name":"blazar"},
+                                            id={
+                                                "type": "lightcurve_request_release",
+                                                "name": "blazar",
+                                            },
                                             variant="outline",
                                             color="gray",
                                             radius="xl",
@@ -894,18 +897,26 @@ def store_query(name):
 @app.callback(
     [
         Output("object-release", "data"),
-        Output({"type":"lightcurve_request_release", "name":ALL}, "children"),
+        Output({"type": "lightcurve_request_release", "name": ALL}, "children"),
         Output("switch-mag-flux", "value"),
     ],
     [
-        Input({"type":"lightcurve_request_release", "name":ALL}, "n_clicks"),
+        Input({"type": "lightcurve_request_release", "name": ALL}, "n_clicks"),
     ],
     State("object-data", "data"),
     prevent_initial_call=True,
     background=True,
     running=[
-        (Output({"type":"lightcurve_request_release", "name":ALL}, "disabled"), True, True),
-        (Output({"type":"lightcurve_request_release", "name":ALL}, "loading"), True, False),
+        (
+            Output({"type": "lightcurve_request_release", "name": ALL}, "disabled"),
+            True,
+            True,
+        ),
+        (
+            Output({"type": "lightcurve_request_release", "name": ALL}, "loading"),
+            True,
+            False,
+        ),
     ],
 )
 def store_release_photometry(n_clicks, object_data):
@@ -936,11 +947,11 @@ def store_release_photometry(n_clicks, object_data):
         pdf_release = pd.concat(lc, ignore_index=True)
         return (
             pdf_release.to_json(),
-            [f"DR photometry: {len(pdf_release.index)} points"]*len(n_clicks),
+            [f"DR photometry: {len(pdf_release.index)} points"] * len(n_clicks),
             "DC magnitude",
         )
 
-    return no_update, ["No DR photometry"]*len(n_clicks), no_update
+    return no_update, ["No DR photometry"] * len(n_clicks), no_update
 
 
 @app.callback(
