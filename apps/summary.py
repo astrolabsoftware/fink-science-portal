@@ -22,7 +22,7 @@ from datetime import datetime
 from astropy.coordinates import EarthLocation
 
 import visdcc
-from dash import Input, Output, State, dcc, html, no_update
+from dash import Input, Output, State, dcc, html, no_update, ALL
 from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 
@@ -691,7 +691,7 @@ def tab7_content():
                                     dmc.Center(
                                         dmc.Button(
                                             "Get DR photometry",
-                                            id="lightcurve_request_release_from_blazar",
+                                            id={"type":"lightcurve_request_release", "name":"blazar"},
                                             variant="outline",
                                             color="gray",
                                             radius="xl",
@@ -894,25 +894,22 @@ def store_query(name):
 @app.callback(
     [
         Output("object-release", "data"),
-        Output("lightcurve_request_release", "children"),
+        Output({"type":"lightcurve_request_release", "name":ALL}, "children"),
         Output("switch-mag-flux", "value"),
     ],
     [
-        Input("lightcurve_request_release", "n_clicks"),
-        Input("lightcurve_request_release_from_blazar", "n_clicks"),
+        Input({"type":"lightcurve_request_release", "name":ALL}, "n_clicks"),
     ],
     State("object-data", "data"),
     prevent_initial_call=True,
     background=True,
     running=[
-        (Output("lightcurve_request_release", "disabled"), True, True),
-        (Output("lightcurve_request_release", "loading"), True, False),
-        (Output("lightcurve_request_release_from_blazar", "disabled"), True, True),
-        (Output("lightcurve_request_release_from_blazar", "loading"), True, False),
+        (Output({"type":"lightcurve_request_release", "name":ALL}, "disabled"), True, True),
+        (Output({"type":"lightcurve_request_release", "name":ALL}, "loading"), True, False),
     ],
 )
-def store_release_photometry(n_clicks, n_clicks2, object_data):
-    if (not n_clicks and not n_clicks2) or not object_data:
+def store_release_photometry(n_clicks, object_data):
+    if (not np.any(n_clicks)) or not object_data:
         raise PreventUpdate
 
     pdf = pd.read_json(io.StringIO(object_data))
@@ -939,11 +936,11 @@ def store_release_photometry(n_clicks, n_clicks2, object_data):
         pdf_release = pd.concat(lc, ignore_index=True)
         return (
             pdf_release.to_json(),
-            f"DR photometry: {len(pdf_release.index)} points",
+            [f"DR photometry: {len(pdf_release.index)} points"]*len(n_clicks),
             "DC magnitude",
         )
 
-    return no_update, "No DR photometry", no_update
+    return no_update, ["No DR photometry"]*len(n_clicks), no_update
 
 
 @app.callback(

@@ -133,7 +133,7 @@ def card_lightcurve_summary():
                             ),
                             dmc.Button(
                                 "Get DR photometry",
-                                id="lightcurve_request_release",
+                                id={"type":"lightcurve_request_release", "name":"main"},
                                 variant="outline",
                                 color="gray",
                                 radius="xl",
