@@ -90,9 +90,10 @@ colors_ = [
 ]
 
 all_radio_options = {
-    "Difference magnitude": ["Difference magnitude", "DC magnitude", "DC flux"],
-    "DC magnitude": ["Difference magnitude", "DC magnitude", "DC flux"],
-    "DC flux": ["Difference magnitude", "DC magnitude", "DC flux"],
+    "Difference magnitude": ["Difference magnitude", "DC magnitude", "Difference flux", "DC flux"],
+    "DC magnitude": ["Difference magnitude", "DC magnitude", "Difference flux", "DC flux"],
+    "Difference flux": ["Difference magnitude", "DC magnitude", "Difference flux", "DC flux"],
+    "DC flux": ["Difference magnitude", "DC magnitude", "Difference flux", "DC flux"],
 }
 
 layout_lightcurve = dict(
@@ -1747,6 +1748,20 @@ def draw_lightcurve(
         layout["yaxis"]["title"] = "Apparent DC magnitude"
         layout["yaxis"]["autorange"] = "reversed"
         scale = 1.0
+    elif switch == "Difference flux":
+        mag, err = apparent_flux(mag, err, 99.0, 0.0, "t")
+
+        # Data release photometry
+        if not pdf_release.empty:
+            pdf_release['flux'], pdf_release['fluxerr'] = apparent_flux(
+                pdf_release['mag'],
+                pdf_release['magerr'],
+                99.0, 0.0, "t"
+            )
+
+        layout["yaxis"]["title"] = "Difference flux (milliJansky)"
+        layout["yaxis"]["autorange"] = True
+        scale = 1e3
     elif switch == "DC flux":
         # inplace replacement
         mag, err = np.transpose(
@@ -1935,6 +1950,51 @@ def draw_lightcurve(
                         "error_y": {
                             "type": "data",
                             "array": pdf_release["magerr"][idx],
+                            "visible": True,
+                            "width": 0,
+                            "opacity": 0.5,
+                            "color": color,
+                        },
+                        "mode": "markers",
+                        "name": "",
+                        "customdata": pdf_release["mjd"][idx],
+                        "hovertemplate": hovertemplate_release,
+                        "legendgroup": f"{fname} band release",
+                        "legendrank": 102 + 10 * fid,
+                        "marker": {
+                            "color": color,
+                            "symbol": ".",
+                        },
+                        "opacity": 0.5,
+                        # 'showlegend': False
+                    },
+                )
+
+        elif switch == "Difference flux":
+            # Data release photometry
+            if not pdf_release.empty:
+                ref = 0
+                if is_dc_corrected:
+                    # Overplot the levels of nearby source magnitudes
+                    idx = pdf["i:fid"] == fid
+                    if np.sum(idx):
+                        ref = 3631 * 10**(-0.4*np.mean(pdf["i:magnr"][idx])) * scale
+
+                hovertemplate_release = r"""
+                <b>Baseline subtracted data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                <b>mjd</b>: %{customdata}
+                <b>baseline</b>: """ + "{:.2f}".format(ref) + r""" milliJansky
+                <extra></extra>
+                """
+                idx = pdf_release["filtercode"] == "z" + fname
+                figure["data"].append(
+                    {
+                        "x": dates_release[idx],
+                        "y": pdf_release["flux"][idx] * scale - ref,
+                        "error_y": {
+                            "type": "data",
+                            "array": pdf_release["fluxerr"][idx] * scale,
                             "visible": True,
                             "width": 0,
                             "opacity": 0.5,
