@@ -1764,6 +1764,14 @@ def draw_lightcurve(
             ],
         )
 
+        # Data release photometry
+        if not pdf_release.empty:
+            pdf_release['flux'], pdf_release['fluxerr'] = apparent_flux(
+                pdf_release['mag'],
+                pdf_release['magerr'],
+                99.0, 0.0, "t"
+            )
+
         layout["yaxis"]["title"] = "Apparent DC flux (milliJansky)"
         layout["yaxis"]["autorange"] = True
         scale = 1e3
@@ -1946,6 +1954,65 @@ def draw_lightcurve(
                         # 'showlegend': False
                     },
                 )
+
+        elif switch == "DC flux":
+            if is_dc_corrected:
+                # Overplot the levels of nearby source magnitudes
+                idx = pdf["i:fid"] == fid
+                if np.sum(idx):
+                    ref = 3631 * 10**(-0.4*np.mean(pdf["i:magnr"][idx])) * scale
+
+                    figure["layout"]["shapes"].append(
+                        {
+                            "type": "line",
+                            "yref": "y",
+                            "y0": ref,
+                            "y1": ref,  # adding a horizontal line
+                            "xref": "paper",
+                            "x0": 0,
+                            "x1": 1,
+                            "line": {"color": color, "dash": "dash", "width": 1},
+                            "legendgroup": f"{fname} band",
+                            "opacity": 0.3,
+                        },
+                    )
+
+            # Data release photometry
+            if not pdf_release.empty:
+                hovertemplate_release = r"""
+                <b>Data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                <b>mjd</b>: %{customdata}
+                <extra></extra>
+                """
+                idx = pdf_release["filtercode"] == "z" + fname
+                figure["data"].append(
+                    {
+                        "x": dates_release[idx],
+                        "y": pdf_release["flux"][idx] * scale,
+                        "error_y": {
+                            "type": "data",
+                            "array": pdf_release["fluxerr"][idx] * scale,
+                            "visible": True,
+                            "width": 0,
+                            "opacity": 0.5,
+                            "color": color,
+                        },
+                        "mode": "markers",
+                        "name": "",
+                        "customdata": pdf_release["mjd"][idx],
+                        "hovertemplate": hovertemplate_release,
+                        "legendgroup": f"{fname} band release",
+                        "legendrank": 102 + 10 * fid,
+                        "marker": {
+                            "color": color,
+                            "symbol": ".",
+                        },
+                        "opacity": 0.5,
+                        # 'showlegend': False
+                    },
+                )
+
 
     if show_color:
         hovertemplate_gr = r"""
