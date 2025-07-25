@@ -71,11 +71,24 @@ The view also shows, with dashed horizontal lines, the levels corresponding to t
 
 This view may be augmented with the photometric points from [ZTF Data Releases](https://www.ztf.caltech.edu/ztf-public-releases.html) by clicking `Get DR photometry` button. The points will be shown with semi-transparent dots (&#8226;).
 
+##### Difference flux
+Difference flux (in Jansky) is constructed from difference magnitude by using the following:
+$$
+f = 3631 \times \texttt{sign} 10^{-0.4m_{magpsf}}
+$$
+where `sign` = 1 if `isdiffpos` = 't' or `sign` = -1 if `isdiffpos` = 'f'.
+
+This view also shows the photometry from ZTF Data Releases (see above), which is converted to fluxes using the same formula. Then, the "baseline" flux, which is computed from the nearest reference image catalog magnitude (`magnr`), is subtracted from it, so that the value represent the flux variation w.r.t. the template image, i.e. the difference flux.
+
+Note that we display the flux in milli-Jansky.
+
 ##### DC flux
 DC flux (in Jansky) is constructed from DC magnitude by using the following:
 $$
 f_{DC} = 3631 \times 10^{-0.4m_{DC}}
 $$
+
+This view also shows the fluxes from ZTF Data Releases, without any baseline correction.
 
 Note that we display the flux in milli-Jansky.
 """
