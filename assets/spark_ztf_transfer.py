@@ -326,6 +326,50 @@ def generate_spark_paths(startDate, stopDate, basePath):
     return paths
 
 
+def sanitize_fields(cnames):
+    """Apply proper serialization before sending to Kafka
+
+    Parameters
+    ----------
+    cnames: list
+        List of fields
+
+    Returns
+    -------
+    cnames: list
+        List of fields, sanitized.
+    """
+    for cutout in ["cutoutScience", "cutoutTemplate", "cutoutDifference"]:
+        if cutout in cnames:
+            cnames[cnames.index(cutout)] = "struct({}.*) as {}".format(cutout, cutout)
+
+    if "prv_candidates" in cnames:
+        cnames[cnames.index("prv_candidates")] = (
+            "explode(array(prv_candidates)) as prv_candidates"
+        )
+
+    if "candidate" in cnames:
+        cnames[cnames.index("candidate")] = "struct(candidate.*) as candidate"
+
+    for lc_features in ["lc_features_g", "lc_features_r"]:
+        if lc_features in cnames:
+            cnames[cnames.index(lc_features)] = "struct({}.*) as {}".format(
+                lc_features, lc_features
+            )
+
+    for ts in [
+        "timestamp",
+        "brokerEndProcessTimestamp",
+        "brokerStartProcessTimestamp",
+        "brokerIngestTimestamp",
+    ]:
+        if ts in cnames:
+            cnames[cnames.index(ts)] = "cast({} as string) as {}".format(ts, ts)
+
+    # not needed actually as cnames is changed in-place
+    return cnames
+
+
 def main(args):
     spark = SparkSession.builder.getOrCreate()
 
@@ -476,26 +520,6 @@ def main(args):
     if "Full packet" in content:
         # Cast fields to ease the distribution
         cnames = df.columns
-
-        cnames[cnames.index("cutoutScience")] = (
-            "struct(cutoutScience.*) as cutoutScience"
-        )
-        cnames[cnames.index("cutoutTemplate")] = (
-            "struct(cutoutTemplate.*) as cutoutTemplate"
-        )
-        cnames[cnames.index("cutoutDifference")] = (
-            "struct(cutoutDifference.*) as cutoutDifference"
-        )
-        cnames[cnames.index("prv_candidates")] = (
-            "explode(array(prv_candidates)) as prv_candidates"
-        )
-        cnames[cnames.index("candidate")] = "struct(candidate.*) as candidate"
-        cnames[cnames.index("lc_features_g")] = (
-            "struct(lc_features_g.*) as lc_features_g"
-        )
-        cnames[cnames.index("lc_features_r")] = (
-            "struct(lc_features_r.*) as lc_features_r"
-        )
     elif "Light packet" in content:
         # Wanted content from candidates
         cnames = [
@@ -521,43 +545,16 @@ def main(args):
         ]
         [cnames.append(col) for col in df.columns if col not in to_avoid]
 
-        cnames[cnames.index("lc_features_g")] = (
-            "struct(lc_features_g.*) as lc_features_g"
-        )
-        cnames[cnames.index("lc_features_r")] = (
-            "struct(lc_features_r.*) as lc_features_r"
-        )
-
     elif isinstance(content, list):
         # other cases
         cnames = content
-
-        if "lc_features_g" in cnames:
-            cnames[cnames.index("lc_features_g")] = (
-                "struct(lc_features_g.*) as lc_features_g"
-            )
-        if "lc_features_r" in cnames:
-            cnames[cnames.index("lc_features_r")] = (
-                "struct(lc_features_r.*) as lc_features_r"
-            )
 
         if "candidate.jd" not in cnames:
             # required for the Kafka client partitionment
             cnames.append("candidate.jd")
 
-    if "timestamp" in cnames:
-        cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
-
-    if "brokerEndProcessTimestamp" in cnames:
-        cnames[cnames.index("brokerEndProcessTimestamp")] = (
-            "cast(brokerEndProcessTimestamp as string) as brokerEndProcessTimestamp"
-        )
-        cnames[cnames.index("brokerStartProcessTimestamp")] = (
-            "cast(brokerStartProcessTimestamp as string) as brokerStartProcessTimestamp"
-        )
-        cnames[cnames.index("brokerIngestTimestamp")] = (
-            "cast(brokerIngestTimestamp as string) as brokerIngestTimestamp"
-        )
+    # enforce proper serialisation
+    cnames = sanitize_fields(cnames)
 
     # Wrap alert data
     df = df.selectExpr(cnames)
