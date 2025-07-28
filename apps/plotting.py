@@ -90,9 +90,24 @@ colors_ = [
 ]
 
 all_radio_options = {
-    "Difference magnitude": ["Difference magnitude", "DC magnitude", "Difference flux", "DC flux"],
-    "DC magnitude": ["Difference magnitude", "DC magnitude", "Difference flux", "DC flux"],
-    "Difference flux": ["Difference magnitude", "DC magnitude", "Difference flux", "DC flux"],
+    "Difference magnitude": [
+        "Difference magnitude",
+        "DC magnitude",
+        "Difference flux",
+        "DC flux",
+    ],
+    "DC magnitude": [
+        "Difference magnitude",
+        "DC magnitude",
+        "Difference flux",
+        "DC flux",
+    ],
+    "Difference flux": [
+        "Difference magnitude",
+        "DC magnitude",
+        "Difference flux",
+        "DC flux",
+    ],
     "DC flux": ["Difference magnitude", "DC magnitude", "Difference flux", "DC flux"],
 }
 
@@ -1753,10 +1768,8 @@ def draw_lightcurve(
 
         # Data release photometry
         if not pdf_release.empty:
-            pdf_release['flux'], pdf_release['fluxerr'] = apparent_flux(
-                pdf_release['mag'],
-                pdf_release['magerr'],
-                99.0, 0.0, "t"
+            pdf_release["flux"], pdf_release["fluxerr"] = apparent_flux(
+                pdf_release["mag"], pdf_release["magerr"], 99.0, 0.0, "t"
             )
 
         layout["yaxis"]["title"] = "Difference flux (milliJansky)"
@@ -1781,10 +1794,8 @@ def draw_lightcurve(
 
         # Data release photometry
         if not pdf_release.empty:
-            pdf_release['flux'], pdf_release['fluxerr'] = apparent_flux(
-                pdf_release['mag'],
-                pdf_release['magerr'],
-                99.0, 0.0, "t"
+            pdf_release["flux"], pdf_release["fluxerr"] = apparent_flux(
+                pdf_release["mag"], pdf_release["magerr"], 99.0, 0.0, "t"
             )
 
         layout["yaxis"]["title"] = "Apparent DC flux (milliJansky)"
@@ -1978,15 +1989,19 @@ def draw_lightcurve(
                     # Overplot the levels of nearby source magnitudes
                     idx = pdf["i:fid"] == fid
                     if np.sum(idx):
-                        ref = 3631 * 10**(-0.4*np.mean(pdf["i:magnr"][idx])) * scale
+                        ref = 3631 * 10 ** (-0.4 * np.mean(pdf["i:magnr"][idx])) * scale
 
-                hovertemplate_release = r"""
+                hovertemplate_release = (
+                    r"""
                 <b>Baseline subtracted data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
                 <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
                 <b>mjd</b>: %{customdata}
-                <b>baseline</b>: """ + "{:.2f}".format(ref) + r""" milliJansky
+                <b>baseline</b>: """
+                    + "{:.2f}".format(ref)
+                    + r""" milliJansky
                 <extra></extra>
                 """
+                )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
                     {
@@ -2020,7 +2035,7 @@ def draw_lightcurve(
                 # Overplot the levels of nearby source magnitudes
                 idx = pdf["i:fid"] == fid
                 if np.sum(idx):
-                    ref = 3631 * 10**(-0.4*np.mean(pdf["i:magnr"][idx])) * scale
+                    ref = 3631 * 10 ** (-0.4 * np.mean(pdf["i:magnr"][idx])) * scale
 
                     figure["layout"]["shapes"].append(
                         {
@@ -2072,7 +2087,6 @@ def draw_lightcurve(
                         # 'showlegend': False
                     },
                 )
-
 
     if show_color:
         hovertemplate_gr = r"""
