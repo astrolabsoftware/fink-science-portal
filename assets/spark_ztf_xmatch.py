@@ -346,6 +346,50 @@ def perform_xmatch(spark, df, catalog_filename, ra_col, dec_col, id_col, radius_
     return df
 
 
+def sanitize_fields(cnames):
+    """Apply proper serialization before sending to Kafka
+
+    Parameters
+    ----------
+    cnames: list
+        List of fields
+
+    Returns
+    -------
+    cnames: list
+        List of fields, sanitized.
+    """
+    for cutout in ["cutoutScience", "cutoutTemplate", "cutoutDifference"]:
+        if cutout in cnames:
+            cnames[cnames.index(cutout)] = "struct({}.*) as {}".format(cutout, cutout)
+
+    if "prv_candidates" in cnames:
+        cnames[cnames.index("prv_candidates")] = (
+            "explode(array(prv_candidates)) as prv_candidates"
+        )
+
+    if "candidate" in cnames:
+        cnames[cnames.index("candidate")] = "struct(candidate.*) as candidate"
+
+    for lc_features in ["lc_features_g", "lc_features_r"]:
+        if lc_features in cnames:
+            cnames[cnames.index(lc_features)] = "struct({}.*) as {}".format(
+                lc_features, lc_features
+            )
+
+    for ts in [
+        "timestamp",
+        "brokerEndProcessTimestamp",
+        "brokerStartProcessTimestamp",
+        "brokerIngestTimestamp",
+    ]:
+        if ts in cnames:
+            cnames[cnames.index(ts)] = "cast({} as string) as {}".format(ts, ts)
+
+    # not needed actually as cnames is changed in-place
+    return cnames
+
+
 def main(args):
     t0 = time()
     spark = SparkSession.builder.getOrCreate()
@@ -394,28 +438,9 @@ def main(args):
         cnames.append(args.id_col)
 
     log.info("Selecting Fink/ZTF content {}...".format(cnames))
-    if "lc_features_g" in cnames:
-        cnames[cnames.index("lc_features_g")] = (
-            "struct(lc_features_g.*) as lc_features_g"
-        )
-    if "lc_features_r" in cnames:
-        cnames[cnames.index("lc_features_r")] = (
-            "struct(lc_features_r.*) as lc_features_r"
-        )
 
-    if "timestamp" in cnames:
-        cnames[cnames.index("timestamp")] = "cast(timestamp as string) as timestamp"
-
-    if "brokerEndProcessTimestamp" in cnames:
-        cnames[cnames.index("brokerEndProcessTimestamp")] = (
-            "cast(brokerEndProcessTimestamp as string) as brokerEndProcessTimestamp"
-        )
-        cnames[cnames.index("brokerStartProcessTimestamp")] = (
-            "cast(brokerStartProcessTimestamp as string) as brokerStartProcessTimestamp"
-        )
-        cnames[cnames.index("brokerIngestTimestamp")] = (
-            "cast(brokerIngestTimestamp as string) as brokerIngestTimestamp"
-        )
+    # enforce proper serialisation
+    cnames = sanitize_fields(cnames)
 
     # Wrap alert data
     df = df.selectExpr(cnames)
