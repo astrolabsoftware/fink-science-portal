@@ -1767,9 +1767,7 @@ def draw_lightcurve(
         # First convert the magnitude, then apply the proper sign
         mag, err = apparent_flux(mag, err, 99.0, 0.0, "t")
         mag = np.where(
-            (pdf["i:isdiffpos"] == "t") | (pdf["i:isdiffpos"] == "1"),
-            mag,
-            -mag
+            (pdf["i:isdiffpos"] == "t") | (pdf["i:isdiffpos"] == "1"), mag, -mag
         )
 
         # Data release photometry
