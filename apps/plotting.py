@@ -1764,7 +1764,13 @@ def draw_lightcurve(
         layout["yaxis"]["autorange"] = "reversed"
         scale = 1.0
     elif switch == "Difference flux":
+        # First convert the magnitude, then apply the proper sign
         mag, err = apparent_flux(mag, err, 99.0, 0.0, "t")
+        mag = np.where(
+            (pdf["i:isdiffpos"] == "t") | (pdf["i:isdiffpos"] == "1"),
+            mag,
+            -mag
+        )
 
         # Data release photometry
         if not pdf_release.empty:
