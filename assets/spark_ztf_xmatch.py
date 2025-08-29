@@ -92,7 +92,7 @@ def add_classification(spark, df, path_to_tns):
     -------
     df: DataFrame
         Input DataFrame with 2 new columns `finkclass` and
-        `tnsclass` containing classification tags.
+        `tns` containing classification tags.
     """
     # extract Fink classification
     df = df.withColumn(
@@ -161,8 +161,11 @@ def add_classification(spark, df, path_to_tns):
 
         return to_return
 
+    # remove old tns class if need be
+    df = df.drop("tns")
+
     df = df.withColumn(
-        "tnsclass",
+        "tns",
         crossmatch_with_tns(df["objectId"], df["candidate.ra"], df["candidate.dec"]),
     )
 
