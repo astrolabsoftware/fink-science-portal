@@ -893,7 +893,7 @@ def generate_tns_badge(oid):
     if r != []:
         entries = [i["d:fullname"] for i in r]
         if len(entries) > 1:
-            types = [i["type"] for i in r]
+            types = [i.get("type", "") for i in r]
             # Check if object is classified
             try:
                 index = [~i.startswith("AT") for i in types].index(True)
