@@ -893,13 +893,13 @@ def generate_tns_badge(oid):
     if r != []:
         entries = [i["d:fullname"] for i in r]
         if len(entries) > 1:
-            # AT & SN?
+            types = [i.get("type", "") for i in r]
+            # Check if object is classified
             try:
-                # Keep SN
-                index = [i.startswith("SN") for i in entries].index(True)
+                index = [~i.startswith("AT") for i in types].index(True)
             except ValueError:
-                # no SN in list -- take the first one (most recent)
-                index = 0
+                # no classification in list -- take the last one (most recent)
+                index = -1
         else:
             index = 0
 
