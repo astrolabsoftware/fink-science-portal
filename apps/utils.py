@@ -807,6 +807,18 @@ def create_button_for_external_conesearch(
             ),
             width=width,
         )
+    elif kind == "casda":
+        button = dbc.Col(
+            template_button_for_external_conesearch(
+                style={
+                    "background-image": "url(/assets/buttons/csiro-logo.png)",
+                    "background-color": "black",
+                },
+                title="CASDA",
+                href=f"https://data.csiro.au/domain/casdaCutoutService/results?surveys=RACS-Low&surveys=RACS-Mid&surveys=RACS-High&size={radius}&ra={ra0}&dec={dec0}",
+            ),
+            width=width,
+        )
 
     return button
 
