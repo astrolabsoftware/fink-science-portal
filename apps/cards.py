@@ -265,7 +265,7 @@ def create_external_conesearches(ra0, dec0):
                     kind="vsx", ra0=ra0, dec0=dec0, radius=0.1, width=width
                 ),
                 create_button_for_external_conesearch(
-                    kind="casda", ra0=ra0, dec0=dec0, radius=1, width=width
+                    kind="casda", ra0=ra0, dec0=dec0, radius=5, width=width
                 ),
             ],
             justify="around",
