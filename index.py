@@ -620,7 +620,7 @@ clientside_callback(
 # )
 
 
-def display_table_results(table):
+def display_table_results(table, query):
     """Display explorer results in the form of a table with a dropdown menu on top to insert more data columns.
 
     The dropdown menu options are taken from the client schema (ZTF & Fink). It also
@@ -630,6 +630,8 @@ def display_table_results(table):
     ----------
     table: dash_table.DataTable
         Dash DataTable containing the results. Can be empty.
+    query: dictionary
+        Dictionary containing the parsed parameters from the search url.
 
     Returns
     -------
@@ -639,6 +641,22 @@ def display_table_results(table):
           2. Table of results
         The dropdown is shown only if the table is non-empty.
     """
+    conesearch_colnames = {
+        "d:cdsxmatch",
+        "d:classification",
+        "d:nalerthist",
+        "i:candid",
+        "i:dec",
+        "i:distnr",
+        "i:drb",
+        "i:fid",
+        "i:jd",
+        "i:jdstarthist",
+        "i:magpsf",
+        "i:objectId",
+        "i:ra",
+        "i:sigmapsf",
+    }
     data = request_api("/api/v1/schema", method="GET", output="json")
 
     fink_fields = ["d:" + i for i in data["Fink science module outputs (d:)"].keys()]
@@ -652,6 +670,10 @@ def display_table_results(table):
         "v:firstdate",
         "v:lapse",
     ]
+    if query["action"] == "conesearch":
+        fink_fields = list(set(fink_fields) & conesearch_colnames)
+        ztf_fields = list(set(ztf_fields) & conesearch_colnames)
+        fink_additional_fields = ["v:separation_degree", "v:lapse"]
 
     dropdown = dcc.Dropdown(
         id="field-dropdown2",
@@ -1355,7 +1377,7 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
             ]
 
             table = populate_result_table(data, columns)
-            results_ = display_table_results(table)
+            results_ = display_table_results(table, query)
         else:
             results_ = display_cards_results(pdf)
 
