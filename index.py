@@ -1317,7 +1317,10 @@ def results(n_submit, n_clicks, s_n_clicks, searchurl, value, history, show_tabl
     history = history[-10:]  # Limit it to 10 latest entries
 
     msg = "{} - {} found".format(
-        msg, "nothing" if pdf.empty else str(len(pdf.index)) + " objects"
+        msg,
+        "nothing"
+        if pdf.empty
+        else ("1 alert" if len(pdf.index) == 1 else str(len(pdf.index)) + " alerts"),
     )
 
     if pdf.empty:
