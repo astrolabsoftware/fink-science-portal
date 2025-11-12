@@ -640,6 +640,9 @@ def display_table_results(table, query):
           1. A dropdown menu to add new columns in the table
           2. Table of results
         The dropdown is shown only if the table is non-empty.
+        The fields available in the dropdown are restricted
+        if the search is a cone search. See
+        https://github.com/astrolabsoftware/fink-broker/blob/f45549110e9f13a1bdec44690b91c7125656dca2/fink_broker/ztf/hbase_utils.py#L302
     """
     conesearch_colnames = {
         "d:cdsxmatch",
