@@ -1101,11 +1101,11 @@ def store_catalog(content, filename):
                     if isinstance(hdu, fits.BinTableHDU):
                         pdf = pd.DataFrame(np.array(hdu.data))
                         break
-        if (not "pdf" in locals()) or (not isinstance(pdf, pd.DataFrame)):
+        if ("pdf" not in locals()) or (not isinstance(pdf, pd.DataFrame)):
             return (
                 "{}",
                 [{"value": 0, "color": "grey", "tooltip": "0%"}],
-                dmc.Text(e, c="red", ta="center"),
+                dmc.Text("Catalog format not recognised", c="red", ta="center"),
             )
     except Exception as e:
         return (
