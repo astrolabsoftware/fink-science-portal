@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash_mantine_components as dmc
+import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 
 import textwrap
@@ -66,22 +67,95 @@ max_step = 4
 
 MAX_ROW = 100000
 
+@app.callback(
+    Output("radius-xmatch", "style"),
+    Output("radius-column", "style"),
+    Output("radius-xmatch", "value"),
+    Output("radius-column", "value"),
+    Input("radius-switch", "checked"),
+    State("store-radius-number", "data"),
+    State("store-radius-column", "data"),
+)
+def render_field(checked, number_store, select_store):
+    num_val = number_store.get("value") if isinstance(number_store, dict) else None
+    sel_val = select_store.get("value") if isinstance(select_store, dict) else None
+
+    if not checked:
+        return (
+            {"display": "block"},
+            {"display": "none"},
+            num_val,
+            sel_val,
+        )
+    else:
+        return (
+            {"display": "none"},
+            {"display": "block"},
+            num_val,
+            sel_val,
+        )
+
+@app.callback(
+    Output("store-radius-number", "data"),
+    Output("store-radius-column", "data"),
+    Input("radius-xmatch", "value"),
+    Input("radius-column", "value"),
+    State("store-radius-number", "data"),
+    State("store-radius-column", "data"),
+    prevent_initial_call=True,
+)
+def update_stores(number_val, select_val, num_store, sel_store):
+    if num_store is None:
+        num_store = {"value": None}
+    if sel_store is None:
+        sel_store = {"value": None}
+
+    if number_val is not None:
+        num_store["value"] = number_val
+    if select_val is not None:
+        sel_store["value"] = select_val
+
+    return num_store, sel_store
 
 def upload_catalog():
     """ """
-    radius = dmc.NumberInput(
+    radius_number = dmc.NumberInput(
         placeholder="type value...",
         label="Crossmatch radius in arcsecond",
         variant="default",
-        # size="sm",
-        # radius="sm",
         hideControls=True,
+        id="radius-xmatch",
         w=250,
         mb=10,
-        id="radius_xmatch",
         disabled=True,
+        style={"display": "none"},
     )
+    radius_select = dmc.Select(
+        label="Column for Radius (in arcsecond)",
+        placeholder="Select one",
+        id="radius-column",
+        w=250,
+        mb=10,
+        disabled=True,
+        style={"display": "none"},
+    )
+    radius_stack = dmc.Stack(
+        [
+            dcc.Store(id="store-radius-number", data={"value": None}),
+            dcc.Store(id="store-radius-column", data={"value": None}),
 
+            dmc.Switch(
+                id="radius-switch",
+                label="Unique (OFF) or variable (ON) radius",
+                mb=10,
+                checked=False,
+            ),
+            radius_number,
+            radius_select,
+        ],
+        gap="xs",
+        align="flex-start",
+    )
     ra = dmc.Select(
         label="Column for Right Ascension (J2000)",
         placeholder="Select one",
@@ -131,7 +205,11 @@ def upload_catalog():
             ),
             html.Div(id="output-data-upload"),
             dmc.Space(h=10),
-            dmc.Group([ra, dec, identifier, radius], justify="center"),
+            dmc.Group(
+                [ra, dec, identifier, radius_stack],
+                justify="center",
+                align="flex-end"
+            ),
             dmc.Space(h=10),
             dmc.Center(modal_skymap()),
         ]
@@ -237,6 +315,7 @@ fink_datatransfer \\
     Output("topic_name_xmatch", "children"),
     [
         Input("submit_xmatch", "n_clicks"),
+        Input("radius-switch", "checked"),
     ],
     [
         State("trans_datasource_xmatch", "value"),
@@ -244,7 +323,10 @@ fink_datatransfer \\
         State("upload-data", "filename"),
         State("ra-column", "value"),
         State("dec-column", "value"),
-        State("radius_xmatch", "value"),
+        State("store-radius-number", "data"),
+        State("store-radius-column", "data"),
+        #State("radius-xmatch", "value"),
+        #State("radius-column", "value"),
         State("id-column", "value"),
         State("date-range-picker-xmatch", "value"),
         State("field_select_xmatch", "value"),
@@ -253,12 +335,14 @@ fink_datatransfer \\
 )
 def submit_job(
     n_clicks,
+    radius_switch,
     trans_datasource,
     catalog,
     catalog_filename,
     ra,
     dec,
     radius,
+    radius_col,
     identifier,
     date_range_picker,
     field_select,
@@ -339,7 +423,7 @@ def submit_job(
             f"-topic_name={topic_name}",
             f"-ra_col={ra}",
             f"-dec_col={dec}",
-            f"-radius_arcsec={radius}",
+            f"-radius_arcsec={radius_col if radius_switch else radius}",
             f"-id_col={identifier}",
             "-catalog_filename={}".format(catalog_filename_parquet),
             "-kafka_bootstrap_servers={}".format(input_args["KAFKA_BOOTSTRAP_SERVERS"]),
@@ -696,28 +780,37 @@ def layout():
         Output("ra-column", "disabled"),
         Output("dec-column", "disabled"),
         Output("id-column", "disabled"),
-        Output("radius_xmatch", "disabled"),
         Output("ra-column", "data"),
         Output("dec-column", "data"),
         Output("id-column", "data"),
+        Output("radius-column", "data"),
+        Output("radius-xmatch", "disabled"),
+        Output("radius-column", "disabled"),
     ],
     Input("object-catalog", "data"),
     prevent_initial_call=True,
 )
 def select_columns(catalog):
-    """ """
+    """Populate select options and enable the column selectors
+    + radius widgets when a catalog is provided."""
     if catalog is None or catalog == {}:
-        PreventUpdate()
+        raise PreventUpdate
 
     pdf = pd.read_json(io.StringIO(catalog))
     if pdf.empty:
-        PreventUpdate()
+        raise PreventUpdate
 
-    ra_data = [{"value": c, "label": c} for c in pdf.columns]
-    dec_data = [{"value": c, "label": c} for c in pdf.columns]
-    identifier = [{"value": c, "label": c} for c in pdf.columns]
+    cols = [{"value": c, "label": c} for c in pdf.columns]
 
-    return False, False, False, False, ra_data, dec_data, identifier
+    enabled = False
+    return (
+        enabled, enabled, enabled,
+        cols, cols, cols,
+        cols,
+        enabled,
+        enabled,
+    )
+
 
 
 def enforce_decimal(pdf, ra_label, dec_label):
