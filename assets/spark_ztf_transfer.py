@@ -520,6 +520,8 @@ def main(args):
     if "Full packet" in content:
         # Cast fields to ease the distribution
         cnames = df.columns
+    elif "Medium packet" in content:
+        cnames = [col for col in df.columns if not col.startswith("cutout")]
     elif "Light packet" in content:
         # Wanted content from candidates
         cnames = [
