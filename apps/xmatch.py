@@ -42,7 +42,7 @@ from dash import (
 from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 
-from astropy.io import votable
+from astropy.io import votable, fits
 import astropy.units as u
 from mocpy import MOC
 
@@ -115,7 +115,7 @@ def upload_catalog():
                     [
                         "Drag and Drop or ",
                         html.A("Select Files "),
-                        "(csv, parquet, or votable)",
+                        "(csv, fits, parquet, or votable)",
                     ]
                 ),
                 style={
@@ -1094,6 +1094,19 @@ def store_catalog(content, filename):
             # Assume that the user uploaded a votable file
             table = votable.parse(io.BytesIO(decoded))
             pdf = table.get_first_table().to_table(use_names_over_ids=True).to_pandas()
+        elif ".fits" in filename:
+            # Assume that the user uploaded a fits file
+            with fits.open(io.BytesIO(decoded)) as hdul:
+                for hdu in hdul:
+                    if isinstance(hdu, fits.BinTableHDU):
+                        pdf = pd.DataFrame(np.array(hdu.data))
+                        break
+        if ("pdf" not in locals()) or (not isinstance(pdf, pd.DataFrame)):
+            return (
+                "{}",
+                [{"value": 0, "color": "grey", "tooltip": "0%"}],
+                dmc.Text("Catalog format not recognised", c="red", ta="center"),
+            )
     except Exception as e:
         return (
             "{}",
