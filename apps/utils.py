@@ -892,8 +892,14 @@ def format_field_for_data_transfer(
                 "group": "Pre-defined schema",
                 "items": [
                     {"value": "Full packet", "label": "Full packet"},
-                    {"value": "Medium packet", "label": "Medium packet (all but cutouts)"},
-                    {"value": "Light packet", "label": "Light packet (all but cutouts and history)"},
+                    {
+                        "value": "Medium packet",
+                        "label": "Medium packet (all but cutouts)",
+                    },
+                    {
+                        "value": "Light packet",
+                        "label": "Light packet (all but cutouts and history)",
+                    },
                 ],
             }
             data.append(packet)
