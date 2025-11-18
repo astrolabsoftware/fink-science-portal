@@ -1252,7 +1252,7 @@ def plot_variable_star(
     if int(nterms_base) == 1 and int(nterms_band) == 1:
         sb_method = "fastnifty"
     else:
-        sb_method = "auto"
+        sb_method = "fastnifty_chi2"
 
     frequency, power = model.autopower(
         method="fast",
