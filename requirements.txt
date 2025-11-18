@@ -100,7 +100,7 @@ multidict==6.1.0
 multiprocess==0.70.17
 nest-asyncio==1.6.0
 networkx==3.4.2
-nifty-ls==1.0.1
+nifty-ls==1.1.0
 numpy==1.26.4
 numpydoc==1.8.0
 packaging==24.2
