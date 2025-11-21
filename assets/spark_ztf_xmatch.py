@@ -329,8 +329,8 @@ def perform_xmatch(spark, df, catalog_filename, ra_col, dec_col, id_col, radius_
             dec=np.array(dec2, dtype=np.float) * u.degree,
         )
 
-        if isinstance(radius_arcsec, str) and radius_arcsec in pdf_cat.columns:
-            radius_col = pdf_cat[radius_arcsec]
+        if isinstance(radius_arcsec, dict) and radius_arcsec["value"] in pdf_cat.columns:
+            radius_col = pdf_cat[radius_arcsec["value"]]
         elif isinstance(radius_arcsec, float) or isinstance(radius_arcsec, int):
             radius_col = pd.Series([radius_arcsec])
         else:
