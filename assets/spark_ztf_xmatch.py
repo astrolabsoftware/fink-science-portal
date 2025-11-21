@@ -332,7 +332,7 @@ def perform_xmatch(spark, df, catalog_filename, ra_col, dec_col, id_col, radius_
         if isinstance(radius_arcsec, pd.Series):
             radius_col = radius_arcsec
         else:
-            radius_col = pd.Series([radius_col])
+            radius_col = pd.Series([radius_arcsec])
         pdf_merge, mask, idx2 = cross_match_astropy(
             pdf, catalog_ztf, catalog_other, radius_arcsec=radius_col
         )
