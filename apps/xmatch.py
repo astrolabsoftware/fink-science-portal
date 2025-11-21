@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dash_mantine_components as dmc
-import dash_core_components as dcc
+
+# import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 
 import textwrap
@@ -67,6 +68,7 @@ max_step = 4
 
 MAX_ROW = 100000
 
+
 @app.callback(
     Output("radius-xmatch", "style"),
     Output("radius-column", "style"),
@@ -95,6 +97,7 @@ def render_field(checked, number_store, select_store):
             sel_val,
         )
 
+
 @app.callback(
     Output("store-radius-number", "data"),
     Output("store-radius-column", "data"),
@@ -116,6 +119,7 @@ def update_stores(number_val, select_val, num_store, sel_store):
         sel_store["value"] = select_val
 
     return num_store, sel_store
+
 
 def upload_catalog():
     """ """
@@ -143,7 +147,6 @@ def upload_catalog():
         [
             dcc.Store(id="store-radius-number", data={"value": None}),
             dcc.Store(id="store-radius-column", data={"value": None}),
-
             dmc.Switch(
                 id="radius-switch",
                 label="Unique (OFF) or variable (ON) radius",
@@ -206,9 +209,7 @@ def upload_catalog():
             html.Div(id="output-data-upload"),
             dmc.Space(h=10),
             dmc.Group(
-                [ra, dec, identifier, radius_stack],
-                justify="center",
-                align="flex-end"
+                [ra, dec, identifier, radius_stack], justify="center", align="flex-end"
             ),
             dmc.Space(h=10),
             dmc.Center(modal_skymap()),
@@ -325,8 +326,8 @@ fink_datatransfer \\
         State("dec-column", "value"),
         State("store-radius-number", "data"),
         State("store-radius-column", "data"),
-        #State("radius-xmatch", "value"),
-        #State("radius-column", "value"),
+        # State("radius-xmatch", "value"),
+        # State("radius-column", "value"),
         State("id-column", "value"),
         State("date-range-picker-xmatch", "value"),
         State("field_select_xmatch", "value"),
@@ -792,7 +793,8 @@ def layout():
 )
 def select_columns(catalog):
     """Populate select options and enable the column selectors
-    + radius widgets when a catalog is provided."""
+    + radius widgets when a catalog is provided.
+    """
     if catalog is None or catalog == {}:
         raise PreventUpdate
 
@@ -804,13 +806,16 @@ def select_columns(catalog):
 
     enabled = False
     return (
-        enabled, enabled, enabled,
-        cols, cols, cols,
+        enabled,
+        enabled,
+        enabled,
+        cols,
+        cols,
+        cols,
         cols,
         enabled,
         enabled,
     )
-
 
 
 def enforce_decimal(pdf, ra_label, dec_label):
