@@ -329,10 +329,14 @@ def perform_xmatch(spark, df, catalog_filename, ra_col, dec_col, id_col, radius_
             dec=np.array(dec2, dtype=np.float) * u.degree,
         )
 
-        if isinstance(radius_arcsec, pd.Series):
-            radius_col = radius_arcsec
-        else:
+        if isinstance(radius_arcsec, str) and radius_arcsec in pdf_cat.columns:
+            radius_col = pdf_cat[radius_arcsec]
+        elif isinstance(radius_arcsec, float) or isinstance(radius_arcsec, int):
             radius_col = pd.Series([radius_arcsec])
+        else:
+            # FIXME: log error message
+            pass
+
         pdf_merge, mask, idx2 = cross_match_astropy(
             pdf, catalog_ztf, catalog_other, radius_arcsec=radius_col
         )
