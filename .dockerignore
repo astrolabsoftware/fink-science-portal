@@ -1,0 +1,21 @@
+# Ignore certain folders and files to optimize the Docker image of fink-science-portal 
+
+# Files/folders that are unnecessary for the container
+.vscode/
+.github/
+docs/
+docker/
+cache/
+
+# test file
+run_tests.sh
+
+# temp files
+*.log
+*.pyc
+*.pyo
+__pycache__/
+
+# sys files
+.DS_Store
+Thumbs.db

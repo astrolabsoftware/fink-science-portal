@@ -1,5 +1,5 @@
-# Copyright 2022 AstroLab Software
-# Author: Julien Peloton
+# Copyright 2025 AstroLab Software
+# Author: Massinissa MACHTER
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,29 +12,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM centos:centos7
 
-WORKDIR /root
+# Multi stages 
+FROM python:3.11-slim AS builder 
 
+WORKDIR /app
 
-RUN yum -y update \
-&& yum -y install git wget java-1.8.0-openjdk gcc-c++ \
-&& yum -y clean all \
-&& rm -rf /var/cache \
-&& echo "export JAVA_HOME=$(dirname $(dirname $(readlink -f $(type -P java))))" > /etc/profile.d/javahome.sh
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential git && \
+    rm -rf /var/lib/apt/lists/* 
 
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py37_4.11.0-Linux-x86_64.sh -O ~/miniconda.sh \
-&& bash ~/miniconda.sh -b -p /miniconda
+COPY requirements.txt . 
 
-ENV PYTHONPATH=/miniconda
-ENV PATH=/miniconda/bin:/usr/local/bin:${PATH}
+RUN python -m venv /venv && \
+    /venv/bin/pip install --upgrade pip && \
+    /venv/bin/pip install -r requirements.txt
 
-ADD requirements.txt .
+FROM python:3.11-slim AS runtime 
 
-# Install Python deps.
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
-&& pip install -r requirements.txt
+WORKDIR /fsp_frontend 
 
-ENTRYPOINT /bin/bash
+ENV PYTHONDONTWRITEBYTECODE=1 \
+     PYTHONUNBUFFERED=1 \
+     PATH="/venv/bin:$PATH"
 
+COPY --from=builder /venv /venv
+
+COPY . . 
+
+EXPOSE 24000 
+CMD ["python", "index.py"]
