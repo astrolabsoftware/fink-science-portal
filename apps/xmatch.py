@@ -478,8 +478,10 @@ def layout():
 
     Once ready, submit your job on the Fink Apache Spark and Kafka clusters to retrieve your data wherever you like.
     To access the data, you need to create an account. See the [fink-client](https://github.com/astrolabsoftware/fink-client) and
-    the [documentation](https://fink-broker.readthedocs.io/en/latest/services/xmatch) for more information. The data is available
+    the [documentation](https://fink-broker.readthedocs.io/en/latest/services/xmatch) for more information. The xmatch data is available
     for download for 7 days.
+
+    IMPORTANT NOTE: uploaded catalogs are stored on our system during the operation, and they are automatically deleted after 24h. During this time, they are not publicly accessible, and only engineers have access to it for debugging purposes if need be. 
     """
 
     layout = dmc.Container(
