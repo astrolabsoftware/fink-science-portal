@@ -481,7 +481,7 @@ def layout():
     the [documentation](https://fink-broker.readthedocs.io/en/latest/services/xmatch) for more information. The xmatch data is available
     for download for 7 days.
 
-    IMPORTANT NOTE: uploaded catalogs are stored on our system during the operation, and they are automatically deleted after 24h. During this time, they are not publicly accessible, and only engineers have access to it for debugging purposes if need be.
+    IMPORTANT NOTE: Uploaded catalogs remain secluded for all practical purpose and will not be exploited scientifically by anyone. They are stored on our system during the operation, and they are automatically deleted after 24h. During this time, only engineers have access to it exclusively for debugging purposes and to assist users if need be.
     """
 
     layout = dmc.Container(
