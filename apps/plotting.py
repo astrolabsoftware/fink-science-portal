@@ -3396,7 +3396,7 @@ def draw_sso_lightcurve(pdf) -> dict:
     """
     hovertemplate_ephem = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
     <b>mjd</b>: %{customdata}
     <extra></extra>
     """
