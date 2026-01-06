@@ -16,6 +16,7 @@
 import io
 import copy
 import datetime
+import textwrap
 from copy import deepcopy
 
 import dash
@@ -582,13 +583,15 @@ def plot_observability(
     }
 
     # Target plot
-    hovertemplate_elevation = r"""
-    <b>UTC time</b>:%{x}<br>
-    <b>Elevation</b>: %{y:.0f} &deg;<br>
-    <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
-    <b>Relative airmass</b>: %{customdata[1]:.2f}
-    <extra></extra>
-    """
+    hovertemplate_elevation = textwrap.dedent(
+        r"""
+        <b>UTC time</b>:%{x}<br>
+        <b>Elevation</b>: %{y:.0f} &deg;<br>
+        <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
+        <b>Relative airmass</b>: %{customdata[1]:.2f}
+        <extra></extra>
+        """
+    )
 
     figure["data"].append(
         {
@@ -616,13 +619,15 @@ def plot_observability(
             moon_coordinates.alt.value
         )
 
-        hovertemplate_moon = r"""
-        <b>UTC time</b>:%{x}<br>
-        <b>Elevation</b>: %{y:.0f} &deg;<br>
-        <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
-        <b>Relative airmass</b>: %{customdata[1]:.2f}
-        <extra></extra>
-        """
+        hovertemplate_moon = textwrap.dedent(
+            r"""
+            <b>UTC time</b>:%{x}<br>
+            <b>Elevation</b>: %{y:.0f} &deg;<br>
+            <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
+            <b>Relative airmass</b>: %{customdata[1]:.2f}
+            <extra></extra>
+            """
+        )
 
         figure["data"].append(
             {
@@ -1011,13 +1016,15 @@ def plot_blazar(
         "layout": copy.deepcopy(layout_blazar),
     }
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x}<br>
-    <b>Apparent magnitude</b>: %{customdata[0]:.2f} &plusmn; %{customdata[1]:.2f}<br>
-    <b>Brightness level &#981;/&#981;<sub>%{customdata[2]}</sub></b>: %{customdata[3]:.2f}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x}<br>
+        <b>Apparent magnitude</b>: %{customdata[0]:.2f} &plusmn; %{customdata[1]:.2f}<br>
+        <b>Brightness level &#981;/&#981;<sub>%{customdata[2]}</sub></b>: %{customdata[3]:.2f}
+        <extra></extra>
+        """
+    )
 
     # Light curve display
     for fid, fname, color in (
@@ -1309,22 +1316,28 @@ def plot_variable_star(
 
     figure_unfolded["layout"]["xaxis"]["title"] = "Observation date"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}
+        <extra></extra>
+        """
+    )
 
-    hovertemplate_model = r"""
-    <b>%{yaxis.title.text}</b>:%{y:.2f}<br>
-    <extra></extra>
-    """
+    hovertemplate_model = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>:%{y:.2f}<br>
+        <extra></extra>
+        """
+    )
 
-    hovertemplate_unfolded = r"""
-    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <extra></extra>
-    """
+    hovertemplate_unfolded = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <extra></extra>
+        """
+    )
 
     for fid, fname, color in (
         (1, "g", COLORS_ZTF[0]),
@@ -1818,12 +1831,14 @@ def draw_lightcurve(
         (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1]),
     ):
         # High-quality measurements
-        hovertemplate = r"""
-        <b>%{yaxis.title.text}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-        <b>mjd</b>: %{customdata[0]}
-        <extra></extra>
-        """
+        hovertemplate = textwrap.dedent(
+            r"""
+            <b>%{yaxis.title.text}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+            <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+            <b>mjd</b>: %{customdata[0]}
+            <extra></extra>
+            """
+        )
         idx = pdf["i:fid"] == fid
         figure["data"].append(
             {
@@ -1843,7 +1858,8 @@ def draw_lightcurve(
                     (
                         pdf["i:jd"][idx] - 2400000.5,
                         pdf["i:isdiffpos"][idx].apply(
-                            lambda x: "(-) " if x == "f" else ""
+                            # We should only show minus sign here for magnitudes
+                            lambda x: "(-) " if x == "f" and "flux" not in switch else ""
                         ),
                     ),
                     axis=-1,
@@ -1867,12 +1883,14 @@ def draw_lightcurve(
             # Upper limits
             if not pdf_upper.empty:
                 # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
-                hovertemplate_upper = r"""
-                <b>Upper limit</b>: %{y:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <extra></extra>
-                """
+                hovertemplate_upper = textwrap.dedent(
+                    r"""
+                    <b>Upper limit</b>: %{y:.2f}<br>
+                    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                    <b>mjd</b>: %{customdata}
+                    <extra></extra>
+                    """
+                )
                 idx = pdf_upper["i:fid"] == fid
                 figure["data"].append(
                     {
@@ -1896,12 +1914,14 @@ def draw_lightcurve(
             # Lower-quality data points
             if not pdf_upperv.empty:
                 # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
-                hovertemplate_upperv = r"""
-                <b>%{yaxis.title.text} (low quality)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <extra></extra>
-                """
+                hovertemplate_upperv = textwrap.dedent(
+                    r"""
+                    <b>%{yaxis.title.text} (low quality)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                    <b>mjd</b>: %{customdata}
+                    <extra></extra>
+                    """
+                )
                 idx = pdf_upperv["i:fid"] == fid
                 figure["data"].append(
                     {
@@ -1951,12 +1971,14 @@ def draw_lightcurve(
 
             # Data release photometry
             if not pdf_release.empty:
-                hovertemplate_release = r"""
-                <b>Data release magnitude</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <extra></extra>
-                """
+                hovertemplate_release = textwrap.dedent(
+                    r"""
+                    <b>Data release magnitude</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                    <b>mjd</b>: %{customdata}
+                    <extra></extra>
+                    """
+                )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
                     {
@@ -1996,15 +2018,21 @@ def draw_lightcurve(
                         ref = 3631 * 10 ** (-0.4 * np.mean(pdf["i:magnr"][idx])) * scale
 
                 hovertemplate_release = (
-                    r"""
-                <b>Baseline subtracted data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <b>baseline</b>: """
-                    + "{:.2f}".format(ref)
-                    + r""" milliJansky
-                <extra></extra>
-                """
+                    textwrap.dedent(
+                        r"""
+                        <b>Baseline subtracted data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                        <b>baseline</b>:
+                        """
+                    )
+                    + " {:.2f} ".format(ref)
+                    + textwrap.dedent(
+                        r"""
+                        milliJansky<br>
+                        <b>mjd</b>: %{customdata}
+                        <extra></extra>
+                        """
+                    )
                 )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
@@ -2058,12 +2086,14 @@ def draw_lightcurve(
 
             # Data release photometry
             if not pdf_release.empty:
-                hovertemplate_release = r"""
-                <b>Data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <extra></extra>
-                """
+                hovertemplate_release = textwrap.dedent(
+                    r"""
+                    <b>Data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                    <b>mjd</b>: %{customdata}
+                    <extra></extra>
+                    """
+                )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
                     {
@@ -2093,12 +2123,14 @@ def draw_lightcurve(
                 )
 
     if show_color:
-        hovertemplate_gr = r"""
-        <b>g - r</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-        <b>mjd</b>: %{customdata}
-        <extra></extra>
-        """
+        hovertemplate_gr = textwrap.dedent(
+            r"""
+            <b>g - r</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+            <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+            <b>mjd</b>: %{customdata}
+            <extra></extra>
+            """
+        )
 
         pdf_ = None
 
@@ -2233,12 +2265,14 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     layout["yaxis"]["title"] = "Difference magnitude"
     layout["yaxis"]["autorange"] = "reversed"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+    )
     figure = {
         "data": [
             {
@@ -2354,12 +2388,14 @@ def draw_lightcurve_preview(name) -> dict:
 
         layout["yaxis"]["title"] = "Apparent DC magnitude"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata[0]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata[0]}
+        <extra></extra>
+        """
+    )
     figure = {
         "data": [],
         "layout": layout,
@@ -2462,12 +2498,14 @@ def draw_scores(object_data) -> dict:
     # type conversion
     dates = convert_jd(pdf["i:jd"])
 
-    hovertemplate = """
-    <b>%{customdata[0]}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        """
+        <b>%{customdata[0]}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
     figure = {
         "data": [
             {
@@ -2667,12 +2705,14 @@ def draw_color(object_data) -> dict:
     # type conversion
     dates = convert_jd(pdf["i:jd"])
 
-    hovertemplate = """
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        """
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+    )
     color = "#3C8DFF"
     idx = pdf["i:fid"] == 1  # Show colors at g points only
     figure = {
@@ -2727,12 +2767,14 @@ def draw_color_rate(object_data) -> dict:
     # type conversion
     dates = convert_jd(pdf["i:jd"])
 
-    hovertemplate_rate = """
-    <b>%{customdata[0]} in mag/day</b>: %{y:.3f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate_rate = textwrap.dedent(
+        """
+        <b>%{customdata[0]} in mag/day</b>: %{y:.3f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
     m1 = pdf["i:fid"] == 1
     m2 = pdf["i:fid"] == 2
     figure = {
@@ -3388,18 +3430,22 @@ def draw_sso_lightcurve(pdf) -> dict:
     layout["yaxis"]["title"] = "Difference magnitude"
     layout["yaxis"]["autorange"] = "reversed"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
-    <extra></extra>
-    """
-    hovertemplate_ephem = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+    )
+    hovertemplate_ephem = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+    )
 
     to_plot = []
 
@@ -3535,13 +3581,15 @@ def draw_sso_residual(pdf) -> dict:
     else:
         popt2 = None
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>date</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
     gresiduals = {
         "x": pdf["Longitude"][pdf["i:fid"] == 1],
         "y": diff1,
@@ -3659,13 +3707,15 @@ def draw_sso_astrometry(pdf) -> dict:
     deltaRAcosDEC = (pdf["i:ra"] - pdf.RA) * np.cos(np.radians(pdf["i:dec"])) * 3600
     deltaDEC = (pdf["i:dec"] - pdf.DEC) * 3600
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Observation date</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Observation date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
     diff_g = {
         "x": deltaRAcosDEC[pdf["i:fid"] == 1],
         "y": deltaDEC[pdf["i:fid"] == 1],
@@ -3750,13 +3800,15 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
     figs = []
     residual_figs = []
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Observation date</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Observation date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
 
     if switch_func == "HG1G2":
         fitfunc = func_hg1g2
@@ -4056,13 +4108,15 @@ def draw_tracklet_lightcurve(pdf) -> dict:
     layout["yaxis"]["title"] = "Difference magnitude"
     layout["yaxis"]["autorange"] = "reversed"
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Date</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
 
     def generate_plot(filt, marker, color, showlegend):
         if filt == 1:
@@ -4144,13 +4198,15 @@ def draw_tracklet_radec(pdf) -> dict:
     ra = pdf["i:ra"].astype(float)
     dec = pdf["i:dec"].astype(float)
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Date</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
     figure = {
         "data": [
             {
@@ -4923,12 +4979,14 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     deltaRAcosDEC = (pdf["i:ra"] - mean_ra) * np.cos(np.radians(pdf["i:dec"])) * 3600
     deltaDEC = (pdf["i:dec"] - mean_dec) * 3600
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Observation date</b>: %{customdata}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Observation date</b>: %{customdata}
+        <extra></extra>
+        """
+    )
     diff_g = {
         "x": deltaRAcosDEC[pdf["i:fid"] == 1],
         "y": deltaDEC[pdf["i:fid"] == 1],
