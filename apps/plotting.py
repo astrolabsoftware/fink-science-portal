@@ -1724,7 +1724,7 @@ def draw_lightcurve(
         pdf_release = pd.DataFrame()
 
     # Exclude lower-quality points overlapping higher-quality ones
-    mask = np.in1d(pdf_upperv["i:jd"].to_numpy(), pdf["i:jd"].to_numpy())
+    mask = np.isin(pdf_upperv["i:jd"].to_numpy(), pdf["i:jd"].to_numpy())
     pdf_upperv, dates_upperv = (_[~mask] for _ in (pdf_upperv, dates_upperv))
 
     # shortcuts
@@ -2229,8 +2229,9 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     # shortcuts
     mag = pdf["i:magpsf"]
     err = pdf["i:sigmapsf"]
-    layout_lightcurve["yaxis"]["title"] = "Difference magnitude"
-    layout_lightcurve["yaxis"]["autorange"] = "reversed"
+    layout = deepcopy(layout_lightcurve)
+    layout["yaxis"]["title"] = "Difference magnitude"
+    layout["yaxis"]["autorange"] = "reversed"
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
@@ -2275,7 +2276,7 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
                 "marker": {"size": 12, "color": COLORS_ZTF[1], "symbol": "o"},
             },
         ],
-        "layout": layout_lightcurve,
+        "layout": layout,
     }
     return figure
 
@@ -3383,8 +3384,9 @@ def draw_sso_lightcurve(pdf) -> dict:
     mag = pdf["i:magpsf"]
     err = pdf["i:sigmapsf"]
 
-    layout_sso_lightcurve["yaxis"]["title"] = "Difference magnitude"
-    layout_sso_lightcurve["yaxis"]["autorange"] = "reversed"
+    layout = deepcopy(layout_sso_lightcurve)
+    layout["yaxis"]["title"] = "Difference magnitude"
+    layout["yaxis"]["autorange"] = "reversed"
 
     hovertemplate = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
@@ -3394,7 +3396,7 @@ def draw_sso_lightcurve(pdf) -> dict:
     """
     hovertemplate_ephem = r"""
     <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f<br>
+    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
     <b>mjd</b>: %{customdata}
     <extra></extra>
     """
@@ -3475,7 +3477,7 @@ def draw_sso_lightcurve(pdf) -> dict:
 
     figure = {
         "data": to_plot,
-        "layout": layout_sso_lightcurve,
+        "layout": layout,
     }
     graph = dcc.Graph(
         figure=figure,
@@ -3518,11 +3520,20 @@ def draw_sso_residual(pdf) -> dict:
     layout_sso_residual["yaxis"]["title"] = "Residuals [mag]"
     layout_sso_residual["xaxis"]["title"] = "Ecliptic longitude [deg]"
 
+    lon1 = pdf["Longitude"][pdf["i:fid"] == 1]
+    lon2 = pdf["Longitude"][pdf["i:fid"] == 2]
     diff1 = mag[pdf["i:fid"] == 1] - pdf["SDSS:g"][pdf["i:fid"] == 1]
     diff2 = mag[pdf["i:fid"] == 2] - pdf["SDSS:r"][pdf["i:fid"] == 2]
 
-    popt1, pcov1 = curve_fit(sine_fit, pdf["Longitude"][pdf["i:fid"] == 1], diff1)
-    popt2, pcov2 = curve_fit(sine_fit, pdf["Longitude"][pdf["i:fid"] == 2], diff2)
+    if len(x1) > 1:
+        popt1, _ = curve_fit(sine_fit, lon1, diff1)
+    else:
+        popt1 = None
+
+    if len(x2) > 1:
+        popt2, _ = curve_fit(sine_fit, lon22, diff2)
+    else:
+        popt2 = None
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
@@ -3577,36 +3588,38 @@ def draw_sso_residual(pdf) -> dict:
         "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
     }
 
-    longitude_arr = np.linspace(0, 360, num=100)
-    gfit = {
-        "x": longitude_arr,
-        "y": sine_fit(longitude_arr, *popt1),
-        "mode": "lines",
-        "name": "fit",
-        "showlegend": False,
-        "line": {
-            "color": COLORS_ZTF[0],
-        },
-    }
+    data = [gresiduals]
+    if popt1 is not None:
+        longitude_arr = np.linspace(0, 360, num=100)
+        gfit = {
+            "x": longitude_arr,
+            "y": sine_fit(longitude_arr, *popt1),
+            "mode": "lines",
+            "name": "fit",
+            "showlegend": False,
+            "line": {
+                "color": COLORS_ZTF[0],
+            },
+        }
+        data.append(gfit)
 
-    rfit = {
-        "x": longitude_arr,
-        "y": sine_fit(longitude_arr, *popt2),
-        "mode": "lines",
-        "name": "fit",
-        "showlegend": False,
-        "line": {
-            "color": COLORS_ZTF[1],
-        },
-    }
+    data.append(rresiduals)
+    if popt2 is not None:
+        longitude_arr = np.linspace(0, 360, num=100)
+        rfit = {
+            "x": longitude_arr,
+            "y": sine_fit(longitude_arr, *popt2),
+            "mode": "lines",
+            "name": "fit",
+            "showlegend": False,
+            "line": {
+                "color": COLORS_ZTF[1],
+            },
+        }
+        data.append(rfit)
 
     figure = {
-        "data": [
-            gresiduals,
-            gfit,
-            rresiduals,
-            rfit,
-        ],
+        "data": data,
         "layout": layout_sso_residual,
     }
     graph = dcc.Graph(
@@ -3793,7 +3806,8 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
         p0 = None
         x = np.deg2rad(pdf["Phase"].to_numpy())
 
-    layout_sso_phasecurve["title"]["text"] = "Reduced &#967;<sup>2</sup>: "
+    layout = deepcopy(layout_sso_phasecurve)
+    layout["title"]["text"] = "Reduced &#967;<sup>2</sup>: "
 
     # Multi-band fit
     outdic = estimate_sso_params(
@@ -3940,11 +3954,11 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
 
     if switch_func == "sfHG1G2":
         for f in filts:
-            layout_sso_phasecurve["title"]["text"] += "  {}:{:.2f}  ".format(
+            layout["title"]["text"] += "  {}:{:.2f}  ".format(
                 filters[f], outdic["chi2red_{}".format(f)]
             )
     else:
-        layout_sso_phasecurve["title"]["text"] += "  {:.2f}  ".format(outdic["chi2red"])
+        layout["title"]["text"] += "  {:.2f}  ".format(outdic["chi2red"])
 
     residual_figure = {
         "data": residual_figs,
@@ -3953,7 +3967,7 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
 
     figure = {
         "data": figs,
-        "layout": layout_sso_phasecurve,
+        "layout": layout,
     }
 
     columns = [
@@ -4038,8 +4052,9 @@ def draw_tracklet_lightcurve(pdf) -> dict:
     mag = pdf["i:magpsf"]
     err = pdf["i:sigmapsf"]
 
-    layout_tracklet_lightcurve["yaxis"]["title"] = "Difference magnitude"
-    layout_tracklet_lightcurve["yaxis"]["autorange"] = "reversed"
+    layout = deepcopy(layout_tracklet_lightcurve)
+    layout["yaxis"]["title"] = "Difference magnitude"
+    layout["yaxis"]["autorange"] = "reversed"
 
     hovertemplate = r"""
     <b>objectId</b>: %{customdata[0]}<br>
@@ -4092,7 +4107,7 @@ def draw_tracklet_lightcurve(pdf) -> dict:
 
     figure = {
         "data": data_,
-        "layout": layout_tracklet_lightcurve,
+        "layout": layout,
     }
 
     graph = dcc.Graph(
