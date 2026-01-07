@@ -3571,13 +3571,13 @@ def draw_sso_residual(pdf) -> dict:
     diff1 = mag[pdf["i:fid"] == 1] - pdf["SDSS:g"][pdf["i:fid"] == 1]
     diff2 = mag[pdf["i:fid"] == 2] - pdf["SDSS:r"][pdf["i:fid"] == 2]
 
-    if len(x1) > 1:
+    if len(lon1) > 1:
         popt1, _ = curve_fit(sine_fit, lon1, diff1)
     else:
         popt1 = None
 
-    if len(x2) > 1:
-        popt2, _ = curve_fit(sine_fit, lon22, diff2)
+    if len(lon2) > 1:
+        popt2, _ = curve_fit(sine_fit, lon2, diff2)
     else:
         popt2 = None
 
