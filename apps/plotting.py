@@ -77,6 +77,73 @@ import apps.observability.utils as observability
 COLORS_ZTF = ["#15284F", "#F5622E"]
 COLORS_ZTF_NEGATIVE = ["#274667", "#F57A2E"]
 
+ZTF_BANDS = {
+    1: {"label": "g", "color": COLORS_ZTF[0]},
+    2: {"label": "r", "color": COLORS_ZTF[1]},
+}
+
+
+def make_band_trace(
+    fid,
+    x,
+    y,
+    *,
+    err=None,
+    name_suffix=" band",
+    name_override=None,
+    marker=None,
+    error_y=None,
+    **kwargs,
+):
+    """Build a Plotly trace for a ZTF band with shared defaults.
+
+    Parameters
+    ----------
+    fid : int
+        Filter id (1 for g, 2 for r).
+    x, y : array-like
+        Trace coordinates.
+    err : array-like, optional
+        If provided, builds a default error_y entry.
+    name_suffix, name_override : str, optional
+        Override the trace name format.
+    marker, error_y : dict, optional
+        Dicts merged into the default marker/error_y entries.
+    **kwargs
+        Passed through to the trace dict (e.g., customdata, hovertemplate).
+    """
+    band = ZTF_BANDS[fid]
+    trace = {
+        "x": x,
+        "y": y,
+        "mode": "markers",
+        "name": name_override or f"{band['label']}{name_suffix}",
+        "marker": {
+            "size": 10,
+            "color": band["color"],
+            "symbol": "o",
+        },
+    }
+
+    if marker:
+        trace["marker"].update(marker)
+
+    if err is not None and error_y is None:
+        error_y = {
+            "type": "data",
+            "array": err,
+            "visible": True,
+            "width": 0,
+            "opacity": 0.5,
+            "color": band["color"],
+        }
+
+    if error_y is not None:
+        trace["error_y"] = error_y
+
+    trace.update(kwargs)
+    return trace
+
 colors_ = [
     "rgb(165,0,38)",
     "rgb(215,48,39)",
@@ -1035,21 +1102,13 @@ def plot_blazar(
             # Original data
             idx = pdf["i:fid"] == fid
             figure["data"].append(
-                {
-                    "x": dates[idx],
-                    "y": pdf["std_flux_dc"].to_numpy()[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": pdf["std_sigma_flux_dc"][idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "customdata": np.stack(
+                make_band_trace(
+                    fid,
+                    dates[idx],
+                    pdf["std_flux_dc"].to_numpy()[idx],
+                    err=pdf["std_sigma_flux_dc"][idx],
+                    legendgroup=f"{fname} band",
+                    customdata=np.stack(
                         [
                             pdf["mag"].to_numpy()[idx],
                             pdf["magerr"].to_numpy()[idx],
@@ -1058,9 +1117,9 @@ def plot_blazar(
                         ],
                         axis=-1,
                     ),
-                    "hovertemplate": hovertemplate,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
+                    hovertemplate=hovertemplate,
+                    marker={"size": 10},
+                )
             )
 
     for fid, fname, color in (
@@ -1347,33 +1406,30 @@ def plot_variable_star(
             # Original data
             idx = pdf["i:fid"] == fid
             figure["data"].append(
-                {
-                    "x": phase[idx] / period,
-                    "y": mag[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": err[idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "hovertemplate": hovertemplate,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
+                make_band_trace(
+                    fid,
+                    phase[idx] / period,
+                    mag[idx],
+                    err=err[idx],
+                    legendgroup=f"{fname} band",
+                    hovertemplate=hovertemplate,
+                    marker={"size": 10},
+                )
             )
 
             # Release data
             if not pdf_release.empty:
                 idxr = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
-                    {
-                        "x": ((pdf_release["mjd"][idxr] + 2400000.5) % period) / period,
-                        "y": pdf_release["mag"][idxr],
-                        "error_y": {
+                    make_band_trace(
+                        fid,
+                        ((pdf_release["mjd"][idxr] + 2400000.5) % period) / period,
+                        pdf_release["mag"][idxr],
+                        name_override="",
+                        legendgroup=f"{fname} band release",
+                        hovertemplate=hovertemplate,
+                        marker={"color": color, "symbol": "."},
+                        error_y={
                             "type": "data",
                             "array": pdf_release["magerr"][idxr],
                             "visible": True,
@@ -1381,24 +1437,20 @@ def plot_variable_star(
                             "opacity": 0.25,
                             "color": color,
                         },
-                        "mode": "markers",
-                        "name": "",
-                        "hovertemplate": hovertemplate,
-                        "legendgroup": f"{fname} band release",
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                        opacity=0.5,
+                    ),
                 )
 
                 figure_unfolded["data"].append(
-                    {
-                        "x": dates_release[idxr],
-                        "y": pdf_release["mag"][idxr],
-                        "error_y": {
+                    make_band_trace(
+                        fid,
+                        dates_release[idxr],
+                        pdf_release["mag"][idxr],
+                        name_override="",
+                        legendgroup=f"{fname} band release",
+                        hovertemplate=hovertemplate,
+                        marker={"color": color, "symbol": "."},
+                        error_y={
                             "type": "data",
                             "array": pdf_release["magerr"][idxr],
                             "visible": True,
@@ -1406,38 +1458,21 @@ def plot_variable_star(
                             "opacity": 0.25,
                             "color": color,
                         },
-                        "mode": "markers",
-                        "name": "",
-                        "hovertemplate": hovertemplate,
-                        "legendgroup": f"{fname} band release",
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                        opacity=0.5,
+                    ),
                 )
 
             # Original data, unfolded
             figure_unfolded["data"].append(
-                {
-                    "x": dates[idx],
-                    "y": mag[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": err[idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "hovertemplate": hovertemplate_unfolded,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
+                make_band_trace(
+                    fid,
+                    dates[idx],
+                    mag[idx],
+                    err=err[idx],
+                    legendgroup=f"{fname} band",
+                    hovertemplate=hovertemplate_unfolded,
+                    marker={"size": 10},
+                )
             )
 
             # Model
@@ -1841,20 +1876,12 @@ def draw_lightcurve(
         )
         idx = pdf["i:fid"] == fid
         figure["data"].append(
-            {
-                "x": dates[idx],
-                "y": mag[idx] * scale,
-                "error_y": {
-                    "type": "data",
-                    "array": err[idx] * scale,
-                    "visible": True,
-                    "width": 0,
-                    "opacity": 0.5,
-                    "color": color,
-                },
-                "mode": "markers",
-                "name": f"{fname} band",
-                "customdata": np.stack(
+            make_band_trace(
+                fid,
+                dates[idx],
+                mag[idx] * scale,
+                err=err[idx] * scale,
+                customdata=np.stack(
                     (
                         pdf["i:jd"][idx] - 2400000.5,
                         pdf["i:isdiffpos"][idx].apply(
@@ -1864,10 +1891,10 @@ def draw_lightcurve(
                     ),
                     axis=-1,
                 ),
-                "hovertemplate": hovertemplate,
-                "legendgroup": f"{fname} band",
-                "legendrank": 100 + 10 * fid,
-                "marker": {
+                hovertemplate=hovertemplate,
+                legendgroup=f"{fname} band",
+                legendrank=100 + 10 * fid,
+                marker={
                     "size": 12,
                     "color": pdf["i:isdiffpos"][idx].apply(
                         lambda x,
@@ -1876,7 +1903,7 @@ def draw_lightcurve(
                     ),
                     "symbol": "o",
                 },
-            },
+            ),
         )
 
         if switch == "Difference magnitude":
@@ -1893,22 +1920,21 @@ def draw_lightcurve(
                 )
                 idx = pdf_upper["i:fid"] == fid
                 figure["data"].append(
-                    {
-                        "x": dates_upper[idx],
-                        "y": pdf_upper["i:diffmaglim"][idx],
-                        "mode": "markers",
-                        "name": "",
-                        "customdata": pdf_upper["i:jd"][idx] - 2400000.5,
-                        "hovertemplate": hovertemplate_upper,
-                        "legendgroup": f"{fname} band upper",
-                        "legendrank": 101 + 10 * fid,
-                        "marker": {
+                    make_band_trace(
+                        fid,
+                        dates_upper[idx],
+                        pdf_upper["i:diffmaglim"][idx],
+                        name_override="",
+                        customdata=pdf_upper["i:jd"][idx] - 2400000.5,
+                        hovertemplate=hovertemplate_upper,
+                        legendgroup=f"{fname} band upper",
+                        legendrank=101 + 10 * fid,
+                        marker={
                             "color": color,
                             "symbol": "triangle-down-open",
                             "opacity": 0.5,
                         },
-                        # 'showlegend': False
-                    },
+                    ),
                 )
 
             # Lower-quality data points
@@ -1924,27 +1950,17 @@ def draw_lightcurve(
                 )
                 idx = pdf_upperv["i:fid"] == fid
                 figure["data"].append(
-                    {
-                        "x": dates_upperv[idx],
-                        "y": pdf_upperv["i:magpsf"][idx],
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_upperv["i:sigmapsf"][idx],
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.5,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "customdata": pdf_upperv["i:jd"][idx] - 2400000.5,
-                        "hovertemplate": hovertemplate_upperv,
-                        "legendgroup": f"{fname} band",
-                        "marker": {
-                            "color": color,
-                            "symbol": "triangle-up",
-                        },
-                        "showlegend": False,
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_upperv[idx],
+                        pdf_upperv["i:magpsf"][idx],
+                        err=pdf_upperv["i:sigmapsf"][idx],
+                        customdata=pdf_upperv["i:jd"][idx] - 2400000.5,
+                        hovertemplate=hovertemplate_upperv,
+                        legendgroup=f"{fname} band",
+                        marker={"color": color, "symbol": "triangle-up"},
+                        showlegend=False,
+                    ),
                 )
 
         elif switch == "DC magnitude":
@@ -1981,30 +1997,19 @@ def draw_lightcurve(
                 )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
-                    {
-                        "x": dates_release[idx],
-                        "y": pdf_release["mag"][idx],
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_release["magerr"][idx],
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.5,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "name": "",
-                        "customdata": pdf_release["mjd"][idx],
-                        "hovertemplate": hovertemplate_release,
-                        "legendgroup": f"{fname} band release",
-                        "legendrank": 102 + 10 * fid,
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_release[idx],
+                        pdf_release["mag"][idx],
+                        err=pdf_release["magerr"][idx],
+                        name_override="",
+                        customdata=pdf_release["mjd"][idx],
+                        hovertemplate=hovertemplate_release,
+                        legendgroup=f"{fname} band release",
+                        legendrank=102 + 10 * fid,
+                        marker={"color": color, "symbol": "."},
+                        opacity=0.5,
+                    ),
                 )
 
         elif switch == "Difference flux":
@@ -2036,30 +2041,19 @@ def draw_lightcurve(
                 )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
-                    {
-                        "x": dates_release[idx],
-                        "y": pdf_release["flux"][idx] * scale - ref,
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_release["fluxerr"][idx] * scale,
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.5,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "name": "",
-                        "customdata": pdf_release["mjd"][idx],
-                        "hovertemplate": hovertemplate_release,
-                        "legendgroup": f"{fname} band release",
-                        "legendrank": 102 + 10 * fid,
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_release[idx],
+                        pdf_release["flux"][idx] * scale - ref,
+                        err=pdf_release["fluxerr"][idx] * scale,
+                        name_override="",
+                        customdata=pdf_release["mjd"][idx],
+                        hovertemplate=hovertemplate_release,
+                        legendgroup=f"{fname} band release",
+                        legendrank=102 + 10 * fid,
+                        marker={"color": color, "symbol": "."},
+                        opacity=0.5,
+                    ),
                 )
 
         elif switch == "DC flux":
@@ -2096,30 +2090,19 @@ def draw_lightcurve(
                 )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
-                    {
-                        "x": dates_release[idx],
-                        "y": pdf_release["flux"][idx] * scale,
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_release["fluxerr"][idx] * scale,
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.5,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "name": "",
-                        "customdata": pdf_release["mjd"][idx],
-                        "hovertemplate": hovertemplate_release,
-                        "legendgroup": f"{fname} band release",
-                        "legendrank": 102 + 10 * fid,
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_release[idx],
+                        pdf_release["flux"][idx] * scale,
+                        err=pdf_release["fluxerr"][idx] * scale,
+                        name_override="",
+                        customdata=pdf_release["mjd"][idx],
+                        hovertemplate=hovertemplate_release,
+                        legendgroup=f"{fname} band release",
+                        legendrank=102 + 10 * fid,
+                        marker={"color": color, "symbol": "."},
+                        opacity=0.5,
+                    ),
                 )
 
     if show_color:
@@ -2275,40 +2258,24 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     )
     figure = {
         "data": [
-            {
-                "x": dates[pdf["i:fid"] == 1],
-                "y": mag[pdf["i:fid"] == 1],
-                "error_y": {
-                    "type": "data",
-                    "array": err[pdf["i:fid"] == 1],
-                    "visible": True,
-                    "width": 0,
-                    "opacity": 0.5,
-                    "color": COLORS_ZTF[0],
-                },
-                "mode": "markers",
-                "name": "g band",
-                "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
-                "hovertemplate": hovertemplate,
-                "marker": {"size": 12, "color": COLORS_ZTF[0], "symbol": "o"},
-            },
-            {
-                "x": dates[pdf["i:fid"] == 2],
-                "y": mag[pdf["i:fid"] == 2],
-                "error_y": {
-                    "type": "data",
-                    "array": err[pdf["i:fid"] == 2],
-                    "visible": True,
-                    "width": 0,
-                    "opacity": 0.5,
-                    "color": COLORS_ZTF[1],
-                },
-                "mode": "markers",
-                "name": "r band",
-                "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
-                "hovertemplate": hovertemplate,
-                "marker": {"size": 12, "color": COLORS_ZTF[1], "symbol": "o"},
-            },
+            make_band_trace(
+                1,
+                dates[pdf["i:fid"] == 1],
+                mag[pdf["i:fid"] == 1],
+                err=err[pdf["i:fid"] == 1],
+                customdata=pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
+                hovertemplate=hovertemplate,
+                marker={"size": 12},
+            ),
+            make_band_trace(
+                2,
+                dates[pdf["i:fid"] == 2],
+                mag[pdf["i:fid"] == 2],
+                err=err[pdf["i:fid"] == 2],
+                customdata=pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
+                hovertemplate=hovertemplate,
+                marker={"size": 12},
+            ),
         ],
         "layout": layout,
     }
@@ -2411,20 +2378,12 @@ def draw_lightcurve_preview(name) -> dict:
             continue
 
         figure["data"].append(
-            {
-                "x": dates[idx],
-                "y": mag[idx],
-                "error_y": {
-                    "type": "data",
-                    "array": err[idx],
-                    "visible": True,
-                    "width": 0,
-                    "color": color,  # It does not support arrays of colors so let's use positive one for all points
-                    "opacity": 0.5,
-                },
-                "mode": "markers",
-                "name": f"{fname} band",
-                "customdata": np.stack(
+            make_band_trace(
+                fid,
+                dates[idx],
+                mag[idx],
+                err=err[idx],
+                customdata=np.stack(
                     (
                         pdf["i:jd"][idx] - 2400000.5,
                         pdf["i:isdiffpos"].apply(lambda x: "(-) " if x == "f" else "")[
@@ -2436,8 +2395,8 @@ def draw_lightcurve_preview(name) -> dict:
                     ),
                     axis=-1,
                 ),
-                "hovertemplate": hovertemplate,
-                "marker": {
+                hovertemplate=hovertemplate,
+                marker={
                     "size": pdf["d:tag"].apply(lambda x: 12 if x == "valid" else 6)[
                         idx
                     ],
@@ -2452,7 +2411,7 @@ def draw_lightcurve_preview(name) -> dict:
                     "line": {"width": 0},
                     "opacity": 1,
                 },
-            },
+            ),
         )
 
         if is_dc_corrected:
@@ -3449,76 +3408,50 @@ def draw_sso_lightcurve(pdf) -> dict:
 
     to_plot = []
 
-    gobs = {
-        "x": dates[pdf["i:fid"] == 1],
-        "y": mag[pdf["i:fid"] == 1],
-        "error_y": {
-            "type": "data",
-            "array": err[pdf["i:fid"] == 1],
-            "visible": True,
-            "width": 0,
-            "opacity": 0.5,
-            "color": COLORS_ZTF[0],
-        },
-        "mode": "markers",
-        "name": "g band",
-        "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
-    }
+    gobs = make_band_trace(
+        1,
+        dates[pdf["i:fid"] == 1],
+        mag[pdf["i:fid"] == 1],
+        err=err[pdf["i:fid"] == 1],
+        customdata=pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
     to_plot.append(gobs)
 
     if "SDSS:g" in pdf.columns:
-        gephem = {
-            "x": dates[pdf["i:fid"] == 1],
-            "y": pdf["SDSS:g"][pdf["i:fid"] == 1],
-            "mode": "markers",
-            "name": "g (ephem)",
-            "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
-            "hovertemplate": hovertemplate_ephem,
-            "marker": {
-                "size": 6,
-                "color": COLORS_ZTF[0],
-                "symbol": "o",
-                "opacity": 0.5,
-            },
-        }
+        gephem = make_band_trace(
+            1,
+            dates[pdf["i:fid"] == 1],
+            pdf["SDSS:g"][pdf["i:fid"] == 1],
+            name_override="g (ephem)",
+            customdata=pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
+            hovertemplate=hovertemplate_ephem,
+            marker={"size": 6, "opacity": 0.5},
+        )
         to_plot.append(gephem)
 
-    robs = {
-        "x": dates[pdf["i:fid"] == 2],
-        "y": mag[pdf["i:fid"] == 2],
-        "error_y": {
-            "type": "data",
-            "array": err[pdf["i:fid"] == 2],
-            "visible": True,
-            "width": 0,
-            "opacity": 0.5,
-            "color": COLORS_ZTF[1],
-        },
-        "mode": "markers",
-        "name": "r band",
-        "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
-    }
+    robs = make_band_trace(
+        2,
+        dates[pdf["i:fid"] == 2],
+        mag[pdf["i:fid"] == 2],
+        err=err[pdf["i:fid"] == 2],
+        customdata=pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
     to_plot.append(robs)
 
     if "SDSS:r" in pdf.columns:
-        rephem = {
-            "x": dates[pdf["i:fid"] == 2],
-            "y": pdf["SDSS:r"][pdf["i:fid"] == 2],
-            "mode": "markers",
-            "name": "r (ephem)",
-            "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
-            "hovertemplate": hovertemplate_ephem,
-            "marker": {
-                "size": 6,
-                "color": COLORS_ZTF[1],
-                "symbol": "o",
-                "opacity": 0.5,
-            },
-        }
+        rephem = make_band_trace(
+            2,
+            dates[pdf["i:fid"] == 2],
+            pdf["SDSS:r"][pdf["i:fid"] == 2],
+            name_override="r (ephem)",
+            customdata=pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
+            hovertemplate=hovertemplate_ephem,
+            marker={"size": 6, "opacity": 0.5},
+        )
         to_plot.append(rephem)
 
     figure = {
@@ -3590,51 +3523,35 @@ def draw_sso_residual(pdf) -> dict:
         <extra></extra>
         """
     )
-    gresiduals = {
-        "x": pdf["Longitude"][pdf["i:fid"] == 1],
-        "y": diff1,
-        "error_y": {
-            "type": "data",
-            "array": err[pdf["i:fid"] == 1],
-            "visible": True,
-            "width": 0,
-            "opacity": 0.5,
-            "color": COLORS_ZTF[0],
-        },
-        "mode": "markers",
-        "name": "g band",
-        "customdata": list(
+    gresiduals = make_band_trace(
+        1,
+        pdf["Longitude"][pdf["i:fid"] == 1],
+        diff1,
+        err=err[pdf["i:fid"] == 1],
+        customdata=list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 1],
                 convert_jd(pdf["i:jd"][pdf["i:fid"] == 1]),
             ),
         ),
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
-    }
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
-    rresiduals = {
-        "x": pdf["Longitude"][pdf["i:fid"] == 2],
-        "y": diff2,
-        "error_y": {
-            "type": "data",
-            "array": err[pdf["i:fid"] == 2],
-            "visible": True,
-            "width": 0,
-            "opacity": 0.5,
-            "color": COLORS_ZTF[1],
-        },
-        "mode": "markers",
-        "name": "r band",
-        "customdata": list(
+    rresiduals = make_band_trace(
+        2,
+        pdf["Longitude"][pdf["i:fid"] == 2],
+        diff2,
+        err=err[pdf["i:fid"] == 2],
+        customdata=list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 2],
                 convert_jd(pdf["i:jd"][pdf["i:fid"] == 2]),
             ),
         ),
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
-    }
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
     data = [gresiduals]
     if popt1 is not None:
@@ -3716,35 +3633,33 @@ def draw_sso_astrometry(pdf) -> dict:
         <extra></extra>
         """
     )
-    diff_g = {
-        "x": deltaRAcosDEC[pdf["i:fid"] == 1],
-        "y": deltaDEC[pdf["i:fid"] == 1],
-        "mode": "markers",
-        "name": "g band",
-        "customdata": list(
+    diff_g = make_band_trace(
+        1,
+        deltaRAcosDEC[pdf["i:fid"] == 1],
+        deltaDEC[pdf["i:fid"] == 1],
+        customdata=list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 1],
                 Time(pdf["i:jd"][pdf["i:fid"] == 1], format="jd").iso,
             ),
         ),
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
-    }
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
-    diff_r = {
-        "x": deltaRAcosDEC[pdf["i:fid"] == 2],
-        "y": deltaDEC[pdf["i:fid"] == 2],
-        "mode": "markers",
-        "name": "r band",
-        "customdata": list(
+    diff_r = make_band_trace(
+        2,
+        deltaRAcosDEC[pdf["i:fid"] == 2],
+        deltaDEC[pdf["i:fid"] == 2],
+        customdata=list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 2],
                 Time(pdf["i:jd"][pdf["i:fid"] == 2], format="jd").iso,
             ),
         ),
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
-    }
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
     figure = {
         "data": [
@@ -4118,45 +4033,43 @@ def draw_tracklet_lightcurve(pdf) -> dict:
         """
     )
 
-    def generate_plot(filt, marker, color, showlegend):
-        if filt == 1:
-            name = "g band"
-        else:
-            name = "r band"
-        dic = {
-            "x": pdf["i:ra"][pdf["i:fid"] == filt],
-            "y": mag[pdf["i:fid"] == filt],
-            "error_y": {
-                "type": "data",
-                "array": err[pdf["i:fid"] == filt],
-                "visible": True,
-                "width": 0,
-                "opacity": 0.5,
-                "color": color,
-            },
-            "mode": "markers",
-            "name": name,
-            "showlegend": showlegend,
-            "customdata": list(
-                zip(
-                    pdf["i:objectId"][pdf["i:fid"] == filt],
-                    pdf["v:lastdate"][pdf["i:fid"] == filt],
-                ),
-            ),
-            "hovertemplate": hovertemplate,
-            "marker": {"size": 12, "color": color, "symbol": marker},
-        }
-        return dic
-
     data_ = []
     for filt in np.unique(pdf["i:fid"]):
         if filt == 1:
             data_.append(
-                generate_plot(1, marker="o", color=COLORS_ZTF[0], showlegend=True)
+                make_band_trace(
+                    1,
+                    pdf["i:ra"][pdf["i:fid"] == 1],
+                    mag[pdf["i:fid"] == 1],
+                    err=err[pdf["i:fid"] == 1],
+                    customdata=list(
+                        zip(
+                            pdf["i:objectId"][pdf["i:fid"] == 1],
+                            pdf["v:lastdate"][pdf["i:fid"] == 1],
+                        ),
+                    ),
+                    hovertemplate=hovertemplate,
+                    marker={"size": 12},
+                    showlegend=True,
+                )
             )
         elif filt == 2:
             data_.append(
-                generate_plot(2, marker="o", color=COLORS_ZTF[1], showlegend=True)
+                make_band_trace(
+                    2,
+                    pdf["i:ra"][pdf["i:fid"] == 2],
+                    mag[pdf["i:fid"] == 2],
+                    err=err[pdf["i:fid"] == 2],
+                    customdata=list(
+                        zip(
+                            pdf["i:objectId"][pdf["i:fid"] == 2],
+                            pdf["v:lastdate"][pdf["i:fid"] == 2],
+                        ),
+                    ),
+                    hovertemplate=hovertemplate,
+                    marker={"size": 12},
+                    showlegend=True,
+                )
             )
 
     figure = {
@@ -4987,25 +4900,23 @@ def draw_alert_astrometry(object_data, kind) -> dict:
         <extra></extra>
         """
     )
-    diff_g = {
-        "x": deltaRAcosDEC[pdf["i:fid"] == 1],
-        "y": deltaDEC[pdf["i:fid"] == 1],
-        "mode": "markers",
-        "name": "g band",
-        "customdata": Time(pdf["i:jd"][pdf["i:fid"] == 1], format="jd").iso,
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
-    }
+    diff_g = make_band_trace(
+        1,
+        deltaRAcosDEC[pdf["i:fid"] == 1],
+        deltaDEC[pdf["i:fid"] == 1],
+        customdata=Time(pdf["i:jd"][pdf["i:fid"] == 1], format="jd").iso,
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
-    diff_r = {
-        "x": deltaRAcosDEC[pdf["i:fid"] == 2],
-        "y": deltaDEC[pdf["i:fid"] == 2],
-        "mode": "markers",
-        "name": "r band",
-        "customdata": Time(pdf["i:jd"][pdf["i:fid"] == 2], format="jd").iso,
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
-    }
+    diff_r = make_band_trace(
+        2,
+        deltaRAcosDEC[pdf["i:fid"] == 2],
+        deltaDEC[pdf["i:fid"] == 2],
+        customdata=Time(pdf["i:jd"][pdf["i:fid"] == 2], format="jd").iso,
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
     figure = {
         "data": [
