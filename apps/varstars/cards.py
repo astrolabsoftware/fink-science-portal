@@ -33,7 +33,7 @@ def card_explanation_variable():
     - Number of base terms: number of frequency terms to use for the base model common to all bands (default=1)
     - Number of band terms: number of frequency terms to use for the residuals between the base model and each individual band (default=1)
 
-    The fit is using a multiband periodogram to find the best period. For default configuration (`nterms=1`), the backend is [nifty-ls](https://github.com/flatironinstitute/nifty-ls), a very fast Lomb-Scargle periodogram, otherwise we use the default [astropy](https://docs.astropy.org/en/stable/timeseries/lombscarglemb.html) implementation.
+    The fit is using a multiband periodogram to find the best period. The backend is [nifty-ls](https://github.com/flatironinstitute/nifty-ls), a very fast Lomb-Scargle periodogram.
 
     By default, the period is searched between 0.1 and 1.2 days. You can change the bounds, or even manually set the period in days. Below the plot you will see the fitted period, and the reduced $\chi^2$ for the fit (closer to 1 is better).
     """

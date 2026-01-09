@@ -303,7 +303,10 @@ def parse_query(string, timeout=None):
 
                     break
 
-        if "ra" not in query["params"] and query["object"][0].isalpha():
+        # Note: for query["object"], use element 1 and not 0
+        # to enable catalog name starting with a digit, like
+        # 3FHL or 4LAC...
+        if "ra" not in query["params"] and query["object"][1].isalpha():
             # Simbad
             res = call_resolver(query["object"], "simbad", timeout=timeout)
             if res:

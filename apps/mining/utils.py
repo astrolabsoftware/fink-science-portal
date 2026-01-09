@@ -149,6 +149,8 @@ def estimate_size_gb_ztf(content):
         sizeGb = 55.0 / 1024 / 1024
     elif "Light packet" in content:
         sizeGb = 1.4 / 1024 / 1024
+    elif "Medium packet" in content:
+        sizeGb = 18.0 / 1024 / 1024
     else:
         # freedom on candidates + added values
         schema = request_api("/api/v1/schema", method="GET", output="json")

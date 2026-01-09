@@ -48,7 +48,7 @@ from fink_utils.sso.spins import (
     estimate_sso_params,
     func_hg,
     func_hg1g2,
-    func_hg1g2_with_spin,
+    func_shg1g2,
     func_hg12,
 )
 from astropy.timeseries import LombScargleMultiband
@@ -1315,7 +1315,7 @@ def plot_variable_star(
     if int(nterms_base) == 1 and int(nterms_band) == 1:
         sb_method = "fastnifty"
     else:
-        sb_method = "auto"
+        sb_method = "fastnifty_chi2"
 
     frequency, power = model.autopower(
         method="fast",
@@ -3737,7 +3737,7 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
         p0 = [15.0, 0.15]
         x = np.deg2rad(pdf["Phase"].to_numpy())
     elif switch_func == "SHG1G2":
-        fitfunc = func_hg1g2_with_spin
+        fitfunc = func_shg1g2
         params = ["H", "G1", "G2", "R", "alpha0", "delta0"]
         bounds = (
             [-3, 0, 0, 3e-1, 0, -np.pi / 2],

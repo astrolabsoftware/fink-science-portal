@@ -54,7 +54,7 @@ executing==2.1.0
 faust-cchardet==2.1.19
 fink-filters==7.0
 fink-spins==0.3.8
-fink-utils==0.41.2
+fink-utils==0.48.0
 finufft==2.3.1
 Flask==3.0.3
 Flask-Compress==1.17
@@ -100,7 +100,7 @@ multidict==6.1.0
 multiprocess==0.70.17
 nest-asyncio==1.6.0
 networkx==3.4.2
-nifty-ls==1.0.1
+nifty-ls==1.1.0
 numpy==1.26.4
 numpydoc==1.8.0
 packaging==24.2
@@ -183,4 +183,4 @@ xyzservices==2024.9.0
 yarl==1.18.3
 zipp==3.21.0
 zstandard==0.23.0
-git+https://github.com/astrolabsoftware/fink-science@8.7.0
+git+https://github.com/astrolabsoftware/fink-science@8.25.0
