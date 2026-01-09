@@ -244,6 +244,9 @@ layout_phase = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=40, t=25),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -269,6 +272,9 @@ layout_scores = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -277,9 +283,6 @@ layout_scores = dict(
         y=1.2,
         bgcolor="rgba(218, 223, 225, 0.3)",
     ),
-    hoverlabel={
-        "align": "left",
-    },
     xaxis={
         "title": "Observation date",
         "automargin": True,
@@ -295,6 +298,9 @@ layout_colors = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -303,9 +309,6 @@ layout_colors = dict(
         y=1.2,
         bgcolor="rgba(218, 223, 225, 0.3)",
     ),
-    hoverlabel={
-        "align": "left",
-    },
     xaxis={
         "automargin": True,
         "title": "Observation date",
@@ -320,6 +323,9 @@ layout_colors_rate = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -328,9 +334,6 @@ layout_colors_rate = dict(
         y=1.2,
         bgcolor="rgba(218, 223, 225, 0.3)",
     ),
-    hoverlabel={
-        "align": "left",
-    },
     xaxis={
         "automargin": True,
         "title": "Observation date",
@@ -514,6 +517,9 @@ layout_blazar = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=40, t=25),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -1426,7 +1432,7 @@ def plot_variable_star(
                         name="",
                         legendgroup=f"{fname} band release",
                         hovertemplate=hovertemplate,
-                        marker={"size":10, "symbol": "."},
+                        marker={"symbol": "."},
                         error_y={"opacity": 0.25},
                         opacity=0.5,
                     ),
@@ -1441,7 +1447,7 @@ def plot_variable_star(
                         name="",
                         legendgroup=f"{fname} band release",
                         hovertemplate=hovertemplate,
-                        marker={"size":10, "symbol": "."},
+                        marker={"symbol": "."},
                         error_y={"opacity": 0.25},
                         opacity=0.5,
                     ),
