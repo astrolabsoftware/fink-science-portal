@@ -90,7 +90,7 @@ def make_band_trace(
     *,
     err=None,
     name_suffix=" band",
-    name_override=None,
+    name=None,
     marker=None,
     error_y=None,
     **kwargs,
@@ -105,7 +105,7 @@ def make_band_trace(
         Trace coordinates.
     err : array-like, optional
         If provided, builds a default error_y entry.
-    name_suffix, name_override : str, optional
+    name_suffix, name : str, optional
         Override the trace name format.
     marker, error_y : dict, optional
         Dicts merged into the default marker/error_y entries.
@@ -117,19 +117,19 @@ def make_band_trace(
         "x": x,
         "y": y,
         "mode": "markers",
-        "name": name_override or f"{band['label']}{name_suffix}",
+        "name": name if name is not None else f"{band['label']}{name_suffix}",
         "marker": {
-            "size": 10,
+            "size": 6, # Default marker size for Plotly
             "color": band["color"],
             "symbol": "o",
         },
     }
 
-    if marker:
+    if marker is not None:
         trace["marker"].update(marker)
 
-    if err is not None and error_y is None:
-        error_y = {
+    if err is not None:
+        trace["error_y"] = {
             "type": "data",
             "array": err,
             "visible": True,
@@ -139,9 +139,13 @@ def make_band_trace(
         }
 
     if error_y is not None:
-        trace["error_y"] = error_y
+        trace["error_y"].update(error_y)
 
     trace.update(kwargs)
+
+    if name and 'DR' in name:
+        print(trace['marker'])
+
     return trace
 
 colors_ = [
@@ -1094,9 +1098,9 @@ def plot_blazar(
     )
 
     # Light curve display
-    for fid, fname, color in (
-        (1, "g", COLORS_ZTF[0]),
-        (2, "r", COLORS_ZTF[1]),
+    for fid, fname in (
+        (1, "g"),
+        (2, "r"),
     ):
         if fid in np.unique(pdf["i:fid"].to_numpy()):
             # Original data
@@ -1117,34 +1121,28 @@ def plot_blazar(
                         ],
                         axis=-1,
                     ),
+                    marker={"size":10},
                     hovertemplate=hovertemplate,
-                    marker={"size": 10},
                 )
             )
 
-    for fid, fname, color in (
-        ("zg", "g (DR)", COLORS_ZTF[0]),
-        ("zr", "r (DR)", COLORS_ZTF[1]),
+
+    for fid, drid, fname in  (
+        (1, "zg", "g (DR)"),
+        (2, "zr", "r (DR)"),
     ):
-        if fid in np.unique(pdf_release["filtercode"].to_numpy()):
+        if drid in np.unique(pdf_release["filtercode"].to_numpy()):
             # Original data
-            idx = pdf_release["filtercode"] == fid
+            idx = pdf_release["filtercode"] == drid
             figure["data"].append(
-                {
-                    "x": dates_release[idx],
-                    "y": pdf_release["std_flux_dc"].to_numpy()[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": pdf_release["std_sigma_flux_dc"][idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.3,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "customdata": np.stack(
+                make_band_trace(
+                    fid,
+                    dates_release[idx],
+                    pdf_release["std_flux_dc"].to_numpy()[idx],
+                    err=pdf_release["std_sigma_flux_dc"][idx],
+                    name=f"{fname} band",
+                    legendgroup=f"{fname} band",
+                    customdata=np.stack(
                         [
                             pdf_release["mag"].to_numpy()[idx],
                             pdf_release["magerr"].to_numpy()[idx],
@@ -1153,14 +1151,13 @@ def plot_blazar(
                         ],
                         axis=-1,
                     ),
-                    "hovertemplate": hovertemplate,
-                    "marker": {
+                    hovertemplate=hovertemplate,
+                    marker={
                         "size": 7,
-                        "color": color,
-                        "symbol": "o",
                         "opacity": 0.3,
                     },
-                }
+                    error_y={"opacity": 0.3},
+                )
             )
 
     # Quantile display
@@ -1412,8 +1409,8 @@ def plot_variable_star(
                     mag[idx],
                     err=err[idx],
                     legendgroup=f"{fname} band",
+                    marker={"size":10},
                     hovertemplate=hovertemplate,
-                    marker={"size": 10},
                 )
             )
 
@@ -1425,18 +1422,12 @@ def plot_variable_star(
                         fid,
                         ((pdf_release["mjd"][idxr] + 2400000.5) % period) / period,
                         pdf_release["mag"][idxr],
-                        name_override="",
+                        err=pdf_release["magerr"][idxr],
+                        name="",
                         legendgroup=f"{fname} band release",
                         hovertemplate=hovertemplate,
-                        marker={"color": color, "symbol": "."},
-                        error_y={
-                            "type": "data",
-                            "array": pdf_release["magerr"][idxr],
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.25,
-                            "color": color,
-                        },
+                        marker={"size":10, "symbol": "."},
+                        error_y={"opacity": 0.25},
                         opacity=0.5,
                     ),
                 )
@@ -1446,18 +1437,12 @@ def plot_variable_star(
                         fid,
                         dates_release[idxr],
                         pdf_release["mag"][idxr],
-                        name_override="",
+                        err=pdf_release["magerr"][idxr],
+                        name="",
                         legendgroup=f"{fname} band release",
                         hovertemplate=hovertemplate,
-                        marker={"color": color, "symbol": "."},
-                        error_y={
-                            "type": "data",
-                            "array": pdf_release["magerr"][idxr],
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.25,
-                            "color": color,
-                        },
+                        marker={"size":10, "symbol": "."},
+                        error_y={"opacity": 0.25},
                         opacity=0.5,
                     ),
                 )
@@ -1470,8 +1455,8 @@ def plot_variable_star(
                     mag[idx],
                     err=err[idx],
                     legendgroup=f"{fname} band",
+                    marker={"size":10},
                     hovertemplate=hovertemplate_unfolded,
-                    marker={"size": 10},
                 )
             )
 
@@ -1924,13 +1909,12 @@ def draw_lightcurve(
                         fid,
                         dates_upper[idx],
                         pdf_upper["i:diffmaglim"][idx],
-                        name_override="",
+                        name="",
                         customdata=pdf_upper["i:jd"][idx] - 2400000.5,
                         hovertemplate=hovertemplate_upper,
                         legendgroup=f"{fname} band upper",
                         legendrank=101 + 10 * fid,
                         marker={
-                            "color": color,
                             "symbol": "triangle-down-open",
                             "opacity": 0.5,
                         },
@@ -1958,7 +1942,7 @@ def draw_lightcurve(
                         customdata=pdf_upperv["i:jd"][idx] - 2400000.5,
                         hovertemplate=hovertemplate_upperv,
                         legendgroup=f"{fname} band",
-                        marker={"color": color, "symbol": "triangle-up"},
+                        marker={"symbol": "triangle-up"},
                         showlegend=False,
                     ),
                 )
@@ -2002,7 +1986,7 @@ def draw_lightcurve(
                         dates_release[idx],
                         pdf_release["mag"][idx],
                         err=pdf_release["magerr"][idx],
-                        name_override="",
+                        name="",
                         customdata=pdf_release["mjd"][idx],
                         hovertemplate=hovertemplate_release,
                         legendgroup=f"{fname} band release",
@@ -2046,12 +2030,12 @@ def draw_lightcurve(
                         dates_release[idx],
                         pdf_release["flux"][idx] * scale - ref,
                         err=pdf_release["fluxerr"][idx] * scale,
-                        name_override="",
+                        name="",
                         customdata=pdf_release["mjd"][idx],
                         hovertemplate=hovertemplate_release,
                         legendgroup=f"{fname} band release",
                         legendrank=102 + 10 * fid,
-                        marker={"color": color, "symbol": "."},
+                        marker={"symbol": "."},
                         opacity=0.5,
                     ),
                 )
@@ -2095,7 +2079,7 @@ def draw_lightcurve(
                         dates_release[idx],
                         pdf_release["flux"][idx] * scale,
                         err=pdf_release["fluxerr"][idx] * scale,
-                        name_override="",
+                        name="",
                         customdata=pdf_release["mjd"][idx],
                         hovertemplate=hovertemplate_release,
                         legendgroup=f"{fname} band release",
@@ -3424,7 +3408,7 @@ def draw_sso_lightcurve(pdf) -> dict:
             1,
             dates[pdf["i:fid"] == 1],
             pdf["SDSS:g"][pdf["i:fid"] == 1],
-            name_override="g (ephem)",
+            name="g (ephem)",
             customdata=pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
             hovertemplate=hovertemplate_ephem,
             marker={"size": 6, "opacity": 0.5},
@@ -3447,7 +3431,7 @@ def draw_sso_lightcurve(pdf) -> dict:
             2,
             dates[pdf["i:fid"] == 2],
             pdf["SDSS:r"][pdf["i:fid"] == 2],
-            name_override="r (ephem)",
+            name="r (ephem)",
             customdata=pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
             hovertemplate=hovertemplate_ephem,
             marker={"size": 6, "opacity": 0.5},
@@ -4034,36 +4018,19 @@ def draw_tracklet_lightcurve(pdf) -> dict:
     )
 
     data_ = []
-    for filt in np.unique(pdf["i:fid"]):
-        if filt == 1:
+    for fid in np.unique(pdf["i:fid"]):
+        if fid in [1, 2]:
+            idx = pdf["i:fid"] == fid
             data_.append(
                 make_band_trace(
-                    1,
-                    pdf["i:ra"][pdf["i:fid"] == 1],
-                    mag[pdf["i:fid"] == 1],
-                    err=err[pdf["i:fid"] == 1],
+                    fid,
+                    pdf["i:ra"][idx],
+                    mag[idx],
+                    err=err[idx],
                     customdata=list(
                         zip(
-                            pdf["i:objectId"][pdf["i:fid"] == 1],
-                            pdf["v:lastdate"][pdf["i:fid"] == 1],
-                        ),
-                    ),
-                    hovertemplate=hovertemplate,
-                    marker={"size": 12},
-                    showlegend=True,
-                )
-            )
-        elif filt == 2:
-            data_.append(
-                make_band_trace(
-                    2,
-                    pdf["i:ra"][pdf["i:fid"] == 2],
-                    mag[pdf["i:fid"] == 2],
-                    err=err[pdf["i:fid"] == 2],
-                    customdata=list(
-                        zip(
-                            pdf["i:objectId"][pdf["i:fid"] == 2],
-                            pdf["v:lastdate"][pdf["i:fid"] == 2],
+                            pdf["i:objectId"][idx],
+                            pdf["v:lastdate"][idx],
                         ),
                     ),
                     hovertemplate=hovertemplate,
