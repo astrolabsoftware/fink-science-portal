@@ -119,7 +119,7 @@ def make_band_trace(
         "mode": "markers",
         "name": name if name is not None else f"{band['label']}{name_suffix}",
         "marker": {
-            "size": 6, # Default marker size for Plotly
+            "size": 6,  # Default marker size for Plotly
             "color": band["color"],
             "symbol": "o",
         },
@@ -143,10 +143,11 @@ def make_band_trace(
 
     trace.update(kwargs)
 
-    if name and 'DR' in name:
-        print(trace['marker'])
+    if name and "DR" in name:
+        print(trace["marker"])
 
     return trace
+
 
 colors_ = [
     "rgb(165,0,38)",
@@ -1127,13 +1128,12 @@ def plot_blazar(
                         ],
                         axis=-1,
                     ),
-                    marker={"size":10},
+                    marker={"size": 10},
                     hovertemplate=hovertemplate,
                 )
             )
 
-
-    for fid, drid, fname in  (
+    for fid, drid, fname in (
         (1, "zg", "g (DR)"),
         (2, "zr", "r (DR)"),
     ):
@@ -1415,7 +1415,7 @@ def plot_variable_star(
                     mag[idx],
                     err=err[idx],
                     legendgroup=f"{fname} band",
-                    marker={"size":10},
+                    marker={"size": 10},
                     hovertemplate=hovertemplate,
                 )
             )
@@ -1461,7 +1461,7 @@ def plot_variable_star(
                     mag[idx],
                     err=err[idx],
                     legendgroup=f"{fname} band",
-                    marker={"size":10},
+                    marker={"size": 10},
                     hovertemplate=hovertemplate_unfolded,
                 )
             )
@@ -1877,7 +1877,9 @@ def draw_lightcurve(
                         pdf["i:jd"][idx] - 2400000.5,
                         pdf["i:isdiffpos"][idx].apply(
                             # We should only show minus sign here for magnitudes
-                            lambda x: "(-) " if x == "f" and "flux" not in switch else ""
+                            lambda x: "(-) "
+                            if x == "f" and "flux" not in switch
+                            else ""
                         ),
                     ),
                     axis=-1,
