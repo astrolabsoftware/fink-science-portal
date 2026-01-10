@@ -16,6 +16,7 @@
 import io
 import copy
 import datetime
+import textwrap
 from copy import deepcopy
 
 import dash
@@ -75,6 +76,77 @@ import apps.observability.utils as observability
 
 COLORS_ZTF = ["#15284F", "#F5622E"]
 COLORS_ZTF_NEGATIVE = ["#274667", "#F57A2E"]
+
+ZTF_BANDS = {
+    1: {"label": "g", "color": COLORS_ZTF[0]},
+    2: {"label": "r", "color": COLORS_ZTF[1]},
+}
+
+
+def make_band_trace(
+    fid,
+    x,
+    y,
+    *,
+    err=None,
+    name_suffix=" band",
+    name=None,
+    marker=None,
+    error_y=None,
+    **kwargs,
+):
+    """Build a Plotly trace for a ZTF band with shared defaults.
+
+    Parameters
+    ----------
+    fid : int
+        Filter id (1 for g, 2 for r).
+    x, y : array-like
+        Trace coordinates.
+    err : array-like, optional
+        If provided, builds a default error_y entry.
+    name_suffix, name : str, optional
+        Override the trace name format.
+    marker, error_y : dict, optional
+        Dicts merged into the default marker/error_y entries.
+    **kwargs
+        Passed through to the trace dict (e.g., customdata, hovertemplate).
+    """
+    band = ZTF_BANDS[fid]
+    trace = {
+        "x": x,
+        "y": y,
+        "mode": "markers",
+        "name": name if name is not None else f"{band['label']}{name_suffix}",
+        "marker": {
+            "size": 6, # Default marker size for Plotly
+            "color": band["color"],
+            "symbol": "o",
+        },
+    }
+
+    if marker is not None:
+        trace["marker"].update(marker)
+
+    if err is not None:
+        trace["error_y"] = {
+            "type": "data",
+            "array": err,
+            "visible": True,
+            "width": 0,
+            "opacity": 0.5,
+            "color": band["color"],
+        }
+
+    if error_y is not None:
+        trace["error_y"].update(error_y)
+
+    trace.update(kwargs)
+
+    if name and 'DR' in name:
+        print(trace['marker'])
+
+    return trace
 
 colors_ = [
     "rgb(165,0,38)",
@@ -172,6 +244,9 @@ layout_phase = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=40, t=25),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -197,6 +272,9 @@ layout_scores = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -205,9 +283,6 @@ layout_scores = dict(
         y=1.2,
         bgcolor="rgba(218, 223, 225, 0.3)",
     ),
-    hoverlabel={
-        "align": "left",
-    },
     xaxis={
         "title": "Observation date",
         "automargin": True,
@@ -223,6 +298,9 @@ layout_colors = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -231,9 +309,6 @@ layout_colors = dict(
         y=1.2,
         bgcolor="rgba(218, 223, 225, 0.3)",
     ),
-    hoverlabel={
-        "align": "left",
-    },
     xaxis={
         "automargin": True,
         "title": "Observation date",
@@ -248,6 +323,9 @@ layout_colors_rate = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=0, t=0),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -256,9 +334,6 @@ layout_colors_rate = dict(
         y=1.2,
         bgcolor="rgba(218, 223, 225, 0.3)",
     ),
-    hoverlabel={
-        "align": "left",
-    },
     xaxis={
         "automargin": True,
         "title": "Observation date",
@@ -442,6 +517,9 @@ layout_blazar = dict(
     automargin=True,
     margin=dict(l=50, r=30, b=40, t=25),
     hovermode="closest",
+    hoverlabel={
+        "align": "left",
+    },
     legend=dict(
         font=dict(size=10),
         orientation="h",
@@ -582,13 +660,15 @@ def plot_observability(
     }
 
     # Target plot
-    hovertemplate_elevation = r"""
-    <b>UTC time</b>:%{x}<br>
-    <b>Elevation</b>: %{y:.0f} &deg;<br>
-    <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
-    <b>Relative airmass</b>: %{customdata[1]:.2f}
-    <extra></extra>
-    """
+    hovertemplate_elevation = textwrap.dedent(
+        r"""
+        <b>UTC time</b>:%{x}<br>
+        <b>Elevation</b>: %{y:.0f} &deg;<br>
+        <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
+        <b>Relative airmass</b>: %{customdata[1]:.2f}
+        <extra></extra>
+        """
+    )
 
     figure["data"].append(
         {
@@ -616,13 +696,15 @@ def plot_observability(
             moon_coordinates.alt.value
         )
 
-        hovertemplate_moon = r"""
-        <b>UTC time</b>:%{x}<br>
-        <b>Elevation</b>: %{y:.0f} &deg;<br>
-        <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
-        <b>Relative airmass</b>: %{customdata[1]:.2f}
-        <extra></extra>
-        """
+        hovertemplate_moon = textwrap.dedent(
+            r"""
+            <b>UTC time</b>:%{x}<br>
+            <b>Elevation</b>: %{y:.0f} &deg;<br>
+            <b>Azimut</b>: %{customdata[0]:.0f} &deg;<br>
+            <b>Relative airmass</b>: %{customdata[1]:.2f}
+            <extra></extra>
+            """
+        )
 
         figure["data"].append(
             {
@@ -1011,38 +1093,32 @@ def plot_blazar(
         "layout": copy.deepcopy(layout_blazar),
     }
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x}<br>
-    <b>Apparent magnitude</b>: %{customdata[0]:.2f} &plusmn; %{customdata[1]:.2f}<br>
-    <b>Brightness level &#981;/&#981;<sub>%{customdata[2]}</sub></b>: %{customdata[3]:.2f}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x}<br>
+        <b>Apparent magnitude</b>: %{customdata[0]:.2f} &plusmn; %{customdata[1]:.2f}<br>
+        <b>Brightness level &#981;/&#981;<sub>%{customdata[2]}</sub></b>: %{customdata[3]:.2f}
+        <extra></extra>
+        """
+    )
 
     # Light curve display
-    for fid, fname, color in (
-        (1, "g", COLORS_ZTF[0]),
-        (2, "r", COLORS_ZTF[1]),
+    for fid, fname in (
+        (1, "g"),
+        (2, "r"),
     ):
         if fid in np.unique(pdf["i:fid"].to_numpy()):
             # Original data
             idx = pdf["i:fid"] == fid
             figure["data"].append(
-                {
-                    "x": dates[idx],
-                    "y": pdf["std_flux_dc"].to_numpy()[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": pdf["std_sigma_flux_dc"][idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "customdata": np.stack(
+                make_band_trace(
+                    fid,
+                    dates[idx],
+                    pdf["std_flux_dc"].to_numpy()[idx],
+                    err=pdf["std_sigma_flux_dc"][idx],
+                    legendgroup=f"{fname} band",
+                    customdata=np.stack(
                         [
                             pdf["mag"].to_numpy()[idx],
                             pdf["magerr"].to_numpy()[idx],
@@ -1051,34 +1127,28 @@ def plot_blazar(
                         ],
                         axis=-1,
                     ),
-                    "hovertemplate": hovertemplate,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
+                    marker={"size":10},
+                    hovertemplate=hovertemplate,
+                )
             )
 
-    for fid, fname, color in (
-        ("zg", "g (DR)", COLORS_ZTF[0]),
-        ("zr", "r (DR)", COLORS_ZTF[1]),
+
+    for fid, drid, fname in  (
+        (1, "zg", "g (DR)"),
+        (2, "zr", "r (DR)"),
     ):
-        if fid in np.unique(pdf_release["filtercode"].to_numpy()):
+        if drid in np.unique(pdf_release["filtercode"].to_numpy()):
             # Original data
-            idx = pdf_release["filtercode"] == fid
+            idx = pdf_release["filtercode"] == drid
             figure["data"].append(
-                {
-                    "x": dates_release[idx],
-                    "y": pdf_release["std_flux_dc"].to_numpy()[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": pdf_release["std_sigma_flux_dc"][idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.3,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "customdata": np.stack(
+                make_band_trace(
+                    fid,
+                    dates_release[idx],
+                    pdf_release["std_flux_dc"].to_numpy()[idx],
+                    err=pdf_release["std_sigma_flux_dc"][idx],
+                    name=f"{fname} band",
+                    legendgroup=f"{fname} band",
+                    customdata=np.stack(
                         [
                             pdf_release["mag"].to_numpy()[idx],
                             pdf_release["magerr"].to_numpy()[idx],
@@ -1087,14 +1157,13 @@ def plot_blazar(
                         ],
                         axis=-1,
                     ),
-                    "hovertemplate": hovertemplate,
-                    "marker": {
+                    hovertemplate=hovertemplate,
+                    marker={
                         "size": 7,
-                        "color": color,
-                        "symbol": "o",
                         "opacity": 0.3,
                     },
-                }
+                    error_y={"opacity": 0.3},
+                )
             )
 
     # Quantile display
@@ -1309,22 +1378,28 @@ def plot_variable_star(
 
     figure_unfolded["layout"]["xaxis"]["title"] = "Observation date"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}
+        <extra></extra>
+        """
+    )
 
-    hovertemplate_model = r"""
-    <b>%{yaxis.title.text}</b>:%{y:.2f}<br>
-    <extra></extra>
-    """
+    hovertemplate_model = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>:%{y:.2f}<br>
+        <extra></extra>
+        """
+    )
 
-    hovertemplate_unfolded = r"""
-    <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <extra></extra>
-    """
+    hovertemplate_unfolded = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>:%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <extra></extra>
+        """
+    )
 
     for fid, fname, color in (
         (1, "g", COLORS_ZTF[0]),
@@ -1334,97 +1409,61 @@ def plot_variable_star(
             # Original data
             idx = pdf["i:fid"] == fid
             figure["data"].append(
-                {
-                    "x": phase[idx] / period,
-                    "y": mag[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": err[idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "hovertemplate": hovertemplate,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
+                make_band_trace(
+                    fid,
+                    phase[idx] / period,
+                    mag[idx],
+                    err=err[idx],
+                    legendgroup=f"{fname} band",
+                    marker={"size":10},
+                    hovertemplate=hovertemplate,
+                )
             )
 
             # Release data
             if not pdf_release.empty:
                 idxr = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
-                    {
-                        "x": ((pdf_release["mjd"][idxr] + 2400000.5) % period) / period,
-                        "y": pdf_release["mag"][idxr],
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_release["magerr"][idxr],
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.25,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "name": "",
-                        "hovertemplate": hovertemplate,
-                        "legendgroup": f"{fname} band release",
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                    make_band_trace(
+                        fid,
+                        ((pdf_release["mjd"][idxr] + 2400000.5) % period) / period,
+                        pdf_release["mag"][idxr],
+                        err=pdf_release["magerr"][idxr],
+                        name="",
+                        legendgroup=f"{fname} band release",
+                        hovertemplate=hovertemplate,
+                        marker={"symbol": "."},
+                        error_y={"opacity": 0.25},
+                        opacity=0.5,
+                    ),
                 )
 
                 figure_unfolded["data"].append(
-                    {
-                        "x": dates_release[idxr],
-                        "y": pdf_release["mag"][idxr],
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_release["magerr"][idxr],
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.25,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "name": "",
-                        "hovertemplate": hovertemplate,
-                        "legendgroup": f"{fname} band release",
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_release[idxr],
+                        pdf_release["mag"][idxr],
+                        err=pdf_release["magerr"][idxr],
+                        name="",
+                        legendgroup=f"{fname} band release",
+                        hovertemplate=hovertemplate,
+                        marker={"symbol": "."},
+                        error_y={"opacity": 0.25},
+                        opacity=0.5,
+                    ),
                 )
 
             # Original data, unfolded
             figure_unfolded["data"].append(
-                {
-                    "x": dates[idx],
-                    "y": mag[idx],
-                    "error_y": {
-                        "type": "data",
-                        "array": err[idx],
-                        "visible": True,
-                        "width": 0,
-                        "opacity": 0.5,
-                        "color": color,
-                    },
-                    "mode": "markers",
-                    "name": f"{fname} band",
-                    "legendgroup": f"{fname} band",
-                    "hovertemplate": hovertemplate_unfolded,
-                    "marker": {"size": 10, "color": color, "symbol": "o"},
-                }
+                make_band_trace(
+                    fid,
+                    dates[idx],
+                    mag[idx],
+                    err=err[idx],
+                    legendgroup=f"{fname} band",
+                    marker={"size":10},
+                    hovertemplate=hovertemplate_unfolded,
+                )
             )
 
             # Model
@@ -1724,7 +1763,7 @@ def draw_lightcurve(
         pdf_release = pd.DataFrame()
 
     # Exclude lower-quality points overlapping higher-quality ones
-    mask = np.in1d(pdf_upperv["i:jd"].to_numpy(), pdf["i:jd"].to_numpy())
+    mask = np.isin(pdf_upperv["i:jd"].to_numpy(), pdf["i:jd"].to_numpy())
     pdf_upperv, dates_upperv = (_[~mask] for _ in (pdf_upperv, dates_upperv))
 
     # shortcuts
@@ -1818,40 +1857,35 @@ def draw_lightcurve(
         (2, "r", COLORS_ZTF[1], COLORS_ZTF_NEGATIVE[1]),
     ):
         # High-quality measurements
-        hovertemplate = r"""
-        <b>%{yaxis.title.text}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-        <b>mjd</b>: %{customdata[0]}
-        <extra></extra>
-        """
+        hovertemplate = textwrap.dedent(
+            r"""
+            <b>%{yaxis.title.text}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+            <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+            <b>mjd</b>: %{customdata[0]}
+            <extra></extra>
+            """
+        )
         idx = pdf["i:fid"] == fid
         figure["data"].append(
-            {
-                "x": dates[idx],
-                "y": mag[idx] * scale,
-                "error_y": {
-                    "type": "data",
-                    "array": err[idx] * scale,
-                    "visible": True,
-                    "width": 0,
-                    "opacity": 0.5,
-                    "color": color,
-                },
-                "mode": "markers",
-                "name": f"{fname} band",
-                "customdata": np.stack(
+            make_band_trace(
+                fid,
+                dates[idx],
+                mag[idx] * scale,
+                err=err[idx] * scale,
+                customdata=np.stack(
                     (
                         pdf["i:jd"][idx] - 2400000.5,
                         pdf["i:isdiffpos"][idx].apply(
-                            lambda x: "(-) " if x == "f" else ""
+                            # We should only show minus sign here for magnitudes
+                            lambda x: "(-) " if x == "f" and "flux" not in switch else ""
                         ),
                     ),
                     axis=-1,
                 ),
-                "hovertemplate": hovertemplate,
-                "legendgroup": f"{fname} band",
-                "legendrank": 100 + 10 * fid,
-                "marker": {
+                hovertemplate=hovertemplate,
+                legendgroup=f"{fname} band",
+                legendrank=100 + 10 * fid,
+                marker={
                     "size": 12,
                     "color": pdf["i:isdiffpos"][idx].apply(
                         lambda x,
@@ -1860,71 +1894,63 @@ def draw_lightcurve(
                     ),
                     "symbol": "o",
                 },
-            },
+            ),
         )
 
         if switch == "Difference magnitude":
             # Upper limits
             if not pdf_upper.empty:
                 # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
-                hovertemplate_upper = r"""
-                <b>Upper limit</b>: %{y:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <extra></extra>
-                """
+                hovertemplate_upper = textwrap.dedent(
+                    r"""
+                    <b>Upper limit</b>: %{y:.2f}<br>
+                    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                    <b>mjd</b>: %{customdata}
+                    <extra></extra>
+                    """
+                )
                 idx = pdf_upper["i:fid"] == fid
                 figure["data"].append(
-                    {
-                        "x": dates_upper[idx],
-                        "y": pdf_upper["i:diffmaglim"][idx],
-                        "mode": "markers",
-                        "name": "",
-                        "customdata": pdf_upper["i:jd"][idx] - 2400000.5,
-                        "hovertemplate": hovertemplate_upper,
-                        "legendgroup": f"{fname} band upper",
-                        "legendrank": 101 + 10 * fid,
-                        "marker": {
-                            "color": color,
+                    make_band_trace(
+                        fid,
+                        dates_upper[idx],
+                        pdf_upper["i:diffmaglim"][idx],
+                        name="",
+                        customdata=pdf_upper["i:jd"][idx] - 2400000.5,
+                        hovertemplate=hovertemplate_upper,
+                        legendgroup=f"{fname} band upper",
+                        legendrank=101 + 10 * fid,
+                        marker={
                             "symbol": "triangle-down-open",
                             "opacity": 0.5,
                         },
-                        # 'showlegend': False
-                    },
+                    ),
                 )
 
             # Lower-quality data points
             if not pdf_upperv.empty:
                 # <b>candid</b>: %{customdata[0]}<br> not available in index tables...
-                hovertemplate_upperv = r"""
-                <b>%{yaxis.title.text} (low quality)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <extra></extra>
-                """
+                hovertemplate_upperv = textwrap.dedent(
+                    r"""
+                    <b>%{yaxis.title.text} (low quality)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                    <b>mjd</b>: %{customdata}
+                    <extra></extra>
+                    """
+                )
                 idx = pdf_upperv["i:fid"] == fid
                 figure["data"].append(
-                    {
-                        "x": dates_upperv[idx],
-                        "y": pdf_upperv["i:magpsf"][idx],
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_upperv["i:sigmapsf"][idx],
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.5,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "customdata": pdf_upperv["i:jd"][idx] - 2400000.5,
-                        "hovertemplate": hovertemplate_upperv,
-                        "legendgroup": f"{fname} band",
-                        "marker": {
-                            "color": color,
-                            "symbol": "triangle-up",
-                        },
-                        "showlegend": False,
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_upperv[idx],
+                        pdf_upperv["i:magpsf"][idx],
+                        err=pdf_upperv["i:sigmapsf"][idx],
+                        customdata=pdf_upperv["i:jd"][idx] - 2400000.5,
+                        hovertemplate=hovertemplate_upperv,
+                        legendgroup=f"{fname} band",
+                        marker={"symbol": "triangle-up"},
+                        showlegend=False,
+                    ),
                 )
 
         elif switch == "DC magnitude":
@@ -1951,38 +1977,29 @@ def draw_lightcurve(
 
             # Data release photometry
             if not pdf_release.empty:
-                hovertemplate_release = r"""
-                <b>Data release magnitude</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <extra></extra>
-                """
+                hovertemplate_release = textwrap.dedent(
+                    r"""
+                    <b>Data release magnitude</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                    <b>mjd</b>: %{customdata}
+                    <extra></extra>
+                    """
+                )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
-                    {
-                        "x": dates_release[idx],
-                        "y": pdf_release["mag"][idx],
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_release["magerr"][idx],
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.5,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "name": "",
-                        "customdata": pdf_release["mjd"][idx],
-                        "hovertemplate": hovertemplate_release,
-                        "legendgroup": f"{fname} band release",
-                        "legendrank": 102 + 10 * fid,
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_release[idx],
+                        pdf_release["mag"][idx],
+                        err=pdf_release["magerr"][idx],
+                        name="",
+                        customdata=pdf_release["mjd"][idx],
+                        hovertemplate=hovertemplate_release,
+                        legendgroup=f"{fname} band release",
+                        legendrank=102 + 10 * fid,
+                        marker={"color": color, "symbol": "."},
+                        opacity=0.5,
+                    ),
                 )
 
         elif switch == "Difference flux":
@@ -1996,42 +2013,37 @@ def draw_lightcurve(
                         ref = 3631 * 10 ** (-0.4 * np.mean(pdf["i:magnr"][idx])) * scale
 
                 hovertemplate_release = (
-                    r"""
-                <b>Baseline subtracted data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <b>baseline</b>: """
-                    + "{:.2f}".format(ref)
-                    + r""" milliJansky
-                <extra></extra>
-                """
+                    textwrap.dedent(
+                        r"""
+                        <b>Baseline subtracted data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                        <b>baseline</b>:
+                        """
+                    )
+                    + " {:.2f} ".format(ref)
+                    + textwrap.dedent(
+                        r"""
+                        milliJansky<br>
+                        <b>mjd</b>: %{customdata}
+                        <extra></extra>
+                        """
+                    )
                 )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
-                    {
-                        "x": dates_release[idx],
-                        "y": pdf_release["flux"][idx] * scale - ref,
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_release["fluxerr"][idx] * scale,
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.5,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "name": "",
-                        "customdata": pdf_release["mjd"][idx],
-                        "hovertemplate": hovertemplate_release,
-                        "legendgroup": f"{fname} band release",
-                        "legendrank": 102 + 10 * fid,
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_release[idx],
+                        pdf_release["flux"][idx] * scale - ref,
+                        err=pdf_release["fluxerr"][idx] * scale,
+                        name="",
+                        customdata=pdf_release["mjd"][idx],
+                        hovertemplate=hovertemplate_release,
+                        legendgroup=f"{fname} band release",
+                        legendrank=102 + 10 * fid,
+                        marker={"symbol": "."},
+                        opacity=0.5,
+                    ),
                 )
 
         elif switch == "DC flux":
@@ -2058,47 +2070,40 @@ def draw_lightcurve(
 
             # Data release photometry
             if not pdf_release.empty:
-                hovertemplate_release = r"""
-                <b>Data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-                <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-                <b>mjd</b>: %{customdata}
-                <extra></extra>
-                """
+                hovertemplate_release = textwrap.dedent(
+                    r"""
+                    <b>Data release flux (mulliJansky)</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+                    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+                    <b>mjd</b>: %{customdata}
+                    <extra></extra>
+                    """
+                )
                 idx = pdf_release["filtercode"] == "z" + fname
                 figure["data"].append(
-                    {
-                        "x": dates_release[idx],
-                        "y": pdf_release["flux"][idx] * scale,
-                        "error_y": {
-                            "type": "data",
-                            "array": pdf_release["fluxerr"][idx] * scale,
-                            "visible": True,
-                            "width": 0,
-                            "opacity": 0.5,
-                            "color": color,
-                        },
-                        "mode": "markers",
-                        "name": "",
-                        "customdata": pdf_release["mjd"][idx],
-                        "hovertemplate": hovertemplate_release,
-                        "legendgroup": f"{fname} band release",
-                        "legendrank": 102 + 10 * fid,
-                        "marker": {
-                            "color": color,
-                            "symbol": ".",
-                        },
-                        "opacity": 0.5,
-                        # 'showlegend': False
-                    },
+                    make_band_trace(
+                        fid,
+                        dates_release[idx],
+                        pdf_release["flux"][idx] * scale,
+                        err=pdf_release["fluxerr"][idx] * scale,
+                        name="",
+                        customdata=pdf_release["mjd"][idx],
+                        hovertemplate=hovertemplate_release,
+                        legendgroup=f"{fname} band release",
+                        legendrank=102 + 10 * fid,
+                        marker={"color": color, "symbol": "."},
+                        opacity=0.5,
+                    ),
                 )
 
     if show_color:
-        hovertemplate_gr = r"""
-        <b>g - r</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-        <b>mjd</b>: %{customdata}
-        <extra></extra>
-        """
+        hovertemplate_gr = textwrap.dedent(
+            r"""
+            <b>g - r</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+            <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+            <b>mjd</b>: %{customdata}
+            <extra></extra>
+            """
+        )
 
         pdf_ = None
 
@@ -2229,53 +2234,40 @@ def draw_lightcurve_sn(object_data, object_upper, object_uppervalid) -> dict:
     # shortcuts
     mag = pdf["i:magpsf"]
     err = pdf["i:sigmapsf"]
-    layout_lightcurve["yaxis"]["title"] = "Difference magnitude"
-    layout_lightcurve["yaxis"]["autorange"] = "reversed"
+    layout = deepcopy(layout_lightcurve)
+    layout["yaxis"]["title"] = "Difference magnitude"
+    layout["yaxis"]["autorange"] = "reversed"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+    )
     figure = {
         "data": [
-            {
-                "x": dates[pdf["i:fid"] == 1],
-                "y": mag[pdf["i:fid"] == 1],
-                "error_y": {
-                    "type": "data",
-                    "array": err[pdf["i:fid"] == 1],
-                    "visible": True,
-                    "width": 0,
-                    "opacity": 0.5,
-                    "color": COLORS_ZTF[0],
-                },
-                "mode": "markers",
-                "name": "g band",
-                "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
-                "hovertemplate": hovertemplate,
-                "marker": {"size": 12, "color": COLORS_ZTF[0], "symbol": "o"},
-            },
-            {
-                "x": dates[pdf["i:fid"] == 2],
-                "y": mag[pdf["i:fid"] == 2],
-                "error_y": {
-                    "type": "data",
-                    "array": err[pdf["i:fid"] == 2],
-                    "visible": True,
-                    "width": 0,
-                    "opacity": 0.5,
-                    "color": COLORS_ZTF[1],
-                },
-                "mode": "markers",
-                "name": "r band",
-                "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
-                "hovertemplate": hovertemplate,
-                "marker": {"size": 12, "color": COLORS_ZTF[1], "symbol": "o"},
-            },
+            make_band_trace(
+                1,
+                dates[pdf["i:fid"] == 1],
+                mag[pdf["i:fid"] == 1],
+                err=err[pdf["i:fid"] == 1],
+                customdata=pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
+                hovertemplate=hovertemplate,
+                marker={"size": 12},
+            ),
+            make_band_trace(
+                2,
+                dates[pdf["i:fid"] == 2],
+                mag[pdf["i:fid"] == 2],
+                err=err[pdf["i:fid"] == 2],
+                customdata=pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
+                hovertemplate=hovertemplate,
+                marker={"size": 12},
+            ),
         ],
-        "layout": layout_lightcurve,
+        "layout": layout,
     }
     return figure
 
@@ -2353,12 +2345,14 @@ def draw_lightcurve_preview(name) -> dict:
 
         layout["yaxis"]["title"] = "Apparent DC magnitude"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata[0]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}%{customdata[2]}</b>: %{customdata[1]}%{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata[0]}
+        <extra></extra>
+        """
+    )
     figure = {
         "data": [],
         "layout": layout,
@@ -2374,20 +2368,12 @@ def draw_lightcurve_preview(name) -> dict:
             continue
 
         figure["data"].append(
-            {
-                "x": dates[idx],
-                "y": mag[idx],
-                "error_y": {
-                    "type": "data",
-                    "array": err[idx],
-                    "visible": True,
-                    "width": 0,
-                    "color": color,  # It does not support arrays of colors so let's use positive one for all points
-                    "opacity": 0.5,
-                },
-                "mode": "markers",
-                "name": f"{fname} band",
-                "customdata": np.stack(
+            make_band_trace(
+                fid,
+                dates[idx],
+                mag[idx],
+                err=err[idx],
+                customdata=np.stack(
                     (
                         pdf["i:jd"][idx] - 2400000.5,
                         pdf["i:isdiffpos"].apply(lambda x: "(-) " if x == "f" else "")[
@@ -2399,8 +2385,8 @@ def draw_lightcurve_preview(name) -> dict:
                     ),
                     axis=-1,
                 ),
-                "hovertemplate": hovertemplate,
-                "marker": {
+                hovertemplate=hovertemplate,
+                marker={
                     "size": pdf["d:tag"].apply(lambda x: 12 if x == "valid" else 6)[
                         idx
                     ],
@@ -2415,7 +2401,7 @@ def draw_lightcurve_preview(name) -> dict:
                     "line": {"width": 0},
                     "opacity": 1,
                 },
-            },
+            ),
         )
 
         if is_dc_corrected:
@@ -2461,12 +2447,14 @@ def draw_scores(object_data) -> dict:
     # type conversion
     dates = convert_jd(pdf["i:jd"])
 
-    hovertemplate = """
-    <b>%{customdata[0]}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        """
+        <b>%{customdata[0]}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
     figure = {
         "data": [
             {
@@ -2666,12 +2654,14 @@ def draw_color(object_data) -> dict:
     # type conversion
     dates = convert_jd(pdf["i:jd"])
 
-    hovertemplate = """
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        """
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+    )
     color = "#3C8DFF"
     idx = pdf["i:fid"] == 1  # Show colors at g points only
     figure = {
@@ -2726,12 +2716,14 @@ def draw_color_rate(object_data) -> dict:
     # type conversion
     dates = convert_jd(pdf["i:jd"])
 
-    hovertemplate_rate = """
-    <b>%{customdata[0]} in mag/day</b>: %{y:.3f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate_rate = textwrap.dedent(
+        """
+        <b>%{customdata[0]} in mag/day</b>: %{y:.3f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
     m1 = pdf["i:fid"] == 1
     m2 = pdf["i:fid"] == 2
     figure = {
@@ -3383,99 +3375,78 @@ def draw_sso_lightcurve(pdf) -> dict:
     mag = pdf["i:magpsf"]
     err = pdf["i:sigmapsf"]
 
-    layout_sso_lightcurve["yaxis"]["title"] = "Difference magnitude"
-    layout_sso_lightcurve["yaxis"]["autorange"] = "reversed"
+    layout = deepcopy(layout_sso_lightcurve)
+    layout["yaxis"]["title"] = "Difference magnitude"
+    layout["yaxis"]["autorange"] = "reversed"
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
-    <b>mjd</b>: %{customdata}
-    <extra></extra>
-    """
-    hovertemplate_ephem = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f<br>
-    <b>mjd</b>: %{customdata}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+    )
+    hovertemplate_ephem = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x|%Y/%m/%d %H:%M:%S.%L}<br>
+        <b>mjd</b>: %{customdata}
+        <extra></extra>
+        """
+    )
 
     to_plot = []
 
-    gobs = {
-        "x": dates[pdf["i:fid"] == 1],
-        "y": mag[pdf["i:fid"] == 1],
-        "error_y": {
-            "type": "data",
-            "array": err[pdf["i:fid"] == 1],
-            "visible": True,
-            "width": 0,
-            "opacity": 0.5,
-            "color": COLORS_ZTF[0],
-        },
-        "mode": "markers",
-        "name": "g band",
-        "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
-    }
+    gobs = make_band_trace(
+        1,
+        dates[pdf["i:fid"] == 1],
+        mag[pdf["i:fid"] == 1],
+        err=err[pdf["i:fid"] == 1],
+        customdata=pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
     to_plot.append(gobs)
 
     if "SDSS:g" in pdf.columns:
-        gephem = {
-            "x": dates[pdf["i:fid"] == 1],
-            "y": pdf["SDSS:g"][pdf["i:fid"] == 1],
-            "mode": "markers",
-            "name": "g (ephem)",
-            "customdata": pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
-            "hovertemplate": hovertemplate_ephem,
-            "marker": {
-                "size": 6,
-                "color": COLORS_ZTF[0],
-                "symbol": "o",
-                "opacity": 0.5,
-            },
-        }
+        gephem = make_band_trace(
+            1,
+            dates[pdf["i:fid"] == 1],
+            pdf["SDSS:g"][pdf["i:fid"] == 1],
+            name="g (ephem)",
+            customdata=pdf["i:jd"][pdf["i:fid"] == 1] - 2400000.5,
+            hovertemplate=hovertemplate_ephem,
+            marker={"size": 6, "opacity": 0.5},
+        )
         to_plot.append(gephem)
 
-    robs = {
-        "x": dates[pdf["i:fid"] == 2],
-        "y": mag[pdf["i:fid"] == 2],
-        "error_y": {
-            "type": "data",
-            "array": err[pdf["i:fid"] == 2],
-            "visible": True,
-            "width": 0,
-            "opacity": 0.5,
-            "color": COLORS_ZTF[1],
-        },
-        "mode": "markers",
-        "name": "r band",
-        "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
-    }
+    robs = make_band_trace(
+        2,
+        dates[pdf["i:fid"] == 2],
+        mag[pdf["i:fid"] == 2],
+        err=err[pdf["i:fid"] == 2],
+        customdata=pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
     to_plot.append(robs)
 
     if "SDSS:r" in pdf.columns:
-        rephem = {
-            "x": dates[pdf["i:fid"] == 2],
-            "y": pdf["SDSS:r"][pdf["i:fid"] == 2],
-            "mode": "markers",
-            "name": "r (ephem)",
-            "customdata": pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
-            "hovertemplate": hovertemplate_ephem,
-            "marker": {
-                "size": 6,
-                "color": COLORS_ZTF[1],
-                "symbol": "o",
-                "opacity": 0.5,
-            },
-        }
+        rephem = make_band_trace(
+            2,
+            dates[pdf["i:fid"] == 2],
+            pdf["SDSS:r"][pdf["i:fid"] == 2],
+            name="r (ephem)",
+            customdata=pdf["i:jd"][pdf["i:fid"] == 2] - 2400000.5,
+            hovertemplate=hovertemplate_ephem,
+            marker={"size": 6, "opacity": 0.5},
+        )
         to_plot.append(rephem)
 
     figure = {
         "data": to_plot,
-        "layout": layout_sso_lightcurve,
+        "layout": layout,
     }
     graph = dcc.Graph(
         figure=figure,
@@ -3518,95 +3489,92 @@ def draw_sso_residual(pdf) -> dict:
     layout_sso_residual["yaxis"]["title"] = "Residuals [mag]"
     layout_sso_residual["xaxis"]["title"] = "Ecliptic longitude [deg]"
 
+    lon1 = pdf["Longitude"][pdf["i:fid"] == 1]
+    lon2 = pdf["Longitude"][pdf["i:fid"] == 2]
     diff1 = mag[pdf["i:fid"] == 1] - pdf["SDSS:g"][pdf["i:fid"] == 1]
     diff2 = mag[pdf["i:fid"] == 2] - pdf["SDSS:r"][pdf["i:fid"] == 2]
 
-    popt1, pcov1 = curve_fit(sine_fit, pdf["Longitude"][pdf["i:fid"] == 1], diff1)
-    popt2, pcov2 = curve_fit(sine_fit, pdf["Longitude"][pdf["i:fid"] == 2], diff2)
+    if len(lon1) > 1:
+        popt1, _ = curve_fit(sine_fit, lon1, diff1)
+    else:
+        popt1 = None
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>date</b>: %{customdata[1]}
-    <extra></extra>
-    """
-    gresiduals = {
-        "x": pdf["Longitude"][pdf["i:fid"] == 1],
-        "y": diff1,
-        "error_y": {
-            "type": "data",
-            "array": err[pdf["i:fid"] == 1],
-            "visible": True,
-            "width": 0,
-            "opacity": 0.5,
-            "color": COLORS_ZTF[0],
-        },
-        "mode": "markers",
-        "name": "g band",
-        "customdata": list(
+    if len(lon2) > 1:
+        popt2, _ = curve_fit(sine_fit, lon2, diff2)
+    else:
+        popt2 = None
+
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
+    gresiduals = make_band_trace(
+        1,
+        pdf["Longitude"][pdf["i:fid"] == 1],
+        diff1,
+        err=err[pdf["i:fid"] == 1],
+        customdata=list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 1],
                 convert_jd(pdf["i:jd"][pdf["i:fid"] == 1]),
             ),
         ),
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
-    }
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
-    rresiduals = {
-        "x": pdf["Longitude"][pdf["i:fid"] == 2],
-        "y": diff2,
-        "error_y": {
-            "type": "data",
-            "array": err[pdf["i:fid"] == 2],
-            "visible": True,
-            "width": 0,
-            "opacity": 0.5,
-            "color": COLORS_ZTF[1],
-        },
-        "mode": "markers",
-        "name": "r band",
-        "customdata": list(
+    rresiduals = make_band_trace(
+        2,
+        pdf["Longitude"][pdf["i:fid"] == 2],
+        diff2,
+        err=err[pdf["i:fid"] == 2],
+        customdata=list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 2],
                 convert_jd(pdf["i:jd"][pdf["i:fid"] == 2]),
             ),
         ),
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
-    }
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
-    longitude_arr = np.linspace(0, 360, num=100)
-    gfit = {
-        "x": longitude_arr,
-        "y": sine_fit(longitude_arr, *popt1),
-        "mode": "lines",
-        "name": "fit",
-        "showlegend": False,
-        "line": {
-            "color": COLORS_ZTF[0],
-        },
-    }
+    data = [gresiduals]
+    if popt1 is not None:
+        longitude_arr = np.linspace(0, 360, num=100)
+        gfit = {
+            "x": longitude_arr,
+            "y": sine_fit(longitude_arr, *popt1),
+            "mode": "lines",
+            "name": "fit",
+            "showlegend": False,
+            "line": {
+                "color": COLORS_ZTF[0],
+            },
+        }
+        data.append(gfit)
 
-    rfit = {
-        "x": longitude_arr,
-        "y": sine_fit(longitude_arr, *popt2),
-        "mode": "lines",
-        "name": "fit",
-        "showlegend": False,
-        "line": {
-            "color": COLORS_ZTF[1],
-        },
-    }
+    data.append(rresiduals)
+    if popt2 is not None:
+        longitude_arr = np.linspace(0, 360, num=100)
+        rfit = {
+            "x": longitude_arr,
+            "y": sine_fit(longitude_arr, *popt2),
+            "mode": "lines",
+            "name": "fit",
+            "showlegend": False,
+            "line": {
+                "color": COLORS_ZTF[1],
+            },
+        }
+        data.append(rfit)
 
     figure = {
-        "data": [
-            gresiduals,
-            gfit,
-            rresiduals,
-            rfit,
-        ],
+        "data": data,
         "layout": layout_sso_residual,
     }
     graph = dcc.Graph(
@@ -3646,42 +3614,42 @@ def draw_sso_astrometry(pdf) -> dict:
     deltaRAcosDEC = (pdf["i:ra"] - pdf.RA) * np.cos(np.radians(pdf["i:dec"])) * 3600
     deltaDEC = (pdf["i:dec"] - pdf.DEC) * 3600
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Observation date</b>: %{customdata[1]}
-    <extra></extra>
-    """
-    diff_g = {
-        "x": deltaRAcosDEC[pdf["i:fid"] == 1],
-        "y": deltaDEC[pdf["i:fid"] == 1],
-        "mode": "markers",
-        "name": "g band",
-        "customdata": list(
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Observation date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
+    diff_g = make_band_trace(
+        1,
+        deltaRAcosDEC[pdf["i:fid"] == 1],
+        deltaDEC[pdf["i:fid"] == 1],
+        customdata=list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 1],
                 Time(pdf["i:jd"][pdf["i:fid"] == 1], format="jd").iso,
             ),
         ),
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
-    }
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
-    diff_r = {
-        "x": deltaRAcosDEC[pdf["i:fid"] == 2],
-        "y": deltaDEC[pdf["i:fid"] == 2],
-        "mode": "markers",
-        "name": "r band",
-        "customdata": list(
+    diff_r = make_band_trace(
+        2,
+        deltaRAcosDEC[pdf["i:fid"] == 2],
+        deltaDEC[pdf["i:fid"] == 2],
+        customdata=list(
             zip(
                 pdf["i:objectId"][pdf["i:fid"] == 2],
                 Time(pdf["i:jd"][pdf["i:fid"] == 2], format="jd").iso,
             ),
         ),
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
-    }
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
     figure = {
         "data": [
@@ -3737,13 +3705,15 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
     figs = []
     residual_figs = []
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Observation date</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Observation date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
 
     if switch_func == "HG1G2":
         fitfunc = func_hg1g2
@@ -3793,7 +3763,8 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
         p0 = None
         x = np.deg2rad(pdf["Phase"].to_numpy())
 
-    layout_sso_phasecurve["title"]["text"] = "Reduced &#967;<sup>2</sup>: "
+    layout = deepcopy(layout_sso_phasecurve)
+    layout["title"]["text"] = "Reduced &#967;<sup>2</sup>: "
 
     # Multi-band fit
     outdic = estimate_sso_params(
@@ -3940,11 +3911,11 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
 
     if switch_func == "sfHG1G2":
         for f in filts:
-            layout_sso_phasecurve["title"]["text"] += "  {}:{:.2f}  ".format(
+            layout["title"]["text"] += "  {}:{:.2f}  ".format(
                 filters[f], outdic["chi2red_{}".format(f)]
             )
     else:
-        layout_sso_phasecurve["title"]["text"] += "  {:.2f}  ".format(outdic["chi2red"])
+        layout["title"]["text"] += "  {:.2f}  ".format(outdic["chi2red"])
 
     residual_figure = {
         "data": residual_figs,
@@ -3953,7 +3924,7 @@ def draw_sso_phasecurve(switch_func: str, object_sso) -> dict:
 
     figure = {
         "data": figs,
-        "layout": layout_sso_phasecurve,
+        "layout": layout,
     }
 
     columns = [
@@ -4038,61 +4009,45 @@ def draw_tracklet_lightcurve(pdf) -> dict:
     mag = pdf["i:magpsf"]
     err = pdf["i:sigmapsf"]
 
-    layout_tracklet_lightcurve["yaxis"]["title"] = "Difference magnitude"
-    layout_tracklet_lightcurve["yaxis"]["autorange"] = "reversed"
+    layout = deepcopy(layout_tracklet_lightcurve)
+    layout["yaxis"]["title"] = "Difference magnitude"
+    layout["yaxis"]["autorange"] = "reversed"
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Date</b>: %{customdata[1]}
-    <extra></extra>
-    """
-
-    def generate_plot(filt, marker, color, showlegend):
-        if filt == 1:
-            name = "g band"
-        else:
-            name = "r band"
-        dic = {
-            "x": pdf["i:ra"][pdf["i:fid"] == filt],
-            "y": mag[pdf["i:fid"] == filt],
-            "error_y": {
-                "type": "data",
-                "array": err[pdf["i:fid"] == filt],
-                "visible": True,
-                "width": 0,
-                "opacity": 0.5,
-                "color": color,
-            },
-            "mode": "markers",
-            "name": name,
-            "showlegend": showlegend,
-            "customdata": list(
-                zip(
-                    pdf["i:objectId"][pdf["i:fid"] == filt],
-                    pdf["v:lastdate"][pdf["i:fid"] == filt],
-                ),
-            ),
-            "hovertemplate": hovertemplate,
-            "marker": {"size": 12, "color": color, "symbol": marker},
-        }
-        return dic
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f} &plusmn; %{error_y.array:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
 
     data_ = []
-    for filt in np.unique(pdf["i:fid"]):
-        if filt == 1:
+    for fid in np.unique(pdf["i:fid"]):
+        if fid in [1, 2]:
+            idx = pdf["i:fid"] == fid
             data_.append(
-                generate_plot(1, marker="o", color=COLORS_ZTF[0], showlegend=True)
-            )
-        elif filt == 2:
-            data_.append(
-                generate_plot(2, marker="o", color=COLORS_ZTF[1], showlegend=True)
+                make_band_trace(
+                    fid,
+                    pdf["i:ra"][idx],
+                    mag[idx],
+                    err=err[idx],
+                    customdata=list(
+                        zip(
+                            pdf["i:objectId"][idx],
+                            pdf["v:lastdate"][idx],
+                        ),
+                    ),
+                    hovertemplate=hovertemplate,
+                    marker={"size": 12},
+                    showlegend=True,
+                )
             )
 
     figure = {
         "data": data_,
-        "layout": layout_tracklet_lightcurve,
+        "layout": layout,
     }
 
     graph = dcc.Graph(
@@ -4129,13 +4084,15 @@ def draw_tracklet_radec(pdf) -> dict:
     ra = pdf["i:ra"].astype(float)
     dec = pdf["i:dec"].astype(float)
 
-    hovertemplate = r"""
-    <b>objectId</b>: %{customdata[0]}<br>
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Date</b>: %{customdata[1]}
-    <extra></extra>
-    """
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>objectId</b>: %{customdata[0]}<br>
+        <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Date</b>: %{customdata[1]}
+        <extra></extra>
+        """
+    )
     figure = {
         "data": [
             {
@@ -4908,31 +4865,31 @@ def draw_alert_astrometry(object_data, kind) -> dict:
     deltaRAcosDEC = (pdf["i:ra"] - mean_ra) * np.cos(np.radians(pdf["i:dec"])) * 3600
     deltaDEC = (pdf["i:dec"] - mean_dec) * 3600
 
-    hovertemplate = r"""
-    <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
-    <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
-    <b>Observation date</b>: %{customdata}
-    <extra></extra>
-    """
-    diff_g = {
-        "x": deltaRAcosDEC[pdf["i:fid"] == 1],
-        "y": deltaDEC[pdf["i:fid"] == 1],
-        "mode": "markers",
-        "name": "g band",
-        "customdata": Time(pdf["i:jd"][pdf["i:fid"] == 1], format="jd").iso,
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[0], "symbol": "o"},
-    }
+    hovertemplate = textwrap.dedent(
+        r"""
+        <b>%{yaxis.title.text}</b>: %{y:.2f}<br>
+        <b>%{xaxis.title.text}</b>: %{x:.2f}<br>
+        <b>Observation date</b>: %{customdata}
+        <extra></extra>
+        """
+    )
+    diff_g = make_band_trace(
+        1,
+        deltaRAcosDEC[pdf["i:fid"] == 1],
+        deltaDEC[pdf["i:fid"] == 1],
+        customdata=Time(pdf["i:jd"][pdf["i:fid"] == 1], format="jd").iso,
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
-    diff_r = {
-        "x": deltaRAcosDEC[pdf["i:fid"] == 2],
-        "y": deltaDEC[pdf["i:fid"] == 2],
-        "mode": "markers",
-        "name": "r band",
-        "customdata": Time(pdf["i:jd"][pdf["i:fid"] == 2], format="jd").iso,
-        "hovertemplate": hovertemplate,
-        "marker": {"size": 6, "color": COLORS_ZTF[1], "symbol": "o"},
-    }
+    diff_r = make_band_trace(
+        2,
+        deltaRAcosDEC[pdf["i:fid"] == 2],
+        deltaDEC[pdf["i:fid"] == 2],
+        customdata=Time(pdf["i:jd"][pdf["i:fid"] == 2], format="jd").iso,
+        hovertemplate=hovertemplate,
+        marker={"size": 6},
+    )
 
     figure = {
         "data": [
