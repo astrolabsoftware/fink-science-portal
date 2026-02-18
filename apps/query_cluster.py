@@ -650,6 +650,7 @@ fink_datatransfer \\
     -topic {topic_name} \\
     -outdir {topic_name} \\
     -partitionby {partition} \\
+    -survey ztf \\
     --verbose
         """
         return code_block
