@@ -418,7 +418,7 @@ def display_filter_tab(trans_datasource):
                 " for fields description and ",
                 dmc.Anchor(
                     "here",
-                    href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/",
+                    href="https://doc.ztf.fink-broker.org/en/latest/services/data_transfer/",
                     size="xs",
                     target="_blank",
                 ),
@@ -447,7 +447,7 @@ def display_filter_tab(trans_datasource):
                 " for fields description and ",
                 dmc.Anchor(
                     "here",
-                    href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/",
+                    href="https://doc.ztf.fink-broker.org/en/latest/services/data_transfer/",
                     size="xs",
                     target="_blank",
                 ),
@@ -855,7 +855,7 @@ number of alerts).
 #### 2. Register
 
 To retrieve the data, you need to get an account. See [fink-client](https://github.com/astrolabsoftware/fink-client) and
-the [documentation](https://fink-broker.readthedocs.io/en/latest/services/data_transfer) for more information.
+the [documentation](https://doc.ztf.fink-broker.org/en/latest/services/data_transfer/) for more information.
 
 #### 3. Retrieve
 
@@ -883,7 +883,7 @@ def layout():
 
     Once ready, submit your job on the Fink Apache Spark and Kafka clusters to retrieve your data wherever you like.
     To access the data, you need to create an account. See the [fink-client](https://github.com/astrolabsoftware/fink-client) and
-    the [documentation](https://fink-broker.readthedocs.io/en/latest/services/data_transfer) for more information. The data is available
+    the [documentation](https://doc.ztf.fink-broker.org/en/latest/services/data_transfer/) for more information. The data is available
     for download for 7 days.
     """
 
