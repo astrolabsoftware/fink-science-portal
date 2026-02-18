@@ -89,7 +89,7 @@ import pandas as pd
 
 # get stats for all the year 2021
 r = requests.post(
-  'https://api.fink-portal.org/api/v1/statistics',
+  'https://api.ztf.fink-portal.org/api/v1/statistics',
   json={{
     'date': '2021',
     'output-format': 'json'
