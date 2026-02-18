@@ -160,7 +160,7 @@ def filter_number_tab():
                         "Filters are provided by the Fink community of users. More information at ",
                         html.A(
                             "filters/#real-time-filters",
-                            href="https://fink-broker.readthedocs.io/en/latest/broker/filters/#real-time-filters",
+                            href="https://doc.ztf.fink-broker.org/en/latest/broker/filters/#real-time-filters",
                             target="_blank",
                         ),
                         ". No filter is applied by default.",
@@ -389,7 +389,7 @@ def display_filter_tab(trans_datasource):
                 " for fields description and ",
                 dmc.Anchor(
                     "here",
-                    href="https://fink-broker.readthedocs.io/en/latest/services/data_transfer/",
+                    href="https://doc.ztf.fink-broker.org/en/latest/services/data_transfer/",
                     size="xs",
                     target="_blank",
                 ),
