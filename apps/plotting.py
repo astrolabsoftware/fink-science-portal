@@ -1877,9 +1877,9 @@ def draw_lightcurve(
                         pdf["i:jd"][idx] - 2400000.5,
                         pdf["i:isdiffpos"][idx].apply(
                             # We should only show minus sign here for magnitudes
-                            lambda x: "(-) "
-                            if x == "f" and "flux" not in switch
-                            else ""
+                            lambda x: (
+                                "(-) " if x == "f" and "flux" not in switch else ""
+                            )
                         ),
                     ),
                     axis=-1,
@@ -1890,9 +1890,9 @@ def draw_lightcurve(
                 marker={
                     "size": 12,
                     "color": pdf["i:isdiffpos"][idx].apply(
-                        lambda x,
-                        color_negative=color_negative,
-                        color=color: color_negative if x == "f" else color
+                        lambda x, color_negative=color_negative, color=color: (
+                            color_negative if x == "f" else color
+                        )
                     ),
                     "symbol": "o",
                 },
@@ -2393,9 +2393,9 @@ def draw_lightcurve_preview(name) -> dict:
                         idx
                     ],
                     "color": pdf["i:isdiffpos"].apply(
-                        lambda x,
-                        color_negative=color_negative,
-                        color=color: color_negative if x == "f" else color
+                        lambda x, color_negative=color_negative, color=color: (
+                            color_negative if x == "f" else color
+                        )
                     )[idx],
                     "symbol": pdf["d:tag"].apply(
                         lambda x: "o" if x == "valid" else "triangle-up"
