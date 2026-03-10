@@ -341,7 +341,11 @@ def submit_job(
             f"-dec_col={dec}",
             f"-radius_arcsec={radius}",
             f"-id_col={identifier}",
-            "-catalog_filename={}".format(catalog_filename_parquet),
+            "-catalog_filename={}".format(
+                "hdfs://{}///user/{}/{}".format(
+                    input_args["NAMENODE"], input_args["USER"], catalog_filename_parquet
+                )
+            ),
             "-kafka_bootstrap_servers={}".format(input_args["KAFKA_BOOTSTRAP_SERVERS"]),
             "-kafka_sasl_username={}".format(input_args["KAFKA_SASL_USERNAME"]),
             "-kafka_sasl_password={}".format(input_args["KAFKA_SASL_PASSWORD"]),
