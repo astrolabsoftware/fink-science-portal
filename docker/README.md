@@ -41,8 +41,15 @@ sudo docker images
 
 This is the documentation in order to run a command in a new container.
 
+We set environment variables :
 ```bash
-sudo docker run -it fsp
+export HOST=0.0.0.0
+export PORT=8000   # Replace 8000 with your desired port
+```
+We can now run with :
+
+```bash
+docker run -d -p ${PORT}:${PORT} -e HOST=${HOST} -e PORT=${PORT} fsp:latest
 ```
 
 The `docker ps` command only shows running containers by default. We can notice The ID of each containers. 
@@ -50,6 +57,8 @@ The `docker ps` command only shows running containers by default. We can notice 
 ```bash
 sudo docker ps
 ```
+Once the container is running, you can visit the portal in your browser at: http://localhost:8000
+
 
 
 If you have a problem during the running command, think to remove the `.bash_history` file.
@@ -66,28 +75,6 @@ Enter `exit` to get out of the container.
 To stop and remove your container, type `sudo docker rm -f <id_of_container>`.
 
 
-##
-
-## Share modifications of your Docker
-
-To see all the modifications of your folder, type `git status`.
-
-And to edit theses changes, enter :
-```bash
-git add docker docker/Dockerfile .
-```
-
-```bash
-git commit -m "new modifications of your dockerfile"
-```
-This will launch a text editor prompting you for a commit message. After you've entered a message, save the file and close the editor to create the actual commit.
-
-
-To push this modifications on the server:
-
-```bash
-git push
-```
 
 ### Additionnal Supports
 
