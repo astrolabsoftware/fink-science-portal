@@ -466,7 +466,9 @@ def main(args):
             cnames.remove(cname)
 
     if len(cnames) == 0:
-        log.error("No alert fields have been selected. Restart the job by choosing at least one field.")
+        log.error(
+            "No alert fields have been selected. Restart the job by choosing at least one field."
+        )
         sys.exit(1)
 
     # Wrap alert data
